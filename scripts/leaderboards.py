@@ -15,12 +15,12 @@ def update_top_contributors(days=None):
 
     if days:
         cutoff = datetime.now() - timedelta(days)
-        #condition = { "date": { "$gt": cutoff }, "method": {"$ne": "API"} }
-        condition = { "date": { "$gt": cutoff } }
+        # condition = { "date": { "$gt": cutoff }, "method": {"$ne": "API"} }
+        condition = {"date": {"$gt": cutoff}}
         collection = "leaders_%d" % days
     else:
         cutoff = None
-        #condition = { "method": {"$ne": "API"} }
+        # condition = { "method": {"$ne": "API"} }
         condition = {}
         collection = "leaders_alltime"
 
@@ -29,7 +29,7 @@ def update_top_contributors(days=None):
     oldtime = datetime.now()
 
     # Tally points for Public Source Sheets
-    query = {"status": "public" }
+    query = {"status": "public"}
     if cutoff:
         query["$or"] = [
             {"dateCreated": {"$gt": cutoff.isoformat()}},
@@ -47,32 +47,34 @@ def update_top_contributors(days=None):
         del sheet_points[l["user"]]
         if points:
             doc = {
-                "_id":            l["user"],
-                "count":          points,
+                "_id": l["user"],
+                "count": points,
                 "translateCount": int(l["translateCount"]),
-                "editCount":      int(l["editCount"]),
-                "addCount":       int(l["addCount"]),
-                "noteCount":      int(l["noteCount"]),
-                "linkCount":      int(l["linkCount"]),
-                "reviewCount":    int(l["reviewCount"]),
-                "sheetCount":     sheet_counts[l["user"]],
-                "texts":          sorted(l["texts"], key=lambda key: -l["texts"][key]),
-                "date":           datetime.now()
-                }
+                "editCount": int(l["editCount"]),
+                "addCount": int(l["addCount"]),
+                "noteCount": int(l["noteCount"]),
+                "linkCount": int(l["linkCount"]),
+                "reviewCount": int(l["reviewCount"]),
+                "sheetCount": sheet_counts[l["user"]],
+                "texts": sorted(l["texts"], key=lambda key: -l["texts"][key]),
+                "date": datetime.now(),
+            }
             db[collection].save(doc)
-    
+
     # Add points for those who only have sheet points
     for s in list(sheet_points.items()):
         if s[1]:
             doc = {
-                "_id": s[0], 
+                "_id": s[0],
                 "count": s[1],
-                "sheetCount": sheet_counts[s[0]], 
-                "date": datetime.now()}
+                "sheetCount": sheet_counts[s[0]],
+                "date": datetime.now(),
+            }
             db[collection].save(doc)
 
-    if cutoff:    
-        db[collection].remove({"date": {"$lt": oldtime }})
+    if cutoff:
+        db[collection].remove({"date": {"$lt": oldtime}})
+
 
 update_top_contributors()
 update_top_contributors(1)

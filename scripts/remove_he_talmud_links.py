@@ -21,8 +21,7 @@ from sefaria.texts import *
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-
+    db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
 
 mesechtot = get_text_titles({"categories": "Bavli"})
@@ -36,19 +35,14 @@ tregex = "^(" + t_title_string + ")\s\d"
 print(tregex)
 
 q = {
-	"type": "quotation",
-	"anchorText": {"$regex": "^$"},
-	"$and": [
-		{"refs": {"$regex": mregex}},
-		{"refs": {"$regex": tregex}}
-	]
+    "type": "quotation",
+    "anchorText": {"$regex": "^$"},
+    "$and": [{"refs": {"$regex": mregex}}, {"refs": {"$regex": tregex}}],
 }
 tlinks = db.links.find(q)
 
-#for t in tlinks:
-#		print t
+# for t in tlinks:
+# 		print t
 print("Removing " + str(tlinks.count()) + " links.")
 
 db.links.remove(q)
-
-

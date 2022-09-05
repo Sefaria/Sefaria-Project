@@ -43,99 +43,102 @@ from sefaria.system.database import db
 
 
 primary_titles = {
-        'פרשה': 'Parasha',
-        'Gra': 'Gra',
-        'רס"ג': 'Saadia Gaon',
-        'שער': 'Gate',
-        'פסוק': 'Verse',
-        'סעיף': 'Seif',
-        'גר"א': 'Gra',
-        'חלק': 'Section',
-        'Rasag': 'Saadia Gaon',
-        'משנה': 'Mishnah',
-        'Gate': 'Gate',
-        'הלכה': 'Halakhah',
-        'סדר טהרות': 'Seder Tahorot',
-        'תפילה': 'Liturgy',
-        'סעיף קטן': 'Seif Katan',
-        'מסכתות קטנות': 'Minor Tractates',
-        'מסכת': 'Tractate',
-        'ספר': 'Book',
-        'פסקה': 'Paragraph',
-        'פירוש': 'Comment',
-        'פרק': 'Chapter'
-    }
+    "פרשה": "Parasha",
+    "Gra": "Gra",
+    'רס"ג': "Saadia Gaon",
+    "שער": "Gate",
+    "פסוק": "Verse",
+    "סעיף": "Seif",
+    'גר"א': "Gra",
+    "חלק": "Section",
+    "Rasag": "Saadia Gaon",
+    "משנה": "Mishnah",
+    "Gate": "Gate",
+    "הלכה": "Halakhah",
+    "סדר טהרות": "Seder Tahorot",
+    "תפילה": "Liturgy",
+    "סעיף קטן": "Seif Katan",
+    "מסכתות קטנות": "Minor Tractates",
+    "מסכת": "Tractate",
+    "ספר": "Book",
+    "פסקה": "Paragraph",
+    "פירוש": "Comment",
+    "פרק": "Chapter",
+}
 
 
 def merge_terms_into_one(primary_term, other_terms):
     if isinstance(primary_term, Term):
-        new_term = Term({
-            "name": primary_term.name,
-            "scheme": primary_term.scheme,
-            "titles": [
-                {
-                    "lang": "en",
-                    "text": primary_term.get_primary_title(),
-                    "primary": True
-                },
-                {
-                    "lang": "he",
-                    "text": primary_term.get_primary_title('he'),
-                    "primary": True
-                }
-            ]
-        })
+        new_term = Term(
+            {
+                "name": primary_term.name,
+                "scheme": primary_term.scheme,
+                "titles": [
+                    {
+                        "lang": "en",
+                        "text": primary_term.get_primary_title(),
+                        "primary": True,
+                    },
+                    {
+                        "lang": "he",
+                        "text": primary_term.get_primary_title("he"),
+                        "primary": True,
+                    },
+                ],
+            }
+        )
     else:
-        new_term = Term({
-            "name": primary_term["en"],
-            "scheme": other_terms[0].scheme,
-            "titles": [
-                {
-                    "lang": "en",
-                    "text": primary_term["en"],
-                    "primary": True
-                },
-                {
-                    "lang": "he",
-                    "text": primary_term["he"],
-                    "primary": True
-                }
-            ]
-        })
+        new_term = Term(
+            {
+                "name": primary_term["en"],
+                "scheme": other_terms[0].scheme,
+                "titles": [
+                    {"lang": "en", "text": primary_term["en"], "primary": True},
+                    {"lang": "he", "text": primary_term["he"], "primary": True},
+                ],
+            }
+        )
     for term in other_terms:
         titles = term.get_titles_object()
         for t in titles:
-            new_term.add_title(t["text"], t["lang"]) #this step should eliminate duplicates.
+            new_term.add_title(
+                t["text"], t["lang"]
+            )  # this step should eliminate duplicates.
 
-        #print u"Deleting Term {}".format(term.get_primary_title())
+        # print u"Deleting Term {}".format(term.get_primary_title())
         term.delete()
 
-    #print u"Saving Term {}".format(new_term.get_primary_title())
+    # print u"Saving Term {}".format(new_term.get_primary_title())
     new_term.save()
-
 
 
 def remove_duplicates(duplicates):
     for title, dup in list(duplicates.items()):
         if title in primary_titles:
-            primary_term = Term().load({'name': primary_titles[title]})
-            if not primary_term: #one case where we want an entirely new primary.
-                primary_term = {'en': primary_titles[title], 'he': title}
+            primary_term = Term().load({"name": primary_titles[title]})
+            if not primary_term:  # one case where we want an entirely new primary.
+                primary_term = {"en": primary_titles[title], "he": title}
         else:
-            primary_term = Term().load_by_id(ObjectId(next(iter(dup['unique_obj_ids']))))
+            primary_term = Term().load_by_id(
+                ObjectId(next(iter(dup["unique_obj_ids"])))
+            )
 
-        terms_to_merge = [Term().load_by_id(toid) for toid in dup['unique_obj_ids']] #this will also include the primary
+        terms_to_merge = [
+            Term().load_by_id(toid) for toid in dup["unique_obj_ids"]
+        ]  # this will also include the primary
         terms_to_merge = [t for t in terms_to_merge if t is not None]
-        #print u"Merging terms for {}: {}".format(title, u",".join([t.name for t in terms_to_merge]))
-        if primary_term is not None and len(terms_to_merge) > 0: #might have been merged in already.
+        # print u"Merging terms for {}: {}".format(title, u",".join([t.name for t in terms_to_merge]))
+        if (
+            primary_term is not None and len(terms_to_merge) > 0
+        ):  # might have been merged in already.
             merge_terms_into_one(primary_term, terms_to_merge)
-        #if len(dup['schemes']) > 1:
-            #print u"This term had multiple schemes: {}".format(dup["schemes"])
-        #print u"===================================================="
+        # if len(dup['schemes']) > 1:
+        # print u"This term had multiple schemes: {}".format(dup["schemes"])
+        # print u"===================================================="
 
 
 def get_new_primary_term(title):
-    sterm = Term().load({'name': title})
+    sterm = Term().load({"name": title})
     if not sterm:
         sterm = Term().load_by_title(title)
     return sterm.get_primary_title() if sterm else title
@@ -144,20 +147,18 @@ def get_new_primary_term(title):
 def cascade_terms():
     cats = db.category.find({})
     for cat in cats:
-        if "sharedTitle" in cat and cat['sharedTitle'] is not None:
-            new_shared_title = get_new_primary_term(cat['sharedTitle'])
-            if new_shared_title != cat['sharedTitle']:
-                #print u"normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
-                cat['sharedTitle'] = new_shared_title
-                cat['lastPath'] = new_shared_title
-                cat['path'][-1] = new_shared_title
+        if "sharedTitle" in cat and cat["sharedTitle"] is not None:
+            new_shared_title = get_new_primary_term(cat["sharedTitle"])
+            if new_shared_title != cat["sharedTitle"]:
+                # print u"normalizing category with shared title {} to {}".format(cat['sharedTitle'], new_shared_title)
+                cat["sharedTitle"] = new_shared_title
+                cat["lastPath"] = new_shared_title
+                cat["path"][-1] = new_shared_title
 
-        for i, cpath in enumerate(cat['path']):
-            cat['path'][i] = get_new_primary_term(cpath)
+        for i, cpath in enumerate(cat["path"]):
+            cat["path"][i] = get_new_primary_term(cpath)
 
         db.category.save(cat, w=1)
-
-
 
     idxs = IndexSet()
     for idx in idxs:
@@ -172,33 +173,45 @@ def cascade_terms():
                 for j, section in enumerate(leaf.sectionNames):
                     new_section = get_new_primary_term(section)
                     if new_section != section:
-                        leaf.sectionNames[j]=new_section
-                        #print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
+                        leaf.sectionNames[j] = new_section
+                        # print u"Changed Index {}:{}:{} to {}".format(idx.title, leaf.primary_title(), section, new_section)
         idx.save(override_dependencies=True)
 
 
-results = defaultdict(lambda: {
-    "primary_term_titles": set(),
-    "unique_obj_ids": set(),
-    "schemes": set(),
-    "count": 0,
-    "lang": set()
-})
+results = defaultdict(
+    lambda: {
+        "primary_term_titles": set(),
+        "unique_obj_ids": set(),
+        "schemes": set(),
+        "count": 0,
+        "lang": set(),
+    }
+)
 termset = TermSet({})
 for term in termset:
     # str(term._id)
     for title in term.titles:
-        results[title['text']]["primary_term_titles"].add(term.name)
-        results[title['text']]["unique_obj_ids"].add(str(term._id))
-        results[title['text']]["schemes"].add(str(term.scheme))
-        results[title['text']]["count"] += 1
-        results[title['text']]["lang"].add(title['lang'])
+        results[title["text"]]["primary_term_titles"].add(term.name)
+        results[title["text"]]["unique_obj_ids"].add(str(term._id))
+        results[title["text"]]["schemes"].add(str(term.scheme))
+        results[title["text"]]["count"] += 1
+        results[title["text"]]["lang"].add(title["lang"])
 
 
-assert all(len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in list(results.values()))
+assert all(
+    len(v["unique_obj_ids"]) >= 1 and v["count"] >= 1 for v in list(results.values())
+)
 
-duplicates_he = {k: v for k, v in list(results.items()) if v['count'] > 1 and v['lang'] == set(['he'])}
-duplicates_en = {k: v for k, v in list(results.items()) if v['count'] > 1 and v['lang'] == set(['en'])}
+duplicates_he = {
+    k: v
+    for k, v in list(results.items())
+    if v["count"] > 1 and v["lang"] == set(["he"])
+}
+duplicates_en = {
+    k: v
+    for k, v in list(results.items())
+    if v["count"] > 1 and v["lang"] == set(["en"])
+}
 
 remove_duplicates(duplicates_he)
 remove_duplicates(duplicates_en)
@@ -207,7 +220,3 @@ cascade_terms()
 
 library.rebuild(include_toc=True)
 library.rebuild(include_toc=True)
-
-
-
-

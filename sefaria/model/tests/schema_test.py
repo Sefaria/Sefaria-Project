@@ -55,7 +55,7 @@ def setup_module(module):
     # Part 1
 
     part1_subsections = [
-        ["ארץ ישראל","Land of Israel", 8],
+        ["ארץ ישראל", "Land of Israel", 8],
         ["המלחמה", "War", 10],
         ["ישראל ותחיתו", "Israel and its Rebirth", 32],
         ["אורות התחיה", "Lights of Rebirth", 72],
@@ -80,15 +80,26 @@ def setup_module(module):
     n.addressTypes = ["Integer"]
     n.append_to(part1)
 
-
     # Part 2
     part2_subsections = [
-        ["האידיאה האלהית והאידיאה הלאומית באדם", "The Godly and the National Ideal in the Individual"],
-        ["האידיאה האלהית והאידיאה הלאומית בישראל", "The Godly and the National Ideal in Israel"],
+        [
+            "האידיאה האלהית והאידיאה הלאומית באדם",
+            "The Godly and the National Ideal in the Individual",
+        ],
+        [
+            "האידיאה האלהית והאידיאה הלאומית בישראל",
+            "The Godly and the National Ideal in Israel",
+        ],
         ["מצב הירידה והפרוד בין האידיאות", "Dissolution of Ideals"],
         ["המצב בגלות", "The Situation in Exile"],
-        ["בית ראשון ובית שני. האידיאה הדתית. המצב הישראלי ויחוסו לאנושיות", "The First and Second Temples; Religion"],
-        ["התאחדות האידיאות בכנסת ישראל בתחיתה בארצה, רשמי דרכיה ופעולותיה", "Unification of Ideals"]
+        [
+            "בית ראשון ובית שני. האידיאה הדתית. המצב הישראלי ויחוסו לאנושיות",
+            "The First and Second Temples; Religion",
+        ],
+        [
+            "התאחדות האידיאות בכנסת ישראל בתחיתה בארצה, רשמי דרכיה ופעולותיה",
+            "Unification of Ideals",
+        ],
     ]
     for sub in part2_subsections:
         n = JaggedArrayNode()
@@ -109,7 +120,7 @@ def setup_module(module):
         ["יסורים ממרקים", "Suffering Cleanses"],
         ["למלחמת הדעות והאמונות", "The War of Ideas"],
         ["נשמת הלאומיות וגופה", "National Soul and Body"],
-        ["ערך התחיה", "The Value of Rebirth"]
+        ["ערך התחיה", "The Value of Rebirth"],
     ]
 
     for sub in part3_subsections:
@@ -132,7 +143,7 @@ def setup_module(module):
         ["לומיות ישראל", "Nationhood of Israel", 9],
         ["שלמות נשמת ישראל ותחיתו", "Israel's Soul and its Rebirth", 19],
         ["סגולת ישראל", "Preciousness of Israel", 9],
-        ["קדושת ישראל", "Holiness of Israel", 9]
+        ["קדושת ישראל", "Holiness of Israel", 9],
     ]
 
     for sub in part4_subsections:
@@ -153,8 +164,14 @@ def test_relationships():
     assert root.first_child().first_child() is root.first_leaf()
     assert root.last_child().last_child() is root.last_leaf()
     assert root.first_child().next_sibling().prev_sibling() is root.first_child()
-    assert root.first_child().last_child().next_leaf() is root.first_child().next_sibling().first_child()
-    assert root.first_child().next_sibling().first_child().prev_leaf() is root.first_child().last_child()
+    assert (
+        root.first_child().last_child().next_leaf()
+        is root.first_child().next_sibling().first_child()
+    )
+    assert (
+        root.first_child().next_sibling().first_child().prev_leaf()
+        is root.first_child().last_child()
+    )
 
     assert root.first_child().prev_sibling() is None
     assert root.last_child().next_sibling() is None
@@ -168,9 +185,8 @@ def test_ancestors():
 
 def test_text_index_map():
     def tokenizer(s):
-        s = re.sub(r'<.+?>','',s).strip()
-        return re.split(r'\s+', s)
-
+        s = re.sub(r"<.+?>", "", s).strip()
+        return re.split(r"\s+", s)
 
     nodes = library.get_index("Megillat Taanit").nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
@@ -178,49 +194,65 @@ def test_text_index_map():
     assert index_list[2] == 20
     assert index_list[5] == 423
 
-    #now let's get serious. run text_index_map and check for rand_inds that each ref at that ind matches the corresponding indices in index_list
+    # now let's get serious. run text_index_map and check for rand_inds that each ref at that ind matches the corresponding indices in index_list
     index = library.get_index("Otzar Midrashim")
     nodes = index.nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
     mes_list = index.nodes.traverse_to_list(
-        lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
+        lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array()
+        if not n.children
+        else []
+    )
     mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
 
-    rand_inds = [1,20,45,1046,len(index_list)-2]
+    rand_inds = [1, 20, 45, 1046, len(index_list) - 2]
     for ri in rand_inds:
-        assert ' '.join(tokenizer(ref_list[ri].text("he").text)) == ' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+        assert " ".join(tokenizer(ref_list[ri].text("he").text)) == " ".join(
+            mes_str_array[index_list[ri] : index_list[ri + 1]]
+        )
 
     index = library.get_index("Genesis")
     nodes = index.nodes
-    index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer, lang="he", vtitle="Tanach with Text Only")
+    index_list, ref_list = nodes.text_index_map(
+        tokenizer=tokenizer, lang="he", vtitle="Tanach with Text Only"
+    )
     mes_list = index.nodes.traverse_to_list(
-        lambda n, _: TextChunk(n.ref(), lang="he", vtitle="Tanach with Text Only").ja().flatten_to_array() if not n.children else [])
+        lambda n, _: TextChunk(n.ref(), lang="he", vtitle="Tanach with Text Only")
+        .ja()
+        .flatten_to_array()
+        if not n.children
+        else []
+    )
     mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
 
-    rand_inds = [1, 20, 245, len(index_list)-2]
+    rand_inds = [1, 20, 245, len(index_list) - 2]
     for ri in rand_inds:
-        assert ' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == ' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
+        assert " ".join(
+            tokenizer(ref_list[ri].text(lang="he", vtitle="Tanach with Text Only").text)
+        ) == " ".join(mes_str_array[index_list[ri] : index_list[ri + 1]])
 
 
 def test_ja_node_with_hyphens():
     node = JaggedArrayNode()
-    node.add_primary_titles('Title with-this', 'משהו')
-    node.add_structure(['Something'])
+    node.add_primary_titles("Title with-this", "משהו")
+    node.add_structure(["Something"])
     with pytest.raises(InputError):
         node.validate()
+
 
 def test_ja_node_without_primary():
     node = JaggedArrayNode()
-    node.add_title('Title with this', 'en')
-    node.add_title('משהו', 'he')
-    node.add_structure(['Something'])
+    node.add_title("Title with this", "en")
+    node.add_title("משהו", "he")
+    node.add_structure(["Something"])
     with pytest.raises(InputError):
         node.validate()
 
+
 def test_non_ascii():
     node = JaggedArrayNode()
-    node.add_primary_titles('Title with this\u2019', 'משהו')
-    node.add_structure(['Something'])
+    node.add_primary_titles("Title with this\u2019", "משהו")
+    node.add_structure(["Something"])
     with pytest.raises(InputError):
         node.validate()
 
@@ -229,7 +261,10 @@ def test_non_ascii():
 def test_nodes_missing_content():
     # check a known simple text and complex text
     assert library.get_index("Job").nodes.nodes_missing_content() == (False, [])
-    assert library.get_index("Pesach Haggadah").nodes.nodes_missing_content() == (False, [])
+    assert library.get_index("Pesach Haggadah").nodes.nodes_missing_content() == (
+        False,
+        [],
+    )
 
     # construct a more complex schema. First, ensure that the index does not exist in the system
     try:
@@ -239,34 +274,32 @@ def test_nodes_missing_content():
         pass
 
     root_node = SchemaNode()
-    root_node.add_primary_titles('test text', 'מבחן')
+    root_node.add_primary_titles("test text", "מבחן")
     middle1 = SchemaNode()
-    middle1.add_primary_titles('mid1', 'אמצע1')
+    middle1.add_primary_titles("mid1", "אמצע1")
     for i in range(1, 4):
         leaf = JaggedArrayNode()
-        leaf.add_primary_titles('leaf{}'.format(i), 'קצה{}'.format(i))
+        leaf.add_primary_titles("leaf{}".format(i), "קצה{}".format(i))
         leaf.add_structure(["Verse"])
         middle1.append(leaf)
     root_node.append(middle1)
     middle2 = SchemaNode()
-    middle2.add_primary_titles('mid2', 'אמצע2')
+    middle2.add_primary_titles("mid2", "אמצע2")
     for i in range(4, 6):
         leaf = JaggedArrayNode()
-        leaf.add_primary_titles('leaf{}'.format(i), 'קצה{}'.format(i))
+        leaf.add_primary_titles("leaf{}".format(i), "קצה{}".format(i))
         leaf.add_structure(["Verse"])
         middle2.append(leaf)
     root_node.append(middle2)
     root_node.validate()
-    test_index = Index({
-        'title': 'test text',
-        'categories': ['Other'],
-        'schema': root_node.serialize()
-    })
+    test_index = Index(
+        {"title": "test text", "categories": ["Other"], "schema": root_node.serialize()}
+    )
     test_index.save()
 
     # add text
-    chunk = Ref('test text, mid1, leaf1').text('en', 'test version')
-    chunk.text = ['Lorem ipsum']
+    chunk = Ref("test text, mid1, leaf1").text("en", "test version")
+    chunk.text = ["Lorem ipsum"]
     chunk.save()
 
     result = test_index.nodes.nodes_missing_content()
@@ -274,10 +307,11 @@ def test_nodes_missing_content():
     assert len(result[1]) == 3
     test_index.delete()
 
+
 # Todo parametrize for all address types
 def test_folio_type():
     folio = schema.AddressFolio(1)
-    for i in [1,2,3,4,5,6,7,15,23,64,128]:
+    for i in [1, 2, 3, 4, 5, 6, 7, 15, 23, 64, 128]:
         assert folio.toNumber("en", folio.toStr("en", i)) == i
 
 
@@ -285,16 +319,18 @@ class TestDefaultNodeWithChildren:
     @classmethod
     def setup_class(cls):
         root_node = SchemaNode()
-        root_node.add_primary_titles('test text', 'מבחן')
+        root_node.add_primary_titles("test text", "מבחן")
         leaf = JaggedArrayNode()
-        leaf.add_primary_titles('leaf', 'קצה')
+        leaf.add_primary_titles("leaf", "קצה")
         leaf.add_structure(["Verse"])
         root_node.append(leaf)
-        cls.test_index = Index({
-            'title': 'test text',
-            'categories': ['Tanakh'],
-            'schema': root_node.serialize()
-        })
+        cls.test_index = Index(
+            {
+                "title": "test text",
+                "categories": ["Tanakh"],
+                "schema": root_node.serialize(),
+            }
+        )
         cls.test_index.save()
         cls.test_version = Version(
             {
@@ -302,7 +338,7 @@ class TestDefaultNodeWithChildren:
                 "versionTitle": "Version TEST",
                 "versionSource": "blabla",
                 "language": "en",
-                "title": cls.test_index.title
+                "title": cls.test_index.title,
             }
         )
         cls.test_version.save()
@@ -313,8 +349,8 @@ class TestDefaultNodeWithChildren:
         cls.test_version.delete()
 
     def test_default_node_with_children(self):
-        from sefaria.helper.schema import (insert_last_child,
-                                           prepare_ja_for_children)
+        from sefaria.helper.schema import insert_last_child, prepare_ja_for_children
+
         ja_parent = JaggedArrayNode()
         ja_parent.key = "default"
         ja_parent.default = True
@@ -323,11 +359,16 @@ class TestDefaultNodeWithChildren:
         prepare_ja_for_children(ja_parent)
 
         # make sure prepare_ja_for_children worked
-        v = Version().load({"title": self.test_index.title, "versionTitle": self.test_version.versionTitle})
-        assert v.chapter['default'] == {}
+        v = Version().load(
+            {
+                "title": self.test_index.title,
+                "versionTitle": self.test_version.versionTitle,
+            }
+        )
+        assert v.chapter["default"] == {}
 
         ja_leaf = JaggedArrayNode()
-        ja_leaf.add_primary_titles('leaf2', 'קצה2')
+        ja_leaf.add_primary_titles("leaf2", "קצה2")
         ja_leaf.add_structure(["Perek"])
         insert_last_child(ja_leaf, ja_parent)
 
@@ -335,5 +376,6 @@ class TestDefaultNodeWithChildren:
         assert i.nodes.children[-1].children[-1].nodeType == "JaggedArrayNode"
 
         # verify that you can refer to leaf2 by either name or number
-        assert Ref(f"{self.test_index.title}, leaf2") == Ref(f"{self.test_index.title} 1")
-
+        assert Ref(f"{self.test_index.title}, leaf2") == Ref(
+            f"{self.test_index.title} 1"
+        )

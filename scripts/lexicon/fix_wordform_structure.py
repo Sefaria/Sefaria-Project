@@ -5,7 +5,7 @@ word_forms = WordFormSet({})
 
 for form in word_forms:
     for lookup in form.lookups:
-        if 'lexicon' in lookup:
-            lookup['parent_lexicon'] = lookup['lexicon']
-            del lookup['lexicon']
+        if "lexicon" in lookup:
+            lookup["parent_lexicon"] = lookup["lexicon"]
+            del lookup["lexicon"]
     form.save()

@@ -8,7 +8,7 @@ django.setup()
 
 
 def export_all_tags():
-    with open('tags_outf.csv', 'w+') as outf:
+    with open("tags_outf.csv", "w+") as outf:
         csv_writer = csv.DictWriter(outf, ["tag", "count"])
         csv_writer.writeheader()
         for tag in nationbuilder_get_all(get_all_tags):

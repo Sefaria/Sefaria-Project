@@ -6,16 +6,17 @@ from sefaria.model import *
 from sefaria.profiling import prof
 from sefaria.sheets import db, make_sheet_from_text
 
-categories = [
-    "Talmud",
-    "Midrash",
-    "Mishnah",
-    "Tosefta"
-]
+categories = ["Talmud", "Midrash", "Mishnah", "Tosefta"]
 
 titles = []
 for c in categories:
     titles += library.get_indexes_in_category(c)
 
 db.sheets.remove({"generatedBy": "Roots Haggadah Maker"})
-make_sheet_from_text("Pesach Haggadah", sources = titles, uid=28, generatedBy="Roots Haggadah Maker", title="Haggadah with Roots")
+make_sheet_from_text(
+    "Pesach Haggadah",
+    sources=titles,
+    uid=28,
+    generatedBy="Roots Haggadah Maker",
+    title="Haggadah with Roots",
+)

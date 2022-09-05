@@ -7,7 +7,7 @@ from sefaria.summaries import *
 toc = library.get_toc()
 flat_toc = flatten_toc(toc)
 
-bookworm   = []
+bookworm = []
 commentary = []
 
 for title in flat_toc:

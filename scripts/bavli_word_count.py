@@ -1,10 +1,8 @@
-# This Python file uses the following encoding: utf-8
 import django
 
 django.setup()
 import collections
 import re
-from pprint import pprint
 
 from sefaria.model import *
 
@@ -22,7 +20,7 @@ def flatten(l):
 
 books = library.get_indexes_in_category("Bavli")
 
-print books
+print(books)
 
 total = 0
 all_words_used = []

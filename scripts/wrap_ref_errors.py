@@ -3,9 +3,9 @@
 import re
 
 input_rows = []
-filename = 'log/sefaria.log'
-l_regex = re.compile(r'Wrap Ref Warning: Ref:\((.*)\)', re.UNICODE)
-with open(filename, 'rb') as infile:
+filename = "log/sefaria.log"
+l_regex = re.compile(r"Wrap Ref Warning: Ref:\((.*)\)", re.UNICODE)
+with open(filename, "rb") as infile:
     for line in infile:
         line = line.strip()
         match = l_regex.search(line)

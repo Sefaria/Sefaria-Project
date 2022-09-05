@@ -14,8 +14,9 @@ class Layer(abst.AbstractMongoRecord):
     """
     A collection of notes and sources.
     """
-    collection   = 'layers'
-    history_noun = 'layer'
+
+    collection = "layers"
+    history_noun = "layer"
 
     required_attrs = [
         "owner",
@@ -26,11 +27,11 @@ class Layer(abst.AbstractMongoRecord):
     optional_attrs = [
         "name",
         "first_ref",
-        "all_refs", # list of all include refs and the refs of any note points to
+        "all_refs",  # list of all include refs and the refs of any note points to
     ]
 
     def _init_defaults(self):
-        self.note_ids     = []
+        self.note_ids = []
         self.sources_list = []
 
     def save(self):
@@ -57,10 +58,10 @@ class Layer(abst.AbstractMongoRecord):
         Returns notes for this layer,
         optionally filtered by notes on ref.
         """
-        query   = {"_id": {"$in": self.note_ids}}
+        query = {"_id": {"$in": self.note_ids}}
         if tref:
             query["ref"] = {"$regex": Ref(tref).section_ref().regex()}
-        notes  = NoteSet(query=query)
+        notes = NoteSet(query=query)
         return [note for note in notes]
 
     def add_note(self, note_id):

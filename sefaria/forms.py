@@ -22,25 +22,52 @@ SEED_GROUP = "User Seeds"
 
 
 class SefariaLoginForm(EmailAuthenticationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.EmailInput(attrs={"placeholder": _("Email Address")}),
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": _("Password")})
+    )
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.EmailInput(
+            attrs={"placeholder": _("Email Address"), "autocomplete": "off"}
+        ),
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={"placeholder": _("First Name"), "autocomplete": "off"}
+        )
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={"placeholder": _("Last Name"), "autocomplete": "off"}
+        )
+    )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={"placeholder": _("Password"), "autocomplete": "off"}
+        )
+    )
+    subscribe_educator = forms.BooleanField(
+        label=_("I am an educator"),
+        help_text=_("I am an educator"),
+        initial=False,
+        required=False,
+    )
 
-    captcha_lang = "iw" if get_language() == 'he' else "en"
+    captcha_lang = "iw" if get_language() == "he" else "en"
     captcha = ReCaptchaField(
         widget=ReCaptchaV2Checkbox(
             attrs={
-                'data-theme': 'white'
+                "data-theme": "white"
                 #'data-size': 'compact',
             },
-            #api_params={'hl': captcha_lang}
+            # api_params={'hl': captcha_lang}
         )
     )
 
@@ -50,8 +77,14 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(EmailUserCreationForm, self).__init__(*args, **kwargs)
-        del self.fields['password2']
-        self.fields.keyOrder = ["email", "first_name", "last_name", "password1", "captcha"]
+        del self.fields["password2"]
+        self.fields.keyOrder = [
+            "email",
+            "first_name",
+            "last_name",
+            "password1",
+            "captcha",
+        ]
         self.fields.keyOrder.append("subscribe_educator")
 
     def clean_email(self):
@@ -82,21 +115,33 @@ class SefariaNewUserForm(EmailUserCreationForm):
         mailingLists = []
         language = get_language()
 
-        list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
+        list_name = (
+            "Announcements_General_Hebrew"
+            if language == "he"
+            else "Announcements_General"
+        )
         mailingLists.append(list_name)
 
         if self.cleaned_data["subscribe_educator"]:
-            list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
+            list_name = (
+                "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
+            )
             mailingLists.append(list_name)
 
         if mailingLists:
             mailingLists.append("Signed_Up_on_Sefaria")
             try:
-                subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
+                subscribe_to_list(
+                    mailingLists,
+                    user.email,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                )
             except:
                 pass
 
         return user
+
 
 class SefariaNewUserFormAPI(SefariaNewUserForm):
 
@@ -106,29 +151,36 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
         super(SefariaNewUserForm, self).__init__(*args, **kwargs)
         # don't require captcha on API form
         # instead, require that the correct app_key is sent
-        self.fields.pop('captcha')
+        self.fields.pop("captcha")
 
     def clean_mobile_app_key(self):
         mobile_app_key = self.cleaned_data["mobile_app_key"]
         if mobile_app_key != MOBILE_APP_KEY:
             raise forms.ValidationError(_("Incorrect mobile_app_key provided"))
 
+
 # TODO: Check back on me
 # This class doesn't seem to be getting called at all -- it's referenced in urls.py,
 # but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
 #
 class SefariaPasswordResetForm(PasswordResetForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    email = forms.EmailField(
+        max_length=75,
+        widget=forms.TextInput(
+            attrs={"placeholder": _("Email Address"), "autocomplete": "off"}
+        ),
+    )
+
 
 class SefariaSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(
         label=_("New password"),
-        widget=forms.PasswordInput(attrs={'placeholder': _("Enter New Password")}),
+        widget=forms.PasswordInput(attrs={"placeholder": _("Enter New Password")}),
         strip=False,
         help_text=password_validation.password_validators_help_text_html(),
     )
     new_password2 = forms.CharField(
         label=_("New password confirmation"),
         strip=False,
-        widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
+        widget=forms.PasswordInput(attrs={"placeholder": _("Repeat New Password")}),
     )

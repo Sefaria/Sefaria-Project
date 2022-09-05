@@ -12,7 +12,7 @@ import bleach
 import pymongo
 
 # To allow these files to be run directly from command line (w/o Django shell)
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
 import logging
 import time as pytime
@@ -39,15 +39,19 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import strip_cantillation
 from sefaria.utils.util import strip_tags
 
-from .settings import (SEARCH_ADMIN, SEARCH_INDEX_NAME_SHEET,
-                       SEARCH_INDEX_NAME_TEXT, STATICFILES_DIRS)
+from .settings import (
+    SEARCH_ADMIN,
+    SEARCH_INDEX_NAME_SHEET,
+    SEARCH_INDEX_NAME_TEXT,
+    STATICFILES_DIRS,
+)
 
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)
 tracer.setLevel(logging.CRITICAL)
-#tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
+# tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
 tracer.addHandler(NullHandler())
 
 doc_count = 0
@@ -55,12 +59,14 @@ doc_count = 0
 
 def delete_text(oref, version, lang):
     try:
-        curr_index = get_new_and_current_index_names('text')['current']
+        curr_index = get_new_and_current_index_names("text")["current"]
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=curr_index, doc_type='text', id=id)
+        es_client.delete(index=curr_index, doc_type="text", id=id)
     except Exception as e:
-        logger.error("ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
+        logger.error(
+            "ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e)
+        )
 
 
 def delete_version(index, version, lang):
@@ -70,7 +76,7 @@ def delete_version(index, version, lang):
 
     if SITE_SETTINGS["TORAH_SPECIFIC"]:
         all_gemara_indexes = library.get_indexes_in_category("Bavli")
-        davidson_indexes = all_gemara_indexes[:all_gemara_indexes.index("Horayot") + 1]
+        davidson_indexes = all_gemara_indexes[: all_gemara_indexes.index("Horayot") + 1]
         if Ref(index.title).is_bavli() and index.title not in davidson_indexes:
             refs += index.all_section_refs()
 
@@ -82,7 +88,7 @@ def delete_version(index, version, lang):
 
 def delete_sheet(index_name, id):
     try:
-        es_client.delete(index=index_name, doc_type='sheet', id=id)
+        es_client.delete(index=index_name, doc_type="sheet", id=id)
     except Exception as e:
         logger.error("ERROR deleting sheet {}".format(id))
 
@@ -119,14 +125,15 @@ def index_sheet(index_name, id):
     """
 
     sheet = db.sheets.find_one({"id": id})
-    if not sheet: return False
+    if not sheet:
+        return False
 
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
     topics = []
-    for t in sheet.get('topics', []):
-        topic_obj = Topic.init(t['slug'])
+    for t in sheet.get("topics", []):
+        topic_obj = Topic.init(t["slug"])
         if not topic_obj:
             continue
         topics += [topic_obj]
@@ -143,17 +150,17 @@ def index_sheet(index_name, id):
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
             "topic_slugs": [topic_obj.slug for topic_obj in topics],
-            "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
-            "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
+            "topics_en": [topic_obj.get_primary_title("en") for topic_obj in topics],
+            "topics_he": [topic_obj.get_primary_title("he") for topic_obj in topics],
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "collections": collection_names,
             "datePublished": sheet.get("datePublished", None),
             "dateCreated": sheet.get("dateCreated", None),
             "dateModified": sheet.get("dateModified", None),
-            "views": sheet.get("views", 0)
+            "views": sheet.get("views", 0),
         }
-        es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
+        es_client.create(index=index_name, doc_type="sheet", id=id, body=doc)
         global doc_count
         doc_count += 1
         return True
@@ -165,22 +172,24 @@ def index_sheet(index_name, id):
 
 def make_sheet_tags(sheet):
     def get_primary_title(lang, titles):
-        return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
+        return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0][
+            "text"
+        ]
 
-    tags = sheet.get('tags', [])
-    tag_terms = [(Term().load({'name': t}) or Term().load_by_title(t)) for t in tags]
+    tags = sheet.get("tags", [])
+    tag_terms = [(Term().load({"name": t}) or Term().load_by_title(t)) for t in tags]
     tag_terms_simple = [
-        {
-            'en': tags[iterm],  # save as en even if it's Hebrew
-            'he': ''
-        } if term is None else
-        {
-            'en': get_primary_title('en', term.titles),
-            'he': get_primary_title('he', term.titles)
-        } for iterm, term in enumerate(tag_terms)
+        {"en": tags[iterm], "he": ""}  # save as en even if it's Hebrew
+        if term is None
+        else {
+            "en": get_primary_title("en", term.titles),
+            "he": get_primary_title("he", term.titles),
+        }
+        for iterm, term in enumerate(tag_terms)
     ]
-    #tags_en, tags_he = zip(*tag_terms_simple.values())
+    # tags_en, tags_he = zip(*tag_terms_simple.values())
     return tag_terms_simple
+
 
 def make_sheet_text(sheet, pud):
     """
@@ -188,7 +197,7 @@ def make_sheet_text(sheet, pud):
     :param sheet: The sheet record
     :param pud: Public User Database record for the author
     """
-    text = sheet["title"] + "\n{}".format(sheet.get("summary", ''))
+    text = sheet["title"] + "\n{}".format(sheet.get("summary", ""))
     if pud.get("name"):
         text += "\nBy: " + pud["name"]
     text += "\n"
@@ -227,39 +236,25 @@ def create_index(index_name, type):
 
     settings = {
         "index": {
-            "blocks": {
-                "read_only_allow_delete": False
-            },
-            "analysis" : {
-                "analyzer" : {
-                    "my_standard" : {
+            "blocks": {"read_only_allow_delete": False},
+            "analysis": {
+                "analyzer": {
+                    "my_standard": {
                         "tokenizer": "standard",
-                        "char_filter": [
-                            "icu_normalizer"
-                        ],
-                        "filter": [
-                                "standard",
-                                "lowercase",
-                                "icu_folding",
-                                "my_snow"
-                                ]
+                        "char_filter": ["icu_normalizer"],
+                        "filter": ["standard", "lowercase", "icu_folding", "my_snow"],
                     }
                 },
-                "filter" : {
-                    "my_snow" : {
-                        "type" : "snowball",
-                        "language" : "English"
-                    }
-                }
-            }
+                "filter": {"my_snow": {"type": "snowball", "language": "English"}},
+            },
         }
     }
-    print('Creating index {}'.format(index_name))
+    print("Creating index {}".format(index_name))
     index_client.create(index=index_name, body=settings)
 
-    if type == 'text':
+    if type == "text":
         put_text_mapping(index_name)
-    elif type == 'sheet':
+    elif type == "sheet":
         put_sheet_mapping(index_name)
 
 
@@ -268,66 +263,49 @@ def put_text_mapping(index_name):
     Settings mapping for the text document type.
     """
     text_mapping = {
-        'properties' : {
-            'categories': {
-                'type': 'keyword',
+        "properties": {
+            "categories": {
+                "type": "keyword",
             },
             "category": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_category": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "index_title": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "path": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_index_title": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "he_path": {
-                'type': 'keyword',
+                "type": "keyword",
             },
             "order": {
-                'type': 'keyword',
+                "type": "keyword",
             },
-            "pagesheetrank": {
-                'type': 'double',
-                'index': False
-            },
-            "comp_date": {
-                'type': 'integer',
-                'index': False
-            },
-            "version_priority": {
-                'type': 'integer',
-                'index': False
-            },
-            #"hebmorph_semi_exact": {
+            "pagesheetrank": {"type": "double", "index": False},
+            "comp_date": {"type": "integer", "index": False},
+            "version_priority": {"type": "integer", "index": False},
+            # "hebmorph_semi_exact": {
             #    'type': 'string',
             #    'analyzer': 'hebrew',
             #    'search_analyzer': 'sefaria-semi-exact'
-            #},
-            "exact": {
-                'type': 'text',
-                'analyzer': 'my_standard'
-            },
+            # },
+            "exact": {"type": "text", "analyzer": "my_standard"},
             "naive_lemmatizer": {
-                'type': 'text',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
-                'fields': {
-                    'exact': {
-                        'type': 'text',
-                        'analyzer': 'my_standard'                        
-                    }
-                }
-            }
+                "type": "text",
+                "analyzer": "sefaria-naive-lemmatizer",
+                "search_analyzer": "sefaria-naive-lemmatizer-less-prefixes",
+                "fields": {"exact": {"type": "text", "analyzer": "my_standard"}},
+            },
         }
     }
-    index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
+    index_client.put_mapping(doc_type="text", body=text_mapping, index=index_name)
 
 
 def put_sheet_mapping(index_name):
@@ -335,65 +313,29 @@ def put_sheet_mapping(index_name):
     Sets mapping for the sheets document type.
     """
     sheet_mapping = {
-        'properties': {
-            'owner_name': {
-                'type': 'keyword'
-            },
-            'tags': {
-                'type': 'keyword'
-            },
-            "topics_en": {
-                "type": "keyword"
-            },
-            "topics_he": {
-                "type": "keyword"
-            },
-            "topic_slugs": {
-                "type": "keyword"
-            },
-            'owner_image': {
-                'type': 'keyword'
-            },
-            'datePublished': {
-                'type': 'date'
-            },
-            'dateCreated': {
-                'type': 'date'
-            },
-            'dateModified': {
-                'type': 'date'
-            },
-            'sheetId': {
-                'type': 'integer'
-            },
-            'collections': {
-                'type': 'keyword'
-            },
-            'title': {
-                'type': 'keyword'
-            },
-            'views': {
-                'type': 'integer'
-            },
-            'summary': {
-                'type': 'keyword'
-            },
-            'content': {
-                'type': 'text',
-                'analyzer': 'my_standard'
-            },
-            'version': {
-                'type': 'keyword'
-            },
-            'profile_url': {
-                'type': 'keyword'
-            },
-            'owner_id': {
-                'type': 'integer'
-            }
+        "properties": {
+            "owner_name": {"type": "keyword"},
+            "tags": {"type": "keyword"},
+            "topics_en": {"type": "keyword"},
+            "topics_he": {"type": "keyword"},
+            "topic_slugs": {"type": "keyword"},
+            "owner_image": {"type": "keyword"},
+            "datePublished": {"type": "date"},
+            "dateCreated": {"type": "date"},
+            "dateModified": {"type": "date"},
+            "sheetId": {"type": "integer"},
+            "collections": {"type": "keyword"},
+            "title": {"type": "keyword"},
+            "views": {"type": "integer"},
+            "summary": {"type": "keyword"},
+            "content": {"type": "text", "analyzer": "my_standard"},
+            "version": {"type": "keyword"},
+            "profile_url": {"type": "keyword"},
+            "owner_id": {"type": "integer"},
         }
     }
-    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
+    index_client.put_mapping(doc_type="sheet", body=sheet_mapping, index=index_name)
+
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -409,20 +351,18 @@ def get_search_categories(oref, categories):
         cnode = toc_tree.lookup(path)
         if getattr(cnode, "searchRoot", None) is not None:
             # Use the specified searchRoot, with the rest of the category path appended.
-            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1 :]
             break
     return indexed_categories
 
 
 class TextIndexer(object):
-
     @classmethod
     def clear_cache(cls):
         cls.terms_dict = None
         cls.version_priority_map = None
         cls._bulk_actions = None
         cls.best_time_period = None
-
 
     @classmethod
     def create_terms_dict(cls):
@@ -454,7 +394,10 @@ class TextIndexer(object):
                 vpriorities = defaultdict(lambda: 0)
                 for i, v in enumerate(vlist):
                     lang = v.language
-                    cls.version_priority_map[(title, v.versionTitle, lang)] = (vpriorities[lang], mini_toc["categories"])
+                    cls.version_priority_map[(title, v.versionTitle, lang)] = (
+                        vpriorities[lang],
+                        mini_toc["categories"],
+                    )
                     vpriorities[lang] += 1
 
         traverse(toc)
@@ -469,9 +412,11 @@ class TextIndexer(object):
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)
-                return TextIndexer.get_ref_version_list(oref, tries+1)
+                return TextIndexer.get_ref_version_list(oref, tries + 1)
             else:
-                print("get_ref_version_list -- Tried: {} times. Failed :(".format(tries))
+                print(
+                    "get_ref_version_list -- Tried: {} times. Failed :(".format(tries)
+                )
                 raise e
 
     @classmethod
@@ -491,7 +436,7 @@ class TextIndexer(object):
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)
-                return cls.get_all_versions(tries+1, versions, page)
+                return cls.get_all_versions(tries + 1, versions, page)
             else:
                 print("Tried: {} times. Got {} versions".format(tries, len(versions)))
                 raise e
@@ -503,7 +448,16 @@ class TextIndexer(object):
         cls.create_terms_dict()
         Ref.clear_cache()  # try to clear Ref cache to save RAM
 
-        versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
+        versions = sorted(
+            [
+                x
+                for x in cls.get_all_versions()
+                if (x.title, x.versionTitle, x.language) in cls.version_priority_map
+            ],
+            key=lambda x: cls.version_priority_map[
+                (x.title, x.versionTitle, x.language)
+            ][0],
+        )
         versions_by_index = {}
         # organizing by index for the merged case. There is no longer a merged case but keeping this logic b/c it seems fine
         for v in versions:
@@ -533,22 +487,33 @@ class TextIndexer(object):
                 print("Indexed Version {}/{}".format(vcount, total_versions))
                 vcount += 1
             if for_es:
-                bulk(es_client, cls._bulk_actions, stats_only=True, raise_on_error=False)
+                bulk(
+                    es_client, cls._bulk_actions, stats_only=True, raise_on_error=False
+                )
 
     @classmethod
     def index_version(cls, version, tries=0, action=None):
         if not action:
             action = cls._cache_action
         try:
-            version.walk_thru_contents(action, heTref=cls.curr_index.get_title('he'), schema=cls.curr_index.schema, terms_dict=cls.terms_dict)
+            version.walk_thru_contents(
+                action,
+                heTref=cls.curr_index.get_title("he"),
+                schema=cls.curr_index.schema,
+                terms_dict=cls.terms_dict,
+            )
         except pymongo.errors.AutoReconnect as e:
             # Adding this because there is a mongo call for dictionary words in walk_thru_contents()
             if tries < 200:
                 pytime.sleep(5)
                 print("Retrying {}. Try {}".format(version.title, tries))
-                cls.index_version(version, tries+1)
+                cls.index_version(version, tries + 1)
             else:
-                print("Tried {} times to get {}. I have failed you...".format(tries, version.title))
+                print(
+                    "Tried {} times to get {}. I have failed you...".format(
+                        tries, version.title
+                    )
+                )
                 raise e
         except StopIteration:
             print("Could not find dictionary node in {}".format(version.title))
@@ -569,7 +534,15 @@ class TextIndexer(object):
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
+        doc = cls.make_text_index_document(
+            tref,
+            oref.he_normal(),
+            version_title,
+            lang,
+            version_priority,
+            content,
+            categories,
+        )
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, doc, id=id)
 
@@ -579,12 +552,20 @@ class TextIndexer(object):
         vtitle = version.versionTitle
         vlang = version.language
         try:
-            version_priority, categories = cls.version_priority_map[(version.title, vtitle, vlang)]
-            #TODO include sgement_str in this func
-            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories)
+            version_priority, categories = cls.version_priority_map[
+                (version.title, vtitle, vlang)
+            ]
+            # TODO include sgement_str in this func
+            doc = cls.make_text_index_document(
+                tref, heTref, vtitle, vlang, version_priority, segment_str, categories
+            )
             # print doc
         except Exception as e:
-            logger.error("Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, str(e)))
+            logger.error(
+                "Error making index document {} / {} / {} : {}".format(
+                    tref, vtitle, vlang, str(e)
+                )
+            )
             return
 
         if doc:
@@ -594,14 +575,18 @@ class TextIndexer(object):
                         "_index": cls.index_name,
                         "_type": "text",
                         "_id": make_text_doc_id(tref, vtitle, vlang),
-                        "_source": doc
+                        "_source": doc,
                     }
                 ]
             except Exception as e:
-                logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
+                logger.error(
+                    "ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e)
+                )
 
     @classmethod
-    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories):
+    def make_text_index_document(
+        cls, tref, heTref, version, lang, version_priority, content, categories
+    ):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
@@ -610,8 +595,8 @@ class TextIndexer(object):
             return False
 
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
-        content_wo_cant = re.sub(r'\([^)]+\)', '', content_wo_cant)  # remove all parens
+        content_wo_cant = re.sub(r"<[^>]+>", "", content_wo_cant)
+        content_wo_cant = re.sub(r"\([^)]+\)", "", content_wo_cant)  # remove all parens
         if len(content_wo_cant) == 0:
             return False
 
@@ -626,21 +611,27 @@ class TextIndexer(object):
             comp_start_date = 3000  # far in the future
 
         ref_data = RefData().load({"ref": tref})
-        pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
+        pagesheetrank = (
+            ref_data.pagesheetrank
+            if ref_data is not None
+            else RefData.DEFAULT_PAGESHEETRANK
+        )
 
         return {
             "ref": tref,
             "heRef": heTref,
             "version": version,
             "lang": lang,
-            "version_priority": version_priority if version_priority is not None else 1000,
+            "version_priority": version_priority
+            if version_priority is not None
+            else 1000,
             "titleVariants": oref.index_node.all_tree_titles("en"),
             "categories": indexed_categories,
             "order": oref.order_id(),
             "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
-            #"hebmorph_semi_exact": content_wo_cant,
+            # "hebmorph_semi_exact": content_wo_cant,
             "exact": content_wo_cant,
             "naive_lemmatizer": content_wo_cant,
         }
@@ -651,10 +642,12 @@ def index_sheets_by_timestamp(timestamp):
     :param timestamp str: index all sheets modified after `timestamp` (in isoformat)
     """
 
-    name_dict = get_new_and_current_index_names('sheet', debug=False)
-    curr_index_name = name_dict['current']
+    name_dict = get_new_and_current_index_names("sheet", debug=False)
+    curr_index_name = name_dict["current"]
     try:
-        ids = db.sheets.find({"status": "public", "dateModified": {"$gt": timestamp}}).distinct("id")
+        ids = db.sheets.find(
+            {"status": "public", "dateModified": {"$gt": timestamp}}
+        ).distinct("id")
     except Exception as e:
         print(e)
         return str(e)
@@ -669,7 +662,10 @@ def index_sheets_by_timestamp(timestamp):
         else:
             failed += [id]
 
-    return {"succeeded": {"num": len(succeeded), "ids": succeeded}, "failed": {"num": len(failed), "ids": failed}}
+    return {
+        "succeeded": {"num": len(succeeded), "ids": succeeded},
+        "failed": {"num": len(failed), "ids": failed},
+    }
 
 
 def index_public_sheets(index_name):
@@ -705,12 +701,14 @@ def add_ref_to_index_queue(ref, version, lang):
     """
     Adds a text to index queue to be indexed later.
     """
-    qu.IndexQueue({
-        "ref": ref,
-        "lang": lang,
-        "version": version,
-        "type": "ref",
-    }).save()
+    qu.IndexQueue(
+        {
+            "ref": ref,
+            "lang": lang,
+            "version": version,
+            "type": "ref",
+        }
+    ).save()
 
     return True
 
@@ -720,14 +718,20 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name = get_new_and_current_index_names('text')['current']
+    index_name = get_new_and_current_index_names("text")["current"]
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], False)
+            TextIndexer.index_ref(
+                index_name, Ref(item["ref"]), item["version"], item["lang"], False
+            )
             db.index_queue.remove(item)
         except Exception as e:
-            logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
+            logging.error(
+                "Error indexing from queue ({} / {} / {}) : {}".format(
+                    item["ref"], item["version"], item["lang"], e
+                )
+            )
 
 
 def add_recent_to_queue(ndays):
@@ -736,10 +740,7 @@ def add_recent_to_queue(ndays):
     add to the index queue any refs that had their text altered.
     """
     cutoff = datetime.now() - timedelta(days=ndays)
-    query = {
-        "date": {"$gt": cutoff},
-        "rev_type": {"$in": ["add text", "edit text"]}
-    }
+    query = {"date": {"$gt": cutoff}, "rev_type": {"$in": ["add text", "edit text"]}}
     activity = db.history.find(query)
     refs = set()
     for a in activity:
@@ -750,15 +751,19 @@ def add_recent_to_queue(ndays):
 
 def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
-        'text': SEARCH_INDEX_NAME_TEXT,
-        'sheet': SEARCH_INDEX_NAME_SHEET,
+        "text": SEARCH_INDEX_NAME_TEXT,
+        "sheet": SEARCH_INDEX_NAME_SHEET,
     }
-    index_name_a = "{}-a{}".format(base_index_name_dict[type], '-debug' if debug else '')
-    index_name_b = "{}-b{}".format(base_index_name_dict[type], '-debug' if debug else '')
-    alias_name = "{}{}".format(base_index_name_dict[type], '-debug' if debug else '')
+    index_name_a = "{}-a{}".format(
+        base_index_name_dict[type], "-debug" if debug else ""
+    )
+    index_name_b = "{}-b{}".format(
+        base_index_name_dict[type], "-debug" if debug else ""
+    )
+    alias_name = "{}{}".format(base_index_name_dict[type], "-debug" if debug else "")
     aliases = index_client.get_alias()
     try:
-        a_alias = aliases[index_name_a]['aliases']
+        a_alias = aliases[index_name_a]["aliases"]
         choose_a = alias_name not in a_alias
     except KeyError:
         choose_a = True
@@ -777,44 +782,58 @@ def index_all(skip=0, debug=False):
     Fully create the search index from scratch.
     """
     start = datetime.now()
-    index_all_of_type('text', skip=skip, debug=debug)
-    index_all_of_type('sheet', skip=skip, debug=debug)
+    index_all_of_type("text", skip=skip, debug=debug)
+    index_all_of_type("sheet", skip=skip, debug=debug)
     end = datetime.now()
     db.index_queue.delete_many({})  # index queue is now stale
-    print("Elapsed time: %s" % str(end-start))
+    print("Elapsed time: %s" % str(end - start))
 
 
 def index_all_of_type(type, skip=0, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
-    print('CREATING / DELETING {}'.format(index_names_dict['new']))
-    print('CURRENT {}'.format(index_names_dict['current']))
+    print("CREATING / DELETING {}".format(index_names_dict["new"]))
+    print("CURRENT {}".format(index_names_dict["current"]))
     for i in range(10):
-        print('STARTING IN T-MINUS {}'.format(10 - i))
+        print("STARTING IN T-MINUS {}".format(10 - i))
         pytime.sleep(1)
 
-    index_all_of_type_by_index_name(type, index_names_dict['new'], skip, debug)
+    index_all_of_type_by_index_name(type, index_names_dict["new"], skip, debug)
 
     try:
-        #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
-        index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
-        print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
+        # index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
+        index_client.delete_alias(
+            index=index_names_dict["current"], name=index_names_dict["alias"]
+        )
+        print(
+            "Successfully deleted alias {} for index {}".format(
+                index_names_dict["alias"], index_names_dict["current"]
+            )
+        )
     except NotFoundError:
-        print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
+        print(
+            "Failed to delete alias {} for index {}".format(
+                index_names_dict["alias"], index_names_dict["current"]
+            )
+        )
 
-    clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
+    clear_index(
+        index_names_dict["alias"]
+    )  # make sure there are no indexes with the alias_name
 
-    #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
-    index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
+    # index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
+    index_client.put_alias(
+        index=index_names_dict["new"], name=index_names_dict["alias"]
+    )
 
-    if index_names_dict['new'] != index_names_dict['current']:
-        clear_index(index_names_dict['current'])
+    if index_names_dict["new"] != index_names_dict["current"]:
+        clear_index(index_names_dict["current"])
 
 
 def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False):
     if skip == 0:
         create_index(index_name, type)
-    if type == 'text':
+    if type == "text":
         TextIndexer.clear_cache()
         TextIndexer.index_all(index_name, debug=debug)
-    elif type == 'sheet':
+    elif type == "sheet":
         index_public_sheets(index_name)

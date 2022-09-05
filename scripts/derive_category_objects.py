@@ -36,6 +36,7 @@ def create_category(treenode):
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
 
+
 db.category.remove({})
 serial_toc = update_table_of_contents()
 toctree = toc_serial_to_objects(serial_toc)

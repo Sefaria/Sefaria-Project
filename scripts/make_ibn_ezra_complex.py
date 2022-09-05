@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 if __name__ == "__main__":
     from sefaria.helper.schema import *
+
     convert_simple_index_to_complex(library.get_index("Ibn Ezra on Isaiah"))
     parent_node = library.get_index("Ibn Ezra on Isaiah").nodes
     prelude = JaggedArrayNode()

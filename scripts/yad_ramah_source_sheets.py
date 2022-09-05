@@ -28,11 +28,15 @@ if __name__ == "__main__":
         print(id)
         sources = sheet.get("sources", [])
         for source_n, source in enumerate(sources):
-            if "ref" in list(source.keys()) and source["ref"].startswith("Yad Ramah on Bava Batra"):
+            if "ref" in list(source.keys()) and source["ref"].startswith(
+                "Yad Ramah on Bava Batra"
+            ):
                 orig_source_ref = source["ref"]
                 assert actual_sources[id][orig_source_ref]
                 sheet["sources"][source_n]["ref"] = actual_sources[id][orig_source_ref]
-                sheet["sources"][source_n]["heRef"] = Ref(actual_sources[id][orig_source_ref]).he_normal()
+                sheet["sources"][source_n]["heRef"] = Ref(
+                    actual_sources[id][orig_source_ref]
+                ).he_normal()
                 print("NEW:")
                 print(sheet["sources"][source_n]["ref"])
                 print(sheet["sources"][source_n]["heRef"])

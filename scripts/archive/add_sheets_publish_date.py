@@ -13,5 +13,5 @@ from sefaria.system.database import db
 
 sheets = db.sheets.find({"status": "public"})
 for sheet in sheets:
-	sheet["datePublished"] = sheet["dateCreated"]
-	db.sheets.save(sheet)
+    sheet["datePublished"] = sheet["dateCreated"]
+    db.sheets.save(sheet)

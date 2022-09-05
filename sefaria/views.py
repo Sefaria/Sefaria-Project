@@ -45,20 +45,29 @@ from sefaria.export import export_all as start_export_all
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
-from sefaria.helper.text import (dual_text_diff, get_core_link_stats,
-                                 get_library_stats, make_versions_csv)
+from sefaria.helper.text import (
+    dual_text_diff,
+    get_core_link_stats,
+    get_library_stats,
+    make_versions_csv,
+)
 from sefaria.model import *
 from sefaria.model.collection import CollectionSet
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.webpage import *
-from sefaria.search import \
-    index_sheets_by_timestamp as search_index_sheets_by_timestamp
-from sefaria.settings import (MAINTENANCE_MESSAGE, MULTISERVER_ENABLED,
-                              RTC_SERVER, USE_VARNISH, relative_to_abs_path)
+from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
+from sefaria.settings import (
+    MAINTENANCE_MESSAGE,
+    MULTISERVER_ENABLED,
+    RTC_SERVER,
+    USE_VARNISH,
+    relative_to_abs_path,
+)
 from sefaria.sheets import get_sheet_categorization_info
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
+
 # noinspection PyUnresolvedReferences
 from sefaria.system.exceptions import InputError
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -66,14 +75,20 @@ from sefaria.utils.hebrew import is_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
+    from sefaria.system.varnish.wrapper import (
+        invalidate_index,
+        invalidate_title,
+        invalidate_ref,
+        invalidate_counts,
+        invalidate_all,
+    )
 
 import structlog
 
 logger = structlog.get_logger(__name__)
 
 
-def process_register_form(request, auth_method='session'):
+def process_register_form(request, auth_method="session"):
     import hashlib
     import urllib.parse
     import urllib.request
@@ -83,52 +98,85 @@ def process_register_form(request, auth_method='session'):
 
     from sefaria.helper.file import get_resized_file
     from sefaria.utils.util import epoch_time
-    form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
+
+    form = (
+        SefariaNewUserForm(request.POST)
+        if auth_method == "session"
+        else SefariaNewUserFormAPI(request.POST)
+    )
     token_dict = None
     if form.is_valid():
         with transaction.atomic():
             new_user = form.save()
-            user = authenticate(email=form.cleaned_data['email'],
-                                password=form.cleaned_data['password1'])
+            user = authenticate(
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password1"],
+            )
             p = UserProfile(id=user.id, user_registration=True)
             p.assign_slug()
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
-
             # auto-add profile pic from gravatar if exists
-            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
-            gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
+            email_hash = hashlib.md5(p.email.lower().encode("utf-8")).hexdigest()
+            gravatar_url = (
+                "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
+            )
             try:
                 with urllib.request.urlopen(gravatar_url) as r:
                     bucket_name = GoogleStorageManager.PROFILES_BUCKET
                     with Image.open(r) as image:
                         now = epoch_time()
-                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
-                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
+                        big_pic_url = GoogleStorageManager.upload_file(
+                            get_resized_file(image, (250, 250)),
+                            "{}-{}.png".format(p.slug, now),
+                            bucket_name,
+                            None,
+                        )
+                        small_pic_url = GoogleStorageManager.upload_file(
+                            get_resized_file(image, (80, 80)),
+                            "{}-{}-small.png".format(p.slug, now),
+                            bucket_name,
+                            None,
+                        )
                         p.profile_pic_url = big_pic_url
                         p.profile_pic_url_small = small_pic_url
             except urllib.error.HTTPError as e:
-                logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
+                logger.info(
+                    "The Gravatar server couldn't fulfill the request. Error Code {}".format(
+                        e.code
+                    )
+                )
             except urllib.error.URLError as e:
-                logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
+                logger.info(
+                    "HTTP Error from Gravatar Server. Reason: {}".format(e.reason)
+                )
             except GoogleCloudError as e:
-                logger.warning("Error communicating with Google Storage Manager. {}".format(e))
+                logger.warning(
+                    "Error communicating with Google Storage Manager. {}".format(e)
+                )
             p.save()
 
-        if auth_method == 'session':
+        if auth_method == "session":
             auth_login(request, user)
-        elif auth_method == 'jwt':
-            token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
-    return {
-        k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
-    }, token_dict, form
+        elif auth_method == "jwt":
+            token_dict = TokenObtainPairSerializer().validate(
+                {
+                    "username": form.cleaned_data["email"],
+                    "password": form.cleaned_data["password1"],
+                }
+            )
+    return (
+        {k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())},
+        token_dict,
+        form,
+    )
 
 
 @api_view(["POST"])
 def register_api(request):
-    errors, token_dict, _ = process_register_form(request, auth_method='jwt')
+    errors, token_dict, _ = process_register_form(request, auth_method="jwt")
     if len(errors) == 0:
         return jsonResponse(token_dict)
 
@@ -139,14 +187,14 @@ def register(request):
     if request.user.is_authenticated:
         return redirect("login")
 
-    next = request.GET.get('next', '')
+    next = request.GET.get("next", "")
 
-    if request.method == 'POST':
+    if request.method == "POST":
         errors, _, form = process_register_form(request)
         if len(errors) == 0:
             if "noredirect" in request.POST:
                 return HttpResponse("ok")
-            elif "new?assignment=" in request.POST.get("next",""):
+            elif "new?assignment=" in request.POST.get("next", ""):
                 next = request.POST.get("next", "")
                 return HttpResponseRedirect(next)
             else:
@@ -157,24 +205,34 @@ def register(request):
                     next += "?welcome=to-sefaria"
                 return HttpResponseRedirect(next)
     else:
-        if request.GET.get('educator', ''):
-            form = SefariaNewUserForm(initial={'subscribe_educator': True})
+        if request.GET.get("educator", ""):
+            form = SefariaNewUserForm(initial={"subscribe_educator": True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
+    return render_template(
+        request, "registration/register.html", None, {"form": form, "next": next}
+    )
 
 
 def maintenance_message(request):
-    resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
+    resp = render_template(
+        request,
+        "static/maintenance.html",
+        None,
+        {"message": MAINTENANCE_MESSAGE},
+        status=503,
+    )
     return resp
 
 
 def accounts(request):
-    return render_template(request,"registration/accounts.html", None, {
-        "createForm": UserCreationForm(),
-        "loginForm": AuthenticationForm()
-    })
+    return render_template(
+        request,
+        "registration/accounts.html",
+        None,
+        {"createForm": UserCreationForm(), "loginForm": AuthenticationForm()},
+    )
 
 
 def subscribe(request, email):
@@ -204,36 +262,47 @@ def unlink_gauth(request):
             return redirect(f"/profile/{profile.slug}")
         else:
             return jsonResponse({"status": "ok"})
-    except: 
+    except:
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
 def generate_feedback(request):
 
-    data = json.loads(request.POST.get('json', {}))
+    data = json.loads(request.POST.get("json", {}))
 
-    fb_type = data.get('type', None)
-    refs = data.get('refs', None)
-    url = data.get('url', None)
-    versions = data.get('currVersions', None)
-    uid = data.get('uid', None)
-    from_email = data.get('email', None)
-    msg = data.get('msg', None)
+    fb_type = data.get("type", None)
+    refs = data.get("refs", None)
+    url = data.get("url", None)
+    versions = data.get("currVersions", None)
+    uid = data.get("uid", None)
+    from_email = data.get("email", None)
+    msg = data.get("msg", None)
 
     if not from_email:
         from_email = model.user_profile.UserProfile(id=uid).email
 
     if fb_type == "content_issue":
         to_email = "corrections@sefaria.org"
-        subject = "Correction from website - " + ' / '.join(refs)
-        message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+        subject = "Correction from website - " + " / ".join(refs)
+        message_html = (
+            msg
+            + "\n\n"
+            + "refs: "
+            + " / ".join(refs)
+            + "\n"
+            + "versions: "
+            + str(versions)
+            + "\n\n"
+            + "URL: "
+            + url
+        )
     elif fb_type == "user_testing":
         to_email = "gabriel@sefaria.org"
         subject = "User Testing Sign Up"
         message_html = "Hi! I want to sign up for user testing!"
     else:
         to_email = "hello@sefaria.org"
-        subject = "Feedback from website - " + fb_type.replace("_"," ")
+        subject = "Feedback from website - " + fb_type.replace("_", " ")
         message_html = msg + "\n\n" + "URL: " + url
 
     try:
@@ -247,7 +316,9 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    response = render(request, "js/data.js", content_type="text/javascript; charset=utf-8")
+    response = render(
+        request, "js/data.js", content_type="text/javascript; charset=utf-8"
+    )
     patch_cache_control(response, max_age=31536000, immutable=True)
     # equivalent to: response['Cache-Control'] = 'max-age=31536000, immutable'
     # cache for a year (cant cache indefinitely) and mark immutable so browser cache never revalidates.
@@ -260,16 +331,18 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", context={}, request=request)
-    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
-        sefaria_js=file.read()
+    webpack_files = webpack_utils.get_files("main", config="SEFARIA_JS")
+    bundle_path = relative_to_abs_path(".." + webpack_files[0]["url"])
+    with open(bundle_path, "r") as file:
+        sefaria_js = file.read()
     attrs = {
         "data_js": data_js,
         "sefaria_js": sefaria_js,
     }
 
-    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
+    return render(
+        request, "js/sefaria.js", attrs, content_type="text/javascript; charset=utf-8"
+    )
 
 
 def linker_js(request, linker_version=None):
@@ -281,31 +354,45 @@ def linker_js(request, linker_version=None):
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
-        "book_titles": json.dumps(model.library.citing_title_list("en")
-                      + model.library.citing_title_list("he"), ensure_ascii=False)
+        "book_titles": json.dumps(
+            model.library.citing_title_list("en")
+            + model.library.citing_title_list("he"),
+            ensure_ascii=False,
+        )
     }
 
-    return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
+    return render(
+        request, linker_link, attrs, content_type="text/javascript; charset=utf-8"
+    )
 
 
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.ref_part import make_find_refs_response, make_html
     from sefaria.utils.hebrew import is_hebrew
+
     with_text = bool(int(request.GET.get("with_text", False)))
     post = json.loads(request.body)
     resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
+    lang = "he" if is_hebrew(post["text"]) else "en"
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post["title"]])
+    context_ref = (
+        resolved_title[0][0].ref
+        if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous)
+        else None
+    )
+    resolved = resolver.bulk_resolve_refs(
+        lang, [context_ref], [post["text"]], with_failures=True
+    )
 
     # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
 
-    return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text),
-        "text": make_find_refs_response(resolved, with_text),
-    })
+    return jsonResponse(
+        {
+            "title": make_find_refs_response(resolved_title, with_text),
+            "text": make_find_refs_response(resolved, with_text),
+        }
+    )
 
 
 def linker_data_api(request, titles):
@@ -319,9 +406,15 @@ def linker_data_api(request, titles):
         url = request.GET.get("url", "")
         domain = WebPage.domain_for_url(WebPage.normalize_url(url))
 
-        website_match = WebSiteSet({"domains": domain})  # we know there can only be 0 or 1 matches found because of a constraint
-                                                         # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
-        res["exclude_from_tracking"] = getattr(website_match[0], "exclude_from_tracking", "") if website_match.count() == 1 else ""
+        website_match = WebSiteSet(
+            {"domains": domain}
+        )  # we know there can only be 0 or 1 matches found because of a constraint
+        # enforced in Sefaria-Data/sources/WebSites/populate_web_sites.py
+        res["exclude_from_tracking"] = (
+            getattr(website_match[0], "exclude_from_tracking", "")
+            if website_match.count() == 1
+            else ""
+        )
         resp = jsonResponse(res, cb)
         return resp
     else:
@@ -339,7 +432,9 @@ def title_regex_api(request, titles, json_response=True):
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
-                re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
+                re_string = model.library.get_regex_string(
+                    title, lang, anchored=False, for_js=True, parentheses=parentheses
+                )
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
@@ -350,53 +445,83 @@ def title_regex_api(request, titles, json_response=True):
         resp = jsonResponse(res, cb)
         return resp if json_response else res
     else:
-        return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
+        return (
+            jsonResponse({"error": "Unsupported HTTP method."})
+            if json_response
+            else {"error": "Unsupported HTTP method."}
+        )
 
 
-def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None):
+def bundle_many_texts(
+    refs,
+    useTextFamily=False,
+    as_sized_string=False,
+    min_char=None,
+    max_char=None,
+    translation_language_preference=None,
+):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
             if useTextFamily:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True)
+                text_fam = model.TextFamily(
+                    oref,
+                    commentary=0,
+                    context=0,
+                    pad=False,
+                    translationLanguagePreference=translation_language_preference,
+                    stripItags=True,
+                )
                 he = text_fam.he
                 en = text_fam.text
                 res[tref] = {
-                    'he': he,
-                    'en': en,
-                    'lang': lang,
-                    'ref': oref.normal(),
-                    'primary_category': text_fam.contents()['primary_category'],
-                    'heRef': oref.he_normal(),
-                    'url': oref.url()
+                    "he": he,
+                    "en": en,
+                    "lang": lang,
+                    "ref": oref.normal(),
+                    "primary_category": text_fam.contents()["primary_category"],
+                    "heRef": oref.he_normal(),
+                    "url": oref.url(),
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference)
+                he_tc = model.TextChunk(
+                    oref, "he", actual_lang=translation_language_preference
+                )
+                en_tc = model.TextChunk(
+                    oref, "en", actual_lang=translation_language_preference
+                )
                 if as_sized_string:
                     kwargs = {}
                     if min_char:
-                        kwargs['min_char'] = min_char
+                        kwargs["min_char"] = min_char
                     if max_char:
-                        kwargs['max_char'] = max_char
+                        kwargs["max_char"] = max_char
                     he_text = he_tc.as_sized_string(**kwargs)
                     en_text = en_tc.as_sized_string(**kwargs)
                 else:
                     he = he_tc.text
                     en = en_tc.text
                     # these could be flattened on the client, if need be.
-                    he_text = he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string()
-                    en_text = en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string()
+                    he_text = (
+                        he
+                        if isinstance(he, str)
+                        else JaggedTextArray(he).flatten_to_string()
+                    )
+                    en_text = (
+                        en
+                        if isinstance(en, str)
+                        else JaggedTextArray(en).flatten_to_string()
+                    )
 
                 res[tref] = {
-                    'he': he_text,
-                    'en': en_text,
-                    'lang': lang,
-                    'ref': oref.normal(),
-                    'heRef': oref.he_normal(),
-                    'url': oref.url()
+                    "he": he_text,
+                    "en": en_text,
+                    "lang": lang,
+                    "ref": oref.normal(),
+                    "heRef": oref.he_normal(),
+                    "url": oref.url(),
                 }
         except (InputError, ValueError, AttributeError, KeyError) as e:
             # referer = request.META.get("HTTP_REFERER", "unknown page")
@@ -419,7 +544,14 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"))
+        res = bundle_many_texts(
+            refs,
+            g("useTextFamily"),
+            g("asSizedString"),
+            min_char,
+            max_char,
+            g("transLangPref"),
+        )
         resp = jsonResponse(res, cb)
         return resp
 
@@ -465,7 +597,9 @@ def passages_api(request, refs):
                 else:
                     response[tref] = oref.normal()
             except InputError:
-                response[tref] = tref  # is this the best thing to do?  It passes junk along...
+                response[
+                    tref
+                ] = tref  # is this the best thing to do?  It passes junk along...
 
         resp = jsonResponse(response, cb)
         return resp
@@ -478,13 +612,16 @@ def file_upload(request, resize_image=True):
     from PIL import Image
 
     from sefaria.s3 import HostedFile
+
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
         MAX_FILE_DIMENSIONS = (1048, 1048)
-        uploaded_file = request.FILES['file']
+        uploaded_file = request.FILES["file"]
         if uploaded_file.size > MAX_FILE_SIZE:
-            return jsonResponse({"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB})
+            return jsonResponse(
+                {"error": "Uploaded files must be smaller than %dMB." % MAX_FILE_MB}
+            )
         name, extension = os.path.splitext(uploaded_file.name)
         with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
             temp_uploaded_file.write(uploaded_file.read())
@@ -496,12 +633,17 @@ def file_upload(request, resize_image=True):
                 image.save(temp_resized_file, optimize=True, quality=70)
 
                 name, extension = os.path.splitext(temp_resized_file.name)
-                hosted_file = HostedFile(filepath=temp_resized_file.name, content_type=uploaded_file.content_type)
+                hosted_file = HostedFile(
+                    filepath=temp_resized_file.name,
+                    content_type=uploaded_file.content_type,
+                )
                 try:
                     url = hosted_file.upload()
                     return jsonResponse({"status": "success", "url": url})
                 except:
-                    return jsonResponse({"error": "There was an error uploading your file."})
+                    return jsonResponse(
+                        {"error": "There was an error uploading your file."}
+                    )
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -524,7 +666,9 @@ def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("in_memory_cache", "set", ["websites_data", website_set])
+        server_coordinator.publish_event(
+            "in_memory_cache", "set", ["websites_data", website_set]
+        )
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
 
@@ -536,7 +680,9 @@ def reset_index_cache_for_text(request, title):
     model.library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
+        server_coordinator.publish_event(
+            "library", "refresh_index_record_in_cache", [index.title]
+        )
     elif USE_VARNISH:
         invalidate_title(index.title)
 
@@ -547,6 +693,7 @@ def reset_index_cache_for_text(request, title):
 def view_cached_elem(request, title):
     return HttpResponse(get_template_cache('texts_list'), status=200)
 """
+
 
 @staff_member_required
 def reset_cached_api(request, apiurl):
@@ -561,8 +708,8 @@ def reset_cached_api(request, apiurl):
     # from importlib import import_module
     try:
         match = resolve("/api/{}".format(apiurl))
-        #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
-        #func = mod.__getattribute__(match.func.func_name)
+        # mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
+        # func = mod.__getattribute__(match.func.func_name)
 
         if "django_cache" in match.func.__dict__:
             api_view = undecorated(match.func)
@@ -607,7 +754,9 @@ def delete_orphaned_counts(request):
     scache.delete_template_cache("texts_dashboard")
 
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("scache", "delete_template_cache", ["texts_dashboard"])
+        server_coordinator.publish_event(
+            "scache", "delete_template_cache", ["texts_dashboard"]
+        )
 
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
 
@@ -633,7 +782,9 @@ def rebuild_auto_completer(request):
         server_coordinator.publish_event("library", "build_full_auto_completer")
         server_coordinator.publish_event("library", "build_ref_auto_completer")
         server_coordinator.publish_event("library", "build_lexicon_auto_completers")
-        server_coordinator.publish_event("library", "build_cross_lexicon_auto_completer")
+        server_coordinator.publish_event(
+            "library", "build_cross_lexicon_auto_completer"
+        )
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
@@ -666,8 +817,12 @@ def reset_ref(request, tref):
         model.library.update_index_in_toc(oref.index)
 
         if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [oref.index.title])
-            server_coordinator.publish_event("library", "update_index_in_toc", [oref.index.title])
+            server_coordinator.publish_event(
+                "library", "refresh_index_record_in_cache", [oref.index.title]
+            )
+            server_coordinator.publish_event(
+                "library", "update_index_in_toc", [oref.index.title]
+            )
         elif USE_VARNISH:
             invalidate_title(oref.index.title)
 
@@ -684,6 +839,7 @@ def reset_ref(request, tref):
 @staff_member_required
 def rebuild_auto_links(request, title):
     from sefaria.helper.link import rebuild_links_for_title as rebuild
+
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Automatic-Links-Rebuilt-on-%s" % title)
 
@@ -691,6 +847,7 @@ def rebuild_auto_links(request, title):
 @staff_member_required
 def rebuild_citation_links(request, title):
     from sefaria.helper.link import rebuild_links_from_text as rebuild
+
     rebuild(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Rebuilt-on-%s" % title)
 
@@ -698,6 +855,7 @@ def rebuild_citation_links(request, title):
 @staff_member_required
 def delete_citation_links(request, title):
     from sefaria.helper.link import delete_links_from_text
+
     delete_links_from_text(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
 
@@ -711,22 +869,20 @@ def cache_stats(request):
 
     # from sefaria.sheets import last_updated
     resp = {
-        'ref_cache_size': f'{model.Ref.cache_size():,}',
+        "ref_cache_size": f"{model.Ref.cache_size():,}",
         # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
-        'public_user_data_size': f'{len(public_user_data_cache):,}',
-        'public_user_data_bytes': f'{get_size(public_user_data_cache):,}',
+        "public_user_data_size": f"{len(public_user_data_cache):,}",
+        "public_user_data_bytes": f"{get_size(public_user_data_cache):,}",
         # 'sheets_last_updated_size': len(last_updated),
         # 'sheets_last_updated_bytes': get_size(last_updated),
-        'memory usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}'
+        "memory usage": f"{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}",
     }
     return jsonResponse(resp)
 
 
 @staff_member_required
 def cache_dump(request):
-    resp = {
-        'ref_cache_dump': model.Ref.cache_dump()
-    }
+    resp = {"ref_cache_dump": model.Ref.cache_dump()}
     return jsonResponse(resp)
 
 
@@ -738,7 +894,7 @@ def export_all(request):
         resp = {"status": "ok"}
     except Exception as e:
         resp = {"error": str(e)}
-    resp["time"] = (datetime.now()-start).seconds
+    resp["time"] = (datetime.now() - start).seconds
     return jsonResponse(resp)
 
 
@@ -749,9 +905,10 @@ def cause_error(request):
     try:
         erorr = excepting
     except Exception as e:
-        logger.exception('An Exception has ocurred in the code')
+        logger.exception("An Exception has ocurred in the code")
     erorr = error
     return jsonResponse(resp)
+
 
 @staff_member_required
 def account_stats(request):
@@ -768,46 +925,55 @@ def account_stats(request):
 @staff_member_required
 def sheet_stats(request):
     from dateutil.relativedelta import relativedelta
-    html  = ""
+
+    html = ""
 
     html += "Total Sheets: %d\n" % db.sheets.find().count()
     html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
 
-
     html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
     today = datetime.today()
-    start = today.replace(year=today.year+1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    start = today.replace(
+        year=today.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
     years = 5
     for i in range(years):
-        end      = start
-        start    = end - relativedelta(years=1)
-        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
-        cursor   = db.sheets.find(query)
-        total    = cursor.count()
+        end = start
+        start = end - relativedelta(years=1)
+        query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        cursor = db.sheets.find(query)
+        total = cursor.count()
         creators = len(cursor.distinct("owner"))
-        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
-        ptotal   = db.sheets.find(query).count()
-        html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
+        query = {
+            "dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()},
+            "status": "public",
+        }
+        ptotal = db.sheets.find(query).count()
+        html += "{}: {} / {} / {}\n".format(
+            start.strftime("%Y"), total, ptotal, creators
+        )
 
     html += "\n\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
     for i in range(months):
-        end   = start
+        end = start
         start = end - relativedelta(months=1)
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
         html += "%s: %d\n" % (start.strftime("%b %y"), len(n))
 
     html += "\n\nUnique Source Sheet creators per year:\n\n"
-    end   = datetime.today()
-    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    end = datetime.today()
+    start = datetime.today().replace(
+        month=1, day=1, hour=0, minute=0, second=0, microsecond=0
+    )
     query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
     n = db.sheets.find(query).distinct("owner")
     html += "%s YTD: %d\n" % (start.strftime("%Y"), len(n))
     years = 3
     for i in range(years):
-        end   = start
+        end = start
         start = end - relativedelta(years=1)
         query = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
         n = db.sheets.find(query).distinct("owner")
@@ -816,8 +982,8 @@ def sheet_stats(request):
     html += "\n\nAll time contributors:\n\n"
     all_sheet_makers = db.sheets.distinct("owner")
     public_sheet_makers = db.sheets.find({"status": "public"}).distinct("owner")
-    public_contributors = set(db.history.distinct("user")+public_sheet_makers)
-    all_contributors = set(db.history.distinct("user")+all_sheet_makers)
+    public_contributors = set(db.history.distinct("user") + public_sheet_makers)
+    all_contributors = set(db.history.distinct("user") + all_sheet_makers)
 
     html += "Public Sheet Makers: %d\n" % len(public_sheet_makers)
     html += "All Sheet Makers: %d\n" % len(all_sheet_makers)
@@ -832,13 +998,23 @@ def untagged_sheets(request):
     html = ""
     page = int(request.GET.get("page", 0))
     page_size = 100
-    sheets = db.sheets.find({"status": "public", "tags": []}, {"id": 1, "title": 1}).limit(page_size).skip(page_size*page)
+    sheets = (
+        db.sheets.find({"status": "public", "tags": []}, {"id": 1, "title": 1})
+        .limit(page_size)
+        .skip(page_size * page)
+    )
 
     for sheet in sheets:
-        html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (sheet["id"], strip_tags(sheet["title"]))
+        html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (
+            sheet["id"],
+            strip_tags(sheet["title"]),
+        )
     html += "<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
 
-    return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
+    return HttpResponse(
+        "<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>"
+    )
+
 
 @staff_member_required
 def categorize_sheets(request):
@@ -849,104 +1025,155 @@ def categorize_sheets(request):
     context = {
         "title": "Categorize Sheets",
         "description": "Retrieve the latest uncategorized, public sheet and allow user to tag",
-        "propsJSON": propsJSON
+        "propsJSON": propsJSON,
     }
     return render(request, "static/categorize-sheets.html", context)
+
 
 @staff_member_required
 def sheet_spam_dashboard(request):
 
     from django.contrib.auth.models import User
 
-    if request.method == 'POST':
+    if request.method == "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     else:
         date = request.GET.get("date", None)
 
         if date:
-            date = datetime.strptime(date, '%Y-%m-%d')
+            date = datetime.strptime(date, "%Y-%m-%d")
 
         else:
             date = request.GET.get("date", datetime.now() - timedelta(days=30))
 
-        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
+        earliest_new_user_id = (
+            User.objects.filter(date_joined__gte=date).order_by("date_joined")[0].id
+        )
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
-        sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": [{"sources.outsideText": {"$regex": regex}}, {"sources.comment": {"$regex": regex}}, {"sources.outsideBiText.en": {"$regex": regex}}, {"sources.outsideBiText.he": {"$regex": regex}}]})
+        sheets = db.sheets.find(
+            {
+                "sources.ref": {"$exists": False},
+                "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")},
+                "owner": {"$gt": earliest_new_user_id},
+                "includedRefs": {"$size": 0},
+                "reviewed": {"$ne": True},
+                "$or": [
+                    {"sources.outsideText": {"$regex": regex}},
+                    {"sources.comment": {"$regex": regex}},
+                    {"sources.outsideBiText.en": {"$regex": regex}},
+                    {"sources.outsideBiText.he": {"$regex": regex}},
+                ],
+            }
+        )
 
         sheets_list = []
 
         for sheet in sheets:
-            sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
+            sheets_list.append(
+                {
+                    "id": sheet["id"],
+                    "title": strip_tags(sheet["title"]),
+                    "owner": user_link(sheet["owner"]),
+                }
+            )
 
-        return render_template(request, 'spam_dashboard.html', None, {
-            "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
-            "sheets": sheets_list,
-            "type": "sheet",
-        })
+        return render_template(
+            request,
+            "spam_dashboard.html",
+            None,
+            {
+                "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
+                "sheets": sheets_list,
+                "type": "sheet",
+            },
+        )
+
 
 @staff_member_required
 def profile_spam_dashboard(request):
 
     from django.contrib.auth.models import User
 
-    if request.method == 'POST':
+    if request.method == "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     else:
         date = request.GET.get("date", None)
 
         if date:
-            date = datetime.strptime(date, '%Y-%m-%d')
+            date = datetime.strptime(date, "%Y-%m-%d")
 
         else:
             date = request.GET.get("date", datetime.now() - timedelta(days=30))
 
-        earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
+        earliest_new_user_id = (
+            User.objects.filter(date_joined__gte=date).order_by("date_joined")[0].id
+        )
 
         regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
 
-        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
+        spam_keywords_regex = r"(?i).*support.*|.*coin.*|.*helpline.*|.*base.*"
 
         users_to_check = db.profiles.find(
-            {'$and': [
-                {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
-                {'$or': [
-                    {'website': {"$ne": ""}},
-                    {'facebook': {"$ne": ""}},
-                    {'twitter': {"$ne": ""}},
-                    {'youtube': {"$ne": ""}},
-                    {'linkedin': {"$ne": ""}},
-                    {'bio': {"$regex": regex}},
-                    {'slug': {"$regex": spam_keywords_regex}}
-            ]
-        }]})
-
-
+            {
+                "$and": [
+                    {
+                        "id": {"$gt": earliest_new_user_id},
+                        "reviewed": {"$ne": True},
+                        "settings.reading_history": {"$ne": False},
+                    },
+                    {
+                        "$or": [
+                            {"website": {"$ne": ""}},
+                            {"facebook": {"$ne": ""}},
+                            {"twitter": {"$ne": ""}},
+                            {"youtube": {"$ne": ""}},
+                            {"linkedin": {"$ne": ""}},
+                            {"bio": {"$regex": regex}},
+                            {"slug": {"$regex": spam_keywords_regex}},
+                        ]
+                    },
+                ]
+            }
+        )
 
         profiles_list = []
 
         for user in users_to_check:
-            history_count = db.user_history.find({'uid': user['id'], 'book': {'$ne': 'Sheet'}}).count()
+            history_count = db.user_history.find(
+                {"uid": user["id"], "book": {"$ne": "Sheet"}}
+            ).count()
             if history_count < 10:
                 profile = model.user_profile.UserProfile(id=user["id"])
 
-                profiles_list.append({"name": f"{profile.first_name} {profile.last_name}", "email": profile.email, "id": user["id"], "slug": user["slug"], "bio": strip_tags(user["bio"][0:250]), "website": user["website"][0:50]})
+                profiles_list.append(
+                    {
+                        "name": f"{profile.first_name} {profile.last_name}",
+                        "email": profile.email,
+                        "id": user["id"],
+                        "slug": user["slug"],
+                        "bio": strip_tags(user["bio"][0:250]),
+                        "website": user["website"][0:50],
+                    }
+                )
 
-        return render_template(request, 'spam_dashboard.html', None, {
-            "title": "Potential Spam Profiles since %s" % date.strftime("%Y-%m-%d"),
-            "profiles": profiles_list,
-            "type": "profile",
-        })
-
-
+        return render_template(
+            request,
+            "spam_dashboard.html",
+            None,
+            {
+                "title": "Potential Spam Profiles since %s" % date.strftime("%Y-%m-%d"),
+                "profiles": profiles_list,
+                "type": "profile",
+            },
+        )
 
 
 @staff_member_required
 def spam_dashboard(request):
     from django.contrib.auth.models import User
-
 
     def purge_spammer_account_data(spammer_id):
         # Delete from Nationbuilder
@@ -969,15 +1196,20 @@ def spam_dashboard(request):
         spammer_account.is_active = False
         spammer_account.save()
 
-
-    if request.method == 'POST':
+    if request.method == "POST":
         req_type = request.POST.get("type")
 
         if req_type == "sheet":
             spam_sheet_ids = list(map(int, request.POST.getlist("spam_sheets[]", [])))
-            reviewed_sheet_ids = list(map(int, request.POST.getlist("reviewed_sheets[]", [])))
-            db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
-            spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
+            reviewed_sheet_ids = list(
+                map(int, request.POST.getlist("reviewed_sheets[]", []))
+            )
+            db.sheets.update_many(
+                {"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}}
+            )
+            spammers = db.sheets.find(
+                {"id": {"$in": spam_sheet_ids}}, {"owner": 1}
+            ).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
 
             for spammer in spammers:
@@ -986,17 +1218,28 @@ def spam_dashboard(request):
                 except:
                     continue
 
-            return render_template(request, 'spam_dashboard.html', None, {
-                "deleted": len(spam_sheet_ids),
-                "ids": spam_sheet_ids,
-                "reviewed": len(reviewed_sheet_ids),
-                "spammers_deactivated": len(spammers)
-            })
+            return render_template(
+                request,
+                "spam_dashboard.html",
+                None,
+                {
+                    "deleted": len(spam_sheet_ids),
+                    "ids": spam_sheet_ids,
+                    "reviewed": len(reviewed_sheet_ids),
+                    "spammers_deactivated": len(spammers),
+                },
+            )
 
         elif req_type == "profile":
-            spam_profile_ids = list(map(int, request.POST.getlist("spam_profiles[]", [])))
-            reviewed_profile_ids = list(map(int, request.POST.getlist("reviewed_profiles[]", [])))
-            db.profiles.update_many({"id": {"$in": reviewed_profile_ids}}, {"$set": {"reviewed": True}})
+            spam_profile_ids = list(
+                map(int, request.POST.getlist("spam_profiles[]", []))
+            )
+            reviewed_profile_ids = list(
+                map(int, request.POST.getlist("reviewed_profiles[]", []))
+            )
+            db.profiles.update_many(
+                {"id": {"$in": reviewed_profile_ids}}, {"$set": {"reviewed": True}}
+            )
 
             for spammer in spam_profile_ids:
                 try:
@@ -1004,12 +1247,17 @@ def spam_dashboard(request):
                 except:
                     continue
 
-            return render_template(request, 'spam_dashboard.html', None, {
-                "deleted": len(spam_profile_ids),
-                "ids": spam_profile_ids,
-                "reviewed": len(reviewed_profile_ids),
-                "spammers_deactivated": len(spam_profile_ids)
-            })
+            return render_template(
+                request,
+                "spam_dashboard.html",
+                None,
+                {
+                    "deleted": len(spam_profile_ids),
+                    "ids": spam_profile_ids,
+                    "reviewed": len(reviewed_profile_ids),
+                    "spammers_deactivated": len(spam_profile_ids),
+                },
+            )
 
         else:
             return jsonResponse({"error": "Unknown post type."})
@@ -1017,9 +1265,11 @@ def spam_dashboard(request):
     else:
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
+
 @staff_member_required
 def versions_csv(request):
     return HttpResponse(make_versions_csv(), content_type="text/csv")
+
 
 @csrf_exempt
 def index_sheets_by_timestamp(request):
@@ -1028,7 +1278,11 @@ def index_sheets_by_timestamp(request):
 
     key = request.POST.get("apikey")
     if not key:
-        return jsonResponse({"error": "You must be logged in or use an API key to index sheets by timestamp."})
+        return jsonResponse(
+            {
+                "error": "You must be logged in or use an API key to index sheets by timestamp."
+            }
+        )
     apikey = db.apikeys.find_one({"key": key})
     if not apikey:
         return jsonResponse({"error": "Unrecognized API key."})
@@ -1036,13 +1290,14 @@ def index_sheets_by_timestamp(request):
     if not user.is_staff:
         return jsonResponse({"error": "Only Sefaria Moderators can add or edit terms."})
 
-    timestamp = request.POST.get('timestamp')
+    timestamp = request.POST.get("timestamp")
     try:
         dateutil.parser.parse(timestamp)
     except ValueError:
         return jsonResponse({"error": "Timestamp {} not valid".format(timestamp)})
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
+
 
 def library_stats(request):
     return HttpResponse(get_library_stats(), content_type="text/csv")
@@ -1051,12 +1306,14 @@ def library_stats(request):
 def core_link_stats(request):
     return HttpResponse(get_core_link_stats(), content_type="text/csv")
 
+
 @staff_member_required
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
 
     from .settings import DEBUG
+
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
@@ -1071,7 +1328,7 @@ def text_download_api(request, format, title, lang, versionTitle):
         "json": "application/json; charset=utf-8",
         "csv": "text/csv; charset=utf-8",
         "txt": "text/plain; charset=utf-8",
-        "plain.txt": "text/plain; charset=utf-8"
+        "plain.txt": "text/plain; charset=utf-8",
     }
     response = HttpResponse(content, content_type=content_types[format])
     response["Content-Disposition"] = "attachment"
@@ -1091,7 +1348,9 @@ def bulk_download_versions_api(request):
     if not format:
         error = "A value is required for 'format'"
     if not title_pattern and not version_title_pattern:
-        error = "A value is required for either 'title_pattern' or 'version_title_pattern'"
+        error = (
+            "A value is required for either 'title_pattern' or 'version_title_pattern'"
+        )
     if error:
         return jsonResponse({"error": error})
 
@@ -1111,23 +1370,37 @@ def bulk_download_versions_api(request):
     file_like_object = io.BytesIO()
     with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
         for version in vs:
-            filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
-            name = '{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format)
+            filebytes = _get_text_version_file(
+                format, version.title, version.language, version.versionTitle
+            )
+            name = "{} - {} - {}.{}".format(
+                version.title, version.language, version.versionTitle, format
+            )
             zfile.writestr(name, filebytes)
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = "{}-{}-{}-{}.zip".format(''.join(list(filter(str.isalnum, str(title_pattern)))), ''.join(list(filter(str.isalnum, str(version_title_pattern)))), language, format)
+    filename = "{}-{}-{}-{}.zip".format(
+        "".join(list(filter(str.isalnum, str(title_pattern)))),
+        "".join(list(filter(str.isalnum, str(version_title_pattern)))),
+        language,
+        format,
+    )
     response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
-    response["charset"] = 'utf-8'
+    response["charset"] = "utf-8"
     return response
 
 
 def _get_text_version_file(format, title, lang, versionTitle):
-    from sefaria.export import (export_merged_csv, export_version_csv,
-                                make_json, make_text,
-                                prepare_merged_text_for_export,
-                                prepare_text_for_export, text_is_copyright)
+    from sefaria.export import (
+        export_merged_csv,
+        export_version_csv,
+        make_json,
+        make_text,
+        prepare_merged_text_for_export,
+        prepare_text_for_export,
+        text_is_copyright,
+    )
 
     assert lang in ["en", "he"]
     assert format in ["json", "csv", "txt", "plain.txt"]
@@ -1145,20 +1418,30 @@ def _get_text_version_file(format, title, lang, versionTitle):
             content = make_text(prepare_merged_text_for_export(title, lang=lang))
 
         elif format == "plain.txt" and merged:
-            content = make_text(prepare_merged_text_for_export(title, lang=lang), strip_html=True)
+            content = make_text(
+                prepare_merged_text_for_export(title, lang=lang), strip_html=True
+            )
 
     else:
         version_query = {"title": title, "language": lang, "versionTitle": versionTitle}
 
         if format == "csv":
             version = Version().load(version_query)
-            assert version, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
-            assert not version.is_copyrighted(), "Cowardly refusing to export copyrighted text."
+            assert version, "Can not find version of {} in {}: {}".format(
+                title, lang, versionTitle
+            )
+            assert (
+                not version.is_copyrighted()
+            ), "Cowardly refusing to export copyrighted text."
             content = export_version_csv(index, [version])
         else:
             version_object = db.texts.find_one(version_query)
-            assert version_object, "Can not find version of {} in {}: {}".format(title, lang, versionTitle)
-            assert not text_is_copyright(version_object), "Cowardly refusing to export copyrighted text."
+            assert version_object, "Can not find version of {} in {}: {}".format(
+                title, lang, versionTitle
+            )
+            assert not text_is_copyright(
+                version_object
+            ), "Cowardly refusing to export copyrighted text."
 
             if format == "json":
                 content = make_json(prepare_text_for_export(version_object))
@@ -1167,10 +1450,11 @@ def _get_text_version_file(format, title, lang, versionTitle):
                 content = make_text(prepare_text_for_export(version_object))
 
             elif format == "plain.txt":
-                content = make_text(prepare_text_for_export(version_object), strip_html=True)
+                content = make_text(
+                    prepare_text_for_export(version_object), strip_html=True
+                )
 
     return content
-
 
 
 @staff_member_required
@@ -1179,6 +1463,7 @@ def text_upload_api(request):
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
     from sefaria.export import import_versions_from_stream
+
     message = ""
     files = request.FILES.getlist("texts[]")
     for f in files:
@@ -1195,41 +1480,64 @@ def text_upload_api(request):
 @staff_member_required
 def update_authors_from_sheet(request):
     from sefaria.helper.descriptions import update_authors_data
+
     res_text = update_authors_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def update_categories_from_sheet(request):
     from sefaria.helper.descriptions import update_categories_data
+
     res_text = update_categories_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def update_texts_from_sheet(request):
     from sefaria.helper.descriptions import update_texts_data
+
     res_text = update_texts_data()
     return HttpResponse("\n".join(res_text), content_type="text/plain")
+
 
 @staff_member_required
 def modtools_upload_workflowy(request):
     from sefaria.helper.text import WorkflowyParser
+
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
 
-    file = request.FILES['wf_file']
+    file = request.FILES["wf_file"]
     c_index = request.POST.get("c_index", False)
     c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
-    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+    delims = (
+        request.POST.get("delims", None)
+        if len(request.POST.get("delims", None))
+        else None
+    )
+    term_scheme = (
+        request.POST.get("term_scheme", None)
+        if len(request.POST.get("term_scheme", None))
+        else None
+    )
 
     uid = request.user.id
     try:
-        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+        wfparser = WorkflowyParser(
+            file,
+            uid,
+            term_scheme=term_scheme,
+            c_index=c_index,
+            c_version=c_version,
+            delims=delims,
+        )
         res = wfparser.parse()
     except Exception as e:
-        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
+        raise e  # this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
     return jsonResponse({"status": "ok", "data": res})
+
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)
@@ -1250,11 +1558,19 @@ def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace("_", " ")
 
-    return render_template(request,'compare.html', None, {
-        "JSON_PROPS": json.dumps({
-            'secRef': sec_ref,
-            'v1': v1, 'v2': v2,
-            'lang': lang,
-            'refArray': ref_array,
-        })
-    })
+    return render_template(
+        request,
+        "compare.html",
+        None,
+        {
+            "JSON_PROPS": json.dumps(
+                {
+                    "secRef": sec_ref,
+                    "v1": v1,
+                    "v2": v2,
+                    "lang": lang,
+                    "refArray": ref_array,
+                }
+            )
+        },
+    )

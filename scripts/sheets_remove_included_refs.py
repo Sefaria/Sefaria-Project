@@ -7,4 +7,3 @@ from sefaria.model import *
 from sefaria.system.database import db
 
 db.sheets.update({}, {"$unset": {"included_refs": ""}}, multi=True)
-

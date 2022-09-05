@@ -6,10 +6,12 @@ id_map = defaultdict(list)
 for p in db.profiles.find({}):
     id_map[p["id"]] += [p]
 
-bad_accounts  =0
+bad_accounts = 0
 for k, v in list(id_map.items()):
     if len(v) == 2:
-        empty_p, normal_p = (v[0], v[1]) if v[0]["slug"] == "" and v[1]["slug"] != "" else (v[1], v[0])
+        empty_p, normal_p = (
+            (v[0], v[1]) if v[0]["slug"] == "" and v[1]["slug"] != "" else (v[1], v[0])
+        )
         try:
             assert empty_p["slug"] == ""
             assert normal_p["slug"] != ""

@@ -1,4 +1,4 @@
-#encoding=utf-8
+# encoding=utf-8
 from sefaria.helper.schema import *
 from sefaria.model import *
 

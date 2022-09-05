@@ -12,7 +12,6 @@ from sefaria.texts import *
 history = db.history.find()
 
 for act in history:
-	if isinstance(act["date"], str):
-		act["date"] = dateutil.parser.parse(act["date"])
-		db.history.save(act)
-
+    if isinstance(act["date"], str):
+        act["date"] = dateutil.parser.parse(act["date"])
+        db.history.save(act)

@@ -9,7 +9,7 @@ from . import jobs
 
 
 def run_background_scheduler():
-    jobstores = {'default': MongoDBJobStore(client=client, database=APSCHEDULER_NAME)}
+    jobstores = {"default": MongoDBJobStore(client=client, database=APSCHEDULER_NAME)}
     scheduler = BackgroundScheduler(jobstores=jobstores, timezone=utc)
     scheduler.start()
     jobs.remove_jobs(scheduler)

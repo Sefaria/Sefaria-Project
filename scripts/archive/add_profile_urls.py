@@ -10,7 +10,7 @@ import sys
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
+os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
 
 from django.contrib.auth.models import User
@@ -20,8 +20,8 @@ from sefaria.system.database import db
 
 db.profiles.ensure_index("slug")
 
-users  = User.objects.all()
+users = User.objects.all()
 
 for user in users:
-	profile = UserProfile(id=user.id)
-	profile.assign_slug().save()
+    profile = UserProfile(id=user.id)
+    profile.assign_slug().save()

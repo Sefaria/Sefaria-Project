@@ -6,8 +6,7 @@ import django
 django.setup()
 import sys
 
-from . import \
-    basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from . import basic_tests  # This is in fact needed - to register subclasses Trial, etc.
 from .framework import Trial
 
 build = sys.argv[1]

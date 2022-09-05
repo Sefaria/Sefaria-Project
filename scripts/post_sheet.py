@@ -11,33 +11,33 @@ import urllib.request
 from sefaria.sheets import get_sheet
 
 try:
-  from sefaria.local_settings import SEFARIA_API_KEY
+    from sefaria.local_settings import SEFARIA_API_KEY
 except:
-  print("To post sheets, please set SEFARIA_API_KEY in your local_settings.py")
-  sys.exit()
+    print("To post sheets, please set SEFARIA_API_KEY in your local_settings.py")
+    sys.exit()
 
 
 if len(sys.argv) < 3:
-  print("Please specify a sheet id to post and a destination host. E.g.:")
-  print("post_sheet.py 613 https://dev.sefaira.org'")
+    print("Please specify a sheet id to post and a destination host. E.g.:")
+    print("post_sheet.py 613 https://dev.sefaira.org'")
 else:
-  
-  id = int(sys.argv[1])
-  host = sys.argv[2]
 
-  sheet = get_sheet(id)
-  del sheet["id"]
-  del sheet["_id"]
+    id = int(sys.argv[1])
+    host = sys.argv[2]
 
-  post_json = json.dumps(sheet)
-  values = {'json': post_json, 'apikey': SEFARIA_API_KEY}
-  post = urllib.parse.urlencode(values)  
+    sheet = get_sheet(id)
+    del sheet["id"]
+    del sheet["_id"]
 
-  req = urllib.request.Request(host + "/api/sheets", post)  
+    post_json = json.dumps(sheet)
+    values = {"json": post_json, "apikey": SEFARIA_API_KEY}
+    post = urllib.parse.urlencode(values)
 
-  try:
-    response = urllib.request.urlopen(req)
-    print("Sheet posted.")
-  except urllib.error.HTTPError as e:
-    error_message = e.read()
-    print(error_message)
+    req = urllib.request.Request(host + "/api/sheets", post)
+
+    try:
+        response = urllib.request.urlopen(req)
+        print("Sheet posted.")
+    except urllib.error.HTTPError as e:
+        error_message = e.read()
+        print(error_message)

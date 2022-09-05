@@ -1,4 +1,4 @@
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 
 import codecs
 import csv
@@ -64,7 +64,9 @@ def rewrite(tc, mappings, finds):
             replace_dict[find] = mappings[process_ref(find)]
             found = True
         else:
-            not_found.append("In {}, there is the following reference: {}".format(ref.normal(), find))
+            not_found.append(
+                "In {}, there is the following reference: {}".format(ref.normal(), find)
+            )
 
     if type(text) is list and type(text[0]) is not list:
         for i, line in enumerate(text):
@@ -87,9 +89,8 @@ def get_mappings(file):
     return mappings
 
 
-
 def execute():
-    results = codecs.open("data/tanchuma_ref_results.csv", 'r', 'utf-8')
+    results = codecs.open("data/tanchuma_ref_results.csv", "r", "utf-8")
     reader = csv.reader(results)
     lines = []
     info = []
@@ -103,12 +104,13 @@ def execute():
 
     for count, line in enumerate(lines):
         print(count)
-        line = line.decode('utf-8')
+        line = line.decode("utf-8")
         other_ref, vtitle = info[count]
         # modify_text(15399, Ref(other_ref), vtitle, 'en', line.strip())
         tc = TextChunk(Ref(other_ref), vtitle=vtitle, lang="en")
         tc.text = tc.text.strip()
         tc.save()
+
 
 def write():
     mappings = get_mappings("data/tanchuma_map.csv")
@@ -116,8 +118,8 @@ def write():
     section_refs = {}
     not_found_arr = []
     input_errors = 0
-    results = codecs.open("data/tanchuma_ref_results.csv", 'w', 'utf-8')
-    text_results = codecs.open("data/tanchuma_text_results.txt", 'w', 'utf-8')
+    results = codecs.open("data/tanchuma_ref_results.csv", "w", "utf-8")
+    text_results = codecs.open("data/tanchuma_text_results.txt", "w", "utf-8")
     writer = UnicodeWriter(results)
     for count, l in enumerate(ls):
         refs = [ref for ref in l.refs if not ref.startswith("Midrash Tanchuma")]
@@ -128,10 +130,14 @@ def write():
             continue
 
         title = other_ref.book
-        vtitles = [version.versionTitle for version in library.get_index(title).versionSet() if version.language == 'en']
+        vtitles = [
+            version.versionTitle
+            for version in library.get_index(title).versionSet()
+            if version.language == "en"
+        ]
         TCs = []
         for vtitle in vtitles:
-            tc = TextChunk(other_ref, vtitle=vtitle, lang='en')
+            tc = TextChunk(other_ref, vtitle=vtitle, lang="en")
             finds = needs_rewrite(tc.as_string())
             if len(finds) > 0:
                 text, not_found, found = rewrite(tc, mappings, finds)
@@ -140,18 +146,16 @@ def write():
                     try:
                         print("writing... {}".format(other_ref.normal()))
                         writer.writerow([other_ref.normal(), vtitle])
-                        text_results.write(text+"\n")
+                        text_results.write(text + "\n")
                     except:
                         print(other_ref)
 
-    #print "INPUT ERRORS = {}".format(input_errors)
+    # print "INPUT ERRORS = {}".format(input_errors)
     print("NOT FOUND BAD REF = {}".format(len(not_found_arr)))
     for each in not_found_arr:
         print(each)
     results.close()
 
+
 if __name__ == "__main__":
     execute()
-
-
-    

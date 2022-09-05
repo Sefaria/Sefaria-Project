@@ -10,7 +10,7 @@ logger = structlog.get_logger(__name__)
 
 def get_resized_file(image, size, to_format="PNG"):
     resized_image = image.resize(size, resample=Image.LANCZOS)
-    #resized_image.convert('RGB')
+    # resized_image.convert('RGB')
     resized_image_file = BytesIO()
     resized_image.save(resized_image_file, format=to_format)
     resized_image_file.seek(0)

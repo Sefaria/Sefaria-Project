@@ -19,7 +19,7 @@ mishneh_torah = json.loads(open("mishneh-torah.json", "r").read())
 indices = db.index.find({"categories.0": "Mishneh Torah"}).sort([["order.0", 1]])
 
 for i in indices:
-	del i["titleVariants"]
-	i["titleVariants"] = mishneh_torah[i["order"][0]-1]["titleVariants"]
-	pprint(i)
-	db.index.save(i)
+    del i["titleVariants"]
+    i["titleVariants"] = mishneh_torah[i["order"][0] - 1]["titleVariants"]
+    pprint(i)
+    db.index.save(i)

@@ -13,29 +13,32 @@ index_name_errors = {}
 cross_index_span_errors = {}
 
 new_index_alt_titles = {
-  "Chulin": "Chullin",
-  "Keilim": "Kelim",
-  "Uktzin": "Oktzin",
-  "Kinim": "Kinnim",
-  "Bechorot": "Bekhorot",
-  "Megilah": "Megillah",
-  "Erchin": "Arakhin",
-  "Machshirin": "Makhshirin",
-  "Maaserot": "Maasrot",
-  "Damai": "Demai",
-  "Ohalot": "Oholot",
-  "Chalah": "Challah",
-  "Kidushin": "Kiddushin",
-  "Bava Kama": "Bava Kamma",
-  "Avodah Zara": "Avodah Zarah",
-  "Bikurim": "Bikkurim",
-  "Nidah": "Niddah"
+    "Chulin": "Chullin",
+    "Keilim": "Kelim",
+    "Uktzin": "Oktzin",
+    "Kinim": "Kinnim",
+    "Bechorot": "Bekhorot",
+    "Megilah": "Megillah",
+    "Erchin": "Arakhin",
+    "Machshirin": "Makhshirin",
+    "Maaserot": "Maasrot",
+    "Damai": "Demai",
+    "Ohalot": "Oholot",
+    "Chalah": "Challah",
+    "Kidushin": "Kiddushin",
+    "Bava Kama": "Bava Kamma",
+    "Avodah Zara": "Avodah Zarah",
+    "Bikurim": "Bikkurim",
+    "Nidah": "Niddah",
 }
+
 
 def prepare_alt_titles_on_indices():
     for alt_title in new_index_alt_titles:
         print(alt_title)
-        idx = model.library.get_index("Mishnah {}".format(new_index_alt_titles[alt_title]))
+        idx = model.library.get_index(
+            "Mishnah {}".format(new_index_alt_titles[alt_title])
+        )
         print(idx.title)
         try:
             idx.nodes.add_title("Mishnah {}".format(alt_title), "en")
@@ -43,11 +46,12 @@ def prepare_alt_titles_on_indices():
         except Exception as e:
             pass
 
+
 def parse_daily_mishnah(filename):
     # See here: https://stackoverflow.com/questions/17315635/csv-new-line-character-seen-in-unquoted-field-error
     # for the irregular open flags
     db.daily_mishnayot.remove()
-    with open(filename, 'rU') as csvfile:
+    with open(filename, "rU") as csvfile:
         mishnahs = csv.reader(csvfile, dialect=csv.excel_tab)
         next(mishnahs)
         for row in mishnahs:
@@ -69,10 +73,10 @@ def parse_row(input_ref, date_str):
         }
         db.daily_mishnayot.save(mishnah)
     except Exception as e:
-        #print "Exception {} on row {} {}".format(e.message, input_ref, date_str)
+        # print "Exception {} on row {} {}".format(e.message, input_ref, date_str)
         if "Could not find title in reference" in e.message:
             print("Exception {} on row {} {}".format(e.message, input_ref, date_str))
-            m_obj = re.match(r'[a-zA-Z ]+', input_ref)
+            m_obj = re.match(r"[a-zA-Z ]+", input_ref)
             if m_obj:
                 index_name = m_obj.group(0).strip()
                 index_name_errors[index_name] = 1
@@ -83,12 +87,7 @@ def parse_row(input_ref, date_str):
             parse_row(split_refs[1], date_str)
 
 
-
-
-
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--filename", help="abs path of data csv")
     args = parser.parse_args()

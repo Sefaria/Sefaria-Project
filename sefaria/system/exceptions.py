@@ -7,12 +7,14 @@ All other exceptions get handled by the default Django error handling system.
 
 
 class InputError(Exception):
-    """ Exception thrown when bad input of some sort is found.  This is the parent exception for parsing exceptions. """
+    """Exception thrown when bad input of some sort is found.  This is the parent exception for parsing exceptions."""
+
     pass
 
 
 class PartialRefInputError(InputError):
-    """ Special Case Exception to throw when an input error is partially correct"""
+    """Special Case Exception to throw when an input error is partially correct"""
+
     def __init__(self, message, matched_part, valid_continuations):
 
         # Call the base class constructor with the parameters it needs
@@ -24,12 +26,14 @@ class PartialRefInputError(InputError):
 
 
 class BookNameError(InputError):
-    """ Thrown when a book title is searched for and not found.  """
+    """Thrown when a book title is searched for and not found."""
+
     pass
 
 
 class DuplicateRecordError(InputError):
-    """ Thrown when trying to save a record that would duplicate existing information """
+    """Thrown when trying to save a record that would duplicate existing information"""
+
     pass
 
 

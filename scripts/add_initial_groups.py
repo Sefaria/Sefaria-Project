@@ -14,9 +14,11 @@ for group in groups:
     print(group.name)
     base = "http://www.sefaria.org/static/partner/"
     path = group.name.replace(" ", "_")
-    newGroup = NewGroup({
-                            "name": group.name,
-                            "coverUrl": base + path + "/logo.png",
-                            "headerUrl": base + path + "/header.png",
-                        })
+    newGroup = NewGroup(
+        {
+            "name": group.name,
+            "coverUrl": base + path + "/logo.png",
+            "headerUrl": base + path + "/header.png",
+        }
+    )
     newGroup.save()

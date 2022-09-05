@@ -30,11 +30,11 @@ UNIDECODE_TABLE = {
     "ĩ": "i",
     "ë": "e",
     "’": "'",
-    '\u05f3': "'",
+    "\u05f3": "'",
     "\u05f4": '"',
     "\u0323": "",  # chirik-like dot
     "”": '"',
-    "“": '"'
+    "“": '"',
 }
 
 
@@ -44,6 +44,7 @@ class AbstractNormalizer:
     Subclasses should implement find_text_to_remove() and optionally normalize()
     Default implementation of normalize() works, but is not optimized. Consider implementing if speed is important.
     """
+
     def __init__(self):
         pass
 
@@ -57,9 +58,9 @@ class AbstractNormalizer:
         # make sure to iterate backwards b/c you're changing indices
         for (start, end), repl in reversed(text_to_remove):
             schars[start:end] = repl
-        return ''.join(schars)
+        return "".join(schars)
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
         """
         Returns a list of text to remove when applying normalizer to string s.
         Each item in the list is of form ((start, end), replacement) where start and end are indices in s of text to replace with string `replacement`
@@ -73,6 +74,7 @@ class AbstractNormalizer:
         Assumes there are no overlapping or equal length ranges
         Removes strict subsets from list
         """
+
         def remove_subsets_reducer(curr_text_to_remove: list, next: tuple) -> list:
             (next_start, next_end), _ = next
             for (start, end), _ in curr_text_to_remove:
@@ -84,7 +86,9 @@ class AbstractNormalizer:
         text_to_remove.sort(key=lambda x: x[0][1] - x[0][0], reverse=True)
         return reduce(remove_subsets_reducer, text_to_remove, [])
 
-    def get_mapping_after_normalization(self, text, removal_list=None, reverse=False, **kwargs):
+    def get_mapping_after_normalization(
+        self, text, removal_list=None, reverse=False, **kwargs
+    ):
         """
         text - unnormalized text
         find_text_to_remove - function which takes text as param and return list of tuples. each tuple is of form ((start, end), replacement) where start and end are indices in unnormalized string and replacement is the string that will replace text at these indices
@@ -109,13 +113,19 @@ class AbstractNormalizer:
             except TypeError:
                 # must be match object
                 start, end = removal.start(), removal.end()
-            normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
-            total_removed += (end - start - len(subst))
+            normalized_text_index = (
+                start
+                if reverse
+                else (start + min(len(subst), end - start) - total_removed)
+            )
+            total_removed += end - start - len(subst)
             removal_map[normalized_text_index] = total_removed
         return removal_map
 
     @staticmethod
-    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, reverse=False):
+    def convert_normalized_indices_to_unnormalized_indices(
+        normalized_indices, removal_map, reverse=False
+    ):
         """
         normalized_indices - list of tuples where each tuple is (x, y) x being start index, y is end index + 1
         removal_map - return value of get_mapping_after_normalization()
@@ -126,16 +136,25 @@ class AbstractNormalizer:
         sign = -1 if reverse else 1
         for start, end in normalized_indices:
             unnorm_start_index = bisect_right(removal_keys, start) - 1
-            unnorm_end_index = bisect_right(removal_keys, (end - 1 if reverse else end)) - 1  # not sure if end-1 is specific to reverse case, but seems to be working
+            unnorm_end_index = (
+                bisect_right(removal_keys, (end - 1 if reverse else end)) - 1
+            )  # not sure if end-1 is specific to reverse case, but seems to be working
 
-            unnorm_start = start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
-            unnorm_end = end if unnorm_end_index < 0 else end + (sign * removal_map[removal_keys[unnorm_end_index]])
+            unnorm_start = (
+                start
+                if unnorm_start_index < 0
+                else start + (sign * removal_map[removal_keys[unnorm_start_index]])
+            )
+            unnorm_end = (
+                end
+                if unnorm_end_index < 0
+                else end + (sign * removal_map[removal_keys[unnorm_end_index]])
+            )
             unnormalized_indices += [(unnorm_start, unnorm_end)]
         return unnormalized_indices
 
 
 class ITagNormalizer(AbstractNormalizer):
-
     def __init__(self, repl):
         super().__init__()
         self.repl = repl
@@ -143,6 +162,7 @@ class ITagNormalizer(AbstractNormalizer):
     @staticmethod
     def _find_itags(tag):
         from sefaria.model.text import AbstractTextRecord
+
         return AbstractTextRecord._find_itags(tag)
 
     @staticmethod
@@ -154,7 +174,7 @@ class ITagNormalizer(AbstractNormalizer):
         from sefaria.model.text import AbstractTextRecord
 
         all_itags = []
-        soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
+        soup = BeautifulSoup(f"<root>{s}</root>", "lxml")
         itag_list = soup.find_all(ITagNormalizer._find_itags)
         for itag in itag_list:
             all_itags += [itag]
@@ -172,22 +192,24 @@ class ITagNormalizer(AbstractNormalizer):
         Try to find start of itag regardless
         """
         start = -1
-        for end_char in range(len(itag_text), round(len(itag_text)/2), -10):
+        for end_char in range(len(itag_text), round(len(itag_text) / 2), -10):
             truncated_itag = itag_text[:end_char]
             start = s.find(truncated_itag, search_start)
             if start != -1:
                 break
         return start
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
-        lenient = kwargs.get('lenient', False)  # if lenient, fail gracefully when you can't find an itag
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
+        lenient = kwargs.get(
+            "lenient", False
+        )  # if lenient, fail gracefully when you can't find an itag
         all_itags, _ = ITagNormalizer._get_all_itags(s)
         next_start = 0
         text_to_remove = []
         for itag in all_itags:
             itag_text = itag.decode()
             start = self._find_itag_start(itag_text, s, next_start)
-            end = start+len(itag_text)
+            end = start + len(itag_text)
             if start == -1:
                 exception_text = f"Couldn't find itag with text '{itag_text}' in\n{s}\nnext_start = {next_start}"
                 if lenient:
@@ -202,8 +224,8 @@ class ITagNormalizer(AbstractNormalizer):
         text_to_remove.sort(key=lambda x: x[0][0])
         return text_to_remove
 
-class ReplaceNormalizer(AbstractNormalizer):
 
+class ReplaceNormalizer(AbstractNormalizer):
     def __init__(self, old, new):
         super().__init__()
         self.old = old
@@ -213,11 +235,13 @@ class ReplaceNormalizer(AbstractNormalizer):
         return s.replace(self.old, self.new)
 
     def find_text_to_remove(self, s, **kwargs):
-        return [((m.start(), m.end()), self.new) for m in re.finditer(re.escape(self.old), s)]
+        return [
+            ((m.start(), m.end()), self.new)
+            for m in re.finditer(re.escape(self.old), s)
+        ]
 
 
 class RegexNormalizer(AbstractNormalizer):
-
     def __init__(self, reg, repl) -> None:
         super().__init__()
         self.reg = reg
@@ -231,8 +255,9 @@ class RegexNormalizer(AbstractNormalizer):
 
 
 class NormalizerComposer(AbstractNormalizer):
-
-    def __init__(self, step_keys: List[str]=None, steps: List[AbstractNormalizer]=None) -> None:
+    def __init__(
+        self, step_keys: List[str] = None, steps: List[AbstractNormalizer] = None
+    ) -> None:
         """
         Combines multiple normalizers as if they are one normalizer.
         Should pass either step_keys or steps.
@@ -266,14 +291,20 @@ class NormalizerComposer(AbstractNormalizer):
             else:
                 text_to_remove_inds, text_to_remove_repls = zip(*temp_text_to_remove)
             for mapping in reversed(mappings):
-                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
+                text_to_remove_inds = (
+                    step.convert_normalized_indices_to_unnormalized_indices(
+                        text_to_remove_inds, mapping
+                    )
+                )
             temp_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
             all_text_to_remove += [temp_text_to_remove]
             mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
             snorm = step.normalize(snorm, **kwargs)
         # merge any overlapping ranges
         # later edits should override earlier ones
-        final_text_to_remove = reduce(lambda a, b: self.merge_removal_inds(a, b), all_text_to_remove)
+        final_text_to_remove = reduce(
+            lambda a, b: self.merge_removal_inds(a, b), all_text_to_remove
+        )
         final_text_to_remove.sort(key=lambda x: x[0])
         return final_text_to_remove
 
@@ -291,15 +322,20 @@ class NormalizerComposer(AbstractNormalizer):
                 if new_inds[1] <= curr_inds[0]:
                     # curr_inds are past new_inds indicating rest of curr_inds will also be past. break early.
                     break
-                elif curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
+                elif (
+                    curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]
+                ):  # are curr_inds subset of new_inds?
                     # if earlier inds are a subset of later inds, later inds override
                     merged_inds.remove((curr_inds, curr_repl))
                 elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
                     # if later inds overlap and earlier inds are not a subset, merge
                     if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
-                        merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
-                                                                                                curr_inds[1]:]
-                        merged_inds[i+last_curr] = (curr_inds, merged_repl)
+                        merged_repl = (
+                            curr_repl[: new_inds[0] - curr_inds[0]]
+                            + new_repl
+                            + curr_repl[new_inds[1] - curr_inds[1] :]
+                        )
+                        merged_inds[i + last_curr] = (curr_inds, merged_repl)
                         inds_are_final = False
                         last_curr += 1
                         break
@@ -313,7 +349,6 @@ class NormalizerComposer(AbstractNormalizer):
 
 
 class TableReplaceNormalizer(AbstractNormalizer):
-
     def __init__(self, table: Dict[str, str]):
         """
         :param table: will replace every key with value in string
@@ -350,9 +385,9 @@ class NormalizerFactory:
         "parens-plus-contents": RegexNormalizer(r"\([^)]+\)", " "),
         "brackets": RegexNormalizer(r"[\[\]]", ""),
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
-        "maqaf": ReplaceNormalizer('־', ' '),
-        "itag": ITagNormalizer(' '),
-        "br-tag": ReplaceNormalizer('<br>', '<br/>'),
+        "maqaf": ReplaceNormalizer("־", " "),
+        "itag": ITagNormalizer(" "),
+        "br-tag": ReplaceNormalizer("<br>", "<br/>"),
         "double-space": RegexNormalizer(r"\s+", " "),
     }
 
@@ -374,11 +409,13 @@ class NormalizerFactory:
             if key not in cls.key_normalizer_map:
                 nonexistant_keys += [key]
         if len(nonexistant_keys) > 0:
-            raise Exception(f"Couldn't find the following keys in NormalizerComposer.key_normalizer_map:", ", ".join(nonexistant_keys))
+            raise Exception(
+                f"Couldn't find the following keys in NormalizerComposer.key_normalizer_map:",
+                ", ".join(nonexistant_keys),
+            )
 
 
 class NormalizerByLang(AbstractNormalizer):
-
     def __init__(self, normalizers_by_lang: Dict[str, AbstractNormalizer]):
         """
         :param normalizers_by_lang: dict with keys that are letter lang codes (usually "en" or "he") and values that are subclasses of AbstractNormalizer
@@ -390,16 +427,18 @@ class NormalizerByLang(AbstractNormalizer):
         """
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
-        lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return s
+        lang = kwargs.get("lang")
+        if lang not in self.normalizers_by_lang:
+            return s
         return self.normalizers_by_lang[lang].normalize(s, **kwargs)
 
-    def find_text_to_remove(self, s:str, **kwargs) -> list:
+    def find_text_to_remove(self, s: str, **kwargs) -> list:
         """
         :param lang: passed through kwargs. two letter lang code (usually "en" or "he") indicating which normalizer to apply
         """
-        lang = kwargs.get('lang')
-        if lang not in self.normalizers_by_lang: return []
+        lang = kwargs.get("lang")
+        if lang not in self.normalizers_by_lang:
+            return []
         return self.normalizers_by_lang[lang].find_text_to_remove(s, **kwargs)
 
 
@@ -427,9 +466,9 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
     """
 
     if not split_regex:
-        split_regex = r'\s+'
+        split_regex = r"\s+"
     regex = re.compile(split_regex)
-    regex_normalizer = RegexNormalizer(split_regex, '')
+    regex_normalizer = RegexNormalizer(split_regex, "")
     split_words = regex.split(input_string)
     count, word_indices = 0, []
     for word in split_words:
@@ -443,36 +482,48 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
         first_word, last_word = [w if w < len(word_indices) else -1 for w in words]
         normalized_char_indices.append(
             (
-                word_indices[first_word][0] if first_word >=0 else -1,
-                word_indices[last_word][1] if last_word >= 0 else -1
+                word_indices[first_word][0] if first_word >= 0 else -1,
+                word_indices[last_word][1] if last_word >= 0 else -1,
             )
         )
-    return regex_normalizer.convert_normalized_indices_to_unnormalized_indices(normalized_char_indices, removal_map)
+    return regex_normalizer.convert_normalized_indices_to_unnormalized_indices(
+        normalized_char_indices, removal_map
+    )
 
 
 @lru_cache(maxsize=32)
-def get_word_indices(input_string, split_regex=r'\s+'):
+def get_word_indices(input_string, split_regex=r"\s+"):
     """
     helper method for word_index_from_char_index. Broken out for memoization purposes
     """
     return [r.end() for r in re.finditer(split_regex, input_string)]
 
 
-def word_index_from_char_index(full_string, char_index, split_regex=r'\s+'):
+def word_index_from_char_index(full_string, char_index, split_regex=r"\s+"):
     word_indices = get_word_indices(full_string, split_regex)
     return bisect_right(word_indices, char_index) if char_index >= 0 else -1
 
 
-def sanitized_words_to_unsanitized_words(input_string, sanitized_string, sanitization_method, sanitized_word_ranges):
+def sanitized_words_to_unsanitized_words(
+    input_string, sanitized_string, sanitization_method, sanitized_word_ranges
+):
     normalizer = FunctionNormalizer(sanitization_method)
     removal_map = normalizer.get_mapping_after_normalization(input_string)
-    sanitized_char_ranges = char_indices_from_word_indices(sanitized_string, sanitized_word_ranges)
-    unsanitzied_char_ranges = normalizer.convert_normalized_indices_to_unnormalized_indices(sanitized_char_ranges, removal_map)
+    sanitized_char_ranges = char_indices_from_word_indices(
+        sanitized_string, sanitized_word_ranges
+    )
+    unsanitzied_char_ranges = (
+        normalizer.convert_normalized_indices_to_unnormalized_indices(
+            sanitized_char_ranges, removal_map
+        )
+    )
     # for char_range in unsanitied_char_ranges:
     #     word_range = tuple(word_index_from_char_index(input_string, i) for i in char_range)
     #     stuff.append(word_range)
-    return [tuple(word_index_from_char_index(input_string, i) for i in char_range)
-            for char_range in unsanitzied_char_ranges]
+    return [
+        tuple(word_index_from_char_index(input_string, i) for i in char_range)
+        for char_range in unsanitzied_char_ranges
+    ]
 
 
 class TextSanitizer:
@@ -481,6 +532,7 @@ class TextSanitizer:
     for use in dibbur_hamatchil_matcher.match_text. It is primarily helpful when we need to keep track of text before and after edits were
     made to said text that were necessary for improving text matching.
     """
+
     def __init__(self, section: List[str], divider_pattern: str):
         self._original_segments = tuple(section)
         self._sanitized_segments = None
@@ -501,7 +553,9 @@ class TextSanitizer:
     def sanitize(self):
         if not self.sanitizer:
             raise AttributeError("no sanitization method set for this instance")
-        self._sanitized_segments = tuple(self.sanitizer(x) for x in self._original_segments)
+        self._sanitized_segments = tuple(
+            self.sanitizer(x) for x in self._original_segments
+        )
         self._set_sanitized_word_indices()
 
     def get_sanitized_segments(self):
@@ -511,7 +565,8 @@ class TextSanitizer:
 
     def _set_unsanitzed_word_indices(self):
         self._unsanitized_word_indices = self.get_segment_start_indices(
-            self._original_segments, self._dividing_expression)
+            self._original_segments, self._dividing_expression
+        )
 
     def _set_sanitized_word_indices(self):
         self._sanitzed_word_indices = self.get_segment_start_indices(
@@ -528,7 +583,7 @@ class TextSanitizer:
             self.sanitize()
             return tuple(self._sanitzed_word_indices)
         else:
-            raise AttributeError('Cannot get sanitied word indices: No sanitizer set')
+            raise AttributeError("Cannot get sanitied word indices: No sanitizer set")
 
     def set_dividing_expression(self, regex_pattern: str):
         self._dividing_expression = regex_pattern
@@ -577,7 +632,11 @@ class TextSanitizer:
         """
         given a word index from a sanitized word list, find what segment it originated from
         """
-        return self.get_segment_index_from_word_index(word_index, self._sanitzed_word_indices)
+        return self.get_segment_index_from_word_index(
+            word_index, self._sanitzed_word_indices
+        )
 
-    def check_unsanitized_word_index(self, word_index:int):
-        return self.get_segment_index_from_word_index(word_index, self._unsanitized_word_indices)
+    def check_unsanitized_word_index(self, word_index: int):
+        return self.get_segment_index_from_word_index(
+            word_index, self._unsanitized_word_indices
+        )

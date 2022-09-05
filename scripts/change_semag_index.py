@@ -1,4 +1,4 @@
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 from sefaria.helper.schema import *
 from sefaria.model import *
 
@@ -19,10 +19,18 @@ def add_rabbinic(title):
     root = index.nodes
     rabbinic_nodes = index.nodes.children[1].children[1:]
     rabbinic_vol = SchemaNode()
-    rabbinic_vol.add_primary_titles("Rabbinic Commandments",  "עשין דרבנן")
+    rabbinic_vol.add_primary_titles("Rabbinic Commandments", "עשין דרבנן")
     for r_count in range(len(rabbinic_nodes)):
-        en_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "en"][0]
-        he_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "he"][0]
+        en_name = [
+            x["text"]
+            for x in rabbinic_nodes[r_count].get_titles_object()
+            if x["primary"] == True and x["lang"] == "en"
+        ][0]
+        he_name = [
+            x["text"]
+            for x in rabbinic_nodes[r_count].get_titles_object()
+            if x["primary"] == True and x["lang"] == "he"
+        ][0]
         new_node = JaggedArrayNode()
         new_node.add_primary_titles(en_name, he_name)
         new_node.add_structure(["Paragraph"])
@@ -33,7 +41,6 @@ def add_rabbinic(title):
     refresh_version_state(title)
 
 
-
 def change_rabbinic_refs(title):
     def needs_rewrite(ref_string, *args):
         ref_string = ref_string.replace("SeMaG", "Sefer Mitzvot Gadol")
@@ -42,7 +49,11 @@ def change_rabbinic_refs(title):
     def rewriter(ref_string):
         return ref_string.replace("Positive Commandments", "Rabbinic Commandments")
 
-    cascade("Sefer Mitzvot Gadol, Positive Commandments", rewriter=rewriter, needs_rewrite=needs_rewrite)
+    cascade(
+        "Sefer Mitzvot Gadol, Positive Commandments",
+        rewriter=rewriter,
+        needs_rewrite=needs_rewrite,
+    )
 
 
 def add_intro(title):

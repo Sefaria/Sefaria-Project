@@ -36,8 +36,9 @@ suspect_words = [
     "Christ",
     "Jesus",
     "Mary",
-    "Messiah"
+    "Messiah",
 ]
+
 
 def suspect_word(definition):
     return any(i in definition for i in suspect_words)
@@ -53,9 +54,8 @@ def recurse_senses(senses):
     return None
 
 
-
-lex_entries = LexiconEntrySet({"parent_lexicon" : "BDB Augmented Strong"})
-suspect_entries =[]
+lex_entries = LexiconEntrySet({"parent_lexicon": "BDB Augmented Strong"})
+suspect_entries = []
 for entry in lex_entries:
 
     if "senses" not in entry.content:
@@ -65,5 +65,5 @@ for entry in lex_entries:
             suspect_entries.append(entry.strong_number)
             print("{}".format(entry.headword.encode("utf-8")))
 print(suspect_entries)
-query = {'strong_number': {'$in': suspect_entries }}
+query = {"strong_number": {"$in": suspect_entries}}
 print(json.dumps(query))

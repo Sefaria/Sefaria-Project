@@ -24,36 +24,50 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     # The text we're asked to get links to
     anchorTref = link.refs[pos]
-    anchorRef  = Ref(anchorTref)
+    anchorRef = Ref(anchorTref)
     anchorTrefExpanded = getattr(link, "expandedRefs{}".format(pos))
 
     # The link we found to anchorRef
-    linkPos   = (pos + 1) % 2
-    linkTref  = link.refs[linkPos]
-    linkRef   = Ref(linkTref)
-    langs     = getattr(link, "availableLangs", [[],[]])
+    linkPos = (pos + 1) % 2
+    linkTref = link.refs[linkPos]
+    linkRef = Ref(linkTref)
+    langs = getattr(link, "availableLangs", [[], []])
     linkLangs = langs[linkPos]
 
-    com["_id"]               = str(link._id)
-    com['index_title']       = linkRef.index.title
-    com["category"]          = linkRef.primary_category #usually the index's categories[0] or "Commentary".
-    com["type"]              = link.type
-    com["ref"]               = linkTref
-    com["anchorRef"]         = anchorTref
+    com["_id"] = str(link._id)
+    com["index_title"] = linkRef.index.title
+    com[
+        "category"
+    ] = linkRef.primary_category  # usually the index's categories[0] or "Commentary".
+    com["type"] = link.type
+    com["ref"] = linkTref
+    com["anchorRef"] = anchorTref
     com["anchorRefExpanded"] = anchorTrefExpanded
-    com["sourceRef"]         = linkTref
-    com["sourceHeRef"]       = linkRef.he_normal()
-    com["anchorVerse"]       = anchorRef.sections[-1] if len(anchorRef.sections) else 0
-    com["sourceHasEn"]       = "en" in linkLangs
+    com["sourceRef"] = linkTref
+    com["sourceHeRef"] = linkRef.he_normal()
+    com["anchorVerse"] = anchorRef.sections[-1] if len(anchorRef.sections) else 0
+    com["sourceHasEn"] = "en" in linkLangs
     # com["anchorText"]        = getattr(link, "anchorText", "") # not currently used
     if getattr(link, "inline_reference", None):
-        com["inline_reference"]  = getattr(link, "inline_reference", None)
+        com["inline_reference"] = getattr(link, "inline_reference", None)
     if getattr(link, "highlightedWords", None):
         com["highlightedWords"] = getattr(link, "highlightedWords", None)
-    if getattr(link, "versions", None) and link.type == "essay" and getattr(link, "displayedText", None):
-        com["anchorVersion"] = {"title": link.versions[pos]["title"], "language": link.versions[pos].get("language", None)}
-        com["sourceVersion"] = {"title": link.versions[linkPos]["title"], "language": link.versions[linkPos].get("language", None)}
-        com["displayedText"] = link.displayedText[linkPos]  # we only want source displayedText
+    if (
+        getattr(link, "versions", None)
+        and link.type == "essay"
+        and getattr(link, "displayedText", None)
+    ):
+        com["anchorVersion"] = {
+            "title": link.versions[pos]["title"],
+            "language": link.versions[pos].get("language", None),
+        }
+        com["sourceVersion"] = {
+            "title": link.versions[linkPos]["title"],
+            "language": link.versions[linkPos].get("language", None),
+        }
+        com["displayedText"] = link.displayedText[
+            linkPos
+        ]  # we only want source displayedText
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
@@ -67,28 +81,50 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
             com["errorMargin"] = 0
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
-    lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))
+    lsections = linkRef.sections[:] + [0] * (
+        linkRef.index_node.depth - len(linkRef.sections)
+    )
     # Build a decimal comment number based on the last two digits of the section array
-    com["commentaryNum"] = lsections[-1] if len(lsections) == 1 \
-            else float('{0}.{1:04d}'.format(*lsections[-2:])) if len(lsections) > 1 else 0
+    com["commentaryNum"] = (
+        lsections[-1]
+        if len(lsections) == 1
+        else float("{0}.{1:04d}".format(*lsections[-2:]))
+        if len(lsections) > 1
+        else 0
+    )
 
     if with_text:
-        text             = TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
-        com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
+        text = TextFamily(linkRef, context=0, commentary=False)
+        com["text"] = (
+            text.text
+            if isinstance(text.text, str)
+            else JaggedTextArray(text.text).flatten_to_array()
+        )
+        com["he"] = (
+            text.he
+            if isinstance(text.he, str)
+            else JaggedTextArray(text.he).flatten_to_array()
+        )
 
     # if the the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
     if com["type"] == "commentary":
         com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
-            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
+            "en": getattr(linkRef.index, "collective_title", linkRef.index.title),
+            "he": hebrew_term(
+                getattr(
+                    linkRef.index, "collective_title", linkRef.index.get_title("he")
+                )
+            ),
         }
     else:
-        com["collectiveTitle"] = {'en': linkRef.index.title, 'he': linkRef.index.get_title("he")}
+        com["collectiveTitle"] = {
+            "en": linkRef.index.title,
+            "he": linkRef.index.get_title("he"),
+        }
 
     if com["type"] != "commentary" and com["category"] == "Commentary":
-            com["category"] = "Quoting Commentary"
+        com["category"] = "Quoting Commentary"
 
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
@@ -112,7 +148,9 @@ def format_object_for_client(obj, with_text=True, ref=None, pos=None):
             pos = 0
         return format_link_object_for_client(obj, with_text, ref, pos)
     else:
-        raise InputError("{} not valid for format_object_for_client".format(obj.__class__.__name__))
+        raise InputError(
+            "{} not valid for format_object_for_client".format(obj.__class__.__name__)
+        )
 
 
 def format_note_object_for_client(note):
@@ -121,34 +159,43 @@ def format_note_object_for_client(note):
     matching the format of links, which are currently handled together.
     """
     anchor_oref = Ref(note.ref).padded_ref()
-    ownerData   = public_user_data(note.owner)
+    ownerData = public_user_data(note.owner)
 
     com = {
-        "category":        "Notes",
-        "type":            "note",
-        "owner":           note.owner,
-        "_id":             str(note._id),
-        "anchorRef":       note.ref,
-        "anchorVerse":     anchor_oref.sections[-1],
-        "anchorText":      getattr(note, "anchorText", ""),
-        "public":          getattr(note, "public", False),
-        "commentator":     user_link(note.owner),
-        "text":            note.text,
-        "title":           getattr(note, "title", ""),
-        "ownerName":       ownerData["name"],
+        "category": "Notes",
+        "type": "note",
+        "owner": note.owner,
+        "_id": str(note._id),
+        "anchorRef": note.ref,
+        "anchorVerse": anchor_oref.sections[-1],
+        "anchorText": getattr(note, "anchorText", ""),
+        "public": getattr(note, "public", False),
+        "commentator": user_link(note.owner),
+        "text": note.text,
+        "title": getattr(note, "title", ""),
+        "ownerName": ownerData["name"],
         "ownerProfileUrl": ownerData["profileUrl"],
-        "ownerImageUrl":   ownerData["imageUrl"],
+        "ownerImageUrl": ownerData["imageUrl"],
     }
     return com
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = sheet["collectionTOC"].get("dependence", sheet["collectionTOC"]["categories"][0])
-    sheet["collectiveTitle"] = sheet["collectionTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["collectionTOC"] else {"en": sheet["collectionTOC"]["title"], "he": sheet["collectionTOC"]["heTitle"]}
-    sheet["index_title"]     = sheet["collectiveTitle"]["en"]
-    sheet["sourceRef"]       = sheet["title"]
-    sheet["sourceHeRef"]     = sheet["title"]
-    sheet["isSheet"]         = True
+    sheet["category"] = sheet["collectionTOC"].get(
+        "dependence", sheet["collectionTOC"]["categories"][0]
+    )
+    sheet["collectiveTitle"] = (
+        sheet["collectionTOC"]["collectiveTitle"]
+        if "collectiveTitle" in sheet["collectionTOC"]
+        else {
+            "en": sheet["collectionTOC"]["title"],
+            "he": sheet["collectionTOC"]["heTitle"],
+        }
+    )
+    sheet["index_title"] = sheet["collectiveTitle"]["en"]
+    sheet["sourceRef"] = sheet["title"]
+    sheet["sourceHeRef"] = sheet["title"]
+    sheet["isSheet"] = True
     return sheet
 
 
@@ -207,7 +254,11 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             logger.warning("Bad link: {} - {}".format(link.refs[0], link.refs[1]))
             continue
         except AttributeError as e:
-            logger.error("AttributeError in presenting link: {} - {} : {}".format(link.refs[0], link.refs[1], e))
+            logger.error(
+                "AttributeError in presenting link: {} - {} : {}".format(
+                    link.refs[0], link.refs[1], e
+                )
+            )
             continue
 
         # Rather than getting text with each link, walk through all links here,
@@ -224,44 +275,85 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                     if top_nref not in texts:
                         for lang in ("en", "he"):
                             top_nref_tc = TextChunk(top_oref, lang)
-                            versionInfoMap = None if not top_nref_tc._versions else {
-                                v.versionTitle: {
-                                    'license': getattr(v, 'license', ''),
-                                    'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', '')
-                                } for v in top_nref_tc._versions
-                            }
+                            versionInfoMap = (
+                                None
+                                if not top_nref_tc._versions
+                                else {
+                                    v.versionTitle: {
+                                        "license": getattr(v, "license", ""),
+                                        "versionTitleInHebrew": getattr(
+                                            v, "versionTitleInHebrew", ""
+                                        ),
+                                    }
+                                    for v in top_nref_tc._versions
+                                }
+                            )
                             if top_nref_tc.is_merged:
                                 version = top_nref_tc.sources
-                                license = [versionInfoMap[vtitle]['license'] for vtitle in version]
-                                versionTitleInHebrew = [versionInfoMap[vtitle]['versionTitleInHebrew'] for vtitle in version]
+                                license = [
+                                    versionInfoMap[vtitle]["license"]
+                                    for vtitle in version
+                                ]
+                                versionTitleInHebrew = [
+                                    versionInfoMap[vtitle]["versionTitleInHebrew"]
+                                    for vtitle in version
+                                ]
                             elif top_nref_tc._versions:
                                 version_obj = top_nref_tc.version()
                                 version = version_obj.versionTitle
-                                license = versionInfoMap[version]['license']
-                                versionTitleInHebrew = versionInfoMap[version]['versionTitleInHebrew']
+                                license = versionInfoMap[version]["license"]
+                                versionTitleInHebrew = versionInfoMap[version][
+                                    "versionTitleInHebrew"
+                                ]
                             else:
                                 # version doesn't exist in this language
                                 version = None
                                 license = None
                                 versionTitleInHebrew = None
-                            version = top_nref_tc.sources if top_nref_tc.is_merged else (top_nref_tc.version().versionTitle if top_nref_tc._versions else None)
+                            version = (
+                                top_nref_tc.sources
+                                if top_nref_tc.is_merged
+                                else (
+                                    top_nref_tc.version().versionTitle
+                                    if top_nref_tc._versions
+                                    else None
+                                )
+                            )
                             if top_nref not in texts:
                                 texts[top_nref] = {}
                             texts[top_nref][lang] = {
-                                'ja': top_nref_tc.ja(),
-                                'version': version,
-                                'license': license,
-                                'versionTitleInHebrew': versionTitleInHebrew
+                                "ja": top_nref_tc.ja(),
+                                "version": version,
+                                "license": license,
+                                "versionTitleInHebrew": versionTitleInHebrew,
                             }
                     com_sections = [i - 1 for i in com_oref.sections]
                     com_toSections = [i - 1 for i in com_oref.toSections]
                     for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (
-                            ("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")),
-                            ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
+                        (
+                            "he",
+                            (
+                                "he",
+                                "heVersionTitle",
+                                "heLicense",
+                                "heVersionTitleInHebrew",
+                            ),
+                        ),
+                        (
+                            "en",
+                            ("text", "versionTitle", "license", "versionTitleInHebrew"),
+                        ),
+                    ):
                         temp_nref_data = texts[top_nref][lang]
                         # Because of how the jagged arrays work, res may be either a single line or a list of lines
-                        res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
-                        if attr not in com: # If this is the first com_oref, and so the object doesn't contain any data in this field,
+                        res = (
+                            temp_nref_data["ja"]
+                            .subarray(com_sections[1:], com_toSections[1:])
+                            .array()
+                        )
+                        if (
+                            attr not in com
+                        ):  # If this is the first com_oref, and so the object doesn't contain any data in this field,
                             com[attr] = res  # Set the text directly in the object
                         else:  # This is not the first oref (this was a spanning ref, e.g. "Ketubot 110b:25-111a:1".
                             # We'll want to connect the texts from all pages together. As mentioned, each can be either a string or a list.
@@ -269,31 +361,61 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                                 com[attr] = [com[attr]]
                             if isinstance(res, str):
                                 res = [res]
-                            com[attr] += res  # Once they're both definitely lists, merge the lists together.
-                        temp_version = temp_nref_data['version']
+                            com[
+                                attr
+                            ] += res  # Once they're both definitely lists, merge the lists together.
+                        temp_version = temp_nref_data["version"]
                         if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
-                            com[licenseAttr] = temp_nref_data['license']
-                            com[vtitleInHeAttr] = temp_nref_data['versionTitleInHebrew']
+                            com[licenseAttr] = temp_nref_data["license"]
+                            com[vtitleInHeAttr] = temp_nref_data["versionTitleInHebrew"]
                         else:
                             # merged. find exact version titles for each segment
-                            start_sources = temp_nref_data['ja'].distance([], com_sections[1:])
+                            start_sources = temp_nref_data["ja"].distance(
+                                [], com_sections[1:]
+                            )
                             if com_sections == com_toSections:
                                 # simplify for the common case
-                                versions = temp_version[start_sources] if start_sources < len(temp_version) - 1 else None
-                                licenses = temp_nref_data['license'][start_sources] if start_sources < len(temp_nref_data['license']) - 1 else None
-                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources] if start_sources < len(temp_nref_data['versionTitleInHebrew']) - 1 else None
+                                versions = (
+                                    temp_version[start_sources]
+                                    if start_sources < len(temp_version) - 1
+                                    else None
+                                )
+                                licenses = (
+                                    temp_nref_data["license"][start_sources]
+                                    if start_sources
+                                    < len(temp_nref_data["license"]) - 1
+                                    else None
+                                )
+                                versionTitlesInHebrew = (
+                                    temp_nref_data["versionTitleInHebrew"][
+                                        start_sources
+                                    ]
+                                    if start_sources
+                                    < len(temp_nref_data["versionTitleInHebrew"]) - 1
+                                    else None
+                                )
                             else:
-                                end_sources = temp_nref_data['ja'].distance([], com_toSections[1:])
-                                versions = temp_version[start_sources:end_sources + 1]
-                                licenses = temp_nref_data['license'][start_sources:end_sources + 1]
-                                versionTitlesInHebrew = temp_nref_data['versionTitleInHebrew'][start_sources:end_sources + 1]
+                                end_sources = temp_nref_data["ja"].distance(
+                                    [], com_toSections[1:]
+                                )
+                                versions = temp_version[start_sources : end_sources + 1]
+                                licenses = temp_nref_data["license"][
+                                    start_sources : end_sources + 1
+                                ]
+                                versionTitlesInHebrew = temp_nref_data[
+                                    "versionTitleInHebrew"
+                                ][start_sources : end_sources + 1]
                             com[versionAttr] = versions
                             com[licenseAttr] = licenses
                             com[vtitleInHeAttr] = versionTitlesInHebrew
             links.append(com)
         except NoVersionFoundError as e:
-            logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
+            logger.warning(
+                "Trying to get non existent text for ref '{}'. Link refs were: {}".format(
+                    top_nref, link.refs
+                )
+            )
             continue
 
     # Hard-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
@@ -301,15 +423,26 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:
         if nRef.startswith(prefix):
-            base_ref = nRef[len(prefix):]
+            base_ref = nRef[len(prefix) :]
             base_links = get_links(base_ref)
+
             def add_prefix(link):
                 link["anchorRef"] = prefix + link["anchorRef"]
-                link["anchorRefExpanded"] = [prefix + l for l in link["anchorRefExpanded"]]
+                link["anchorRefExpanded"] = [
+                    prefix + l for l in link["anchorRefExpanded"]
+                ]
                 return link
+
             base_links = [add_prefix(link) for link in base_links]
-            orig_links_refs = [(origlink['sourceRef'], origlink['anchorRef']) for origlink in links]
-            base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
+            orig_links_refs = [
+                (origlink["sourceRef"], origlink["anchorRef"]) for origlink in links
+            ]
+            base_links = [
+                x
+                for x in base_links
+                if ((x["sourceRef"], x["anchorRef"]) not in orig_links_refs)
+                and (x["sourceRef"] != x["anchorRef"])
+            ]
             links += base_links
 
     collections = library.get_collections_in_library()

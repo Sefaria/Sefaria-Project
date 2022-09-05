@@ -52,7 +52,7 @@ def intraTopicLink_validation():
             itl.delete()
 
     print(missing_topics)
-    with open('./deleted_duplicate_links.txt', 'w') as outfile:
+    with open("./deleted_duplicate_links.txt", "w") as outfile:
         json.dump(deleted_data, outfile)
 
 

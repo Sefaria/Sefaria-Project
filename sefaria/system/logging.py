@@ -1,4 +1,3 @@
-
 from structlog._frames import _format_exception
 from structlog.processors import _figure_out_exc_info
 
@@ -9,9 +8,7 @@ def log_exception_info(logger, method_name, event_dict):
     """
     exc_info = event_dict.pop("exc_info", None)
     if exc_info:
-        event_dict["message"] = _format_exception(
-            _figure_out_exc_info(exc_info)
-        )
+        event_dict["message"] = _format_exception(_figure_out_exc_info(exc_info))
 
     return event_dict
 
@@ -28,7 +25,7 @@ def decompose_request_info(logger, method_name, event_dict):
     if req_obj is not None:
         event_dict["httpRequest"] = {
             "requestUrl": req_obj.get_full_path(),
-            "requestMethod": req_obj.method
+            "requestMethod": req_obj.method,
         }
     return event_dict
 

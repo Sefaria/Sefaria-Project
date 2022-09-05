@@ -18,9 +18,9 @@ def add_he_ref_to_source(source):
 
     return source
 
+
 sheets = db.sheets.find()
 
 for sheet in sheets:
     sheet["sources"] = [add_he_ref_to_source(s) for s in sheet["sources"]]
     db.sheets.save(sheet)
-

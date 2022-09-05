@@ -3,8 +3,10 @@ import time
 
 import structlog
 
-from sefaria.settings import (MULTISERVER_REDIS_CONFIRM_CHANNEL,
-                              MULTISERVER_REDIS_EVENT_CHANNEL)
+from sefaria.settings import (
+    MULTISERVER_REDIS_CONFIRM_CHANNEL,
+    MULTISERVER_REDIS_EVENT_CHANNEL,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -14,7 +16,10 @@ from .messaging import MessagingNode
 
 
 class MultiServerMonitor(MessagingNode):
-    subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL]
+    subscription_channels = [
+        MULTISERVER_REDIS_EVENT_CHANNEL,
+        MULTISERVER_REDIS_CONFIRM_CHANNEL,
+    ]
 
     def __init__(self):
         super(MultiServerMonitor, self).__init__()
@@ -35,7 +40,9 @@ class MultiServerMonitor(MessagingNode):
         try:
             msg = self.pubsub.get_message()
         except Exception:
-            logger.error("Failed to connect to Redis instance while getting new message")
+            logger.error(
+                "Failed to connect to Redis instance while getting new message"
+            )
             return
         if not msg:
             return
@@ -63,20 +70,30 @@ class MultiServerMonitor(MessagingNode):
         """
         event_id = data["id"]
         try:
-            (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+            (_, subscribers) = self.redis_client.execute_command(
+                "PUBSUB", "NUMSUB", MULTISERVER_REDIS_EVENT_CHANNEL
+            )
         except Exception:
-            logger.error("Failed to connect to Redis instance while getting subscriber count")
+            logger.error(
+                "Failed to connect to Redis instance while getting subscriber count"
+            )
             return
-        expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
+        expected = int(
+            subscribers - 2
+        )  # No confirms from the publisher or the monitor => subscribers - 2
         self.events[event_id] = {
             "data": data,
             "expected": expected,
             "confirmed": 0,
             "confirmations": [],
-            "complete": False}
+            "complete": False,
+        }
         self.event_order += [event_id]
-        logger.info("Received new event: {} - expecting {} confirmations".format(
-            self.event_description(data), expected))
+        logger.info(
+            "Received new event: {} - expecting {} confirmations".format(
+                self.event_description(data), expected
+            )
+        )
 
     def _process_confirm(self, data):
         """
@@ -95,13 +112,19 @@ class MultiServerMonitor(MessagingNode):
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
-        logger.info("Received {} of {} confirmations for {}".format(
-            event_record["confirmed"], event_record["expected"], data["event_id"]))
+        logger.info(
+            "Received {} of {} confirmations for {}".format(
+                event_record["confirmed"], event_record["expected"], data["event_id"]
+            )
+        )
 
         if event_record["confirmed"] == event_record["expected"]:
             event_record["complete"] = True
-            logger.info("Received all {} responses for {}".format(
-                event_record["confirmed"], data["event_id"]))
+            logger.info(
+                "Received all {} responses for {}".format(
+                    event_record["confirmed"], data["event_id"]
+                )
+            )
             self._process_completion(event_record["data"])
 
     def _process_completion(self, data):
@@ -117,7 +140,9 @@ class MultiServerMonitor(MessagingNode):
         if data["obj"] == "library":
 
             if data["method"] == "refresh_index_record_in_cache":
-                title = data["args"][-1]  # Sometimes this is first arg, sometimes second.  Always last.
+                title = data["args"][
+                    -1
+                ]  # Sometimes this is first arg, sometimes second.  Always last.
                 logger.info("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
 
@@ -125,5 +150,3 @@ class MultiServerMonitor(MessagingNode):
                 title = data["args"][0]
                 logger.info("Invalidating {} in Varnish".format(title))
                 invalidate_title(title)
-
-

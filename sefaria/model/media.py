@@ -19,7 +19,8 @@ class Media(abst.AbstractMongoRecord):
     """
     Media for sidebar connection pannel.
     """
-    collection = 'media'
+
+    collection = "media"
     required_attrs = [
         "media_url",
         "source_he",
@@ -32,40 +33,42 @@ class Media(abst.AbstractMongoRecord):
         "description_he",
     ]
 
-    def _normalize(self): # what does this do?
+    def _normalize(self):  # what does this do?
         self.ref = Ref(self.ref).normal()
 
     def client_contents(self, ref):
         d = self.contents()
         t = {}
-        t["media_url"]     = ref["media_url"]
-        t["source"]   = d["source"]
-        t["source_he"]   = d["source_he"]
-        t['start_time'] = ref['start_time']
-        t['end_time'] = ref['end_time']
-        t['anchorRef'] = ref['sefaria_ref']
-        t['license'] = d['license']
-        t['source_site'] = d['source_site']
-        t['description'] = d['description']
-        t['description_he'] = d['description_he']
+        t["media_url"] = ref["media_url"]
+        t["source"] = d["source"]
+        t["source_he"] = d["source_he"]
+        t["start_time"] = ref["start_time"]
+        t["end_time"] = ref["end_time"]
+        t["anchorRef"] = ref["sefaria_ref"]
+        t["license"] = d["license"]
+        t["source_site"] = d["source_site"]
+        t["description"] = d["description"]
+        t["description_he"] = d["description_he"]
         return t
+
 
 class MediaSet(abst.AbstractMongoSet):
     recordClass = Media
+
 
 def get_media_for_ref(tref):
     oref = text.Ref(tref)
     regex_list = oref.regex(as_list=True)
     ref_clauses = [{"ref.sefaria_ref": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses }
+    query = {"$or": ref_clauses}
     results = MediaSet(query=query)
     client_results = []
-    ref_re = "("+'|'.join(regex_list)+")"
+    ref_re = "(" + "|".join(regex_list) + ")"
     matched_ref = []
     for media in results:
         for r in media.ref:
-            if re.match(ref_re, r['sefaria_ref']):
-                r['media_url'] = media.media_url
+            if re.match(ref_re, r["sefaria_ref"]):
+                r["media_url"] = media.media_url
                 matched_ref.append(r)
     for ref in matched_ref:
         media_contents = media.client_contents(ref)

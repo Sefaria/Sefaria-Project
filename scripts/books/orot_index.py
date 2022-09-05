@@ -48,7 +48,7 @@ root.append(part4)
 # Part 1
 
 part1_subsections = [
-    ["ארץ ישראל","Land of Israel", 8],
+    ["ארץ ישראל", "Land of Israel", 8],
     ["המלחמה", "War", 10],
     ["ישראל ותחיתו", "Israel and its Rebirth", 32],
     ["אורות התחיה", "Lights of Rebirth", 72],
@@ -76,12 +76,24 @@ n.append_to(part1)
 
 # Part 2
 part2_subsections = [
-    ["האידיאה האלהית והאידיאה הלאומית באדם", "The Godly and the National Ideal in the Individual"],
-    ["האידיאה האלהית והאידיאה הלאומית בישראל", "The Godly and the National Ideal in Israel"],
+    [
+        "האידיאה האלהית והאידיאה הלאומית באדם",
+        "The Godly and the National Ideal in the Individual",
+    ],
+    [
+        "האידיאה האלהית והאידיאה הלאומית בישראל",
+        "The Godly and the National Ideal in Israel",
+    ],
     ["מצב הירידה והפרוד בין האידיאות", "Dissolution of Ideals"],
     ["המצב בגלות", "The Situation in Exile"],
-    ["בית ראשון ובית שני. האידיאה הדתית. המצב הישראלי ויחוסו לאנושיות", "The First and Second Temples; Religion"],
-    ["התאחדות האידיאות בכנסת ישראל בתחיתה בארצה, רשמי דרכיה ופעולותיה", "Unification of Ideals"]
+    [
+        "בית ראשון ובית שני. האידיאה הדתית. המצב הישראלי ויחוסו לאנושיות",
+        "The First and Second Temples; Religion",
+    ],
+    [
+        "התאחדות האידיאות בכנסת ישראל בתחיתה בארצה, רשמי דרכיה ופעולותיה",
+        "Unification of Ideals",
+    ],
 ]
 for sub in part2_subsections:
     n = JaggedArrayNode()
@@ -102,7 +114,7 @@ part3_subsections = [
     ["יסורים ממרקים", "Suffering Cleanses"],
     ["למלחמת הדעות והאמונות", "The War of Ideas"],
     ["נשמת הלאומיות וגופה", "National Soul and Body"],
-    ["ערך התחיה", "The Value of Rebirth"]
+    ["ערך התחיה", "The Value of Rebirth"],
 ]
 
 for sub in part3_subsections:
@@ -125,7 +137,7 @@ part4_subsections = [
     ["לומיות ישראל", "Nationhood of Israel", 9],
     ["שלמות נשמת ישראל ותחיתו", "Israel's Soul and its Rebirth", 19],
     ["סגולת ישראל", "Preciousness of Israel", 9],
-    ["קדושת ישראל", "Holiness of Israel", 9]
+    ["קדושת ישראל", "Holiness of Israel", 9],
 ]
 
 for sub in part4_subsections:
@@ -141,11 +153,7 @@ for sub in part4_subsections:
 
 root.validate()
 
-indx = {
-    "title": "Orot",
-    "categories": ["Philosophy"],
-    "schema": root.serialize()
-}
+indx = {"title": "Orot", "categories": ["Philosophy"], "schema": root.serialize()}
 
 Index(indx).save()
 # add("28", Index, indx)

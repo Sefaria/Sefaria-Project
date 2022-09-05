@@ -11,7 +11,7 @@ if not ts.load({"name": "Parasha"}):
     ts.name = "Parasha"
     ts.save()
 
-with open(cfile, 'rb') as pfile:
+with open(cfile, "rb") as pfile:
     parashiot = csv.reader(pfile)
     next(parashiot)
     order = 1
@@ -28,17 +28,11 @@ with open(cfile, 'rb') as pfile:
         term.scheme = ts.name
         term.order = order
         term.ref = ref
-        term.set_titles([
-            {
-                "lang": "en",
-                "text": en,
-                "primary": True
-            },
-            {
-                "lang": "he",
-                "text": he,
-                "primary": True
-            }
-        ])
+        term.set_titles(
+            [
+                {"lang": "en", "text": en, "primary": True},
+                {"lang": "he", "text": he, "primary": True},
+            ]
+        )
         term.save()
         order += 1

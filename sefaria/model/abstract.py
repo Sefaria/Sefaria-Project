@@ -14,9 +14,8 @@ from bson.objectid import ObjectId
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-#Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
+# Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
-
 
 
 logger = structlog.get_logger(__name__)
@@ -27,6 +26,7 @@ class AbstractMongoRecord(object):
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass
     """
+
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
@@ -34,9 +34,12 @@ class AbstractMongoRecord(object):
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
     track_pkeys = False
-    pkeys = []   # list of fields that others may depend on
+    pkeys = []  # list of fields that others may depend on
     history_noun = None  # Label for history records
-    ALLOWED_TAGS = bleach.ALLOWED_TAGS + ["p", "br"]  # not sure why p/br isn't included. dont see any security risks
+    ALLOWED_TAGS = bleach.ALLOWED_TAGS + [
+        "p",
+        "br",
+    ]  # not sure why p/br isn't included. dont see any security risks
     ALLOWED_ATTRS = bleach.ALLOWED_ATTRIBUTES
 
     def __init__(self, attrs=None):
@@ -45,10 +48,13 @@ class AbstractMongoRecord(object):
         self._init_defaults()
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
-            
+
     def load_by_id(self, _id=None):
         if _id is None:
-            raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
+            raise Exception(
+                type(self).__name__
+                + ".load() expects an _id as an argument. None provided."
+            )
 
         if isinstance(_id, str):
             # allow _id as either string or ObjectId
@@ -58,11 +64,11 @@ class AbstractMongoRecord(object):
     def load(self, query, proj=None):
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
-            assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
-                "{} record loaded with unhandled key(s): {}".format(
-                    type(self).__name__,
-                    set(obj.keys()) - set(self._saveable_attr_keys())
-                )
+            assert set(obj.keys()) <= set(
+                self._saveable_attr_keys()
+            ), "{} record loaded with unhandled key(s): {}".format(
+                type(self).__name__, set(obj.keys()) - set(self._saveable_attr_keys())
+            )
             self.load_from_dict(obj, True)
             return self
         return None  # used to check for existence of record.
@@ -96,7 +102,11 @@ class AbstractMongoRecord(object):
         :return: the object
         """
         if not self.load(query):
-            raise InputError("No existing {} record found to update for {}".format(type(self).__name__, str(query)))
+            raise InputError(
+                "No existing {} record found to update for {}".format(
+                    type(self).__name__, str(query)
+                )
+            )
         self.load_from_dict(attrs)
         return self.save()
 
@@ -118,20 +128,34 @@ class AbstractMongoRecord(object):
 
         if self.track_pkeys and not is_new_obj:
             if not (len(self.pkeys_orig_values) == len(self.pkeys)):
-                raise Exception("Aborted unsafe {} save. {} not fully tracked.".format(type(self).__name__, self.pkeys))
+                raise Exception(
+                    "Aborted unsafe {} save. {} not fully tracked.".format(
+                        type(self).__name__, self.pkeys
+                    )
+                )
 
         if is_new_obj:
             result = getattr(db, self.collection).insert_one(props)
             self._id = result.inserted_id
         else:
-            result = getattr(db, self.collection).replace_one({"_id":self._id}, props, upsert=True)
+            result = getattr(db, self.collection).replace_one(
+                {"_id": self._id}, props, upsert=True
+            )
             if not result.matched_count and result.upserted_id:
-                raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
+                raise Exception(
+                    "{} inserted when expecting an update.".format(type(self).__name__)
+                )
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
             for key, old_value in list(self.pkeys_orig_values.items()):
                 if old_value != getattr(self, key, None):
-                    notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
+                    notify(
+                        self,
+                        "attributeChange",
+                        attr=key,
+                        old=old_value,
+                        new=getattr(self, key),
+                    )
 
         if not override_dependencies:
             notify(self, "save", orig_vals=self.pkeys_orig_values, is_new=is_new_obj)
@@ -166,7 +190,11 @@ class AbstractMongoRecord(object):
                 return
 
         if self.is_new():
-            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError(
+                "Can not delete {} that doesn't exist in database.".format(
+                    type(self).__name__
+                )
+            )
 
         if not override_dependencies:
             notify(self, "delete")
@@ -184,10 +212,12 @@ class AbstractMongoRecord(object):
         return self.required_attrs + self.optional_attrs + [self.id_field]
 
     def _saveable_attrs(self):
-        return {k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)}
+        return {
+            k: getattr(self, k) for k in self._saveable_attr_keys() if hasattr(self, k)
+        }
 
     def contents(self, **kwargs):
-        """ Build a savable/portable dictionary from the object
+        """Build a savable/portable dictionary from the object
         Extended by subclasses with derived attributes passed along with portable object
         :return: dict
         """
@@ -206,7 +236,9 @@ class AbstractMongoRecord(object):
                 self.pkeys_orig_values[pkey] = getattr(self, pkey, None)
 
     def is_key_changed(self, key):
-        assert self.track_pkeys and key in self.pkeys, "Failed to track key {} in {}".format(key, self.__class__.__name__)
+        assert (
+            self.track_pkeys and key in self.pkeys
+        ), "Failed to track key {} in {}".format(key, self.__class__.__name__)
         if self.is_new():
             return bool(getattr(self, key, False))
         return self.pkeys_orig_values[key] != getattr(self, key, None)
@@ -233,9 +265,15 @@ class AbstractMongoRecord(object):
         """
 
         for attr in self.required_attrs:
-            #properties. which are virtual instance members, do not get returned by vars()
+            # properties. which are virtual instance members, do not get returned by vars()
             if attr not in attrs and not getattr(self, attr, None):
-                raise InputError(type(self).__name__ + "._validate(): Required attribute: " + attr + " not in " + ", ".join(attrs))
+                raise InputError(
+                    type(self).__name__
+                    + "._validate(): Required attribute: "
+                    + attr
+                    + " not in "
+                    + ", ".join(attrs)
+                )
 
         """ This check seems like a good idea, but stumbles as soon as we have internal attrs
         for attr in attrs:
@@ -260,7 +298,13 @@ class AbstractMongoRecord(object):
         for attr in all_attrs:
             val = getattr(self, attr, None)
             if isinstance(val, str):
-                setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
+                setattr(
+                    self,
+                    attr,
+                    bleach.clean(
+                        val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS
+                    ),
+                )
 
     def same_record(self, other):
         if getattr(self, "_id", None) and getattr(other, "_id", None):
@@ -268,9 +312,7 @@ class AbstractMongoRecord(object):
         return False
 
     def __eq__(self, other):
-        """
-
-        """
+        """ """
         if type(other) is type(self):
             return self._saveable_attrs() == other._saveable_attrs()
         return False
@@ -282,19 +324,40 @@ class AbstractMongoRecord(object):
     def all_subclasses(cls) -> set:
         # get all subclasses recursively
         # see https://stackoverflow.com/a/3862957/4246723
-        return set(cls.__subclasses__()).union([sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()])
+        return set(cls.__subclasses__()).union(
+            [
+                sub_sub_cls
+                for sub_cls in cls.__subclasses__()
+                for sub_sub_cls in sub_cls.all_subclasses()
+            ]
+        )
 
 
 class AbstractMongoSet(collections.abc.Iterable):
     """
     A set of mongo records from a single collection
     """
+
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
+    def __init__(
+        self,
+        query=None,
+        page=0,
+        limit=0,
+        sort=None,
+        proj=None,
+        skip=None,
+        hint=None,
+        record_kwargs=None,
+    ):  # default sort used to be =[("_id", 1)]
         self.query = query or {}
-        self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
-        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
+        self.record_kwargs = (
+            record_kwargs or {}
+        )  # kwargs to pass to record when instantiating
+        self.raw_records = getattr(db, self.recordClass.collection).find(
+            self.query, proj
+        )
         if sort:
             self.raw_records = self.raw_records.sort(sort)
         self.skip = skip if skip is not None else page * limit
@@ -303,7 +366,7 @@ class AbstractMongoSet(collections.abc.Iterable):
         self.limit = limit
         if hint:
             self.raw_records.hint(hint)
-        #self.has_more = limit != 0 and self.raw_records.count() == limit
+        # self.has_more = limit != 0 and self.raw_records.count() == limit
         self.records = None
         self.current = 0
         self.max = None
@@ -340,15 +403,25 @@ class AbstractMongoSet(collections.abc.Iterable):
         if self.max:
             return self.max
         else:
-            kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
+            kwargs = {
+                k: getattr(self, k)
+                for k in ["skip", "limit", "hint"]
+                if getattr(self, k, None)
+            }
+            return int(
+                getattr(db, self.recordClass.collection).count_documents(
+                    self.query, **kwargs
+                )
+            )
 
     def update(self, attrs):
         for rec in self:
             rec.load_from_dict(attrs).save()
 
     def delete(self, force=False, bulk_delete=False):
-        if bulk_delete: # Bulk deletion is more performant but will not trigger dependencies.
+        if (
+            bulk_delete
+        ):  # Bulk deletion is more performant but will not trigger dependencies.
             getattr(db, self.recordClass.collection).delete_many(self.query)
         else:
             for rec in self:
@@ -369,13 +442,14 @@ class AbstractMongoSet(collections.abc.Iterable):
 
 
 class SluggedAbstractMongoRecordMeta(type):
-
     def __init__(cls, name, parents, dct):
         super().__init__(name, parents, dct)
         cls._init_cache = {}  # cache for instances instantiated using cls.init()
 
 
-class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractMongoRecordMeta):
+class SluggedAbstractMongoRecord(
+    AbstractMongoRecord, metaclass=SluggedAbstractMongoRecordMeta
+):
     """
     Use instead of AbstractMongoRecord when model has unique slug field
     """
@@ -384,7 +458,7 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
     cacheable = False
 
     @classmethod
-    def init(cls, slug: str) -> 'AbstractMongoRecord':
+    def init(cls, slug: str) -> "AbstractMongoRecord":
         """
         Convenience func to avoid using .load() when you're only passing a slug
         Applicable only if class defines `slug_fields`
@@ -392,7 +466,9 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         :return:
         """
         if len(cls.slug_fields) != 1:
-            raise Exception("Can only call init() if exactly one slug field is defined.")
+            raise Exception(
+                "Can only call init() if exactly one slug field is defined."
+            )
         if not cls.cacheable or slug not in cls._init_cache:
             instance = cls().load({cls.slug_fields[0]: slug})
             if cls.cacheable:
@@ -407,9 +483,13 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         """
         slug = self.normalize_slug(getattr(self, slug_field))
         dupe_count = 0
-        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        _id = getattr(
+            self, "_id", None
+        )  # _id is not necessarily set b/c record might not have been saved yet
         temp_slug = slug
-        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
+        while getattr(db, self.collection).find_one(
+            {slug_field: temp_slug, "_id": {"$ne": _id}}
+        ):
             dupe_count += 1
             temp_slug = "{}{}".format(slug, dupe_count)
         return temp_slug
@@ -418,7 +498,9 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
     def normalize_slug(slug):
         slug = slug.lower()
         slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
+        slug = re.sub(
+            r"[^a-z0-9()\-א-ת]", "", slug
+        )  # parens are for disambiguation on topics
         slug = re.sub(r"-+", "-", slug)
         return slug
 
@@ -443,6 +525,7 @@ def get_record_classes(concrete=True, dynamic_classes=False):
         sc = [s for s in sc if s.collection is not None]
     if not dynamic_classes:
         from sefaria.model.lexicon import DictionaryEntry
+
         sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
     return sc
 
@@ -460,7 +543,6 @@ def get_set_classes():
 
 
 class CachingType(type):
-
     def __init__(cls, name, parents, dct):
         super(CachingType, cls).__init__(name, parents, dct)
         cls.__cache = {}
@@ -480,21 +562,21 @@ def make_hashable(obj):
     Make a range of objects hashable.
     Accepts embedded dictionaries, lists or tuples (including namedtuples)"""
     if isinstance(obj, collections.Hashable):
-        #Fine to be hashed without any changes
+        # Fine to be hashed without any changes
         return obj
     elif isinstance(obj, collections.Mapping):
-        #Convert into a frozenset instead
+        # Convert into a frozenset instead
         items = list(obj.items())
         for i, item in enumerate(items):
             items[i] = make_hashable(item)
         return frozenset(items)
     elif isinstance(obj, collections.Iterable):
-        #Convert into a tuple instead
-        ret=[type(obj)]
+        # Convert into a tuple instead
+        ret = [type(obj)]
         for i, item in enumerate(obj):
             ret.append(make_hashable(item))
         return tuple(ret)
-    #Use the id of the object
+    # Use the id of the object
     return id(obj)
 
 
@@ -528,22 +610,30 @@ def notify(inst, action, **kwargs):
     :param action: Currently used: "save", "attributeChange", "delete", "create", ... could also be "change"
     """
 
-    actions_reqs = {
-        "attributeChange": ["attr"],
-        "save": [],
-        "delete": [],
-        "create": []
-    }
+    actions_reqs = {"attributeChange": ["attr"], "save": [], "delete": [], "create": []}
     assert inst
     assert action in actions_reqs
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception(
+                "Missing required argument {} in notify {}, {}".format(
+                    arg, inst, action
+                )
+            )
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + str(kwargs["attr"]) + ": " + str(kwargs["old"]) + " is becoming " + str(kwargs["new"]))
+        logger.debug(
+            "Notify: "
+            + str(inst)
+            + "."
+            + str(kwargs["attr"])
+            + ": "
+            + str(kwargs["old"])
+            + " is becoming "
+            + str(kwargs["new"])
+        )
     else:
         logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
@@ -552,7 +642,14 @@ def notify(inst, action, **kwargs):
         return
 
     for callback in callbacks:
-        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
+        logger.debug(
+            "Notify: Calling "
+            + callback.__name__
+            + "() for "
+            + inst.__class__.__name__
+            + " "
+            + action
+        )
         callback(inst, **kwargs)
 
 
@@ -575,14 +672,20 @@ def cascade(set_class, attr):
 
     attrs = attr.split(".")
     if len(attrs) == 1:
-        return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
+        return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update(
+            {attr: kwargs["new"]}
+        )
     else:
+
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
-                dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
+                dict_parent = reduce(
+                    lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0])
+                )
                 dict_parent[attrs[-1]] = kwargs["new"]
                 setattr(rec, attrs[0], getattr(rec, attrs[0]))
                 rec.save()
+
         return foo
 
 
@@ -594,9 +697,17 @@ def cascade_to_list(set_class, attr):
     :param attr: The name of the impacted class attribute (fk) that holds the list of references to the changed attribute (pk)
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+
     def foo(obj, **kwargs):
         for rec in set_class({attr: kwargs["old"]}):
-            setattr(rec, attr, [kwargs["new"] if e == kwargs["old"] else e for e in getattr(rec, attr)])
+            setattr(
+                rec,
+                attr,
+                [
+                    kwargs["new"] if e == kwargs["old"] else e
+                    for e in getattr(rec, attr)
+                ],
+            )
             rec.save()
 
     return foo
@@ -623,9 +734,14 @@ def cascade_delete_to_list(set_class, fk_attr, pk_attr):
     :param pk_attr:
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+
     def foo(obj, **kwargs):
         for rec in set_class({fk_attr: getattr(obj, pk_attr)}):
-            setattr(rec, fk_attr, [e for e in getattr(rec, fk_attr) if e != getattr(obj, pk_attr)])
+            setattr(
+                rec,
+                fk_attr,
+                [e for e in getattr(rec, fk_attr) if e != getattr(obj, pk_attr)],
+            )
             rec.save()
 
     return foo

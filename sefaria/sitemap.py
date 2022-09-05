@@ -18,14 +18,14 @@ def chunks(l, n):
     Yield successive n-sized chunks from l.
     """
     for i in range(0, len(l), n):
-        yield l[i:i + n]
+        yield l[i : i + n]
 
 
 class SefariaSiteMapGenerator(object):
 
     hostnames = {
-        'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
-        'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},
+        "org": {"interfaceLang": "en", "hostname": "https://www.sefaria.org"},
+        "org.il": {"interfaceLang": "he", "hostname": "https://www.sefaria.org.il"},
     }
     static_urls = [
         "",
@@ -58,10 +58,14 @@ class SefariaSiteMapGenerator(object):
     ]
     sitemaps = []
 
-    def __init__(self, hostSuffix='org', output_directory=STATICFILES_DIRS[0]):
+    def __init__(self, hostSuffix="org", output_directory=STATICFILES_DIRS[0]):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:
-            self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("interfaceLang")
-            self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get("hostname")
+            self._interfaceLang = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get(
+                "interfaceLang"
+            )
+            self._hostname = SefariaSiteMapGenerator.hostnames.get(hostSuffix).get(
+                "hostname"
+            )
             self.output_directory = output_directory
             path = self.output_directory + "sitemaps/" + self._interfaceLang
             if not os.path.exists(path):
@@ -74,8 +78,8 @@ class SefariaSiteMapGenerator(object):
         Create sitemap for each text section for which content is available.
         Returns the number of files written (each sitemap can have only 50k URLs)
         """
-        refs = library.ref_list() # All refs at section level
-        
+        refs = library.ref_list()  # All refs at section level
+
         segment_level_categories = ("Tanakh", "Mishnah")
         for cat in segment_level_categories:
             books = library.get_indexes_in_corpus(cat, full_records=True)
@@ -104,6 +108,7 @@ class SefariaSiteMapGenerator(object):
         Creates sitemap for each category page.
         """
         toc = library.get_toc()
+
         def cat_paths(toc):
             paths = []
             for t in toc:
@@ -117,6 +122,7 @@ class SefariaSiteMapGenerator(object):
                         continue
                     paths = paths + [cat + "/" + sp for sp in subpaths]
             return paths
+
         paths = cat_paths(toc)
         urls = [self._hostname + "/texts/" + p for p in paths]
         self.write_urls(urls, "categories-sitemap.xml")
@@ -143,26 +149,32 @@ class SefariaSiteMapGenerator(object):
         """
         Creates a sitemap of static content listed above.
         """
-        self.write_urls([self._hostname + "/" + url for url in self.static_urls], "static-sitemap.xml")
+        self.write_urls(
+            [self._hostname + "/" + url for url in self.static_urls],
+            "static-sitemap.xml",
+        )
 
     def write_urls(self, urls, filename):
         """
         Writes the list of `urls` to `filename`.
         """
+
         def escape_url(url):
             return url.replace("&", "&amp;")
 
         content = ""
         for url in urls:
-            content += ("<url><loc>{}</loc></url>\n".format(escape_url(url)))
+            content += "<url><loc>{}</loc></url>\n".format(escape_url(url))
 
-        xml = ('<?xml version="1.0" encoding="UTF-8"?>'
-               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-               '{}'
-               '</urlset>'.format(content))
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            "{}"
+            "</urlset>".format(content)
+        )
 
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
-        f = open(out, 'w')
+        f = open(out, "w")
         f.write(xml)
         f.close()
         self.sitemaps.append(filename)
@@ -171,18 +183,29 @@ class SefariaSiteMapGenerator(object):
         now = datetime.now().strftime("%Y-%m-%d")
         xml = ""
         for m in self.sitemaps:
-            xml += ('<sitemap>'
-                    '<loc>{}{}sitemaps/{}/{}</loc>'
-                    '<lastmod>{}</lastmod>'
-                    '</sitemap>'.format(self._hostname, STATIC_URL, self._interfaceLang, m, now))
+            xml += (
+                "<sitemap>"
+                "<loc>{}{}sitemaps/{}/{}</loc>"
+                "<lastmod>{}</lastmod>"
+                "</sitemap>".format(
+                    self._hostname, STATIC_URL, self._interfaceLang, m, now
+                )
+            )
 
-        sitemapindex = ('<?xml version="1.0" encoding="UTF-8"?>'
+        sitemapindex = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
             '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-            '{}'
-            '</sitemapindex>'.format(xml))
+            "{}"
+            "</sitemapindex>".format(xml)
+        )
 
-        out = self.output_directory + "sitemaps/" + self._interfaceLang + "/sitemapindex.xml"
-        f = open(out, 'w')
+        out = (
+            self.output_directory
+            + "sitemaps/"
+            + self._interfaceLang
+            + "/sitemapindex.xml"
+        )
+        f = open(out, "w")
         f.write(sitemapindex)
         f.close()
 

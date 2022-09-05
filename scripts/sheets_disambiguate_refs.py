@@ -24,7 +24,9 @@ with open("./data/sheet_ref_disambiguated.csv", "rb") as fin:
             source_num = 12345
         if source_num not in disambiguated_dict[int(row["Id"])]:
             disambiguated_dict[int(row["Id"])][source_num] = []
-        disambiguated_dict[int(row["Id"])][source_num] += [{"Old Ref": row["Old Ref"], "New Ref": row["New Ref"]}]
+        disambiguated_dict[int(row["Id"])][source_num] += [
+            {"Old Ref": row["Old Ref"], "New Ref": row["New Ref"]}
+        ]
 
 for i, id in enumerate(ids):
     if i % 100 == 0:
@@ -37,7 +39,11 @@ for i, id in enumerate(ids):
 
     sources = sheet.get("sources", [])
     for source in sources:
-        if "ref" not in source or "node" not in source or source["node"] not in disambiguated_dict[id]:
+        if (
+            "ref" not in source
+            or "node" not in source
+            or source["node"] not in disambiguated_dict[id]
+        ):
             continue
         mapping_list = disambiguated_dict[id][source["node"]]
 
@@ -53,8 +59,7 @@ for i, id in enumerate(ids):
                 mapping["used"] = True
                 break
 
-
-    db.sheets.update({'_id': sheet["_id"]}, sheet)
+    db.sheets.update({"_id": sheet["_id"]}, sheet)
 
 print("checking not used...")
 num_not_used = 0

@@ -31,10 +31,10 @@ eras = {
     "Achronim": "AH",
     "Tannaim": "T",
     "Amoraim": "A",
-    "Contemporary": "CO"
+    "Contemporary": "CO",
 }
 
-url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=480609494&single=true&output=csv'
+url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=480609494&single=true&output=csv"
 response = requests.get(url)
 data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
@@ -43,7 +43,9 @@ cr = csv.reader(StringIO(data))
 rows = list(cr)[2:]
 indexes_handled = [row[0] for row in rows]
 
-unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(indexes_handled)
+unhandled = set([i.primary_title() for i in library.get_index_forest()]) - set(
+    indexes_handled
+)
 if len(unhandled) > 0:
     print("Indexes not covered in the sheet:")
     for a in sorted(unhandled):
@@ -61,20 +63,24 @@ for l in rows:
         current_authors = set(getattr(i, "authors", []) or [])
     except TypeError:
         current_authors = set()
-    sheet_authors = set([a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())])
+    sheet_authors = set(
+        [a.strip() for a in l[1].split(",") if AuthorTopic.is_author(a.strip())]
+    )
     if sheet_authors != current_authors:
         setattr(i, "authors", list(sheet_authors))
         needs_save = True
-    attrs = [("enDesc", l[2]),
+    attrs = [
+        ("enDesc", l[2]),
         ("heDesc", l[3]),
         ("enShortDesc", l[4]),
         ("heShortDesc", l[5]),
         ("compDate", l[6]),
         ("errorMargin", l[7]),
-        ("compPlace", l[8]), #composition place
+        ("compPlace", l[8]),  # composition place
         ("pubDate", l[9]),
-        ("pubPlace", l[10]), # publication place
-        ("era", eras.get(l[11]))]
+        ("pubPlace", l[10]),  # publication place
+        ("era", eras.get(l[11])),
+    ]
 
     for aname, value in attrs:
         obj_val = getattr(i, aname, "")

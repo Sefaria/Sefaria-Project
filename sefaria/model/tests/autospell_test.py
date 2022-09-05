@@ -57,11 +57,9 @@ class Test_Complete_Method(object):
 """
 
 
-
-
-    # Does 0 limit work to have no limits?
-    # How do we test that?
-    # Do individual dictionary autompleters return results?
-    # Do cross dictionary ac return results from all dicts?
-    # Are all refs noted as such in name api?
-    # Do dictionary entries resolve in name api?
+# Does 0 limit work to have no limits?
+# How do we test that?
+# Do individual dictionary autompleters return results?
+# Do cross dictionary ac return results from all dicts?
+# Are all refs noted as such in name api?
+# Do dictionary entries resolve in name api?

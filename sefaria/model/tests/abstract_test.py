@@ -9,6 +9,7 @@ from sefaria.system.exceptions import InputError
 
 # cascade functions are tested in person_test.py
 
+
 def setup_module(module):
     global record_classes
     global set_classes
@@ -22,7 +23,6 @@ def setup_module(module):
 
 
 class Test_Mongo_Record_Models(object):
-
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
@@ -37,7 +37,7 @@ class Test_Mongo_Record_Models(object):
     @pytest.mark.parametrize("sub", abstract.get_record_classes())
     def test_instanciation_load_and_validity(self, sub):
         m = sub()
-        if m.collection == "term": #remove this line once terms are normalized
+        if m.collection == "term":  # remove this line once terms are normalized
             return
         res = m.load({})
         if not res:  # Collection may be empty
@@ -52,39 +52,51 @@ class Test_Mongo_Record_Models(object):
             new_slug = a.normalize_slug(slug)
             assert new_slug == final_slug
 
-        test_slug('blah', 'blah')
-        test_slug('blah1', 'blah1')
-        test_slug('bla-h', 'bla-h')
-        test_slug('blah and blah', 'blah-and-blah')
-        test_slug('blah/blah', 'blah-blah')
-        test_slug('blah == בלה', 'blah-בלה')
+        test_slug("blah", "blah")
+        test_slug("blah1", "blah1")
+        test_slug("bla-h", "bla-h")
+        test_slug("blah and blah", "blah-and-blah")
+        test_slug("blah/blah", "blah-blah")
+        test_slug("blah == בלה", "blah-בלה")
 
-    @pytest.mark.parametrize("sub", filter(lambda x: getattr(x, 'slug_fields', None) is not None, abstract.get_record_classes()))
+    @pytest.mark.parametrize(
+        "sub",
+        filter(
+            lambda x: getattr(x, "slug_fields", None) is not None,
+            abstract.get_record_classes(),
+        ),
+    )
     def test_normalize_slug_field(self, sub):
         """
 
         :return:
         """
-        test_slug = 'test'
+        test_slug = "test"
 
         def get_slug(base, slug_field):
-            return abstract.SluggedAbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
-        attrs = {  # fill in requirements
-            attr: None for attr in sub.required_attrs
-        }
-        attrs.update({
-            slug_field: get_slug(test_slug, slug_field) for slug_field in sub.slug_fields
-        })
+            return abstract.SluggedAbstractMongoRecord.normalize_slug(
+                "{}{}".format(base, slug_field)
+            )
+
+        attrs = {attr: None for attr in sub.required_attrs}  # fill in requirements
+        attrs.update(
+            {
+                slug_field: get_slug(test_slug, slug_field)
+                for slug_field in sub.slug_fields
+            }
+        )
         inst = sub(attrs)
         for slug_field in sub.slug_fields:
             temp_slug = get_slug(test_slug, slug_field)
             num_records = 1
-            dup_str = ''
+            dup_str = ""
             count = 0
             sub_set = record_to_set[sub.__name__]({slug_field: temp_slug})
             sub_set.delete()
             while num_records > 0:
-                sub_set = record_to_set[sub.__name__]({slug_field: temp_slug + dup_str})  # delete all
+                sub_set = record_to_set[sub.__name__](
+                    {slug_field: temp_slug + dup_str}
+                )  # delete all
                 count += 1
                 dup_str = str(count)
                 num_records = sub_set.count()
@@ -102,7 +114,7 @@ class Test_Mongo_Record_Models(object):
         inst2 = sub(attrs)
         inst2.save()
         for slug_field in sub.slug_fields:
-            temp_slug = get_slug(test_slug, slug_field) + '1'
+            temp_slug = get_slug(test_slug, slug_field) + "1"
             assert getattr(inst2, slug_field) == temp_slug
 
         # cleanup
@@ -116,17 +128,26 @@ class Test_Mongo_Record_Models(object):
         As currently written, this examines every record in the mongo db.
         If this test fails, use the validate_model_attr_definitions.py script to diagnose.
         """
-        class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
+        class_keys = set(
+            record_class.required_attrs
+            + record_class.optional_attrs
+            + [record_class.id_field]
+        )
         req_class_keys = set(record_class.required_attrs)
         records = getattr(db, record_class.collection).find()
         for rec in records:
             record_keys = set(rec.keys())
-            assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
-            assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
+            assert record_keys <= class_keys, "{} - unhandled keys {}".format(
+                record_class, record_keys - class_keys
+            )
+            assert (
+                req_class_keys <= record_keys
+            ), "{} - required keys missing: {}".format(
+                record_class, req_class_keys - record_keys
+            )
 
 
 class Test_Mongo_Set_Models(object):
-
     def test_record_class(self):
         for sub in set_classes:
             assert sub.recordClass != abstract.AbstractMongoRecord
@@ -134,9 +155,10 @@ class Test_Mongo_Set_Models(object):
 
 
 class Test_Mongo_Record_Methods(object):
-    """ Tests of the methods on the abstract models.
+    """Tests of the methods on the abstract models.
     They often need instanciation, but are not designed to test the subclasses specifically.
     """
+
     def test_equality_and_identity(self):
         attrs = {
             "ref": "Psalms 145:22",
@@ -144,9 +166,11 @@ class Test_Mongo_Record_Methods(object):
             "anchorText": "Psalm 115:18",
             "owner": 7934,
             "type": "note",
-            "public": True
+            "public": True,
         }
-        model.Note(attrs).save() # added to make sure there is a note in the db, if the table is truncated or not extant.
+        model.Note(
+            attrs
+        ).save()  # added to make sure there is a note in the db, if the table is truncated or not extant.
         n1 = model.Note(attrs)
         n2 = model.Note(attrs)
         n3 = model.Note()
@@ -155,7 +179,6 @@ class Test_Mongo_Record_Methods(object):
         assert not n1.same_record(n2)
         assert n1 != n3
         assert not n1.same_record(n3)
-
 
         n4 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
         n5 = model.Note().load({"ref": "Psalms 145:22", "owner": 7934})
@@ -171,7 +194,7 @@ class Test_Mongo_Record_Methods(object):
             "owner": 28,
             "type": "note",
             "public": True,
-            "foobar": "blaz"  # should raise an exception when loaded
+            "foobar": "blaz",  # should raise an exception when loaded
         }
         db.notes.delete_one({"ref": "Psalms 150:1", "owner": 28})
         db.notes.insert_one(attrs)
@@ -181,7 +204,9 @@ class Test_Mongo_Record_Methods(object):
 
     def test_copy(self):
         for sub in record_classes:
-            if sub is model.VersionState: #VersionState is derived - this test doesn't work well with it
+            if (
+                sub is model.VersionState
+            ):  # VersionState is derived - this test doesn't work well with it
                 continue
             m = sub()
             res = m.load({})
@@ -190,5 +215,3 @@ class Test_Mongo_Record_Methods(object):
             c = res.copy()
             del res._id
             assert res == c
-
-

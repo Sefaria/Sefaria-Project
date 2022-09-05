@@ -7,8 +7,8 @@ import unicodecsv as csv
 
 from sefaria.model import *
 
-holidays_filename = './Topic Descriptions - Holidays.tsv'
-parshiot_filename = './Topic Descriptions - Parshiyot.tsv'
+holidays_filename = "./Topic Descriptions - Holidays.tsv"
+parshiot_filename = "./Topic Descriptions - Parshiyot.tsv"
 
 # HOLIDAYS
 # 0 Category
@@ -27,10 +27,7 @@ def set_descriptions(topic, en, he):
     if not term:
         print("No {}".format(topic))
         return
-    term.description = {
-        "en": en,
-        "he": he
-    }
+    term.description = {"en": en, "he": he}
     # print u"{}, {}, {}".format(topic,en,he)
     term.save()
 
@@ -38,13 +35,13 @@ def set_descriptions(topic, en, he):
 with open(holidays_filename) as tsvfile:
     next(tsvfile)
     next(tsvfile)
-    reader = csv.reader(tsvfile, delimiter='\t')
+    reader = csv.reader(tsvfile, delimiter="\t")
     for row in reader:
-        set_descriptions(row[1],row[2],row[3])
+        set_descriptions(row[1], row[2], row[3])
 
 with open(parshiot_filename) as tsvfile:
     next(tsvfile)
     next(tsvfile)
-    reader = csv.reader(tsvfile, delimiter='\t')
+    reader = csv.reader(tsvfile, delimiter="\t")
     for row in reader:
-        set_descriptions(row[0],row[1],row[2])
+        set_descriptions(row[0], row[1], row[2])

@@ -1,4 +1,3 @@
-
 from sefaria.model import *
 
 for indx in IndexSet():

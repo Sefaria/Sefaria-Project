@@ -57,19 +57,21 @@ Loaded from MySQL DB with Sefaria-Data/sources/Sages_DB/parse_eras_from_sages.py
 +---------------+------------+-----------------+-------------------------------+-----------------------+
 """
 
+
 class TimePeriod(abst.AbstractMongoRecord):
     """
     TimePeriod is used both for the saved time periods - Eras and Generations
     and for the adhoc in memory TimePeriods generated from e.g. the Person model
     """
-    collection = 'time_period'
+
+    collection = "time_period"
     track_pkeys = True
     pkeys = ["symbol"]
 
     required_attrs = [
         "symbol",
         "type",  # "Era", "Generation", "Two Generations"
-        "names"
+        "names",
     ]
     optional_attrs = [
         "start",
@@ -77,7 +79,7 @@ class TimePeriod(abst.AbstractMongoRecord):
         "end",
         "endIsApprox",
         "order",
-        "range_string"
+        "range_string",
     ]
 
     def __str__(self):
@@ -112,7 +114,9 @@ class TimePeriod(abst.AbstractMongoRecord):
         return self.name_group.secondary_titles(lang)
 
     def add_name(self, name, lang, primary=False, replace_primary=False):
-        return self.name_group.add_title(name, lang, primary=primary, replace_primary=replace_primary)
+        return self.name_group.add_title(
+            name, lang, primary=primary, replace_primary=replace_primary
+        )
 
     def getYearLabels(self, lang):
         start = getattr(self, "start", None)
@@ -123,7 +127,7 @@ class TimePeriod(abst.AbstractMongoRecord):
             end = start
 
         if int(start) < 0 < int(end):
-            return ("BCE ", "CE") if lang == "en" else ('לפנה"ס' + ' ', "לספירה")
+            return ("BCE ", "CE") if lang == "en" else ('לפנה"ס' + " ", "לספירה")
         elif int(end) > 0:
             return ("", "CE") if lang == "en" else ("", "לספירה")
         else:  # self.end <= 0
@@ -133,28 +137,31 @@ class TimePeriod(abst.AbstractMongoRecord):
         marker = "c." if lang == "en" else "בקירוב"
         return (
             marker if getattr(self, "startIsApprox", None) else "",
-            marker if getattr(self, "endIsApprox", None) else ""
+            marker if getattr(self, "endIsApprox", None) else "",
         )
 
     def period_string(self, lang):
         name = ""
 
-        if getattr(self, "start", None) is not None:  # and getattr(self, "end", None) is not None:
+        if (
+            getattr(self, "start", None) is not None
+        ):  # and getattr(self, "end", None) is not None:
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
 
             if lang == "en":
-                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
+                if (
+                    getattr(self, "symbol", "") == "CO"
+                    or getattr(self, "end", None) is None
+                ):
                     name += " ({}{} {} - )".format(
-                        approxMarker[0],
-                        abs(int(self.start)),
-                        labels[1])
+                        approxMarker[0], abs(int(self.start)), labels[1]
+                    )
                     return name
                 elif int(self.start) == int(self.end):
                     name += " ({}{} {})".format(
-                        approxMarker[0],
-                        abs(int(self.start)),
-                        labels[1])
+                        approxMarker[0], abs(int(self.start)), labels[1]
+                    )
                 else:
                     name += " ({}{} {} - {}{} {})".format(
                         approxMarker[0],
@@ -162,19 +169,23 @@ class TimePeriod(abst.AbstractMongoRecord):
                         labels[0],
                         approxMarker[1],
                         abs(int(self.end)),
-                        labels[1])
-            if lang == "he":
-                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
-                    name += " ({} {} {} - )".format(
-                        abs(int(self.start)),
                         labels[1],
-                        approxMarker[0])
+                    )
+            if lang == "he":
+                if (
+                    getattr(self, "symbol", "") == "CO"
+                    or getattr(self, "end", None) is None
+                ):
+                    name += " ({} {} {} - )".format(
+                        abs(int(self.start)), labels[1], approxMarker[0]
+                    )
                     return name
                 elif int(self.start) == int(self.end):
                     name += " ({}{}{})".format(
                         abs(int(self.end)),
                         " " + labels[1] if labels[1] else "",
-                        " " + approxMarker[1] if approxMarker[1] else "")
+                        " " + approxMarker[1] if approxMarker[1] else "",
+                    )
                 else:
                     both_approx = approxMarker[0] and approxMarker[1]
                     if both_approx:
@@ -183,7 +194,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                             " " + labels[0] if labels[0] else "",
                             abs(int(self.end)),
                             " " + labels[1] if labels[1] else "",
-                            approxMarker[1]
+                            approxMarker[1],
                         )
                     else:
                         name += " ({}{}{} - {}{}{})".format(
@@ -192,7 +203,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                             " " + approxMarker[0] if approxMarker[0] else "",
                             abs(int(self.end)),
                             " " + labels[1] if labels[1] else "",
-                            " " + approxMarker[1] if approxMarker[1] else ""
+                            " " + approxMarker[1] if approxMarker[1] else "",
                         )
 
         return name
@@ -202,22 +213,26 @@ class TimePeriod(abst.AbstractMongoRecord):
         Given a generation, get the Era for that generation
         :return:
         """
-        #This info should be stored on Generations.  It doesn't change.
+        # This info should be stored on Generations.  It doesn't change.
         if self.type == "Era":
             return self
-        t = TimePeriod().load({"type": "Era",
-                        "start": {"$lte": self.start},
-                        "end": {"$gte": self.end}})
+        t = TimePeriod().load(
+            {"type": "Era", "start": {"$lte": self.start}, "end": {"$gte": self.end}}
+        )
 
         return t or None
 
-    def get_people_in_generation(self, include_doubles = True):
+    def get_people_in_generation(self, include_doubles=True):
         from . import topic
+
         if self.type == "Generation":
             if include_doubles:
-                return topic.Topic({"properties.generation.value": {"$regex": self.symbol}})
+                return topic.Topic(
+                    {"properties.generation.value": {"$regex": self.symbol}}
+                )
             else:
                 return topic.Topic({"properties.generation.value": self.symbol})
+
 
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod
@@ -231,7 +246,10 @@ class TimePeriodSet(abst.AbstractMongoSet):
         return TimePeriodSet._get_typed_set("Era")
 
     @staticmethod
-    def get_generations(include_doubles = False):
-        arg = {"$in": ["Generation", "Two Generations"]} if include_doubles else "Generation"
+    def get_generations(include_doubles=False):
+        arg = (
+            {"$in": ["Generation", "Two Generations"]}
+            if include_doubles
+            else "Generation"
+        )
         return TimePeriodSet._get_typed_set(arg)
-

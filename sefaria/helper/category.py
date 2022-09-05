@@ -18,7 +18,13 @@ def move_index_into(index, cat):
         cat = Category().load({"path": cat})
 
     index.categories = cat.path[:]
-    print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
+    print(
+        "Moving - "
+        + index.get_title()
+        + " to "
+        + str(index.categories)
+        + " (move_index_into)"
+    )
     index.save(override_dependencies=True)
 
 
@@ -65,12 +71,20 @@ def rename_category(cat, en, he=None):
         c.save(override_dependencies=True)
 
     # move all matching Indexes
-    clauses = [{"categories." + str(i): cname} for i, cname in enumerate(old_category_path)]
+    clauses = [
+        {"categories." + str(i): cname} for i, cname in enumerate(old_category_path)
+    ]
     query = {"$and": clauses}
     for ind in IndexSet(query):
         assert isinstance(ind, Index)
         ind.categories = cat.path + ind.categories[path_length:]
-        print("Moving - " + ind.get_title() + " to " + str(ind.categories) + " (rename_category)")
+        print(
+            "Moving - "
+            + ind.get_title()
+            + " to "
+            + str(ind.categories)
+            + " (rename_category)"
+        )
         ind.save(override_dependencies=True)
 
     return cat
@@ -97,7 +111,6 @@ def move_category_into(cat, parent):
         parent = Category().load({"path": parent})
     assert isinstance(parent, Category) or parent is None
 
-
     old_category_path = cat.path[:]
     old_parent_path = cat.path[:-1]
     new_parent_path = parent.path[:] if parent else []
@@ -113,12 +126,20 @@ def move_category_into(cat, parent):
         cat.save(override_dependencies=True)
 
     # move all matching Indexes
-    clauses = [{"categories." + str(i): cname} for i, cname in enumerate(old_category_path)]
+    clauses = [
+        {"categories." + str(i): cname} for i, cname in enumerate(old_category_path)
+    ]
     query = {"$and": clauses}
     for ind in IndexSet(query):
         assert isinstance(ind, Index)
         ind.categories = new_parent_path + ind.categories[old_parent_length:]
-        print("Moving - " + ind.get_title() + " to " + str(ind.categories) + " (move_category_into)")
+        print(
+            "Moving - "
+            + ind.get_title()
+            + " to "
+            + str(ind.categories)
+            + " (move_category_into)"
+        )
         ind.save(override_dependencies=True)
 
 
@@ -161,5 +182,6 @@ def get_category_paths(path):
     appear as Tanakh Commentaries
     """
     from sefaria.model.category import TocCategory
+
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]

@@ -20,7 +20,11 @@ class FollowRelationship(object):
         self.follow_date = datetime.now()
 
     def exists(self):
-        bool(db.following.find_one({"follower": self.follower, "followee": self.followee}))
+        bool(
+            db.following.find_one(
+                {"follower": self.follower, "followee": self.followee}
+            )
+        )
 
     def follow(self):
         from sefaria.model.notification import Notification
@@ -60,10 +64,16 @@ class FolloweesSet(FollowSet):
 
 @django_cache(timeout=60 * 60 * 24)
 def aggregate_profiles(lang="english", limit=None):
-    match_stage = {"status": "public"} if lang == "english" else {"status": "public", "sheetLanguage": "hebrew"}
+    match_stage = (
+        {"status": "public"}
+        if lang == "english"
+        else {"status": "public", "sheetLanguage": "hebrew"}
+    )
     pipeline = [
         {"$match": match_stage},  # get all the sheets matching the criteria
-        {"$sortByCount": "$owner"}  # group them by owner and count how many each owner has
+        {
+            "$sortByCount": "$owner"
+        },  # group them by owner and count how many each owner has
     ]
 
     if limit is not None:
@@ -73,23 +83,30 @@ def aggregate_profiles(lang="english", limit=None):
         ]
 
     pipeline += [
-        {"$lookup": {
-            # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
-            "from": "profiles",
-            "localField": "_id",
-            "foreignField": "id",
-            "as": "user"}},
-        {"$unwind": {
-            # not sure this does anything, if there are accidental multiple user profiles for one user id, it unwinds them
-            "path": "$user",
-            "preserveNullAndEmptyArrays": True
-        }}
+        {
+            "$lookup": {
+                # perform a "left join", use the "_id" field from the last stage, which contains the user/owner id of sheets, to look up corresponding profile obj
+                "from": "profiles",
+                "localField": "_id",
+                "foreignField": "id",
+                "as": "user",
+            }
+        },
+        {
+            "$unwind": {
+                # not sure this does anything, if there are accidental multiple user profiles for one user id, it unwinds them
+                "path": "$user",
+                "preserveNullAndEmptyArrays": True,
+            }
+        },
     ]
     results = db.sheets.aggregate(pipeline)
     try:
         profiles = {r["user"]["id"]: r for r in results if "user" in r}
     except KeyError:
-        logger.error("Encountered sheet owner with no profile record.  No users will be recommended for following.")
+        logger.error(
+            "Encountered sheet owner with no profile record.  No users will be recommended for following."
+        )
         profiles = {}
     return profiles
 

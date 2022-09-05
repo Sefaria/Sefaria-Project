@@ -11,15 +11,20 @@ django.setup()
 from sefaria.model import *
 from sefaria.system.database import db
 
-he     = VersionSet({"language": "he"}).word_count()
-trans  = VersionSet({"language": {"$ne": "he"}}).word_count()
-sct    = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_count()
+he = VersionSet({"language": "he"}).word_count()
+trans = VersionSet({"language": {"$ne": "he"}}).word_count()
+sct = VersionSet({"versionTitle": "Sefaria Community Translation"}).word_count()
 
-reference = Lexicon().load({"name": "Jastrow Dictionary"}).word_count() + Lexicon().load({"name": "Klein Dictionary"}).word_count()
+reference = (
+    Lexicon().load({"name": "Jastrow Dictionary"}).word_count()
+    + Lexicon().load({"name": "Klein Dictionary"}).word_count()
+)
 
 # Number of Contributors
 contributors = set(db.history.distinct("user"))
-contributors = contributors.union(set(db.sheets.find({"status": "public"}).distinct("owner")))
+contributors = contributors.union(
+    set(db.sheets.find({"status": "public"}).distinct("owner"))
+)
 contributors = len(contributors)
 
 # Number of Links
@@ -29,7 +34,9 @@ links = db.links.count()
 sheets = db.sheets.count()
 
 metrics = {
-    "timestamp": datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0),
+    "timestamp": datetime.datetime.now().replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ),
     "heWords": he,
     "transWords": trans + reference,
     "sctWords": sct,

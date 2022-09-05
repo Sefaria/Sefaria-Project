@@ -1,4 +1,4 @@
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 import csv
 
 from sefaria.model import *
@@ -21,10 +21,8 @@ class DoubleLinks:
         self.other = 0
         self.duplicate_ids = {}
 
-
     def set_tanakh(self, bool):
         self.tanakh_only = bool
-
 
     def get_doubles_for_delete(self, ref1, ref2):
         if ref1 not in self.all_links:
@@ -41,28 +39,33 @@ class DoubleLinks:
                 elif ref2.contains(each_ref) and ref2.is_section_level():
                     general = ref2
                     specific = each_ref
-                
+
                 if general:
                     self.create_link_dict_and_gather_data(ref1, general, specific)
 
             self.all_links[ref1].append(ref2)
-        
-    
-    
-    def create_link_dict_and_gather_data(self, ref1, general, specific):
-        #FIRST, CHECK THAT SPECIFIC AND GENERAL ARE BOTH TANAKH
-        assert general.primary_category == "Tanakh" and specific.primary_category == "Tanakh", "{} {} {}".format(ref1, general, specific)
 
-        general_link = Link().load({"$and": [{"refs": general.normal()}, {"refs": ref1.normal()}]})
+    def create_link_dict_and_gather_data(self, ref1, general, specific):
+        # FIRST, CHECK THAT SPECIFIC AND GENERAL ARE BOTH TANAKH
+        assert (
+            general.primary_category == "Tanakh"
+            and specific.primary_category == "Tanakh"
+        ), "{} {} {}".format(ref1, general, specific)
+
+        general_link = Link().load(
+            {"$and": [{"refs": general.normal()}, {"refs": ref1.normal()}]}
+        )
         self.double_links.append(general_link)
 
-        #FINALLY, GATHER DATA ON THE TIME OF CREATION OF THE LINK AND WHETHER IT IS MANUAL OR AUTOMATIC,
-        #AND WHETHER IT IS FROM MIDRASH OR RASHI
+        # FINALLY, GATHER DATA ON THE TIME OF CREATION OF THE LINK AND WHETHER IT IS MANUAL OR AUTOMATIC,
+        # AND WHETHER IT IS FROM MIDRASH OR RASHI
 
         general_auto = general_link.auto
         general_date = general_link._id.generation_time
 
-        specific_link = Link().load({"$and": [{"refs": specific.normal()}, {"refs": ref1.normal()}]})
+        specific_link = Link().load(
+            {"$and": [{"refs": specific.normal()}, {"refs": ref1.normal()}]}
+        )
         specific_auto = specific_link.auto
         specific_date = specific_link._id.generation_time
 
@@ -90,7 +93,6 @@ class DoubleLinks:
             assert self.tanakh_only is False, ref1.normal()
             self.other += 1
 
-
     def get_links(self, category):
         ls = []
         indexes = library.get_indexes_in_category(category)
@@ -98,8 +100,6 @@ class DoubleLinks:
             ls += LinkSet(Ref(index))
         return ls
 
-
-    
     def delete_links_and_output_results(self):
         how_many = 0
         for l in self.double_links:
@@ -113,14 +113,16 @@ class DoubleLinks:
         print("General auto only: {}".format(self.general_auto_specific_manual))
         print("Specific auto only: {}".format(self.specific_auto_general_manual))
 
-        print("Specific Added After/Same Time as General: {}".format(self.specific_first_num))
+        print(
+            "Specific Added After/Same Time as General: {}".format(
+                self.specific_first_num
+            )
+        )
 
         print("Commentary links: {}".format(self.commentary))
         print("Midrash links: {}".format(self.midrash))
         print("Tanakh-to-Tanakh links: {}".format(self.tanakh))
         print("Other links: {}".format(self.other))
-
-
 
     def get_exact_doubles(self):
         ls = LinkSet()
@@ -138,7 +140,6 @@ class DoubleLinks:
             else:
                 link_refs[refs] = l._id
 
-
     def delete_exact_doubles(self):
         total = 0
         deleted_num = 0
@@ -150,9 +151,9 @@ class DoubleLinks:
             ids = self.duplicate_ids[refs_key]
             total += len(ids)
 
-            #determine which link should not be deleted, with priority to having a source_text_oid,
-            #if there isn't one, then pick the one that has a generated_by,
-            #finally, if there isn't a generated_by, then just pick the first one
+            # determine which link should not be deleted, with priority to having a source_text_oid,
+            # if there isn't one, then pick the one that has a generated_by,
+            # finally, if there isn't a generated_by, then just pick the first one
             assert len(ids) > 1
             for id in ids:
                 l = Link().load({"_id": id})
@@ -176,20 +177,21 @@ class DoubleLinks:
                 l.delete()
                 deleted_num += 1
 
-        print("Number of refs that have more than one link: {}".format(len(self.duplicate_ids)))
+        print(
+            "Number of refs that have more than one link: {}".format(
+                len(self.duplicate_ids)
+            )
+        )
         print("Number of links deleted: {}".format(deleted_num))
         print("Number of links total: {}".format(total))
         print("Number of source_text_oid: {}".format(source_text))
         print("Number of generated_by: {}".format(generated_by))
 
 
-
-
 if __name__ == "__main__":
     DL = DoubleLinks()
     DL.get_exact_doubles()
     DL.delete_exact_doubles()
-
 
     count = 0
     category = "Tanakh"

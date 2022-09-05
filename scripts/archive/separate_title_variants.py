@@ -19,7 +19,7 @@ for index in indices:
         print(index.title)
         print(index.titleVariants)
         print(en)
-        
-    index.titleVariants   = list(set(en))
+
+    index.titleVariants = list(set(en))
     index.heTitleVariants = list(set(he))
     index.save()

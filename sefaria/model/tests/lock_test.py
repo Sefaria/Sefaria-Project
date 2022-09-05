@@ -16,14 +16,18 @@ def test_locks():
     assert not model.check_lock(ref, lang, version)
 
     # test expiring locks
-    twice_cutoff_ago = datetime.datetime.now() - datetime.timedelta(seconds=(model.lock.LOCK_TIMEOUT * 2))
-    model.Lock({
-        "ref": ref,
-        "lang": lang,
-        "version": version,
-        "user": user,
-        "time": twice_cutoff_ago,
-    }).save()
+    twice_cutoff_ago = datetime.datetime.now() - datetime.timedelta(
+        seconds=(model.lock.LOCK_TIMEOUT * 2)
+    )
+    model.Lock(
+        {
+            "ref": ref,
+            "lang": lang,
+            "version": version,
+            "user": user,
+            "time": twice_cutoff_ago,
+        }
+    ).save()
     assert model.check_lock(ref, lang, version)
     model.expire_locks()
     assert not model.check_lock(ref, lang, version)

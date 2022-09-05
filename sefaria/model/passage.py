@@ -11,16 +11,15 @@ class Passage(abst.AbstractMongoRecord):
     """
     Sugyot
     """
-    collection = 'passage'
+
+    collection = "passage"
 
     required_attrs = [
         "full_ref",  # ""
-        "type",     # "Mishnah" or "Sugya"
-        "ref_list"   # []
+        "type",  # "Mishnah" or "Sugya"
+        "ref_list",  # []
     ]
-    optional_attrs = [
-        "same_as"    # []
-    ]
+    optional_attrs = ["same_as"]  # []
 
     @classmethod
     def containing_segment(cls, ref):
@@ -45,5 +44,3 @@ class Passage(abst.AbstractMongoRecord):
 
 class PassageSet(abst.AbstractMongoSet):
     recordClass = Passage
-
-

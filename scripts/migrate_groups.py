@@ -7,23 +7,23 @@ from sefaria.system.database import db
 skip = ["Editors", "User Seeds"]
 groups = DjangoGroup.objects.all()
 for dgroup in groups:
-	if dgroup.name in skip:
-		continue
-	print(dgroup.name)
-	admins = [u.id for u in dgroup.user_set.all()]
-	group = Group().load({"name": dgroup.name})
-	fields = {
-		"name": dgroup.name,
-		"admins": admins,
-		"publishers": [],
-		"members": [],
-	}
-	if group:
-		fields["imageUrl"] = getattr(group, "coverUrl", None)
-		group.load_from_dict(fields)
-		group.save()
-	else:
-		Group(fields).save()
+    if dgroup.name in skip:
+        continue
+    print(dgroup.name)
+    admins = [u.id for u in dgroup.user_set.all()]
+    group = Group().load({"name": dgroup.name})
+    fields = {
+        "name": dgroup.name,
+        "admins": admins,
+        "publishers": [],
+        "members": [],
+    }
+    if group:
+        fields["imageUrl"] = getattr(group, "coverUrl", None)
+        group.load_from_dict(fields)
+        group.save()
+    else:
+        Group(fields).save()
 
 db.groups.create_index("name", unique=True)
 db.groups.create_index("admins")

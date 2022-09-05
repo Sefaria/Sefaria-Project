@@ -11,36 +11,20 @@ from sefaria.system.exceptions import InputError
 
 class Test_Categories(object):
     def test_index_save_with_bad_categories(self):
-        title = 'Test Bad Cat'
+        title = "Test Bad Cat"
         d = {
-            "categories": [
-                "Liturgy", "Bobby McGee"
-            ],
+            "categories": ["Liturgy", "Bobby McGee"],
             "title": title,
             "schema": {
                 "titles": [
-                    {
-                        "lang": "en",
-                        "text": title,
-                        "primary": True
-                    },
-                    {
-                        "lang": "he",
-                        "text": "דוגמא ב",
-                        "primary": True
-                    }
+                    {"lang": "en", "text": title, "primary": True},
+                    {"lang": "he", "text": "דוגמא ב", "primary": True},
                 ],
                 "nodeType": "JaggedArrayNode",
                 "depth": 2,
-                "sectionNames": [
-                    "Section",
-                    "Line"
-                ],
-                "addressTypes": [
-                    "Integer",
-                    "Integer"
-                ],
-                "key": title
+                "sectionNames": ["Section", "Line"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": title,
             },
         }
         i = Index(d)
@@ -93,6 +77,8 @@ class Test_Categories(object):
 Are these tests necessary anymore?
 They were useful in validating 1st class categories against older forms. 
 """
+
+
 class Test_OO_Toc(object):
     def test_round_trip(self):
         base_toc = library.get_toc()
@@ -107,4 +93,3 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
-

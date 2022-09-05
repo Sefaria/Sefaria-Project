@@ -1,8 +1,10 @@
 import django
 
 django.setup()
-from sefaria.helper.topic import (recalculate_secondary_topic_data,
-                                  set_all_slugs_to_primary_title)
+from sefaria.helper.topic import (
+    recalculate_secondary_topic_data,
+    set_all_slugs_to_primary_title,
+)
 from sefaria.model import *
 
 recalculate_secondary_topic_data()

@@ -2,7 +2,7 @@
 
 from sefaria.model import *
 
-for v in library.get_commentary_versions(["Rashi","Tosafot"]):
+for v in library.get_commentary_versions(["Rashi", "Tosafot"]):
     assert isinstance(v, Version)
     print("{} {}".format(v.title, v.versionTitle))
     index = v.get_index()

@@ -21,11 +21,19 @@ def remove_refs_with_false():
 """
 Detect any links that contain Refs we can't understand.
 """
-def broken_links(tref=None, auto_links = False, manual_links = False, delete_links = False, check_text_exists=False):
+
+
+def broken_links(
+    tref=None,
+    auto_links=False,
+    manual_links=False,
+    delete_links=False,
+    check_text_exists=False,
+):
     links = model.LinkSet(model.Ref(tref)) if tref else model.LinkSet()
     broken_links_list = []
     for link in links:
-        errors = [0,0,0,0]
+        errors = [0, 0, 0, 0]
         try:
             rf1 = model.Ref(link.refs[0])
             errors[0] = 1
@@ -55,12 +63,13 @@ def broken_links(tref=None, auto_links = False, manual_links = False, delete_lin
             elif error_code == 3:
                 error_msg = "Ref 2 has no text in the system"
 
-            broken_links_list.append("{}\t{}\t{}".format(link.refs, link_type, error_msg))
+            broken_links_list.append(
+                "{}\t{}\t{}".format(link.refs, link_type, error_msg)
+            )
             print(broken_links_list[-1])
             if delete_links:
                 link.delete()
     return broken_links_list
-
 
 
 def remove_bad_links():
@@ -86,8 +95,10 @@ def remove_old_counts():
             try:
                 i = model.library.get_index(count["title"])
                 if model.VersionSet({"title": i.title}).count() == 0:
-                    print("Old count for Commentary with no content: %s" % count["title"])
-                    db.vstate.remove({"_id": count["_id"]})                    
+                    print(
+                        "Old count for Commentary with no content: %s" % count["title"]
+                    )
+                    db.vstate.remove({"_id": count["_id"]})
             except BookNameError:
                 print("Old count: %s" % count["title"])
                 db.vstate.remove({"_id": count["_id"]})
@@ -100,7 +111,7 @@ def remove_trailing_empty_segments():
     texts = model.VersionSet()
     for text in texts:
         if not model.Ref.is_ref(text.title):
-            continue # Ignore text versions we don't understand
+            continue  # Ignore text versions we don't understand
         new_text = rtrim_jagged_string_array(deepcopy(text.chapter))
         if new_text != text.chapter:
             print(text.title + " CHANGED")

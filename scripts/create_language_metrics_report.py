@@ -13,13 +13,18 @@ with open("language_metrics_report.csv", "a") as fout:
     writer.writerow(["Language (ISO Code)", "Text Count", "Text List"])
 
     for lang in distinctLanguages:
-        texts = db.texts.aggregate([{"$match": {"actualLanguage":lang}},
-        {"$lookup": {
-                "from": "index",
-                "localField": "title",
-                "foreignField": "title",
-                "as": "titles"
-            }}])
+        texts = db.texts.aggregate(
+            [
+                {"$match": {"actualLanguage": lang}},
+                {
+                    "$lookup": {
+                        "from": "index",
+                        "localField": "title",
+                        "foreignField": "title",
+                        "as": "titles",
+                    }
+                },
+            ]
+        )
         text_list = [text["title"] for text in texts]
         writer.writerow([lang, len(text_list), "; ".join(text_list)])
-        

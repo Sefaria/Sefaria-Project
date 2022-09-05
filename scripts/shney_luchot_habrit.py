@@ -32,9 +32,10 @@ def get_section_segment(ref):
             segment = None
     return section, segment
 
+
 def get_text_for_source_refs(ref_map, draft_text, prod_text):
     # go through each prod source ref, get its text, figure out its corresponding draft source ref, and get its text and compare both
-    match_csv = open("scripts/shney_luchot_habrit_source_sheet_refs.csv", 'w')
+    match_csv = open("scripts/shney_luchot_habrit_source_sheet_refs.csv", "w")
     match_writer = csv.writer(match_csv)
     with open("list of refs") as f:
         for ref in f:
@@ -46,7 +47,9 @@ def get_text_for_source_refs(ref_map, draft_text, prod_text):
             # now try to get production text and draft text
             draft_section_text = prod_section_text = []
             draft_section_ref = ""
-            prod_section_text = prod_text[section.replace("Shelah", "Shney Luchot HaBrit")]
+            prod_section_text = prod_text[
+                section.replace("Shelah", "Shney Luchot HaBrit")
+            ]
             draft_section_ref = ref_map[section]
             draft_section_text = draft_text[draft_section_ref]
 
@@ -55,19 +58,18 @@ def get_text_for_source_refs(ref_map, draft_text, prod_text):
                 match = draft_section_ref
             else:
                 if segment <= len(prod_section_text):
-                    prod_segment_text = prod_section_text[segment-1]
-                    match_segment = find_prod_in_draft(prod_segment_text, draft_section_text)
+                    prod_segment_text = prod_section_text[segment - 1]
+                    match_segment = find_prod_in_draft(
+                        prod_segment_text, draft_section_text
+                    )
                     match = "{} {}".format(draft_section_ref, match_segment)
                 else:
                     match = draft_section_ref
             if not match:
                 match = draft_section_ref
-            #replace_source(orig_ref.replace("\n", ""), match)
+            # replace_source(orig_ref.replace("\n", ""), match)
             match_writer.writerow([orig_ref, match])
     match_csv.close()
-
-
-
 
 
 def find_prod_in_draft(prod_segment, draft_section):
@@ -108,13 +110,13 @@ def replace_source(orig_ref, new_ref):
     if len(sheets) == 0:
         return
     for sheet in sheets:
-        for source_n, source in enumerate(sheet['sources']):
-            if 'ref' in list(source.keys()) and source['ref'] == orig_ref:
+        for source_n, source in enumerate(sheet["sources"]):
+            if "ref" in list(source.keys()) and source["ref"] == orig_ref:
                 print("Changing sheet...{}".format(sheet["id"]))
                 print("{}".format(new_ref))
-                sheet["sources"][source_n]['ref'] = new_ref
+                sheet["sources"][source_n]["ref"] = new_ref
                 try:
-                    sheet["sources"][source_n]['heRef'] = Ref(new_ref).he_normal()
+                    sheet["sources"][source_n]["heRef"] = Ref(new_ref).he_normal()
                 except InputError as e:
                     print(e.message)
         db.sheets.save(sheet)
@@ -132,7 +134,7 @@ if __name__ == "__main__":
     # load_csv(prod_ref_to_text, "production.csv")
     # load_csv(draft_ref_to_text, "draft.csv")
     # matches = get_text_for_source_refs(ref_map, draft_ref_to_text, prod_ref_to_text)
-    #draft_ref_to_text[row[1]] = get_text(row[1], text_info["lang"], text_info["versionTitle"], "http://draft.sefaria.org")["text"]
+    # draft_ref_to_text[row[1]] = get_text(row[1], text_info["lang"], text_info["versionTitle"], "http://draft.sefaria.org")["text"]
     with open("scripts/shney_luchot_habrit_source_sheet_refs.csv") as file:
         reader = csv.reader(file)
         for row in reader:

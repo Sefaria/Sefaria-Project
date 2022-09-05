@@ -7,16 +7,22 @@ django.setup()
 import os
 import sys
 
-from . import \
-    basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from . import basic_tests  # This is in fact needed - to register subclasses Trial, etc.
 from .framework import Trial
 from .framework.seleniumManager import SeleniumDriverManager as sdm
 
 # Get environment variables
-seleniumServerUrl = os.environ['SELENIUM_SERVER_URL']
-targetApplicationUrl = os.environ['APPLICATION_URL']
+seleniumServerUrl = os.environ["SELENIUM_SERVER_URL"]
+targetApplicationUrl = os.environ["APPLICATION_URL"]
 
-t = Trial(platform="github", parallel=None, build=None, verbose=True, seleniumServerHostname=seleniumServerUrl, targetApplicationUrl="https://vecino.cauldron.sefaria.org")
+t = Trial(
+    platform="github",
+    parallel=None,
+    build=None,
+    verbose=True,
+    seleniumServerHostname=seleniumServerUrl,
+    targetApplicationUrl="https://vecino.cauldron.sefaria.org",
+)
 t.run()
 
 print("DONE RUNNING TESTS")

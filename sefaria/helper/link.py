@@ -15,7 +15,7 @@ except ImportError:
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref
 
-#TODO: should all the functions here be decoupled from the need to enter a userid?
+# TODO: should all the functions here be decoupled from the need to enter a userid?
 
 
 class AbstractAutoLinker(object):
@@ -27,15 +27,24 @@ class AbstractAutoLinker(object):
     3. delete_links will delete all the links in the set
     4. rebuild_links will delete and then build the links from scratch
     """
-    def __init__(self, oref, auto=True, generated_by_string=None, link_type=None, **kwargs):
+
+    def __init__(
+        self, oref, auto=True, generated_by_string=None, link_type=None, **kwargs
+    ):
         self._requested_oref = oref
-        if not getattr(self, '_generated_by_string', None):
-            self._generated_by_string = generated_by_string if generated_by_string else self.__class__.__name__
-        if not getattr(self, '_auto', None):
+        if not getattr(self, "_generated_by_string", None):
+            self._generated_by_string = (
+                generated_by_string if generated_by_string else self.__class__.__name__
+            )
+        if not getattr(self, "_auto", None):
             self._auto = auto
-        if not getattr(self,'_link_type', None):
-            self._link_type = link_type if link_type else getattr(oref.index, 'dependence', 'Commentary').lower()
-        self._user = kwargs.get('user', None)
+        if not getattr(self, "_link_type", None):
+            self._link_type = (
+                link_type
+                if link_type
+                else getattr(oref.index, "dependence", "Commentary").lower()
+            )
+        self._user = kwargs.get("user", None)
         self._title = self._requested_oref.index.title
         self._links = None
 
@@ -76,11 +85,15 @@ class AbstractAutoLinker(object):
     def _load_links(self):
         if not self._links:
             ref_regex_list = self._requested_oref.regex(as_list=True)
-            queries = [{"refs": {"$regex": ref_regex},
-                                   "generated_by": self._generated_by_string,
-                                   "auto": self._auto,
-                                   "type": self._link_type
-                                   } for ref_regex in ref_regex_list]
+            queries = [
+                {
+                    "refs": {"$regex": ref_regex},
+                    "generated_by": self._generated_by_string,
+                    "auto": self._auto,
+                    "type": self._link_type,
+                }
+                for ref_regex in ref_regex_list
+            ]
             self._links = LinkSet({"$or": queries})
         return self._links
 
@@ -93,7 +106,7 @@ class AbstractAutoLinker(object):
             "type": self._link_type,
             "anchorText": "",
             "auto": self._auto,
-            "generated_by": self._generated_by_string
+            "generated_by": self._generated_by_string,
         }
         try:
             if not self._user:
@@ -115,6 +128,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
     """
     This class is for general linking according to two structurally identical texts.
     """
+
     # TODO: as error checking there should probs be a validate that checks the structures match.
     def __init__(self, oref, depth_up, linked_oref, default_only=False, **kwargs):
         self._linked_title = linked_oref.index.title
@@ -123,7 +137,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
         super(AbstractStructureAutoLinker, self).__init__(oref, **kwargs)
 
     def _generate_specific_base_tref(self, orig_ref):
-        """ This function only works with simple texts:  Rashi, Genesis
+        """This function only works with simple texts:  Rashi, Genesis
         whereas we want
         """
         context_ref = orig_ref.context_ref(self._depth_up)
@@ -145,28 +159,44 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
             content_nodes = oref.index_node.get_leaf_nodes()
             if self._default_only:
-                content_nodes = [node for node in content_nodes if node.key == "default" and getattr(node, "default", False) is True]
+                content_nodes = [
+                    node
+                    for node in content_nodes
+                    if node.key == "default" and getattr(node, "default", False) is True
+                ]
             for r in content_nodes:
                 cn_oref = r.ref()
-                text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
+                text = TextFamily(
+                    cn_oref, commentary=0, context=0, pad=False
+                ).contents()
                 length = cn_oref.get_state_ja().length()
                 for i, sr in enumerate(cn_oref.subrefs(length)):
-                    stext = {"sections": sr.sections,
-                            "sectionNames": text['sectionNames'],
-                            "text": text["text"][i] if i < len(text["text"]) else "",
-                            "he": text["he"][i] if i < len(text["he"]) else ""
-                            }
+                    stext = {
+                        "sections": sr.sections,
+                        "sectionNames": text["sectionNames"],
+                        "text": text["text"][i] if i < len(text["text"]) else "",
+                        "he": text["he"][i] if i < len(text["he"]) else "",
+                    }
                     found_links += self._build_links_internal(sr, stext, **kwargs)
 
         else:
             if not text:
                 try:
-                    text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
+                    text = TextFamily(
+                        oref, commentary=0, context=0, pad=False
+                    ).contents()
                 except AssertionError:
-                    logger.warning("Structure node passed to add_commentary_links: {}".format(oref.normal()))
+                    logger.warning(
+                        "Structure node passed to add_commentary_links: {}".format(
+                            oref.normal()
+                        )
+                    )
                     return
 
-            if self._default_only and (oref.index_node.key != "default" or getattr(oref.index_node, "default", False) is False):
+            if self._default_only and (
+                oref.index_node.key != "default"
+                or getattr(oref.index_node, "default", False) is False
+            ):
                 return
 
             if len(text["sectionNames"]) > len(text["sections"]) > 0:
@@ -175,18 +205,21 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 # in order to be able to match the commentary to the basic parent text units,
                 # recur on each section
                 length = max(len(text["text"]), len(text["he"]))
-                for i,r in enumerate(oref.subrefs(length)):
-                    stext = {"sections": r.sections,
-                            "sectionNames": text['sectionNames'],
-                            "text": text["text"][i] if i < len(text["text"]) else "",
-                            "he": text["he"][i] if i < len(text["he"]) else ""
-                            }
+                for i, r in enumerate(oref.subrefs(length)):
+                    stext = {
+                        "sections": r.sections,
+                        "sectionNames": text["sectionNames"],
+                        "text": text["text"][i] if i < len(text["text"]) else "",
+                        "he": text["he"][i] if i < len(text["he"]) else "",
+                    }
                     found_links += self._build_links_internal(r, stext, **kwargs)
 
             # this is a single comment, trim the last section number (comment) from ref
             elif len(text["sections"]) == len(text["sectionNames"]):
-                if len(text['he']) or len(text['text']): #only if there is actually text
-                    #base_tref = base_tref[0:base_tref.rfind(":")]
+                if len(text["he"]) or len(
+                    text["text"]
+                ):  # only if there is actually text
+                    # base_tref = base_tref[0:base_tref.rfind(":")]
                     base_tref = self._generate_specific_base_tref(oref)
                     found_links += [tref]
                     self._save_link(tref, base_tref, **kwargs)
@@ -208,7 +241,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
         found_links = self._build_links_internal(self._requested_oref)
         for exLink in existing_links:
             for r in exLink.refs:
-                if self._title not in r:  #current base ref
+                if self._title not in r:  # current base ref
                     continue
                 if USE_VARNISH:
                     try:
@@ -219,16 +252,20 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                     self._delete_link(exLink)
                 break
 
+
 class BaseStructureAutoLinker(AbstractStructureAutoLinker):
     """
     This linker will only allow a text to be linked to it's specified base text (currently assumes one base text)
     """
+
     def __init__(self, oref, depth_up, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
         """try:"""
         base_oref = Ref(oref.index.base_text_titles[0])
-        super(BaseStructureAutoLinker, self).__init__(oref, depth_up, base_oref, **kwargs)
+        super(BaseStructureAutoLinker, self).__init__(
+            oref, depth_up, base_oref, **kwargs
+        )
         """except Exception as e:
             raise Exception('Text must have a base text to link to')"""
 
@@ -243,14 +280,18 @@ class CommentaryDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
     The only difference in implementation between this class and the CommentaryAutoLinker is that this class sets
     AbstractStructureAutoLinker's default_only parameter to True, whereas CommentaryAutoLinker sets it to False.
     """
+
     class_key = "many_to_one_default_only"
-    _generated_by_string = 'add_commentary_links'
+    _generated_by_string = "add_commentary_links"
+
     def __init__(self, oref, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
         """try:"""
         base_oref = Ref(oref.index.base_text_titles[0])
-        super(CommentaryDefaultOnlyAutoLinker, self).__init__(oref, 1, base_oref, default_only=True, **kwargs)
+        super(CommentaryDefaultOnlyAutoLinker, self).__init__(
+            oref, 1, base_oref, default_only=True, **kwargs
+        )
 
 
 class MatchBaseTextDepthDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
@@ -258,14 +299,18 @@ class MatchBaseTextDepthDefaultOnlyAutoLinker(AbstractStructureAutoLinker):
     Works exactly the same as the MatchBaseTextDepthAutoLinker, except that only default nodes will be linked
     and other nodes will be ignored.
     """
+
     class_key = "one_to_one_default_only"
     _generated_by_string = "add_commentary_links"
+
     def __init__(self, oref, **kwargs):
         if not oref.is_dependant():
             raise Exception("Text must have a base text to link to")
         """try:"""
         base_oref = Ref(oref.index.base_text_titles[0])
-        super(MatchBaseTextDepthDefaultOnlyAutoLinker, self).__init__(oref, 0, base_oref, default_only=True, **kwargs)
+        super(MatchBaseTextDepthDefaultOnlyAutoLinker, self).__init__(
+            oref, 0, base_oref, default_only=True, **kwargs
+        )
 
 
 class IncrementBaseTextDepthAutoLinker(BaseStructureAutoLinker):
@@ -284,14 +329,15 @@ class CommentaryAutoLinker(IncrementBaseTextDepthAutoLinker):
     Kohelet 3:2 <-> Sforno on Kohelet 3:2:1, Kohelet 3:2 <-> Sforno on Kohelet 3:2:2, etc.
     for each segment of text (comment) that is in 'Sforno on Kohelet 3:2'.
     """
-    class_key = 'many_to_one'
-    _generated_by_string = 'add_commentary_links'
 
+    class_key = "many_to_one"
+    _generated_by_string = "add_commentary_links"
 
 
 class MatchBaseTextDepthAutoLinker(BaseStructureAutoLinker):
-    class_key = 'one_to_one'
+    class_key = "one_to_one"
     _generated_by_string = "add_commentary_links"
+
     def __init__(self, oref, **kwargs):
         super(MatchBaseTextDepthAutoLinker, self).__init__(oref, 0, **kwargs)
 
@@ -308,7 +354,7 @@ def rebuild_links_for_title(tref, user=None):
     except InputError:
         # If not a valid ref, maybe a title of an entire corpus.
         # Allow group work names, eg. Rashi alone, rebuild for each text we have
-        #TODO: there might need to be some error checking done on this
+        # TODO: there might need to be some error checking done on this
         title_indices = library.get_indices_by_collective_title(tref)
         for c in title_indices:
             rebuild_links_for_title(c, user)
@@ -321,12 +367,12 @@ def rebuild_links_for_title(tref, user=None):
 # TODO: refactor with lexicon class map into abstract
 class AutoLinkerFactory(object):
     _class_map = {
-        CommentaryAutoLinker.class_key            : CommentaryAutoLinker,
-        MatchBaseTextDepthAutoLinker.class_key    : MatchBaseTextDepthAutoLinker,
-        CommentaryDefaultOnlyAutoLinker.class_key : CommentaryDefaultOnlyAutoLinker,
+        CommentaryAutoLinker.class_key: CommentaryAutoLinker,
+        MatchBaseTextDepthAutoLinker.class_key: MatchBaseTextDepthAutoLinker,
+        CommentaryDefaultOnlyAutoLinker.class_key: CommentaryDefaultOnlyAutoLinker,
         MatchBaseTextDepthDefaultOnlyAutoLinker.class_key: MatchBaseTextDepthDefaultOnlyAutoLinker,
     }
-    _key_attr = 'base_text_mapping'
+    _key_attr = "base_text_mapping"
     _default_class = CommentaryAutoLinker
 
     @classmethod
@@ -350,6 +396,7 @@ class AutoLinkerFactory(object):
 
 # ------------------------------------------------------------------------------------------ #
 
+
 def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     """
     Scan a text for explicit references to other texts and automatically add new links between
@@ -366,33 +413,37 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
         return []
     elif isinstance(text, list):
         subrefs = oref.subrefs(len(text))
-        links   = []
+        links = []
         for i in range(len(text)):
-            single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
+            single = add_links_from_text(
+                subrefs[i], lang, text[i], text_id, user, **kwargs
+            )
             links += single
         return links
     elif isinstance(text, str):
         """
-            Keeps three lists:
-            * existingLinks - The links that existed before the text was rescanned
-            * found - The links found in this scan of the text
-            * links - The new links added in this scan of the text
+        Keeps three lists:
+        * existingLinks - The links that existed before the text was rescanned
+        * found - The links found in this scan of the text
+        * links - The new links added in this scan of the text
 
-            The set of no longer supported links (`existingLinks` - `found`) is deleted.
-            The set of all links (`existingLinks` + `Links`) is refreshed in Varnish.
+        The set of no longer supported links (`existingLinks` - `found`) is deleted.
+        The set of all links (`existingLinks` + `Links`) is refreshed in Varnish.
         """
-        existingLinks = LinkSet({
-            "refs": oref.normal(),
-            "auto": True,
-            "generated_by": "add_links_from_text",
-            "source_text_oid": text_id
-        }).array()  # Added the array here to force population, so that new links don't end up in this set
+        existingLinks = LinkSet(
+            {
+                "refs": oref.normal(),
+                "auto": True,
+                "generated_by": "add_links_from_text",
+                "source_text_oid": text_id,
+            }
+        ).array()  # Added the array here to force population, so that new links don't end up in this set
 
         found = []  # The normal refs of the links found in this text
         links = []  # New link objects created by this processes
 
-        if kwargs.get('citing_only') is not None:
-            citing_only = kwargs['citing_only']
+        if kwargs.get("citing_only") is not None:
+            citing_only = kwargs["citing_only"]
         else:
             citing_only = True
 
@@ -406,9 +457,11 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
                 "auto": True,
                 "generated_by": "add_links_from_text",
                 "source_text_oid": text_id,
-                "inline_citation": True
+                "inline_citation": True,
             }
-            found += [linked_oref.normal()]  # Keep this here, since tracker.add will throw an error if the link exists
+            found += [
+                linked_oref.normal()
+            ]  # Keep this here, since tracker.add will throw an error if the link exists
             try:
                 tracker.add(user, Link, link, **kwargs)
                 links += [link]
@@ -438,8 +491,10 @@ def delete_links_from_text(title, user):
     """
     Deletes all of the citation generated links from text 'title'
     """
-    regex    = Ref(title).regex()
-    links    = LinkSet({"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"})
+    regex = Ref(title).regex()
+    links = LinkSet(
+        {"refs.0": {"$regex": regex}, "generated_by": "add_links_from_text"}
+    )
     for link in links:
         if USE_VARNISH:
             try:
@@ -472,32 +527,40 @@ def rebuild_links_from_text(title, user):
         """
         assert len(contents) == 1
         version = kwargs.get("version")
-        add_links_from_text(snode.ref(), version.language, contents[0], version._id, user)
+        add_links_from_text(
+            snode.ref(), version.language, contents[0], version._id, user
+        )
 
     for version in versions:
         index.nodes.visit_content(add_links_callback, version.chapter, version=version)
         # add_links_from_text(Ref(title), version.language, version.chapter, version._id, user)
 
+
 # --------------------------------------------------------------------------------- #
 
 
-def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=None, exception_range = None):
+def create_link_cluster(
+    refs, user, link_type="", attrs=None, exception_pairs=None, exception_range=None
+):
     total = 0
     for i, ref in enumerate(refs):
         for j in range(i + 1, len(refs)):
             ref_strings = [refs[i].normal(), refs[j].normal()]
 
             # If this link matches an exception pair, skip it.
-            if all([any([r.startswith(name) for r in ref_strings]) for pair in exception_pairs for name in pair]):
+            if all(
+                [
+                    any([r.startswith(name) for r in ref_strings])
+                    for pair in exception_pairs
+                    for name in pair
+                ]
+            ):
                 continue
             # If this link matches an exception range, skip it.
             if refs[i].section_ref() == refs[j].section_ref():
                 continue
 
-            d = {
-                "refs": ref_strings,
-                "type": link_type
-                }
+            d = {"refs": ref_strings, "type": link_type}
             if attrs:
                 d.update(attrs)
             try:

@@ -22,7 +22,7 @@ for count, pn in enumerate(pns):
 
     UserStory.from_sheet_publish_notification(pn).save()
 
-#pns.delete()
+# pns.delete()
 
 
 gns = GlobalNotificationSet(sort=[("_id", -1)])
@@ -42,6 +42,6 @@ for count, gn in enumerate(gns):
         UserStory.from_shared_story(un.uid, gs).save()
 
     # uns.delete()
-#gns.delete()
+# gns.delete()
 
 ensure_indices()

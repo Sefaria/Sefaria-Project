@@ -27,24 +27,24 @@ from sefaria.utils.talmud import section_to_daf
 
 from .settings import SEFARIA_EXPORT_PATH
 
-lang_codes = {
-    "he": "Hebrew",
-    "en": "English"
-}
+lang_codes = {"he": "Hebrew", "en": "English"}
 
 
 def log_error(msg):
-    msg = '{}\n'.format(msg)
+    msg = "{}\n".format(msg)
     log_error.all_errors.append(msg)
     sys.stderr.write(msg)
+
+
 log_error.all_errors = []
 
 
 def print_errors():
     if len(log_error.all_errors):
-        sys.stderr.write('\n___ERRORS___\n')
+        sys.stderr.write("\n___ERRORS___\n")
     for i, error in enumerate(log_error.all_errors):
-        sys.stderr.write('{}. {}'.format(i, error))
+        sys.stderr.write("{}. {}".format(i, error))
+
 
 def make_path(doc, format, extension=None):
     """
@@ -52,19 +52,21 @@ def make_path(doc, format, extension=None):
     """
     if doc["categories"][0] not in library.get_top_categories():
         doc["categories"].insert(0, "Other")
-    path = "%s/%s/%s/%s/%s/%s.%s" % (SEFARIA_EXPORT_PATH,
-                                            format,
-                                            "/".join(doc["categories"]),
-                                            doc["title"],
-                                            lang_codes[doc["language"]],
-                                            remove_illegal_file_chars(doc["versionTitle"]),
-                                            extension or format)
+    path = "%s/%s/%s/%s/%s/%s.%s" % (
+        SEFARIA_EXPORT_PATH,
+        format,
+        "/".join(doc["categories"]),
+        doc["title"],
+        lang_codes[doc["language"]],
+        remove_illegal_file_chars(doc["versionTitle"]),
+        extension or format,
+    )
     return path
 
 
 def remove_illegal_file_chars(filename_str):
     p = re.compile('[/:()<>"|?*]|(\\\)')
-    new_filename = p.sub('', filename_str)
+    new_filename = p.sub("", filename_str)
     return new_filename
 
 
@@ -92,11 +94,13 @@ def make_text(doc, strip_html=False):
 
     index = library.get_index(doc["title"])
     versionSource = doc["versionSource"] or ""
-    text = "\n".join([doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource])
+    text = "\n".join(
+        [doc["title"], doc.get("heTitle", ""), doc["versionTitle"], versionSource]
+    )
 
     if "versions" in doc:
         if not len(doc["versions"]):
-            return None # Occurs when text versions don't actually have content
+            return None  # Occurs when text versions don't actually have content
         text += "\nThis file contains merged sections from the following text versions:"
         for v in doc["versions"]:
             text += "\n-%s\n-%s" % (v[0], v[1])
@@ -121,13 +125,18 @@ def make_text(doc, strip_html=False):
             return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
         flat = ""
         for i in range(len(text)):
-            section = section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
-            flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:], addressTypes[1:]))
+            section = (
+                section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
+            )
+            flat += "\n\n%s %s\n\n%s" % (
+                sectionNames[0],
+                section,
+                flatten(text[i], sectionNames[1:], addressTypes[1:]),
+            )
 
         return flat
 
     text += index.nodes.traverse_to_string(make_node)
-
 
     return text
 
@@ -137,10 +146,9 @@ def make_cltk_full(doc):
     chapter = doc.get("original_text", doc["text"])
     version = Version({"chapter": chapter})
     sec_name_count = {}
-    def make_node(node,depth,**kwargs):
-        content = {
-            "title": node.primary_title("en")
-        }
+
+    def make_node(node, depth, **kwargs):
+        content = {"title": node.primary_title("en")}
         if not node.children:
             content["content"] = version.content_node(node)
             content["section_names"] = node.sectionNames
@@ -151,7 +159,7 @@ def make_cltk_full(doc):
         if not "nodes" in old_js:
             content_list = []
             if "content" in old_js:
-                #Beginning of jagged array
+                # Beginning of jagged array
                 content_list = old_js["content"]
                 section_names = tuple(old_js["section_names"])
                 try:
@@ -159,25 +167,27 @@ def make_cltk_full(doc):
                 except KeyError:
                     sec_name_count[section_names] = 1
             elif type(old_js) == list:
-                #Traversing jagged array
+                # Traversing jagged array
                 content_list = old_js
-            for i,content in enumerate(content_list):
+            for i, content in enumerate(content_list):
                 if type(content) == list:
-                    temp = traverse_to_cltk(content,**kwargs)
+                    temp = traverse_to_cltk(content, **kwargs)
                     if len(list(temp.keys())) > 0:
                         new_js[str(i)] = temp
                 elif content != "":
                     new_js[str(i)] = content
 
         else:
-            for i,childJs in enumerate(old_js["nodes"]):
+            for i, childJs in enumerate(old_js["nodes"]):
                 currNode = old_js["nodes"][i]
-                new_js[str(i) + "_" + currNode["title"]] = traverse_to_cltk(currNode,**kwargs)
+                new_js[str(i) + "_" + currNode["title"]] = traverse_to_cltk(
+                    currNode, **kwargs
+                )
 
         return new_js
 
     temp_doc = index.nodes.traverse_to_json(make_node)
-    cltk_doc = {"text":traverse_to_cltk(temp_doc)}
+    cltk_doc = {"text": traverse_to_cltk(temp_doc)}
     best_sec_names = []
     best_count = 0
     for sec_names in sec_name_count:
@@ -185,7 +195,7 @@ def make_cltk_full(doc):
             best_count = sec_name_count[sec_names]
             best_sec_names = sec_names
 
-    cltk_doc["meta"] = '-'.join(best_sec_names)
+    cltk_doc["meta"] = "-".join(best_sec_names)
     cltk_doc["work"] = doc["title"]
     return json.dumps(cltk_doc, indent=4, ensure_ascii=False)
 
@@ -195,22 +205,21 @@ def make_cltk_flat(doc):
     chapter = doc.get("original_text", doc["text"])
     version = Version({"chapter": chapter})
     sec_name_count = {}
-    def make_node(node,depth,**kwargs):
-        content = {
-            "title": node.primary_title("en")
-        }
+
+    def make_node(node, depth, **kwargs):
+        content = {"title": node.primary_title("en")}
         if not node.children:
             content["content"] = version.content_node(node)
             content["section_names"] = node.sectionNames
         return content
 
-    def traverse_to_cltk(old_js,title="",section_names=None, **kwargs):
+    def traverse_to_cltk(old_js, title="", section_names=None, **kwargs):
         new_js = {}
         title_begin = title if title == "" else "{}, ".format(title)
         if not "nodes" in old_js:
             content_list = []
             if "content" in old_js:
-                #Beginning of jagged array
+                # Beginning of jagged array
                 content_list = old_js["content"]
                 section_names = old_js["section_names"]
                 try:
@@ -218,27 +227,37 @@ def make_cltk_flat(doc):
                 except KeyError:
                     sec_name_count[tuple(section_names)] = 1
             elif type(old_js) == list:
-                #Traversing jagged array
+                # Traversing jagged array
                 content_list = old_js
                 section_names = section_names[1:]
 
-            for i,content in enumerate(content_list):
-                curr_section = "" if len(section_names) == 0 else "_{}".format(section_names[0])
-                temp_title = "{}{}{}".format(title_begin,str(i),curr_section)
+            for i, content in enumerate(content_list):
+                curr_section = (
+                    "" if len(section_names) == 0 else "_{}".format(section_names[0])
+                )
+                temp_title = "{}{}{}".format(title_begin, str(i), curr_section)
                 if type(content) == list:
-                    new_js.update(traverse_to_cltk(content,temp_title,section_names,**kwargs))
+                    new_js.update(
+                        traverse_to_cltk(content, temp_title, section_names, **kwargs)
+                    )
                 elif content != "":
                     new_js[temp_title] = content
 
         else:
-            for i,childJs in enumerate(old_js["nodes"]):
+            for i, childJs in enumerate(old_js["nodes"]):
                 curr_node = old_js["nodes"][i]
-                new_js.update(traverse_to_cltk(curr_node,"{}{}_{}".format(title_begin,str(i),curr_node["title"]),**kwargs))
+                new_js.update(
+                    traverse_to_cltk(
+                        curr_node,
+                        "{}{}_{}".format(title_begin, str(i), curr_node["title"]),
+                        **kwargs
+                    )
+                )
 
         return new_js
 
     temp_doc = index.nodes.traverse_to_json(make_node)
-    cltk_doc = {"text":traverse_to_cltk(temp_doc)}
+    cltk_doc = {"text": traverse_to_cltk(temp_doc)}
     best_sec_names = []
     best_count = 0
     for sec_names in sec_name_count:
@@ -246,9 +265,11 @@ def make_cltk_flat(doc):
             best_count = sec_name_count[sec_names]
             best_sec_names = sec_names
 
-    cltk_doc["meta"] = '-'.join(best_sec_names)
+    cltk_doc["meta"] = "-".join(best_sec_names)
     cltk_doc["work"] = doc["title"]
     return json.dumps(cltk_doc, indent=4, ensure_ascii=False)
+
+
 """
 List of export formats, consisting of a name and function.
 The name is used as a top level directory and file suffix, unless there are three elements.
@@ -256,10 +277,10 @@ With 3 elements, the first is the top level and the third is the file suffix
 The function takes a document and returns the text to output.
 """
 export_formats = (
-    ('json', make_json),
-    ('txt', make_text),
-    ('cltk-full',make_cltk_full,'json'), #cltk format with fully nested structure
-    ('cltk-flat',make_cltk_flat,'json')  #cltk format, flattened
+    ("json", make_json),
+    ("txt", make_text),
+    ("cltk-full", make_cltk_full, "json"),  # cltk format with fully nested structure
+    ("cltk-flat", make_cltk_flat, "json"),  # cltk format, flattened
 )
 
 
@@ -275,6 +296,7 @@ def clear_exports():
     if os.path.exists(SEFARIA_EXPORT_PATH + "/links"):
         rmtree(SEFARIA_EXPORT_PATH + "/links")
 
+
 def write_text_doc_to_disk(doc=None):
     """
     Writes document to disk according to all formats in export_formats
@@ -285,14 +307,17 @@ def write_text_doc_to_disk(doc=None):
         if not out:
             print("Skipping %s - no content" % doc["title"])
             return
-        path = make_path(doc, format[0], extension=format[2] if len(format) == 3 else None)
+        path = make_path(
+            doc, format[0], extension=format[2] if len(format) == 3 else None
+        )
         if not os.path.exists(os.path.dirname(path)):
             os.makedirs(os.path.dirname(path))
         try:
             with open(path, "w") as f:
                 f.write(out)
         except IOError as e:
-            log_error('failed to write to disk: {}'.format(str(e)))
+            log_error("failed to write to disk: {}".format(str(e)))
+
 
 def prepare_text_for_export(text):
     """
@@ -310,7 +335,7 @@ def prepare_text_for_export(text):
     except Exception as e:
         print("Skipping %s - %s" % (text["title"], str(e)))
         return
-    if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  #skip virtual nodes
+    if any([n.is_virtual for n in index.nodes.get_leaf_nodes()]):  # skip virtual nodes
         return
 
     text["heTitle"] = index.nodes.primary_title("he")
@@ -322,9 +347,11 @@ def prepare_text_for_export(text):
         text["original_text"] = deepcopy(text["text"])
 
         def min_node_props(node, depth, **kwargs):
-            js = {"heTitle": node.primary_title("he"),
-                  "enTitle": node.primary_title("en"),
-                  "key": node.key}
+            js = {
+                "heTitle": node.primary_title("he"),
+                "enTitle": node.primary_title("en"),
+                "key": node.key,
+            }
 
             return js
 
@@ -354,8 +381,11 @@ def prepare_text_for_export(text):
 
 
 def text_is_copyright(text):
-    return "license" in text and (type(text['license']) is str or type(text['license']) is str) \
-           and text["license"].startswith("Copyright")
+    return (
+        "license" in text
+        and (type(text["license"]) is str or type(text["license"]) is str)
+        and text["license"].startswith("Copyright")
+    )
 
 
 def export_texts():
@@ -391,10 +421,11 @@ def prepare_merged_text_for_export(title, lang=None):
         "versionTitle": "merged",
         "versionSource": "https://www.sefaria.org/%s" % title.replace(" ", "_"),
     }
-    text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
+    text_docs = db.texts.find({"title": title, "language": lang}).sort(
+        [["priority", -1], ["_id", 1]]
+    )
 
     print("%d versions in %s" % (text_docs.count(), lang))
-
 
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
@@ -414,17 +445,22 @@ def prepare_merged_text_for_export(title, lang=None):
             sourceset.update(merged_sources)
             return merged
 
-        merged = index.nodes.visit_content(merge_visitor,
-                                   *[text["chapter"] for text in text_docs],
-                                   sources=[(text["versionTitle"], text["versionSource"]) for text in text_docs]
-                                   )
+        merged = index.nodes.visit_content(
+            merge_visitor,
+            *[text["chapter"] for text in text_docs],
+            sources=[
+                (text["versionTitle"], text["versionSource"]) for text in text_docs
+            ]
+        )
 
         merged_sources = list(sourceset)
 
-        doc.update({
-            "text": merged,
-            "versions": merged_sources,
-        })
+        doc.update(
+            {
+                "text": merged,
+                "versions": merged_sources,
+            }
+        )
 
     return prepare_text_for_export(doc)
 
@@ -443,15 +479,16 @@ def export_all_merged():
 
         print(title)
         if not title:
-            log_error('None title in texts')
+            log_error("None title in texts")
             continue
         for lang in ("he", "en"):
             prepped_text = prepare_merged_text_for_export(title, lang=lang)
             if prepped_text:
                 write_text_doc_to_disk(prepped_text)
 
+
 def export_schemas():
-    print('exporting schemas...')
+    print("exporting schemas...")
     path = SEFARIA_EXPORT_PATH + "/schemas/"
     if not os.path.exists(path):
         os.makedirs(path)
@@ -467,7 +504,7 @@ def export_schemas():
                 with open(SEFARIA_EXPORT_PATH + "/errors.log", "a") as error_log:
                     error_log.write("%s - InputError: %s\n" % (datetime.now(), e))
             except Exception as e:
-                log_error('schemas error on {}: {}'.format(title, str(e)))
+                log_error("schemas error on {}: {}".format(title, str(e)))
 
 
 def export_toc():
@@ -477,6 +514,7 @@ def export_toc():
     toc = library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
         f.write(make_json(toc))
+
 
 def export_links():
     """
@@ -496,14 +534,15 @@ def export_links():
     new_links_file_size = 300000
     for i, link in enumerate(links):
         if i % new_links_file_size == 0:
-            filename = '{}links{}.csv'.format(path, link_file_number)
+            filename = "{}links{}.csv".format(path, link_file_number)
             try:
                 csvfile.close()
             except:
                 pass
-            csvfile = open(filename, 'wb')
+            csvfile = open(filename, "wb")
             writer = csv.writer(csvfile)
-            writer.writerow([
+            writer.writerow(
+                [
                     "Citation 1",
                     "Citation 2",
                     "Conection Type",
@@ -511,7 +550,8 @@ def export_links():
                     "Text 2",
                     "Category 1",
                     "Category 2",
-            ])
+                ]
+            )
             link_file_number += 1
 
         try:
@@ -520,15 +560,17 @@ def export_links():
         except InputError:
             continue
 
-        writer.writerow([
-            link["refs"][0],
-            link["refs"][1],
-            link["type"],
-            oref1.book,
-            oref2.book,
-            oref1.index.categories[0],
-            oref2.index.categories[0],
-        ])
+        writer.writerow(
+            [
+                link["refs"][0],
+                link["refs"][1],
+                link["type"],
+                oref1.book,
+                oref2.book,
+                oref1.index.categories[0],
+                oref2.index.categories[0],
+            ]
+        )
 
         book_link = tuple(sorted([oref1.index.title, oref2.index.title]))
         links_by_book[book_link] += 1
@@ -536,22 +578,28 @@ def export_links():
             links_by_book_without_commentary[book_link] += 1
 
     def write_aggregate_file(counter, filename):
-        with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, 'wb') as csvfile:
+        with open(SEFARIA_EXPORT_PATH + "/links/%s" % filename, "wb") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow([
-                "Text 1",
-                "Text 2",
-                "Link Count",
-            ])
+            writer.writerow(
+                [
+                    "Text 1",
+                    "Text 2",
+                    "Link Count",
+                ]
+            )
             for link in counter.most_common():
-                writer.writerow([
-                    link[0][0],
-                    link[0][1],
-                    link[1],
-                ])
+                writer.writerow(
+                    [
+                        link[0][0],
+                        link[0][1],
+                        link[1],
+                    ]
+                )
 
     write_aggregate_file(links_by_book, "links_by_book.csv")
-    write_aggregate_file(links_by_book_without_commentary, "links_by_book_without_commentary.csv")
+    write_aggregate_file(
+        links_by_book_without_commentary, "links_by_book_without_commentary.csv"
+    )
 
 
 def export_topic_graph():
@@ -569,19 +617,23 @@ def export_topic_graph():
     path = SEFARIA_EXPORT_PATH + "/misc/"
     if not os.path.exists(path):
         os.makedirs(path)
-    with open(path + "topic_graph.csv", 'wb') as csvfile:
+    with open(path + "topic_graph.csv", "wb") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow([
-            "Topic 1",
-            "Topic 2",
-            "Co-occurrence Count",
-        ])
+        writer.writerow(
+            [
+                "Topic 1",
+                "Topic 2",
+                "Co-occurrence Count",
+            ]
+        )
         for link in counts.most_common():
-            writer.writerow([
-                link[0][0],
-                link[0][1],
-                link[1],
-            ])
+            writer.writerow(
+                [
+                    link[0][0],
+                    link[0][1],
+                    link[1],
+                ]
+            )
 
 
 def make_export_log():
@@ -605,7 +657,6 @@ def export_all():
     export_topic_graph()
     make_export_log()
     print_errors()
-
 
 
 # CSV Version import export format:
@@ -634,7 +685,9 @@ def export_version_csv(index, version_list):
     writer.writerow(["Version Title"] + [v.versionTitle for v in version_list])
     writer.writerow(["Language"] + [v.language for v in version_list])
     writer.writerow(["Version Source"] + [v.versionSource for v in version_list])
-    writer.writerow(["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list])
+    writer.writerow(
+        ["Version Notes"] + [getattr(v, "versionNotes", "") for v in version_list]
+    )
 
     section_refs = index.all_section_refs()
 
@@ -648,7 +701,9 @@ def export_version_csv(index, version_list):
 
         # populate each version
         for version in version_list:
-            section = section_ref.text(vtitle=version.versionTitle, lang=version.language).text
+            section = section_ref.text(
+                vtitle=version.versionTitle, lang=version.language
+            ).text
             for ref in segment_refs:
                 if ref.sections[-1] > len(section):
                     seg_vers[ref.normal()] += [""]
@@ -717,7 +772,7 @@ def import_versions_from_file(csv_filename, columns):
     :return:
     """
     csv.field_size_limit(sys.maxsize)
-    with open(csv_filename, 'rb') as csvfile:
+    with open(csv_filename, "rb") as csvfile:
         reader = csv.reader(csvfile)
         rows = [row for row in reader]
     return _import_versions_from_csv(rows, columns)
@@ -729,29 +784,32 @@ def _import_versions_from_csv(rows, columns, user_id):
     index_title = rows[0][columns[0]]  # assume the same index title for all
     index_node = Ref(index_title).index_node
 
-
     action = "edit"
     for column in columns:
         # Create version
         version_title = rows[1][column]
         version_lang = rows[2][column]
 
-        v = Version().load({
-            "title": index_title,
-            "versionTitle": version_title,
-            "language": version_lang
-        })
+        v = Version().load(
+            {
+                "title": index_title,
+                "versionTitle": version_title,
+                "language": version_lang,
+            }
+        )
 
         if v is None:
             action = "add"
-            v = Version({
-                "chapter": index_node.create_skeleton(),
-                "title": index_title,
-                "versionTitle": version_title,
-                "language": version_lang,            # Language
-                "versionSource": rows[3][column],       # Version Source
-                "versionNotes": rows[4][column],        # Version Notes
-            }).save()
+            v = Version(
+                {
+                    "chapter": index_node.create_skeleton(),
+                    "title": index_title,
+                    "versionTitle": version_title,
+                    "language": version_lang,  # Language
+                    "versionSource": rows[3][column],  # Version Source
+                    "versionNotes": rows[4][column],  # Version Notes
+                }
+            ).save()
 
         # Populate it
         text_map = {}

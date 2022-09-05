@@ -18,10 +18,10 @@ from sefaria.settings import *
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]
 if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
-	db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
-	
+    db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
+
 print("Even HaEzer Translation Campaign Stats")
-start = datetime(2014,3,9)
+start = datetime(2014, 3, 9)
 
 # percent complete
 sn = StateNode("Shulchan Arukh, Even HaEzer")
@@ -33,19 +33,23 @@ remaining = sn.get_untranslated_count_by_unit("Se'if")
 print("Se'ifim remaining: %d" % remaining)
 
 # mishnayot done since 6/19
-translated = db.history.find({
-	"rev_type": "add text",
-	"version": "Sefaria Community Translation",
-	"ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
-	"date": {"$gt": start}
-	}).count()
-copied = db.history.find({
-	"rev_type": "add text",
-	"version": {"$ne": "Sefaria Community Translation"},
-	"ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
-	"date": {"$gt": start}
-	}).count()
-done = translated+copied
+translated = db.history.find(
+    {
+        "rev_type": "add text",
+        "version": "Sefaria Community Translation",
+        "ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
+        "date": {"$gt": start},
+    }
+).count()
+copied = db.history.find(
+    {
+        "rev_type": "add text",
+        "version": {"$ne": "Sefaria Community Translation"},
+        "ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
+        "date": {"$gt": start},
+    }
+).count()
+done = translated + copied
 
 print("Se'ifim completed since campaign start: %d" % (done))
 
@@ -56,17 +60,21 @@ print("... original translations: %d" % translated)
 print("... new copied texts: %d" % copied)
 
 # participants
-participants = len(db.history.find({
-	"rev_type": "add text",
-	"ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
-	"date": {"$gt": start},
-	}).distinct("user"))
+participants = len(
+    db.history.find(
+        {
+            "rev_type": "add text",
+            "ref": {"$regex": "^Shulchan Arukh, Even HaEzer"},
+            "date": {"$gt": start},
+        }
+    ).distinct("user")
+)
 
 print("Number of participants: %d" % participants)
 
 # average weekly velocity
 days_elapsed = (datetime.now() - start).days
-day_rate = (done / days_elapsed)
+day_rate = done / days_elapsed
 print("Average se'ifim per week: %d" % (day_rate * 7))
 
 # time to complete

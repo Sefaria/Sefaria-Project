@@ -17,8 +17,10 @@ test = sys.argv[1]
 klass = getattr(basic_tests, test)
 assert klass
 
-t = Trial(platform="sauce",
-          tests=[klass],
-          build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime())),
-          verbose=True).run()
+t = Trial(
+    platform="sauce",
+    tests=[klass],
+    build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime())),
+    verbose=True,
+).run()
 print(t.results())

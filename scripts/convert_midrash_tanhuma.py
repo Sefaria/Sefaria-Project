@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 import csv
 import sys
 
@@ -20,7 +20,7 @@ with open("./data/tmp/parsha.csv") as parsha_file:
         (en, he, ref) = row
         if en == "Lech-Lecha":
             en = "Lech Lecha"
-        he = he.decode('utf-8')
+        he = he.decode("utf-8")
         en_he_parshiot.append((en, he))
 
 
@@ -62,9 +62,6 @@ for count, parsha_tuple in enumerate(en_he_parshiot):
     en_parshiot.append(parsha_tuple[0])
 
 
-
-
-
 book.validate()
 
 
@@ -73,12 +70,12 @@ torah = [12, 11, 10, 10, 11]
 counter = 0
 for torah_index, sefer in enumerate(torah):
     for sefer_index in range(sefer):
-        orig = "Midrash Tanchuma.{}.{}".format(torah_index+1, sefer_index+1)
+        orig = "Midrash Tanchuma.{}.{}".format(torah_index + 1, sefer_index + 1)
         new = "Midrash Tanchuma, {}".format(en_parshiot[counter])
         mappings.append((orig, new))
         counter += 1
 
-#Go through each sefer and set the key of a dictionary to be like 1.2 = Noah
+# Go through each sefer and set the key of a dictionary to be like 1.2 = Noah
 try:
     library.get_index("Complex Midrash Tanchuma").delete()
 except InputError:

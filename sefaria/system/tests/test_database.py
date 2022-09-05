@@ -1,4 +1,3 @@
-
 import pymongo
 import pytest
 
@@ -7,12 +6,13 @@ import sefaria.system.database as d
 from sefaria.settings import *
 
 
-#This one is purposefully circumvented on Travis, to speed up build time.
+# This one is purposefully circumvented on Travis, to speed up build time.
 @pytest.mark.xfail(reason="unknown")
 def test_db_name():
     assert d.db.name == d.TEST_DB
 
-#todo: why failing?
+
+# todo: why failing?
 @pytest.mark.xfail(reason="unknown")
 def test_test_db():
     """
@@ -24,11 +24,7 @@ def test_test_db():
     version = "Sefaria Community Translation"
     user = 0
 
-    lock_query = {
-        "ref": ref,
-        "lang": lang,
-        "version": version
-    }
+    lock_query = {"ref": ref, "lang": lang, "version": version}
 
     lock.release_lock(ref, lang, version)
     lock.set_lock(ref, lang, version, user)

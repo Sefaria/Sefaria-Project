@@ -8,4 +8,3 @@ import sys
 import sefaria.export as export
 
 export.export_all()
-

@@ -1,4 +1,3 @@
-
 from sefaria.model import *
 
 titles = library.get_indexes_in_category("Bavli")

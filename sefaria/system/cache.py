@@ -1,4 +1,3 @@
-
 import hashlib
 import sys
 from datetime import datetime
@@ -12,36 +11,46 @@ from sefaria import settings
 
 logger = structlog.get_logger(__name__)
 
-if not hasattr(sys, '_doc_build'):
+if not hasattr(sys, "_doc_build"):
     from django.core.cache import cache, caches
 
-SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
+SHARED_DATA_CACHE_ALIAS = getattr(
+    settings, "SHARED_DATA_CACHE_ALIAS", DEFAULT_CACHE_ALIAS
+)
 
-#functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
-#and here: https://github.com/rchrd2/django-cache-decorator
+# functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
+# and here: https://github.com/rchrd2/django-cache-decorator
 
 # New cache instance reconnect-apparently
 
 
 def get_cache_factory(cache_type):
     if cache_type is None:
-        cache_type = 'default'
+        cache_type = "default"
     return caches[cache_type]
 
 
-#get the cache key for storage
+# get the cache key for storage
 def cache_get_key(*args, **kwargs):
     serialise = []
     for arg in args:
         serialise.append(str(arg))
-    for key,arg in sorted(list(kwargs.items()), key=lambda x: x[0]):
+    for key, arg in sorted(list(kwargs.items()), key=lambda x: x[0]):
         serialise.append(str(key))
         serialise.append(str(arg))
-    key = hashlib.md5("".join(serialise).encode('utf-8')).hexdigest()
+    key = hashlib.md5("".join(serialise).encode("utf-8")).hexdigest()
     return key
 
 
-def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None):
+def django_cache(
+    action="get",
+    timeout=None,
+    cache_key="",
+    cache_prefix=None,
+    default_on_miss=False,
+    default_on_miss_value=None,
+    cache_type=None,
+):
     """
     Easily add caching to a function in django
     """
@@ -50,9 +59,10 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
 
     def decorator(fn):
         fn.__dict__["django_cache"] = True
+
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            #logger.debug([args, kwargs])
+            # logger.debug([args, kwargs])
 
             # Inner scope variables are read-only so we set a new var
             _cache_key = cache_key
@@ -60,9 +70,15 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
 
             if not _cache_key:
                 cachekey_args = args[:]
-                if len(cachekey_args) and isinstance(cachekey_args[0], HttpRequest): # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
+                if len(cachekey_args) and isinstance(
+                    cachekey_args[0], HttpRequest
+                ):  # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
                     cachekey_args = cachekey_args[1:]
-                _cache_key = cache_get_key(cache_prefix if cache_prefix else fn.__name__, *cachekey_args, **kwargs)
+                _cache_key = cache_get_key(
+                    cache_prefix if cache_prefix else fn.__name__,
+                    *cachekey_args,
+                    **kwargs
+                )
 
             if action in ["reset", "set"]:
                 do_actual_func = True
@@ -72,21 +88,29 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
                     pass"""
                 result = None
             else:
-                #logger.debug(['_cach_key.......',_cache_key])
+                # logger.debug(['_cach_key.......',_cache_key])
                 result = get_cache_elem(_cache_key, cache_type=cache_type)
 
             if not result:
                 if default_on_miss is False or do_actual_func:
                     result = fn(*args, **kwargs)
-                    set_cache_elem(_cache_key, result, timeout=timeout, cache_type=cache_type)
+                    set_cache_elem(
+                        _cache_key, result, timeout=timeout, cache_type=cache_type
+                    )
                 else:
                     result = default_on_miss_value
-                    logger.critical("No cached data was found for {}".format(fn.__name__))
+                    logger.critical(
+                        "No cached data was found for {}".format(fn.__name__)
+                    )
 
             return result
+
         return wrapper
+
     return decorator
-#-------------------------------------------------------------#
+
+
+# -------------------------------------------------------------#
 
 
 def get_cache_elem(key, cache_type=None):
@@ -98,7 +122,7 @@ def get_shared_cache_elem(key):
     return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
-def set_cache_elem(key, value, timeout = None, cache_type=None):
+def set_cache_elem(key, value, timeout=None, cache_type=None):
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.set(key, value, timeout)
 
@@ -124,16 +148,25 @@ def delete_shared_cache_elem(key):
     return delete_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
-def get_template_cache(fragment_name='', *args):
-    cache_key = 'template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest())
+def get_template_cache(fragment_name="", *args):
+    cache_key = "template.cache.%s.%s" % (
+        fragment_name,
+        hashlib.md5(":".join([arg for arg in args]).encode("utf-8")).hexdigest(),
+    )
     return get_cache_elem(cache_key)
 
 
-def delete_template_cache(fragment_name='', *args):
-    delete_cache_elem('template.cache.%s.%s' % (fragment_name, hashlib.md5(':'.join([arg for arg in args]).encode('utf-8')).hexdigest()))
+def delete_template_cache(fragment_name="", *args):
+    delete_cache_elem(
+        "template.cache.%s.%s"
+        % (
+            fragment_name,
+            hashlib.md5(":".join([arg for arg in args]).encode("utf-8")).hexdigest(),
+        )
+    )
 
 
-class InMemoryCache():
+class InMemoryCache:
     data = {}
     timeouts = {}
 
@@ -148,7 +181,7 @@ class InMemoryCache():
             self.set(key, None, timeout=timeout[0])
             return None
 
-        return self.data.get(key,  None)
+        return self.data.get(key, None)
 
     def reset_all(self):
         for k in self.data:

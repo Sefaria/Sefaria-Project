@@ -4,9 +4,13 @@ import requests
 import structlog
 from django.contrib.sites.models import Site
 
-from sefaria.settings import (CLOUDFLARE_EMAIL, CLOUDFLARE_TOKEN,
-                              CLOUDFLARE_ZONE, STATICFILES_DIRS,
-                              USE_CLOUDFLARE)
+from sefaria.settings import (
+    CLOUDFLARE_EMAIL,
+    CLOUDFLARE_TOKEN,
+    CLOUDFLARE_ZONE,
+    STATICFILES_DIRS,
+    USE_CLOUDFLARE,
+)
 from sefaria.utils.util import get_directory_content, in_directory, list_chunks
 
 logger = structlog.get_logger(__name__)
@@ -18,7 +22,7 @@ class SefariaCloudflareManager(object):
     max_cloudflare_payload_size = 30
 
     def purge_cloudflare_url(self, path, preprocessed=False):
-        """ Calls the Cloudflare API to invalidate cache for the file at current site and `path`"""
+        """Calls the Cloudflare API to invalidate cache for the file at current site and `path`"""
         return self.purge_multiple_cloudflare_urls([path], preprocessed=preprocessed)
 
     def purge_cloudflare(self):
@@ -27,13 +31,18 @@ class SefariaCloudflareManager(object):
 
         import requests
 
-        url = 'https://api.cloudflare.com/client/v4/zones/%s/purge_cache' % CLOUDFLARE_ZONE
+        url = (
+            "https://api.cloudflare.com/client/v4/zones/%s/purge_cache"
+            % CLOUDFLARE_ZONE
+        )
         headers = {
             "X-Auth-Email": CLOUDFLARE_EMAIL,
             "X-Auth-Key": CLOUDFLARE_TOKEN,
             "Content-Type": "application/json",
         }
-        r = requests.delete(url, data=json.dumps({"purge_everything":True}), headers=headers)
+        r = requests.delete(
+            url, data=json.dumps({"purge_everything": True}), headers=headers
+        )
         logger.info(r.json())
 
     def _file_in_cached_dirs(self, file):
@@ -42,7 +51,9 @@ class SefariaCloudflareManager(object):
     def _filter_files_payload(self, files):
         return [item for item in files if self._file_in_cached_dirs(item)]
 
-    def purge_batch_cloudflare_urls(self, files, filter_cached_dirs=True, preprocessed=False):
+    def purge_batch_cloudflare_urls(
+        self, files, filter_cached_dirs=True, preprocessed=False
+    ):
         """
         Calls the Cloudflare API to invalidate cache for multiple input files.
         Splits into required length of cloudflare max files. Makes sure urls are valid at current site and `path`
@@ -57,10 +68,12 @@ class SefariaCloudflareManager(object):
         files_to_purge = []
         for dirname in self.valid_cached_dirs:
             files_to_purge += get_directory_content(dirname, modified_after=timestamp)
-        self.purge_batch_cloudflare_urls(files_to_purge, filter_cached_dirs=False, preprocessed=False)
+        self.purge_batch_cloudflare_urls(
+            files_to_purge, filter_cached_dirs=False, preprocessed=False
+        )
 
     def purge_multiple_cloudflare_urls(self, files, preprocessed=False):
-        """ Calls the Cloudflare API to invalidate cache for the given files"""
+        """Calls the Cloudflare API to invalidate cache for the given files"""
         if len(files) > self.max_cloudflare_payload_size:
             logger.error("Too many files to purge {}".format(files))
             raise ValueError("Too many files passed to purge.")
@@ -68,7 +81,10 @@ class SefariaCloudflareManager(object):
             current_site = Site.objects.get_current()
             domain = current_site.domain
             files = ["https://{}/{}".format(domain, path) for path in files]
-        url = 'https://api.cloudflare.com/client/v4/zones/%s/purge_cache' % CLOUDFLARE_ZONE
+        url = (
+            "https://api.cloudflare.com/client/v4/zones/%s/purge_cache"
+            % CLOUDFLARE_ZONE
+        )
         logger.info("About to purge: {}".format(files))
         payload = {"files": files}
         headers = {

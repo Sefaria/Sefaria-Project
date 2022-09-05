@@ -9,7 +9,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 
 sheets = db.sheets.find()
-bad_refs   = 0
+bad_refs = 0
 bad_sheets = set([])
 
 bad_book_count = {}
@@ -21,8 +21,8 @@ for sheet in sheets:
                 Ref(ref["ref"])
             except:
                 bad_refs += 1
-                book_title = ref["ref"].split(',')[0]
-                book_title = re.split('\d+', book_title)[0]
+                book_title = ref["ref"].split(",")[0]
+                book_title = re.split("\d+", book_title)[0]
                 bad_book_count[book_title] = bad_book_count.get(book_title, 0) + 1
                 bad_sheets.add(sheet["id"])
                 print(book_title)

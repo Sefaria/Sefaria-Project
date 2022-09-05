@@ -28,8 +28,11 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     if not isinstance(oref, Ref):
         return
-    
-    if getattr(oref.index_node, "depth", False) and len(oref.sections) >= oref.index_node.depth - 1:
+
+    if (
+        getattr(oref.index_node, "depth", False)
+        and len(oref.sections) >= oref.index_node.depth - 1
+    ):
         oref = oref.section_ref()
 
     if version:
@@ -39,25 +42,41 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url("{}/api/texts/{}".format(FRONT_END_URL, oref.url()))
         if version and lang:
             try:
-                purge_url("{}/api/texts/{}/{}/{}".format(FRONT_END_URL, oref.url(), lang, version))
+                purge_url(
+                    "{}/api/texts/{}/{}/{}".format(
+                        FRONT_END_URL, oref.url(), lang, version
+                    )
+                )
             except Exception as e:
                 logger.exception(e)
         # Hacky to add these
-        purge_url("{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url()))
+        purge_url(
+            "{}/api/texts/{}?commentary=1&sheets=1".format(FRONT_END_URL, oref.url())
+        )
         purge_url("{}/api/texts/{}?sheets=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/texts/{}?commentary=0".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url()))
+        purge_url(
+            "{}/api/texts/{}?commentary=0&pad=0".format(FRONT_END_URL, oref.url())
+        )
         if version and lang:
             try:
-                purge_url("{}/api/texts/{}/{}/{}?commentary=0".format(FRONT_END_URL, oref.url(), lang, version))
+                purge_url(
+                    "{}/api/texts/{}/{}/{}?commentary=0".format(
+                        FRONT_END_URL, oref.url(), lang, version
+                    )
+                )
             except Exception as e:
                 logger.exception(e)
         purge_url("{}/api/links/{}".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=0".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/links/{}?with_text=1".format(FRONT_END_URL, oref.url()))
         purge_url("{}/api/related/{}".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/related/{}?with_sheet_links=1".format(FRONT_END_URL, oref.url()))
-        purge_url("{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
+        purge_url(
+            "{}/api/related/{}?with_sheet_links=1".format(FRONT_END_URL, oref.url())
+        )
+        purge_url(
+            "{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url())
+        )
 
     # Ban anything underneath this section
     ban_url("/api/texts/{}".format(url_regex(oref)))
@@ -70,7 +89,11 @@ def invalidate_linked(oref):
         try:
             invalidate_ref(linkref)
         except UnicodeDecodeError:
-            logger.warn("Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
+            logger.warn(
+                "Unable to invalidate {}. We cannot invalidate unicode at this time".format(
+                    linkref.normal()
+                )
+            )
 
 
 @graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
@@ -81,7 +104,9 @@ def invalidate_counts(indx):
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        logger.warn(
+            "Could not parse index '{}' to purge counts from Varnish.".format(indx)
+        )
         return
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
@@ -100,7 +125,11 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warn(
+                "In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(
+                    indx.title
+                )
+            )
             return
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
@@ -148,22 +177,42 @@ def url_regex(ref):
             normals = [r.normal() for r in ref.range_list()]
 
         for r in normals:
-            sections = re.sub("^%s" % re.escape(ref.book), '', r).replace(":", r"\\.").replace(" ", r"\\.")
-            patterns.append("%s$" % sections)   # exact match
-            patterns.append(r"%s\\?" % sections) # Exact match with '?' afterwards
-            patterns.append(r"%s\\/" % sections) # Exact match with '/' afterwards
-            patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .
+            sections = (
+                re.sub("^%s" % re.escape(ref.book), "", r)
+                .replace(":", r"\\.")
+                .replace(" ", r"\\.")
+            )
+            patterns.append("%s$" % sections)  # exact match
+            patterns.append(r"%s\\?" % sections)  # Exact match with '?' afterwards
+            patterns.append(r"%s\\/" % sections)  # Exact match with '/' afterwards
+            patterns.append(
+                r"%s\\." % sections
+            )  # more granualar, exact match followed by .
     else:
-        sections = re.sub("^%s" % re.escape(ref.book), '', ref.normal()).replace(":", r"\\.").replace(" ", r"\\.")
-        patterns.append("%s$" % sections)   # exact match
+        sections = (
+            re.sub("^%s" % re.escape(ref.book), "", ref.normal())
+            .replace(":", r"\\.")
+            .replace(" ", r"\\.")
+        )
+        patterns.append("%s$" % sections)  # exact match
         patterns.append(r"%s\\?" % sections)  # Exact match with '?' afterwards
-        patterns.append(r"%s\\/" % sections) # Exact match with '/' afterwards
+        patterns.append(r"%s\\/" % sections)  # Exact match with '/' afterwards
         if ref.index_node.has_titled_continuation():
-            patterns.append("{}({}).".format(sections, "|".join([s.replace(" ","_") for s in ref.index_node.title_separators])))
+            patterns.append(
+                "{}({}).".format(
+                    sections,
+                    "|".join(
+                        [s.replace(" ", "_") for s in ref.index_node.title_separators]
+                    ),
+                )
+            )
 
         elif ref.index_node.has_numeric_continuation():
-            patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .
+            patterns.append(
+                r"%s\\." % sections
+            )  # more granualar, exact match followed by .
 
-    return r"%s(%s)" % (re.escape(ref.book).replace(" ","_").replace("\\", "\\\\"), "|".join(patterns))
-
-
+    return r"%s(%s)" % (
+        re.escape(ref.book).replace(" ", "_").replace("\\", "\\\\"),
+        "|".join(patterns),
+    )

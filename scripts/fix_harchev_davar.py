@@ -10,7 +10,7 @@ def clean_segment_layer(index_title):
     :return:
     """
 
-    index = Index().load({'title': index_title})
+    index = Index().load({"title": index_title})
     assert isinstance(index, Index)
 
     version = index.versionSet()[0]
@@ -26,16 +26,16 @@ def clean_segment_layer(index_title):
                 assert isinstance(verse, list)
                 assert len(verse) == 0
 
-                ja.set_element([chap_index, verse_index], '')
+                ja.set_element([chap_index, verse_index], "")
 
     version.save()
 
 
-for book in library.get_indexes_in_category('Torah'):
+for book in library.get_indexes_in_category("Torah"):
 
-    title = 'Harchev Davar on {}'.format(book)
+    title = "Harchev Davar on {}".format(book)
     index = library.get_index(title)
-    index.categories = ['Commentary2', 'Tanakh', 'Haamek Davar']
+    index.categories = ["Commentary2", "Tanakh", "Haamek Davar"]
     try:
         del index.sectionNames
     except AttributeError:

@@ -1,8 +1,7 @@
-from sefaria.utils.hebrew import (encode_hebrew_numeral,
-                                  encode_small_hebrew_numeral)
+from sefaria.utils.hebrew import encode_hebrew_numeral, encode_small_hebrew_numeral
 
 
-#Overlapping with AddressTalmud.toString()
+# Overlapping with AddressTalmud.toString()
 def section_to_daf(section, lang="en"):
     """
     Transforms a section number to its corresponding daf string,
@@ -19,9 +18,19 @@ def section_to_daf(section, lang="en"):
 
     elif lang == "he":
         if section > daf * 2:
-            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), ':')
+            daf = "{}{}".format(
+                sanitize(encode_small_hebrew_numeral(daf), False)
+                if daf < 1200
+                else encode_hebrew_numeral(daf, punctuation=False),
+                ":",
+            )
         else:
-            daf = "{}{}".format(sanitize(encode_small_hebrew_numeral(daf), False) if daf < 1200 else encode_hebrew_numeral(daf, punctuation=False), '.')
+            daf = "{}{}".format(
+                sanitize(encode_small_hebrew_numeral(daf), False)
+                if daf < 1200
+                else encode_hebrew_numeral(daf, punctuation=False),
+                ".",
+            )
 
     return daf
 
@@ -33,5 +42,6 @@ def daf_to_section(daf):
     amud = daf[-1]
     daf = int(daf[:-1])
     section = daf * 2
-    if amud == "a": section -= 1
+    if amud == "a":
+        section -= 1
     return section

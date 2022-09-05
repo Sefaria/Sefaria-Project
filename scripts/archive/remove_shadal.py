@@ -23,39 +23,41 @@ titles = set()
 versions = db.texts.find({"title": {"$regex": "^Shadal on "}})
 for version in versions:
 
-	# TODO Split Shadal on Genesis
-	if version["versionSource"].startswith("http://Shadal"):
-		version_copy = deepcopy(version)
-		version_copy["title"] = "(removed) Shadal on Genesis"
-		del version_copy["_id"]
-		db.texts.save(version_copy)
+    # TODO Split Shadal on Genesis
+    if version["versionSource"].startswith("http://Shadal"):
+        version_copy = deepcopy(version)
+        version_copy["title"] = "(removed) Shadal on Genesis"
+        del version_copy["_id"]
+        db.texts.save(version_copy)
 
-		version["chapter"] = version["chapter"][:4]
-		db.texts.save(version)
+        version["chapter"] = version["chapter"][:4]
+        db.texts.save(version)
 
+    elif not version["versionSource"].startswith(
+        "http://www.sefaria.org"
+    ) and not version["versionSource"].startswith("http://www.archive.org"):
 
-	elif (not version["versionSource"].startswith("http://www.sefaria.org") and
-		not version["versionSource"].startswith("http://www.archive.org")):
-
-		titles.add(version["title"])
-		version["title"] = "(removed) " + version["title"] 
-		db.texts.save(version)
+        titles.add(version["title"])
+        version["title"] = "(removed) " + version["title"]
+        db.texts.save(version)
 
 
 links = db.links.find({"refs": {"$regex": "^Shadal on "}})
 for link in links:
-	parsed = list(map(parse_ref, link["refs"]))
-	remove = True
-	for p in parsed:
-		if (p.get("book", None) == "Shadal on Genesis" 
-			and p.get("sections", [999])[0] <= 5):
-			remove = False
-	if remove:
-		db.links.remove(link)
+    parsed = list(map(parse_ref, link["refs"]))
+    remove = True
+    for p in parsed:
+        if (
+            p.get("book", None) == "Shadal on Genesis"
+            and p.get("sections", [999])[0] <= 5
+        ):
+            remove = False
+    if remove:
+        db.links.remove(link)
 
 
 for title in list(titles):
-	counts.update_full_text_count(title)
+    counts.update_full_text_count(title)
 
 
 remove_old_counts()

@@ -4,9 +4,11 @@ import uuid
 import structlog
 from django.core.exceptions import MiddlewareNotUsed
 
-from sefaria.settings import (MULTISERVER_ENABLED,
-                              MULTISERVER_REDIS_CONFIRM_CHANNEL,
-                              MULTISERVER_REDIS_EVENT_CHANNEL)
+from sefaria.settings import (
+    MULTISERVER_ENABLED,
+    MULTISERVER_REDIS_CONFIRM_CHANNEL,
+    MULTISERVER_REDIS_EVENT_CHANNEL,
+)
 
 from .messaging import MessagingNode
 
@@ -19,9 +21,10 @@ class ServerCoordinator(MessagingNode):
     publish_event() - Used for publishing events to other servers
     sync() - used for listening for events. Invoked periodically from MultiServerEventListenerMiddleware
     """
+
     subscription_channels = [MULTISERVER_REDIS_EVENT_CHANNEL]
 
-    def publish_event(self, obj, method, args = None):
+    def publish_event(self, obj, method, args=None):
         """
 
         :param obj:
@@ -37,17 +40,24 @@ class ServerCoordinator(MessagingNode):
             "obj": obj,
             "method": method,
             "args": args or [],
-            "id": uuid.uuid4().hex
+            "id": uuid.uuid4().hex,
         }
         msg_data = json.dumps(payload)
 
         import os
         import socket
-        logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
+
+        logger.info(
+            "publish_event from {}:{} - {}".format(
+                socket.gethostname(), os.getpid(), msg_data
+            )
+        )
         try:
             self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
         except Exception:
-            logger.error("Failed to connect to Redis instance while doing message publish.")
+            logger.error(
+                "Failed to connect to Redis instance while doing message publish."
+            )
             return
 
         # Since we are subscribed to this channel as well, throw away the message we just sent.
@@ -56,7 +66,9 @@ class ServerCoordinator(MessagingNode):
         try:
             popped_msg = self.pubsub.get_message()
         except Exception:
-            logger.error("Failed to connect to Redis instance while doing message publish listen.")
+            logger.error(
+                "Failed to connect to Redis instance while doing message publish listen."
+            )
             popped_msg = None
 
         while popped_msg:
@@ -66,7 +78,9 @@ class ServerCoordinator(MessagingNode):
             try:
                 popped_msg = self.pubsub.get_message()
             except Exception:
-                logger.error("Failed to connect to Redis instance while doing message publish listen.")
+                logger.error(
+                    "Failed to connect to Redis instance while doing message publish listen."
+                )
                 popped_msg = None
 
     def sync(self):
@@ -74,7 +88,9 @@ class ServerCoordinator(MessagingNode):
         try:
             msg = self.pubsub.get_message()
         except Exception:
-            logger.error("Failed to connect to Redis instance while doing multiserver sync.")
+            logger.error(
+                "Failed to connect to Redis instance while doing multiserver sync."
+            )
             return
         if not msg or msg["type"] == "subscribe":
             return
@@ -103,7 +119,6 @@ class ServerCoordinator(MessagingNode):
         :return:
         """
 
-
         # A list of all of the objects that be referenced
         import os
         import socket
@@ -112,6 +127,7 @@ class ServerCoordinator(MessagingNode):
         import sefaria.system.cache as scache
         from sefaria.model import library
         from sefaria.system.cache import in_memory_cache
+
         host = socket.gethostname()
         pid = os.getpid()
 
@@ -122,24 +138,32 @@ class ServerCoordinator(MessagingNode):
 
         try:
             method(*data["args"])
-            logger.info("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))
+            logger.info(
+                "Processing succeeded for {} on {}:{}".format(
+                    self.event_description(data), host, pid
+                )
+            )
 
             confirm_msg = {
-                'event_id': data["id"],
-                'host': host,
-                'pid': pid,
-                'status': 'success'
+                "event_id": data["id"],
+                "host": host,
+                "pid": pid,
+                "status": "success",
             }
 
         except Exception as e:
-            logger.error("Processing failed for {} on {}:{} - {}".format(self.event_description(data), host, pid, str(e)))
+            logger.error(
+                "Processing failed for {} on {}:{} - {}".format(
+                    self.event_description(data), host, pid, str(e)
+                )
+            )
 
             confirm_msg = {
-                'event_id': data["id"],
-                'host': host,
-                'pid': pid,
-                'status': 'error',
-                'error': str(e)
+                "event_id": data["id"],
+                "host": host,
+                "pid": pid,
+                "status": "error",
+                "error": str(e),
             }
 
         # Send confirmation
@@ -148,11 +172,15 @@ class ServerCoordinator(MessagingNode):
         try:
             self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
         except Exception:
-            logger.error("Failed to connect to Redis instance while doing confirm publish")
+            logger.error(
+                "Failed to connect to Redis instance while doing confirm publish"
+            )
 
 
 class MultiServerEventListenerMiddleware(object):
-    delay = 20  # Will check for library updates every X requests.  0 means every request.
+    delay = (
+        20  # Will check for library updates every X requests.  0 means every request.
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -170,5 +198,6 @@ class MultiServerEventListenerMiddleware(object):
 
         response = self.get_response(request)
         return response
+
 
 server_coordinator = ServerCoordinator() if MULTISERVER_ENABLED else None

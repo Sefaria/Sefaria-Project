@@ -20,5 +20,8 @@ db.sheets.remove({"generatedBy": "Haggadah Maker"})
 
 make_sheet_from_text("Pesach Haggadah", generatedBy="Haggadah Maker")
 for commentary in commentaries:
-    prof('make_sheet_from_text("Pesach Haggadah", sources=["%s on Pesach Haggadah"], generatedBy="Haggadah Maker")' % commentary)
-    #make_sheet_from_text("Pesach Haggadah", sources=["%s on Pesach Haggadah" % commentary], generatedBy="Haggadah Maker")
+    prof(
+        'make_sheet_from_text("Pesach Haggadah", sources=["%s on Pesach Haggadah"], generatedBy="Haggadah Maker")'
+        % commentary
+    )
+    # make_sheet_from_text("Pesach Haggadah", sources=["%s on Pesach Haggadah" % commentary], generatedBy="Haggadah Maker")

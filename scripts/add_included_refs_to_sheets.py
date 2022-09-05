@@ -10,8 +10,8 @@ from sefaria.system.database import db
 sheets = db.sheets.find()
 
 for sheet in sheets:
-    olddoc = sheet;
-    newdoc = {};
+    olddoc = sheet
+    newdoc = {}
     included_refs = []
 
     sources = sheet.get("sources", [])
@@ -27,5 +27,4 @@ for sheet in sheets:
 
     newdoc["includedRefs"] = included_refs
 
-    db.sheets.update({'_id': olddoc["_id"]}, newdoc);
-
+    db.sheets.update({"_id": olddoc["_id"]}, newdoc)

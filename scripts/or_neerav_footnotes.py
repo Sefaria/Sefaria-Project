@@ -13,10 +13,11 @@ def get_ftnotes(sec_ref, title):
         relevant_footnote_ref = "{}, Footnotes, {}".format(title, node_name)
         if "Subject" in relevant_footnote_ref:
             relevant_footnote_ref = relevant_footnote_ref.replace(", Subject", " 1")
-    ftnotes = Ref(relevant_footnote_ref).text('en').text
+    ftnotes = Ref(relevant_footnote_ref).text("en").text
     assert type(ftnotes[0]) is str
     ftnotes = dict(enumerate(ftnotes))
     return ftnotes
+
 
 if __name__ == "__main__":
     title = "Or Neerav"
@@ -27,7 +28,7 @@ if __name__ == "__main__":
         if "Footnotes" in sec_ref.normal():
             continue
         ftnotes = get_ftnotes(sec_ref, title)
-        text = sec_ref.text('en').text
+        text = sec_ref.text("en").text
         for comment_n, comment in enumerate(text):
             matches = re.findall("<sup>(\d+)</sup>", comment)
             assert len(set(matches)) == len(matches)  # assert no duplicates
@@ -35,10 +36,12 @@ if __name__ == "__main__":
                 old_ftnote = "<sup>{}</sup>".format(match)
                 ftnote_num = int(match)
                 ftnote_text = ftnotes[ftnote_num - 1]
-                new_ftnote = "{}<i class='footnote'>{}</i>".format(old_ftnote, ftnote_text)
+                new_ftnote = "{}<i class='footnote'>{}</i>".format(
+                    old_ftnote, ftnote_text
+                )
                 if new_ftnote not in text[comment_n]:
                     text[comment_n] = text[comment_n].replace(old_ftnote, new_ftnote)
-        tc = TextChunk(sec_ref, vtitle=vtitle, lang='en')
+        tc = TextChunk(sec_ref, vtitle=vtitle, lang="en")
         tc.text = text
         tc.save()
 

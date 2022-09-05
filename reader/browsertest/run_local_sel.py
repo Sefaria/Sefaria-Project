@@ -12,10 +12,18 @@ from . import basic_tests
 from .framework import Trial
 from .framework.config import LOCAL_SELENIUM_CAPS
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-t", "--tests", dest="tests", help="Comma separated list of tests to run")
-    parser.add_option("-p", "--parallel", dest="parallel", action='store_true', help="Run multiple platforms in parallel")
+    parser.add_option(
+        "-t", "--tests", dest="tests", help="Comma separated list of tests to run"
+    )
+    parser.add_option(
+        "-p",
+        "--parallel",
+        dest="parallel",
+        action="store_true",
+        help="Run multiple platforms in parallel",
+    )
 
     options, user_args = parser.parse_args()
 
@@ -25,7 +33,13 @@ if __name__ == '__main__':
 
     caps = LOCAL_SELENIUM_CAPS
 
-    t = Trial(platform="localselenium", caps=caps, tests=tests, parallel=options.parallel, verbose=True)
+    t = Trial(
+        platform="localselenium",
+        caps=caps,
+        tests=tests,
+        parallel=options.parallel,
+        verbose=True,
+    )
     t.run()
     print("Done running the Trials")
     results = t.results()

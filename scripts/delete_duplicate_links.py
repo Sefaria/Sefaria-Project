@@ -12,7 +12,9 @@ for l in LinkSet():
     i += 1
     if i % 10000 == 0:
         print(i)
-    set_of_this_link = LinkSet({"$or": [{"refs": l.refs}, {"refs": [l.refs[1], l.refs[0]]}]})
+    set_of_this_link = LinkSet(
+        {"$or": [{"refs": l.refs}, {"refs": [l.refs[1], l.refs[0]]}]}
+    )
     if set_of_this_link.count() > 1:
         refs = sorted(l.refs)
         if refs not in already_found:
@@ -31,7 +33,6 @@ for i, refs in enumerate(duplicates):
         else:
             l.delete()
 
-col, args, kwargs = ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True})
+col, args, kwargs = ("links", [[("refs.0", 1), ("refs.1", 1)]], {"unique": True})
 print("Creating unique field on link refs...")
 getattr(db, col).create_index(*args, **kwargs)
-

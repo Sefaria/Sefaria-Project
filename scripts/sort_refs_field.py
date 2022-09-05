@@ -24,4 +24,3 @@ for l in LinkSet():
             l.save()
         except:
             print(l.contents())
-

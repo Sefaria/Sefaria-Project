@@ -8,7 +8,7 @@ from sefaria.model import *
 Commandeering this old script to update lengths on various texts
 """
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     i = library.get_indexes_in_category("Tosefta Lieberman", full_records=True)
     for ind in i:
         sn = StateNode(ind.title)

@@ -20,53 +20,122 @@ term_list = []
 he_synonyms = {}  # map of He primary -> he Secondaries
 
 # First - clean up needless whitespace
-replacement_pairs = [(t, t.strip()) for t in db.sheets.distinct("tags") if t != t.strip()]
+replacement_pairs = [
+    (t, t.strip()) for t in db.sheets.distinct("tags") if t != t.strip()
+]
 
 # and clean up typos
-replacement_pairs += [("Mishneg Torah", "Mishneh Torah"),
-("Torte Law", "Tort Law"),
-("MIddot", "Middot"),
-("Barenness","Bareness"),
-("Kindess","Kindness"),
-("Altrusim","Altruism"),
-("Tribes, Twelve Tribes, Dessert Encampment",["Tribes", "Twelve Tribes", "Desert Encampment"]),
-("syangogue","synagogue"),
-("Abraham Charachter","Abraham Character"),
-("Family Purety","Family Purity"),
-("Locusts, Darkness, Kabbalah, Ninth Plague, Eight Plague, Egypt, Pyramids",["Locusts", "Darkness", "Kabbalah", "Ninth Plague", "Eighth Plague", "Egypt", "Pyramids"]),
-("Lashon Harah,","Lashon Harah"),
-("Yoreh Deah, Basar Bechalav, meat and milk","Yoreh Deah, Basar Bechalav, meat and milk".split(",")),
-("Mishkan, Solar Energy, Temple, Tabernacle","Mishkan, Solar Energy, Temple, Tabernacle".split(",")),
-("Fire, Mountains, Negev, Shema, Red Sea, Israel, Flames, Clouds","Fire, Mountains, Negev, Shema, Red Sea, Israel, Flames, Clouds".split(",")),
-("Tabernacle, Animal Skins, Tent","Tabernacle, Animal Skins, Tent".split(",")),
-("purim, megillat esther, mishneh torah","purim, megillat esther, mishneh torah".split(",")),
-("Mishnah, Bava Kamma, Jewish Law, Damages","Mishnah, Bava Kamma, Jewish Law, Damages".split(",")),
-("Olive Oil, Olive Tree, Eternal Light","Olive Oil, Olive Tree, Eternal Light".split(",")),
-("Ezekiel, Tree, Kingdom, Unity","Ezekiel, Tree, Kingdom, Unity".split(",")),
-("sarah and hagar, isaac and ishmael","sarah and hagar, isaac and ishmael".split(",")),
-("Sukkot, Succah, Cows, Jacob, Sustainability, Ecology","Sukkot, Succah, Cows, Jacob, Sustainability, Ecology".split(",")),
-("Animals, Ark, Noah","Animals, Ark, Noah".split(",")),
-("Eagle's Wings, Sinai, Yoga","Eagle's Wings, Sinai, Yoga".split(",")),
-("Animals, Sacrifice, Sukkot","Animals, Sacrifice, Sukkot".split(",")),
-("Pesach, Shir Hashirim, Sinai, Genesis","Pesach, Shir Hashirim, Sinai, Genesis".split(",")),
-("Angels, Guardians, New York, Guardian Angels","Angels, Guardians, New York, Guardian Angels".split(",")),
-("Miriam, Wells, Leprosy, Moses","Miriam, Wells, Leprosy, Moses".split(",")),
-("Israel, Sacrifice, Cow","Israel, Sacrifice, Cow".split(",")),
-("Angel, Jacob, Wrestling","Angel, Jacob, Wrestling".split(",")),
-("Succah, Passover, Goat, Sacrifice, Lotus","Succah, Passover, Goat, Sacrifice, Lotus".split(",")),
-("Politics, Monarchy, Democracy, Christianity","Politics, Monarchy, Democracy, Christianity".split(",")),
-("Love, Attraction, Magnetism, Magnetic Attraction","Love, Attraction, Magnetism, Magnetic Attraction".split(",")),
-("Passover,","Passover"),
-("Jew Curious,","Jew Curious"),
-("Be’ersheva, sheep, wells, oaths, art, collage","Be'ersheva, sheep, wells, oaths, art, collage".split(",")),
-("Passover, Goat, Sacrifice, Egypt, Lotus","Passover, Goat, Sacrifice, Egypt, Lotus".split(",")),
-("God's Ways; Mercy; Compassion; Hesed","God's Ways; Mercy; Compassion; Hesed".split(";")),
-("Purim, Megillat Esther, Mishneh Torah","Purim, Megillat Esther, Mishneh Torah".split(","))]
+replacement_pairs += [
+    ("Mishneg Torah", "Mishneh Torah"),
+    ("Torte Law", "Tort Law"),
+    ("MIddot", "Middot"),
+    ("Barenness", "Bareness"),
+    ("Kindess", "Kindness"),
+    ("Altrusim", "Altruism"),
+    (
+        "Tribes, Twelve Tribes, Dessert Encampment",
+        ["Tribes", "Twelve Tribes", "Desert Encampment"],
+    ),
+    ("syangogue", "synagogue"),
+    ("Abraham Charachter", "Abraham Character"),
+    ("Family Purety", "Family Purity"),
+    (
+        "Locusts, Darkness, Kabbalah, Ninth Plague, Eight Plague, Egypt, Pyramids",
+        [
+            "Locusts",
+            "Darkness",
+            "Kabbalah",
+            "Ninth Plague",
+            "Eighth Plague",
+            "Egypt",
+            "Pyramids",
+        ],
+    ),
+    ("Lashon Harah,", "Lashon Harah"),
+    (
+        "Yoreh Deah, Basar Bechalav, meat and milk",
+        "Yoreh Deah, Basar Bechalav, meat and milk".split(","),
+    ),
+    (
+        "Mishkan, Solar Energy, Temple, Tabernacle",
+        "Mishkan, Solar Energy, Temple, Tabernacle".split(","),
+    ),
+    (
+        "Fire, Mountains, Negev, Shema, Red Sea, Israel, Flames, Clouds",
+        "Fire, Mountains, Negev, Shema, Red Sea, Israel, Flames, Clouds".split(","),
+    ),
+    ("Tabernacle, Animal Skins, Tent", "Tabernacle, Animal Skins, Tent".split(",")),
+    (
+        "purim, megillat esther, mishneh torah",
+        "purim, megillat esther, mishneh torah".split(","),
+    ),
+    (
+        "Mishnah, Bava Kamma, Jewish Law, Damages",
+        "Mishnah, Bava Kamma, Jewish Law, Damages".split(","),
+    ),
+    (
+        "Olive Oil, Olive Tree, Eternal Light",
+        "Olive Oil, Olive Tree, Eternal Light".split(","),
+    ),
+    ("Ezekiel, Tree, Kingdom, Unity", "Ezekiel, Tree, Kingdom, Unity".split(",")),
+    (
+        "sarah and hagar, isaac and ishmael",
+        "sarah and hagar, isaac and ishmael".split(","),
+    ),
+    (
+        "Sukkot, Succah, Cows, Jacob, Sustainability, Ecology",
+        "Sukkot, Succah, Cows, Jacob, Sustainability, Ecology".split(","),
+    ),
+    ("Animals, Ark, Noah", "Animals, Ark, Noah".split(",")),
+    ("Eagle's Wings, Sinai, Yoga", "Eagle's Wings, Sinai, Yoga".split(",")),
+    ("Animals, Sacrifice, Sukkot", "Animals, Sacrifice, Sukkot".split(",")),
+    (
+        "Pesach, Shir Hashirim, Sinai, Genesis",
+        "Pesach, Shir Hashirim, Sinai, Genesis".split(","),
+    ),
+    (
+        "Angels, Guardians, New York, Guardian Angels",
+        "Angels, Guardians, New York, Guardian Angels".split(","),
+    ),
+    ("Miriam, Wells, Leprosy, Moses", "Miriam, Wells, Leprosy, Moses".split(",")),
+    ("Israel, Sacrifice, Cow", "Israel, Sacrifice, Cow".split(",")),
+    ("Angel, Jacob, Wrestling", "Angel, Jacob, Wrestling".split(",")),
+    (
+        "Succah, Passover, Goat, Sacrifice, Lotus",
+        "Succah, Passover, Goat, Sacrifice, Lotus".split(","),
+    ),
+    (
+        "Politics, Monarchy, Democracy, Christianity",
+        "Politics, Monarchy, Democracy, Christianity".split(","),
+    ),
+    (
+        "Love, Attraction, Magnetism, Magnetic Attraction",
+        "Love, Attraction, Magnetism, Magnetic Attraction".split(","),
+    ),
+    ("Passover,", "Passover"),
+    ("Jew Curious,", "Jew Curious"),
+    (
+        "Be’ersheva, sheep, wells, oaths, art, collage",
+        "Be'ersheva, sheep, wells, oaths, art, collage".split(","),
+    ),
+    (
+        "Passover, Goat, Sacrifice, Egypt, Lotus",
+        "Passover, Goat, Sacrifice, Egypt, Lotus".split(","),
+    ),
+    (
+        "God's Ways; Mercy; Compassion; Hesed",
+        "God's Ways; Mercy; Compassion; Hesed".split(";"),
+    ),
+    (
+        "Purim, Megillat Esther, Mishneh Torah",
+        "Purim, Megillat Esther, Mishneh Torah".split(","),
+    ),
+]
 
 for (old, new) in replacement_pairs:
-    change_tag(old,new)
+    change_tag(old, new)
 
-replacement_dict = {a:b for (a,b) in replacement_pairs}
+replacement_dict = {a: b for (a, b) in replacement_pairs}
 
 
 # Load current terms
@@ -99,19 +168,30 @@ with open(he_filename, "rb") as he_file:
 # For each
 # - If any of these terms, or their Hebrew synonyms, exist - add to existing term
 # - else create new proto-term
-with open(en_file, 'rb') as tfile:
+with open(en_file, "rb") as tfile:
     next(tfile)
     rows = csv.reader(tfile)
     for row in rows:
-        (he_name, count, en_primary, en_names) = (h.unescape(row[0].decode("utf-8")), int(row[1]), titlecase(row[2]), list(set([titlecase(x) for x in row[3:] if x])))
+        (he_name, count, en_primary, en_names) = (
+            h.unescape(row[0].decode("utf-8")),
+            int(row[1]),
+            titlecase(row[2]),
+            list(set([titlecase(x) for x in row[3:] if x])),
+        )
         if replacement_dict.get(en_primary):
             if isinstance(replacement_dict.get(en_primary), list):
                 continue
             en_primary = replacement_dict.get(en_primary)
         all_names = [he_name] + [en_primary] + en_names + he_synonyms.get(he_name, [])
-        already_used = [name_to_term_map.get(x) for x in all_names if name_to_term_map.get(x)]
+        already_used = [
+            name_to_term_map.get(x) for x in all_names if name_to_term_map.get(x)
+        ]
         if len(set(already_used)) >= 2:
-            print("Bridged Terms: {} {}".format(en_primary, [t.get_primary_title("en") for t in already_used]))
+            print(
+                "Bridged Terms: {} {}".format(
+                    en_primary, [t.get_primary_title("en") for t in already_used]
+                )
+            )
 
         elif len(set(already_used)) == 1:
             existing_term = already_used[0]
@@ -133,7 +213,7 @@ with open(en_file, 'rb') as tfile:
 
             existing_term.count += count
 
-        else: # new
+        else:  # new
             new_term = Term()
             new_term.name = en_primary
             new_term.add_primary_titles(en_primary, he_name)
@@ -158,14 +238,18 @@ unique_terms.sort(key=lambda t: t.count, reverse=True)
 for term in unique_terms:
     if "-" in term.get_primary_title("en"):
         old_primary = term.get_primary_title("en")
-        new_primary = old_primary.replace("-"," ")
+        new_primary = old_primary.replace("-", " ")
 
         term.add_title(new_primary, "en", primary=True, replace_primary=True)
         term.add_title(old_primary, "en")
         term.name = new_primary
 
     try:
-        print("{} / {} / {}".format(term.count, term.get_primary_title("en"), term.get_primary_title("he")))
+        print(
+            "{} / {} / {}".format(
+                term.count, term.get_primary_title("en"), term.get_primary_title("he")
+            )
+        )
         print()
         term.save()
     except Exception as e:

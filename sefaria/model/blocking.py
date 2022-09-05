@@ -48,4 +48,3 @@ class BlockersSet(BlockSet):
 class BlockeesSet(BlockSet):
     def __init__(self, uid):
         self.uids = db.blocking.find({"blocker": uid}).distinct("blockee")
-

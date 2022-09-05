@@ -15,8 +15,7 @@ try:
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import (invalidate_linked,
-                                                invalidate_ref)
+    from sefaria.system.varnish.wrapper import invalidate_linked, invalidate_ref
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
@@ -31,7 +30,9 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     :return:
     """
     chunk = model.TextChunk(oref, lang, vtitle)
-    if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
+    if getattr(
+        chunk.version(), "status", ""
+    ) == "locked" and not model.user_profile.is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"
     old_text = chunk.text
@@ -39,19 +40,34 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or chunk.has_manually_wrapped_refs()
-        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
+        kwargs["skip_links"] = (
+            kwargs.get("skip_links", False) or chunk.has_manually_wrapped_refs()
+        )
+        post_modify_text(
+            user,
+            action,
+            oref,
+            lang,
+            vtitle,
+            old_text,
+            chunk.text,
+            chunk.full_version._id,
+            **kwargs,
+        )
 
     return chunk
 
 
-def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
+def modify_bulk_text(
+    user: int, version: model.Version, text_map: dict, vsource=None, **kwargs
+) -> dict:
     """
     user: user ID of user making modification
     version: version object of text being modified
     text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored.
     vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
     """
+
     def populate_change_map(old_text, en_tref, he_tref, _):
         nonlocal change_map, existing_tref_set
         existing_tref_set.add(en_tref)
@@ -59,6 +75,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         if new_text is None or new_text == old_text:
             return
         change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
+
     change_map = {}
     existing_tref_set = set()
     version.walk_thru_contents(populate_change_map)
@@ -68,7 +85,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
             # this ref doesn't exist for this version. probably exists in a different version
             # no reason to add to change_map if it has not content
             continue
-        change_map[new_tref] = ('', text_map[new_tref], model.Ref(new_tref))
+        change_map[new_tref] = ("", text_map[new_tref], model.Ref(new_tref))
 
     if vsource:
         version.versionSource = vsource  # todo: log this change
@@ -79,29 +96,50 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
         try:
             version.sub_content_with_ref(oref, new_text)
         except Exception as e:
-            error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
+            error_map[
+                oref.normal()
+            ] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
     for old_text, new_text, oref in change_map.values():
-        if oref.normal() in error_map: continue
-        kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
+        if oref.normal() in error_map:
+            continue
+        kwargs["skip_links"] = kwargs.get("skip_links", False) or getattr(
+            version, "hasManuallyWrappedRefs", False
+        )
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)
-        kwargs['count_after'] = False
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+        kwargs["count_after"] = False
+        post_modify_text(
+            user,
+            kwargs.get("type"),
+            oref,
+            version.language,
+            version.versionTitle,
+            old_text,
+            new_text,
+            version._id,
+            **kwargs,
+        )
 
     count_segments(version.get_index())
     return error_map
 
 
-def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
+def post_modify_text(
+    user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs
+) -> None:
     model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
     if USE_VARNISH:
         invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
         if oref.next_section_ref():
-            invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
+            invalidate_ref(
+                oref.next_section_ref(), lang=lang, version=vtitle, purge=True
+            )
         if oref.prev_section_ref():
-            invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
+            invalidate_ref(
+                oref.prev_section_ref(), lang=lang, version=vtitle, purge=True
+            )
     if not kwargs.get("skip_links", None):
         from sefaria.helper.link import add_links_from_text
 
@@ -124,14 +162,16 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     # count available segments of text
     if to_count:
         count_segments(oref.index)
-    
+
     if SEARCH_INDEX_ON_SAVE:
-        model.IndexQueue({
-            "ref": oref.normal(),
-            "lang": lang,
-            "version": vtitle,
-            "type": "ref",
-        }).save()
+        model.IndexQueue(
+            {
+                "ref": oref.normal(),
+                "lang": lang,
+                "version": vtitle,
+                "type": "ref",
+            }
+        ).save()
 
 
 def count_segments(index):
@@ -140,7 +180,9 @@ def count_segments(index):
 
     model.library.recount_index_in_toc(index)
     if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "recount_index_in_toc", [index.title])
+        server_coordinator.publish_event(
+            "library", "recount_index_in_toc", [index.title]
+        )
 
 
 def add(user, klass, attrs, **kwargs):
@@ -153,10 +195,14 @@ def add(user, klass, attrs, **kwargs):
     """
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
     obj = None
-    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(
+        klass.criteria_override_field
+    ):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     elif attrs.get(klass.criteria_field):
-        if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
+        if (
+            klass.criteria_field == klass.id_field
+        ):  # a clumsy way of pushing _id through ObjectId
             obj = klass().load_by_id(attrs[klass.id_field])
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
@@ -172,10 +218,14 @@ def add(user, klass, attrs, **kwargs):
 
 def update(user, klass, attrs, **kwargs):
     assert issubclass(klass, model.abstract.AbstractMongoRecord)
-    if getattr(klass, "criteria_override_field", None) and attrs.get(klass.criteria_override_field):
+    if getattr(klass, "criteria_override_field", None) and attrs.get(
+        klass.criteria_override_field
+    ):
         obj = klass().load({klass.criteria_field: attrs[klass.criteria_override_field]})
     else:
-        if klass.criteria_field == klass.id_field:  # a clumsy way of pushing _id through ObjectId
+        if (
+            klass.criteria_field == klass.id_field
+        ):  # a clumsy way of pushing _id through ObjectId
             obj = klass().load_by_id(attrs[klass.id_field])
         else:
             obj = klass().load({klass.criteria_field: attrs[klass.criteria_field]})
@@ -197,7 +247,7 @@ def delete(user, klass, _id, **kwargs):
     """
     obj = klass().load_by_id(_id)
     if obj is None:
-        return {'error': 'item with id: {} not found'.format(_id)}
+        return {"error": "item with id: {} not found".format(_id)}
     if kwargs.get("callback"):
         kwargs.get("callback")(obj)
         del kwargs["callback"]
@@ -205,4 +255,3 @@ def delete(user, klass, _id, **kwargs):
     obj.delete()
     model.log_delete(user, klass, old_dict, **kwargs)
     return {"response": "ok"}
-

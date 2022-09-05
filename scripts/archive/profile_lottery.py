@@ -12,11 +12,15 @@ from sefaria.system.database import db
 
 contenders = db.profiles.find({"bio": {"$ne": ""}, "jewish_education": {"$ne": []}})
 points = {}
-users  = {}
+users = {}
 for contender in contenders:
     user = UserProfile(id=contender["id"])
     users[user.id] = user
-    gravatar = "http://www.gravatar.com/avatar/" + hashlib.md5(user.email.lower()).hexdigest() + "?d=404"
+    gravatar = (
+        "http://www.gravatar.com/avatar/"
+        + hashlib.md5(user.email.lower()).hexdigest()
+        + "?d=404"
+    )
     r = urllib.request.urlopen(gravatar)
     if r.getcode() == 404:
         points[user.id] = 0
@@ -31,6 +35,13 @@ for i in range(contenders.count()):
     for person in points:
         count += points[person]
         if count > winner:
-            print("%d. %s, %s" % (i+1, "www.sefaria.org/profile/" + users[person].slug, users[person].email))
+            print(
+                "%d. %s, %s"
+                % (
+                    i + 1,
+                    "www.sefaria.org/profile/" + users[person].slug,
+                    users[person].email,
+                )
+            )
             del points[person]
             break

@@ -23,9 +23,14 @@ try:
     last_sheet_timestamp = datetime.now().isoformat()
     update_pagesheetrank()
     index_all()
-    r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    r = requests.post(
+        "https://www.sefaria.org/admin/index-sheets-by-timestamp",
+        data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY},
+    )
     if "error" in r.text:
-        raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
+        raise Exception(
+            "Error when calling admin/index-sheets-by-timestamp API: " + r.text
+        )
     else:
         print("SUCCESS!", r.text)
 except Exception as e:
@@ -40,9 +45,9 @@ except Exception as e:
                 "fallback": tb_str,
                 "color": "#a30200",
                 "pretext": "Cronjob Error",
-                "text": tb_str
+                "text": tb_str,
             }
-        ]
+        ],
     }
-    requests.post(os.environ['SLACK_URL'], json=post_object)
+    requests.post(os.environ["SLACK_URL"], json=post_object)
     raise e

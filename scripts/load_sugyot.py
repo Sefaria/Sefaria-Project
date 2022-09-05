@@ -13,7 +13,7 @@ for f in os.listdir("../data/sugyot"):
     if f.endswith(".csv"):
         print(f)
         cfile = os.path.join("../data/sugyot", f)
-        with open(cfile, 'rb') as sfile:
+        with open(cfile, "rb") as sfile:
             sugyot = csv.reader(sfile)
             next(sugyot)
             for row in sugyot:

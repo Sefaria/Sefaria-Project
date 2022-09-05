@@ -33,7 +33,7 @@ re_re.findall(text)
 regex_test = """
 regex_re.findall(text)
 """
- 
+
 re2_test = """
 re2_re.findall(text)
 """
@@ -42,8 +42,8 @@ in_test = """
 [title for title in titles if title in text]
 """
 
-timeit.timeit(in_test, prep, number = 100)
-timeit.timeit(find_test, prep, number = 100)
-timeit.timeit(re_test, prep, number = 100)
-timeit.timeit(regex_test, prep, number = 100)
-timeit.timeit(re2_test, prep, number = 100)
+timeit.timeit(in_test, prep, number=100)
+timeit.timeit(find_test, prep, number=100)
+timeit.timeit(re_test, prep, number=100)
+timeit.timeit(regex_test, prep, number=100)
+timeit.timeit(re2_test, prep, number=100)

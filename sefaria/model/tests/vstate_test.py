@@ -4,9 +4,14 @@ from sefaria.model import *
 
 
 class Test_VState(object):
-
     def test_integrity(self):
-        titles = ["Exodus", "Shabbat", "Rashi on Exodus", "Rashi on Genesis", "Rashi on Shabbat"]
+        titles = [
+            "Exodus",
+            "Shabbat",
+            "Rashi on Exodus",
+            "Rashi on Genesis",
+            "Rashi on Shabbat",
+        ]
         for title in titles:
             index = library.get_index(title)
             vs = VersionState(index)
@@ -40,4 +45,3 @@ class Test_VSNode(object):
         assert "Chapter" in cd
         assert "Verse" in cd
         assert "Comment" in cd
-

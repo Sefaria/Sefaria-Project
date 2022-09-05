@@ -11,10 +11,11 @@ def out_brace(raw_string):
     temp_string = temp_string.replace("%", ")")
     return temp_string
 
-tyt = IndexSet({'title': {'$regex': '^Tosafot Yom Tov.*'}})
-vtitle = 'Mishnah, ed. Romm, Vilna 1913'
+
+tyt = IndexSet({"title": {"$regex": "^Tosafot Yom Tov.*"}})
+vtitle = "Mishnah, ed. Romm, Vilna 1913"
 
 for i, dex in enumerate(tyt):
-    print("{}/{}".format(i+1, tyt.count()))
-    modify_text_by_function(dex.title, vtitle, 'he', out_brace, 23432)
+    print("{}/{}".format(i + 1, tyt.count()))
+    modify_text_by_function(dex.title, vtitle, "he", out_brace, 23432)
     dex.versionState().refresh()

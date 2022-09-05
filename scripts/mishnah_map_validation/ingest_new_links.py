@@ -12,7 +12,7 @@ from sefaria.model import *
 
 # This function generates a CSV given a list of dicts
 def generate_csv(dict_list, headers, file_name):
-    with open(f'{file_name}.csv', 'w+') as file:
+    with open(f"{file_name}.csv", "w+") as file:
         c = csv.DictWriter(file, fieldnames=headers)
         c.writeheader()
         c.writerows(dict_list)
@@ -27,9 +27,11 @@ def delete_linkset(type):
 
 # For each row in CSV - create a link
 def create_link(row):
-    link_param_dict = {'type': 'mishnah in talmud',
-                       'auto': 'true',
-                       'generated_by': 'mishnah_map'}
+    link_param_dict = {
+        "type": "mishnah in talmud",
+        "auto": "true",
+        "generated_by": "mishnah_map",
+    }
     ref_list = []
 
     mishnah_name = row[0]
@@ -40,7 +42,7 @@ def create_link(row):
 
     ref_list.append(mishnah_ref)
 
-    talmud_name = re.sub('Mishnah ', '', mishnah_name)
+    talmud_name = re.sub("Mishnah ", "", mishnah_name)
     talmud_start_daf = row[4]
     talmud_start_line = row[5]
     talmud_end_daf = row[6]
@@ -52,7 +54,9 @@ def create_link(row):
 
     # if the ref is on one daf, multiple lines
     elif talmud_start_line != talmud_end_line:
-        talmud_ref = f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_line}"
+        talmud_ref = (
+            f"{talmud_name} {talmud_start_daf}:{talmud_start_line}-{talmud_end_line}"
+        )
 
     # if the ref is to one Talmud line
     else:
@@ -60,7 +64,7 @@ def create_link(row):
 
     ref_list.append(talmud_ref)
 
-    link_param_dict['refs'] = ref_list
+    link_param_dict["refs"] = ref_list
 
     try:
         Link(link_param_dict).save()
@@ -68,8 +72,12 @@ def create_link(row):
         ref_list = [mishnah_ref, talmud_ref]
         ref_list.sort()
         ls = Link().load({"refs": ref_list})
-        if ls and (ls.type == 'mesorat hashas' or ls.type == 'related' or ls.refs == ['Bava Batra 84b:5-6', 'Mishnah Bava Batra 5:7']):
-            ls.update(query={"refs": ref_list}, attrs={'type': 'mishnah in talmud'})
+        if ls and (
+            ls.type == "mesorat hashas"
+            or ls.type == "related"
+            or ls.refs == ["Bava Batra 84b:5-6", "Mishnah Bava Batra 5:7"]
+        ):
+            ls.update(query={"refs": ref_list}, attrs={"type": "mishnah in talmud"})
         elif "A more precise link" in str(e):
             curlink = Link(link_param_dict)
             curlink._override_preciselink = True
@@ -78,12 +86,12 @@ def create_link(row):
 
 def ingest_new_links():
     errors_csv = []
-    delete_linkset('mishnah in talmud')
+    delete_linkset("mishnah in talmud")
     print("Original linkset deleted")
 
     # Ingest the corrected CSV
-    with open('../../data/Mishnah Map.csv', newline='') as csvfile:
-        csv_reader = csv.reader(csvfile, delimiter=',')
+    with open("../../data/Mishnah Map.csv", newline="") as csvfile:
+        csv_reader = csv.reader(csvfile, delimiter=",")
         # Skipping the headers
         next(csv_reader)
         for row in csv_reader:

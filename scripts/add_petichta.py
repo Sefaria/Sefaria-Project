@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__author__ = 'stevenkaplan'
+__author__ = "stevenkaplan"
 from sefaria.helper.schema import *
 from sefaria.model import *
 

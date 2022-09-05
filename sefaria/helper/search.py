@@ -24,10 +24,9 @@ def default_search(param):
 
 
 def param_fixer(func):
-
     @wraps(func)
     def wrapper(*args, **kwargs):
-        func_params = func.__code__.co_varnames[:func.__code__.co_argcount]
+        func_params = func.__code__.co_varnames[: func.__code__.co_argcount]
         extra_params = set(kwargs.keys()) - set(func_params)
         for extra in extra_params:
             kwargs.pop(extra)
@@ -39,7 +38,7 @@ def param_fixer(func):
             "aggs": default_list,
             "sort_fields": default_list,
             "sort_reverse": default_bool,
-            "search_obj": default_search
+            "search_obj": default_search,
         }
         for param, setter in list(params_with_defaults.items()):
             i = func_params.index(param)
@@ -50,26 +49,28 @@ def param_fixer(func):
                 # maybe in kwargs
                 kwargs[param] = setter(kwargs.get(param, None))
         return func(*args, **kwargs)
+
     return wrapper
 
 
 @param_fixer
 def get_query_obj(
-        query,
-        type="text",
-        field="exact",
-        source_proj=False,
-        slop=0,
-        start=0,
-        size=100,
-        filters=None,
-        filter_fields=None,
-        aggs=None,
-        sort_method="sort",
-        sort_fields=None,
-        sort_reverse=False,
-        sort_score_missing=0,
-        search_obj=None):
+    query,
+    type="text",
+    field="exact",
+    source_proj=False,
+    slop=0,
+    start=0,
+    size=100,
+    filters=None,
+    filter_fields=None,
+    aggs=None,
+    sort_method="sort",
+    sort_fields=None,
+    sort_reverse=False,
+    sort_score_missing=0,
+    search_obj=None,
+):
     """
 
     :param query :str:
@@ -90,12 +91,16 @@ def get_query_obj(
     :return: Search object with all the stuff ready to execute
     """
     search_obj = search_obj.source(source_proj)
-    query = re.sub(r"(\S)\"(\S)", "\\1\u05f4\\2", query)  # Replace internal quotes with gershaim.
+    query = re.sub(
+        r"(\S)\"(\S)", "\\1\u05f4\\2", query
+    )  # Replace internal quotes with gershaim.
     core_query = Q("match_phrase", **{field: {"query": query, "slop": slop}})
 
     # sort
     if sort_method == "sort":
-        search_obj = search_obj.sort(*["{}{}".format("-" if sort_reverse else "", f) for f in sort_fields])
+        search_obj = search_obj.sort(
+            *["{}{}".format("-" if sort_reverse else "", f) for f in sort_fields]
+        )
 
     # aggregations
     if len(aggs) > 0:
@@ -106,7 +111,9 @@ def get_query_obj(
     if len(filters) == 0:
         inner_query = core_query
     else:
-        inner_query = Bool(must=core_query, filter=get_filter_obj(type, filters, filter_fields))
+        inner_query = Bool(
+            must=core_query, filter=get_filter_obj(type, filters, filter_fields)
+        )
 
     # finish up
     if sort_method == "score" and len(sort_fields) == 1:
@@ -115,25 +122,33 @@ def get_query_obj(
                 "query": inner_query.to_dict(),
                 "field_value_factor": {
                     "field": sort_fields[0],
-                    "missing": sort_score_missing
-                }
+                    "missing": sort_score_missing,
+                },
             }
         }
     else:
         search_obj.query = inner_query
-    search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
-    return search_obj[start:start + size]
+    search_obj = search_obj.highlight(
+        field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"]
+    )
+    return search_obj[start : start + size]
 
 
 def get_filter_obj(type, filters, filter_fields):
     if len(filter_fields) == 0:
-        filter_fields = [None] * len(filters)  # use default filter_field for query type (defined in make_filter())
+        filter_fields = [None] * len(
+            filters
+        )  # use default filter_field for query type (defined in make_filter())
     unique_fields = set(filter_fields)
     outer_bools = []
     for agg_type in unique_fields:
         type_filters = [x for x in zip(filters, filter_fields) if x[1] == agg_type]
-        bool_type = 'should' if type == 'text' else 'must'  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
-        inner_bool = Bool(**{bool_type: [make_filter(type, agg_type, f) for f, t in type_filters]})
+        bool_type = (
+            "should" if type == "text" else "must"
+        )  # in general we want filters to be AND (union) but for text filters, we want them to be OR (intersection)
+        inner_bool = Bool(
+            **{bool_type: [make_filter(type, agg_type, f) for f, t in type_filters]}
+        )
         outer_bools += [inner_bool]
     return Bool(must=outer_bools)
 

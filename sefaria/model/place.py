@@ -1,4 +1,3 @@
-
 import geojson
 import structlog
 
@@ -9,22 +8,18 @@ from . import schema
 
 logger = structlog.get_logger(__name__)
 
+
 class Place(abst.AbstractMongoRecord):
     """
     Homo Sapiens
     """
-    collection = 'place'
+
+    collection = "place"
     track_pkeys = True
     pkeys = ["key"]
 
-    required_attrs = [
-        "key",
-        "names",
-        "point"
-    ]
-    optional_attrs = [
-        "area"
-    ]
+    required_attrs = ["key", "names", "point"]
+    optional_attrs = ["area"]
 
     # Names
     # This is the same as on TimePeriod, and very similar to Terms & Person - abstract out
@@ -37,7 +32,7 @@ class Place(abst.AbstractMongoRecord):
     def _normalize(self):
         super(Place, self)._normalize()
         self.names = self.name_group.titles
-        #if not self.key and self.primary_name("en"):
+        # if not self.key and self.primary_name("en"):
         #    self.key = self.primary_name("en")
 
     def all_names(self, lang=None):
@@ -55,14 +50,17 @@ class Place(abst.AbstractMongoRecord):
         if lat is None and lon is None:
             return getattr(self, "point", None)
         if lat is None or lon is None:
-            raise InputError("Bad coordinates passed to Place.point_location: {}, {}".format(lon, lat))
+            raise InputError(
+                "Bad coordinates passed to Place.point_location: {}, {}".format(
+                    lon, lat
+                )
+            )
         self.point = geojson.Point((lon, lat))
 
     def area_location(self, geoj=None):
         if geoj is None:
             return self.area
         self.area = geoj
-
 
 
 class PlaceSet(abst.AbstractMongoSet):
@@ -77,7 +75,11 @@ class PlaceSet(abst.AbstractMongoSet):
                 area = place.area_location()
             feature = area or point
             if feature:
-                features.append(geojson.Feature(geometry=feature, id=place.key, properties={"name": place.key}))
+                features.append(
+                    geojson.Feature(
+                        geometry=feature, id=place.key, properties={"name": place.key}
+                    )
+                )
         if as_string:
             return geojson.dumps(geojson.FeatureCollection(features))
         else:

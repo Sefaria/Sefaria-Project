@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.helper.schema import (convert_simple_index_to_complex,
-                                   insert_first_child)
+from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_child
 from sefaria.helper.text import *
 
 i = library.get_index("Sefer HaChinuch")
@@ -31,5 +30,5 @@ n.addressTypes = ["Integer"]
 insert_first_child(n, root)
 
 # while we're at it, let's nail some more.
-convert_simple_index_to_complex(library.get_index('Seder Olam Rabbah'))
-convert_simple_index_to_complex(library.get_index('Eight Chapters'))
+convert_simple_index_to_complex(library.get_index("Seder Olam Rabbah"))
+convert_simple_index_to_complex(library.get_index("Eight Chapters"))

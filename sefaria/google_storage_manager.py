@@ -17,15 +17,17 @@ class GoogleStorageManager(object):
     https://googleapis.dev/python/storage/latest/buckets.html
     """
 
-    PROFILES_BUCKET = 'sefaria-profile-pictures'
-    UGC_SHEET_BUCKET = 'sheet-user-uploaded-media'
+    PROFILES_BUCKET = "sefaria-profile-pictures"
+    UGC_SHEET_BUCKET = "sheet-user-uploaded-media"
 
     BASE_URL = "https://storage.googleapis.com"
 
     @classmethod
     def get_bucket(cls, bucket_name):
-        if getattr(cls, 'client', None) is None:
-            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+        if getattr(cls, "client", None) is None:
+            cls.client = storage.Client.from_service_account_json(
+                GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
+            )
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 
@@ -54,7 +56,6 @@ class GoogleStorageManager(object):
         source_blob = bucket.blob(from_file)
         blob_copy = bucket.copy_blob(source_blob, bucket, to_filename)
         return cls.get_url(to_filename, bucket_name)
-
 
     @classmethod
     def delete_filename(cls, filename, bucket_name):
@@ -90,4 +91,8 @@ class GoogleStorageManager(object):
 
     @classmethod
     def get_filename_from_url(cls, old_file_url):
-        return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None
+        return (
+            re.findall(r"/([^/]+)$", old_file_url)[0]
+            if old_file_url.startswith(cls.BASE_URL)
+            else None
+        )

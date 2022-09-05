@@ -5,8 +5,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import (BookNameError, DuplicateRecordError,
-                                       InputError)
+from sefaria.system.exceptions import BookNameError, DuplicateRecordError, InputError
 
 from . import abstract as abstract
 from . import collection as collection
@@ -15,7 +14,7 @@ from . import text as text
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
-    collection = 'category'
+    collection = "category"
     history_noun = "category"
 
     track_pkeys = True
@@ -30,14 +29,16 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "sharedTitle",
         "isPrimary",
         "searchRoot",
-        "order"
+        "order",
     ]
 
     def __str__(self):
         return "Category: {}".format(", ".join(self.path))
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return "{}().load({{'path': [{}]}})".format(self.__class__.__name__, ", ".join(['"{}"'.format(x) for x in self.path]))
+        return "{}().load({{'path': [{}]}})".format(
+            self.__class__.__name__, ", ".join(['"{}"'.format(x) for x in self.path])
+        )
 
     def _init_defaults(self):
         self._init_title_defaults()
@@ -60,24 +61,44 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _validate(self):
         super(Category, self)._validate()
-        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
-        assert not hasattr(self, 'order') or isinstance(self.order, int), 'Order should be an integer'
+        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), (
+            "Category name not matching"
+            + " - "
+            + self.lastPath
+            + " / "
+            + self.path[-1]
+            + " / "
+            + self.get_primary_title("en")
+        )
+        assert not hasattr(self, "order") or isinstance(
+            self.order, int
+        ), "Order should be an integer"
 
         if self.is_new():
-            duplicate = Category().load({'path': self.path})
+            duplicate = Category().load({"path": self.path})
             if duplicate:
-                raise DuplicateRecordError(f'Category with path {self.path} already exists')
+                raise DuplicateRecordError(
+                    f"Category with path {self.path} already exists"
+                )
 
         if not self.sharedTitle and not self.get_titles_object():
-            raise InputError("Category {} must have titles or a shared title".format(self))
+            raise InputError(
+                "Category {} must have titles or a shared title".format(self)
+            )
 
         try:
             self.title_group.validate()
         except InputError as e:
             raise InputError("Category {} has invalid titles: {}".format(self, e))
 
-        if self.sharedTitle and schema.Term().load({"name": self.sharedTitle}).titles != self.get_titles_object():
-            raise InputError("Category {} with sharedTitle can not have explicit titles".format(self))
+        if (
+            self.sharedTitle
+            and schema.Term().load({"name": self.sharedTitle}).titles
+            != self.get_titles_object()
+        ):
+            raise InputError(
+                "Category {} with sharedTitle can not have explicit titles".format(self)
+            )
 
     def _normalize(self):
         super(Category, self)._normalize()
@@ -108,16 +129,23 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def get_toc_object(self):
         from sefaria.model import library
+
         toc_tree = library.get_toc_tree()
         return toc_tree.lookup(self.path)
 
     def can_delete(self):
         obj = self.get_toc_object()
         if not obj:
-            logger.error("Could not get TOC object for Category {}.".format("/".join(self.path)))
+            logger.error(
+                "Could not get TOC object for Category {}.".format("/".join(self.path))
+            )
             return False
         if len(obj.children):
-            logger.error("Can not delete category {} that has contents.".format("/".join(self.path)))
+            logger.error(
+                "Can not delete category {} that has contents.".format(
+                    "/".join(self.path)
+                )
+            )
             return False
         return True
 
@@ -134,11 +162,14 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         cat_choice_dict = defaultdict(list)
         for index in indexes:
             for icat, cat in enumerate(index.categories):
-                cat_path = tuple(index.categories[:icat+1])
+                cat_path = tuple(index.categories[: icat + 1])
                 cat_choice_dict[(icat, cat_path)] += [index]
-        sorted_cat_options = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+        sorted_cat_options = sorted(
+            cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True
+        )
         (_, cat_path), top_indexes = sorted_cat_options[0]
         return Category().load({"path": list(cat_path)})
+
 
 class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
@@ -147,7 +178,9 @@ class CategorySet(abstract.AbstractMongoSet):
 def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
     from sefaria.model.text import library
 
-    old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
+    old_toc_node = library.get_toc_tree().lookup(
+        changed_cat.path[:-1] + [kwargs["old"]]
+    )
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
     children = old_toc_node.all_children()
@@ -177,7 +210,17 @@ def toc_serial_to_objects(toc):
     root = TocCategory()
     root.add_primary_titles("TOC", "שרש")
     for e in toc:
-        root.append(schema.deserialize_tree(e, struct_class=TocCategory, struct_title_attr="category", leaf_class=TocTextIndex, leaf_title_attr="title", children_attr="contents", additional_classes=[TocCollectionNode]))
+        root.append(
+            schema.deserialize_tree(
+                e,
+                struct_class=TocCategory,
+                struct_title_attr="category",
+                leaf_class=TocTextIndex,
+                leaf_title_attr="title",
+                children_attr="contents",
+                additional_classes=[TocCollectionNode],
+            )
+        )
     return root
 
 
@@ -194,24 +237,37 @@ class TocTree(object):
 
         # Store first section ref.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
-        self._vs_lookup = {vs["title"]: {
-            "first_section_ref": vs.get("first_section_ref"),
-            "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
-            "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
-        } for vs in vss}
+        self._vs_lookup = {
+            vs["title"]: {
+                "first_section_ref": vs.get("first_section_ref"),
+                "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
+                "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
+            }
+            for vs in vss
+        }
 
         # Build Category object tree from stored Category objects
         for c in CategorySet(sort=[("depth", 1)]):
             self._add_category(c)
 
         # Get all of the first comment links
-        ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
-        self._first_comment_lookup = {frozenset(l["first_comment_indexes"]): l["first_comment_section_ref"] for l in ls}
+        ls = db.links.find(
+            {"is_first_comment": True},
+            {"first_comment_indexes": 1, "first_comment_section_ref": 1},
+        )
+        self._first_comment_lookup = {
+            frozenset(l["first_comment_indexes"]): l["first_comment_section_ref"]
+            for l in ls
+        }
 
         # Place Indexes
-        indx_set = self._library.all_index_records() if self._library else text.IndexSet()
+        indx_set = (
+            self._library.all_index_records() if self._library else text.IndexSet()
+        )
         for i in indx_set:
-            if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+            if (
+                i.categories and i.categories[0] == "_unlisted"
+            ):  # For the dummy sheet Index record
                 continue
             node = self._make_index_node(i, mobile=mobile)
             cat = self.lookup(i.categories)
@@ -229,28 +285,32 @@ class TocTree(object):
                     flag = False if not vs[field] else getattr(acat, field, True)
                     setattr(acat, field, flag)
                     if acat.get_primary_title() == "Commentary":
-                        break # Don't consider a category incomplete for containing incomplete commentaries
+                        break  # Don't consider a category incomplete for containing incomplete commentaries
 
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Collections in TOC that has a `toc` field set
-        collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
+        collections = collection.CollectionSet(
+            {"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}}
+        )
         for c in collections:
             self._collections_in_library.append(c.slug)
             node = TocCollectionNode(collection_object=c)
             categories = node.categories
-            cat  = self.lookup(node.categories)
+            cat = self.lookup(node.categories)
             if not cat:
                 logger.warning("Failed to find category for {}".format(categories))
                 continue
             cat.append(node)
-           
+
             self._path_hash[tuple(node.categories + [c.slug])] = node
 
         self._sort()
 
-    def all_category_nodes(self, include_root = True):
-        return ([self._root] if include_root else []) + [v for v in list(self._path_hash.values()) if isinstance(v, TocCategory)]
+    def all_category_nodes(self, include_root=True):
+        return ([self._root] if include_root else []) + [
+            v for v in list(self._path_hash.values()) if isinstance(v, TocCategory)
+        ]
 
     def _sort(self):
         def _explicit_order_and_title(node):
@@ -262,7 +322,7 @@ class TocTree(object):
 
             # First sort by order attr
             try:
-                return (node.order < 0, node.order) #negative order should be least
+                return (node.order < 0, node.order)  # negative order should be least
 
             # Sort objects w/o order attr by title
             except AttributeError:
@@ -282,18 +342,22 @@ class TocTree(object):
         if mobile:
             vs = self._vs_lookup.get(title, {})
             d["firstSection"] = vs.get("first_section_ref", None)
-        
+
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
-            d["refs_to_base_texts"] = {btitle:
-                self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
+            d["refs_to_base_texts"] = {
+                btitle: self._first_comment_lookup.get(
+                    frozenset([btitle, title]), d["firstSection"]
+                )
                 for btitle in d["base_text_titles"]
-                }
-        
+            }
+
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
         tc = TocCategory(category_object=cat)
-        parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+        parent = (
+            self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+        )
         parent.append(tc)
         self._path_hash[tuple(cat.path)] = tc
 
@@ -311,9 +375,13 @@ class TocTree(object):
         Returns an array of strings which corresponds to each text in the
         Table of Contents in order.
         """
-        return [n.primary_title() for n in self._root.get_leaf_nodes() if isinstance(n, TocTextIndex)]
+        return [
+            n.primary_title()
+            for n in self._root.get_leaf_nodes()
+            if isinstance(n, TocTextIndex)
+        ]
 
-    #todo: Get rid of the special case for "other", by placing it in the Index's category lists
+    # todo: Get rid of the special case for "other", by placing it in the Index's category lists
     def lookup(self, cat_path, title=None):
         """
         :param cat_path: A list or tuple of the path to this category
@@ -343,10 +411,15 @@ class TocTree(object):
 
         if recount or not node:
             from .version_state import VersionState
+
             try:
                 vs = VersionState(title)
             except BookNameError:
-                logger.warning("Failed to find VersionState for {} in TocTree.update_title()".format(title))
+                logger.warning(
+                    "Failed to find VersionState for {} in TocTree.update_title()".format(
+                        title
+                    )
+                )
                 return
             vs.refresh()
             # sn = vs.state_node(index.nodes)
@@ -359,10 +432,16 @@ class TocTree(object):
         if node:
             node.replace(new_node)
         else:
-            logger.info("Did not find TOC node to update: {} - adding.".format("/".join(index.categories + [title])))
+            logger.info(
+                "Did not find TOC node to update: {} - adding.".format(
+                    "/".join(index.categories + [title])
+                )
+            )
             cat = self.lookup(index.categories)
             if not cat:
-                logger.warning("Failed to find category for {}".format(index.categories))
+                logger.warning(
+                    "Failed to find category for {}".format(index.categories)
+                )
             cat.append(new_node)
 
         self._path_hash[tuple(index.categories + [index.title])] = new_node
@@ -372,11 +451,9 @@ class TocNode(schema.TitledTreeNode):
     """
     Abstract superclass for all TOC nodes.
     """
+
     langs = ["he", "en"]
-    title_attrs = {
-        "en": "",
-        "he": ""
-    }
+    title_attrs = {"en": "", "he": ""}
     thin_keys = []
 
     def __init__(self, serial=None, **kwargs):
@@ -390,7 +467,9 @@ class TocNode(schema.TitledTreeNode):
 
     @property
     def full_path(self):
-        return [n.primary_title("en") for n in self.ancestors()[1:]] + [self.primary_title("en")]
+        return [n.primary_title("en") for n in self.ancestors()[1:]] + [
+            self.primary_title("en")
+        ]
 
     # This varies a bit from the superclass. Seems not worthwhile to abstract into the superclass.
     def serialize(self, **kwargs):
@@ -400,10 +479,17 @@ class TocNode(schema.TitledTreeNode):
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
         if kwargs.get("thin") is True:
-            params = {k: getattr(self, k) for k in self.thin_keys if getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
+            params = {
+                k: getattr(self, k)
+                for k in self.thin_keys
+                if getattr(self, k, "BLANKVALUE") != "BLANKVALUE"
+            }
         else:
-            params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
-                  getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
+            params = {
+                k: getattr(self, k)
+                for k in self.required_param_keys + self.optional_param_keys
+                if getattr(self, k, "BLANKVALUE") != "BLANKVALUE"
+            }
         if any(params):
             d.update(params)
 
@@ -419,18 +505,22 @@ class TocCategory(TocNode):
     "heCategory": hebrew_term(""),
     "contents": []
     """
+
     def __init__(self, serial=None, **kwargs):
         self._category_object = kwargs.pop("category_object", None)
         super(TocCategory, self).__init__(serial, **kwargs)
         if self._category_object:
-            self.add_primary_titles(self._category_object.get_primary_title("en"), self._category_object.get_primary_title("he"))
+            self.add_primary_titles(
+                self._category_object.get_primary_title("en"),
+                self._category_object.get_primary_title("he"),
+            )
             if getattr(self._category_object, "isPrimary", False):
                 self.isPrimary = True
             if getattr(self._category_object, "searchRoot", False):
                 self.searchRoot = self._category_object.searchRoot
             for field in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
                 setattr(self, field, getattr(self._category_object, field, ""))
-        if hasattr(self._category_object, 'order'):
+        if hasattr(self._category_object, "order"):
             self.order = self._category_object.order
 
     optional_param_keys = [
@@ -442,13 +532,10 @@ class TocCategory(TocNode):
         "enShortDesc",
         "heShortDesc",
         "isPrimary",
-        "searchRoot"
+        "searchRoot",
     ]
 
-    title_attrs = {
-        "he": "heCategory",
-        "en": "category"
-    }
+    title_attrs = {"he": "heCategory", "en": "category"}
 
     def get_category_object(self):
         return self._category_object
@@ -472,7 +559,7 @@ class TocTextIndex(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
         super(TocTextIndex, self).__init__(serial, **kwargs)
-        if hasattr(self._index_object, 'order'):
+        if hasattr(self._index_object, "order"):
             self.order = self._index_object.order[0]
 
     def get_index_object(self):
@@ -499,10 +586,7 @@ class TocTextIndex(TocNode):
         "hidden",
         "corpus",
     ]
-    title_attrs = {
-        "en": "title",
-        "he": "heTitle"
-    }
+    title_attrs = {"en": "title", "he": "heTitle"}
 
 
 class TocCollectionNode(TocNode):
@@ -514,6 +598,7 @@ class TocCollectionNode(TocNode):
     enComplete: true
     heComplete: true
     """
+
     def __init__(self, serial=None, collection_object=None, **kwargs):
         if collection_object:
             self._collection_object = collection_object
@@ -522,8 +607,12 @@ class TocCollectionNode(TocNode):
                 "categories": c_contents["toc"]["categories"],
                 "name": c_contents["name"],
                 "slug": c_contents["slug"],
-                "title": c_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["title"],
-                "heTitle": c_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["heTitle"], 
+                "title": c_contents["toc"]["collectiveTitle"]["en"]
+                if "collectiveTitle" in c_contents["toc"]
+                else c_contents["toc"]["title"],
+                "heTitle": c_contents["toc"]["collectiveTitle"]["he"]
+                if "collectiveTitle" in c_contents["toc"]
+                else c_contents["toc"]["heTitle"],
                 "enShortDesc": c_contents["toc"].get("enShortDesc", ""),
                 "heShortDesc": c_contents["toc"].get("heShortDesc", ""),
                 "isCollection": True,
@@ -531,7 +620,9 @@ class TocCollectionNode(TocNode):
                 "heComplete": True,
             }
         elif serial:
-            self._collection_object = collection.Collection().load({"slug": serial["slug"]})
+            self._collection_object = collection.Collection().load(
+                {"slug": serial["slug"]}
+            )
 
         super(TocCollectionNode, self).__init__(serial)
 

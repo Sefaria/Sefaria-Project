@@ -15,11 +15,15 @@ def epoch_time(since=None):
     if since is None:
         since = datetime.utcnow()
     # define total_seconds which exists in Python3
-    total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
+    total_seconds = lambda delta: int(
+        delta.days * 86400 + delta.seconds + delta.microseconds / 1e6
+    )
     return total_seconds(since - epoch)
 
 
-def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
+def graceful_exception(
+    logger=None, logLevel="exception", return_value=[], exception_type=Exception
+):
     def argumented_decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
@@ -27,10 +31,15 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
                 return func(*args, **kwargs)
             except exception_type as e:
                 if logger:
-                    logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
+                    logger.exception(
+                        str(e)
+                    ) if logLevel == "exception" else logger.warning(str(e))
             return return_value
+
         return decorated_function
+
     return argumented_decorator
+
 
 # also at JaggedArray.depth().  Still needed?
 def list_depth(x, deep=False):
@@ -59,18 +68,20 @@ def list_depth(x, deep=False):
        credit: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
 """
 
+
 def list_chunks(l, n):
     # For item i in a range that is a length of l,
     for i in range(0, len(l), n):
         # Create an index range for l of n items:
-        yield l[i:i+n]
+        yield l[i : i + n]
 
-#checks if a file is in directory
+
+# checks if a file is in directory
 def in_directory(file, directory):
     import os.path
 
     # make both absolute
-    directory = os.path.join(os.path.realpath(directory), '')
+    directory = os.path.join(os.path.realpath(directory), "")
     file = os.path.realpath(file)
     if not os.path.exists(directory) or not os.path.isdir(directory):
         return False
@@ -84,6 +95,7 @@ def in_directory(file, directory):
 def get_directory_content(dirname, modified_after=False):
     import os
     import os.path
+
     filenames = []
     for path, subdirs, files in os.walk(dirname):
         for name in files:
@@ -91,6 +103,7 @@ def get_directory_content(dirname, modified_after=False):
             if modified_after is False or os.path.getmtime(filepath) > modified_after:
                 filenames.append(filepath)
     return filenames
+
 
 # Moving to JaggedArray.flattenToArray()
 def flatten_jagged_array(jagged):
@@ -126,12 +139,12 @@ def rtrim_jagged_string_array(ja):
     if not isinstance(ja, list):
         return ja
     while len(ja) and not ja[-1]:
-        ja.pop() # Remove any trailing Falsey values ("", 0, False)
+        ja.pop()  # Remove any trailing Falsey values ("", 0, False)
     return [rtrim_jagged_string_array(j) for j in ja]
 
 
 def union(a, b):
-    """ return the union of two lists """
+    """return the union of two lists"""
     return list(set(a) | set(b))
 
 
@@ -148,7 +161,7 @@ class MLStripper(HTMLParser):
         self.fed.append(d)
 
     def get_data(self):
-        return ' '.join(self.fed)
+        return " ".join(self.fed)
 
 
 def strip_tags(html, remove_new_lines=False):
@@ -171,17 +184,29 @@ def text_preview(en, he):
     text merging what's available in jagged string arrays 'en' and 'he'.
     """
     n_chars = 80
-    en = [en] if isinstance(en, str) else [""] if en == [] or not isinstance(en, list) else en
-    he = [he] if isinstance(he, str) else [""] if he == [] or not isinstance(he, list) else he
+    en = (
+        [en]
+        if isinstance(en, str)
+        else [""]
+        if en == [] or not isinstance(en, list)
+        else en
+    )
+    he = (
+        [he]
+        if isinstance(he, str)
+        else [""]
+        if he == [] or not isinstance(he, list)
+        else he
+    )
 
     def preview(section):
         """Returns a preview string for list section"""
-        section =[s for s in section if isinstance(s, str)]
+        section = [s for s in section if isinstance(s, str)]
         section = " ".join(map(str, section))
         return strip_tags(section[:n_chars]).strip()
 
     if not any(isinstance(x, list) for x in en + he):
-        return {'en': preview(en), 'he': preview(he)}
+        return {"en": preview(en), "he": preview(he)}
     else:
         zipped = zip_longest(en, he)
         return [text_preview(x[0], x[1]) for x in zipped]
@@ -206,7 +231,7 @@ def string_overlap(text1, text2):
     # Quick check for the worst case.
     if text1 == text2:
         return min(text1_length, text2_length)
- 
+
     # Start by looking for a single character match
     # and increase length until no match is found.
     best = 0
@@ -228,22 +253,22 @@ def td_format(td_object):
     """
     seconds = int(td_object.total_seconds())
     periods = [
-            ('year',        60*60*24*365),
-            ('month',       60*60*24*30),
-            ('day',         60*60*24),
-            ('hour',        60*60),
-            ('minute',      60),
-            ('second',      1)
-            ]
+        ("year", 60 * 60 * 24 * 365),
+        ("month", 60 * 60 * 24 * 30),
+        ("day", 60 * 60 * 24),
+        ("hour", 60 * 60),
+        ("minute", 60),
+        ("second", 1),
+    ]
 
-    strings=[]
-    for period_name,period_seconds in periods:
-            if seconds > period_seconds:
-                    period_value , seconds = divmod(seconds,period_seconds)
-                    if period_value == 1:
-                            strings.append("%s %s" % (period_value, period_name))
-                    else:
-                            strings.append("%s %ss" % (period_value, period_name))
+    strings = []
+    for period_name, period_seconds in periods:
+        if seconds > period_seconds:
+            period_value, seconds = divmod(seconds, period_seconds)
+            if period_value == 1:
+                strings.append("%s %s" % (period_value, period_name))
+            else:
+                strings.append("%s %ss" % (period_value, period_name))
 
     return ", ".join(strings)
 
@@ -273,7 +298,7 @@ def replace_using_regex(regex, query, old, new, endline=None):
             temp = match.replace(old, new)
             query = query.replace(match, temp)
         if endline is not None:
-            query.replace('\n', endline+'\n')
+            query.replace("\n", endline + "\n")
     return query
 
 
@@ -326,26 +351,25 @@ def titlecase(text):
     Words with capitalized letters in the middle (e.g. Tu B'Shvat, iTunes, etc) are left alone as well.
     """
 
-    SMALL = r'a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?'
+    SMALL = r"a|an|and|as|at|but|by|en|for|if|in|of|on|or|the|to|v\.?|via|vs\.?"
     PUNCT = r"""!"#$%&'‘()*+,\-./:;?@[\\\]_`{|}~"""
-    SMALL_WORDS = re.compile(r'^(%s)$' % SMALL, re.I)
-    INLINE_PERIOD = re.compile(r'[a-z][.][a-z]', re.I)
-    UC_ELSEWHERE = re.compile(r'[%s]*?[a-zA-Z]+[A-Z]+?' % PUNCT)
+    SMALL_WORDS = re.compile(r"^(%s)$" % SMALL, re.I)
+    INLINE_PERIOD = re.compile(r"[a-z][.][a-z]", re.I)
+    UC_ELSEWHERE = re.compile(r"[%s]*?[a-zA-Z]+[A-Z]+?" % PUNCT)
     CAPFIRST = re.compile(r"^[%s]*?([A-Za-z])" % PUNCT)
-    SMALL_FIRST = re.compile(r'^([%s]*)(%s)\b' % (PUNCT, SMALL), re.I)
-    SMALL_LAST = re.compile(r'\b(%s)[%s]?$' % (SMALL, PUNCT), re.I)
-    SUBPHRASE = re.compile(r'([:.;?!\-\—][ ])(%s)' % SMALL)
+    SMALL_FIRST = re.compile(r"^([%s]*)(%s)\b" % (PUNCT, SMALL), re.I)
+    SMALL_LAST = re.compile(r"\b(%s)[%s]?$" % (SMALL, PUNCT), re.I)
+    SUBPHRASE = re.compile(r"([:.;?!\-\—][ ])(%s)" % SMALL)
     APOS_SECOND = re.compile(r"^[dol]{1}['‘]{1}[a-z]+(?:['s]{2})?$", re.I)
-    ALL_CAPS = re.compile(r'^[A-Z\s\d%s]+$' % PUNCT)
+    ALL_CAPS = re.compile(r"^[A-Z\s\d%s]+$" % PUNCT)
     UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
     MAC_MC = re.compile(r"^([Mm]c|MC)(\w.+)")
 
-
-    lines = re.split('[\r\n]+', text)
+    lines = re.split("[\r\n]+", text)
     processed = []
     for line in lines:
         all_caps = ALL_CAPS.match(line)
-        words = re.split('[\t ]', line)
+        words = re.split("[\t ]", line)
         tc_line = []
         for word in words:
 
@@ -355,7 +379,7 @@ def titlecase(text):
                     continue
 
             if APOS_SECOND.match(word):
-                if len(word[0]) == 1 and word[0] not in 'aeiouAEIOU':
+                if len(word[0]) == 1 and word[0] not in "aeiouAEIOU":
                     word = word[0].lower() + word[1] + word[2].upper() + word[3:]
                 else:
                     word = word[0].upper() + word[1] + word[2].upper() + word[3:]
@@ -364,11 +388,14 @@ def titlecase(text):
 
             match = MAC_MC.match(word)
             if match:
-                tc_line.append("%s%s" % (match.group(1).capitalize(),
-                                         titlecase(match.group(2))))
+                tc_line.append(
+                    "%s%s" % (match.group(1).capitalize(), titlecase(match.group(2)))
+                )
                 continue
 
-            if INLINE_PERIOD.search(word) or (not all_caps and UC_ELSEWHERE.match(word)):
+            if INLINE_PERIOD.search(word) or (
+                not all_caps and UC_ELSEWHERE.match(word)
+            ):
                 tc_line.append(word)
                 continue
             if SMALL_WORDS.match(word):
@@ -376,12 +403,12 @@ def titlecase(text):
                 continue
 
             if "/" in word and "//" not in word:
-                slashed = [titlecase(t) for t in word.split('/')]
+                slashed = [titlecase(t) for t in word.split("/")]
                 tc_line.append("/".join(slashed))
                 continue
 
-            if '-' in word:
-                hyphenated = [titlecase(t) for t in word.split('-')]
+            if "-" in word:
+                hyphenated = [titlecase(t) for t in word.split("-")]
                 tc_line.append("-".join(hyphenated))
                 continue
 
@@ -390,17 +417,15 @@ def titlecase(text):
 
         result = " ".join(tc_line)
 
-        result = SMALL_FIRST.sub(lambda m: '%s%s' % (
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SMALL_FIRST.sub(
+            lambda m: "%s%s" % (m.group(1), m.group(2).capitalize()), result
+        )
 
         result = SMALL_LAST.sub(lambda m: m.group(0).capitalize(), result)
 
-        result = SUBPHRASE.sub(lambda m: '%s%s' % (
-            m.group(1),
-            m.group(2).capitalize()
-        ), result)
+        result = SUBPHRASE.sub(
+            lambda m: "%s%s" % (m.group(1), m.group(2).capitalize()), result
+        )
 
         processed.append(result)
 
@@ -410,8 +435,8 @@ def titlecase(text):
 def short_to_long_lang_code(code):
     if code in ("bi", "he-en", "en-he"):
         code = "bilingual"
-    elif code in ('he', 'he-il'):
-        code = 'hebrew'
+    elif code in ("he", "he-il"):
+        code = "hebrew"
     elif code in ("en"):
         code = "english"
     return code
@@ -443,6 +468,7 @@ def get_size(obj, seen=None):
     """Recursively finds size of objects in bytes"""
     import inspect
     import sys
+
     size = sys.getsizeof(obj)
     if seen is None:
         seen = set()
@@ -452,28 +478,29 @@ def get_size(obj, seen=None):
     # Important mark as seen *before* entering recursion to gracefully handle
     # self-referential objects
     seen.add(obj_id)
-    if hasattr(obj, '__dict__'):
+    if hasattr(obj, "__dict__"):
         for cls in obj.__class__.__mro__:
-            if '__dict__' in cls.__dict__:
-                d = cls.__dict__['__dict__']
+            if "__dict__" in cls.__dict__:
+                d = cls.__dict__["__dict__"]
                 if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
                     size += get_size(obj.__dict__, seen)
                 break
     if isinstance(obj, dict):
         size += sum((get_size(v, seen) for v in list(obj.values())))
         size += sum((get_size(k, seen) for k in list(obj.keys())))
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
         size += sum((get_size(i, seen) for i in obj))
     return size
 
 
-def get_hebrew_date(dt_obj:datetime) -> tuple:
+def get_hebrew_date(dt_obj: datetime) -> tuple:
     """
 
     :param dt_obj : datetime object
     :return: en date and he date for Hebrew date
     """
     from convertdate import hebrew
+
     months = [
         ("Nisan", "ניסן"),
         ("Iyar", "אייר"),
@@ -490,8 +517,8 @@ def get_hebrew_date(dt_obj:datetime) -> tuple:
         ("Adar II", "אדר ב׳"),
     ]
     y, m, d = hebrew.from_gregorian(dt_obj.year, dt_obj.month, dt_obj.day)
-    en = "{} {}, {}".format(months[m-1][0], d, y)
-    he = "{} {}, {}".format(months[m-1][1], d, y)
+    en = "{} {}, {}".format(months[m - 1][0], d, y)
+    he = "{} {}, {}".format(months[m - 1][1], d, y)
     return en, he
 
 
@@ -507,7 +534,10 @@ def traverse_dict_tree(dict_tree: dict, key_list: list):
         current_node = current_node[key]
     return current_node
 
-def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
+
+def get_lang_codes_for_territory(
+    territory_code, min_pop_perc=0.2, official_status=False
+):
     """
     Wrapper for babel.languages.get_territory_language_info
     Documentation here: https://github.com/python-babel/babel/blob/master/babel/languages.py#L45 (strange that this function isn't documented on their official site)
@@ -515,29 +545,41 @@ def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_stat
     :param territory_code: two letter territory ISO code. If doesn't match anything babel recognizes, returns empty array
     :param min_pop_perc: min population percentage of language usage in territory. stats are likely only mildly accurate but good enough
     :param official_status: the status of the language in the territory. I think this can be 'official', 'de_facto_official', None, 'official_regional'. False means return all.
-    
+
     returns array of ISO lang codes
     """
     from babel import languages
+
     lang_dict = languages.get_territory_language_info(territory_code)
-    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
+    langs = [
+        lang_code
+        for lang_code, _ in filter(
+            lambda x: x[1]["population_percent"] >= (min_pop_perc * 100)
+            and (
+                (official_status == False) or x[1]["official_status"] == official_status
+            ),
+            lang_dict.items(),
+        )
+    ]
     return langs
 
 
-def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to_wrap=False):
-    chars_to_wrap.sort(key=lambda x: (x[0],x[0]-x[1]))
+def wrap_chars_with_overlaps(
+    s, chars_to_wrap, get_wrapped_text, return_chars_to_wrap=False
+):
+    chars_to_wrap.sort(key=lambda x: (x[0], x[0] - x[1]))
     for i, (start, end, metadata) in enumerate(chars_to_wrap):
         wrapped_text, start_added, end_added = get_wrapped_text(s[start:end], metadata)
         s = s[:start] + wrapped_text + s[end:]
         chars_to_wrap[i] = (start, end + start_added + end_added, metadata)
-        for j, (start2, end2, metadata2) in enumerate(chars_to_wrap[i+1:]):
+        for j, (start2, end2, metadata2) in enumerate(chars_to_wrap[i + 1 :]):
             if start2 >= end:
                 start2 += end_added
             start2 += start_added
             if end2 > end:
                 end2 += end_added
             end2 += start_added
-            chars_to_wrap[i+j+1] = (start2, end2, metadata2)
+            chars_to_wrap[i + j + 1] = (start2, end2, metadata2)
     if return_chars_to_wrap:
         return s, chars_to_wrap
     return s

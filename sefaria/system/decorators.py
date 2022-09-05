@@ -24,7 +24,10 @@ def json_response_decorator(func):
 
     @wraps(func)
     def decorator(request, *args, **kwargs):
-        return jsonResponse(func(request, *args, **kwargs), callback=request.GET.get("callback", None))
+        return jsonResponse(
+            func(request, *args, **kwargs), callback=request.GET.get("callback", None)
+        )
+
     return decorator
 
 
@@ -32,15 +35,24 @@ def catch_error_as_json(func):
     """
     Decorator that catches InputErrors and translates them into JSON 'error' dicts for front end consumption.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            logger.warning("An exception occurred processing request for '{}' while running {}. Caught as JSON".format(args[0].path, func.__name__), exc_info=True)
+            logger.warning(
+                "An exception occurred processing request for '{}' while running {}. Caught as JSON".format(
+                    args[0].path, func.__name__
+                ),
+                exc_info=True,
+            )
             request = args[0]
-            return jsonResponse({"error": str(e)}, callback=request.GET.get("callback", None))
+            return jsonResponse(
+                {"error": str(e)}, callback=request.GET.get("callback", None)
+            )
         return result
+
     return wrapper
 
 
@@ -48,20 +60,38 @@ def catch_error_as_http(func):
     """
     Decorator that catches InputErrors and returns an error page.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
             result = func(*args, **kwargs)
         except exps.InputError as e:
-            logger.warning("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__), exc_info=True)
+            logger.warning(
+                "An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(
+                    args[0].path, func.__name__
+                ),
+                exc_info=True,
+            )
             raise Http404
         except Http404:
             raise
         except Exception as e:
-            logger.exception("An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(args[0].path, func.__name__))
-            return render_to_response(args[0], 'static/generic.html',
-                             {"content": "There was an error processing your request: {}".format(str(e))})
+            logger.exception(
+                "An exception occurred processing request for '{}' while running {}. Caught as HTTP".format(
+                    args[0].path, func.__name__
+                )
+            )
+            return render_to_response(
+                args[0],
+                "static/generic.html",
+                {
+                    "content": "There was an error processing your request: {}".format(
+                        str(e)
+                    )
+                },
+            )
         return result
+
     return wrapper
 
 
@@ -69,13 +99,14 @@ def log(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         """Assumes that function doesn't change input data"""
-        #logger.debug("Calling: " + func + "(" + args + kwargs + ")")
+        # logger.debug("Calling: " + func + "(" + args + kwargs + ")")
         result = func(*args, **kwargs)
         msg = func.__name__ + "(" + ",".join([str(a) for a in args])
         msg += ", " + str(kwargs) if kwargs else ""
         msg += "):\n\t" + str(result)
         logger.debug(msg)
         return result
+
     return wrapper
 
 
@@ -84,14 +115,20 @@ def sanitize_get_params(func):
     For view functions where first param is `request`
     Uses bleach to protect against XSS attacks in GET requests
     """
+
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        request.GET = request.GET.copy()  #  see https://stackoverflow.com/questions/18930234/django-modifying-the-request-object/18931697
+        request.GET = (
+            request.GET.copy()
+        )  #  see https://stackoverflow.com/questions/18930234/django-modifying-the-request-object/18931697
         for k, v in list(request.GET.items()):
             request.GET[k] = bleach.clean(v)
-        args = [bleach.clean(a) if isinstance(a, str) else a for a in args]  # while we're at it, clean any other vars passed
+        args = [
+            bleach.clean(a) if isinstance(a, str) else a for a in args
+        ]  # while we're at it, clean any other vars passed
         result = func(request, *args, **kwargs)
         return result
+
     return wrapper
 
 
@@ -120,9 +157,9 @@ class memoized(object):
             return value
 
     def __repr__(self):
-        '''Return the function's docstring.'''
+        """Return the function's docstring."""
         return self.func.__doc__
 
     def __get__(self, obj, objtype):
-        '''Support instance methods.'''
+        """Support instance methods."""
         return partial(self.__call__, obj)
