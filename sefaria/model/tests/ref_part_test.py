@@ -162,7 +162,10 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
     # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
     [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
-    pytest.param(crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 1:7", "Genesis 7"], marks=pytest.mark.xfail(reason="Need to decide if this case is inherently ambiguous. If we think it's explicitly Genesis 7, what rules are needed?")),
+    [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
+    [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
+    [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
+    [crrd(None, 'he', 'שם ב:ז', [0, 1, 3], [RPT.IBID, RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 2:7"]],
 
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
