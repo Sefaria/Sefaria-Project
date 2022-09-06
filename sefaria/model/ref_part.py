@@ -993,30 +993,35 @@ class TermMatcher:
 
 class IbidHistory:
 
-    def __init__(self, last_n_to_store: int = 3):
-        self.last_n_to_store = last_n_to_store
-        self._last_match: Optional[text.Ref] = None
+    def __init__(self, last_n_titles: int = 3, last_n_refs: int = 3):
+        self.last_n_titles = last_n_titles
+        self.last_n_refs = last_n_refs
+        self._last_refs: List[text.Ref] = []
         self._last_titles: List[str] = []
         self._title_ref_map: Dict[str, text.Ref] = {}
 
-    def _get_last_match(self) -> Optional[text.Ref]:
-        return self._last_match
+    def _get_last_refs(self) -> List[text.Ref]:
+        return self._last_refs
 
     def _set_last_match(self, oref: text.Ref):
-        self._last_match = oref
+        self._last_refs += [oref]
         title = oref.index.title
         if title not in self._title_ref_map:
             self._last_titles += [title]
         self._title_ref_map[oref.index.title] = oref
 
-        # enforce last_n_to_store
-        if len(self._last_titles) > self.last_n_to_store:
+        # enforce last_n_titles
+        if len(self._last_titles) > self.last_n_titles:
             oldest_title = self._last_titles.pop(0)
             del self._title_ref_map[oldest_title]
 
-    last_match = property(_get_last_match, _set_last_match)
+        # enforce last_n_refs
+        if len(self._last_refs) > self.last_n_refs:
+            self._last_refs.pop(0)
 
-    def get_match_by_title(self, title: str) -> Optional[text.Ref]:
+    last_refs = property(_get_last_refs, _set_last_match)
+
+    def get_ref_by_title(self, title: str) -> Optional[text.Ref]:
         return self._title_ref_map.get(title, None)
 
 
@@ -1103,7 +1108,7 @@ class RefResolver:
                     # TODO can probably salvage parts of history if matches are ambiguous within one book
                     self.reset_ibid_history()
                 else:
-                    self._ibid_history.last_match = temp_resolved[-1].ref
+                    self._ibid_history.last_refs = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         self._map_normal_output_to_original_input(lang, input, resolved)
@@ -1251,7 +1256,7 @@ class RefResolver:
         'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
         context_full_matches = []
-        contexts = ((book_context_ref, ContextType.CURRENT_BOOK), (self._ibid_history.last_match, ContextType.IBID))
+        contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         # NOTE: removing graph context for now since I can't think of a case when it's helpful
         # for context_ref, context_type in contexts:
         #     context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
@@ -1359,7 +1364,7 @@ class RefResolver:
             # context
             # if unrefined_match already used context, make sure it continues to use it
             # otherwise, consider other possible context
-            context_ref_list = [book_context_ref, self._ibid_history.last_match] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
+            context_ref_list = [book_context_ref, self._ibid_history.get_ref_by_title(unrefined_match.ref.index.title)] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
             for context_ref, context_type in zip(context_ref_list, context_type_list):
                 matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)

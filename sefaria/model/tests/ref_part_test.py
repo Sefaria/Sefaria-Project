@@ -275,7 +275,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
             if prev_tref is None:
                 ref_resolver.reset_ibid_history()
             else:
-                ref_resolver._ibid_history.last_match = Ref(prev_tref)
+                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
@@ -396,7 +396,7 @@ def test_ibid_history(last_n_to_store, trefs, expected_title_len):
     ibid = IbidHistory(last_n_to_store)
     orefs = [Ref(tref) for tref in trefs]
     for i, (oref, title_len) in enumerate(zip(orefs, expected_title_len)):
-        ibid.last_match = oref
+        ibid.last_refs = oref
         end = i-len(orefs)+1
         start = end-title_len
         end = None if end == 0 else end
