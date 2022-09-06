@@ -734,7 +734,12 @@ class ResolvedRef(abst.Cloneable):
         # return len(self.resolved_parts)
         # alternate sorting criteria that seems better than the above
         matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
-        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), self.num_resolved(include={ContextPart})
+
+        # this sort criteria solves the case where context is "Gen 1" and input is "Ibid 7". Prefer "Gen 7" over "Gen 1:7"
+        ibid_sections_match = 1
+        if self.context_type == ContextType.IBID:
+            ibid_sections_match = int(len(self.context_ref.sections) == len(self.ref.sections))
+        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), ibid_sections_match, self.num_resolved(include={ContextPart})
 
 
 class AmbiguousResolvedRef:
