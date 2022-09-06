@@ -1,9 +1,9 @@
 import pytest, re
 from functools import reduce
 from sefaria.model.text import Ref, library
-from sefaria.model.ref_part import *
+from sefaria.model.linker import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-from sefaria.model.ref_part import RefPartType as RPT
+from sefaria.model.linker import RefPartType as RPT
 from sefaria.model.schema import DiburHamatchilNodeSet
 import spacy
 from spacy.language import Language

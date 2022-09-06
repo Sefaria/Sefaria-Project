@@ -789,7 +789,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
     def ref_part_title_trie(self, lang: str):
-        from .ref_part import MatchTemplateTrie
+        from .linker import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
     def validate(self):
@@ -845,7 +845,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return d
 
     def get_match_templates(self):
-        from .ref_part import MatchTemplate
+        from .linker import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
 
@@ -1098,7 +1098,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         Does the address at index `section_index` match the address in `section_context`?
         """
-        from .ref_part import SectionContext
+        from .linker import SectionContext
         assert isinstance(section_context, SectionContext)
         if self.depth == 0: return False
         addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])

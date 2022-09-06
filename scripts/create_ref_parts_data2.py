@@ -6,7 +6,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.model.ref_part import MatchTemplate
+from sefaria.model.linker import MatchTemplate
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
 

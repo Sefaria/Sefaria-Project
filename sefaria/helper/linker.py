@@ -1,5 +1,5 @@
 import spacy
-from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
+from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union, Optional
 from collections import defaultdict

@@ -291,7 +291,7 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.ref_part import make_html, make_find_refs_response
+    from sefaria.helper.linker import make_html, make_find_refs_response
     from sefaria.utils.hebrew import is_hebrew
     with_text = bool(int(request.GET.get("with_text", False)))
     debug = bool(int(request.GET.get("debug", False)))
