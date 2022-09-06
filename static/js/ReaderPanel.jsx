@@ -1306,7 +1306,7 @@ class ReaderControls extends Component {
     const hideHeader        = !this.props.multiPanel && mode === "Connections";
     const connectionsHeader = this.props.multiPanel && mode === "Connections";
     let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
-    if (categoryAttribution) { displayVersionTitle = `(${displayVersionTitle})`; }
+    if (categoryAttribution && displayVersionTitle) { displayVersionTitle = `(${displayVersionTitle})`; }
     const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
     const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
