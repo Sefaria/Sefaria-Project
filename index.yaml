@@ -17,6 +17,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.33-varnish-rework.1.tgz
     version: 0.0.33-varnish-rework.1
   - apiVersion: v2
+    appVersion: v5.3.1
+    created: "2022-09-06T11:03:51.555710368Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 5753234249595ce174aa3947f5769115334b8d787c46e657b572cbf2e88d1ed9
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.33-linker-v3.1.tgz
+    version: 0.0.33-linker-v3.1
+  - apiVersion: v2
     appVersion: v5.2.0
     created: "2022-09-05T09:02:01.655257922Z"
     description: Chart to deploy complete Sefaria environment
@@ -405,4 +420,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-09-05T14:03:16.061958399Z"
+generated: "2022-09-06T11:03:51.551703941Z"
