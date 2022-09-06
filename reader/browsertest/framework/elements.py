@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 import inspect
 import os
@@ -25,7 +24,6 @@ from selenium.webdriver.support.expected_conditions import (
     element_to_be_clickable,
     presence_of_element_located,
     title_contains,
-    visibility_of_any_elements_located,
     visibility_of_element_located,
 )
 from selenium.webdriver.support.ui import WebDriverWait

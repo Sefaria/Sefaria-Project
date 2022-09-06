@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Annotates every source in all source sheets with a Hebrew Ref.
 """

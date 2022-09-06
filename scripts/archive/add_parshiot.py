@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
 
 import django
 
@@ -7,8 +5,6 @@ django.setup()
 import argparse
 import csv
 import glob
-import os
-import sys
 from copy import deepcopy
 from datetime import datetime
 

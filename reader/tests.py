@@ -1,23 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Run me with:
 python manage.py test reader
 """
-import sys
-
-# Tells sefaria.system.database to use a test db
-sys._called_from_test = True
-
 import json
+import sys
 from copy import deepcopy
-from pprint import pprint
 
+import sefaria.utils.testing_utils as tutils
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-
-import sefaria.system.cache as scache
-import sefaria.utils.testing_utils as tutils
 from sefaria.model import (
     Category,
     HistorySet,
@@ -27,17 +19,15 @@ from sefaria.model import (
     NoteSet,
     Ref,
     TextChunk,
-    UserHistory,
     UserHistorySet,
     VersionSet,
-    VersionState,
     VersionStateSet,
     library,
 )
 from sefaria.system.database import db
 
-# import selenium
-
+# Tells sefaria.system.database to use a test db
+sys._called_from_test = True
 
 c = Client()
 

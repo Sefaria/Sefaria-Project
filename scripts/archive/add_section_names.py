@@ -1,15 +1,11 @@
-# -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
-
 import os
 import sys
 
 import pymongo
+from config import *
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from datetime import datetime
 
-from config import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

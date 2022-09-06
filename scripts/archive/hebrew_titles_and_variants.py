@@ -3,21 +3,18 @@
 For mishna, add a leading u'משנה' to the Hebrew name
 To all index records with a heTitle, add heTitleVariants and copy the heTitle to heTitleVariants
 For mishna that does not have a Gemara as well, add the simple name to heTitleVariants
- 
 """
 
 import os
-import re
 import sys
-from pprint import pprint
 
 import pymongo
+from sefaria.summaries import update_table_of_contents
+from sefaria.texts import *
 
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-from sefaria.summaries import update_table_of_contents
-from sefaria.texts import *
 
 connection = pymongo.Connection()
 db = connection[SEFARIA_DB]

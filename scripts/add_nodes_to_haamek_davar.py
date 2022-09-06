@@ -1,4 +1,3 @@
-# encoding=utf-8
 
 __author__ = "stevenkaplan"
 from sefaria.helper.schema import *

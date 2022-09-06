@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Custom Sefaria Tags for Django Templates
 """
 import json
 import math
 import re
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import datetime
+from urllib import parse
 from urllib.parse import urlparse
 
-import dateutil.parser
+import sefaria.model as m
+from dateutil import parser
 from django import template
 from django.contrib.sites.models import Site
 from django.core.serializers import serialize
@@ -19,9 +17,6 @@ from django.db.models.query import QuerySet
 from django.template.defaultfilters import stringfilter
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
-
-import sefaria.model as m
-import sefaria.model.text
 from sefaria.model.collection import Collection
 from sefaria.model.text import Version
 from sefaria.model.user_profile import public_user_data
@@ -29,7 +24,6 @@ from sefaria.model.user_profile import user_link as ulink
 from sefaria.model.user_profile import user_name as uname
 from sefaria.sheets import get_sheet
 from sefaria.utils.hebrew import hebrew_parasha_name, hebrew_plural
-from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
 from sefaria.utils.util import strip_tags as strip_tags_func
 
@@ -147,9 +141,7 @@ def version_link(v):
                 '<a href="/{}.1/{}/{}">{}</a>'.format(
                     v.title,
                     v.language,
-                    urllib.parse.quote(
-                        v.versionTitle.replace(" ", "_").encode("utf-8")
-                    ),
+                    parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")),
                     v.versionTitle,
                 )
             )
@@ -157,7 +149,7 @@ def version_link(v):
     link = '<a href="/{}/{}/{}">{}</a>'.format(
         section_ref.url(),
         v.language,
-        urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")),
+        parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")),
         v.versionTitle,
     )
     return mark_safe(link)
@@ -176,7 +168,7 @@ def text_toc_link(indx):
     en = indx.nodes.primary_title("en")
     he = indx.nodes.primary_title("he")
     link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(
-        urllib.parse.quote(indx.title), en, he
+        parse.quote(indx.title), en, he
     )
     return mark_safe(link)
 
@@ -198,7 +190,7 @@ def version_source_link(v):
     Return an <a> tag linking to the versionSource, or to a Google Search for the source.
     """
     if " " in v.versionSource or "." not in v.versionSource:
-        href = "https://www.google.com/search?q=" + urllib.parse.quote(
+        href = "https://www.google.com/search?q=" + parse.quote(
             v.versionSource.encode("utf8")
         )
         val = v.versionSource

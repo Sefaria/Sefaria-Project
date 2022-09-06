@@ -1,10 +1,4 @@
-# Sefaria
-# coding: utf-8
 import json
-import pprint
-import re
-import time
-
 import requests
 
 

@@ -1,21 +1,20 @@
-# This script runs all available tests on the remote service, and displays a report
-# It takes the build name as its only command line argument
+"""
+This script runs all available tests on the remote service, and displays a report
+It takes the build name as its only command line argument
+"""
 __package__ = "reader.browsertest"
 
 
+import os
 import sys
 from optparse import OptionParser
 
 import django
-from selenium import webdriver
-
-django.setup()
-
-import os
-import sys
 
 from . import basic_tests  # This is in fact needed - to register subclasses Trial, etc.
 from .framework import Trial
+
+django.setup()
 
 build = os.getenv("GITHUB_SHA_SHORT", "deadbeef")
 

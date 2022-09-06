@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Creates a group document in Mongo for each Django Group. 
+Creates a group document in Mongo for each Django Group.
 """
 from django.contrib.auth.models import Group
 

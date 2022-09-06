@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from sefaria.model import *
 
 pd_vars = ("public domain", "Public domain", "Publlic Domain")

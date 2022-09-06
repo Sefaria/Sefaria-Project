@@ -5,7 +5,6 @@ import sys
 from optparse import OptionParser
 
 import django
-from selenium import webdriver
 
 django.setup()
 from . import basic_tests

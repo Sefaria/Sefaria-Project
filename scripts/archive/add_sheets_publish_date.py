@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Add a 'datePublished' field to all existing public source sheets. 
 """
 import os
 import sys
 
+from sefaria.system.database import db
+
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
 
-from sefaria.system.database import db
 
 sheets = db.sheets.find({"status": "public"})
 for sheet in sheets:

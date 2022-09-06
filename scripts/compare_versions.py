@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 """
 The text of different editions of the Mishnah can have significant differences. In addition, the Wikisource

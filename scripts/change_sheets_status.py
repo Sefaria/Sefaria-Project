@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Add a 'datePublished' field to all existing public source sheets. 
 """

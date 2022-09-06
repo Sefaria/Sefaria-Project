@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 
 import argparse
 
-""" The main function, runs when called from the CLI"""
+"""The main function, runs when called from the CLI"""
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("commentator_name", help="commentator's name")

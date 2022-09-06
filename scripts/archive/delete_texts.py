@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Delete texts
-"""
+"""Delete texts"""
 
 import os
 import sys

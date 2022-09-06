@@ -1,4 +1,3 @@
-# encoding=utf-8
 
 """
 Script to convert Footnotes in B'Mareh HaBazak to standard footnote format. At the time this project was issued, the

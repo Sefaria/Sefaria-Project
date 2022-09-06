@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-#!/usr/bin/python2.6
 
-import locale
 import os
 import sys
 from datetime import datetime

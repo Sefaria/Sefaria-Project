@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Split Shulchan Aruch from being a single text of depth 3,
 transform into a text for each Chelek (depth 2).
@@ -13,8 +12,6 @@ import sys
 p = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, p)
 sys.path.insert(0, p + "/sefaria")
-
-import pymongo
 
 from sefaria.system.database import db
 

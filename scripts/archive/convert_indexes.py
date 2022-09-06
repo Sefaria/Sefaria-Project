@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from sefaria.clean import remove_old_counts
 from sefaria.model import *

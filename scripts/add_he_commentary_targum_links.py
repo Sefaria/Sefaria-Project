@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
-# add_links_from_text for every ref
+add_links_from_text for every ref
 
-# generate_refs_list to get all refs
-#	get_text (commentary=false)
-#		is there data in 'he'? (and skip tanach)
-#			add_links_from_text
+generate_refs_list to get all refs
+	get_text (commentary=false)
+		is there data in 'he'? (and skip tanach)
+			add_links_from_text
 """
 
 import os

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Convert subsources to regular sources with an indentation level.
 
