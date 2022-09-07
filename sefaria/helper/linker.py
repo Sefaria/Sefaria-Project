@@ -171,7 +171,15 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False):
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
+    """
+
+    @param resolved:
+    @param with_text:
+    @param debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
+    @param max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
+    @return:
+    """
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -192,7 +200,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             if rr.ref is None: continue
             tref = rr.ref.normal()
             if tref in ref_data: continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
+            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text, max_segments)
         if debug:
             debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
@@ -206,22 +214,25 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
+def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
     if with_text:
-        text_fam = text.TextFamily(oref, commentary=0, context=0, pad=False, stripItags=True)
-        he = text_fam.he
-        en = text_fam.text
         res.update({
-            'he': he,
-            'en': en,
+            'he': get_ref_text_by_lang_for_linker(oref, "he", max_segments),
+            'en': get_ref_text_by_lang_for_linker(oref, "en", max_segments),
         })
 
     return res
+
+
+def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
+    chunk = text.TextChunk(oref, lang=lang)
+    as_array = [chunk._strip_itags(s) for s in chunk.ja().flatten_to_array()]
+    return as_array[:max_segments or None]
 
 
 def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
