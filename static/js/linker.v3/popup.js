@@ -96,11 +96,13 @@ export class PopupManager {
                 'font-family: "Crimson Text";' +
                 'font-size: 18px;' +
                 'line-height: 1.2;' +
+                'direction: ltr;' +
             '}' +
             '#sefaria-popup .he, #sefaria-popup .he * {' +
                 'font-family: "Frank Ruhl Libre";' +
                 'font-size: 21px;' +
                 'line-height: 1.5;' +
+                'direction: rtl;' +
             '}' +
             '.content-hebrew .sefaria-text .en {' +
                 'display: none;' +
