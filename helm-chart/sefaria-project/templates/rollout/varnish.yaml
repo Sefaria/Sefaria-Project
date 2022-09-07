@@ -78,7 +78,7 @@ spec:
         - containerPort: 6082
         resources: {{ toYaml .Values.varnish.resources | nindent 10 }}
         volumeMounts:
-        - mountPath: /varnish-secret
+        - mountPath: /etc/varnish-secret
           name: varnish-secret
           readOnly: true
         - mountPath: /etc/varnish/
