@@ -63,7 +63,9 @@ class Header extends Component {
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
-            openURL={this.props.openURL} />
+            openURL={this.props.openURL}
+            hideHebrewKeyboard={!Sefaria._siteSettings.TORAH_SPECIFIC}
+          />
 
           { Sefaria._uid ?
             <LoggedInButtons headerMode={this.props.headerMode}/>
@@ -257,9 +259,7 @@ class SearchBar extends Component {
   focusSearch(e) {
     const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
-    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
-      this.showVirtualKeyboardIcon(true);
-    }
+    this.showVirtualKeyboardIcon(true);
   }
   blurSearch(e) {
     // check that you're actually focusing in on element outside of searchBox

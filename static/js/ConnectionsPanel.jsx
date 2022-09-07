@@ -695,6 +695,7 @@ class ConnectionsPanel extends Component {
                 sidebarSearchQuery={this.props.sidebarSearchQuery}
                 setSidebarSearchQuery={this.props.setSidebarSearchQuery}
                 onSidebarSearchClick={this.props.onSidebarSearchClick}
+                hideHebrewKeyboard={!Sefaria._siteSettings.TORAH_SPECIFIC}
               />
     }
 
