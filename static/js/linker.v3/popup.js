@@ -269,7 +269,7 @@ export class PopupManager {
         }
     };
 
-    showPopup(elem, {ref, heRef, en=[], he=[], primaryCategory}) {
+    showPopup(elem, {ref, heRef, en=[], he=[], primaryCategory, isTruncated=false}) {
         while (this.textBox.firstChild) {
             this.textBox.removeChild(this.textBox.firstChild);
         }
@@ -305,6 +305,12 @@ export class PopupManager {
             heBox.setAttribute("dir", "rtl");
             if (heBox.innerHTML) { this.textBox.appendChild(heBox); }
             if (enBox.innerHTML) { this.textBox.appendChild(enBox);}
+        }
+
+        if (isTruncated) {
+            const truncated = document.createElement('div');
+            truncated.innerHTML = "Text has been truncated"
+            this.textBox.appendChild(truncated);
         }
 
         this.enTitle.textContent = ref;

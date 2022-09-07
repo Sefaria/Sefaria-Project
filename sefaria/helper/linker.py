@@ -220,10 +220,13 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
+    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", max_segments)
+    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", max_segments)
     if with_text:
         res.update({
-            'he': get_ref_text_by_lang_for_linker(oref, "he", max_segments),
-            'en': get_ref_text_by_lang_for_linker(oref, "en", max_segments),
+            'he': he,
+            'en': en,
+            'isTruncated': he_truncated or en_truncated,
         })
 
     return res
@@ -232,7 +235,7 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0
 def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
     chunk = text.TextChunk(oref, lang=lang)
     as_array = [chunk._strip_itags(s) for s in chunk.ja().flatten_to_array()]
-    return as_array[:max_segments or None]
+    return as_array[:max_segments or None], (len(as_array) > max_segments)
 
 
 def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
