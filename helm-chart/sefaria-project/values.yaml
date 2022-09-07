@@ -181,9 +181,9 @@ nodejs:
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: v7
+    tag: 0.32.0
   logging: {}
   replicaCount: 1
   resources:
@@ -192,7 +192,7 @@ varnish:
       memory: "30Mi"
       cpu: "10m"
     limits:
-      memory: "360Mi"
+      memory: "350Mi"
       cpu: "100m"
   tuning:
     # malloc should be ~75% of the memory request.
