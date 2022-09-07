@@ -183,7 +183,7 @@ varnish:
     # Full path of the image registry inclusive of the image name
     imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: 0.28.1
+    tag: 0.32.0
   logging: {}
   replicaCount: 1
   resources:
