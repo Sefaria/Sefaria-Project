@@ -60,7 +60,7 @@ spec:
           - -f 
           - /etc/varnish/sefaria.vcl
           - -S
-          - /etc/varnish-secret/secret
+          - /etc/varnish-secret/varnish-secret
           - -T
           - 0.0.0.0:6082
           - -p
