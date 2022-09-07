@@ -63,9 +63,6 @@ nodejs:
       memory: "1500Mi"
       cpu: "1500m"
 varnish:
-  containerImage:
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
-    tag: v6
   logging: {}
   replicaCount: 1
   resources:
