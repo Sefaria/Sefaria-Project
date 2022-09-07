@@ -330,8 +330,8 @@ class ReusableTermManager:
     def create_tanakh_terms(self):
         hard_coded_tanakh_map = {
             "Ezekiel": ["Ezechiel"],
-            "I Samuel": ["1S."],
-            "II Samuel": ["2S."],
+            "I Samuel": ["1S.", "I-Samuel", "1-Samuel"],
+            "II Samuel": ["2S.", "II-Samuel", "2-Samuel"],
             "I Kings": ["1K.", "1Kings"],
             "II Kings": ["2K.", "2Kings"],
             "Zechariah": ["Sach."],
