@@ -6,7 +6,7 @@ metadata:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
-  sefaria.vcl.tmpl: |-
+  sefaria.vcl: |-
     vcl 4.0;
 
     backend default {
