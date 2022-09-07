@@ -63,6 +63,8 @@ spec:
           - /etc/varnish-secret/varnish-secret
           - -T
           - 0.0.0.0:6082
+          - -a
+          - 0.0.0.0:8040
           - -p
           - between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}
           - -p
