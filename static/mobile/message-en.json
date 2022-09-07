@@ -1,12 +1,11 @@
 {
-	"title": "Friend,",
+	"title": "",
 	"text": [
-		"During the month of Elul, we’re asked to reflect upon our personal commitments and dedicate ourselves to the way we want to live in the year ahead.",
-		"If study and learning are part of your plans for 5783, please become a Sefaria Sustainer today. ",
-		"Monthly donations are essential to ensuring that Sefaria continues to serve your learning needs."
+		"With your help, more improvements to your study and learning are on the horizon.",
+		"Please make a tax-deductible donation today in honor of the High Holidays!"
 	],
-	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
-	"buttonText": "BECOME A SUSTAINER",
-	"name": "2022-08-25-Elul-sustainer-modal-1",
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate Now",
+	"name": "2022-9-7-elul-banner-1",
 	"schemaVersion": 1
 }
