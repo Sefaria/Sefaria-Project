@@ -10,6 +10,8 @@ plugins:
         noteKeywords:
           - MAJOR RELEASE
   - "@semantic-release/release-notes-generator"
+  - - "@semantic-release/github"
+    - "successComment": false 
 EOF
 export branch=$(git branch --show-current)
 if [[ $branch != "master" ]]; then
