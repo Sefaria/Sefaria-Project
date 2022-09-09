@@ -427,6 +427,15 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
                 setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
 
+class Cloneable:
+
+    def clone(self, **kwargs) -> 'Cloneable':
+        """
+        Return new object with all the same data except modifications specified in kwargs
+        """
+        return self.__class__(**{**self.__dict__, **kwargs})
+
+
 def get_subclasses(c):
     subclasses = c.__subclasses__()
     for d in list(subclasses):

@@ -41,9 +41,9 @@ static_pages = [
     "powered-by-sefaria-contest-2020",
     "powered-by-sefaria-contest-2021",
     "ramban-sponsorships",
+    "rabbis",
     "contest",
     "design-system",
-    "annualreport2021",
     "powered-by"
 ]
 
@@ -93,5 +93,6 @@ site_urlpatterns +=[
     url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
-    url(r'^annualreport/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf')),
+    url(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
+    url(r'^annualreport/(?P<report_year>\d+)$', reader_views.annual_report),
 ]

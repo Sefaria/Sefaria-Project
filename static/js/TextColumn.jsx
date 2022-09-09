@@ -116,6 +116,8 @@ class TextColumn extends Component {
   }
 
   handleTextSelection() {
+    //Please note that because this function is triggered by an event listener on the document object, that will always be the event target 
+    // (should someone choose to add reference to the event itself in the future in this function) and not a more specific element.
     const selection = window.getSelection();
     let refs = [];
     if (selection.type === "Range") {

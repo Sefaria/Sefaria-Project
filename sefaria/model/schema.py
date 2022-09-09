@@ -633,6 +633,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     after_title_delimiter_re = r"(?:[,.:\s]|(?:to|\u05d5?\u05d1?(?:\u05e1\u05d5\u05e3|\u05e8\u05d9\u05e9)))+"  # should be an arg?  \r\n are for html matches
     after_address_delimiter_ref = r"[,.:\s]+"
     title_separators = [", "]
+    MATCH_TEMPLATE_ALONE_SCOPES = {'any', 'alone'}
 
     def __init__(self, serial=None, **kwargs):
         super(TitledTreeNode, self).__init__(serial, **kwargs)
@@ -847,6 +848,25 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         from .ref_part import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
+
+    def has_scope_alone_match_template(self):
+        """
+        @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
+        """
+        return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
+
+    def get_referenceable_alone_nodes(self):
+        """
+        Currently almost exact copy of function with same name in Index
+        See docstring there
+        @return:
+        """
+        alone_nodes = []
+        for child in self.children:
+            if child.has_scope_alone_match_template():
+                alone_nodes += [child]
+            alone_nodes += child.get_referenceable_alone_nodes()
+        return alone_nodes
 
     """ String Representations """
     def __str__(self):
@@ -2248,8 +2268,6 @@ class AddressTalmud(AddressType):
         # below code makes sure toSections doesn't go pass end of section/book
         if getattr(ref.index_node, "lengths", None):
             end = ref.index_node.lengths[len(ref.sections)-1]
-            if ref.is_bavli():
-                end += 2
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
 
@@ -2546,7 +2564,7 @@ class AddressPerek(AddressInteger):
     }
     section_patterns = {
         "en": r"""(?:(?:[Cc]h(apters?|\.)|[Pp]erek|s\.)?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4(?:"|\u05f4|''|'\s)                  # Peh (for 'perek') maybe followed by a quote of some sort
+        "he": fr"""(?:\u05d1?{AddressType.reish_samekh_reg}\u05e4(?:"|\u05f4|''|'\s)?                  # Peh (for 'perek') maybe followed by a quote of some sort
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }

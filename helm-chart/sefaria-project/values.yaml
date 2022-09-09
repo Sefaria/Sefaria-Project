@@ -86,6 +86,11 @@ web:
       # data:
       # Reference to an existing secret in the cluster
       ref:
+    elasticCertificate:
+      # for local testing purposes or CI pipeline use input a value
+      # data:
+      # Reference to an existing secret in the cluster
+      ref:
 
 linker:
   enabled: false
@@ -176,9 +181,9 @@ nodejs:
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: v6
+    tag: 0.32.0
   logging: {}
   replicaCount: 1
   resources:
