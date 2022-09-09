@@ -1,0 +1,17 @@
+{{- if .Values.varnish.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+  name: "{{ .Values.deployEnv }}-servicemonitor"
+spec:
+  endpoints:
+  - interval: 30s
+    port: metrics
+  selector:
+    matchLabels:
+      app: varnish-{{ .Values.deployEnv }}
+      deployEnv: "{{ .Values.deployEnv }}"
+      stackRole: varnish
+{{- end }}

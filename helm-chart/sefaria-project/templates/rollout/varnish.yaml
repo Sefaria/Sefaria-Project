@@ -88,7 +88,8 @@ spec:
           readOnly: true
         - mountPath: /var/lib/varnish
           name: workdir
-      - image: ibmcom/varnish-metrics-exporter:0.28.1
+      {{- if .Values.varnish.monitoring.enabled }}
+      - image: {{ .Values.varnish.monitoring.image }}:{{ .Values.varnish.monitoring.tag }}
         imagePullPolicy: Always
         name: metrics-exporter
         ports:
@@ -116,6 +117,7 @@ spec:
         - mountPath: /etc/varnish
           name: varnish-config
           readOnly: true
+      {{- end }}
       volumes:
         - name: varnish-secret
           secret:
