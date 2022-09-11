@@ -1511,7 +1511,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donor-Advised Fund"
                     heTitle=""
-                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
+                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-4406454</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
                     heText=""
                     colorBar="#CCB479"
                 />,
@@ -1627,7 +1627,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to donate through a donor-advised fund, federation, or foundation. What do I need to send you?"
             heTitle=""
-            enText="<p>Donations from these types of institutions can be made through any of the payment methods listed in the Ways to Give section above. If you are donating from a foundation, federation, or donor-advised fund, please include any relevant gift acknowledgment information or preferences along with your gift. <strong>Sefaria's EIN is 46-44064545</strong>.</p>
+            enText="<p>Donations from these types of institutions can be made through any of the payment methods listed in the Ways to Give section above. If you are donating from a foundation, federation, or donor-advised fund, please include any relevant gift acknowledgment information or preferences along with your gift. <strong>Sefaria's EIN is 46-4406454</strong>.</p>
                     <p>If you are sending your donation by mail, please include this information in a cover letter accompanying your check; if you are donating through a wire transfer or other electronic method, please send an email with this information to <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. This ensures we have all the necessary information to send your gift acknowledgment and tax receipt.</p>"
             heText=""
             colorBar="#7F85A9"
