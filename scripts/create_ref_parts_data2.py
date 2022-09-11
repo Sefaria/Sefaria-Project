@@ -484,35 +484,48 @@ class LinkerCommentaryConverter:
 
 
 class DiburHamatchilAdder:
+    BOLD_REG = "^<b>(.+?)</b>"
+    DASH_REG = '^(.+?)[\-–]'
 
     def __init__(self):
         self.indexes_with_dibur_hamatchils = []
         self.dh_reg_map = {
-            "Rashi|Bavli": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Gilyon HaShas": ["^<b>(.+?)</b>"],
-            "Rashi|Tanakh": ["^<b>(.+?)</b>", "(.+)\.$"],
+            "Rashi|Bavli": [self.DASH_REG, '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Ran": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Tosafot": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
         }
         self._dhs_to_insert = []
 
-    def get_dh_regexes(self, collective_title, context=None):
+    def get_dh_regexes(self, collective_title, context=None, use_default_reg=True):
         if collective_title is None:
             return
         key = collective_title + ("" if context is None else f"|{context}")
-        return self.dh_reg_map.get(key)
+        dh_reg = self.dh_reg_map.get(key)
+        if not dh_reg and use_default_reg:
+            return [self.BOLD_REG, self.DASH_REG]
+        return dh_reg
 
     def add_index(self, index):
         self.indexes_with_dibur_hamatchils += [index]
 
     @staticmethod
     def get_dh(s, regexes, oref):
+        from sefaria.utils.hebrew import strip_cantillation
+        import unicodedata
+        matched_reg = False
+        s = s.strip()
         for reg in regexes:
             match = re.search(reg, s)
             if not match: continue
+            matched_reg = True
             s = match.group(1)
+        if not matched_reg: return
         s = s.strip()
-        return s
+        s = unicodedata.normalize('NFKD', s)
+        s = strip_cantillation(s, strip_vowels=True)
+        s = re.sub(r"[.,:;\-–]", "", s)
+        words = s.split()
+        return " ".join(words[:5])  # DH is unlikely to give more info if longer than 5 words
 
     def add_dibur_hamatchil_to_index(self, index):
         def add_dh_for_seg(segment_text, en_tref, he_tref, version):
@@ -522,8 +535,9 @@ class DiburHamatchilAdder:
             except:
                 print("not a valid ref", en_tref)
                 return
-            dh = self.get_dh(segment_text, index.nodes.diburHamatchilRegexes, oref)
-            if dh is None: return
+            if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
+            dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
+            if not dh: return
             container_refs = [oref.top_section_ref().normal(), index.title]
             perek_ref = None
             for temp_perek_ref in perek_refs:
@@ -551,12 +565,16 @@ class DiburHamatchilAdder:
                 continue
             perek_refs += [perek_ref]
 
-        primary_version = VersionSet({"title": index.title, "language": "he"}).array()[0]
+        versions = VersionSet({"title": index.title, "language": "he"}).array()
+        if len(versions) == 0:
+            print("No versions for", index.title, ". Can't search for DHs.")
+            return
+        primary_version = versions[0]
         primary_version.walk_thru_contents(add_dh_for_seg)
 
     def add_all_dibur_hamatchils(self):
         from pymongo import InsertOne
-        DiburHamatchilNodeSet().delete()
+        db.dibur_hamatchils.delete_many({})
         for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
             self.add_dibur_hamatchil_to_index(index)
         db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
@@ -708,7 +726,8 @@ class SpecificConverterManager:
 
         def get_commentary_other_fields(base_index, node, depth, isibling, num_siblings, is_alt_node):
             index =node.ref().index
-            if node.is_root() and not index.is_complex():
+            title_prefixes_with_intro_default_nodes = {"Ramban on "}
+            if (node.is_root() and not index.is_complex()) or (any(index.title.startswith(prefix) for prefix in title_prefixes_with_intro_default_nodes) and node.is_default()):
                 if len(node.addressTypes) == 3:
                     collective_title = getattr(index, 'collective_title', None)
                     dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title, "Tanakh")
@@ -1607,7 +1626,7 @@ if __name__ == '__main__':
     converter_manager.convert_yeztirah()
     converter_manager.convert_likutei_halakhot()
 
-
+    # add DHs at end
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
 
 
