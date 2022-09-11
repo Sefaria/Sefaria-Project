@@ -349,12 +349,12 @@ class BDBEntry(DictionaryEntry):
         for sense in self.content['senses']:
             sense = self.get_sense(sense)
             if type(sense) == list:
-                strings += sense
+                strings.append(' '.join(sense))
             else:
                 strings.append(sense)
         if with_headword:
             strings[0] = self.headword_string() + ' ' + strings[0]
-        return strings
+        return ['<br>'.join(strings)]
 
 
 class LexiconEntrySubClassMapping(object):
