@@ -1540,6 +1540,18 @@ class SpecificConverterManager:
                                         get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_mishnah_berurah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                return [MatchTemplate([RTM.get_term_by_primary_title('base', node.get_primary_title('en')).slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {'addressTypes': ['Siman', 'SeifKatan']}
+
+        converter = LinkerIndexConverter('Mishnah Berurah', get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1552,7 +1564,7 @@ if __name__ == '__main__':
     converter_manager.convert_tur()
     converter_manager.convert_shulchan_arukh()
     converter_manager.convert_arukh_hashulchan()
-
+    converter_manager.convert_mishnah_berurah()
     converter_manager.convert_zohar()
     converter_manager.convert_zohar_chadash()
     converter_manager.convert_minor_tractates()

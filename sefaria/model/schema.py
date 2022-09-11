@@ -2637,6 +2637,16 @@ class AddressSeif(AddressInteger):
     }
 
 
+class AddressSeifKatan(AddressInteger):
+    section_patterns = {
+        "en": r"""(?:(?:[Ss][ae]if Katt?an)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
+        "he": r"""(?:\u05d1?
+            (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+\u05e7\u05d8\u05df\s+)			# Seif katan spelled out with or without nikud
+            |(?:\u05e1(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3])?)?\u05e7)(?:['\u2018\u2019\u05f3"\u05f4]['\u2018\u2019\u05f3]?|\s+)?	# or trie of first three letters followed by a quote of some sort
+        )"""
+    }
+
+
 class AddressSection(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:([Ss]ections?|§)?\s*))""",  #  the internal ? is a hack to allow a non match, even if 'strict'
