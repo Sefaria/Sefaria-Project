@@ -961,7 +961,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
-      Sefaria._uses_new_editor && Sefaria._uid && (
+      Sefaria._siteSettings.TORAH_SPECIFIC && Sefaria._uses_new_editor && Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration == "anyone-can-edit"
         ) ?
