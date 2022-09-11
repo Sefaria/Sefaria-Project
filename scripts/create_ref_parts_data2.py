@@ -488,15 +488,19 @@ class DiburHamatchilAdder:
     def __init__(self):
         self.indexes_with_dibur_hamatchils = []
         self.dh_reg_map = {
-            "Rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Rashi|Bavli": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
             "Ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
             "Tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
             "Gilyon HaShas": ["^<b>(.+?)</b>"],
+            "Rashi|Tanakh": ["^<b>(.+?)</b>", "(.+)\.$"],
         }
         self._dhs_to_insert = []
 
-    def get_dh_regexes(self, collective_title):
-        return self.dh_reg_map.get(collective_title)
+    def get_dh_regexes(self, collective_title, context=None):
+        if collective_title is None:
+            return
+        key = collective_title + ("" if context is None else f"|{context}")
+        return self.dh_reg_map.get(key)
 
     def add_index(self, index):
         self.indexes_with_dibur_hamatchils += [index]
@@ -702,8 +706,27 @@ class SpecificConverterManager:
             title_slug = RTM.get_term_by_primary_title('tanakh', base_index.title).slug
             return [MatchTemplate([title_slug])]
 
+        def get_commentary_other_fields(base_index, node, depth, isibling, num_siblings, is_alt_node):
+            index =node.ref().index
+            if node.is_root() and not index.is_complex():
+                if len(node.addressTypes) == 3:
+                    collective_title = getattr(index, 'collective_title', None)
+                    dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title, "Tanakh")
+                    if dh_regexes:
+                        self.dibur_hamatchil_adder.add_index(node.index)
+                    return {
+                        "addressTypes": ["Perek", "Pasuk", "Integer"],
+                        "isSegmentLevelDiburHamatchil": True,
+                        "diburHamatchilRegexes": dh_regexes,
+                    }
+                elif index.categories[1] == "Targum" and len(node.addressTypes) == 2:
+                    return {
+                        "addressTypes": ["Perek", "Pasuk"],
+                    }
+
         converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates,
-                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
+                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_other_fields=get_commentary_other_fields)
         converter.convert()
 
     def convert_bavli(self):
@@ -761,7 +784,7 @@ class SpecificConverterManager:
                 # assuming second address is always "Line"
                 referenceable_sections = [True, False, True] if node.depth == 3 else [True, True]
                 collective_title = getattr(node.index, 'collective_title', None)
-                dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title)
+                dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title, "Bavli")
                 if dh_regexes:
                     self.dibur_hamatchil_adder.add_index(node.index)
                 return {
@@ -1570,7 +1593,6 @@ if __name__ == '__main__':
     converter_manager.convert_minor_tractates()
     converter_manager.convert_sefer_hachinukh()
     converter_manager.convert_mechilta_dry()
-    converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
     converter_manager.convert_pdre_and_tde()
     converter_manager.convert_mechilta_drshbi()
     converter_manager.convert_sifrei()
@@ -1584,6 +1606,10 @@ if __name__ == '__main__':
     converter_manager.convert_lkiutei()
     converter_manager.convert_yeztirah()
     converter_manager.convert_likutei_halakhot()
+
+
+    converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
+
 
 """
 Still TODO
