@@ -1628,6 +1628,14 @@ class SpecificConverterManager:
         converter = LinkerCategoryConverter('Aramaic Targum', include_dependant=True, get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_pesach_haggadah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title_slug = RTM.create_term_from_titled_obj(node, context="haggadah", ref_part_role='structural').slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerIndexConverter('Pesach Haggadah', get_match_templates=get_match_templates)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1660,6 +1668,7 @@ if __name__ == '__main__':
     converter_manager.convert_yeztirah()
     converter_manager.convert_likutei_halakhot()
     converter_manager.convert_aramaic_targum()
+    converter_manager.convert_pesach_haggadah()
 
     # add DHs at end
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
