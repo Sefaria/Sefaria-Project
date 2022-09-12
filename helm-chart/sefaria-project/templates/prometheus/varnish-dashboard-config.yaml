@@ -111,7 +111,7 @@ data:
           "tableColumn": "Value",
           "targets": [
             {
-              "expr": "avg(\n  (\n    rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) + rate(varnish_main_cache_miss{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))\n  )\n)",
+              "expr": "avg(\n  (\n    rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))\n  )\n)",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -201,7 +201,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m])) + sum(irate(varnish_main_cache_miss{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])) + sum(irate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
               "interval": "15s",
@@ -292,7 +292,7 @@ data:
           "tableColumn": "frontend_for",
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_sessions_total{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_sessions_total{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -382,7 +382,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "15s",
               "intervalFactor": 1,
@@ -468,7 +468,7 @@ data:
           "tableColumn": "",
           "targets": [
             {
-              "expr": "max(varnish_main_vmods{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"})",
+              "expr": "max(varnish_main_vmods{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -556,7 +556,7 @@ data:
           "tableColumn": "__name__",
           "targets": [
             {
-              "expr": "min(varnish_main_uptime{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"})",
+              "expr": "min(varnish_main_uptime{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "",
@@ -643,7 +643,7 @@ data:
           "tableColumn": "version",
           "targets": [
             {
-              "expr": "varnish_version{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}",
+              "expr": "varnish_version{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}",
               "format": "table",
               "intervalFactor": 2,
               "legendFormat": "",
@@ -717,7 +717,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish-service\" }[1m])) + sum(irate(varnish_main_cache_miss{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\" }[1m])) + sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 1,
@@ -806,14 +806,14 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "cache hits",
               "refId": "A"
             },
             {
-              "expr": "sum(irate(varnish_main_cache_miss{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "cache misses",
@@ -901,7 +901,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_thread_queue_len{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_thread_queue_len{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "queued requests",
@@ -1002,7 +1002,7 @@ data:
           "steppedLine": true,
           "targets": [
             {
-              "expr": "avg(rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m])))",
+              "expr": "avg(rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])))",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -1012,7 +1012,7 @@ data:
               "step": 240
             },
             {
-              "expr": "avg(1 - (rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))))",
+              "expr": "avg(1 - (rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))))",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -1102,7 +1102,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hitpass{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_cache_hitpass{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "hide": true,
               "intervalFactor": 1,
@@ -1191,7 +1191,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_req_dropped{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_req_dropped{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "instant": false,
               "intervalFactor": 1,
@@ -1294,7 +1294,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "varnish_sma_g_bytes{service=\"$varnish-service\", type=\"s0\"}",
+              "expr": "varnish_sma_g_bytes{service=\"$varnish_service\", type=\"s0\"}",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": {{`"{{pod}}"`}},
@@ -1410,7 +1410,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_n_expired{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_n_expired{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1420,7 +1420,7 @@ data:
               "step": 240
             },
             {
-              "expr": "sum(irate(varnish_main_n_lru_moved{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_n_lru_moved{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1429,7 +1429,7 @@ data:
               "step": 240
             },
             {
-              "expr": "sum(irate(varnish_main_n_lru_nuked{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_n_lru_nuked{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 2,
@@ -1438,7 +1438,7 @@ data:
               "step": 240
             },
             {
-              "expr": "sum(varnish_sma_g_bytes{service=\"$varnish-service\", type=\"s0\", pod=~\"^($varnish_pod).*\"})",
+              "expr": "sum(varnish_sma_g_bytes{service=\"$varnish_service\", type=\"s0\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": "mem used",
@@ -1525,7 +1525,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_n_expired{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_n_expired{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "expired objects",
@@ -1643,7 +1643,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_s_resp_hdrbytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_main_s_resp_bodybytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_main_s_resp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_main_s_resp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -1653,7 +1653,7 @@ data:
               "step": 60
             },
             {
-              "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]))",
+              "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
               "interval": "",
@@ -1664,7 +1664,7 @@ data:
               "step": 60
             },
             {
-              "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish-service\", pod=~\"^($varnish_pod).*\"}[1m])) by (backend)",
+              "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])) by (backend)",
               "format": "time_series",
               "intervalFactor": 2,
               "legendFormat": {{`"backend {{ backend }}"`}},
@@ -1751,7 +1751,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_n_lru_nuked{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_n_lru_nuked{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "nuked",
@@ -1853,7 +1853,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_busy_sleep{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_busy_sleep{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "requests",
@@ -1940,7 +1940,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_backend_retry{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_backend_retry{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "retries ",
@@ -2028,7 +2028,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_threads_limited{ service=\"$varnish-service\" }[1m]))",
+              "expr": "sum(irate(varnish_main_threads_limited{ service=\"$varnish_service\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "threads",
@@ -2115,7 +2115,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_sessions{ service=\"$varnish-service\" }[1m])) by (type)",
+              "expr": "sum(irate(varnish_main_sessions{ service=\"$varnish_service\" }[1m])) by (type)",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 1,
@@ -2204,7 +2204,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(varnish_main_thread_queue_len{ service=\"$varnish-service\" })",
+              "expr": "sum(varnish_main_thread_queue_len{ service=\"$varnish_service\" })",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "queue",
@@ -2291,7 +2291,7 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_fetch{ service=\"$varnish-service\" }[1m])) by (type)",
+              "expr": "sum(irate(varnish_main_fetch{ service=\"$varnish_service\" }[1m])) by (type)",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": {{`"{{type}}"`}},
@@ -2362,7 +2362,7 @@ data:
               "value": "$__all"
             },
             "datasource": "prometheus",
-            "definition": "label_values(varnish_up{ service=\"$varnish-service\" }, pod)",
+            "definition": "label_values(varnish_up{ service=\"$varnish_service\" }, pod)",
             "description": null,
             "error": null,
             "hide": 0,
@@ -2372,7 +2372,7 @@ data:
             "name": "varnish_pod",
             "options": [],
             "query": {
-              "query": "label_values(varnish_up{ service=\"$varnish-service\" }, pod)",
+              "query": "label_values(varnish_up{ service=\"$varnish_service\" }, pod)",
               "refId": "StandardVariableQuery"
             },
             "refresh": 1,
