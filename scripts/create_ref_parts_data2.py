@@ -683,11 +683,11 @@ class LinkerIndexConverter:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
             if templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
-            else:
-                try:
-                    delattr(node, 'match_templates')
-                except:
-                    pass
+            # else:
+            #     try:
+            #         delattr(node, 'match_templates')
+            #     except:
+            #         pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
@@ -802,6 +802,7 @@ class SpecificConverterManager:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
             else:
                 return {"referenceableSections": [True, False]}
+
         def get_commentary_match_template_suffixes(base_index):
             title_slug = RTM.get_term_by_primary_title('shas', base_index.title).slug
             return [MatchTemplate([title_slug])]

@@ -165,6 +165,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
     [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
     # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
     [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
 
     # Relative (e.g. Lekaman)

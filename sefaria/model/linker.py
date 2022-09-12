@@ -1486,16 +1486,8 @@ class RefResolver:
         """
         Applies some heuristics to remove false positives
         """
-        resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
-
         # remove matches that don't match all ref parts to avoid false positives
-        # used to only apply to context matches
-        def filter_context_matches(match: ResolvedRef) -> bool:
-            if match.num_resolved(include={ContextPart}) == 0:
-                # no context
-                # return True
-                pass
-
+        def filter_matches(match: ResolvedRef) -> bool:
             # make sure no explicit sections matched before context sections
             first_explicit_section = None
             for part in match.get_resolved_parts():
@@ -1518,8 +1510,13 @@ class RefResolver:
                     to_match_explicit.remove(part)
             return resolved_explicit == to_match_explicit
 
-        resolved_refs = list(filter(filter_context_matches, resolved_refs))
-        if len(resolved_refs) == 0: return resolved_refs
+        temp_resolved_refs = list(filter(filter_matches, resolved_refs))
+        if len(temp_resolved_refs) == 0:
+            temp_resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
+            temp_resolved_refs = list(filter(filter_matches, temp_resolved_refs))
+            if len(temp_resolved_refs) == 0:
+                return temp_resolved_refs
+        resolved_refs = temp_resolved_refs
 
         # if any context-free match uses all input parts, dont need to try context
         context_free_matches = list(filter(lambda m: m.context_ref is None and set(m.get_resolved_parts()) == set(m.raw_ref.parts_to_match), resolved_refs))
