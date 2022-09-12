@@ -1,0 +1,15 @@
+{{ if .Values.varnish.monitoring.enabled }}
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  labels:
+    app: grafana
+    deployEnv: "{{ .Values.deployEnv }}"
+  name: varnish-{{ .Values.deployEnv }}
+  namespace: monitoring
+spec:
+  configMapRef:
+    key: {{ .Values.deployEnv }}-varnish-dashboard.json
+    name: {{ .Values.deployEnv }}-varnish-grafana-dashboard
+  json: ""
+{{ end }}

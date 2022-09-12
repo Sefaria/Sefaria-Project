@@ -4,7 +4,7 @@ kind: ServiceMonitor
 metadata:
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
-  name: "{{ .Values.deployEnv }}-servicemonitor"
+  name: "{{ .Values.deployEnv }}-varnish-servicemonitor"
 spec:
   endpoints:
   - interval: 30s
