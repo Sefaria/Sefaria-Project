@@ -299,7 +299,7 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-9-7-elul-banner",
+    "name": "2022-09-12-elul-banner",
     "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
