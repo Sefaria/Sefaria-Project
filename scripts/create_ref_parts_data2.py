@@ -3,6 +3,7 @@ django.setup()
 from tqdm import tqdm
 from functools import partial
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
@@ -158,6 +159,8 @@ class ReusableTermManager:
         title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
         en_title = title_group.primary_title('en')
         he_title = title_group.primary_title('he')
+        if not (en_title and he_title):
+            raise InputError("title group has no primary titles. can't create term.")
         alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
         alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
         if title_modifier:
@@ -237,6 +240,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
         self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
+        self.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'], ref_part_role='structural')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
             if existing_term is None:
@@ -491,8 +495,8 @@ class DiburHamatchilAdder:
         self.indexes_with_dibur_hamatchils = []
         self.dh_reg_map = {
             "Rashi|Bavli": [self.DASH_REG, '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Ran": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Tosafot": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Ran|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Tosafot|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
         }
         self._dhs_to_insert = []
 
@@ -679,6 +683,11 @@ class LinkerIndexConverter:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
             if templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
+            else:
+                try:
+                    delattr(node, 'match_templates')
+                except:
+                    pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
@@ -1057,16 +1066,22 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 0:
+            if node.is_root():
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
-            else:
+            elif not node.is_default():
                 title = sa_title_swaps.get(title, title)
-                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+                if title == "Introduction":
+                    title_term = RTM.get_term_by_primary_title('base', title)
+                else:
+                    title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
                     title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
                 else:
                     title_slug = title_term.slug
-            return [MatchTemplate([title_slug])]
+            else:
+                title_slug = None
+            if title_slug:
+                return [MatchTemplate([title_slug])]
         converter = LinkerIndexConverter('Tur', get_match_templates=get_match_templates)
         converter.convert()
 
@@ -1505,16 +1520,22 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 0:
+            if node.is_root():
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
-            else:
-                title = sa_title_swaps.get(title, title)
-                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+            elif not node.is_default():
+                if title == "Introduction":
+                    title_term = RTM.get_term_by_primary_title('base', title)
+                else:
+                    title = sa_title_swaps.get(title, title)
+                    title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
                     title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
                 else:
                     title_slug = title_term.slug
-            return [MatchTemplate([title_slug])]
+            else:
+                title_slug = None
+            if title_slug:
+                return [MatchTemplate([title_slug])]
 
         converter = LinkerIndexConverter('Arukh HaShulchan', get_match_templates=get_match_templates)
         converter.convert()
