@@ -442,9 +442,9 @@ class LinkerCategoryConverter:
     Manager which handles converting all indexes in a category or corpus.
     """
 
-    def __init__(self, title, is_corpus=False, is_index=False, **linker_index_converter_kwargs):
+    def __init__(self, title, is_corpus=False, is_index=False, include_dependant=False, **linker_index_converter_kwargs):
         index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
-        self.titles = [title] if is_index else index_getter(title)
+        self.titles = [title] if is_index else index_getter(title, include_dependant=include_dependant)
         self.linker_index_converter_kwargs = linker_index_converter_kwargs
 
     def convert(self):
@@ -1616,6 +1616,18 @@ class SpecificConverterManager:
         converter = LinkerIndexConverter('Mishnah Berurah', get_match_templates=get_match_templates, get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_aramaic_targum(self):
+        aramaic_targum_slug = RTM.create_term(en='Aramaic Targum', he='תרגום', context="base", ref_part_role='structural').slug
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title = node.get_primary_title('en')
+                title_slug = RTM.get_term_by_primary_title('tanakh', title.replace("Aramaic Targum to ", "")).slug
+                return [MatchTemplate([aramaic_targum_slug, title_slug])]
+
+        converter = LinkerCategoryConverter('Aramaic Targum', include_dependant=True, get_match_templates=get_match_templates)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1647,6 +1659,7 @@ if __name__ == '__main__':
     converter_manager.convert_lkiutei()
     converter_manager.convert_yeztirah()
     converter_manager.convert_likutei_halakhot()
+    converter_manager.convert_aramaic_targum()
 
     # add DHs at end
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()

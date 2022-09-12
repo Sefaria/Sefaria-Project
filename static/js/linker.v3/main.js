@@ -4,8 +4,8 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// const SEFARIA_BASE_URL = 'http://localhost:8000';
-const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
+const SEFARIA_BASE_URL = 'http://localhost:8000';
+// const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
 
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
