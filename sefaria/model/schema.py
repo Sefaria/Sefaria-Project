@@ -2113,7 +2113,7 @@ class AddressType(object):
                 if section_str:
                     temp_sections = addr.to_numeric_possibilities(lang, section_str, fromSections=fromSections)
                     temp_toSections = temp_sections[:]
-                    if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang):
+                    if hasattr(cls, "lacks_amud") and cls.lacks_amud(section_str, lang) and not fromSections:
                         temp_toSections = [sec+1 for sec in temp_toSections]
                     sections += temp_sections
                     toSections += temp_toSections
@@ -2374,11 +2374,28 @@ class AddressTalmud(AddressType):
         return 2
 
     def to_numeric_possibilities(self, lang, s, **kwargs):
+        """
+        Hacky function to handle special case of ranged amud
+        @param lang:
+        @param s:
+        @param kwargs:
+        @return:
+        """
         fromSections = kwargs['fromSections']
         if s in self.special_cases and fromSections:
             # currently assuming only special case is 'b'
             return [fromSec[-1]+1 for fromSec in fromSections]
-        return [self.toNumber(lang, s)]
+        addr_num = self.toNumber(lang, s)
+        possibilities = []
+        if fromSections and s == 'ב':
+            for fromSec in fromSections:
+                if addr_num < fromSec[-1]:
+                    possibilities += [fromSec[-1]+1]
+                else:
+                    possibilities += [addr_num]
+        else:
+            possibilities = [addr_num]
+        return possibilities
 
 
 class AddressFolio(AddressType):

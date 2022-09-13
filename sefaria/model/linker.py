@@ -387,21 +387,25 @@ class RawRef(abst.Cloneable):
         """
         Preprocessing function to merge together Daf and Amud parts if they mistakenly are recognized as separate
         """
+        addr_talmud = schema.AddressTalmud(0)
+        addr_integer = schema.AddressInteger(0)
         merged_parts = raw_ref_parts.copy()
         inds_to_del = []
-        for ipart, part in enumerate(raw_ref_parts[:-1]):
-            if part.type != RefPartType.NUMBERED: continue
-            addr_talmud = schema.AddressTalmud(0)
-            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            if schema.AddressTalmud not in addr_classes: continue
-            _, _, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
-            next_part = raw_ref_parts[ipart+1]
-            proposed_text = f"{part.text} {next_part.text}"
-            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
-            if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
-            part.merge(next_part)
-            inds_to_del += [ipart + 1]
+        for ipart, part in enumerate(raw_ref_parts):
+            if part.type == RefPartType.RANGE:
+                part.sections = RawRef._merge_daf_amud_parts(lang, part.sections)
+                part.toSections = RawRef._merge_daf_amud_parts(lang, part.toSections)
+            elif part.type == RefPartType.NUMBERED and (ipart < len(raw_ref_parts) - 1):
+                _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+                if schema.AddressTalmud not in addr_classes: continue
+                _, _, addr_classes = addr_integer.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+                if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
+                next_part = raw_ref_parts[ipart+1]
+                proposed_text = f"{part.text} {next_part.text}"
+                _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
+                if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
+                part.merge(next_part)
+                inds_to_del += [ipart + 1]
         for i in reversed(inds_to_del):
             del merged_parts[i]
         return merged_parts
