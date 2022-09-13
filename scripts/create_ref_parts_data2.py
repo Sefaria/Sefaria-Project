@@ -1545,7 +1545,10 @@ class SpecificConverterManager:
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             new = ['לקוטי מוהר"ן'] if node.is_root() else ['תניינא'] if node.get_primary_title('en') == 'Part II' else []
             if not node.is_default():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                if node.get_primary_title('en') == "Introduction":
+                    title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
+                else:
+                    title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
                 return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1636,6 +1639,18 @@ class SpecificConverterManager:
         converter = LinkerIndexConverter('Pesach Haggadah', get_match_templates=get_match_templates)
         converter.convert()
 
+    def convert_mesilat_yesharim(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if is_alt_node or node.is_default(): return
+            if node.get_primary_title('en') == "Introduction":
+                title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
+            else:
+                title_slug = RTM.create_term_from_titled_obj(node, context="mesilat yesharim", ref_part_role='structural').slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerIndexConverter('Mesilat Yesharim', get_match_templates=get_match_templates)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1669,6 +1684,7 @@ if __name__ == '__main__':
     converter_manager.convert_likutei_halakhot()
     converter_manager.convert_aramaic_targum()
     converter_manager.convert_pesach_haggadah()
+    converter_manager.convert_mesilat_yesharim()
 
     # add DHs at end
     converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
