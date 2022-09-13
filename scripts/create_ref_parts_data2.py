@@ -789,6 +789,7 @@ class SpecificConverterManager:
                 return [
                     MatchTemplate([talmud_slug, bavli_slug, title_slug]),
                     MatchTemplate([talmud_slug, bavli_slug, tractate_slug, title_slug]),
+                    MatchTemplate([talmud_slug, title_slug]),
                     MatchTemplate([bavli_slug, title_slug]),
                     MatchTemplate([gemara_slug, title_slug]),
                     MatchTemplate([bavli_slug, tractate_slug, title_slug]),
