@@ -213,6 +213,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication",           # (dict) Dedication texts, keyed by language
         "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
         "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
+        "displayTitle"         # (str): allows us to present a title that has forbidden character such as a period or question mark
     ]
 
     def __str__(self):
@@ -812,6 +813,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(getattr(self, "corpora", [])) > 0:
             # first elem in corpora is the main corpus
             toc_contents_dict["corpus"] = self.corpora[0]
+
+        if getattr(self, "displayTitle", False):
+            toc_contents_dict["displayTitle"] = self.displayTitle
 
         if include_first_section:
             firstSection = Ref(self.title).first_available_section_ref()

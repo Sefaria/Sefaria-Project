@@ -143,6 +143,9 @@ class BookPage extends Component {
   extendedNotesBack(event){
     return null;
   }
+  getTitle(){
+    return !!this.state.indexDetails?.displayTitle ? this.state.indexDetails.displayTitle : this.props.title;
+  }
   render() {
     const title     = this.props.title;
     const index     = Sefaria.index(title);
@@ -217,7 +220,7 @@ class BookPage extends Component {
               <div className="readerTextToc readerTextTocHeader">
                 {this.props.compare ?
                 <div className="readerTextTocBox">
-                  <InterfaceText>{title}</InterfaceText>
+                  <InterfaceText>{this.getTitle()}</InterfaceText>
                 </div>
                 :
                 <div className="readerTextTocBox sans-serif">
@@ -240,7 +243,7 @@ class BookPage extends Component {
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
-                    <ContentText text={{en:title, he:heTitle}}/>
+                    <ContentText text={{en:this.getTitle(), he:heTitle}}/>
                     {moderatorSection}
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?

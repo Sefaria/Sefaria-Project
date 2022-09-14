@@ -1279,6 +1279,7 @@ class ReaderControls extends Component {
   render() {
     let title = this.props.currentRef || "";
     let heTitle = "";
+    let displayTitle = "";
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
@@ -1300,6 +1301,9 @@ class ReaderControls extends Component {
       title = oref.indexTitle;
       heTitle = oref.heIndexTitle;
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories);
+      displayTitle = !!Sefaria.index(title)?.displayTitle ? Sefaria.index(title).displayTitle : title;
+      // Sefaria.getIndexDetails(title);
+      // displayTitle = !!Sefaria.getIndexDetailsFromCache(title)?.displayTitle ? Sefaria.getIndexDetailsFromCache(title)?.displayTitle : title;
     }
 
     const mode              = this.props.currentMode();
@@ -1339,7 +1343,7 @@ class ReaderControls extends Component {
                 </h1>
                 :
                 <h1>
-                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+                  <ContentText text={{en: displayTitle, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                   <span className="sectionString">
                     <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
                   </span>
