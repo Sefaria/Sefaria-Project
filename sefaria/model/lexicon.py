@@ -291,7 +291,7 @@ class BDBEntry(DictionaryEntry):
                 if hasattr(self, 'occurrences'):
                     hw += f'</big><sub>{self.occurrences}</sub><big>'
             else:
-                hw = ", ".join([hw] + alts)
+                hw = f'[{", ".join([hw] + alts)}]'
         else:
             if hasattr(self, 'brackets') and self.brackets == 'first_word':
                 hw = f'[{hw}]'
