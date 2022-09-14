@@ -148,6 +148,17 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_TAG_MANAGER_CODE }}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', {{ GOOGLE_TAG_MANAGER_CODE }});
+          gtag('event', 'test_event_1');
+        </script>
+    <!-- End Google tag -->
     {% endif %}
 
     {% autoescape off %}
