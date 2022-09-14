@@ -62,6 +62,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.34-varnish-rework.1.tgz
     version: 0.0.34-varnish-rework.1
   - apiVersion: v2
+    appVersion: v5.4.0
+    created: "2022-09-14T14:35:54.687616017Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: ef016417936a807876ea4cafb47ce4994ae5c807e286258e1e0560b2326f5831
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.34-helm-emails.1.tgz
+    version: 0.0.34-helm-emails.1
+  - apiVersion: v2
     appVersion: v5.3.1
     created: "2022-09-07T14:27:50.610323528Z"
     description: Chart to deploy complete Sefaria environment
@@ -615,4 +630,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-09-12T12:07:09.598035109Z"
+generated: "2022-09-14T14:35:54.685125914Z"
