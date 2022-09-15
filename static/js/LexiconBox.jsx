@@ -213,23 +213,35 @@ LexiconBox.propTypes = {
 
 
 class LexiconEntry extends Component {
+  isBDB(entry) {
+    return RegExp(/^BDB.*?Dict/).test(entry['parent_lexicon']);
+  }
+  defaultHeadwordString(entry) {
+    var headwords = [entry['headword']];
+    if ('alt_headwords' in entry) {
+      headwords = headwords.concat(entry['alt_headwords']);
+    }
+    return headwords
+          .map((e,i) => <span className="headword" key={i} dir="rtl">{e}</span>)
+          .reduce((prev, curr) => [prev, ', ', curr]);
+  }
   bdbHeadwordString(entry) {
     var peculiar = ('peculiar' in entry) ? '‡ ' : '';
     var allCited = ('all_cited' in entry) ? '† ' : '';
     var ordinal = ('ordinal' in entry) ? `${entry["ordinal"]} ` : '';
     var hw = (<span dir="rtl">{entry['headword'].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]*$/, '')}</span>);
     var occurrences = ('occurrences' in entry) ? (<sub>{entry['occurrences']}</sub>) : '';
-    var alts = ('alt_headwords' in entry) ? ', ' + entry['headword']
+    var alts = ('alt_headwords' in entry) ? entry['alt_headwords']
         .map(alt => {
             var ahw = <span dir="rtl">{alt['word']}</span>;
             var aocc = ('occurrences' in alt) ? <sub>{alt['occurrences']}</sub> : '';
-            return ahw + aocc
+          return <span>, {ahw}{aocc}</span>
         })
-        .reduce((prev, curr) => [prev, ', ', curr]): '';
-    var allHeadwords = ('headword_suffix' in entry) ? `[${hw}${entry['headword_suffix']}]${occurrences}` :
-        (entry['brackets'] == 'all') ? `[${hw}${occurrences}${alts}]` :
-        (entry['brackets'] == 'first_word') ? `[${hw}${occurrences}]${alts}` :
-        `${hw}${occurrences}${alts}`;
+        .reduce((prev, curr) => [prev, curr]) : '';
+    var allHeadwords = ('headword_suffix' in entry) ? <span>[{hw}{entry['headword_suffix']}]{occurrences}</span>:
+        (entry['brackets'] == 'all') ? <span>[{hw}{occurrences}{alts}]</span> :
+        (entry['brackets'] == 'first_word') ? <span>[{hw}{occurrences}]{alts}</span> :
+            <span>{hw}{occurrences}{alts}</span>;
     return (<span className="headword">{peculiar}{allCited}{ordinal}<span className="headword">{allHeadwords}</span></span>);
   }
   renderLexiconEntrySenses(content) {
@@ -327,10 +339,7 @@ class LexiconEntry extends Component {
     var headwordClassNames = classNames('headword', entry['parent_lexicon_details']["to_language"].slice(0,2));
     var definitionClassNames = classNames('definition-content', entry['parent_lexicon_details']["to_language"].slice(0,2));
 
-    var headwords = [entry['headword']];
-    if ('alt_headwords' in entry) {
-      headwords = headwords.concat(entry['alt_headwords']);
-    }
+    var headwordString = this.isBDB(entry) ? this.bdbHeadwordString(entry) : this.defaultHeadwordString(entry)
 
     var morphologyHtml = ('morphology' in entry['content']) ?  (<span className="morphology">&nbsp;({entry['content']['morphology']})</span>) :"";
 
@@ -342,10 +351,6 @@ class LexiconEntry extends Component {
       </span>);
     }
 
-    var headwordString = RegExp(/^BDB.*?Dict/).test(entry['parent_lexicon']) ? this.bdbHeadwordString(entry) : headwords
-          .map((e,i) => <span className="headword" key={i} dir="rtl">{e}</span>)
-          .reduce((prev, curr) => [prev, ', ', curr]);
-
     var entryHeadHtml = (<span className="headline" dir="ltr">
       {headwordString}
       {morphologyHtml}
@@ -355,7 +360,7 @@ class LexiconEntry extends Component {
     var endnotes = ('notes' in entry) ? <span className="notes" dangerouslySetInnerHTML={ {__html: entry['notes']}}></span> : "";
     var derivatives = ('derivatives' in entry) ? <span className="derivatives" dangerouslySetInnerHTML={ {__html: entry['derivatives']}}></span> : "";
 
-    var senses = RegExp(/^BDB.*?Dict/).test(entry['parent_lexicon']) ?  this.renderBDBEntrySenses(entry['content'])
+    var senses = this.isBDB(entry) ?  this.renderBDBEntrySenses(entry['content'])
         : this.renderLexiconEntrySenses(entry['content']);
     var attribution = this.renderLexiconAttribution();
     return (
