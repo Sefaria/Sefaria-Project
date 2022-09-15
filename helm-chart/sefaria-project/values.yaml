@@ -316,7 +316,6 @@ secrets:
     #   CLOUDFLARE_EMAIL:
     #   CLOUDFLARE_TOKEN:
     #   GOOGLE_TAG_MANAGER_CODE:
-    #   GOOGLE_MAPS_API_KEY:
     #   HOTJAR_ID:
     #   AWS_ACCESS_KEY:
     #   AWS_SECRET_KEY:
