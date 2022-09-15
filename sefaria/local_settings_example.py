@@ -172,7 +172,6 @@ RTC_SERVER = '' # Root URL/IP of the server
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_MAPS_API_KEY = None  # currently used for shavuot map
-MIXPANEL_CODE = 'you mixpanel code here'
 
 HOTJAR_ID = None
 
