@@ -5023,6 +5023,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.enOnly .en{
   display: initial;
 }
+/* 
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+But not to use a display block directive that might break continuous mode for other English only texts
+ */
+.readerPanel.hebrew.continuous .segment.enOnly .en{
+  unicode-bidi: embed;
+}
 .readerPanel.hebrew .segment.enOnly .sheetSegmentNumber .en{
   display: none;
 }
