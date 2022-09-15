@@ -158,7 +158,6 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
-    GOOGLE_ANALYTICS_CODE = os.getenv("GOOGLE_ANALYTICS_CODE")
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
     MIXPANEL_CODE = os.getenv("MIXPANEL_CODE")
