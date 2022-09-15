@@ -25,7 +25,7 @@
             To change your email settings, click <a href="{{ settings_url }}">here</a>
         {% endblocktrans %}
             <br>
-        {% blocktrans with domain=""|absolute_url%}
+        {% blocktrans with domain=""|absolute_url|cut:"https://"|cut:"http://" %}
             Your feedback is welcome. Feel free to send us an <a href="mailto:hello@{{ domain }}">email</a>.
         {% endblocktrans %}
 		</div>

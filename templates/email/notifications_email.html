@@ -9,6 +9,6 @@
 {%  blocktrans %} Here's some new activity on {{ site_name }} that you may have missed.{% endblocktrans %}
     <br><br>
 	{% for notification in notifications %}
-		{% include "email/notification.html" with notification=notification site_name=site_name %}
+		{% include "email/notification.html" with notification=notification %}
 	{% endfor %}
 {% endblock %}
