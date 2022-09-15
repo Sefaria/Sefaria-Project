@@ -101,24 +101,30 @@ def get_community_page_items(date=None, language="english", diaspora=True, refre
 
 
 def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
-  parashah = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora)
-  parashah_name = parashah["parasha"]
-  parashah_topic = get_topic_by_parasha(parashah_name)
+  todays_data = get_todays_data(data, date) # First we want the row in the sheet representing today. Always.
+  week_parasha = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora) # What is this week's torah reading on Saturday. Can be a special reading for Holiday.
+  parashah_name = week_parasha["parasha"]
+  parashah_topic = get_topic_by_parasha(parashah_name) # will work if the input field in the sheet is botha valid parasha from our shabbat readings and matches the spelling exactly
+  if not parashah_topic: # This is if the sheet has a variant spelling (including one that conforms to Sefaria's transliteration guide which doesnt match our parasha data)
+    parashah_topic = Topic.load({'titles.text': parashah_name})
 
-  todays_data = None
-  for day_data in data:
-    if day_data["Date"] == date and day_data["Parashah"] == parashah_name:
-      todays_data = day_data
-      break
-  if not todays_data or not todays_data["Sheet URL"]:
+  if not todays_data or not (todays_data["Parashah"] and todays_data["Sheet URL"]):
     sheet = None
   else:
     sheet = sheet_with_customization(todays_data)
     if sheet:
-      sheet["heading"] = {
-        "en": "This Week's Torah Portion: " + parashah_name,
-        "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
-      }
+      if parashah_topic:  # We have a matched official parasha to the day's entry in the sheet
+        parashah_name = parashah_topic.get_primary_title().replace("Parashat ", "")
+        sheet["heading"] = {
+          "en": "This Week's Torah Portion: " + parashah_name,
+          "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
+        }
+      else:  # We have a sheet row where the title doesn't match a known parasha. It might be a mid week holiday reading (doesnt appear in our parshiot db).
+        # This will also mostly rely on the fact that the Hebrew only shows up in Hebrew interface and comms team # can enter custom Hebrew to begin with.
+        sheet["heading"] = {
+          "en": "Torah Reading" + todays_data["Parashah"],
+          "he": "קריאה בתורה: " + hebrew_term(todays_data["Parashah"])
+        }
 
   if not parashah_topic and not sheet:
     return None
