@@ -91,7 +91,7 @@ class NotificationsPanel extends Component {
               notifications :
               <LoginPrompt fullPanel={true} /> }
             </div>
-            <NavSidebar modules={sidebarModules} />
+            {Sefaria._siteSettings.TORAH_SPECIFIC ? <NavSidebar modules={sidebarModules} /> : null}
           </div>
           <Footer />
         </div>

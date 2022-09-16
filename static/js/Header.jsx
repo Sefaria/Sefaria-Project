@@ -54,8 +54,8 @@ class Header extends Component {
             <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
             <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
-          { !Sefaria._siteSettings.TORAH_SPECIFIC ?
-            <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
+          {/*{ !Sefaria._siteSettings.TORAH_SPECIFIC ?*/}
+          {/*  <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}*/}
         </div>
 
         <div className="headerLinksSection">
@@ -442,9 +442,10 @@ const LoggedInButtons = ({headerMode}) => {
       <a href="/texts/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" />
       </a>
-      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-        <img src="/static/icons/notification.svg" />
-      </a>
+      {Sefaria._siteSettings.TORAH_SPECIFIC ?
+          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
+            <img src="/static/icons/notification.svg" />
+          </a> : null}
       <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
     </div>
   );
