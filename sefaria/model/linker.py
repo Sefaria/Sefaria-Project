@@ -1259,6 +1259,15 @@ class RefResolver:
                 resolved_list += [AmbiguousResolvedRef(temp_resolved_list)]
             else:
                 resolved_list += temp_resolved_list
+
+        if len(resolved_list) == 0:
+            # support basic ref instantiation as fall-back
+            try:
+                ref = text.Ref(raw_ref.text)
+                resolved_list += [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
+            except:
+                pass
+
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[

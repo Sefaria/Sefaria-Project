@@ -278,6 +278,8 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'משנה ברורה סימן א סעיף קטן א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
     [crrd(None, 'he', 'משנה ברורה סימן א ס״ק א', [slice(0, 2), slice(2, 4), slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
 
+    # support basic ref instantiation as fall-back
+    [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
