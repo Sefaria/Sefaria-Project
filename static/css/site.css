@@ -22,3 +22,7 @@ tr {
   font-size: 16px;
 }
 
+.header .home img {
+  margin-top: 0;
+}
+
