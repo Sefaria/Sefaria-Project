@@ -331,8 +331,10 @@ class ReaderApp extends Component {
       if (!this.state.initialAnalyticsTracked) {
         this.setState({initialAnalyticsTracked: true});
       }
-      gtag('event', 'page_view', {'page_location': url, 'page_title':bookNames})
-
+      console.log("here")
+      if (typeof window !== 'undefined') {
+        gtag('event', 'page_view', {'page_location': 'test', 'page_title': bookNames, 'test_paramter': '5'})
+      }
   }
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
