@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
+import dataclasses
+from typing import Optional, List
 
 import structlog
 from functools import reduce
@@ -1107,6 +1109,30 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return True
 
 
+@dataclasses.dataclass
+class DiburHamatchilMatch:
+    score: float
+    dh: Optional[str]
+    potential_dh_token_idx: int
+    dh_node: 'DiburHamatchilNode' = None
+
+    def order_key(self):
+        dh_len = len(self.dh) if self.dh else 0
+        return self.score, dh_len
+
+    def __gt__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() > other.order_key()
+
+    def __ge__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() >= other.order_key()
+
+    def __lt__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() < other.order_key()
+
+    def __le__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() <= other.order_key()
+
+
 class DiburHamatchilNode(abst.AbstractMongoRecord):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
@@ -1118,34 +1144,34 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
         "ref",
     ]
 
-    def fuzzy_match_score(self, lang, raw_ref_part):
+    def fuzzy_match_score(self, lang, raw_ref_part) -> DiburHamatchilMatch:
         from sefaria.utils.hebrew import hebrew_starts_with
-        for dh in raw_ref_part.get_dh_text_to_match(lang):
+        for dh, dh_index in raw_ref_part.get_dh_text_to_match(lang):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
-                return 1.0, dh
-        return 0.0, None
+                return DiburHamatchilMatch(1.0, dh, dh_index)
+        return DiburHamatchilMatch(0.0, None, dh_index)
 
 
 class DiburHamatchilNodeSet(abst.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
-    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9):
+    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9) -> List[DiburHamatchilMatch]:
         """
         :param lang: either 'he' or 'en'
         :param raw_ref_part: of type "DH" to match
         :param score_leeway: all scores within `score_leeway` of the highest score are returned
         :param threshold: scores below `threshold` aren't returned
         """
-        best_list = [(0.0, None, '')]
+        best_list = [DiburHamatchilMatch(0.0, '', 0)]
         for node in self:
-            score, dh = node.fuzzy_match_score(lang, raw_ref_part)
-            if dh is None: continue
-            curr_score, _, curr_dh = best_list[-1]
-            if (score, len(dh)) >= (curr_score, len(curr_dh)):
-                # TODO being lazy and only filtering lower matches at the end
-                best_list += [(score, node, dh)]
-        best_score, _, best_dh = best_list[-1]
-        return [best for best in best_list if best[0] > threshold and best[0] + score_leeway >= best_score and len(best[2]) == len(best_dh)]
+            dh_match = node.fuzzy_match_score(lang, raw_ref_part)
+            if dh_match.dh is None: continue
+            if dh_match >= best_list[-1]:
+                dh_match.dh_node = node
+                best_list += [dh_match]
+        best_match = best_list[-1]
+        return [best for best in best_list if best.score > threshold and best.score + score_leeway >= best_match.score
+                and len(best.dh) == len(best_match.dh)]
 
 
 class ArrayMapNode(NumberedTitledTreeNode):

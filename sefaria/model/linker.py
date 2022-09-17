@@ -188,13 +188,14 @@ class RawRefPart(TrieEntry, abst.Cloneable):
     key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation. more likely doesn't add more information
 
-    def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None) -> None:
+    def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None, matched_dh: SpanOrToken = None) -> None:
         self.span = span
         self.type = type
         if potential_dh_continuation is not None:
             if isinstance(potential_dh_continuation, Span) and len(potential_dh_continuation) > self.max_dh_continuation_len:
                 potential_dh_continuation = potential_dh_continuation[:self.max_dh_continuation_len]
         self.potential_dh_continuation = potential_dh_continuation
+        self.matched_dh = matched_dh
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, {self.type}"
@@ -230,9 +231,13 @@ class RawRefPart(TrieEntry, abst.Cloneable):
             dh = m.group(1)
             if self.potential_dh_continuation:
                 for i in range(len(self.potential_dh_continuation), 0, -1):
-                    yield f"{dh} {self.potential_dh_continuation[:i]}"
+                    yield f"{dh} {self.potential_dh_continuation[:i]}", i
             # no matter what yield just the dh
-            yield dh
+            yield dh, 0
+
+    def set_matched_dh(self, potential_dh_token_idx: int):
+        if self.potential_dh_continuation is None: return
+        self.matched_dh = self.potential_dh_continuation[:potential_dh_token_idx]
 
     @property
     def is_context(self):
@@ -583,14 +588,18 @@ class ResolvedRef(abst.Cloneable):
     def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
-        Currently a very simplistic algorithm
+        Currently a simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRef
         """
         if self._thoroughness < ResolutionThoroughness.HIGH and self.ref.is_book_level():
             return []
         best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
-        # TODO modify self with final dh
-        return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
+
+        if len(best_matches):
+            best_dh = max(best_matches, key=lambda x: x.order_key())
+            raw_ref_part.set_matched_dh(best_dh.potential_dh_token_idx)
+
+        return [self.clone(resolved_parts=refined_parts.copy(), node=dh_match.dh_node, ref=text.Ref(dh_match.dh_node.ref)) for dh_match in best_matches]
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
