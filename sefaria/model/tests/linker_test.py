@@ -303,14 +303,14 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
         assert matched_oref == Ref(expected_tref)
 
 
-@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs'), [
-    [None, """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
-    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
-    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
-    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",)],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
+    [None, """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה דף טו ע"ב רש"י ד"ה שמא יפשע']],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
+    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5"), ['Ex. 9:6', '5']],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
     resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
@@ -321,8 +321,9 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
             print("-", matched_oref.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
-    for match in resolved:
+    for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
         assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
+        assert match.raw_ref.pretty_text == expected_pretty_text
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
