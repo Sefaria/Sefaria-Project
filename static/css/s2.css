@@ -76,7 +76,7 @@ a, a:hover {
   unicode-range: U+0041-007A;
 }
 @font-face {
-  font-family: 'Noto Color Emoji'; 
+  font-family: 'Noto Color Emoji';
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
 }
@@ -1228,6 +1228,9 @@ div.interfaceLinks-row a {
   width: 18px;
   opacity: 0.4;
 }
+.sidebarSearch .readerNavMenuSearchButton img {
+  margin-top: 12px;
+}
 .header .headerNavContent {
   position: absolute;
   height: 100%;
@@ -1659,6 +1662,40 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
+
+.navSidebarLink > ul {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+  padding: 0;
+  margin: 0;
+}
+.navSidebarLink > ul > li {
+  display: inline;
+}
+.navSidebarLink > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+
+.navSidebarLink > ul > li:last-child:after {
+  content: none;
+}
+
+.navSidebarLink .languageItem, .translationsPage .languageItem {
+  display: inline;
+  font-size: 18px;
+}
+
+.navSidebarLink.language {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+}
+
 .navSidebarLink.ref {
   font-size: 18px;
 }
@@ -1843,6 +1880,58 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: flex-start;
 }
+.interface-hebrew .sidebarSearch .searchBox,
+.interface-hebrew .sidebarSearch .version,
+.interface-hebrew .sidebarSearch .result-title {
+  direction: rtl;
+}
+.sidebarSearch .searchBox {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  text-align: inherit;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 100%;
+  height: 30px;
+  margin-bottom: 0;
+}
+
+.sidebarSearch .searchBox input {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  font-size: var(--serif-body-font-size);
+  width: 100%;
+}
+.sidebarSearch .searchTopMatter,
+.sidebarSearch .searchTopic {
+  display: none;
+}
+.sidebarSearch .result-title {
+  padding: 14px 0 14px 0;
+  font-size: var(--serif-body-font-size);
+  border-top: 1px solid var(--lighter-grey);
+  margin-top: 14px;
+  color: var(--dark-grey);
+}
+
+.sidebarSearch .similar-results {
+  margin-inline-start: 30px;
+}
+
+.sidebarSearch .snippet.he,
+.sidebarSearch .snippet.en {
+  font-size: var(--serif-body-font-size);
+  display: block;
+}
+
+.sidebarSearch .colorBarBox {
+  border-inline-start: none;
+  padding-inline-start: 0;
+}
+
 .readerNavTop .searchBox .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
 }
@@ -2073,6 +2162,39 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.readerPanel .translationsPage h2 {
+  margin: 40px 0 0 0;
+  font-size: 24px;
+  text-transform: none;
+  color: #000;
+}
+.translationsPage details > ul,
+.translationsPage > ul {
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.translationsPage details > ul > li:after,
+.translationsPage > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+.translationsPage details > ul > li:last-child:after,
+.translationsPage > ul > li:last-child:after{
+  content: none;
+}
+.readerPanel .translationsPage details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.readerPanel .translationsPage  details > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
 h1 .languageToggle {
   text-align: center;
   position: absolute;
@@ -2166,12 +2288,13 @@ h1 .languageToggle .he {
   border-bottom: 2px solid #999;
   padding-bottom: 4px;
 }
-.readerPanel h2, .readerPanel h3 {
+.readerPanel h2, .readerPanel h3,
+.translationsPage details > summary {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
   color: #666;
-  margin-bottom: 20px;
+  margin: 30px 0 0 0;
   font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
@@ -3475,7 +3598,11 @@ select {
   margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  margin-bottom: 2px;
   border: none;
+}
+.interface-hebrew .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  display: none;
 }
 .dictionarySearchBox input {
   font-size: 17px;
@@ -3968,7 +4095,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result {
   padding-bottom: 20px;
 }
-.searchContent .result a:hover {
+.searchContent .result a:hover,
+.sidebarSearch .result a:hover {
   text-decoration: none;
 }
 .searchContent .similar-results {
@@ -4030,7 +4158,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
-.searchContent .result .version {
+.searchContent .result .version,
+.sidebarSearch .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -4041,7 +4170,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version .ownerMetadata {
   margin-inline-start: 10px;
 }
-.searchContent .result .similar-trigger-box {
+.searchContent .result .similar-trigger-box,
+.sidebarSearch .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);
@@ -7235,6 +7365,12 @@ a .button:hover {
   line-height: 20px;
   letter-spacing: normal;
 }
+.button.extraSmall.topic {
+  color: #000000;
+  background-color: var(--lighter-grey);
+  white-space: nowrap;
+}
+
 .button .buttonIcon {
   margin-inline-end: 7px;
   vertical-align: middle;
@@ -11109,7 +11245,7 @@ body .homeFeedWrapper.userStats {
   background-color: #faf9f9;
 }
 
-.bookPage .editTextInfo {
+.editTextInfo {
   top: 0px;
   right: 0px;
   left: 0px;
@@ -11122,17 +11258,18 @@ body .homeFeedWrapper.userStats {
 
 }
 
-.bookPage .editTextInfo .static .inner {
+
+.editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
-.bookPage .editTextInfo .static input {
+.editTextInfo .static input {
   cursor: auto;
   color: #000000;
 }
-.bookPage .editTextInfo .static label {
+.editTextInfo .static label {
   margin-bottom: 15px;
 }
-.bookPage .editTextInfo #newIndex {
+.editTextInfo #newIndex {
   margin: 100px auto;
   font-size: 16px;
   font-weight: normal;
@@ -11141,7 +11278,7 @@ body .homeFeedWrapper.userStats {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
-.bookPage .editTextInfo #newIndex .publishBox {
+.editTextInfo #newIndex .publishBox {
   text-align: start;
   background-color: #EDEDEC;
   border-radius: 6px;
@@ -11150,12 +11287,27 @@ body .homeFeedWrapper.userStats {
   width: 660px;
   max-width: 100%;
 }
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
+.editTextInfo #newIndex .publishBox .react-tags__selected-tag-name {
   --english-font: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   --hebrew-font: "Heebo", sans-serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
+}
+.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc {
+  height: 200px;
+  width: 97%;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+  border-radius: 7px;
+  font-size: 16px;
+  line-height: 18.75px;
+  padding: 10px;
+}
+.button.small.deleteTopic {
+  color: var(--dark-grey);
+  float: right;
+  background-color: var(--lightest-grey);
 }
 #categoryChooserMenu {
   overflow: hidden;
@@ -11166,6 +11318,9 @@ body .homeFeedWrapper.userStats {
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
+}
+#categoryChooserMenu select option:first-child {
+  color: var(--lighter-grey);
 }
 #categoryChooserMenu select {
   background: transparent;
@@ -11183,26 +11338,26 @@ body .homeFeedWrapper.userStats {
   width: 10px;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__selected-tag {
+.editTextInfo #newIndex .publishBox .react-tags__selected-tag {
   margin: 0 12px 12px 0;
   padding: 12px 14px;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox input {
+.editTextInfo #newIndex .publishBox input {
   box-shadow: none;
 }
 
-.bookPage .editTextInfo #newIndex .publishBox .react-tags__search {
+.editTextInfo #newIndex .publishBox .react-tags__search {
   padding: 0 0 0 0;
 }
 
-.bookPage .editTextInfo #newIndex .optional {
+.editTextInfo #newIndex .optional {
   font-size: 13px;
   color: var(--light-grey);
   font: var(--english-sans-serif-font-family);
 }
 
-.bookPage .editTextInfo #newIndex input {
+.editTextInfo #newIndex input {
   padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;
@@ -11211,22 +11366,22 @@ body .homeFeedWrapper.userStats {
   max-width: 100%;
 }
 
-.bookPage .editTextInfo #newIndex #heTitle {
+.editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
-.interface-english .bookPage .editTextInfo .static label {
+.interface-english .editTextInfo .static label {
   text-align: left;
 }
-.interface-hebrew .bookPage .editTextInfo .static label {
+.interface-hebrew .editTextInfo .static label {
   text-align: right
 }
-.bookPage .editTextInfo #newIndex .sectionType input{
+.editTextInfo #newIndex .sectionType input{
 	width: 100px;
 	margin: 0 5px;
 	font-size: 16px;
 }
 
-.bookPage .editTextInfo #newIndex .remove {
+.editTextInfo #newIndex .remove {
 	color: white;
 	background: #bbb;
 	display: inline-block;
@@ -11241,14 +11396,14 @@ body .homeFeedWrapper.userStats {
 	vertical-align: 15%;
 }
 
-.bookPage .editTextInfo #newIndex .sectionType .remove {
+.editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.bookPage .editTextInfo #newIndex a {
+.editTextInfo #newIndex a {
     color: #666;
 }
 
-.bookPage .editTextInfo .nodeTemplate {
+.editTextInfo .nodeTemplate {
 	display: none;
 }
 @media screen and (max-width: 680px) {
@@ -11256,16 +11411,16 @@ body .homeFeedWrapper.userStats {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
-  .bookPage .editTextInfo .static .headerWithButtons h1 {
+  .editTextInfo .static .headerWithButtons h1 {
     margin: 30px;
   }
   #categoryChooserMenu select {
     width: 340px;
   }
-  .bookPage .editTextInfo #newIndex input {
+  .editTextInfo #newIndex input {
     width: 300px;
   }
-  .bookPage .editTextInfo #newIndex .publishBox {
+  .editTextInfo #newIndex .publishBox {
     width: 320px;
   }
 }
@@ -11290,7 +11445,7 @@ body .homeFeedWrapper.userStats {
   border-radius: 8px;
   z-index: 1;
 }
-.bookPage .editTextInfo .collectionsWidget {
+.editTextInfo .collectionsWidget {
   width: 580px;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;

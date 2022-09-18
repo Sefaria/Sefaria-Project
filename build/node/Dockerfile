@@ -1,4 +1,4 @@
-FROM gcr.io/production-deployment/base-node:latest
+FROM gcr.io/production-deployment/base-node:v13.0.0
 
 WORKDIR /app/
 

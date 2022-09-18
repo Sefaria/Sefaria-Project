@@ -727,4 +727,68 @@ class TestModifyVersion:
         assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
 
 
+class TestVersionActualLanguage:
+    myIndexTitle = "Test VersionActualLanguage " + test_uid
+    vtitle = "Version TEST"
+    vlang = "he"
 
+    @classmethod
+    def setup_class(cls):
+        cls.myIndex = model.Index({
+            "title": cls.myIndexTitle,
+            "heTitle": "בלה2",
+            "titleVariants": [cls.myIndexTitle],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+            "lengths": [50, 501]
+        }).save()
+        cls.versionWithTranslation = model.Version(
+            {
+                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST [fr]",
+                "versionSource": "blabla",
+                "language": "he",
+                "title": cls.myIndexTitle
+            }
+        )
+        cls.versionWithTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.versionWithTranslation.save()
+        cls.versionWithoutTranslation = model.Version(
+            {
+                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST",
+                "versionSource": "blabla",
+                "language": "he",
+                "title": cls.myIndexTitle
+            }
+        )
+        cls.versionWithoutTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.versionWithoutTranslation.save()
+        cls.versionThatWillBreak = model.Version(
+            {
+                "chapter": cls.myIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST [ar]",
+                "versionSource": "blabla",
+                "language": "he",
+                "actualLanguage": "fr",
+                "title": cls.myIndexTitle
+            }
+        )
+        
+    @classmethod
+    def teardown_class(cls):
+        for c in [cls.myIndex, cls.versionWithTranslation, cls.versionWithoutTranslation, cls.versionThatWillBreak]:
+            try:
+                c.delete()
+            except Exception:
+                pass
+    
+    def test_normalizes_actualLanguage_from_brackets(self):
+        assert self.versionWithTranslation.actualLanguage == "fr"
+    
+    def test_normalizes_language_from_language(self):
+        assert self.versionWithoutTranslation.actualLanguage == "he"
+
+    def test_fails_validation_when_language_mismatch(self):
+        with pytest.raises(InputError, match='Version actualLanguage does not match bracketed language'):
+            self.versionThatWillBreak.save()

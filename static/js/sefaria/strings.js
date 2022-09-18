@@ -90,6 +90,7 @@ const Strings = {
     "Options": "אפשרויות",
     "Exact Matches Only": "התאמה מדויקת למילות החיפוש",
     "Search Texts": "חפש מקורות",
+    "Search in this text": "חפש בטקסט",
 
     // Sheets
     "Sheet": "דף מקורות",
@@ -237,6 +238,7 @@ const Strings = {
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
     "Location: ": "מיקום: ",
     "Translations": "תרגומים",
+    "Uncategorized": "לא מסווג",
 
     // Collections
     "Collections": "אסופות",

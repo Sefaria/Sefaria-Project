@@ -1,13 +1,11 @@
 {
-	"title": "Friends,",
+	"title": "Shanah Tovah!",
 	"text": [
-		"We’re only 70 new Sustainers away from meeting our goal of 400 Sustainers by Shavuot! Thank you to all who have already signed up to make a monthly donation, and to all who support Sefaria in any way that they can.\n",\,
-		"Please become a Sustainer today to help Sefaria continue expanding access to the Jewish canon and transforming your learning experience. We need and value your support.\n",
-		"Chag Shavuot Sameach,\n",
-		"Team Sefaria \n"
-    ],
-	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
-	"buttonText": "Become a Sustainer",
-	"name": "2022-06-01-shavuot-donate-modal-1",
+		"As a non-profit organization, Sefaria reinvests every dollar donated straight back into the library.",
+		"That means more texts, more translations, and better technology to enrich your learning."
+	],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate Now",
+	"name": "2022-9-7-elul-banner-1",
 	"schemaVersion": 1
 }

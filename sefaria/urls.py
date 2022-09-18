@@ -36,6 +36,7 @@ urlpatterns = [
     url(r'^collections/new$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     url(r'^community/?$', reader_views.community_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^updates/?$', reader_views.updates),
@@ -135,6 +136,8 @@ urlpatterns += [
     url(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     url(r'^api/texts/version-status/?$', reader_views.version_status_api),
     url(r'^api/texts/parashat_hashavua$', reader_views.parashat_hashavua_api),
+    url(r'^api/texts/translations/?$', reader_views.translations_api),
+    url(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     url(r'^api/texts/random?$', reader_views.random_text_api),
     url(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
@@ -232,7 +235,8 @@ urlpatterns += [
 # Search API
 urlpatterns += [
     url(r'^api/dummy-search$', reader_views.dummy_search_api),
-    url(r'^api/search-wrapper$', reader_views.search_wrapper_api)
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api),
+    url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
 ]
 
 # Following API
@@ -253,6 +257,8 @@ urlpatterns += [
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/v2/topics/(?P<topic>.+)$', reader_views.topics_api, {'v2': True}),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
+    url(r'^api/topic/new$', reader_views.add_new_topic_api),
+    url(r'^api/topic/delete/(?P<topic>.+)$', reader_views.delete_topic),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
@@ -354,7 +360,8 @@ urlpatterns += [
 # Linker js, text upload & download
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
-    url(r'^api/find-refs$', sefaria_views.find_refs_api),
+    url(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
+    url(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),

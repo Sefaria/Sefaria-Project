@@ -858,10 +858,177 @@ const EducatorsPage = () => (
     <div className="staticPageCallToActionFooter">
       <div className="staticPageBlockInner flexContainer">
         <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
-        <EducatorSubscribeButton/>
+        <SubscribeButton
+                     enAction={"Sign up to get updates"}
+                     heAction={"הירשמו לקבלת הניוזלטר"}
+                     heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
+                     enLists={"Announcements_General|Announcements_Edu"}
+                     redirectURL={"/register?educator=true&next=/educators"}
+        />
       </div>
     </div>
 
+
+  </StaticPage>
+);
+
+const RabbisPage = () => (
+  <StaticPage>
+    <HeaderForRabbisPage/>
+    <GreyBox>
+      <H2Block en="Engage Your Community and Share Your Torah" he=""/>
+      <EnBlock padded={true}>
+        <p>Engage your community in learning using Sefaria’s free library of digital texts, in Hebrew and English translation. Enjoy having an extensive library at your fingertips for learning in the synagogue, on campus, at home or on the go. Share your Torah with Sefaria learners near and far.</p>
+      </EnBlock>
+      <Spacer/>
+    </GreyBox>
+
+
+    <Feature
+      enTitle="Sefaria in Your Community"
+      enText="Explore the ways in which Sefaria supports teaching and learning. Whether you’re a pro or a new user, Sefaria has resources to help you and your community learn and thrive. Request a custom workshop for your team or your community, discover how to use Chavruta for learning events, and share your Divrei Torah and Sermons using Collections."
+      enImg="/static/img/rabbis-landing-page/sara+rabbis.jpg"
+      enImgAlt="Sefaria in Your Community"
+      borderColor={palette.colors.darkblue}
+    />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Schedule A Workshop", "שאלות נפוצות", "https://www.sefaria.org/sheets/370615?lang=bi", "https://www.sefaria.org.il/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"],
+          ["Innovating with a Digital Library", "", "https://www.sefaria.org/sheets/415628?lang=bi", ""],
+          ["Collections: A Home for Sermons and Classes", "", "https://www.sefaria.org/sheets/370836?lang=bi", ""]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[3]}
+              he={i[1]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+
+     <Feature
+      enTitle="Resources for Rabbis"
+      enText="Stay up to date with the latest news and resources from Sefaria. Find relevant texts and sheets for thousands of topics, use and share Sefaria’s Chavruta feature for your own chavruta study, and get inspired to try something new in your work."
+      enImg="/static/img/rabbis-landing-page/Sermon landing page screenshot.png"
+      enImgAlt="Resources for Rabbis"
+      borderColor={palette.colors.gold}
+      link=""
+     />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Past Rabbi Newsletters", "", "https://www.sefaria.org/collections/T-5hbqOq?tab=sheets", ""],
+          ["Topics Tutorial", "", "https://www.sefaria.org/sheets/231377?lang=bi", ""],
+          ["Studying With a Partner: A Chavruta Tutorial", "", "https://www.sefaria.org/sheets/263246?lang=bi", ""]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[3]}
+              he={i[1]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+    <Feature
+      enTitle="Sefaria How-Tos"
+      enText="Browse our Help Center and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you or answer any questions you might have. If there are texts, translations, or learning materials that would enhance your work, please share that with us as well!"
+      enImg="/static/img/rabbis-landing-page/help-center-screenshot.png"
+      enImgAlt="Sefaria How-Tos"
+      borderColor={palette.colors.red}
+    />
+
+    <ButtonRow white={true} enTitle="" heTitle="">
+      { [
+          ["Help Center", "", "https://www.sefaria.org/collections/sefaria-faqs",""],
+          ["Webinars", "", "https://www.sefaria.org/sheets/228105?lang=bi",""],
+          ["Request New Resources", "", "https://sefaria.typeform.com/to/aaZmi4JD?typeform-source=www.sefaria.org",""]
+      ].map(i =>
+          <SimpleButton
+              white={true}
+              rounded={false}
+              tall={true}
+              newTab={true}
+              href={i[2]}
+              he_href={i[3]}
+              he={i[1]}
+              en={i[0]}
+          />)
+      }
+    </ButtonRow>
+
+    <GreyBox>
+      <H2Block en="Keep in touch" he="אנחנו רוצים לשמוע מכם"/>
+      <EnBlock padded={true}>
+          <p>Was your work enhanced by Sefaria? Did you have a “Sefaria moment” with your learning community? Share it with us! We love to hear how rabbis are using Sefaria in the field and we learn from the feedback we receive. We are also available to answer all of your Sefaria questions. Write to us at education@sefaria.org.</p>
+      </EnBlock>
+      <Spacer/>
+    </GreyBox>
+
+    <H2Block en="As the Rabbis say…" he="מורים ותלמידים ממליצים"/>
+
+    <EnBlock>
+    <Section>
+      <UserQuote
+          heText=""
+          enText="“Sefaria is a gift to those of us seeking not just the conclusions to Halakhic arguments, but the entirety of the conversation; we are the ones who look up every citation and want to fully grasp the web of discourse for ourselves and Sefaria makes that so easy. It is equally a gift to those of us who teach and know the importance of providing readable and easy to find sources for our students. I use Sefaria to create and share annotated source sheets with some of the more complicated sources we discuss and invite my students to iterate on those sheets in turn. Before applying to rabbinical school, I studied how Sefaria shaped students' experiences of learning. Now, I am lucky to study Torah with my students using Sefaria.”"
+          enName="Rabbanit Dr. Liz Shayne"
+          heName=""
+          image="/static/img/rabbis-landing-page/lizshayne 1.png"
+      />
+      <UserQuote
+          enText="“Sefaria’s commitment to digital text access for all who seek to take hold of Torah played a pivotal and unparalleled role in my rabbinical school journey. As a blind woman in the rabbinate, Sefaria’s digital library enabled me to access texts with ease for both educational and Torah lishma purposes. With much hakarat hatov do I thank Sefaria for the holy work you are doing.”"
+          heText=""
+          enName="Rabbi Lauren Tuchman"
+          heName=""
+          image="/static/img/rabbis-landing-page/lauren-tuchman.png"
+      />
+      <UserQuote
+        heText=""
+        enText="“As a Rabbi, I have come to rely on Sefaria for my own lishmah study, as well as for creating source sheets for programs and study sessions in my community. I look forward to all that Sefaria still has in store for the Jewish world, and am proud to continue supporting your work.”"
+        enName="Rabbi Max Chaiken | Temple Emanuel | Andover, MA"
+        heName=""
+        image="/static/img/rabbis-landing-page/Rabbi-Chaiken-Headshot.png"
+      />
+      <UserQuote
+        enText="“Due to Hurricane Harvey in 2017 I lost about half of my library.  While some of the lost seforim have been replaced, I do not have the physical space to have access to them.  I have relied on the amazing Sefaria library to make up for the books that I am missing or cannot get to. I use Sefaria on a daily basis and there are some days that it is open on my computer all day long.  Sefaria and I spend extra time together on Friday when it is Drasha preparation time. I am grateful for the regular updates and additions Sefaria makes to the library.”"
+        heText=""
+        enName="Rabbi Barry Gelman | Director of the Bobbi and Vic Samuels Center For Jewish Living and Learning | ERJCC in Houston"
+        heName=""
+        image="/static/img/rabbis-landing-page/Rabbi Gelman 1.png"
+      />
+      <UserQuote
+        enText="“My community and I worked this summer to put together a haggadah for the high holidays and wanted to thank you for all the help Sefaria provided as a source for Hebrew texts and inspiration. We couldn't dive as deep into our faith as we do without you! You offer us an ocean of Torah and boats to set sail upon it.”"
+        heText=""
+        enName="Rabbi David Winship | Temple Beth David of the South Shore"
+        heName=""
+        image="/static/img/rabbis-landing-page/rabbi-david-winship.png"
+      />
+    </Section>
+    </EnBlock>
+
+
+
+    <div className="staticPageCallToActionFooter">
+      <div className="staticPageBlockInner flexContainer">
+        <SimpleInterfaceBlock classes="callToActionText" en="Sign up for our mailing list to get updates in your inbox" he="קבלו עדכונים והפניות למקורות מעניינים" />
+        <SubscribeButton
+             enAction={"Sign up for Rabbi Newsletter"}
+             heAction={"הירשמו לקבלת הניוזלטר"}
+             heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
+             enLists={"Announcements_General|Announcements_Edu"}
+             redirectURL={"/register?next=/rabbis"}
+            />
+      </div>
+    </div>
 
   </StaticPage>
 );
@@ -1344,7 +1511,7 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donor-Advised Fund"
                     heTitle=""
-                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-44064545</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
+                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-4406454</strong>. If you need additional information to make a DAF donation, please contact Sefaria’s development team at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
                     heText=""
                     colorBar="#CCB479"
                 />,
@@ -1397,7 +1564,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a href='https://www.sefaria.org/static/files/Sefaria%202019%20990%20-%20Public%20-%20Client%20Copy.PDF'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a href='https://www.sefaria.org/static/files/Sefaria_2020_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1460,7 +1627,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to donate through a donor-advised fund, federation, or foundation. What do I need to send you?"
             heTitle=""
-            enText="<p>Donations from these types of institutions can be made through any of the payment methods listed in the Ways to Give section above. If you are donating from a foundation, federation, or donor-advised fund, please include any relevant gift acknowledgment information or preferences along with your gift. <strong>Sefaria's EIN is 46-44064545</strong>.</p>
+            enText="<p>Donations from these types of institutions can be made through any of the payment methods listed in the Ways to Give section above. If you are donating from a foundation, federation, or donor-advised fund, please include any relevant gift acknowledgment information or preferences along with your gift. <strong>Sefaria's EIN is 46-4406454</strong>.</p>
                     <p>If you are sending your donation by mail, please include this information in a cover letter accompanying your check; if you are donating through a wire transfer or other electronic method, please send an email with this information to <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. This ensures we have all the necessary information to send your gift acknowledgment and tax receipt.</p>"
             heText=""
             colorBar="#7F85A9"
@@ -1583,7 +1750,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="https://www.sefaria.org/static/files/Sefaria%202020%20Annual%20Report.pdf"
+                        href="/annualreport/2021"
                         he_href=""
                         he=""
                         en="Read Here"
@@ -1971,67 +2138,63 @@ const HeaderWithColorAccentBlockAndText = ({enTitle, heTitle, enText, heText, co
     </div>
 )
 
-
-
-
-const EducatorSubscribeButton = () => {
+const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) => {
   const email = Sefaria._email;
   const [message, setMessage] = useState("");
   const [messageStyle, setMessageStyle] = useState("");
-  const heActionText = useRef("הירשמו לקבלת הניוזלטר");
-  const enActionText = useRef("Get the Newsletter");
+  const heActionText = useRef(heAction);
+  const enActionText = useRef(enAction);
 
   if (email.length === 0) {
-    enActionText.current = "Sign up to get updates";
-    heActionText.current = "הירשמו לקבלת עדכונים";
+    enActionText.current = enAction;
+    heActionText.current = heAction;
   }
+
   const handleClick = () => {
-    if (Sefaria.util.isValidEmailAddress(email)) {
-      setMessage("Subscribing...");
-      setMessageStyle("italics");
-      var lists = Sefaria.interfaceLang == "hebrew" ?
-              "Announcements_General_Hebrew|Announcements_Edu_Hebrew"
-              : "Announcements_General|Announcements_Edu"
-      const request = new Request(
-          "/api/subscribe/" + email,
-          {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-        method: 'POST',
-        mode: 'same-origin',
-        credentials: 'same-origin',
-        body: {"lists": lists},
-      }).then(response => {
-        if (!response.ok) {
-          response.text().then(resp_text => {
-            setMessage(resp_text)
-            setMessageStyle("");
+      if (Sefaria.util.isValidEmailAddress(email)) {
+          setMessage("Subscribing...");
+          setMessageStyle("italics");
+          const lists = Sefaria.interfaceLang == "hebrew" ? heLists : enLists
+
+          const request = new Request(
+              "/api/subscribe/" + email,
+              {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+          );
+          fetch(request, {
+              method: 'POST',
+              mode: 'same-origin',
+              credentials: 'same-origin',
+              body: {"lists": lists},
+          }).then(response => {
+              if (!response.ok) {
+                  response.text().then(resp_text => {
+                      setMessage(resp_text)
+                      setMessageStyle("");
+                  });
+              } else {
+                  response.json().then(resp_json => {
+                      if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
+                          setMessage("Subscribed! Welcome to our list.");
+                          setMessageStyle("");
+                      } else if (resp_json.hasOwnProperty("error")) {
+                          setMessage(resp_json["error"]);
+                          setMessageStyle("");
+                      }
+                  });
+              }
+          }).catch(error => {
+              setMessage(error.message);
           });
-        } else {
-          response.json().then(resp_json => {
-            if (resp_json.hasOwnProperty("status") && resp_json["status"] == "ok") {
-              setMessage("Subscribed! Welcome to our list.");
-              setMessageStyle("");
-            }
-            else if (resp_json.hasOwnProperty("error")) {
-              setMessage(resp_json["error"]);
-              setMessageStyle("");
-            }
-          });
-        }
-      }).catch(error => {
-        setMessage(error.message);
-      });
-    }
+      }
   }
 
   return <span>
       <div className="simpleButtonWrapper signUpEducators">
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})}>
-          <span className="int-en">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
+          <span className="int-en">{email.length === 0 ? <a href={redirectURL}>{enActionText.current}</a> : enActionText.current}<img src="/static/img/circled-arrow-right.svg"/></span>
         </div>
         <div onClick={handleClick} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
-          <span className="int-he">{email.length === 0 ? <a href="/register?educator=true&next=/educators">{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
+          <span className="int-he">{email.length === 0 ? <a href={redirectURL}>{heActionText.current}</a> : heActionText.current}<img src="/static/img/circled-arrow-left.svg"/></span>
         </div>
       </div>
       <div className={`signUpEducatorsMessage ${messageStyle}`}>{message}<br/></div>
@@ -2052,11 +2215,41 @@ const HeaderForEducatorsPage = () => {
           <span className="int-he">{heTitle}</span>
         </h1>
         <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-        <EducatorSubscribeButton/>
+        <SubscribeButton
+             enAction={"Sign up to get updates"}
+             heAction={"הירשמו לקבלת הניוזלטר"}
+             heLists={"Announcements_General_Hebrew|Announcements_Edu_Hebrew"}
+             enLists={"Announcements_General|Announcements_Edu"}
+             redirectURL={"/register?educator=true&next=/educators"}
+            />
       </div>
     </div>
   </div>
 };
+
+const HeaderForRabbisPage = () => {
+  var enTitle="Sefaria for Rabbis"
+  var enText="Discover the power of digital texts and tools to fuel your rabbinate. Explore Sefaria’s many resources to enrich learning and teaching in your community."
+
+  return <div className="staticPageHeader rabbis">
+    <div className="staticPageBlockInner flexContainer">
+      <div className="staticPageHeaderTextBox educators">
+        <h1>
+          <span className="int-en">{enTitle}</span>
+        </h1>
+        <SimpleInterfaceBlock classes="staticPageHeaderText" en={enText}/>
+        <SubscribeButton
+             enAction={"Sign up for Rabbi Newsletter"}
+             heAction={"הירשמו לקבלת הניוזלטר"}
+             heLists={"ANNOUNCEMENTS_General_Hebrew|ANNOUNCEMENTS_Rabbi_Hebrew"}
+             enLists={"ANNOUNCEMENTS_General|ANNOUNCEMENTS_Rabbi"}
+             redirectURL={"/register?next=/rabbis"}
+            />
+      </div>
+    </div>
+  </div>
+};
+
 
 const HeaderForDonatePage = () => {
   var enTitle="Your gift. Your impact."
@@ -2295,5 +2488,6 @@ export {
     ContestLandingPage,
     RambanLandingPage,
     EducatorsPage,
+    RabbisPage,
     DonatePage
 }

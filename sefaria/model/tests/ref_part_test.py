@@ -159,6 +159,10 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'יג, א-ב', [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
     [crrd(None, 'he', 'ברכות דף ב', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED], ['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
     [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
+    [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
+    # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
+    pytest.param(crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 1:7", "Genesis 7"], marks=pytest.mark.xfail(reason="Need to decide if this case is inherently ambiguous. If we think it's explicitly Genesis 7, what rules are needed?")),
 
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -201,15 +205,67 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
     [crrd(None, 'he', 'באה"ע סימן קנ"ה סי"ד', [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
-    pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Dont support Sefer HaTashbetz yet")),  # complex text
+    pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
     [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
     [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
     [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
     [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
     [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
+    [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
+    pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
+    [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
+    [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
+    [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
+    [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(None, 'he', 'ד"א זוטא פרק השלום ג', [slice(0, 4), slice(4, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), 6], [RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
+    [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
+    [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    # [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    [crrd(None, 'he', 'במדרש שמות רבה י"א ג', [0, slice(1, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Shemot Rabbah 11:3"]],
+    [crrd(None, 'he', 'ובפרשת ואלה שמות', [slice(0, 3)], [RPT.NAMED]), ["Exodus 1:1-6:1"]],
+    [crrd(None, 'he', 'פדר"א פרק כג', [slice(0,3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Pirkei DeRabbi Eliezer 23"]],
+    [crrd(None, 'he', 'סדר אליהו פ"י', [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Rabbah 10"]],
+    # [crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna debei Eliyahu Zuta 11"]],
+    [crrd(None, 'he', 'מכילתא דרשב"י פרק יב', [slice(0, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Mekhilta DeRabbi Shimon Ben Yochai 12"]],
 
-    # [crrd(None, 'he', 'בבראשית רבה בראשית ט', [])]
+    [crrd(None, 'he', "ספרי במדבר קמב", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
+    # [crrd(None, 'he', "ספרי במדבר פיס' קמב", [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
+    # [crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"]],
+    # [crrd(None, 'he', 'ספרי במדבר פסקא יז', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 17"]],
+    # [crrd(None, 'he', 'ספרי במדבר פרשת בהעלותך פיסקא עח', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Bamidbar 78"]],
+    [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
+    [crrd(None, 'he', 'פסיקתא דר"כ ג', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta D'Rav Kahanna 3"]],
+    [crrd(None, 'he', "פסיקתא רבתי טו", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta Rabbati 15"]],
+    # [crrd(None, 'he', "ילקוט שמעוני כג", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"]],
+    # [crrd(None, 'he', "ילקוט שמעוני בראשית רמז כג", [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"]],
+    # [crrd(None, 'he', 'ילקוט שמעוני על נ"ך רמז כג', [slice(0, 6), 6], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
+    [crrd(None, 'he', 'ילקוט שמעוני יהושע כג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
+    [crrd(None, 'he', 'מדרש תהילים כג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Tehillim 23"]],
+    [crrd(None, 'he', 'מדרש משלי פרק כג', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Mishlei 23"]],
+    [crrd(None, 'he', 'תנחומא בראשית יג', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma, Bereshit 13"]],
+    [crrd(None, 'he', 'תנחומא בובר בראשית יג', [slice(0,2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma Buber, Bereshit 13"]],
+    [crrd(None, 'he', 'תקוני זוהר כג ע"ב', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 23b"]],
+    # [crrd(None, 'he', 'תקו"ז ט', [slice(0, 3), 3], [RPT.NAMED, RPT.NUMBERED]),["Tikkunei Zohar 24a:7-24b:1"]],
+    # [crrd(None, 'he', 'ת"ז תיקון ט', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 24a:7-24b:1"]],
+    # [crrd(None, 'he', 'תקו"ז ט כד ע"ב', [slice(0, 3), 3, slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Tikkunei Zohar 24b:1"]],
+    [crrd(None, 'he', 'הקדמה לתקו"ז', [0, slice(1, 4)], [RPT.NAMED, RPT.NAMED]), ["Tikkunei Zohar 1a:1-16b:4"]],
+    [crrd(None, 'he', 'ס"ע פי"א', [slice(0, 3), slice(3, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Seder Olam Rabbah 11"]],
+    [crrd(None, 'he', 'מק"א ג ד', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees I 3:4"]],
+    [crrd(None, 'he', 'ספר חשמונאים ב ו ב', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees II 6:2"]],
+    [crrd(None, 'he', 'ליקוטי מוהר"ן כג ב', [slice(0,4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
+    # [crrd(None, 'he', 'ליקוטי מוהר"ן תורה כג אות ב', [slice(0, 4), slice(4, 6), slice(6, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
+    [crrd(None, 'he', 'ליקוטי מוהר"ן תניינא ד ב', [slice(0,4), 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan, Part II 4:2"]],
+    [crrd(None, 'he', 'ספר יצירה פ"א מ"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah 1:1"]],
+    [crrd(None, 'he', 'ספר יצירה נוסח הגר"א ב ב', [0, 1, slice(3, 6), 6, 7], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah Gra Version 2:2"]],
+    [crrd(None, 'he', 'לקוטי הלכות או"ח הלכות ציצית ב א', [slice(0, 2), slice(2, 5), slice(5, 7), 7, 8], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Halakhot, Orach Chaim, Laws of Fringes 2:1"]],
+    [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
+    [crrd(None, 'he', "בתלמוד ירושלמי כתובות פ\"א ה\"ב", [slice(0, 2), 2, slice(3, 6), slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Jerusalem Talmud Ketubot 1:2"]],
+    [crrd(None, 'he', 'סוטה מג', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ['Sotah 43']],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
