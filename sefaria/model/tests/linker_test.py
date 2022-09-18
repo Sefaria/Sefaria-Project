@@ -277,6 +277,9 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'משנה ברורה סימן א סקט״ו', [slice(0, 2), slice(2, 4), slice(4, 7)],  [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:15']],
     [crrd(None, 'he', 'משנה ברורה סימן א סעיף קטן א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
     [crrd(None, 'he', 'משנה ברורה סימן א ס״ק א', [slice(0, 2), slice(2, 4), slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    [crrd(None, 'he', 'בשו"ע או"ח סימן שכ"ט ס"ו', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 329:6']],
+    [crrd(None, 'he', 'בשו"ע או"ח סימן ש"ל סי"א', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)],
+          [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 330:11']],
 
     # support basic ref instantiation as fall-back
     [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
