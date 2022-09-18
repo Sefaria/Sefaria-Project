@@ -100,8 +100,8 @@ a, a:hover {
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "Cardo", "Meltho", "Noto Sans Samaritan", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Cardo", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
