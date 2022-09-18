@@ -479,6 +479,7 @@ def file_upload(request, resize_image=True):
     from tempfile import NamedTemporaryFile
     from sefaria.google_storage_manager import GoogleStorageManager
     from io import BytesIO
+    import uuid
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
@@ -489,7 +490,6 @@ def file_upload(request, resize_image=True):
         name, extension = os.path.splitext(uploaded_file.name)
         with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
             temp_uploaded_file.write(uploaded_file.read())
-
             image = Image.open(temp_uploaded_file)
             resized_image_file = BytesIO()
             if resize_image:
@@ -497,7 +497,8 @@ def file_upload(request, resize_image=True):
             image.save(resized_image_file, optimize=True, quality=70, format="PNG")
             resized_image_file.seek(0)
             bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
-            url = GoogleStorageManager.upload_file(resized_image_file, uploaded_file.name, bucket_name)
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
             return jsonResponse({"status": "success", "url": url})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
