@@ -304,7 +304,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
 
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
-    [None, """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה דף טו ע"ב רש"י ד"ה שמא יפשע']],
+    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
     [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
     [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
     [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5"), ['Ex. 9:6', '5']],
@@ -323,7 +323,7 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         assert matched_oref == Ref(expected_tref)
     for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
         assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
-        assert match.raw_ref.pretty_text == expected_pretty_text
+        assert match.pretty_text == expected_pretty_text
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [

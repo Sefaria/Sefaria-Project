@@ -188,14 +188,13 @@ class RawRefPart(TrieEntry, abst.Cloneable):
     key_is_id = False
     max_dh_continuation_len = 4  # max num tokens in potential_dh_continuation. more likely doesn't add more information
 
-    def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None, matched_dh: SpanOrToken = None) -> None:
+    def __init__(self, type: RefPartType, span: Optional[SpanOrToken], potential_dh_continuation: SpanOrToken = None) -> None:
         self.span = span
         self.type = type
         if potential_dh_continuation is not None:
             if isinstance(potential_dh_continuation, Span) and len(potential_dh_continuation) > self.max_dh_continuation_len:
                 potential_dh_continuation = potential_dh_continuation[:self.max_dh_continuation_len]
         self.potential_dh_continuation = potential_dh_continuation
-        self.matched_dh = matched_dh
 
     def __str__(self):
         return f"{self.__class__.__name__}: {self.span}, {self.type}"
@@ -234,10 +233,6 @@ class RawRefPart(TrieEntry, abst.Cloneable):
                     yield f"{dh} {self.potential_dh_continuation[:i]}", i
             # no matter what yield just the dh
             yield dh, 0
-
-    def set_matched_dh(self, potential_dh_token_idx: int):
-        if self.potential_dh_continuation is None: return
-        self.matched_dh = self.potential_dh_continuation[:potential_dh_token_idx]
 
     @property
     def is_context(self):
@@ -541,7 +536,7 @@ class ResolvedRef(abst.Cloneable):
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
@@ -549,6 +544,46 @@ class ResolvedRef(abst.Cloneable):
         self.context_ref = context_ref
         self.context_type = context_type
         self._thoroughness = _thoroughness
+        self._matched_dh_map = _matched_dh_map or {}
+
+    @property
+    def pretty_text(self) -> str:
+        """
+        Return text of underlying RawRef with modifications to make it nicer
+        Currently
+        - adds ending parentheses if just outside span
+        - adds extra DH words that were matched but aren't in span
+        @return:
+        """
+        new_raw_ref_span = self._get_pretty_dh_span(self.raw_ref.span)
+        new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
+        return new_raw_ref_span.text
+
+    def _get_pretty_dh_span(self, curr_span) -> SpanOrToken:
+        curr_start, curr_end = span_inds(curr_span)
+        for dh_span in self._matched_dh_map.values():
+            temp_start, temp_end = span_inds(dh_span)
+            curr_start = temp_start if temp_start < curr_start else curr_start
+            curr_end = temp_end if temp_end > curr_end else curr_end
+
+        return curr_span.doc[curr_start:curr_end]
+
+    def _get_pretty_end_paren_span(self, curr_span) -> SpanOrToken:
+        import re
+
+        curr_start, curr_end = span_inds(curr_span)
+        if re.search(r'\([^)]+$', curr_span.text) is not None:
+            for temp_end in range(curr_end, curr_end+2):
+                if ")" not in curr_span.doc[temp_end].text: continue
+                curr_end = temp_end + 1
+                break
+
+        return curr_span.doc[curr_start:curr_end]
+
+    def _set_matched_dh(self, part: RawRefPart, potential_dh_token_idx: int):
+        if part.potential_dh_continuation is None: return
+        matched_dh_continuation = part.potential_dh_continuation[:potential_dh_token_idx]
+        self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
         for part in other.resolved_parts:
@@ -597,7 +632,7 @@ class ResolvedRef(abst.Cloneable):
 
         if len(best_matches):
             best_dh = max(best_matches, key=lambda x: x.order_key())
-            raw_ref_part.set_matched_dh(best_dh.potential_dh_token_idx)
+            self._set_matched_dh(raw_ref_part, best_dh.potential_dh_token_idx)
 
         return [self.clone(resolved_parts=refined_parts.copy(), node=dh_match.dh_node, ref=text.Ref(dh_match.dh_node.ref)) for dh_match in best_matches]
 
@@ -701,7 +736,7 @@ class ResolvedRef(abst.Cloneable):
                 matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
-    
+
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
         Returns list of resolved_parts according to criteria `include` and `exclude`

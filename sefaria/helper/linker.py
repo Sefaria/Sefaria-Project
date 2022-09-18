@@ -187,7 +187,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
         start_char, end_char = resolved_ref.raw_ref.char_indices
-        text = resolved_ref.raw_ref.text
+        text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
         if not link_failed and resolved_refs[0].ref.is_book_level(): continue
         ref_results += [{
