@@ -496,7 +496,7 @@ def file_upload(request, resize_image=True):
                 image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
             image.save(resized_image_file, optimize=True, quality=70, format="PNG")
             resized_image_file.seek(0)
-            bucket_name = GoogleStorageManager.JMC_BUCKET
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
             url = GoogleStorageManager.upload_file(resized_image_file, uploaded_file.name, bucket_name)
             return jsonResponse({"status": "success", "url": url})
     else:

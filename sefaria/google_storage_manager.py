@@ -2,7 +2,7 @@ from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
 from google.cloud import storage
 import re
 from io import BytesIO
-
+from sefaria.site.site_settings import SITE_SETTINGS
 
 class GoogleStorageManager(object):
 
@@ -15,9 +15,9 @@ class GoogleStorageManager(object):
     https://googleapis.dev/python/storage/latest/buckets.html
     """
 
-    PROFILES_BUCKET = 'sefaria-profile-pictures'
-    UGC_SHEET_BUCKET = 'sheet-user-uploaded-media'
-    JMC_BUCKET = 'jmc-images'
+    COLLECTIONS_BUCKET = SITE_SETTINGS["COLLECTIONS_BUCKET"]
+    PROFILES_BUCKET = SITE_SETTINGS["PROFILES_BUCKET"]
+    UGC_SHEET_BUCKET = SITE_SETTINGS["UGC_BUCKET"]
 
     BASE_URL = "https://storage.googleapis.com"
 
