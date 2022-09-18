@@ -107,6 +107,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.34-elul-modals.1.tgz
     version: 0.0.34-elul-modals.1
   - apiVersion: v2
+    appVersion: v5.4.1
+    created: "2022-09-18T10:06:54.995020055Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 9ad0901a2572b2b293c062b863a679a4b568ef78526be8dc4a8734470ba535e2
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.34-bdb.1.tgz
+    version: 0.0.34-bdb.1
+  - apiVersion: v2
     appVersion: v5.4.0
     created: "2022-09-09T16:09:15.254455927Z"
     description: Chart to deploy complete Sefaria environment
@@ -645,4 +660,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-09-15T19:13:29.883283218Z"
+generated: "2022-09-18T10:06:54.992656841Z"
