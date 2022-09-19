@@ -177,10 +177,6 @@ MIXPANEL_CODE = 'you mixpanel code here'
 
 HOTJAR_ID = None
 
-AWS_ACCESS_KEY = None
-AWS_SECRET_KEY = None
-S3_BUCKET = "bucket-name"
-
 # Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
