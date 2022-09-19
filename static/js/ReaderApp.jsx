@@ -19,6 +19,7 @@ import {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
+  RabbisPage,
   DonatePage
 } from './StaticPages';
 import {
@@ -2171,5 +2172,6 @@ export {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
+  RabbisPage,
   DonatePage
 };

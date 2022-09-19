@@ -35,7 +35,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
@@ -915,13 +915,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return default_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
+        """
+        Return list of nodes on Index where each node has at least one match template with scope "alone"
+        @return: List of TitledTreeNodes
+        """
         alone_nodes = []
-        alone_scopes = {'any', 'alone'}
         for child in self.referenceable_children():
-            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+            if child.has_scope_alone_match_template():
                 alone_nodes += [child]
-            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
-            # alone_nodes += child.get_referenceable_alone_nodes()
+            alone_nodes += child.get_referenceable_alone_nodes()
         return alone_nodes
 
 
@@ -2613,16 +2615,13 @@ class Ref(object, metaclass=RefCacheType):
         self._range_index = None
 
     def _validate(self):
-        offset = 0
-        if self.is_bavli():
-            offset = 2
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
                 raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
-                if check[0] > self.index_node.lengths[0] + offset:
-                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                if check[0] > self.index_node.lengths[0]:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
                     raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
         if len(self.sections) != len(self.toSections):
@@ -6074,8 +6073,18 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and\
-               self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
+
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
+        is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
+        if not is_initialized:
+            logger.warning({"message": "Application not fully initialized", "Current State": {
+                "toc_tree_is_ready": self._toc_tree_is_ready,
+                "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
+                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
+                "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
+                "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
+            }})
+        return is_initialized
 
     @staticmethod
     def get_top_categories(full_records=False):
