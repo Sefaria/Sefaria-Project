@@ -20,6 +20,14 @@ var SEND = trackerName + ".send";
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
     static event(category, action, label, value, options) {
+        if (typeof window !== 'undefined') {
+            gtag('event', action, {
+                // 'event_category': category,
+                'event_label': label,
+                'value': value,
+                'test_gtag': 22
+            });
+        }
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
         ga(SEND, 'event', category, action, label, value, options);
         console.log(SEND, 'event', category, action, label, value, options);
