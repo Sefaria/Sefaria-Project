@@ -122,8 +122,8 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
         # Since this sheet column can now essentially be a custom block title, we dont know how to translate automatically, so
         # this will also mostly rely on the fact that the Hebrew only shows up in Hebrew interface and Heb comms team can enter custom Hebrew to begin with.
         sheet["heading"] = {
-          "en": todays_data["Parashah"],
-          "he": todays_data["Parashah"]
+          "en": "Torah Reading For: " + todays_data["Parashah"],
+          "he": "קריאת התורה ל:" + todays_data["Parashah"]
         }
 
   if not parashah_topic and not sheet:
