@@ -3,6 +3,21 @@ entries:
   sefaria:
   - apiVersion: v2
     appVersion: v5.4.1
+    created: "2022-09-19T10:02:21.745053172Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 97cc758d72042024a5e231d8dc2c1025821868e2a32d25797d0109c30a458fc8
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.0.35-school-lookup-optional.1.tgz
+    version: 0.0.35-school-lookup-optional.1
+  - apiVersion: v2
+    appVersion: v5.4.1
     created: "2022-09-19T09:19:24.741355856Z"
     description: Chart to deploy complete Sefaria environment
     digest: b965285622c1ee21f093f10cbcfd247392bd007d26488db92ca55475bd5a0714
@@ -675,4 +690,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-09-19T09:19:24.737365683Z"
+generated: "2022-09-19T10:02:21.741158251Z"
