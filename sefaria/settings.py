@@ -299,8 +299,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-09-12-elul-banner",
-    "style":      "banner",  # "modal" or "banner"
+    "name": "2022-09-16-elul-modal",
+    "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
     "condition":  {
