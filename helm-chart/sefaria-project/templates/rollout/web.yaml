@@ -183,6 +183,7 @@ spec:
         - name: school-lookup-data
           secret:
             secretName: {{ template "sefaria.secrets.schoolLookup" . }}
+            optional: true
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
