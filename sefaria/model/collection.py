@@ -337,7 +337,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         from sefaria.google_storage_manager import GoogleStorageManager
         bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
-        if re.search("^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
+        if isinstance(old_url, str) and re.search("^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
             GoogleStorageManager.delete_filename(old_url, bucket_name)
 
 

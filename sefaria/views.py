@@ -474,7 +474,7 @@ def passages_api(request, refs):
 
 
 @login_required
-def file_upload(request, resize_image=True):
+def collections_image_upload(request, resize_image=True):
     from PIL import Image
     from tempfile import NamedTemporaryFile
     from sefaria.google_storage_manager import GoogleStorageManager
@@ -498,8 +498,11 @@ def file_upload(request, resize_image=True):
             resized_image_file.seek(0)
             bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
             unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
-            url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
-            return jsonResponse({"status": "success", "url": url})
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
