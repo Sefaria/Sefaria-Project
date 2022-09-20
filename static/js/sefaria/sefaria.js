@@ -1113,12 +1113,14 @@ Sefaria = extend(Sefaria, {
     // otherwise commentary `filters` will return only links with type `commentary`
     if (filter.length == 0) { return links; }
 
-    var filterAndSuffix = filter[0].split("|");
-    filter              = [filterAndSuffix[0]];
-    var isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
-    var isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
-    var index           = Sefaria.index(filter);
-    var isCommentary    = index && !isQuoting &&
+    const filterAndSuffix = filter[0].split("|");
+    const isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
+    const isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
+    const isOther       = filterAndSuffix.length == 2 && !isQuoting && !isEssay;  //occurs when Index has displayTitle field set
+    filter              = isOther ? [filterAndSuffix[1]] : [filterAndSuffix[0]];
+
+    const index           = Sefaria.index(filter);
+    const isCommentary    = index && !isQuoting &&
                             (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
 
     return links.filter(function(link){
@@ -1314,12 +1316,15 @@ Sefaria = extend(Sefaria, {
       categoryData.books = Object.keys(categoryData.books).map(function(book) {
         const bookData = categoryData.books[book];
         const index      = Sefaria.index(book);
-        bookData.book     = !!index?.displayTitle ? index.displayTitle : index.title;
+        bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
         bookData.category = category;
         bookData.enShortDesc = index.enShortDesc || index.enDesc;
         bookData.heShortDesc = index.heShortDesc;
         bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
+        if (index?.displayTitle) {
+            bookData.displayTitle = index?.displayTitle;   //used in cases where we need to display a title that has illegal characters such as period or question mark
+        }
         if (bookData.categoryList == "Quoting Commentary") {
             debugger;
                 }

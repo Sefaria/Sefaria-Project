@@ -1051,9 +1051,9 @@ class ConnectionsSummary extends Component {
               updateRecent={true}
               setFilter={this.props.setFilter}
               hideCounts={true}
+              filterSuffix={"Essay"}
               enDisplayText={link.displayedText["en"]}
               heDisplayText={link.displayedText["he"]}
-              filterSuffix={"Essay"}
               on={false}/>;
           essaySummary.push(essayTextFilter);
         }.bind(this));

@@ -495,6 +495,7 @@ class TocTextIndex(TocNode):
         "base_text_order",
         "hidden",
         "corpus",
+        "displayTitle"
     ]
     title_attrs = {
         "en": "title",
