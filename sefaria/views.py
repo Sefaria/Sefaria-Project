@@ -474,10 +474,12 @@ def passages_api(request, refs):
 
 
 @login_required
-def file_upload(request, resize_image=True):
+def collections_image_upload(request, resize_image=True):
     from PIL import Image
     from tempfile import NamedTemporaryFile
-    from sefaria.s3 import HostedFile
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from io import BytesIO
+    import uuid
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
@@ -488,23 +490,21 @@ def file_upload(request, resize_image=True):
         name, extension = os.path.splitext(uploaded_file.name)
         with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
             temp_uploaded_file.write(uploaded_file.read())
-
-            with NamedTemporaryFile(suffix=extension) as temp_resized_file:
-                image = Image.open(temp_uploaded_file)
-                if resize_image:
-                    image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
-                image.save(temp_resized_file, optimize=True, quality=70)
-
-                name, extension = os.path.splitext(temp_resized_file.name)
-                hosted_file = HostedFile(filepath=temp_resized_file.name, content_type=uploaded_file.content_type)
-                try:
-                    url = hosted_file.upload()
-                    return jsonResponse({"status": "success", "url": url})
-                except:
-                    return jsonResponse({"error": "There was an error uploading your file."})
+            image = Image.open(temp_uploaded_file)
+            resized_image_file = BytesIO()
+            if resize_image:
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+            image.save(resized_image_file, optimize=True, quality=70, format="PNG")
+            resized_image_file.seek(0)
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
-
 
 @staff_member_required
 def reset_cache(request):

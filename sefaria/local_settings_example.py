@@ -174,10 +174,6 @@ GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 HOTJAR_ID = None
 
-AWS_ACCESS_KEY = None
-AWS_SECRET_KEY = None
-S3_BUCKET = "bucket-name"
-
 # Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
