@@ -297,7 +297,7 @@ CACHES = {
 }
 
 
-
+'''
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name": "2022-09-12-elul-banner",
     "style":      "banner",  # "modal" or "banner"
@@ -310,8 +310,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-
-# GLOBAL_INTERRUPTING_MESSAGE = None
+'''
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
