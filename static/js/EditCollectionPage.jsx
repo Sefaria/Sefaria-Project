@@ -42,7 +42,7 @@ class EditCollectionPage extends Component {
     var formData = new FormData();
     formData.append("file", e.currentTarget.files[0])
     $.ajax({
-        url: '/api/file/upload',
+        url: '/api/collections/upload',
         data: formData,
         type: 'POST',
         contentType: false,

@@ -162,10 +162,6 @@ data:
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
 
-    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
-    AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
-    S3_BUCKET = os.getenv("S3_BUCKET")
-
     NATIONBUILDER = True
     NATIONBUILDER_SLUG = "sefaria"
     NATIONBUILDER_TOKEN = os.getenv("NATIONBUILDER_TOKEN")
