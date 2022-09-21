@@ -26,7 +26,7 @@ class CategoryFilter extends Component {
       return (<TextFilter
                 srefs={this.props.srefs}
                 key={i}
-                book={!!book?.displayTitle ? book.displayTitle : book.book}
+                book={Sefaria.getIndexDisplayTitle(book.book)}
                 heBook={book.heBook}
                 count={book.count}
                 hasEnglish={book.hasEnglish}
@@ -200,7 +200,7 @@ class RecentFilterSet extends Component {
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={book.filterKey}
-                book={!!book?.displayTitle ? book.displayTitle : book.book}
+                book={Sefaria.getIndexDisplayTitle(book.book)}
                 heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}

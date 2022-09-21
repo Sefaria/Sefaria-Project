@@ -1301,7 +1301,7 @@ class ReaderControls extends Component {
       title = oref.indexTitle;
       heTitle = oref.heIndexTitle;
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories);
-      displayTitle = !!Sefaria.index(title)?.displayTitle ? Sefaria.index(title).displayTitle : title;
+      displayTitle = Sefaria.getIndexDisplayTitle(title);
     }
 
     const mode              = this.props.currentMode();

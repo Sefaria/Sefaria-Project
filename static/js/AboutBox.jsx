@@ -149,7 +149,7 @@ class AboutBox extends Component {
             <InterfaceText>About This Text</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
-            <ContentText text={{en: d.title, he:d.heTitle}}/>
+            <ContentText text={{en: Sefaria.getIndexDisplayTitle(d.title), he:d.heTitle}}/>
           </a>
           <span className="tocCategory">
               <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>

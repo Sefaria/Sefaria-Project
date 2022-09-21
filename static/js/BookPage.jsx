@@ -144,7 +144,7 @@ class BookPage extends Component {
     return null;
   }
   getTitle(){
-    return !!this.state.indexDetails?.displayTitle ? this.state.indexDetails.displayTitle : this.props.title;
+    return Sefaria.getIndexDisplayTitle(this.props.title);
   }
   render() {
     const title     = this.props.title;

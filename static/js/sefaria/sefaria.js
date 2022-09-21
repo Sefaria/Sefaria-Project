@@ -824,6 +824,9 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   }, */
+  getIndexDisplayTitle(indexTitle) {
+      return !!Sefaria.index(indexTitle)?.displayTitle ? Sefaria.index(indexTitle).displayTitle : indexTitle;
+  },
   _index: {}, // Cache for text index records
    index: function(text, index) {
     if (!index) {
