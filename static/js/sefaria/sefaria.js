@@ -1325,7 +1325,7 @@ Sefaria = extend(Sefaria, {
         bookData.heShortDesc = index.heShortDesc;
         bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
         if (index?.displayTitle) {
-            bookData.displayTitle = index?.displayTitle;   //used in cases where we need to display a title that has illegal characters such as period or question mark
+            bookData.displayTitle = index.displayTitle;   //used in cases where we need to display a title that has illegal characters such as period or question mark
         }
         if (bookData.categoryList == "Quoting Commentary") {
             debugger;
