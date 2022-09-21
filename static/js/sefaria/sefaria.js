@@ -1116,9 +1116,8 @@ Sefaria = extend(Sefaria, {
     const filterAndSuffix = filter[0].split("|");
     const isQuoting       = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Quoting";
     const isEssay         = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay";
-    const isOther       = filterAndSuffix.length == 2 && !isQuoting && !isEssay;  //occurs when Index has displayTitle field set
-    filter              = isOther ? [filterAndSuffix[1]] : [filterAndSuffix[0]];
-
+    const isDisplayTitle  = filterAndSuffix.length == 2 && filterAndSuffix[1].indexOf("DisplayTitleOf") === 0;  //occurs when Index has displayTitle field set
+    filter                = isDisplayTitle ? [filterAndSuffix[1].replace("DisplayTitleOf", "")] : [filterAndSuffix[0]];
     const index           = Sefaria.index(filter);
     const isCommentary    = index && !isQuoting &&
                             (index.categories[0] == "Commentary" || index.primary_category == "Commentary");

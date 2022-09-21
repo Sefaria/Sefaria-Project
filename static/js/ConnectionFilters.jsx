@@ -33,7 +33,7 @@ class CategoryFilter extends Component {
                 category={this.props.category}
                 hideColors={true}
                 updateRecent={true}
-                filterSuffix={!!book?.displayTitle ? book.book : filterSuffix}
+                filterSuffix={!!book?.displayTitle ? "DisplayTitleOf"+book.book : filterSuffix}
                 setFilter={this.props.setFilter}
                 description={book.enShortDesc ? book.enShortDesc: textMissingDescription}
                 heDescription={book.heShortDesc ? book.heShortDesc: textMissingDescription}
@@ -163,7 +163,7 @@ class RecentFilterSet extends Component {
       let filterAndSuffix = filter.split("|");
       filter              = filterAndSuffix[0];
       let filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
-      let index           = Sefaria.index(filter) || Sefaria.index(filterSuffix);  // latter case occurs when Index has displayTitle property set which is passed to filterSuffix
+      let index           = Sefaria.index(filter);
       const filterKey       = filter + (filterSuffix ? `|${filterSuffix}` : '');
       return {
         book: filter,

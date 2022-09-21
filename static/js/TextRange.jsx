@@ -285,7 +285,8 @@ class TextRange extends Component {
       title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
       heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
     } else if (data && !this.props.basetext) {
-      title            = data.ref;
+      const book_title = Sefaria.parseRef(data.ref).index;
+      title            = !!Sefaria.index(book_title)?.displayTitle ? data.ref.replace(book_title, Sefaria.index(book_title).displayTitle) : data.ref;
       heTitle          = data.heRef;
       ref              = data.ref;
     } else if (!data) {
