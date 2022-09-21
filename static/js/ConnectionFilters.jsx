@@ -26,7 +26,7 @@ class CategoryFilter extends Component {
       return (<TextFilter
                 srefs={this.props.srefs}
                 key={i}
-                book={book.book}
+                book={!!book?.displayTitle ? book.displayTitle : book.book}
                 heBook={book.heBook}
                 count={book.count}
                 hasEnglish={book.hasEnglish}
@@ -37,7 +37,6 @@ class CategoryFilter extends Component {
                 setFilter={this.props.setFilter}
                 description={book.enShortDesc ? book.enShortDesc: textMissingDescription}
                 heDescription={book.heShortDesc ? book.heShortDesc: textMissingDescription}
-                enDisplayText={!!book?.displayTitle ? book.displayTitle : book.book}
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this)) : null;
 
@@ -93,8 +92,7 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    const name = !!this.props.enDisplayText ? this.props["enDisplayText"] : this.props.book;
-    let filter = this.props.filterSuffix ? name + "|" + this.props.filterSuffix : name;
+    let filter = this.props.filterSuffix ? this.props.book + "|" + this.props.filterSuffix : this.props.book;
     this.props.setFilter(filter, this.props.updateRecent);
     if (Sefaria.site) {
       if (this.props.inRecentFilters) { Sefaria.track.event("Reader", "Text Filter in Recent Click", filter); }
@@ -110,8 +108,6 @@ class TextFilter extends Component {
     const showCount = !this.props.hideCounts && !!this.props.count;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + enBook:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
-    const name = !!this.props.enDisplayText ? this.props["enDisplayText"] : enBook;
-    const heName = !!this.props.heDisplayText ? this.props["heDisplayText"] : this.props.heBook;
     const enDesc = this.props.description
     const heDesc = this.props.heDescription
     const showDescription = true; //showCount;//
@@ -121,7 +117,7 @@ class TextFilter extends Component {
             <div className={upperClass}>
                 <span className="filterInner">
                   <span className="filterText">
-                    <ContentText text={{en: name, he: heName }} />
+                    <ContentText text={{en: enBook, he: this.props.heBook }} />
                     {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
                   </span>
                   <span className="en">
@@ -146,7 +142,6 @@ TextFilter.propTypes = {
   updateRecent:    PropTypes.bool,
   inRecentFilters: PropTypes.bool,
   filterSuffix:    PropTypes.string,  // Optionally add a string to the filter parameter set (but not displayed)
-  heDisplayText: PropTypes.string,
 };
 
 
@@ -168,7 +163,7 @@ class RecentFilterSet extends Component {
       let filterAndSuffix = filter.split("|");
       filter              = filterAndSuffix[0];
       let filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
-      let index           = Sefaria.index(filter);
+      let index           = Sefaria.index(filter) || Sefaria.index(filterSuffix);  // latter case occurs when Index has displayTitle property set which is passed to filterSuffix
       const filterKey       = filter + (filterSuffix ? `|${filterSuffix}` : '');
       return {
         book: filter,
@@ -205,7 +200,7 @@ class RecentFilterSet extends Component {
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={book.filterKey}
-                book={book.book}
+                book={!!book?.displayTitle ? book.displayTitle : book.book}
                 heBook={book.heBook}
                 category={book.category}
                 hideCounts={true}
@@ -215,7 +210,6 @@ class RecentFilterSet extends Component {
                 updateRecent={false}
                 inRecentFilters={true}
                 setFilter={this.props.setFilter}
-                enDisplayText={!!book?.displayTitle ? book.displayTitle : book.book}
                 on={Sefaria.util.inArray(book.filterKey, this.props.filter) !== -1} />);
     }.bind(this));
 

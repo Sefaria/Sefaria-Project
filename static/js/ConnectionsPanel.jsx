@@ -1044,16 +1044,14 @@ class ConnectionsSummary extends Component {
               setConnectionsMode={this.props.setConnectionsMode}
               srefs={this.props.srefs}
               key={i}
-              book={link.index_title}
-              heBook={link.heTitle}
+              book={link.displayedText["en"]}
+              heBook={link.displayedText["he"]}
               hasEnglish={link.sourceHasEn}
               category={link.category}
               updateRecent={true}
               setFilter={this.props.setFilter}
               hideCounts={true}
               filterSuffix={"Essay"}
-              enDisplayText={link.displayedText["en"]}
-              heDisplayText={link.displayedText["he"]}
               on={false}/>;
           essaySummary.push(essayTextFilter);
         }.bind(this));
