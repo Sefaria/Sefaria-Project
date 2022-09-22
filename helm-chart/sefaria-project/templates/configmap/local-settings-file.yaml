@@ -109,11 +109,11 @@ data:
     SECRET_KEY = os.getenv("SECRET_KEY")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
-    DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
     ANYMAIL = {
         "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
     }
-    SERVER_EMAIL = 'dev@sefaria.org'
+    SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
     MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_PORT = 27017
