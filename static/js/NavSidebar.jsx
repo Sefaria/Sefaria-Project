@@ -95,7 +95,7 @@ const AboutContext = ({hideTitle}) => (
             <ModuleTitle h1={true}>A Living Library of the American Tradition</ModuleTitle> : null }
         <p>
             <span>
-                ConText is a project of the Jack Miller Center and powered by Sefaria. We are a nonprofit organization committed to improving public knowledge and preserving the American experiment.
+                ContextUS is a project of the Jack Miller Center and powered by Sefaria. We are a nonprofit organization committed to improving public knowledge and preserving the American experiment.
             </span>
             <a href="/about" className="inTextLink">Learn More ›</a>
         </p>
@@ -191,8 +191,8 @@ const TheJewishLibrary = ({hideTitle}) => (
 
 const SupportJMC = ({blue}) => (
     <Module blue={blue}>
-        <ModuleTitle>Support ConText</ModuleTitle>
-        <InterfaceText>ConText is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
+        <ModuleTitle>Support ContextUS</ModuleTitle>
+        <InterfaceText>ContextUS is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
         <br />
         <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportJMC"}>
             <img src="/static/img/heart.png" alt="donation icon" />

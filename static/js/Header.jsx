@@ -492,13 +492,13 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <InterfaceText>Collections</InterfaceText>
           </a>
           </> : null}
-      {!Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <>
-          <a href="/authors" onClick={close}>
-            <img src="/static/icons/community.svg" />
-            <InterfaceText>Authors</InterfaceText>
-          </a>
-          </> : null}
+      {/*{!Sefaria._siteSettings.TORAH_SPECIFIC ?*/}
+      {/*    <>*/}
+      {/*    <a href="/authors" onClick={close}>*/}
+      {/*      <img src="/static/icons/community.svg" />*/}
+      {/*      <InterfaceText>Authors</InterfaceText>*/}
+      {/*    </a>*/}
+      {/*    </> : null}*/}
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
@@ -519,7 +519,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <a href="/about">
           <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
+          <InterfaceText>About {Sefaria._siteSettings.SITE_NAME["en"]}</InterfaceText>
         </a>
 
         {Sefaria._siteSettings.TORAH_SPECIFIC ?
