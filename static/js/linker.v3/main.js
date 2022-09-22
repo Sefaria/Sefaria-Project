@@ -13,6 +13,7 @@ const SELECTOR_WHITE_LIST = {
     "torah.etzion.org.il": ["p.footnote", "#maintext"],
     "haretzion.linnovate.co.il": ["p.footonote"],
     "www.mayim.org.il": [".footnotes.wpb_column"],
+    "daf-yomi.com": ["#oContent"],
 };
 
 (function(ns) {
