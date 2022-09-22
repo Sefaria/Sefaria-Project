@@ -802,6 +802,11 @@ class AmbiguousResolvedRef:
         self.resolved_raw_refs = resolved_refs
         self.raw_ref = resolved_refs[0].raw_ref  # assumption is all resolved_refs share same raw_ref. expose at top level
 
+    @property
+    def pretty_text(self):
+        # assumption is first resolved refs pretty_text is good enough
+        return self.resolved_raw_refs[0].pretty_text
+
 
 class MatchTemplateTrie:
     """
