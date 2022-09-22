@@ -9506,9 +9506,18 @@ background-color: white;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
 }
-.addInterfaceInput .topicSearch {
+
+.addInterfaceInput.topicSearch .SuggestionBox {
+  margin: 0 0 0 30px;
+}
+.addInterfaceInput.topicSearch input {
+  margin: 30px 0 0 30px;
+  max-width: 250px;
+  min-width: 250px;
+}
+
+.addInterfaceInput.topicSearch .button {
   margin: 30px 0px 20px 30px;
-  max-width: 200px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;

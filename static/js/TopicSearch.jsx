@@ -90,18 +90,17 @@ class TopicSearch extends Component {
         <Autocompleter selectedRefCallback={this.validate}
                  getSuggestions={this.getSuggestions}
                  onClickSuggestionFunc={this.onClickSuggestionFunc}
-                showSuggestionsFunc={(d) => {return true;}}
-                showPreviewFunc={(d) => {return false;}}
-                showAddressCompletionsFunc={(d) => {return false;}}
-                showAddButtonFunc={(d) => {return true;}}
+                 showSuggestionsFunc={(d) => {return true;}}
+                 showPreviewFunc={(d) => {return false;}}
+                 showAddressCompletionsFunc={(d) => {return false;}}
+                 showAddButtonFunc={(d) => {return true;}}
                  borderColorFunc={(d) => "#ffffff"}
-                 limit={11}
-                inputPlaceholder="Search for a Text or Commentator."
-                buttonTitle="Add Topic"
-                showSuggestionsOnSelect={false}
-                colorIfSelected="#4B71B7"
-                inputStyle="topicSearch"
-               buttonStyle="topicSearch"
+                 limit={5}
+                 inputPlaceholder="Search for a Topic."
+                 buttonTitle="Add Topic"
+                 showSuggestionsOnSelect={false}
+                 colorIfSelected="#4B71B7"
+                 style="topicSearch"
         />
         </div>
     );

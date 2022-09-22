@@ -2539,8 +2539,9 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
 const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
                          showSuggestionsFunc, showAddressCompletionsFunc, showPreviewFunc,
                          showAddButtonFunc, filterResultsFunc, onClickSuggestionFunc,
-                          inputPlaceholder, buttonTitle, limit,
-                         inputStyle="serif", buttonStyle="", colorIfSelected = "#000000",
+                         inputPlaceholder, buttonTitle, limit,
+                         colorIfSelected = "#000000",
+                         style = "",
                          showSuggestionsOnSelect=true }) => {
   const [inputValue, setInputValue] = useState("");
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
@@ -2553,11 +2554,8 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   const inputEl = useRef(null);
   const defaultColor = "#000000";
   const defaultAutocompleteLimit = 5;
-  let buttonClassNames = classNames({button: 1, small: 1});
-  if (buttonStyle.length > 0) {
-    buttonClassNames += " " + buttonStyle;
-  }
-
+  const buttonClassNames = classNames({button: 1, small: 1});
+  let autocompleteClassNames = style.length > 0 ? "addInterfaceInput " + style : ".addInterfaceInput";
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2646,7 +2644,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   }
 
   const resizeInputIfNeeded = () => {
-    const currentWidth = getWidthOfInput()
+    const currentWidth = getWidthOfInput();
     if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
   }
 
@@ -2740,19 +2738,16 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
       }
     }
 
-
   return(
-    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
+    <div className={autocompleteClassNames} onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
       <input
           type="text"
           placeholder={Sefaria._(inputPlaceholder)}
-          className={inputStyle}
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
-          size={inputValue.length}
           style={{color: selected ? colorIfSelected : defaultColor}}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
