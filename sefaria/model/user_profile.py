@@ -30,6 +30,7 @@ from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
+from sefaria.site.site_settings import SITE_SETTINGS
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -394,8 +395,8 @@ class UserProfile(object):
         self.gauth_email = None
 
         # new editor
-        self.show_editor_toggle = False
-        self.uses_new_editor = False
+        self.show_editor_toggle = True
+        self.uses_new_editor = True
 
         # Fundraising
         self.is_sustainer = False
@@ -688,8 +689,8 @@ class UserProfile(object):
             "gauth_token":           self.gauth_token,
             "nationbuilder_id":      self.nationbuilder_id,
             "gauth_email":           self.gauth_email,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
+            "show_editor_toggle":    True,
+            "uses_new_editor":       True,
         }
 
     def to_api_dict(self, basic=False):
@@ -722,8 +723,8 @@ class UserProfile(object):
             "linkedin":              self.linkedin,
             "youtube":               self.youtube,
             "pinned_sheets":         self.pinned_sheets,
-            "show_editor_toggle":    self.show_editor_toggle,
-            "uses_new_editor":       self.uses_new_editor,
+            "show_editor_toggle":    True,
+            "uses_new_editor":       True,
             "is_sustainer":          self.is_sustainer,
         }
         dictionary.update(other_info)
@@ -810,7 +811,8 @@ def email_unread_notifications(timeframe):
         if "interface_language" in profile.settings:
             translation.activate(profile.settings["interface_language"][0:2])
 
-        message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
+        message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name,
+                                                                            "site_name": SITE_SETTINGS["SITE_NAME"]["en"]})
         actors_string = notifications.actors_string()
         # TODO Hebrew subjects
         if actors_string:

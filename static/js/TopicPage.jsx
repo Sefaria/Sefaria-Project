@@ -22,7 +22,6 @@ import {
     SimpleLinkedBlock
 } from './Misc';
 
-
 /*
 *** Helper functions
 */

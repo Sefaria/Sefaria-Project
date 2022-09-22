@@ -553,6 +553,7 @@ class TextSegment extends Component {
     return $newElement.html();
   }
   wrapWordsInGenericHTMLRegex(text) {
+    text = text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');  //escape text
     const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
     return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
   }

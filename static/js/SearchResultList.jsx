@@ -245,7 +245,7 @@ class SearchResultList extends Component {
       this.setState(this.state);
     }
     totalResults() {
-      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+      return this.types.reduce((accum, type) => (this.state.totals[type].value + accum), 0);
     }
     updateTotalResults() {
       this.props.updateTotalResults(this.totalResults());
@@ -455,7 +455,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
+        } else if (tab === "sheet") {
           results = this.state.hits.sheet.map(result =>
             <SearchSheetResult
               data={result}
@@ -479,8 +479,8 @@ class SearchResultList extends Component {
               <SearchTabs
                 clickTextButton={this.showTexts}
                 clickSheetButton={this.showSheets}
-                textTotal={this.state.totals["text"]}
-                sheetTotal={this.state.totals["sheet"]}
+                textTotal={this.state.totals["text"].value}
+                sheetTotal={this.state.totals["sheet"].value}
                 currentTab={tab} /> : null
               }
               {Sefaria.multiPanel && !this.props.compare ?
@@ -522,7 +522,8 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.addCommas()
+  total = total ? total.toLocaleString() : 0;
+
   const classes = classNames({"search-dropdown-button": 1, active});
 
   return (

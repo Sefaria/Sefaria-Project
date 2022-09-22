@@ -22,14 +22,16 @@ function useTopicToggle() {
   return [addingTopics, toggleAddingTopics];
 }
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
+
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="",
+                     redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc?.en);
     const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
-    const isNewTopic = origEn === "";
+    const isNewTopic = origSlug === "";
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
     const slugsToTitles = Sefaria.slugsToTitles();
@@ -80,12 +82,19 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             const newSlug = data["slug"];
             $.get("/admin/reset/toc", function(data) {
                 if (data.error) {
-                    alert(data.error);
+                    alert("Please go to URL /admin/reset/toc. "+data.error);
                 } else {
-                    window.location.href = "/topics/" + newSlug;
+                    $.get("/admin/reset/ac", function(data) {
+                        if (data.error) {
+                            alert("Please go to URL /admin/reset/ac. "+data.error);
+                        }
+                        }).fail(function(xhr, status, errorThrown) {
+                            alert("Please go to URL /admin/reset/ac. "+errorThrown);
+                        });
+                    redirect(newSlug);
                 }
             }).fail(function(xhr, status, errorThrown) {
-                alert("Please reset TOC manually: "+errorThrown);
+                alert("Please go to URL /admin/reset/toc. "+errorThrown);
               });
             }
           }).fail( function(xhr, status, errorThrown) {

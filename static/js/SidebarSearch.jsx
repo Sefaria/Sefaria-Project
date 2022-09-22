@@ -11,7 +11,7 @@ import {
 } from './Misc';
 
 
-const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick }) => {
+const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarSearchQuery, setSidebarSearchQuery, onSidebarSearchClick, hideHebrewKeyboard }) => {
   const [lexiconName, setLexiconName] = useState(Sefaria.getIndexDetailsFromCache(title)?.lexiconName)
   const [searchFilterPathForBook, setSearchFilterPathForBook] = useState('');
   const [query, setQuery] = useState(sidebarSearchQuery || '');
@@ -27,7 +27,9 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
       )
 
   useEffect(() => {
-      attachKeyboard();
+      if (!hideHebrewKeyboard) {
+	      attachKeyboard();
+      }
       const searchInput = document.getElementById('searchQueryInput')
       if (searchInput) {
           searchInput.value = query

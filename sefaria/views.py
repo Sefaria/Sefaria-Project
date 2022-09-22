@@ -186,6 +186,7 @@ def subscribe(request, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+
 @login_required
 def unlink_gauth(request):
     profile = UserProfile(id=request.user.id)
@@ -627,6 +628,7 @@ def rebuild_auto_completer(request):
     library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
+    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")

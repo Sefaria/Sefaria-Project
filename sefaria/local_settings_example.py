@@ -153,7 +153,10 @@ SEFARIA_DB_PASSWORD = ''
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_ADMIN = "http://localhost:9200"
+SEARCH_ADMIN = "localhost:9200"  # URL to connect to internal ES server for admin access. Leave off https://
+SEARCH_CLIENT = "http://localhost:9200/api/search"  # URL to connect to ES for searching. Can be /api/search Django endpoint which gets proxied to ES server.
+SEARCH_ADMIN_PW = None  # Optional password to connect to ES server. If no password, leave as `None`
+SEARCH_ADMIN_USER = None  # Optional user to connect to ES server. If no user, leave as `None`
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'

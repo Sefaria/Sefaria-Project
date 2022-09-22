@@ -433,7 +433,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._(Sefaria._siteSettings["LONG_SITE_NAME"]);
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -473,12 +473,13 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "topics":
+            const topicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
             if (state.navigationTopic) {
               hist.url = `topics/${state.navigationTopic}`;
-              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(topicMsg)}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(topicMsg);
               hist.url   =  "topics/category/" + state.navigationTopicCategory;
               hist.mode  = "topicCat";
             } else {
@@ -489,7 +490,8 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              const allTopicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Explore Jewish Texts by Topic" : "Explore Texts by Topic";
+              hist.title = Sefaria._(allTopicMsg) + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
               hist.mode  = "topics";
             break;
           case "community":
@@ -498,8 +500,8 @@ class ReaderApp extends Component {
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
+            hist.title = `${state.profile.full_name} ${Sefaria._(` on ${siteName}`)}`;
+            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -675,7 +677,7 @@ class ReaderApp extends Component {
     }
 
     // Now merge all history objects into one
-    var title =  histories.length ? histories[0].title : "Sefaria";
+    var title =  histories.length ? histories[0].title : Sefaria._siteSettings["SITE_NAME"]["en"];
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);

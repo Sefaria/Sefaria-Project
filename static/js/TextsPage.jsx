@@ -58,8 +58,31 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   categoryListings = (
     <div className="readerNavCategories">
-      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
+        <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>);
+
+  let topTexts = compare ? null : [
+          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Toward Independence")}}>
+              <a href="/US_Declaration_of_Independence" className="navBlockTitle">
+                  <span className="en" lang="en">Declaration of Independence</span>
+              </a>
+          </div>,
+          <div className="navBlock withColorLine" style={{"borderColor": Sefaria.palette.categoryColor("Constituting America")}}>
+              <a href="/United_States_Constitution" className="navBlockTitle">
+                  <span className="en" lang="en">United States Constitution</span>
+              </a>
+          </div>
+      ];
+
+  topTexts = compare ? null :
+          <div className="readerNavCategories">
+              <ResponsiveNBox content={topTexts} initialWidth={initialWidth} />
+          </div>;
+
+  const topTitle = compare ? null :
+        <div className="navTitle tight sans-serif">
+            <h1><InterfaceText>Explore the Foundational Documents</InterfaceText></h1>
+        </div>;
 
   const comparePanelHeader = compare ?
     <ComparePanelHeader
@@ -77,22 +100,22 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
-  const about = compare || multiPanel ? null :
+  const about = compare || multiPanel || !Sefaria._siteSettings.TORAH_SPECIFIC ? null :
     <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
-  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ?
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare && !Sefaria._siteSettings.TORAH_SPECIFIC ?
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
   const sidebarModules = [
-    multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Promo"},
-    {type: "Translations"},
+    multiPanel ? {type: "AboutContext"} : {type: null},
+/*    {type: "Promo"},
+>>>>>>> s4d
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
-    {type: "Resources"},
+    {type: "Resources"},*/
   ];
 
   const footer = compare ? null : <Footer />;
@@ -104,10 +127,12 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
+            { libraryMessage }
+            { topTitle }
+            { dedication }
+            { topTexts }
             { title }
             { about }
-            { dedication }
-            { libraryMessage }
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}

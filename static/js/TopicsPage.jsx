@@ -50,13 +50,15 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   const about = multiPanel ? null :
     <Modules type={"AboutTopics"} props={{hideTitle: true}} />;
 
+
+
   const sidebarModules = [
     multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
     {type: "JoinTheConversation"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
   ];
+
   let topicStatus = null;
   if (Sefaria.is_moderator && addingTopics) {
       topicStatus = <TopicEditor close={toggleAddingTopics}/>;
@@ -69,12 +71,12 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
-              <div className="navTitle tight sans-serif">
-                <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
+            <div className="navTitle tight sans-serif">
+              <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
                 {topicStatus}
-              </div>
-              { about }
-              { categoryListings }
+            </div>
+            { about }
+            { categoryListings }
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
@@ -83,6 +85,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     </div>
   );
 };
+
 
 
 export default TopicsPage;

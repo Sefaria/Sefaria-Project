@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block title %}{% trans "Log in to "|add:SITE_SETTINGS.SITE_NAME.en %}{% endblock %}
 
-{% block title %}{% trans "Log in to Sefaria" %}{% endblock %}
-
-{% block description %}{% trans "Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users." %}{% endblock %}
+{% block description %}{% trans "Log in to your "|add:SITE_SETTINGS.SITE_NAME.en|add:" account to make source sheets, write notes, and follow other "|add:SITE_SETTINGS.SITE_NAME.en|add:" users." %}{% endblock %}
 
 {% block content %}
 
@@ -28,7 +27,7 @@
         <div class="inner">
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
-                <span class="int-en">Log in to Sefaria</span>
+                <span class="int-en">Log in to {{ SITE_SETTINGS.SITE_NAME.en }}</span>
                 <span class="int-he">התחברות לספריא</span>
             </h1>
             {% if form.errors %}

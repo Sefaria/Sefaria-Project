@@ -2271,16 +2271,6 @@ class AddressTalmud(AddressType):
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
 
-
-
-
-
-
-
-
-
-
-
     def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id and kwargs.get("for_js", False) == False:
             reg = r"(?P<" + group_id + r">"
@@ -2292,7 +2282,6 @@ class AddressTalmud(AddressType):
             reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
-
 
         return reg
 
@@ -2330,9 +2319,6 @@ class AddressTalmud(AddressType):
             if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
                 return daf  # amud B
             return daf - 1
-
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
