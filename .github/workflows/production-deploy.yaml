@@ -149,4 +149,4 @@ jobs:
           GIT_COMMIT: "${{ needs.workflow-check.outputs.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
-          CHART_VERSION: 0.0.27
+          CHART_VERSION: 0.0.34
