@@ -27,11 +27,13 @@ jobs:
                     {"type": "perf", "hidden": true},
                     {"type": "test", "hidden": true},
                     {"type": "static", "section": "Static Content"}
+                    {"type": "helm", "hidden": true}
                   ]
                 },
                 "releaseRules": [
                   {"type": "static", "release": "patch"},
-                  {"type": "chore", "release": "patch"}
+                  {"type": "chore", "release": "patch"},
+                  {"type": "helm", "release": false}
                 ]
               }],
               ['@semantic-release/release-notes-generator', {
@@ -47,11 +49,13 @@ jobs:
                     {"type": "perf", "hidden": true},
                     {"type": "test", "hidden": true},
                     {"type": "static", "section": "Static Content"}
+                    {"type": "helm", "hidden": true}
                   ]
                 },
                 "releaseRules": [
                   {"type": "static", "release": "patch"},
-                  {"type": "chore", "release": "patch"}
+                  {"type": "chore", "release": "patch"},
+                  {"type": "helm", "release": false}
                 ]
               }],
               ['@semantic-release/github', {
