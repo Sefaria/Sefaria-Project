@@ -5,6 +5,7 @@ previousServicesCount: "3"
 restore:
   enabled: true
   bucket: sefaria-contextus-backup
+  tarball: jmc-private_dump_21.09.22.tar
   serviceAccount: database-backup-read
 backup:
   enabled: true
