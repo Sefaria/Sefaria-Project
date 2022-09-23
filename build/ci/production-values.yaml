@@ -80,7 +80,7 @@ varnish:
     between_bytes_timeout: 60  # Default 60s
   secrets:
     varnish:
-      ref: varnish-secret
+      ref: varnish-secret-production
 ingress:
   hosts:
     - host: "contextus.org"
@@ -131,7 +131,7 @@ secrets:
   localSettings:
     ref: local-settings-secrets-production
   backupManager:
-    ref: backup-manager-secret
+    ref: backup-manager-secret-production
   slackWebhook:
     ref: slack-webhook-production
 localSettings:
@@ -151,5 +151,5 @@ localSettings:
   MAINTENANCE_MESSAGE: "Contextus is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Contextus will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
-  SITE_PACKAGE: "sites.sefaria"
+  SITE_PACKAGE: "sites.s4d"
   SEARCH_HOST: contextus-es-http.elasticsearch.svc
