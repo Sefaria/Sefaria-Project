@@ -272,6 +272,7 @@ class ReusableTermManager:
             "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
+            "Gittin": ["גטין"],
             "Horayot": ["Horaiot"],
             "Kelim Batra": ["Kelim Baba Batra", "Kelim Baba batra", "Kelim Bava batra", "Kelim Bava bathra"],
             "Kelim Kamma": ["Kelim Bava qamma", "Kelim Baba qamma", "Kelim Bava qama"],
@@ -339,8 +340,8 @@ class ReusableTermManager:
             "I Kings": ["1K.", "1Kings"],
             "II Kings": ["2K.", "2Kings"],
             "Zechariah": ["Sach."],
-            "I Chronicles": ["1Chr."],
-            "II Chronicles": ["2Chr."],
+            "I Chronicles": ["1Chr.", 'דבהי"א'],
+            "II Chronicles": ["2Chr.", 'דבהי"ב'],
             "Lamentations": ["Thr.", "Threni", "Lament.", "Ekha"],
             "Zephaniah": ["Soph."],
             "Ruth": ["Ru."],
@@ -1675,7 +1676,7 @@ class SpecificConverterManager:
     def convert_megilat_taanit(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             return [MatchTemplate([RTM.create_term_from_titled_obj(node, 'structural', 'base').slug])]
-        converter = LinkerIndexConverter("Megillat Ta'anit", get_match_templates=get_match_templates)
+        converter = LinkerIndexConverter("Megillat Taanit", get_match_templates=get_match_templates)
         converter.convert()
 
     def convert_minor_rashis(self):
