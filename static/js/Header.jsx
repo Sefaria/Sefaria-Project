@@ -457,6 +457,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const aboutMessage = `About ${Sefaria._siteSettings.SITE_NAME["en"]}`;
   return (
     <div className={classes}>
       <div className="searchLine">
@@ -492,13 +493,13 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <InterfaceText>Collections</InterfaceText>
           </a>
           </> : null}
-      {!Sefaria._siteSettings.TORAH_SPECIFIC ?
-          <>
-          <a href="/authors" onClick={close}>
-            <img src="/static/icons/community.svg" />
-            <InterfaceText>Authors</InterfaceText>
-          </a>
-          </> : null}
+      {/*{!Sefaria._siteSettings.TORAH_SPECIFIC ?*/}
+      {/*    <>*/}
+      {/*    <a href="/authors" onClick={close}>*/}
+      {/*      <img src="/static/icons/community.svg" />*/}
+      {/*      <InterfaceText>Authors</InterfaceText>*/}
+      {/*    </a>*/}
+      {/*    </> : null}*/}
 
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
@@ -511,24 +512,26 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <img src="/static/icons/bookmarks.svg" />
             <InterfaceText>Saved & History</InterfaceText>
           </a>
+          {Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a href="/notifications" onClick={close}>
             <img src="/static/icons/notification.svg" />
             <InterfaceText>Notifications</InterfaceText>
-          </a>
+          </a> : null}
         </> : null }
 
         <a href="/about">
           <img src="/static/icons/info.svg" />
-          <InterfaceText>About Sefaria</InterfaceText>
+          <InterfaceText>{aboutMessage}</InterfaceText>
         </a>
 
         {Sefaria._siteSettings.TORAH_SPECIFIC ?
           <MobileInterfaceLanguageToggle /> : null}
 
-        <a href="/help">
-          <img src="/static/icons/help.svg" />
-          <InterfaceText>Get Help</InterfaceText>
-        </a>
+        {Sefaria._siteSettings.TORAH_SPECIFIC ?
+            <a href="/help">
+              <img src="/static/icons/help.svg" />
+              <InterfaceText>Get Help</InterfaceText>
+            </a> : null}
 
         {Sefaria._uid ?
         <a href="/logout" className="logout">
@@ -539,10 +542,12 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
-        <img src="/static/img/heart.png" alt="donation icon" />
-        <InterfaceText>Donate</InterfaceText>
-      </DonateLink>
+      {Sefaria._siteSettings.TORAH_SPECIFIC ?
+        <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
+          <img src="/static/img/heart.png" alt="donation icon" />
+          <InterfaceText>Donate</InterfaceText>
+        </DonateLink>
+          : null}
     </div>
   );
 };

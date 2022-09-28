@@ -28,7 +28,7 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
 
   useEffect(() => {
       if (!hideHebrewKeyboard) {
-	      attachKeyboard();
+          attachKeyboard();
       }
       const searchInput = document.getElementById('searchQueryInput')
       if (searchInput) {

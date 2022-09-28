@@ -1809,7 +1809,7 @@ class SignUpModal extends Component {
               <InterfaceText>Love Learning?</InterfaceText>
             </h2>
             <h3>
-              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
+              <InterfaceText>Sign up to get more from {Sefaria._siteSettings.en}</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
