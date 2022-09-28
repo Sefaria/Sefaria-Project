@@ -1594,7 +1594,7 @@ class RefResolver:
 
         # make unique
         max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
-        if self._thoroughness >= ResolutionThoroughness.HIGH:
+        if self._thoroughness >= ResolutionThoroughness.HIGH or len(max_resolved_refs) > 1:
             # remove matches that have empty refs
             max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
         return max_resolved_refs
