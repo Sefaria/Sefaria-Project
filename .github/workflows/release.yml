@@ -12,6 +12,7 @@ jobs:
       - uses: codfish/semantic-release-action@v2
         id: semantic
         with:
+          repository_url: ${{ github.repositoryUrl }}
           plugins: |
             [
               ['@semantic-release/commit-analyzer', {
