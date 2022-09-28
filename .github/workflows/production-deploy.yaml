@@ -150,3 +150,4 @@ jobs:
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           CHART_VERSION: 0.0.38
+          IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
