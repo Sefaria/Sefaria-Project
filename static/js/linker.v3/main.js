@@ -14,6 +14,7 @@ const SELECTOR_WHITE_LIST = {
     "haretzion.linnovate.co.il": ["p.footonote"],
     "www.mayim.org.il": [".footnotes.wpb_column"],
     "daf-yomi.com": ["#oContent"],
+    "benyehuda.org": [".footnotes"],
 };
 
 (function(ns) {
