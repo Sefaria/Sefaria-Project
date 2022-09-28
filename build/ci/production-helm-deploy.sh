@@ -2,9 +2,9 @@
 set -x
 set -e
 
-export WEB_IMAGE="gcr.io/$PROJECT_ID/sefaria-web"
-export NODE_IMAGE="gcr.io/$PROJECT_ID/sefaria-node"
-export ASSET_IMAGE="gcr.io/$PROJECT_ID/sefaria-asset"
+export WEB_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-web"
+export NODE_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-node"
+export ASSET_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-asset"
 export TAG="$GIT_COMMIT"
 
 yq e -i '.web.containerImage.imageRegistry = strenv(WEB_IMAGE)' $1
