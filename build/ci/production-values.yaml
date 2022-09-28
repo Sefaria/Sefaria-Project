@@ -18,7 +18,7 @@ web:
   containerImage:
     imageRegistry:
     tag:
-  replicaCount: 7
+  replicaCount: 2
   resources:
     web:
       gunicornWorkerCount: 5
@@ -53,7 +53,7 @@ nodejs:
   containerImage:
     imageRegistry:
     tag:
-  replicaCount: 4
+  replicaCount: 2
   resources:
     requests:
       memory: "1Gi"
@@ -137,7 +137,6 @@ secrets:
     ref: slack-webhook-production
 localSettings:
   DEBUG: false
-  OFFLINE: "False"
   DOMAIN_LANGUAGE: {
     "https://contextus.org": "english",
   }
