@@ -177,6 +177,7 @@ spec:
         - name: logging-secret
           secret:
             secretName: {{ template "sefaria.secrets.logging" . }}
+            optional: true
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
