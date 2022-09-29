@@ -107,7 +107,7 @@
     </style>
 
 
-    {% if GOOGLE_TAG_MANAGER_CODE %}
+{% comment %}    {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- anti-flicker snippet (recommended)  -->
     <style>.async-hide { opacity: 0 !important} </style>
     <script>(function(a,s,y,n,c,h,i,d,e){s.className+=' '+y;h.start=1*new Date;
@@ -122,7 +122,7 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer',"{{ GOOGLE_TAG_MANAGER_CODE }}");</script>
     <!-- End Google Tag Manager -->
-    {% endif %}
+    {% endif %}{% endcomment %}
 
 
     {% if HOTJAR_ID %}
@@ -155,8 +155,10 @@
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-B0LMV7FCME');
-          gtag('event', 'test_event_1');
+          gtag('config', 'G-B0LMV7FCME', {'send_page_view': false, 'debug_mode':true}); //{ 'send_page_view': false, 'debug_mode':true }
+          {#gtag('event', 'page_view', {'our_page_view': 'true'})#}
+          {#gtag('config', 'GA_TRACKING_ID');#}
+
         </script>
     <!-- End Google tag -->
     {% endif %}

@@ -19,18 +19,18 @@ var SEND = trackerName + ".send";
 
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
-    static event(category, action, label, value, options) {
+    static event(category, event_name, label, value, options) {
         if (typeof window !== 'undefined') {
-            gtag('event', action, {
-                // 'event_category': category,
+            gtag('event', event_name, {
+                'event_category': category,
                 'event_label': label,
                 'value': value,
-                'test_gtag': 22
+                'track_function': true
             });
         }
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
-        ga(SEND, 'event', category, action, label, value, options);
-        console.log(SEND, 'event', category, action, label, value, options);
+        ga(SEND, 'event', category, event_name, label, value, options);
+        console.log(SEND, 'event', category, event_name, label, value, options);
         if (ga._mock && value && value.hitCallback) {
           // When Google Analytics isn't being used, trigger hitCallback immediately.
           value.hitCallback();
