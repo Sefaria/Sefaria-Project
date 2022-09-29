@@ -13,7 +13,7 @@ backup:
   public: true
   bucket: sefaria-contextus-backup
   archiveBucket: sefaria-contextus-archive
-  serviceAccount: database-backup
+  serviceAccount: database-backup-write
 web:
   containerImage:
     imageRegistry:
