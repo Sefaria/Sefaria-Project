@@ -348,6 +348,12 @@ secrets:
     ref:
     # data:
 
+# Settings for various cronjobs
+cronJobs:
+  # Settings for regenerating long cached data
+  regenerate:
+    enabled: true
+
 localSettings:
   DEBUG: "False"
   DOMAIN_LANGUAGE: {}
