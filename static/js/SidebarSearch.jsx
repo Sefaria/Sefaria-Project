@@ -28,7 +28,10 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
 
   useEffect(() => {
       attachKeyboard();
-      document.getElementById('searchQueryInput').value = query
+      const searchInput = document.getElementById('searchQueryInput')
+      if (searchInput) {
+          searchInput.value = query
+      }
   }, []);
 
   useEffect(() => {

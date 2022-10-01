@@ -109,11 +109,11 @@ data:
     SECRET_KEY = os.getenv("SECRET_KEY")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'
-    DEFAULT_FROM_EMAIL = "Sefaria <hello@sefaria.org>"
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
     ANYMAIL = {
         "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
     }
-    SERVER_EMAIL = 'dev@sefaria.org'
+    SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
     MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_PORT = 27017
@@ -158,16 +158,9 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
-    GOOGLE_ANALYTICS_CODE = os.getenv("GOOGLE_ANALYTICS_CODE")
-    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
-    MIXPANEL_CODE = os.getenv("MIXPANEL_CODE")
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
-
-    AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
-    AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
-    S3_BUCKET = os.getenv("S3_BUCKET")
 
     NATIONBUILDER = True
     NATIONBUILDER_SLUG = "sefaria"
