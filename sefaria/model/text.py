@@ -5477,8 +5477,8 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
-        from sefaria.helper.ref_part import load_spacy_model
+        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from sefaria.helper.linker import load_spacy_model
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
