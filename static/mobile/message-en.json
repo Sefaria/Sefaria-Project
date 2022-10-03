@@ -1,11 +1,11 @@
 {
 	"title": "Friend",
 	"text": [
-		"If Sefaria has contributed to your High Holiday learning this year, will you give back by making a donation of $18 or more?",
-		"We need to raise $250,000 by October 18 to sustain the library and improve your learning experience in the new year."
+		"Please make a donation before Yom Kippur to help Sefaria expand its library and improve your Jewish learning experience.",
+		"Sefaria relies on donations to operate, and we need your support today!"
 	],
 	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
-	"buttonText": "Donate",
-	"name": "2022-09-16-elul-modal-1",
+	"buttonText": "DONATE NOW",
+	"name": "2022-09-30-elul-banner-1",
 	"schemaVersion": 1
 }
