@@ -778,11 +778,11 @@ class JaggedIntArray(JaggedArray):
                 return min(curr, 1)
             else:
                 sum = 0
-                for i in range(len(curr)):
+                for i in enumerate(curr):
                     sum += min(JaggedIntArray._depth_sum(curr[i], 0), 1)
                 return sum
         else:
             sum = 0
-            for i in range(len(curr)):
+            for i in enumerate(curr):
                 sum += JaggedIntArray._depth_sum(curr[i], depth - 1)
             return sum

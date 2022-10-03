@@ -18,7 +18,7 @@ if __name__ == "__main__":
     print("Moving text to end of Kaveh")
     kaveh_ref = Ref("Siddur Edot HaMizrach, Weekday Shacharit, Kaveh")
     kaveh_he_text = kaveh_ref.text('he').text
-    kaveh_en_text = [[] for i in range(len(kaveh_he_text))]
+    kaveh_en_text = [[] for i in enumerate(kaveh_he_text)]
 
     combined_he = kaveh_he_text + incense_he_text
     combined_en = kaveh_en_text + incense_en_text

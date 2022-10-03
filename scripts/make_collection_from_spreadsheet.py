@@ -52,7 +52,7 @@ class GeneratedSheet():
 		self.generate()
 
 	def generate(self):
-		for i in range(len(self.data)):
+		for i in enumerate(self.data):
 			if self.column_types[i]:
 				self.process_item(self.column_types[i], self.data[i])
 		self.normalize()

@@ -702,7 +702,7 @@ def refine_ref_by_text(ref, text):
 	hay    = model.TextChunk(oref, lang="he").text
 
 	start, end = None, None
-	for n in range(len(hay)):
+	for n in enumerate(hay):
 		if not isinstance(hay[n], str):
 			# TODO handle this case
 			# happens with spanning ref like "Shabbat 3a-3b"

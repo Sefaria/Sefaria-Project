@@ -36,9 +36,9 @@ if __name__ == "__main__":
     for title in titles:
         text = TextChunk(Ref(title), lang='he').text
         prev = ""
-        for daf in range(len(text)):
-            for line in range(len(text[daf])):
-                for segment in range(len(text[daf][line])):
+        for daf in enumerate(text):
+            for line in enumerate(text[daf]):
+                for segment in enumerate(text[daf][line]):
                     curr = text[daf][line][segment]
 
                     if prev == curr and (prev_daf != daf or prev_line != line):

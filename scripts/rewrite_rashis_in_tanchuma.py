@@ -42,7 +42,7 @@ class UnicodeWriter:
 
 def needs_rewrite(text):
     finds = re.findall("Midrash Tanchuma \d.*?[\s|\)|;|,|\]]", text)
-    for i in range(len(finds)):
+    for i in enumerate(finds):
         if finds[i][-1] in [" ", ",", ";", ")"]:
             finds[i] = finds[i][0:-1]
     return finds

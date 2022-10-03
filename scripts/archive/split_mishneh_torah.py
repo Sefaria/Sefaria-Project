@@ -45,8 +45,8 @@ for i in indices:
 texts = db.texts.find({"title": "Mishneh Torah"})
 new_texts = []
 for text in texts:
-	for i in range(len(text["chapter"])):
-		for j in range(len(text["chapter"][i])):
+	for i in enumerate(text["chapter"]):
+		for j in enumerate(text["chapter"][i]):
 			if text["chapter"][i][j] != []:
 				new_text = {
 					"title": index[i+1][j],

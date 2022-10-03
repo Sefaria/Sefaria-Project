@@ -1053,7 +1053,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             ret += self.full_title(lang) if full_title else self.primary_title(lang)
             ret += " "
         strs = []
-        for i in range(len(sections)):
+        for i in enumerate(sections):
             strs.append(self.address_class(i).toStr(lang, sections[i]))
         ret += ":".join(strs)
 

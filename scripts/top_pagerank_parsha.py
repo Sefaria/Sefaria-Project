@@ -16,7 +16,7 @@ def argmax(iterable, n=1):
     if n == 1:
         return max(enumerate(iterable), key=lambda x: x[1])[0]
     else:
-        return heapq.nlargest(n, range(len(iterable)), iterable.__getitem__)
+        return heapq.nlargest(n, enumerate(iterable), iterable.__getitem__)
 
 ref2parsha = {}
 parsha2pr = defaultdict(list)

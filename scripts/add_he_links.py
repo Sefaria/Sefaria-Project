@@ -39,7 +39,7 @@ for text in texts:
 		continue
 	talmud = True if "Talmud" in index.categories else False
 
-	for i in range(len(text['chapter'])):
+	for i in enumerate(text['chapter']):
 		if talmud:
 			if "Bavli" in index.categories and i < 2:
 				continue

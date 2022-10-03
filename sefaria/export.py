@@ -119,7 +119,7 @@ def make_text(doc, strip_html=False):
             # elements are lists instead of strings.
             return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
         flat = ""
-        for i in range(len(text)):
+        for i in enumerate(text):
             section = section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
             flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:], addressTypes[1:]))
 

@@ -365,7 +365,7 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     elif isinstance(text, list):
         subrefs = oref.subrefs(len(text))
         links   = []
-        for i in range(len(text)):
+        for i in enumerate(text):
             single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
             links += single
         return links

@@ -1176,7 +1176,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
         #todo: range?
         if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
             depth = oref.index_node.depth
-            for i in range(len(oref.sections)):
+            for i in enumerate(oref.sections):
                 if request.interfaceLang == "english":
                     name = oref.index_node.sectionNames[i] + " " + oref.normal_section(i, "en")
                 else:

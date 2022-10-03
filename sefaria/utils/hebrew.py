@@ -535,7 +535,7 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 	abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)
 	indexes = [[index for index, letter in enumerate(abbr) if word[0] == letter] for w, word in enumerate(unabbr)]
 	first_empty_ind = None
-	for i in range(len(indexes)):
+	for i in enumerate(indexes):
 		if len(indexes[i]) == 0:
 			if i == 0: return None  # nothing matched
 			first_empty_ind = i
@@ -551,7 +551,7 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 		choice = longest_desc_choice
 		temp_unabbr = unabbr[:len(choice)]
 		choice += [None]
-		if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n in range(len(temp_unabbr))):
+		if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n in enumerate(temp_unabbr)):
 			return temp_unabbr
 	return None
 
@@ -575,7 +575,7 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	abbrevs = []
 	for iabbr, abbr in enumerate(abbr_words):
 		if not is_abbr(abbr): continue
-		for iother in range(len(unabbr_words)):
+		for iother in enumerate(unabbr_words):
 			unabbr = get_abbr(abbr, unabbr_words[iother:])
 			if unabbr:
 				unabbr_slice = slice(iother, iother+len(unabbr))

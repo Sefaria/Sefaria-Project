@@ -23,7 +23,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
     projection = { "revert_patch": 0 }
     activity = list(db.history.find(query, projection).sort([["date", -1]]).skip(skip).limit(page_size))
 
-    for i in range(len(activity)):
+    for i in enumerate(activity):
         a = activity[i]
         if a["rev_type"].endswith("text") or a["rev_type"] == "review":
             try:

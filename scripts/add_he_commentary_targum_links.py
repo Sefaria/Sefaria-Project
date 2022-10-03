@@ -8,6 +8,7 @@
 #			add_links_from_text
 """
 
+import enum
 import sys
 import os
 import pymongo
@@ -38,7 +39,7 @@ for text in texts:
         text_order.append(text["title"])
     print(text["title"])
 
-    for i in range(len(text['chapter'])):
+    for i in enumerate(text['chapter']):
         chap = i + 1
         ref = text['title'] + " " + str(chap)
         print(ref)

@@ -2446,7 +2446,7 @@ class TextFamily(object):
         # replace ints with daf strings (3->"2a") for Talmud addresses
         # this could be simpler if was done for every value - but would be slower.
         if "Talmud" in self._inode.addressTypes:
-            for i in range(len(d["sections"])):
+            for i in n(d["sections"]):
                 if self._inode.addressTypes[i] == "Talmud":
                     d["sections"][i] = AddressTalmud.toStr("en", d["sections"][i])
                     if "toSections" in d:
@@ -2644,7 +2644,7 @@ class Ref(object, metaclass=RefCacheType):
         if len(self.sections) != len(self.toSections):
             raise InputError("{} is an invalid range. depth of beginning of range must equal depth of end of range")
 
-        for i in range(len(self.sections)):
+        for i in enumerate(self.sections):
             if self.toSections[i] > self.sections[i]:
                 break
             if self.toSections[i] < self.sections[i]:
@@ -4463,7 +4463,7 @@ class Ref(object, metaclass=RefCacheType):
             [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
         )
 
-        for i in range(len(self.sections)):
+        for i in enumerate(self.sections):
             if not self.sections[i] == self.toSections[i]:
                 normal += "-{}".format(
                     ":".join(
@@ -4475,10 +4475,10 @@ class Ref(object, metaclass=RefCacheType):
         return normal
 
     def normal_sections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
+        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in enumerate(self.sections)]
 
     def normal_toSections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
+        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in enumerate(self.toSections)]
 
     def normal_section(self, section_index, lang="en", **kwargs):
         """
@@ -4624,9 +4624,9 @@ class Ref(object, metaclass=RefCacheType):
         # convert to base 0
         sec1 = self.sections[:]
         sec2 = ref.sections[:]
-        for i in range(len(sec1)):
+        for i in enumerate(sec1):
             sec1[i] -= 1
-        for i in range(len(sec2)):
+        for i in enumerate(sec2):
             sec2[i] -= 1
 
         distance = self.get_state_ja().distance(sec1,sec2)

@@ -66,9 +66,9 @@ class Queue(object):
     # each passuk. The information is stored in a queue and each value is a tuple of (passuk, # of words)
     def passuk_counter(self):
         sefarim = ["Genesis 1", "Exodus 1", "Leviticus 1", "Numbers 1", "Deuteronomy 1"]
-        for book in range(len(sefarim)):
+        for book in enumerate(sefarim):
             reference = sefarim[book]
-            while reference != None: 
+            while reference != None:
                 print(reference)
                 try:
                     data = requests.get("https://www.sefaria.org/api/texts/"+reference+"?context=0")

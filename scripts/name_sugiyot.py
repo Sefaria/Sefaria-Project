@@ -76,7 +76,7 @@ def derive_names(rows):
 
     # http://www.markhneedham.com/blog/2015/02/15/pythonscikit-learn-calculating-tfidf-on-how-i-met-your-mother-transcripts/
     dense = tfidf.todense()
-    for sugnum in range(len(dense)):
+    for sugnum in enumerate(dense):
         print(sugyah_refs[sugnum])
         sug = dense[sugnum].tolist()[0]
         phrase_scores = [pair for pair in zip(list(range(0, len(sug))), sug) if pair[1] > 0]

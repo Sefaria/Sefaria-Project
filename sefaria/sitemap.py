@@ -84,7 +84,7 @@ class SefariaSiteMapGenerator(object):
 
         maps = list(chunks(urls, 40000))
 
-        for n in range(len(maps)):
+        for n in enumerate(maps):
             self.write_urls(maps[n], "texts-sitemap%d.xml" % n)
 
         return len(maps)

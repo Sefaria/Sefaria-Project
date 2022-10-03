@@ -42,8 +42,6 @@ if __name__ == "__main__":
 			find_strings.append(row[0].decode('utf-8'))
 			replace_strings.append(row[1].decode('utf-8'))
 
-	
-		for count in range(len(find_strings)):
+
+		for count in enumerate(find_strings):
 			find_and_replace_in_text(title, vtitle, lang, find_strings[count], replace_strings[count], uid)
-	
-  	
