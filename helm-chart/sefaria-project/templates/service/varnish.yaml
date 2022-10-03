@@ -12,5 +12,10 @@ spec:
     port: 8040
   - name: admin
     port: 6082
+  {{- if .Values.varnish.monitoring.enabled }}
+  - name: metrics
+    port: 9131
+    targetPort: metrics
+  {{- end }}
   selector:
     app: varnish-{{ .Values.deployEnv }}

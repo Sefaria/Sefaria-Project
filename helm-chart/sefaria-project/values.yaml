@@ -181,9 +181,9 @@ nodejs:
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: v6
+    tag: 0.32.0
   logging: {}
   replicaCount: 1
   resources:
@@ -213,6 +213,10 @@ varnish:
       # data:
       # Reference to an existing secret in the cluster
       ref:
+  monitoring:
+    enabled: false
+    image: ibmcom/varnish-metrics-exporter
+    tag: 0.32.0
 
 ingress:
  # You can set path: serviceName: and port: for each host. By default they are
@@ -316,9 +320,6 @@ secrets:
     #   CLOUDFLARE_EMAIL:
     #   CLOUDFLARE_TOKEN:
     #   GOOGLE_TAG_MANAGER_CODE:
-    #   GOOGLE_ANALYTICS_CODE:
-    #   GOOGLE_MAPS_API_KEY:
-    #   MIXPANEL_CODE:
     #   HOTJAR_ID:
     #   AWS_ACCESS_KEY:
     #   AWS_SECRET_KEY:
@@ -364,3 +365,5 @@ localSettings:
   GLOBAL_WARNING: "False"
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
+  DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
+  SERVER_EMAIL: "dev@sefaria.org"
