@@ -2,7 +2,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
 
 
-def move_index_into(index, cat):
+def move_index_into(index, cat, verbose=True):
     """
     :param index: (String)  The primary name of the Index to move.
     :param cat:  (model.Category or List) Category to move into - either a Category object, or a List with the path leading to the Category
@@ -18,7 +18,8 @@ def move_index_into(index, cat):
         cat = Category().load({"path": cat})
 
     index.categories = cat.path[:]
-    print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
+    if verbose:
+        print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
     index.save(override_dependencies=True)
 
 
