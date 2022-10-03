@@ -1,9 +1,9 @@
 import pytest, re
 from functools import reduce
 from sefaria.model.text import Ref, library
-from sefaria.model.ref_part import *
+from sefaria.model.linker import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-from sefaria.model.ref_part import RefPartType as RPT
+from sefaria.model.linker import RefPartType as RPT
 from sefaria.model.schema import DiburHamatchilNodeSet
 import spacy
 from spacy.language import Language
@@ -142,11 +142,18 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
     [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
+    pytest.param(crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, 2, 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"], marks=pytest.mark.xfail(reason="Deciding that we can't handle daf and amud being separate in this case because difficult to know we need to merge")),
+    [crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, slice(2, 5), 5, 6],
+          [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"]],
 
     # Base text context
     [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # Ibid
+    [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
+    [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
+    [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
+    [crrd(None, 'he', 'שם ב:ז', [0, 1, 3], [RPT.IBID, RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 2:7"]],
     [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
     [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1", None]), tuple()],
     [crrd(None, 'he', 'תוספות ד"ה והלכתא', [0, slice(1, 5)], [RPT.NAMED, RPT.DH], ["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
@@ -161,8 +168,8 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
     [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
     # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
     [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
-    pytest.param(crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 1:7", "Genesis 7"], marks=pytest.mark.xfail(reason="Need to decide if this case is inherently ambiguous. If we think it's explicitly Genesis 7, what rules are needed?")),
 
     # Relative (e.g. Lekaman)
     [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -203,7 +210,7 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
     [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
     [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
-    [crrd(None, 'he', 'באה"ע סימן קנ"ה סי"ד', [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
+    [crrd(None, 'he', "באה\"ע סימן קנ\"ה סי\"ד", [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
     [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
     pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
     [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
@@ -266,6 +273,16 @@ crrd = create_raw_ref_data
     [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
     [crrd(None, 'he', "בתלמוד ירושלמי כתובות פ\"א ה\"ב", [slice(0, 2), 2, slice(3, 6), slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Jerusalem Talmud Ketubot 1:2"]],
     [crrd(None, 'he', 'סוטה מג', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ['Sotah 43']],
+    [crrd(None, 'he', 'משנה ברורה סימן א סק"א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    [crrd(None, 'he', 'משנה ברורה סימן א סקט״ו', [slice(0, 2), slice(2, 4), slice(4, 7)],  [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:15']],
+    [crrd(None, 'he', 'משנה ברורה סימן א סעיף קטן א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    [crrd(None, 'he', 'משנה ברורה סימן א ס״ק א', [slice(0, 2), slice(2, 4), slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    [crrd(None, 'he', 'בשו"ע או"ח סימן שכ"ט ס"ו', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 329:6']],
+    [crrd(None, 'he', 'בשו"ע או"ח סימן ש"ל סי"א', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)],
+          [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 330:11']],
+
+    # support basic ref instantiation as fall-back
+    [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
@@ -275,7 +292,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
             if prev_tref is None:
                 ref_resolver.reset_ibid_history()
             else:
-                ref_resolver._ibid_history.last_match = Ref(prev_tref)
+                ref_resolver._ibid_history.last_refs = Ref(prev_tref)
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
     matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
@@ -289,14 +306,14 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
         assert matched_oref == Ref(expected_tref)
 
 
-@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs'), [
-    [None, """גמ' שמזונותן עליך. עיין ביצה דף טו ע"ב רש"י ד"ה שמא יפשע:""", 'he', ("Rashi on Beitzah 15b:8:1",)],
-    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",)],
-    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",)],
-    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5")],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",)],
+@pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
+    [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
+    [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית']],
+    [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת''']],
+    [None, """cf. Ex. 9:6,5""", 'en', ("Exodus 9:6", "Exodus 9:5"), ['Ex. 9:6', '5']],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר']],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs):
+def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
     resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
@@ -307,8 +324,9 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
             print("-", matched_oref.normal())
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
-    for match in resolved:
+    for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
         assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
+        assert match.pretty_text == expected_pretty_text
 
 
 @pytest.mark.parametrize(('input_addr_str', 'AddressClass','expected_sections'), [
@@ -396,7 +414,7 @@ def test_ibid_history(last_n_to_store, trefs, expected_title_len):
     ibid = IbidHistory(last_n_to_store)
     orefs = [Ref(tref) for tref in trefs]
     for i, (oref, title_len) in enumerate(zip(orefs, expected_title_len)):
-        ibid.last_match = oref
+        ibid.last_refs = oref
         end = i-len(orefs)+1
         start = end-title_len
         end = None if end == 0 else end

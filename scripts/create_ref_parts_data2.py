@@ -3,10 +3,11 @@ django.setup()
 from tqdm import tqdm
 from functools import partial
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.model.ref_part import MatchTemplate
+from sefaria.model.linker import MatchTemplate
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
 
@@ -158,6 +159,8 @@ class ReusableTermManager:
         title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
         en_title = title_group.primary_title('en')
         he_title = title_group.primary_title('he')
+        if not (en_title and he_title):
+            raise InputError("title group has no primary titles. can't create term.")
         alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
         alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
         if title_modifier:
@@ -237,6 +240,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
         self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
         self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
+        self.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'], ref_part_role='structural')
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
             if existing_term is None:
@@ -268,6 +272,7 @@ class ReusableTermManager:
             "Chullin": ["Hulin"],
             "Demai": ["Demay"],
             "Eduyot": ["Idiut"],
+            "Gittin": ["גטין"],
             "Horayot": ["Horaiot"],
             "Kelim Batra": ["Kelim Baba Batra", "Kelim Baba batra", "Kelim Bava batra", "Kelim Bava bathra"],
             "Kelim Kamma": ["Kelim Bava qamma", "Kelim Baba qamma", "Kelim Bava qama"],
@@ -330,13 +335,13 @@ class ReusableTermManager:
     def create_tanakh_terms(self):
         hard_coded_tanakh_map = {
             "Ezekiel": ["Ezechiel"],
-            "I Samuel": ["1S."],
-            "II Samuel": ["2S."],
+            "I Samuel": ["1S.", "I-Samuel", "1-Samuel"],
+            "II Samuel": ["2S.", "II-Samuel", "2-Samuel"],
             "I Kings": ["1K.", "1Kings"],
             "II Kings": ["2K.", "2Kings"],
             "Zechariah": ["Sach."],
-            "I Chronicles": ["1Chr."],
-            "II Chronicles": ["2Chr."],
+            "I Chronicles": ["1Chr.", 'דבהי"א'],
+            "II Chronicles": ["2Chr.", 'דבהי"ב'],
             "Lamentations": ["Thr.", "Threni", "Lament.", "Ekha"],
             "Zephaniah": ["Soph."],
             "Ruth": ["Ru."],
@@ -438,9 +443,9 @@ class LinkerCategoryConverter:
     Manager which handles converting all indexes in a category or corpus.
     """
 
-    def __init__(self, title, is_corpus=False, is_index=False, **linker_index_converter_kwargs):
+    def __init__(self, title, is_corpus=False, is_index=False, include_dependant=False, **linker_index_converter_kwargs):
         index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
-        self.titles = [title] if is_index else index_getter(title)
+        self.titles = [title] if is_index else index_getter(title, include_dependant=include_dependant)
         self.linker_index_converter_kwargs = linker_index_converter_kwargs
 
     def convert(self):
@@ -484,31 +489,48 @@ class LinkerCommentaryConverter:
 
 
 class DiburHamatchilAdder:
+    BOLD_REG = "^<b>(.+?)</b>"
+    DASH_REG = '^(.+?)[\-–]'
 
     def __init__(self):
         self.indexes_with_dibur_hamatchils = []
         self.dh_reg_map = {
-            "Rashi": ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Ran": ['^(.+?)[\-–]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Tosafot": ['^(.+?)[\-–\.]', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Gilyon HaShas": ["^<b>(.+?)</b>"],
+            "Rashi|Bavli": [self.DASH_REG, '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Ran|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
+            "Tosafot|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
         }
         self._dhs_to_insert = []
 
-    def get_dh_regexes(self, collective_title):
-        return self.dh_reg_map.get(collective_title)
+    def get_dh_regexes(self, collective_title, context=None, use_default_reg=True):
+        if collective_title is None:
+            return
+        key = collective_title + ("" if context is None else f"|{context}")
+        dh_reg = self.dh_reg_map.get(key)
+        if not dh_reg and use_default_reg:
+            return [self.BOLD_REG, self.DASH_REG]
+        return dh_reg
 
     def add_index(self, index):
         self.indexes_with_dibur_hamatchils += [index]
 
     @staticmethod
     def get_dh(s, regexes, oref):
+        from sefaria.utils.hebrew import strip_cantillation
+        import unicodedata
+        matched_reg = False
+        s = s.strip()
         for reg in regexes:
             match = re.search(reg, s)
             if not match: continue
+            matched_reg = True
             s = match.group(1)
+        if not matched_reg: return
         s = s.strip()
-        return s
+        s = unicodedata.normalize('NFKD', s)
+        s = strip_cantillation(s, strip_vowels=True)
+        s = re.sub(r"[.,:;\-–]", "", s)
+        words = s.split()
+        return " ".join(words[:5])  # DH is unlikely to give more info if longer than 5 words
 
     def add_dibur_hamatchil_to_index(self, index):
         def add_dh_for_seg(segment_text, en_tref, he_tref, version):
@@ -518,8 +540,9 @@ class DiburHamatchilAdder:
             except:
                 print("not a valid ref", en_tref)
                 return
-            dh = self.get_dh(segment_text, index.nodes.diburHamatchilRegexes, oref)
-            if dh is None: return
+            if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
+            dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
+            if not dh: return
             container_refs = [oref.top_section_ref().normal(), index.title]
             perek_ref = None
             for temp_perek_ref in perek_refs:
@@ -547,12 +570,16 @@ class DiburHamatchilAdder:
                 continue
             perek_refs += [perek_ref]
 
-        primary_version = VersionSet({"title": index.title, "language": "he"}).array()[0]
+        versions = VersionSet({"title": index.title, "language": "he"}).array()
+        if len(versions) == 0:
+            print("No versions for", index.title, ". Can't search for DHs.")
+            return
+        primary_version = versions[0]
         primary_version.walk_thru_contents(add_dh_for_seg)
 
     def add_all_dibur_hamatchils(self):
         from pymongo import InsertOne
-        DiburHamatchilNodeSet().delete()
+        db.dibur_hamatchils.delete_many({})
         for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
             self.add_dibur_hamatchil_to_index(index)
         db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
@@ -657,6 +684,11 @@ class LinkerIndexConverter:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
             if templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
+            # else:
+            #     try:
+            #         delattr(node, 'match_templates')
+            #     except:
+            #         pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
@@ -702,8 +734,28 @@ class SpecificConverterManager:
             title_slug = RTM.get_term_by_primary_title('tanakh', base_index.title).slug
             return [MatchTemplate([title_slug])]
 
+        def get_commentary_other_fields(base_index, node, depth, isibling, num_siblings, is_alt_node):
+            index =node.ref().index
+            title_prefixes_with_intro_default_nodes = {"Ramban on "}
+            if (node.is_root() and not index.is_complex()) or (any(index.title.startswith(prefix) for prefix in title_prefixes_with_intro_default_nodes) and node.is_default()):
+                if len(node.addressTypes) == 3:
+                    collective_title = getattr(index, 'collective_title', None)
+                    dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title, "Tanakh")
+                    if dh_regexes:
+                        self.dibur_hamatchil_adder.add_index(node.index)
+                    return {
+                        "addressTypes": ["Perek", "Pasuk", "Integer"],
+                        "isSegmentLevelDiburHamatchil": True,
+                        "diburHamatchilRegexes": dh_regexes,
+                    }
+                elif index.categories[1] == "Targum" and len(node.addressTypes) == 2:
+                    return {
+                        "addressTypes": ["Perek", "Pasuk"],
+                    }
+
         converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates,
-                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
+                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_other_fields=get_commentary_other_fields)
         converter.convert()
 
     def convert_bavli(self):
@@ -738,6 +790,7 @@ class SpecificConverterManager:
                 return [
                     MatchTemplate([talmud_slug, bavli_slug, title_slug]),
                     MatchTemplate([talmud_slug, bavli_slug, tractate_slug, title_slug]),
+                    MatchTemplate([talmud_slug, title_slug]),
                     MatchTemplate([bavli_slug, title_slug]),
                     MatchTemplate([gemara_slug, title_slug]),
                     MatchTemplate([bavli_slug, tractate_slug, title_slug]),
@@ -751,6 +804,7 @@ class SpecificConverterManager:
                 return {"numeric_equivalent": min(isibling + 1, 30)}
             else:
                 return {"referenceableSections": [True, False]}
+
         def get_commentary_match_template_suffixes(base_index):
             title_slug = RTM.get_term_by_primary_title('shas', base_index.title).slug
             return [MatchTemplate([title_slug])]
@@ -761,7 +815,7 @@ class SpecificConverterManager:
                 # assuming second address is always "Line"
                 referenceable_sections = [True, False, True] if node.depth == 3 else [True, True]
                 collective_title = getattr(node.index, 'collective_title', None)
-                dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title)
+                dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes(collective_title, "Bavli")
                 if dh_regexes:
                     self.dibur_hamatchil_adder.add_index(node.index)
                 return {
@@ -1015,16 +1069,22 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 0:
+            if node.is_root():
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
-            else:
+            elif not node.is_default():
                 title = sa_title_swaps.get(title, title)
-                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+                if title == "Introduction":
+                    title_term = RTM.get_term_by_primary_title('base', title)
+                else:
+                    title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
                     title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
                 else:
                     title_slug = title_term.slug
-            return [MatchTemplate([title_slug])]
+            else:
+                title_slug = None
+            if title_slug:
+                return [MatchTemplate([title_slug])]
         converter = LinkerIndexConverter('Tur', get_match_templates=get_match_templates)
         converter.convert()
 
@@ -1463,16 +1523,22 @@ class SpecificConverterManager:
                 "Yoreh Deah": "Yoreh De'ah"
             }
             title = node.get_primary_title('en')
-            if depth == 0:
+            if node.is_root():
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
-            else:
-                title = sa_title_swaps.get(title, title)
-                title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
+            elif not node.is_default():
+                if title == "Introduction":
+                    title_term = RTM.get_term_by_primary_title('base', title)
+                else:
+                    title = sa_title_swaps.get(title, title)
+                    title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
                     title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
                 else:
                     title_slug = title_term.slug
-            return [MatchTemplate([title_slug])]
+            else:
+                title_slug = None
+            if title_slug:
+                return [MatchTemplate([title_slug])]
 
         converter = LinkerIndexConverter('Arukh HaShulchan', get_match_templates=get_match_templates)
         converter.convert()
@@ -1481,7 +1547,10 @@ class SpecificConverterManager:
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             new = ['לקוטי מוהר"ן'] if node.is_root() else ['תניינא'] if node.get_primary_title('en') == 'Part II' else []
             if not node.is_default():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                if node.get_primary_title('en') == "Introduction":
+                    title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
+                else:
+                    title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
                 return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1540,6 +1609,129 @@ class SpecificConverterManager:
                                         get_other_fields=get_other_fields)
         converter.convert()
 
+    def convert_mishnah_berurah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                return [MatchTemplate([RTM.get_term_by_primary_title('base', node.get_primary_title('en')).slug])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_default():
+                return {'addressTypes': ['Siman', 'SeifKatan']}
+
+        converter = LinkerIndexConverter('Mishnah Berurah', get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_aramaic_targum(self):
+        aramaic_targum_slug = RTM.create_term(en='Aramaic Targum', he='תרגום', context="base", ref_part_role='structural').slug
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title = node.get_primary_title('en')
+                title_slug = RTM.get_term_by_primary_title('tanakh', title.replace("Aramaic Targum to ", "")).slug
+                return [MatchTemplate([aramaic_targum_slug, title_slug])]
+
+        converter = LinkerCategoryConverter('Aramaic Targum', include_dependant=True, get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_pesach_haggadah(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title_slug = RTM.create_term_from_titled_obj(node, context="haggadah", ref_part_role='structural').slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerIndexConverter('Pesach Haggadah', get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_mesilat_yesharim(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if is_alt_node or node.is_default(): return
+            if node.get_primary_title('en') == "Introduction":
+                title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
+            else:
+                title_slug = RTM.create_term_from_titled_obj(node, context="mesilat yesharim", ref_part_role='structural').slug
+            return [MatchTemplate([title_slug])]
+
+        converter = LinkerIndexConverter('Mesilat Yesharim', get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_kaf_hachayim(self):
+        # kaf_slug = RTM.create_term(en="Kaf HaChayim", he="כף החיים", alt_en=["Kaf Hachayim", "Kaf Hachaim", "Kaf HaChaim"], alt_he=["כה\"ח", "כה״ח", "כה”ח"], ref_part_role='structural', context="base").slug
+        kaf_slug = RTM.get_term_by_primary_title("base", "Kaf HaChayim").slug
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            if node.is_root():
+                title = node.get_primary_title('en')
+                sa_title = title.replace("Kaf HaChayim on Shulchan Arukh, ", "")
+                return [MatchTemplate([
+                    kaf_slug,
+                    RTM.get_term_by_primary_title('shulchan arukh', sa_title).slug,
+                ])]
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            if not is_alt_node:
+                return {'addressTypes': ['Siman', 'SeifKatan', 'Integer']}
+
+        converter = LinkerCategoryConverter('Kaf HaChayim', include_dependant=True, get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
+    def convert_megilat_taanit(self):
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            return [MatchTemplate([RTM.create_term_from_titled_obj(node, 'structural', 'base').slug])]
+        converter = LinkerIndexConverter("Megillat Taanit", get_match_templates=get_match_templates)
+        converter.convert()
+
+    def convert_minor_rashis(self):
+        rashi_slug = RTM.get_term_by_primary_title('base', 'Rashi').slug
+        bereshit_slug = RTM.get_term_by_primary_title('tanakh', 'Genesis').slug
+        rabbah_slug = RTM.get_term_by_primary_title('base', 'Rabbah').slug
+        mid_slug = RTM.get_term_by_primary_title('base', 'Midrash').slug
+        mid_rab_slug = RTM.get_term_by_primary_title('base', 'Midrash Rabbah').slug
+        tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
+        avot_slug = RTM.get_term_by_primary_title('shas', "Pirkei Avot").slug
+        mishnah_slug = RTM.get_term_by_primary_title('base', "Mishnah").slug
+
+        def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
+            title = node.get_primary_title('en')
+            if "Rabbah" in title:
+                return [
+                    MatchTemplate([rashi_slug, bereshit_slug, rabbah_slug]),
+                    MatchTemplate([rashi_slug, mid_slug, bereshit_slug, rabbah_slug]),
+                    MatchTemplate([rashi_slug, mid_rab_slug, bereshit_slug]),
+                ]
+            else:
+                # Avot
+                return [
+                    MatchTemplate([rashi_slug, mishnah_slug, avot_slug]),
+                    MatchTemplate([rashi_slug, avot_slug]),
+                    MatchTemplate([rashi_slug, tractate_slug, avot_slug]),
+                    MatchTemplate([rashi_slug, mishnah_slug, tractate_slug, avot_slug]),
+                ]
+
+        def get_other_fields_rabbah(node, depth, isibling, num_siblings, is_alt_node):
+            return {
+                "addressTypes": ["Perek", "Integer", "Integer"]
+            }
+
+        def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
+            dh_regexes = self.dibur_hamatchil_adder.get_dh_regexes("Rashi", "Minor")
+            if dh_regexes:
+                self.dibur_hamatchil_adder.add_index(node.index)
+
+            ret = {
+                "isSegmentLevelDiburHamatchil": True,
+                "diburHamatchilRegexes": dh_regexes,
+            }
+
+            title = node.get_primary_title('en')
+            if "Rabbah" in title:
+                ret["addressTypes"] = ["Perek", "Integer", "Integer"]
+            return ret
+
+        converter = LinkerIndexConverter("Rashi on Bereshit Rabbah", get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
+        converter = LinkerIndexConverter("Rashi on Avot", get_match_templates=get_match_templates, get_other_fields=get_other_fields)
+        converter.convert()
+
 
 if __name__ == '__main__':
     converter_manager = SpecificConverterManager()
@@ -1552,13 +1744,12 @@ if __name__ == '__main__':
     converter_manager.convert_tur()
     converter_manager.convert_shulchan_arukh()
     converter_manager.convert_arukh_hashulchan()
-
+    converter_manager.convert_mishnah_berurah()
     converter_manager.convert_zohar()
     converter_manager.convert_zohar_chadash()
     converter_manager.convert_minor_tractates()
     converter_manager.convert_sefer_hachinukh()
     converter_manager.convert_mechilta_dry()
-    converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
     converter_manager.convert_pdre_and_tde()
     converter_manager.convert_mechilta_drshbi()
     converter_manager.convert_sifrei()
@@ -1572,13 +1763,13 @@ if __name__ == '__main__':
     converter_manager.convert_lkiutei()
     converter_manager.convert_yeztirah()
     converter_manager.convert_likutei_halakhot()
+    converter_manager.convert_aramaic_targum()
+    converter_manager.convert_pesach_haggadah()
+    converter_manager.convert_mesilat_yesharim()
+    converter_manager.convert_kaf_hachayim()
+    converter_manager.convert_megilat_taanit()
+    converter_manager.convert_minor_rashis()
 
-"""
-Still TODO
-- base commentaries for
-    MT
-    Tanakh
-    Bavli
-    SA
-"""
+    # add DHs at end
+    converter_manager.dibur_hamatchil_adder.add_all_dibur_hamatchils()
 
