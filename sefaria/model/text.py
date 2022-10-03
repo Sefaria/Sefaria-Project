@@ -1253,6 +1253,17 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     A version of a text.
     NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
+
+    A new version is created with a dict of correlating information inside. Two example fields are below:
+    new_version = Version({"versionTitle": "ABCD",
+                            "versionSource": "EFGHI"
+                            ......})
+
+    An existing version is queried for with a slightly different syntax:
+    existing_version = Version().load({Mongo-query-for-that-specific-version})
+
+    For basic operations such as loading, saving, and updating existing versions, see abst.AbstractMongoRecord
+    in abstract.py - the parent class for the Version class.
     """
     history_noun = 'text'
     collection = 'texts'
@@ -1472,6 +1483,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 class VersionSet(abst.AbstractMongoSet):
     """
     A collection of :class:`Version` objects
+
+    You can call a VersionSet by running something like the following:
+    my_version_set = VersionSet(mongo-query-here)
+
+    Even if it yields only a single result, the results will always be a list of the matching versions
+    that came up for the given query. 
     """
     recordClass = Version
 

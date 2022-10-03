@@ -1,0 +1,93 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">Friend,</span>
+        <span class="int-he">שלום חברים,</span>
+    </p>
+
+    <p>
+        <span class="int-en">
+            If Sefaria has contributed to your High Holiday learning this year, will you give back by making a donation of $18 or more? We need to raise $250,000 by October 18 to sustain the library and improve your learning experience in the new year.
+        </span>
+
+        <span class="int-he">
+            בימים אלה ספריא מצויה במסע גיוס כספים הכרחי. המטרה שלנו היא לגייס 250,000$ עד ה-18/10/22, זאת על מנת לשמר את הספריה ולשפר את חווית הלימוד שלכם בשנת תשפ״ג הבעל״ט.
+            אם נעזרתם בספריא עבור הלימוד שלכם לקראת חגי תשרי, האם תשקלו לבצע תרומה בסך 18 ש״ח (או יותר)? כל תרומה מתקבלת בברכה ובתודה.
+        </span>
+    </p>
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-en"  style="font-weight: bold">DONATE</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/sustainers_e">
+            <span class="int-he">תרמו עכשיו</span>
+        </a>
+    </div>
+
+</div>

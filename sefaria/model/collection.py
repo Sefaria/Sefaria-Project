@@ -125,7 +125,7 @@ class Collection(abst.AbstractMongoRecord):
         for field in image_fields:
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
             if old != new:
-                self._handle_image_change(old, new)
+                self._handle_image_change(old)
 
     def assign_slug(self):
         """
@@ -330,18 +330,16 @@ class Collection(abst.AbstractMongoRecord):
             self.pinned_sheets = [sheet_id] + self.pinned_sheets
         self.save()
 
-    def _handle_image_change(self, old, new):
+    def _handle_image_change(self, old_url):
         """
         When image fields change:
-        1) delete images that are no longer referenced
-        2) remove new images from the orphaned files list.
+        delete images that are no longer referenced
         """
-        from sefaria.s3 import HostedFile
+        from sefaria.google_storage_manager import GoogleStorageManager
+        bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+        if isinstance(old_url, str) and re.search("^https?://storage\.googleapis\.com/", old_url):  # only try to delete images in google cloud storage
+            GoogleStorageManager.delete_filename(old_url, bucket_name)
 
-        if old:
-            HostedFile(url=old).delete()
-        if new:
-            HostedFile(url=new).remove_from_orphaned_list()
 
 
 class CollectionSet(abst.AbstractMongoSet):
