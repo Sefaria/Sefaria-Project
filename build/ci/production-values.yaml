@@ -128,6 +128,9 @@ monitor:
     limits:
       memory: "400Mi"
       cpu: "100m"
+cronJobs:
+  regenerate:
+    enabled: false
 secrets:
   localSettings:
     ref: local-settings-secrets-production
