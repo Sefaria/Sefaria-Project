@@ -1,7 +1,7 @@
 {
   "name": "sefaria-web",
   "version": "1.0.0",
-  "description": "Server for rendering React components for Sefaria, a library of Jewish texts.",
+  "description": "Server for rendering React components for Contextus",
   "config": {
     "port": "4040"
   },
@@ -127,10 +127,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Sefaria/Sefaria-Project"
+    "url": "https://github.com/Sefaria/Contextus"
   },
   "bugs": {
-    "url": "https://github.com/Sefaria/Sefaria-Project/issues"
+    "url": "https://github.com/Sefaria/Contextus/issues"
   },
   "keywords": [
     "torah",

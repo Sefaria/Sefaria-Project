@@ -1,21 +1,24 @@
 sandbox: "false"
 contentSandbox: "false"
-deployEnv: production  
+deployEnv: production
 previousServicesCount: "3"
 restore:
-  enabled: false
+  enabled: true
+  bucket: sefaria-contextus-backup
+  tarball: jmc-private_dump_21.09.22.tar
+  serviceAccount: database-backup-read
 backup:
   enabled: true
   prefix: ""
   public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
+  bucket: sefaria-contextus-backup
+  archiveBucket: sefaria-contextus-archive
   serviceAccount: database-backup-write
 web:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
-  replicaCount: 7
+    tag:
+  replicaCount: 2
   resources:
     web:
       gunicornWorkerCount: 5
@@ -29,11 +32,7 @@ web:
           cpu: "2"
   secrets:
     googleClient:
-      ref: google-client-secret-production
-    logging:
-      ref: logging-secret-production
-    schoolLookup:
-      ref: school-lookup-data-production
+      ref: google-client-secret
 linker:
   enabled: true
   containerImage:
@@ -51,10 +50,10 @@ redis:
       memory: "1500Mi"
       cpu: "200m"
 nodejs:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
-  replicaCount: 4
+    tag:
+  replicaCount: 2
   resources:
     requests:
       memory: "1Gi"
@@ -84,49 +83,31 @@ varnish:
     varnish:
       ref: varnish-secret-production
 ingress:
-  hosts: 
-    - host: "sefaria.org"
+  hosts:
+    - host: "contextus.org"
       path: /*
       serviceName: nginx
       port: 80
-    - host: "sefaria.org.il"
+    - host: "www.contextus.org"
       path: /*
       serviceName: nginx
       port: 80
-    - host: "www.sefaria.org"
+    - host: "prod.contextus.org"
       path: /*
       serviceName: nginx
       port: 80
-    - host: "www.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "prod.sefaria.org.il"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org"
-      path: /*
-      serviceName: nginx
-      port: 80
-    - host: "rollout.sefaria.org.il"
+    - host: "rollout.contextus.org"
       path: /*
       serviceName: nginx
       port: 80
   secrets:
-    originTls: 
-      ref: origin-tls-prod2
-    originIlTls:
-      ref: origin-il-tls-prod2 
+    originTls:
+      ref: origin-tls
 nginx:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
-  SEARCH_HOST: elasticsearch-data
+    tag:
+  SEARCH_HOST: contextus-es-http.elasticsearch.svc
   replicaCount: 2
   resources:
     requests:
@@ -136,9 +117,9 @@ nginx:
       memory: "300Mi"
       cpu: "150m"
 monitor:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
+    tag:
   replicaCount: 1
   resources:
     requests:
@@ -148,32 +129,30 @@ monitor:
       memory: "400Mi"
       cpu: "100m"
 secrets:
-  localSettings: 
+  localSettings:
     ref: local-settings-secrets-production
-  backupManager: 
+  backupManager:
     ref: backup-manager-secret-production
-  slackWebhook: 
+  slackWebhook:
     ref: slack-webhook-production
 localSettings:
   DEBUG: false
-  OFFLINE: "False"
   DOMAIN_LANGUAGE: {
-    "https://www.sefaria.org": "english",
-    "https://www.sefaria.org.il": "hebrew",
+    "https://contextus.org": "english",
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  SEARCH_ADMIN: "http://contextus-es-http.elasticsearch.svc:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://www.sefaria.org" 
+  FRONT_END_URL:  "http://contextus.org"
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
-  MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
+  MAINTENANCE_MESSAGE: "Contextus is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
   GLOBAL_WARNING: false
-  GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
-  SITE_PACKAGE: "sites.sefaria"
-  SEARCH_HOST: elasticsearch.data  
-  DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
-  SERVER_EMAIL: "dev@sefaria.org"
+  GLOBAL_WARNING_MESSAGE: "Contextus will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
+  SITE_PACKAGE: "sites.s4d"
+  SEARCH_HOST: contextus-es-http.elasticsearch.svc
+  DEFAULT_FROM_EMAIL: "Contextus <hello@contextus.org>"
+  SERVER_EMAIL: "dev@contextus.org"
 
