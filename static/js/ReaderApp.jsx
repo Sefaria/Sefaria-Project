@@ -331,10 +331,6 @@ class ReaderApp extends Component {
       if (!this.state.initialAnalyticsTracked) {
         this.setState({initialAnalyticsTracked: true});
       }
-      console.log("here")
-      if (typeof window !== 'undefined') {
-        gtag('event', 'page_view', {'page_location': 'test', 'page_title': bookNames, 'test_paramter': '5'})
-      }
   }
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
@@ -793,7 +789,10 @@ class ReaderApp extends Component {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       // console.log("Push History - " + hist.url);
-      this.trackPageview();
+      // this.trackPageview();
+      if (typeof window !== 'undefined') {
+        gtag('event', 'page_view', {'our_page_view': 'true'})
+      }
     }
 
     $("title").html(hist.title);
@@ -813,7 +812,7 @@ class ReaderApp extends Component {
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
         console.log("TRACK PAGE VIEW");
-        this.trackPageview();
+        // this.trackPageview();
       }
       this.scrollIntentTimer = null;
     });
