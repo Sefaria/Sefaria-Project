@@ -493,9 +493,10 @@ def process_index_delete_in_version_state(indx, **kwargs):
 
 
 def process_index_title_change_in_version_state(indx, **kwargs):
-    vs = VersionState().load(kwargs["old"])
+    vs = VersionState().load({"title": kwargs["old"]})
     vs._set_first_section_ref()
-    vs.update({"title": kwargs["new"]})
+    vs.title = kwargs["new"]
+    vs.save()
 
 
 def create_version_state_on_index_creation(indx, **kwargs):
