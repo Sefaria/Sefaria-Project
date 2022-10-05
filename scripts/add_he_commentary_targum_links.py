@@ -8,7 +8,6 @@
 #			add_links_from_text
 """
 
-import enum
 import sys
 import os
 import pymongo
