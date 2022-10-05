@@ -53,7 +53,7 @@ def gauth_required(scope, ajax=False):
             if credentials.expired:
                 try:
                     credentials.refresh(auth_request)
-                except:
+                except Exception:
                     request.session['next_view'] = request.path
                     request.session['gauth_scope'] = scope
                     return (HttpResponse('Unauthorized', status=401)

@@ -108,7 +108,7 @@ class ServerTextCopier(object):
                     if node_num == len(content_nodes):
                         # try:
                         self._make_post_request_to_server(self._prepare_text_api_call(node.full_title(force_update=True), count_after=True), version_payload)
-                        # except:
+                        # except Exception:
                         #     pass
                     else:
                         self._make_post_request_to_server(self._prepare_text_api_call(

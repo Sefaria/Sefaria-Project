@@ -68,7 +68,7 @@ def rewrite(ref):
 	i = int(m.group(1))
 	try:
 		new_ref = re.sub("Shulchan Aruch %d:" % i, sections[i-1] + " ", ref)
-	except:
+	except Exception:
 		return ref
 	return new_ref
 

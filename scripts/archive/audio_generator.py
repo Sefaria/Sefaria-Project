@@ -72,7 +72,7 @@ class Queue(object):
                 print(reference)
                 try:
                     data = requests.get("https://www.sefaria.org/api/texts/"+reference+"?context=0")
-                except:
+                except Exception:
                     continue
                 resp = data.json()
                 perek = resp['he']
@@ -99,7 +99,7 @@ class Queue(object):
             try:
                 val = int(key)
                 temp.append(key)
-            except:
+            except Exception:
                 parshiyot[key] = temp
                 temp = [] 
         parshiyot.popitem()

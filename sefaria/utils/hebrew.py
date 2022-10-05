@@ -450,7 +450,7 @@ def gematria(string):
 	for letter in string:
 		try:
 			total += heb_to_int(letter)
-		except:
+		except Exception:
 			pass
 	return total
 

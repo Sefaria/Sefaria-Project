@@ -839,7 +839,7 @@ class MatchTemplateTrie:
                     if term is None:
                         try:
                             node_ref = node.ref()
-                        except:
+                        except Exception:
                             node_ref = node.get_primary_title('en')
                         print(f"{node_ref} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
                         continue
@@ -1314,7 +1314,7 @@ class RefResolver:
             try:
                 ref = text.Ref(raw_ref.text)
                 resolved_list += [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
-            except:
+            except Exception:
                 pass
 
         return resolved_list

@@ -92,7 +92,7 @@ class DateRange(object):
                 return cls("this_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
             else:
                 return cls("this_hebrew_year", this_gregorian_year_rh, cls.new_years_dict[today.year+1])
-        except:
+        except Exception:
             latest_year = max(cls.new_years_dict.get.keys())
             return cls("this_hebrew_year", cls.new_years_dict[latest_year-1], latest_year)
 
@@ -106,7 +106,7 @@ class DateRange(object):
                 return cls("previous_hebrew_year", cls.new_years_dict[today.year-2], cls.new_years_dict[today.year-1])
             else:
                 return cls("previous_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
-        except:
+        except Exception:
             latest_year = max(cls.new_years_dict.get.keys())
             return cls("this_hebrew_year", cls.new_years_dict[latest_year-2], cls.new_years_dict[latest_year-2])
 

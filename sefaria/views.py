@@ -197,7 +197,7 @@ def unlink_gauth(request):
             return redirect(f"/profile/{profile.slug}")
         else:
             return jsonResponse({"status": "ok"})
-    except: 
+    except Exception: 
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
@@ -232,7 +232,7 @@ def generate_feedback(request):
     try:
         send_email(subject, message_html, from_email, to_email)
         return jsonResponse({"status": "ok"})
-    except:
+    except Exception:
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
@@ -502,7 +502,7 @@ def collections_image_upload(request, resize_image=True):
             try:
                 url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
                 return jsonResponse({"status": "success", "url": url})
-            except:
+            except Exception:
                 return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -586,7 +586,7 @@ def reset_counts(request, title=None):
     if title:
         try:
             i = model.library.get_index(title)
-        except:
+        except Exception:
             return HttpResponseRedirect("/dashboard?m=Unknown-Book")
         vs = model.VersionState(index=i)
         vs.refresh()
@@ -980,7 +980,7 @@ def spam_dashboard(request):
             for spammer in spammers:
                 try:
                     purge_spammer_account_data(spammer)
-                except:
+                except Exception:
                     continue
 
             return render_template(request, 'spam_dashboard.html', None, {
@@ -998,7 +998,7 @@ def spam_dashboard(request):
             for spammer in spam_profile_ids:
                 try:
                     purge_spammer_account_data(spammer)
-                except:
+                except Exception:
                     continue
 
             return render_template(request, 'spam_dashboard.html', None, {

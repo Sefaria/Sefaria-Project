@@ -20,6 +20,6 @@ for l in LinkSet():
         l.refs = sorted_refs
         try:
             l.save()
-        except:
+        except Exception:
             print(l.contents())
 

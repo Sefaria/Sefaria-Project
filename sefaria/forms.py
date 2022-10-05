@@ -96,7 +96,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
             mailingLists.append("Signed_Up_on_Sefaria")
             try:
                 subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
-            except:
+            except Exception:
                 pass
 
         return user

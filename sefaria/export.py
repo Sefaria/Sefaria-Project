@@ -437,7 +437,7 @@ def export_all_merged():
     for title in texts:
         try:
             Ref(title)
-        except:
+        except Exception:
             continue
 
         print(title)
@@ -498,7 +498,7 @@ def export_links():
             filename = '{}links{}.csv'.format(path, link_file_number)
             try:
                 csvfile.close()
-            except:
+            except Exception:
                 pass
             csvfile = open(filename, 'wb')
             writer = csv.writer(csvfile)

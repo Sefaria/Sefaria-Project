@@ -45,7 +45,7 @@ def write_sheet_makers_csv(query={}):
 
         try:
             sheet_mod_time = datetime.strptime(sheet["dateModified"], '%Y-%m-%dT%H:%M:%S.%f')
-        except:
+        except Exception:
             sheet_mod_time = datetime(2000, 1, 1, 00, 00)
 
         if "dateModified" in sheet and sheet_mod_time > cur_last_modified_date:
@@ -80,7 +80,7 @@ def write_sheet_makers_csv(query={}):
                     try:
                         if (profile.email.split("@")[1] == row[1]):
                             add_author = True
-                    except:
+                    except Exception:
                         add_author = False
 
                     if row[0] in profile.position:

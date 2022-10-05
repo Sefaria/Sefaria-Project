@@ -37,7 +37,7 @@ class LocationSettingsMiddleware(MiddlewareMixin):
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
                 loc = PINNED_IPCOUNTRY
-            except:
+            except Exception:
                 loc = "us"
         request.diaspora = False if loc in ("il", "IL", "Il") else True
 

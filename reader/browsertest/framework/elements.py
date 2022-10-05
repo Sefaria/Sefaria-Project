@@ -441,7 +441,7 @@ class SefariaTest(AbstractTest):
             self.click('.accountLinks .my-profile')
             self.wait_until_clickable("#my-profile-link")
             self.click("#my-profile-link")
-        except:
+        except Exception:
             self.click('.mobileAccountLinks a[href="/my/profile"]')
         self.wait_until_clickable(".profile-summary")
 
@@ -480,7 +480,7 @@ class SefariaTest(AbstractTest):
         except (TimeoutException, NoSuchElementException): # mobile
             try:
                 self.open_mobile_navigation_menu()
-            except:
+            except Exception:
                 try:
                     # Mobile browsers could be in a state where a window needs to be closed.
                     self.click('.readerNavMenuCloseButton').click('.readerNavMenuMenuButton').click(".textsPageLink")
@@ -716,7 +716,7 @@ class SefariaTest(AbstractTest):
         selector = "div[class='categoryFilter'][data-name='" + data_name + "']"
         try:
             self.click(selector)
-        except:
+        except Exception:
             self.click("a[data-name='More']")
             self.click(selector)
 
@@ -850,7 +850,7 @@ class SefariaTest(AbstractTest):
         selector = '.categoryFilter[data-name="{}"]'.format(name)
         try:
             self.wait_until_clickable(selector)
-        except:
+        except Exception:
             self.click("a[data-name='More']")
             self.wait_until_clickable(selector)
         return self.driver.find_element_by_css_selector(selector)

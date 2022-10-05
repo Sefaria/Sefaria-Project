@@ -1555,7 +1555,7 @@ def social_image_api(request, tref):
         text = ' '.join(text)
         cat = tf["primary_category"]
 
-    except:
+    except Exception:
         text = None
         cat = None
         ref_str = None
@@ -4085,7 +4085,7 @@ def dashboard(request):
     def toc_sort(a):
         try:
             return flat_toc.index(a["title"])
-        except:
+        except Exception:
             return 9999
 
     states = sorted(states, key=toc_sort)
@@ -4251,7 +4251,7 @@ def translations_api(request, lang=None):
                             to_add["title"] = my_index_info["collective_title"]
                             categories_to_add = categories[:categories.index(my_index_info["collective_title"]) + 1]
                             to_add["url"] = "/texts/" + "/".join(categories_to_add)
-                        except:
+                        except Exception:
                             print("failed to find author page for " + my_index_info["collective_title"] + ": " +
                                   my_index_info["title"])
                             # these are also not showing up in TOC

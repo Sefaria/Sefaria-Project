@@ -37,7 +37,7 @@ def broken_links(tref=None, auto_links = False, manual_links = False, delete_lin
             if check_text_exists and rf2.is_empty():
                 raise Exception("no text at this Ref")
             errors[3] = 1
-        except:
+        except Exception:
             if link.auto:
                 if auto_links is False:
                     continue

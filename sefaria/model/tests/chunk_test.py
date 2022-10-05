@@ -235,7 +235,7 @@ def test_save():
     for vt in vs:
         try:
             Version().load({"versionTitle": vt}).delete()
-        except:
+        except Exception:
             pass
 
     # create new version, depth 1
@@ -459,7 +459,7 @@ def test_strip_itags():
     for vt in vs:
         try:
             Version().load({"versionTitle": vt}).delete()
-        except:
+        except Exception:
             pass
 
     r = Ref("Genesis 1:1")

@@ -80,7 +80,7 @@ def get_community_page_items(date=None, language="english", diaspora=True, refre
   """
   try:
     data = get_community_page_data(language=language, refresh=refresh)
-  except:
+  except Exception:
     data = {
       "parashah": None,
       "calendar": None,
@@ -318,7 +318,7 @@ def sheets_with_content_by_category(cat, print_results=True):
     for ref in sheet["includedRefs"]:
       try:
         oRef = Ref(ref)
-      except:
+      except Exception:
         continue
       if oRef.primary_category == cat or oRef.index.categories == cat:
         refs.append(ref)

@@ -19,7 +19,7 @@ for i, link in enumerate(links):
 		link.save()
 		if i % 1000 == 1:
 			print("\r{}".format(i))
-	except:
+	except Exception:
 		if i % 1000 == 1:
 			print("\r{}".format(i))		
 		continue

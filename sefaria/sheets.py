@@ -320,7 +320,7 @@ def order_tags_for_user(tag_counts, uid):
 			tag_counts.append({"tag": tag, "count": 0})
 		try:
 			tag_counts = sorted(tag_counts, key=lambda x: tag_order.index(x["tag"]))
-		except:
+		except Exception:
 			pass
 
 	return tag_counts
@@ -410,7 +410,7 @@ def rebuild_sheet_nodes(sheet):
 				if tc_heb:
 					source["text"]["he"] = tc_heb.ja().flatten_to_string()
 
-			except:
+			except Exception:
 				print("error on {} on sheet {}".format(source["ref"], sheet_id))
 				continue
 
@@ -571,7 +571,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		try:
 			index_name = search.get_new_and_current_index_names("sheet")['current']
 			search.index_sheet(index_name, sheet["id"])
-		except:
+		except Exception:
 			logger.error("Failed index on " + str(sheet["id"]))
 
 	return sheet
@@ -696,7 +696,7 @@ def refine_ref_by_text(ref, text):
 	"""
 	try:
 		oref   = model.Ref(ref).section_ref()
-	except:
+	except Exception:
 		return ref
 	needle = strip_tags(text).strip().replace("\n", "")
 	hay    = model.TextChunk(oref, lang="he").text
@@ -791,12 +791,12 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	for profile in user_profiles:
 		try:
 			user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
-		except:
+		except Exception:
 			user_profiles[profile]["slug"] = "/"
 
 		try:
 			user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
-		except:
+		except Exception:
 			user_profiles[profile]["profile_pic_url_small"] = ""
 
 	results = []

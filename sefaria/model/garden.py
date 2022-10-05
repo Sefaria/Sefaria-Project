@@ -233,7 +233,7 @@ class Garden(abst.AbstractMongoRecord):
         for tref in trefs:
             try:
                 ref = text.Ref(tref)
-            except:
+            except Exception:
                 continue
             regexes.update(ref.regex(as_list=True))
 
@@ -274,7 +274,7 @@ class Garden(abst.AbstractMongoRecord):
             if isinstance(ref, str):
                 try:
                     ref = text.Ref(ref)
-                except:
+                except Exception:
                     pass
             if not isinstance(ref, text.Ref):
                 continue

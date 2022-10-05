@@ -18,7 +18,7 @@ for sheet in sheets:
         if "ref" in ref:
             try:
                 Ref(ref["ref"])
-            except:
+            except Exception:
                 bad_refs += 1
                 book_title = ref["ref"].split(',')[0]
                 book_title = re.split('\d+', book_title)[0]

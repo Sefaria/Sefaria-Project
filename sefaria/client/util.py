@@ -84,7 +84,7 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
         if user_profile.id != None and user_profile.nationbuilder_id != nationbuilder_id:
             user_profile.nationbuilder_id = nationbuilder_id
             user_profile.save()
-    except:
+    except Exception:
         pass
 
     session.close()

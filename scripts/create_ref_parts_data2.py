@@ -473,7 +473,7 @@ class LinkerCommentaryConverter:
         # otherwise, use default implementation
         if is_alt_node or not node.is_root(): return
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return
+        except Exception: return
         if comm_term is None: return
         if self.get_match_template_suffixes is None: return
 
@@ -537,7 +537,7 @@ class DiburHamatchilAdder:
             nonlocal perek_refs, self
             try:
                 oref = Ref(en_tref)
-            except:
+            except Exception:
                 print("not a valid ref", en_tref)
                 return
             if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
@@ -565,7 +565,7 @@ class DiburHamatchilAdder:
         for perek_node in index.get_alt_struct_nodes():
             try:
                 perek_ref = Ref(perek_node.wholeRef)
-            except:
+            except Exception:
                 # print("perek ref failed", perek_node.wholeRef)
                 continue
             perek_refs += [perek_ref]
@@ -687,7 +687,7 @@ class LinkerIndexConverter:
             # else:
             #     try:
             #         delattr(node, 'match_templates')
-            #     except:
+            #     except Exception:
             #         pass
 
         if self.get_other_fields:
@@ -1011,7 +1011,7 @@ class SpecificConverterManager:
             tanakh_title = tanakh_title_map.get(tanakh_title, tanakh_title)
             try:
                 tanakh_slug = RTM.get_term_by_primary_title('tanakh', tanakh_title).slug
-            except:
+            except Exception:
                 # Petichta
                 term = RTM.get_term_by_primary_title('midrash rabbah', title)
                 if not term:
@@ -1036,7 +1036,7 @@ class SpecificConverterManager:
             hilchot_slug = RTM.get_term_by_primary_title('base', 'Hilchot').slug
             try:
                 title_slug = RTM.get_term_by_primary_title('mishneh torah', term_key).slug
-            except:
+            except Exception:
                 print(term_key)
                 return []
             return [
@@ -1096,7 +1096,7 @@ class SpecificConverterManager:
             term_key = title.replace("Shulchan Arukh, ", "")
             try:
                 title_slug = RTM.get_term_by_primary_title('shulchan arukh', term_key).slug
-            except:
+            except Exception:
                 title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
                 return [MatchTemplate([title_slug])]
             return [
@@ -1174,7 +1174,7 @@ class SpecificConverterManager:
                 return [MatchTemplate([title_slug])]
             try:
                 title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
-            except:
+            except Exception:
                 if 'Rut' in title:
                     title_slug = RTM.get_term_by_primary_title('tanakh', 'Ruth').slug
                 elif 'Eichah' in title:
@@ -1349,7 +1349,7 @@ class SpecificConverterManager:
                     MatchTemplate([title_slug]),
                     MatchTemplate([RTM.get_term_by_primary_title('base', 'Parasha').slug, title_slug])
                 ]
-            except:
+            except Exception:
                 pass
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1458,7 +1458,7 @@ class SpecificConverterManager:
             parashah_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
             try:
                 title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
-            except:
+            except Exception:
                 pass
                 # print(title)
             else:

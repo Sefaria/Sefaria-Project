@@ -28,7 +28,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
         if a["rev_type"].endswith("text") or a["rev_type"] == "review":
             try:
                 a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
-            except:
+            except Exception:
                 a["history_url"] = "#"
     return activity
 
@@ -88,7 +88,7 @@ def collapse_activity(activity):
                 Ref(a["ref"]).section_ref() != Ref(b["ref"]).section_ref():
 
                 return False
-        except:
+        except Exception:
             return False
 
         return True
