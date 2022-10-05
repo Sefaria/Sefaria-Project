@@ -24,7 +24,7 @@ def add_sephardic(filename):
         if "num" in attrs and int(attrs["num"]) <=  54:
             if "sephardic" in attrs:
                 h_arr = []
-                for i,h in enumerate(attrs["sephardic"].split(";")):
+                for i, h in enumerate(attrs["sephardic"].split(";")):
                     try:
                         r = model.Ref(h.strip())
                         h_arr.append(r)

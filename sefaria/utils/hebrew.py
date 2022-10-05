@@ -118,7 +118,7 @@ def decode_hebrew_numeral(numeral: str):
 	"""
 
 	t = list(map(heb_string_to_int, split_thousands(numeral)))  # split and convert to numbers
-	t = [pow(10, 3 * E_num[0]) * E_num[1] for E_num in enumerate(t)]  # take care of thousands and add
+	t = [pow(10, 3 * E_num[0]) * E_num[1] for E_num, _ in enumerate(t)]  # take care of thousands and add
 	return sum(t)
 
 
@@ -391,7 +391,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 		ret = list(chunks(list(reversed(break_int_magnitudes(n))), 3))
 
 		# Eliminate the orders of magnitude in preparation for being encoded
-		ret = [int(sum(x_y[1]) * pow(10, -3 * x_y[0])) for x_y in enumerate(ret)]
+		ret = [int(sum(x_y[1]) * pow(10, -3 * x_y[0])) for x_y, _ in enumerate(ret)]
 
 		# encode and join together, separating thousands with geresh
 		ret = GERESH.join(map(encode_small_hebrew_numeral, reversed(ret)))
@@ -535,7 +535,7 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 	abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)
 	indexes = [[index for index, letter in enumerate(abbr) if word[0] == letter] for w, word in enumerate(unabbr)]
 	first_empty_ind = None
-	for i in enumerate(indexes):
+	for i, _ in enumerate(indexes):
 		if len(indexes[i]) == 0:
 			if i == 0: return None  # nothing matched
 			first_empty_ind = i
@@ -575,7 +575,7 @@ def get_all_abbrs(abbr_words, unabbr_words) -> List[Abbrev]:
 	abbrevs = []
 	for iabbr, abbr in enumerate(abbr_words):
 		if not is_abbr(abbr): continue
-		for iother in enumerate(unabbr_words):
+		for iother, _ in enumerate(unabbr_words):
 			unabbr = get_abbr(abbr, unabbr_words[iother:])
 			if unabbr:
 				unabbr_slice = slice(iother, iother+len(unabbr))

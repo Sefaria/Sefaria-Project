@@ -39,7 +39,7 @@ for text in texts:
         text_order.append(text["title"])
     print(text["title"])
 
-    for i in enumerate(text['chapter']):
+    for i, _ in enumerate(text['chapter']):
         chap = i + 1
         ref = text['title'] + " " + str(chap)
         print(ref)

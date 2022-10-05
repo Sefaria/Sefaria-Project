@@ -173,7 +173,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 # in order to be able to match the commentary to the basic parent text units,
                 # recur on each section
                 length = max(len(text["text"]), len(text["he"]))
-                for i,r in enumerate(oref.subrefs(length)):
+                for i, r in enumerate(oref.subrefs(length)):
                     stext = {"sections": r.sections,
                             "sectionNames": text['sectionNames'],
                             "text": text["text"][i] if i < len(text["text"]) else "",
@@ -365,7 +365,7 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
     elif isinstance(text, list):
         subrefs = oref.subrefs(len(text))
         links   = []
-        for i in enumerate(text):
+        for i, _ in enumerate(text):
             single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
             links += single
         return links

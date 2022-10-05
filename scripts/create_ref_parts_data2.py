@@ -638,7 +638,7 @@ class LinkerIndexConverter:
     @staticmethod
     def _traverse_nodes(node, callback, depth=0, isibling=0, num_siblings=0, is_alt_node=False, **kwargs):
         callback(node, depth, isibling, num_siblings, is_alt_node, **kwargs)
-        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child) in enumerate(node.children)]
+        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child), _ in enumerate(node.children)]
 
     def _update_lengths(self):
         if self.index.is_complex(): return

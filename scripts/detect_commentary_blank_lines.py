@@ -20,7 +20,7 @@ def fix_blank_lines_in_commentary(fix=False):
     #with open("log/length_comparison.txt", 'w+') as out:
     for commentary in commentary_texts:
         if commentary.language == 'he':
-            for ch,chapter in enumerate(commentary.chapter,1):
+            for ch, chapter in enumerate(commentary.chapter,1):
                 for vs, verse in enumerate(chapter, 1):
                     #try:
                         offset = find_blanks_at_start(verse)

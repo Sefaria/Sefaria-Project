@@ -67,7 +67,7 @@ def load_data_from_sheet(url):
   keyed_data = []
   for row in data:
     row_data = {}
-    for i in enumerate(fields):
+    for i, _ in enumerate(fields):
       row_data[fields[i]] = row[i]
     keyed_data.append(row_data)
 

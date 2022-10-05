@@ -1155,7 +1155,7 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
     breadcrumbJsonList = [_crumb(1, "/texts", _("Texts"))]
     nextPosition = 2
 
-    for i,c in enumerate(cats):
+    for i, c in enumerate(cats):
         name = hebrew_term(c) if request.interfaceLang == "hebrew" else c
         breadcrumbJsonList += [_crumb(nextPosition, "/texts/" + "/".join(cats[0:i+1]), name)]
         nextPosition += 1
@@ -1173,10 +1173,10 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
                 breadcrumbJsonList += [_crumb(nextPosition, "/" + snode.ref().url(), name)]
                 nextPosition += 1
 
-        #todo: range?
+        # TODO: range?
         if oref and getattr(oref.index_node, "depth", None) and not oref.is_range():
             depth = oref.index_node.depth
-            for i in enumerate(oref.sections):
+            for i, _ in enumerate(oref.sections):
                 if request.interfaceLang == "english":
                     name = oref.index_node.sectionNames[i] + " " + oref.normal_section(i, "en")
                 else:
@@ -2650,8 +2650,8 @@ def name_api(request, name):
             inode = inode.get_default_child() if inode.has_default_child() else inode
             d["sectionNames"] = inode.sectionNames
             d["heSectionNames"] = list(map(hebrew_term, inode.sectionNames))
-            d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
-            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
+            d["addressExamples"] = [t.toStr("en", 3*i+3) for i, t in enumerate(inode._addressTypes)]
+            d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i, t in enumerate(inode._addressTypes)]
     elif topic:
         d['topic_slug'] = topic.slug
     elif completions_dict["object_data"]:

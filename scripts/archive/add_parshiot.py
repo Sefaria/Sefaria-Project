@@ -30,7 +30,7 @@ def parse_span(ref):
 def parse_haftara(ref):
 	ref = parse_span(ref)
 	refs = ref.split("; ")
-	for i in enumerate(refs):
+	for i, _ in enumerate(refs):
 		if refs[i][0] in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
 			refs[i] = model.Ref(refs[i - 1]).book + " " + refs[i]
 

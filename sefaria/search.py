@@ -102,7 +102,7 @@ def unicode_number(u):
     of each unicode character in u
     """
     n = 0
-    for i in enumerate(u):
+    for i, _ in enumerate(u):
         n += ord(u[i])
     return n
 

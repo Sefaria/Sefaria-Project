@@ -20,7 +20,7 @@ def add_rabbinic(title):
     rabbinic_nodes = index.nodes.children[1].children[1:]
     rabbinic_vol = SchemaNode()
     rabbinic_vol.add_primary_titles("Rabbinic Commandments",  "עשין דרבנן")
-    for r_count in enumerate(rabbinic_nodes):
+    for r_count, _ in enumerate(rabbinic_nodes):
         en_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "en"][0]
         he_name = [x["text"] for x in rabbinic_nodes[r_count].get_titles_object() if x["primary"] == True and x["lang"] == "he"][0]
         new_node = JaggedArrayNode()

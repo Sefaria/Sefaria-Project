@@ -71,7 +71,7 @@ def user_activity(query={}):
 
 	months = list(months)
 
-	for i in enumerate(months):
+	for i, _ in enumerate(months):
 		# Number of user who visit in monthly windows
 		active_increments = (1,3,6,12)
 		for j in active_increments:

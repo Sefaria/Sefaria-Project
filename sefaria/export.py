@@ -119,7 +119,7 @@ def make_text(doc, strip_html=False):
             # elements are lists instead of strings.
             return "\n".join([t if isinstance(t, str) else "\n".join(t) for t in text])
         flat = ""
-        for i in enumerate(text):
+        for i, _ in enumerate(text):
             section = section_to_daf(i + 1) if addressTypes[0] == "Talmud" else str(i + 1)
             flat += "\n\n%s %s\n\n%s" % (sectionNames[0], section, flatten(text[i], sectionNames[1:], addressTypes[1:]))
 
@@ -160,7 +160,7 @@ def make_cltk_full(doc):
             elif type(old_js) == list:
                 #Traversing jagged array
                 content_list = old_js
-            for i,content in enumerate(content_list):
+            for i, content in enumerate(content_list):
                 if type(content) == list:
                     temp = traverse_to_cltk(content,**kwargs)
                     if len(list(temp.keys())) > 0:
@@ -169,7 +169,7 @@ def make_cltk_full(doc):
                     new_js[str(i)] = content
 
         else:
-            for i,childJs in enumerate(old_js["nodes"]):
+            for i, childJs in enumerate(old_js["nodes"]):
                 currNode = old_js["nodes"][i]
                 new_js[str(i) + "_" + currNode["title"]] = traverse_to_cltk(currNode,**kwargs)
 
@@ -221,7 +221,7 @@ def make_cltk_flat(doc):
                 content_list = old_js
                 section_names = section_names[1:]
 
-            for i,content in enumerate(content_list):
+            for i, content in enumerate(content_list):
                 curr_section = "" if len(section_names) == 0 else "_{}".format(section_names[0])
                 temp_title = "{}{}{}".format(title_begin,str(i),curr_section)
                 if type(content) == list:
@@ -230,7 +230,7 @@ def make_cltk_flat(doc):
                     new_js[temp_title] = content
 
         else:
-            for i,childJs in enumerate(old_js["nodes"]):
+            for i, childJs in enumerate(old_js["nodes"]):
                 curr_node = old_js["nodes"][i]
                 new_js.update(traverse_to_cltk(curr_node,"{}{}_{}".format(title_begin,str(i),curr_node["title"]),**kwargs))
 

@@ -13,7 +13,7 @@ forms = WordFormSet()
 for form in forms:
     print(form._id)
     form.form = unicodedata.normalize("NFC",form.form)
-    for i,l in enumerate(form.lookups):
+    for i, l in enumerate(form.lookups):
         form.lookups[i]["headword"] = unicodedata.normalize("NFC", form.lookups[i]["headword"])
     form.save()
 

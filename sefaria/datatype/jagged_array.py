@@ -435,7 +435,7 @@ class JaggedArray(object):
                 return normalized
             return self.normalize(terminal_depth=terminal_depth, _cur=self._store)
         if depth < terminal_depth:
-            for i,elem in enumerate(_cur):
+            for i, elem in enumerate(_cur):
                 if not isinstance(_cur[i], list):
                     if isinstance(_cur[i], str) and not len(_cur[i].strip()):
                         _cur[i] = []
@@ -778,11 +778,11 @@ class JaggedIntArray(JaggedArray):
                 return min(curr, 1)
             else:
                 sum = 0
-                for i in enumerate(curr):
+                for i, _ in enumerate(curr):
                     sum += min(JaggedIntArray._depth_sum(curr[i], 0), 1)
                 return sum
         else:
             sum = 0
-            for i in enumerate(curr):
+            for i, _ in enumerate(curr):
                 sum += JaggedIntArray._depth_sum(curr[i], depth - 1)
             return sum

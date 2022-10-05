@@ -56,7 +56,7 @@ with open('/var/tmp/HTS3.csv', 'rb') as csvfile:
                     create_word_form(form[0], form[1], [{'headword':entry[1], 'parent_lexicon': lexicon_name}])
 
         print("Updated Entries:")
-        for i,e in enumerate(existing_entries):
+        for i, e in enumerate(existing_entries):
             print(e)
 
 

@@ -32,7 +32,7 @@ sections =[
 	]
 
 # Add Order info to index records
-for i in enumerate(sections):
+for i, _ in enumerate(sections):
 	index = db.index.find_one({"title": sections[i]})
 	index["order"] = [i+1]
 	db.index.save(index)
@@ -41,7 +41,7 @@ for i in enumerate(sections):
 # Find and split texts
 texts = db.texts.find({"title": "Shulchan Aruch"})
 for text in texts:
-	for i in enumerate(text["chapter"]):
+	for i, _ in enumerate(text["chapter"]):
 		if text["chapter"][i] != []:
 			new_text = {
 				"title": sections[i],

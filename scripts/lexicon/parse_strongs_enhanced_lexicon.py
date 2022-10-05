@@ -144,7 +144,7 @@ class WLCStrongWordFormBookParser(object):
 
     def iterate_over_text(self, compare_mode=False):
         for chap_num, chapter_node in enumerate(self.xml_contents.findall('strong:chapter', self.namespace),1):
-            for v_num,verse_node in enumerate(chapter_node.findall('strong:verse', self.namespace),1):
+            for v_num, verse_node in enumerate(chapter_node.findall('strong:verse', self.namespace),1):
                 #print "verse ", v_num, ": ", verse_node.get('osisID').encode('utf-8')
                 verse = verse_node.get('osisID')
                 verse_ref = Ref(verse.replace('.', ' ').replace(self.xml_book_name, self.book)).normal()
