@@ -1,14 +1,16 @@
 # encoding=utf-8
 import re
+
 import django
+
 django.setup()
-from sefaria.model import *
+import pytest
+
 from sefaria.helper import schema
+from sefaria.model import *
 from sefaria.sheets import save_sheet
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError
-import pytest
-
 
 """
 Here is the text structure for the simple text MigrateBook

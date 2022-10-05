@@ -18,13 +18,16 @@ Writes to MongoDB Collection: history
 
 """
 
-import regex as re
 from datetime import datetime
+
+import regex as re
 from diff_match_patch import diff_match_patch
+
 dmp = diff_match_patch()
 
-from . import abstract as abst
 from sefaria.system.database import db
+
+from . import abstract as abst
 
 
 def log_text(user, action, oref, lang, vtitle, old_text, new_text, **kwargs):

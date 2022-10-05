@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sefaria.utils.calendars as c
 from datetime import date
+
+import sefaria.utils.calendars as c
 from sefaria.system.database import db
 
 

@@ -5,19 +5,18 @@ trend.py
 """
 import json
 import time
-from datetime import datetime, date, timedelta
-
-from py import process
-
-from . import abstract as abst
-from . import user_profile
-from . import text
-
-from sefaria.system.database import db
-from sefaria.model import Ref
-from sefaria.model.text import library
+from datetime import date, datetime, timedelta
 
 import structlog
+from py import process
+
+from sefaria.model import Ref
+from sefaria.model.text import library
+from sefaria.system.database import db
+
+from . import abstract as abst
+from . import text, user_profile
+
 logger = structlog.get_logger(__name__)
 
 

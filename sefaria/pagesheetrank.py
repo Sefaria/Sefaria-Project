@@ -1,19 +1,22 @@
 # implementation of pagerank with low ram requirements
 # source: http://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
 
-import re
-import math
-import numpy
-import random
 import json
+import math
+import random
+import re
 import time
-from pymongo.errors import AutoReconnect
-from collections import defaultdict, OrderedDict
-from sefaria.model import *
-from sefaria.system.exceptions import InputError, NoVersionFoundError
-from sefaria.system.database import db
-from .settings import STATICFILES_DIRS
+from collections import OrderedDict, defaultdict
 from functools import reduce
+
+import numpy
+from pymongo.errors import AutoReconnect
+
+from sefaria.model import *
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError, NoVersionFoundError
+
+from .settings import STATICFILES_DIRS
 
 tanach_indexes = set(library.get_indexes_in_category("Tanakh"))
 

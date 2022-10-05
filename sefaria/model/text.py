@@ -4,19 +4,23 @@ text.py
 """
 
 import time
-import structlog
 from functools import reduce
 from typing import Optional, Union
+
+import structlog
+
 logger = structlog.get_logger(__name__)
 
-import sys
-import regex
 import copy
-import bleach
-import json
 import itertools
+import json
+import sys
 from collections import defaultdict
+
+import bleach
+import regex
 from bs4 import BeautifulSoup, Tag
+
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -24,19 +28,28 @@ except ImportError:
     logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
-from . import abstract as abst
-from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
-from sefaria.system.database import db
-
 import sefaria.system.cache as scache
+from sefaria.datatype.jagged_array import JaggedArray, JaggedTextArray
+from sefaria.settings import (DISABLE_AUTOCOMPLETER, DISABLE_INDEX_SAVE,
+                              MULTISERVER_ENABLED,
+                              RAW_REF_MODEL_BY_LANG_FILEPATH,
+                              RAW_REF_PART_MODEL_BY_LANG_FILEPATH, USE_VARNISH)
 from sefaria.system.cache import in_memory_cache
-from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.utils.hebrew import is_hebrew, hebrew_term
-from sefaria.utils.util import list_depth
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
+from sefaria.system.database import db
+from sefaria.system.exceptions import (BookNameError,
+                                       DictionaryEntryNotFoundError,
+                                       IndexSchemaError, InputError,
+                                       NoVersionFoundError,
+                                       PartialRefInputError)
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.util import list_depth
+
+from . import abstract as abst
+from .schema import (AddressTalmud, AddressType, DictionaryEntryNode,
+                     DictionaryNode, JaggedArrayNode, SchemaNode, SheetNode,
+                     Term, TermSet, TitledTreeNode, TitleGroup, VirtualNode,
+                     deserialize_tree)
 
 """
                 ----------------------------------
@@ -758,7 +771,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             raise InputError('All new Index records must have a valid schema.')
 
         if getattr(self, "authors", None):
-            from .topic import Topic, AuthorTopic
+            from .topic import AuthorTopic, Topic
             if not isinstance(self.authors, list):
                 raise InputError(f'{self.title} authors must be a list.')
             for author_slug in self.authors:
@@ -4947,7 +4960,7 @@ class Library(object):
         @param: explored Set
         @param: with_descriptions boolean
         """
-        from .topic import Topic, TopicSet, IntraTopicLinkSet
+        from .topic import IntraTopicLinkSet, Topic, TopicSet
         explored = explored or set()
         unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
                                         # this variable will allow us to force all top level categories to have children
@@ -5027,7 +5040,7 @@ class Library(object):
         """
         Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
         """
-        from sefaria.model.category import TocTree, CategorySet, TocCategory
+        from sefaria.model.category import CategorySet, TocCategory, TocTree
         toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
         root = toctree.get_root()
         toc_roots = [x.lastPath for x in sorted(library.get_top_categories(full_records=True), key=lambda x: x.order)]
@@ -5477,8 +5490,10 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
+
+        from .linker import (MatchTemplateGraph, MatchTemplateTrie,
+                             NonUniqueTermSet, RefResolver, TermMatcher)
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
@@ -5760,6 +5775,7 @@ class Library(object):
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
 
         from sefaria.utils.hebrew import strip_nikkud
+
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
 
         if reg is not None:

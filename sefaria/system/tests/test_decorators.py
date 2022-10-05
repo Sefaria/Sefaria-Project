@@ -1,5 +1,6 @@
-import pytest
 import json
+
+import pytest
 
 import sefaria.system.decorators as d
 import sefaria.system.exceptions as e

@@ -1,7 +1,8 @@
+import re
 from functools import wraps
+
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
-import re
 
 
 def default_list(param):

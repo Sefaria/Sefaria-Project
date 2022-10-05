@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.conf.urls import include, url
-from django.conf.urls import handler404, handler500
+import django.contrib.auth.views as django_auth_views
+import reader.views as reader_views
+import sourcesheets.views as sheets_views
+from django.conf.urls import handler404, handler500, include, url
 from django.contrib import admin
 from django.http import HttpResponseRedirect
-import django.contrib.auth.views as django_auth_views
-from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
-from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
 
-import reader.views as reader_views
-import sefaria.views as sefaria_views
-import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
-import django.contrib.auth.views as django_auth_views
-
+import sefaria.views as sefaria_views
+from sefaria.forms import (SefariaLoginForm, SefariaPasswordResetForm,
+                           SefariaSetPasswordForm)
+from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 from sefaria.site.urls import site_urlpatterns
 
 admin.autodiscover()
@@ -448,6 +447,7 @@ urlpatterns += [
 
 # add static files to urls
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 urlpatterns += staticfiles_urlpatterns()
 
 # Catch all to send to Reader

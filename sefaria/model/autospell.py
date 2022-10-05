@@ -4,18 +4,20 @@
 http://norvig.com/spell-correct.html
 http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
-from collections import defaultdict
-from typing import List, Iterable
 import math
+from collections import defaultdict
+from typing import Iterable, List
+
 import datrie
-from unidecode import unidecode
+import structlog
 from django.contrib.auth.models import User
+from unidecode import unidecode
+
 from sefaria.model import *
+from sefaria.model.following import aggregate_profiles
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
-from sefaria.model.following import aggregate_profiles
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 try:

@@ -1,6 +1,7 @@
 # Django settings for sefaria project.
 
 import os.path
+
 from django.utils.translation import ugettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(

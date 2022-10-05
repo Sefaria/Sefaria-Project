@@ -1,8 +1,12 @@
 
-from sefaria.model.story import TextPassageStoryFactory, AuthorStoryFactory, TopicListStoryFactory, \
-    TopicTextsStoryFactory, UserSheetsFactory, CollectionSheetListFactory, SheetListFactory, MultiTextStoryFactory
-
+from sefaria.model.story import (AuthorStoryFactory,
+                                 CollectionSheetListFactory,
+                                 MultiTextStoryFactory, SheetListFactory,
+                                 TextPassageStoryFactory,
+                                 TopicListStoryFactory, TopicTextsStoryFactory,
+                                 UserSheetsFactory)
 from sefaria.model.trend import setAllTrends
+
 
 def remove_jobs(scheduler):
     [j.remove() for j in scheduler.get_jobs()]

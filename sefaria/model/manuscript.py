@@ -1,11 +1,15 @@
 # encoding=utf-8
 #from __future__ import annotations
 
-from sefaria.system.exceptions import InputError, DuplicateRecordError, ManuscriptError
-from sefaria.system.database import db
-from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet, SluggedAbstractMongoRecord
-from sefaria.model.text import Ref
 import structlog
+
+from sefaria.model.abstract import (AbstractMongoRecord, AbstractMongoSet,
+                                    SluggedAbstractMongoRecord)
+from sefaria.model.text import Ref
+from sefaria.system.database import db
+from sefaria.system.exceptions import (DuplicateRecordError, InputError,
+                                       ManuscriptError)
+
 logger = structlog.get_logger(__name__)
 
 

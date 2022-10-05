@@ -1,8 +1,11 @@
 import time
-import redis
-from sefaria.settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 
+import redis
 import structlog
+
+from sefaria.settings import (MULTISERVER_REDIS_DB, MULTISERVER_REDIS_PORT,
+                              MULTISERVER_REDIS_SERVER)
+
 logger = structlog.get_logger(__name__)
 
 

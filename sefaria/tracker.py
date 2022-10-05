@@ -4,16 +4,19 @@ Accepts change requests for model objects, passes the changes to the models, and
 
 """
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
+
 try:
     from sefaria.settings import USE_VARNISH
 except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
+    from sefaria.system.varnish.wrapper import (invalidate_linked,
+                                                invalidate_ref)
 
 
 def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
@@ -101,6 +104,7 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
             invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
     if not kwargs.get("skip_links", None):
         from sefaria.helper.link import add_links_from_text
+
         # Some commentaries can generate links to their base text automatically
         linker = oref.autolinker(user=user)
         if linker:

@@ -2,10 +2,10 @@
 
 import pytest
 
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
 import sefaria.model as model
 import sefaria.model.abstract as abstract
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 
 # cascade functions are tested in person_test.py
 

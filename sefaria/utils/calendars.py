@@ -5,19 +5,20 @@ ar.py - functions for looking up information relating texts to dates.
 Uses MongoDB collections: dafyomi, parshiot
 """
 import datetime
-import p929
 import re
 import urllib
+
+import p929
+import structlog
 from django.utils import timezone
 
 import sefaria.model as model
-from sefaria.system.database import db
-from sefaria.utils.util import graceful_exception
-from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
-from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.schema import Term
+from sefaria.site.site_settings import SITE_SETTINGS
+from sefaria.system.database import db
+from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
+from sefaria.utils.util import graceful_exception
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 

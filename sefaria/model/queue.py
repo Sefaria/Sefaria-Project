@@ -4,6 +4,7 @@ Writes to MongoDB Collection: index_queue
 """
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 from . import abstract as abst

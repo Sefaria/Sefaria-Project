@@ -1,11 +1,14 @@
-import requests
 import json
+
+import requests
+import structlog
 from django.contrib.sites.models import Site
 
-from sefaria.settings import CLOUDFLARE_ZONE, CLOUDFLARE_EMAIL, CLOUDFLARE_TOKEN, USE_CLOUDFLARE, STATICFILES_DIRS
-from sefaria.utils.util import list_chunks, in_directory, get_directory_content
+from sefaria.settings import (CLOUDFLARE_EMAIL, CLOUDFLARE_TOKEN,
+                              CLOUDFLARE_ZONE, STATICFILES_DIRS,
+                              USE_CLOUDFLARE)
+from sefaria.utils.util import get_directory_content, in_directory, list_chunks
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 
@@ -20,8 +23,9 @@ class SefariaCloudflareManager(object):
 
     def purge_cloudflare(self):
         """Purge the entire Cloudflare cache"""
-        import requests
         import json
+
+        import requests
 
         url = 'https://api.cloudflare.com/client/v4/zones/%s/purge_cache' % CLOUDFLARE_ZONE
         headers = {

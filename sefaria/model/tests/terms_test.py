@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+
 
 class Test_Terms_Validation(object):
     @classmethod

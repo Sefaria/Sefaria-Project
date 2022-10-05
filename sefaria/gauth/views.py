@@ -1,19 +1,17 @@
-import os
 import datetime
 import json
+import os
 
+import google.auth
+import google.oauth2
+import google_auth_oauthlib.flow
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
 
-from sefaria.model.user_profile import UserProfile
-
-import google.auth
-import google.oauth2
-import google_auth_oauthlib.flow
-
 from sefaria import settings
+from sefaria.model.user_profile import UserProfile
 
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found

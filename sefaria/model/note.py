@@ -4,11 +4,12 @@ Writes to MongoDB Collection: notes
 """
 
 import regex as re
+import structlog
 
-from . import abstract as abst
 from sefaria.model.text import Ref
 
-import structlog
+from . import abstract as abst
+
 logger = structlog.get_logger(__name__)
 
 

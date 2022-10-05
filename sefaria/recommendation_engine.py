@@ -1,12 +1,15 @@
-import django
 from functools import reduce
+
+import django
+
 django.setup()
 from collections import defaultdict
-from sefaria.model import *
+
 from sefaria.client.wrapper import get_links
+from sefaria.model import *
+from sefaria.model.schema import DictionaryEntryNode
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
-from sefaria.model.schema import DictionaryEntryNode
 
 # TODO dont double count source and its commentary (might be costly)
 # TODO do better job of double author

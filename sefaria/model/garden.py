@@ -2,17 +2,15 @@
 
 import copy
 from itertools import groupby
-from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
-from . import abstract as abst
-from . import text
-from . import place
-from . import timeperiod
-from . import topic
-from . import link
-from . import user_profile
 
 import structlog
+
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+
+from . import abstract as abst
+from . import link, place, text, timeperiod, topic, user_profile
+
 logger = structlog.get_logger(__name__)
 
 

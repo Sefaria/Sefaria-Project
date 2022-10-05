@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-import regex as re
 from copy import deepcopy
+
 import pytest
+import regex as re
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError

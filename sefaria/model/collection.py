@@ -2,18 +2,20 @@
 collections.py
 Writes to MongoDB Collection: groups
 """
-import bleach
 import re
 import secrets
 from datetime import datetime
 
+import bleach
 from django.utils import translation
 from django.utils.translation import ugettext as _
 
-from . import abstract as abst
 from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
 from sefaria.utils import hebrew
+
+from . import abstract as abst
+
 
 class Collection(abst.AbstractMongoRecord):
     """
@@ -267,6 +269,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string
+
         from sefaria.model import UserProfile
 
         inviter       = UserProfile(id=inviter_id)

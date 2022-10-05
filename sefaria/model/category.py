@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import structlog
+
 logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
+from sefaria.system.exceptions import (BookNameError, DuplicateRecordError,
+                                       InputError)
+
 from . import abstract as abstract
+from . import collection as collection
 from . import schema as schema
 from . import text as text
-from . import collection as collection
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):

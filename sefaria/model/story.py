@@ -4,23 +4,20 @@
 story.py
 """
 
-import time
-import bleach
 import random
+import time
 from datetime import datetime
 
+import bleach
+import structlog
+
+from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.util import strip_tags
-from sefaria.system.database import db
-from . import abstract as abst
-from . import user_profile
-from . import topic
-from . import text
-from . import following
-from . import ref_data
-from . import passage
 
-import structlog
+from . import abstract as abst
+from . import following, passage, ref_data, text, topic, user_profile
+
 logger = structlog.get_logger(__name__)
 
 
@@ -414,7 +411,7 @@ class NewIndexStoryFactory(object):
 
     @classmethod
     def _data_object(cls, **kwargs):
-        from sefaria.model import library, Version
+        from sefaria.model import Version, library
 
         i = library.get_index(kwargs.get("index"))
         assert i
@@ -452,7 +449,7 @@ class NewVersionStoryFactory(object):
 
     @classmethod
     def _data_object(cls, **kwargs):
-        from sefaria.model import library, Version
+        from sefaria.model import Version, library
 
         i = library.get_index(kwargs.get("index"))
         assert i
@@ -524,7 +521,8 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_haftarah(cls, **kwargs):
         def _create_haftarah_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_haftarah_response_from_calendar_entry
+            from sefaria.utils.calendars import \
+                make_haftarah_response_from_calendar_entry
             cal = make_haftarah_response_from_calendar_entry(parasha_obj)[0]
             cls._generate_shared_story(ref=cal["ref"], lead=cal["title"], title=cal["displayValue"],
                                        mustHave=mustHave or [], **kwargs).save()
@@ -533,8 +531,11 @@ class TextPassageStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_aliyah(cls, **kwargs):
         def _create_aliyah_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry, aliyah_ref
             from django.utils import timezone
+
+            from sefaria.utils.calendars import (
+                aliyah_ref, make_parashah_response_from_calendar_entry)
+
             from . import schema
 
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
@@ -661,7 +662,9 @@ class MultiTextStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_parasha_verse_connection_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_connection_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from sefaria.utils.calendars import \
+                make_parashah_response_from_calendar_entry
+
             from . import ref_data
 
             mustHave = mustHave or []
@@ -693,7 +696,9 @@ class MultiTextStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_parasha_verse_commentator_stories(cls, iteration=1, **kwargs):
         def _create_parasha_verse_commentator_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from sefaria.utils.calendars import \
+                make_parashah_response_from_calendar_entry
+
             from . import ref_data
 
             mustHave = mustHave or []
@@ -857,7 +862,8 @@ class CollectionSheetListFactory(AbstractStoryFactory):
     def create_nechama_sheet_stories(cls, **kwargs):
         def _create_nechama_sheet_story(parasha_obj, mustHave=None, **kwargs):
             #todo: grab English sheet and show to English only users
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from sefaria.utils.calendars import \
+                make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
             sheets = db.sheets.find({"status": "public", "displayedCollection": "גיליונות-נחמה", "tags": parasha_obj["parasha"]}, {"id": 1})
@@ -951,8 +957,9 @@ class SheetListFactory(AbstractStoryFactory):
     @classmethod
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
             from sefaria.helper.topic import get_topic_by_parasha
+            from sefaria.utils.calendars import \
+                make_parashah_response_from_calendar_entry
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
             topic = get_topic_by_parasha(parasha_obj["parasha"])
             if not topic:
@@ -1029,9 +1036,10 @@ class TopicListStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_parasha_topics_story(cls, parasha_obj, mustHave, iteration, k, **kwargs):
-        from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
         from sefaria.helper.topic import get_topic_by_parasha
         from sefaria.model.topic import Topic
+        from sefaria.utils.calendars import \
+            make_parashah_response_from_calendar_entry
         page = iteration - 1
         topic = get_topic_by_parasha(parasha_obj["parasha"])
         if not topic:
@@ -1161,6 +1169,7 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     :return:
     """
     from django.utils import timezone
+
     from sefaria.utils.calendars import get_parasha
     now = timezone.localtime(timezone.now())
     il = get_parasha(now, diaspora=False)

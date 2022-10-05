@@ -98,7 +98,9 @@ def generate_api_key(uid):
         print("User %d does not exist." % uid)
         return
 
-    import base64, hashlib, random
+    import base64
+    import hashlib
+    import random
     key = base64.b64encode(hashlib.sha256(bytes(str(random.getrandbits(256)), encoding='utf-8')).digest(),
                            random.choice([b'rA', b'aZ', b'gQ', b'hH', b'hG', b'aR', b'DD'])).rstrip(b'==').decode('utf-8')
     db.apikeys.remove({"uid": uid})

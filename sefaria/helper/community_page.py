@@ -1,21 +1,22 @@
-import re
 import csv
-import requests
 import random
+import re
 from datetime import datetime, timedelta
 from io import StringIO
 from pprint import pprint
 
+import requests
 from django.utils import timezone
 
-from sefaria.model import Ref, Topic, Collection
+from sefaria.helper.topic import get_topic_by_parasha
+from sefaria.model import Collection, Ref, Topic
 from sefaria.sheets import get_sheet, sheet_to_dict
+from sefaria.system.cache import (cache_get_key, delete_cache_elem,
+                                  django_cache, in_memory_cache)
 from sefaria.system.database import db
 from sefaria.utils.calendars import get_parasha
-from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
+from sefaria.utils.hebrew import hebrew_parasha_name, hebrew_term, is_hebrew
 from sefaria.utils.util import strip_tags
-from sefaria.helper.topic import get_topic_by_parasha
-from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key, in_memory_cache
 
 
 def get_community_page_data(language="english", refresh=False):
@@ -212,8 +213,9 @@ def get_featured_sheet_from_collection(collection):
 
 def get_featured_sheet_from_topic(slug):
   import random
-  from sefaria.sheets import sheet_list
+
   from sefaria.model.topic import RefTopicLinkSet
+  from sefaria.sheets import sheet_list
   sheet_links = RefTopicLinkSet({"is_sheet": True, "toTopic": slug})
   sids = [int(s.ref.replace("Sheet ", "")) for s in sheet_links]
   if not len(sids):

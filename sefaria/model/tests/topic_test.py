@@ -1,6 +1,9 @@
 import pytest
-from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
+
 from sefaria.model.text import Ref
+from sefaria.model.topic import (IntraTopicLink, IntraTopicLinkSet,
+                                 RefTopicLink, RefTopicLinkSet, Topic,
+                                 TopicLinkHelper, TopicSet)
 from sefaria.system.database import db
 
 

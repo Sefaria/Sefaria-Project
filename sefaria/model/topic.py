@@ -1,12 +1,16 @@
-from typing import Union, Optional
-from . import abstract as abst
-from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet
-from .category import Category
-from sefaria.system.exceptions import DuplicateRecordError
-from sefaria.model.timeperiod import TimePeriod
-import structlog
+from typing import Optional, Union
+
 import regex as re
+import structlog
+
+from sefaria.model.timeperiod import TimePeriod
+from sefaria.system.exceptions import DuplicateRecordError
+
+from . import abstract as abst
+from .category import Category
+from .schema import AbstractTitledObject, TitleGroup
+from .text import IndexSet, Ref
+
 logger = structlog.get_logger(__name__)
 
 
@@ -440,9 +444,10 @@ class AuthorTopic(PersonTopic):
         return len(set(cat_term.get_titles()) & set(self.get_titles())) > 0
 
     def aggregate_authors_indexes_by_category(self):
-        from .text import library
-        from .schema import Term
         from collections import defaultdict
+
+        from .schema import Term
+        from .text import library
 
         def index_is_commentary(index):
             return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None

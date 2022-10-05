@@ -3,10 +3,11 @@
 
 """
 
+import structlog
+
 from . import abstract as abst
 from . import schema
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 

@@ -2,15 +2,18 @@
 # There is also a parallel file thin_wrapper.py, which does not rely on core code - used for the multiserver monitor.
 
 import re
-import urllib.request, urllib.parse, urllib.error
+import urllib.error
+import urllib.parse
+import urllib.request
 
-from .common import ban_url, purge_url, FRONT_END_URL
+import structlog
+
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import graceful_exception
 
+from .common import FRONT_END_URL, ban_url, purge_url
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 

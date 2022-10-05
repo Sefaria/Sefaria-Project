@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
 from sefaria.sheets import save_sheet
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.util import list_depth, traverse_dict_tree
-
-import re
 
 """
 

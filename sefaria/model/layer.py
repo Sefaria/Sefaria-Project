@@ -4,9 +4,10 @@ Writes to MongoDB Collection: layers
 """
 from bson.objectid import ObjectId
 
-from . import abstract as abst
-from sefaria.model.text import Ref
 from sefaria.model.note import Note, NoteSet
+from sefaria.model.text import Ref
+
+from . import abstract as abst
 
 
 class Layer(abst.AbstractMongoRecord):

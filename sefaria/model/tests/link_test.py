@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import pytest
+
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError
+
 
 class Test_Link_Save(object):
 

@@ -2,19 +2,21 @@
 version_state.py
 Writes to MongoDB Collection:
 """
-import structlog
 from functools import reduce
 
+import structlog
 
 logger = structlog.get_logger(__name__)
 
-from . import abstract as abst
-from . import text
-from . import link
-from .text import VersionSet, AbstractIndex, AbstractSchemaContent, IndexSet, library, Ref
-from sefaria.datatype.jagged_array import JaggedTextArray, JaggedIntArray
-from sefaria.system.exceptions import InputError, BookNameError
+from sefaria.datatype.jagged_array import JaggedIntArray, JaggedTextArray
 from sefaria.system.cache import delete_template_cache
+from sefaria.system.exceptions import BookNameError, InputError
+
+from . import abstract as abst
+from . import link, text
+from .text import (AbstractIndex, AbstractSchemaContent, IndexSet, Ref,
+                   VersionSet, library)
+
 try:
     from sefaria.settings import USE_VARNISH
 except ImportError:

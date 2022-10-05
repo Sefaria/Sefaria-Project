@@ -5,21 +5,18 @@ Override of Django forms for new users and password reset.
 Includes logic for subscribing to mailing list on register and for
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
-from django import forms
-from django.contrib.auth.models import User, Group
-from django.contrib.auth.forms import *
-from django.utils.translation import ugettext_lazy as _
-
-from emailusernames.forms import EmailUserCreationForm, EmailAuthenticationForm
-from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
+from django import forms
+from django.contrib.auth.forms import *
+from django.contrib.auth.models import Group, User
+from django.utils.translation import get_language
+from django.utils.translation import ugettext_lazy as _
+from emailusernames.forms import EmailAuthenticationForm, EmailUserCreationForm
+from emailusernames.utils import get_user, user_exists
 
 from sefaria.client.util import subscribe_to_list
-from sefaria.settings import DEBUG
-from sefaria.settings import MOBILE_APP_KEY
-from django.utils.translation import get_language
-
+from sefaria.settings import DEBUG, MOBILE_APP_KEY
 
 SEED_GROUP = "User Seeds"
 

@@ -3,12 +3,14 @@ sitemap.py - generate sitemaps of all available texts for search engines.
 
 Outputs sitemaps and sitemapindex to the first entry of STATICFILES_DIRS by default, a custom directory can be supplied.
 """
-import os, errno
+import errno
+import os
 from datetime import datetime
 
 from sefaria.model import *
 from sefaria.system.database import db
-from .settings import STATICFILES_DIRS, STATIC_URL
+
+from .settings import STATIC_URL, STATICFILES_DIRS
 
 
 def chunks(l, n):
