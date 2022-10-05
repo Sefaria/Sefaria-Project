@@ -551,7 +551,7 @@ def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), l
 		choice = longest_desc_choice
 		temp_unabbr = unabbr[:len(choice)]
 		choice += [None]
-		if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n in enumerate(temp_unabbr)):
+		if all(match(temp_unabbr[n], abbr[choice[n]:choice[n + 1]]) for n, _ in enumerate(temp_unabbr)):
 			return temp_unabbr
 	return None
 
