@@ -1172,7 +1172,8 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
+      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs}
+                                                                         update={updateTopics} createNewTopicStr="Create a new topic: "/> : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">

@@ -870,6 +870,44 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         Transforms.move(editor);
     }
 
+    const getSuggestions = async (input) => {
+        let results = {
+            "inputValue": null, "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+            "showAddButton": false
+        };
+        results.inputValue = input;
+        if (input === "") {
+            return results;
+        }
+        const d = await Sefaria.getName(input, true, 5);
+        if (d.is_section || d.is_segment) {
+            results.helperPromptText = null;
+            results.currentSuggestions = null;
+            results.previewText = input;
+            results.showAddButton = true;
+            return results;
+        } else {
+            results.showAddButton = false;
+            results.previewText = null;
+        }
+
+        //We want to show address completions when book exists but not once we start typing further
+        if (d.is_book && isNaN(input.trim().slice(-1))) {
+            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}}/>;
+        } else {
+            results.helperPromptText = null;
+        }
+
+        results.currentSuggestions = d.completion_objects
+            .map(suggestion => ({
+                name: suggestion.title,
+                key: suggestion.key,
+                border_color: Sefaria.palette.refColor(suggestion.key)
+            }))
+
+        return results;
+    }
+
     const selectedRefCallback = (ref) => {
           insertSource(editor, ref)
     }
@@ -894,26 +932,14 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         )
     }
 
-    else if (inputType == "source") {
-        const isSectionOrSegment = (res) => {
-            return !!(res.is_section || res.is_segment);
-        }
-        const getSuggestions = async (input) => {
-            const results = await Sefaria.getName(input, true, 20);
-            const { completion_objects, ...rest } = results;
-            return [completion_objects, rest];
-        }
+    else if (inputType === "source") {
         return (
             <Autocompleter
                 selectedRefCallback={selectedRefCallback}
                 getSuggestions={getSuggestions}
-                showSuggestionsFunc={(d) => !isSectionOrSegment(d)}
-                showPreviewFunc={(d) => isSectionOrSegment(d)}
-                showAddressCompletionsFunc={(d) => d.is_book}
-                showAddButtonFunc={(d) => isSectionOrSegment(d)}
                 inputPlaceholder="Search for a Text or Commentator."
                 buttonTitle="Add Source"
-                borderColorFunc={Sefaria.palette.refColor}
+                getColor={(selectedBool) => "#000000"}
             />)
     }
 

@@ -2536,14 +2536,13 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
-                         showSuggestionsFunc, showAddressCompletionsFunc, showPreviewFunc,
-                         showAddButtonFunc, filterResultsFunc, onClickSuggestionFunc,
-                         inputPlaceholder, buttonTitle, limit,
-                         colorIfSelected = "#000000",
-                         style = "",
-                         showSuggestionsOnSelect=true }) => {
-  const [inputValue, setInputValue] = useState("");
+const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFunc,
+                         inputPlaceholder, buttonTitle,
+                         getColor,
+                         autocompleteClassNames = "addInterfaceInput",
+                         initInputValue,
+                         showSuggestionsOnSelect= true }) => {
+  const [inputValue, setInputValue] = useState(initInputValue);
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
@@ -2552,10 +2551,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
   const [selected, setSelected] = useState(false);
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-  const defaultColor = "#000000";
-  const defaultAutocompleteLimit = 5;
   const buttonClassNames = classNames({button: 1, small: 1});
-  let autocompleteClassNames = style.length > 0 ? "addInterfaceInput " + style : ".addInterfaceInput";
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2591,74 +2587,38 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
     }, [previewText]
   )
 
-  const processSuggestions = async (input) => {
-    setInputValue(input)
-    if (input == "") {
-      setPreviewText(null)
-      setHelperPromptText(null)
-      setCurrentSuggestions(null)
-      return
-    }
-    let [completion_objects, d] = await getSuggestions(input);
-    if (showSuggestionsFunc(d, input)) {
-      const suggestions = completion_objects
-        .filter(completion_obj => {
-          if (filterResultsFunc) {
-            return filterResultsFunc(completion_obj);
-          } else {
-            return true;
-          }
-        })
-        .map((suggestion, index) => ({
-          name: suggestion.title,
-          key: suggestion.key,
-          type: suggestion.type,
-          border_color: borderColorFunc(suggestion.key)
-        }))
-        .slice(0, limit ? limit : defaultAutocompleteLimit);
-
-      setCurrentSuggestions(suggestions);
-    } else {
-      setCurrentSuggestions(null);
-    }
-
-    //We want to show address completions when book exists but not once we start typing further
-    if (showAddressCompletionsFunc && showAddressCompletionsFunc(d) && isNaN(input.trim().slice(-1))) {
-      setHelperPromptText(<InterfaceText text={{ en: d.addressExamples[0], he: d.heAddressExamples[0] }} />)
-      document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
-    } else {
-      setHelperPromptText(null)
-    }
-
-    if (showPreviewFunc && showPreviewFunc(d)) {
-      generatePreviewText(input);
-    } else {
-      setPreviewText(null)
-    }
-
-    if (showAddButtonFunc(d, input)) {
-      setShowAddButton(true);
-    } else {
-      setShowAddButton(false);
-    }
-  }
-
   const resizeInputIfNeeded = () => {
     const currentWidth = getWidthOfInput();
     if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
   }
 
+  const processSuggestions = (resultsPromise) => {
+    resultsPromise.then(results => {
+      setInputValue(results.inputValue);
+      setPreviewText(results.previewText);
+      setHelperPromptText(results.helperPromptText);
+      setCurrentSuggestions(results.currentSuggestions);
+      setShowAddButton(results.showAddButton);
+      if (!!results.previewText) {
+        generatePreviewText(results.previewText);
+      }
+      if (!!results.helperPromptText) {
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+      }
+    });
+  }
+
   const onChange = (input) => {
     setSelected(false);
     setShowCurrentSuggestions(true);
-    processSuggestions(input);
+    processSuggestions(getSuggestions(input));
     resizeInputIfNeeded();
   }
 
   const handleOnClickSuggestion = (title) => {
       setInputValue(title);
       setShowCurrentSuggestions(showSuggestionsOnSelect);
-      processSuggestions(title);
+      processSuggestions(getSuggestions(title));
       if (onClickSuggestionFunc) {
         onClickSuggestionFunc(title);
       }
@@ -2728,7 +2688,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
               )
             }
           })
-          setPreviewText(previewHTML)
+          setPreviewText(previewHTML);
         })
   }
 
@@ -2748,7 +2708,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, borderColorFunc,
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
-          style={{color: selected ? colorIfSelected : defaultColor}}
+          style={{color: getColor(selected) }}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
                     selectedRefCallback(inputValue, currentSuggestions)

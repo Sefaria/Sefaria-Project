@@ -14,26 +14,41 @@ class TopicSearch extends Component {
     super(props);
     this.state = {
       showTopicEditor: false,
-      value: ""
+      value: "",
     };
   }
 
-  async getSuggestions(input) {
+  getSuggestions = async (input) => {
+    let results = {"inputValue": input, "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+                        "showAddButton": false};
+    if (input === "") {
+      return results;
+    }
     const word = input.trim();
     const callback = (d) => {
         let topics = [];
         if (d[1].length > 0) {
-          topics = d[1].map(function (e) {
+          topics = d[1].slice(0, 4).map(function (e) {
                 return {title: e.title, key: e.key}
               });
             }
-        topics.push({title: "Create new topic: "+word, key: ""})
+        topics.push({title: this.props.createNewTopicStr+word, key: ""})
         return topics;
      };
-    const result = await Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word,
+    const completion_objects = await Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word,
                               store: Sefaria._topicCompletions, processor: callback});
-    return [result, {}];
+    results.currentSuggestions = completion_objects
+        .map(suggestion => ({
+          name: suggestion.title,
+          key: suggestion.key,
+          type: suggestion.type,
+          border_color: "#ffffff"
+        }))
+
+    results.showAddButton = true;
+    return results;
   }
+
   validate(input, suggestions) {
     let match = false;
     suggestions.map(topic => {
@@ -68,6 +83,7 @@ class TopicSearch extends Component {
           }
           Sefaria._refTopicLinks[sectionRef].push(data);
           update();
+          reset();
           alert("Topic added.");
         }
       }).fail(function (xhr, status, errorThrown) {
@@ -75,32 +91,27 @@ class TopicSearch extends Component {
       });
   }
 
-  showAddButtonFuncFilter = (d, input, completion_objects) => {
-    const results = completion_objects.some(x => {return input === x.title; });
-    return !!results;
-  }
   onClickSuggestionFunc = (title) => {
-    if (title.startsWith("Create new topic:")) {
-      this.setState({showTopicEditor: true, value: title});
+    if (title.startsWith(this.props.createNewTopicStr)) {
+      this.setState({showTopicEditor: true, value: title.replace(this.props.createNewTopicStr, "")});
     }
   }
+  reset = () => {
+      this.setState({showTopicEditor: false, value: ""});
+  }
+
   render() {
     return (
-        <div>{this.state.showTopicEditor ? <TopicEditor origEn={this.state.value} close={this.setState({showTopicEditor: false, value: ""})} redirect={this.post}/> : null}
+        <div>{this.state.showTopicEditor ? <TopicEditor origEn={this.state.value} close={this.reset} redirect={this.post}/> : null}
         <Autocompleter selectedRefCallback={this.validate}
                  getSuggestions={this.getSuggestions}
                  onClickSuggestionFunc={this.onClickSuggestionFunc}
-                 showSuggestionsFunc={(d) => {return true;}}
-                 showPreviewFunc={(d) => {return false;}}
-                 showAddressCompletionsFunc={(d) => {return false;}}
-                 showAddButtonFunc={(d) => {return true;}}
-                 borderColorFunc={(d) => "#ffffff"}
-                 limit={5}
+                 inputValue={this.state.value}
                  inputPlaceholder="Search for a Topic."
                  buttonTitle="Add Topic"
                  showSuggestionsOnSelect={false}
-                 colorIfSelected="#4B71B7"
-                 style="topicSearch"
+                 getColor={(selectedBool) => !selectedBool ? "#000000" : "#4B71B7"}
+                 autocompleteClassNames="topicSearch addInterfaceInput"
         />
         </div>
     );
@@ -109,7 +120,8 @@ class TopicSearch extends Component {
 TopicSearch.propTypes = {
   contextSelector:  PropTypes.string.isRequired, // CSS Selector for uniquely identifiable context that this is in.
   srefs: PropTypes.array.isRequired, //srefs of TopicList
-  update: PropTypes.func.isRequired //used to add topic to TopicList
+  update: PropTypes.func.isRequired, //used to add topic to TopicList
+  createNewTopicStr: PropTypes.string.isRequired // whatever should be displayed when there's an option to create new topic
 };
 
 
