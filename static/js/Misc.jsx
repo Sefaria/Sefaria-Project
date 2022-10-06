@@ -2652,10 +2652,15 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
 
   return(div)
   }
+  const handleRefCallback = (inputValue, currentSuggestions) => {
+    selectedRefCallback(inputValue, currentSuggestions);
+    setInputValue("");
+    setCurrentSuggestions(null);
+  }
 
   const onKeyDown = e => {
     if (e.key === 'Enter' && showAddButton) {
-      selectedRefCallback(inputValue, currentSuggestions);
+      handleRefCallback(inputValue, currentSuggestions);
     }
 
     else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
@@ -2711,7 +2716,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
           style={{color: getColor(selected) }}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    selectedRefCallback(inputValue, currentSuggestions)
+                    handleRefCallback(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?

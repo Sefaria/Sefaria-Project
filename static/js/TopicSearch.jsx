@@ -106,7 +106,7 @@ class TopicSearch extends Component {
         <Autocompleter selectedRefCallback={this.validate}
                  getSuggestions={this.getSuggestions}
                  onClickSuggestionFunc={this.onClickSuggestionFunc}
-                 inputValue={this.state.value}
+                 initInputValue={this.state.value}
                  inputPlaceholder="Search for a Topic."
                  buttonTitle="Add Topic"
                  showSuggestionsOnSelect={false}
