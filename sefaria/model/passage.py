@@ -1,13 +1,13 @@
 # coding=utf-8
 import structlog
 
-from . import abstract as abst
+from . import abstract
 from . import text
 
 logger = structlog.get_logger(__name__)
 
 
-class Passage(abst.AbstractMongoRecord):
+class Passage(abstract.AbstractMongoRecord):
     """
     Sugyot
     """
@@ -43,7 +43,7 @@ class Passage(abst.AbstractMongoRecord):
         return text.Ref(self.full_ref)
 
 
-class PassageSet(abst.AbstractMongoSet):
+class PassageSet(abstract.AbstractMongoSet):
     recordClass = Passage
 
 

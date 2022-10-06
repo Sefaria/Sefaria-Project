@@ -2,10 +2,8 @@
 import re
 
 import pytest
-
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.utils.util import list_depth
 
 
 def test_text_index_map():

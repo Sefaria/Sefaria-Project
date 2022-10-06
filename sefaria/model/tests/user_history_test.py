@@ -1,6 +1,6 @@
 import pytest
 
-from sefaria.model.user_profile import UserHistory, UserHistorySet
+from sefaria.model.user_profile import UserHistory
 from sefaria.system.exceptions import InputError
 
 

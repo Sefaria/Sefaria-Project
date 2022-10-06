@@ -5,12 +5,12 @@ Writes to MongoDB Collection: index_queue
 
 import structlog
 
+from . import abstract
+
 logger = structlog.get_logger(__name__)
 
-from . import abstract as abst
 
-
-class IndexQueue(abst.AbstractMongoRecord):
+class IndexQueue(abstract.AbstractMongoRecord):
     """
     """
     collection = 'index_queue'
@@ -36,5 +36,5 @@ class IndexQueue(abst.AbstractMongoRecord):
             super(self.__class__, self).save()
 
 
-class IndexQueueSet(abst.AbstractMongoSet):
+class IndexQueueSet(abstract.AbstractMongoSet):
     recordClass = IndexQueue

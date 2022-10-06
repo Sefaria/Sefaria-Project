@@ -1,15 +1,9 @@
 import datetime
-import json
-import os
 
-import google.auth
-import google.oauth2
-import google_auth_oauthlib.flow
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect
-
+from google_auth_oauthlib.flow.Flow import from_client_secrets_file
 from sefaria import settings
 from sefaria.model.user_profile import UserProfile
 
@@ -26,7 +20,7 @@ def index(request):
     """
     # get authorization url
 
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+    flow = from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scopes=request.session.get('gauth_scope', '')
     )
@@ -57,7 +51,7 @@ def auth_return(request):
     if not state:
         return redirect('gauth_index')
 
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+    flow = from_client_secrets_file(
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scopes=request.session.get('gauth_scope', ''),
         state=state

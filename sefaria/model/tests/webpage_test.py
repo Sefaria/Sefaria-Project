@@ -1,5 +1,4 @@
 import pytest
-
 from sefaria.model import *
 from sefaria.model.webpage import WebPage, get_webpages_for_ref
 

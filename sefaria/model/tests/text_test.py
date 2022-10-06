@@ -3,8 +3,8 @@ from copy import deepcopy
 
 import pytest
 import regex as re
-
-import sefaria.model as model
+from sefaria import model
+from sefaria.model.text import prepare_index_regex_for_dependency_process
 from sefaria.system.exceptions import InputError
 from sefaria.system.testing import test_uid
 
@@ -506,7 +506,6 @@ def dep_counts(name, indx):
         query_list = [{attribute: {'$regex': query}} for query in queries]
         return {'$or': query_list}
 
-    from sefaria.model.text import prepare_index_regex_for_dependency_process
     patterns = prepare_index_regex_for_dependency_process(indx, as_list=True)
     patterns = [pattern.replace(re.escape(indx.title), re.escape(name)) for pattern in patterns]
 

@@ -1,8 +1,6 @@
 # encoding=utf-8
-#from __future__ import annotations
 
 import structlog
-
 from sefaria.model.abstract import (AbstractMongoRecord, AbstractMongoSet,
                                     SluggedAbstractMongoRecord)
 from sefaria.model.text import Ref
@@ -10,10 +8,9 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import (DuplicateRecordError, InputError,
                                        ManuscriptError)
 
+from .text import re as reg_reg
+
 logger = structlog.get_logger(__name__)
-
-
-
 
 
 class Manuscript(SluggedAbstractMongoRecord):
@@ -220,12 +217,10 @@ class ManuscriptPageSet(AbstractMongoSet):
 
 
 def process_index_title_change_in_manuscript_links(indx, **kwargs):
-    from sefaria.system.exceptions import InputError
 
     print("Cascading ManuscriptPage from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in Ref(indx.title).regex(as_list=True)]
     queries = [{'expanded_refs': {'$regex': pattern}} for pattern in patterns]

@@ -1,15 +1,23 @@
 # encoding=utf-8
-import pprint
+import csv
+import io
 import re
+import string
+from collections import defaultdict
 from functools import reduce
+from operator import sub
 
 import regex as re
+import roman
 from diff_match_patch import diff_match_patch
-
 from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.export import make_text, prepare_merged_text_for_export
 from sefaria.model import *
+from sefaria.model.link import get_category_category_linkset
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+from sefaria.tracker import modify_text
+from sefaria.utils.util import strip_tags
 
 try:
     import xml.etree.cElementTree as ET
@@ -239,7 +247,6 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
     """
     Walks ever segment contained in title, calls func on the text and saves the result.
     """
-    from sefaria.tracker import modify_text
 
     leaf_nodes = library.get_index(title).nodes.get_leaf_nodes()
     for leaf in leaf_nodes:
@@ -301,7 +308,7 @@ def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
     WARNING: we've seen e.g., "(v. 15)" used to mean "Verse 15". If run with allow_lowercase=True, this will
     be rewritten as "(5:15)". 
     """
-    import roman
+
     if only_lowercase:
         regex = re.compile(r"((^|[{\[( ])[{\[( ]*)(m{0,4}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3}))(\. ?)(\d)?")
     else:
@@ -336,8 +343,7 @@ def make_versions_csv():
     """
     Returns a CSV of all text versions in the DB.
     """
-    import csv
-    import io
+
     output = io.BytesIO()
     writer = csv.writer(output)
     fields = [
@@ -361,10 +367,6 @@ def make_versions_csv():
 
 
 def get_core_link_stats():
-    import csv
-    import io
-
-    from sefaria.model.link import get_category_category_linkset
     output = io.BytesIO()
     writer = csv.writer(output)
     titles = [
@@ -442,9 +444,6 @@ def get_library_stats():
         return simple_nodes
     tree = aggregate_stats(library.get_toc(), [])
 
-    import csv
-    import io
-    from operator import sub
     output = io.BytesIO()
     writer = csv.writer(output)
     titles = [
@@ -552,11 +551,6 @@ def word_frequency_for_text(title, lang="en"):
     Returns an ordered list of word/count tuples for occurences of words inside the 
     text `title`.
     """
-    import string
-    from collections import defaultdict
-
-    from sefaria.export import make_text, prepare_merged_text_for_export
-    from sefaria.utils.util import strip_tags 
     text = make_text(prepare_merged_text_for_export(title, lang=lang))
 
     text = strip_tags(text)
@@ -787,7 +781,6 @@ class WorkflowyParser(object):
 
     # builds and posts text to api
     def save_version_from_outline_notes(self):
-        from sefaria.tracker import modify_text
         for text_ref in self.version_info['text']:
             node = text_ref['node']
             ref = Ref(node.full_title(force_update=True))

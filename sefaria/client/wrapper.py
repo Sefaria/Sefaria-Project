@@ -2,9 +2,6 @@
 import re
 
 import structlog
-
-logger = structlog.get_logger(__name__)
-
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.model import *
 from sefaria.model.user_profile import public_user_data, user_link
@@ -12,6 +9,7 @@ from sefaria.sheets import get_sheets_for_ref
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.utils.hebrew import hebrew_term
 
+logger = structlog.get_logger(__name__)
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
     """

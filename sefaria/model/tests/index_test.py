@@ -1,5 +1,4 @@
 # coding=utf-8
-import pytest
 
 from sefaria.model import *
 from sefaria.model.text import prepare_index_regex_for_dependency_process

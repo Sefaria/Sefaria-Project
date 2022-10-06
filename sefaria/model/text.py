@@ -5,21 +5,39 @@ text.py
 
 import time
 from functools import reduce
-from typing import Optional, Union
+from typing import Union
 
 import structlog
 
 logger = structlog.get_logger(__name__)
 
-import copy
 import itertools
 import json
+import re as pyre  # pymongo can only encode re.compile objects, not regex or re2.
 import sys
 from collections import defaultdict
 
 import bleach
 import regex
 from bs4 import BeautifulSoup, Tag
+from sefaria.client.wrapper import get_links
+from sefaria.helper.link import AbstractStructureAutoLinker, AutoLinkerFactory
+from sefaria.model import Category
+from sefaria.model.category import CategorySet, TocCategory, TocTree
+from sefaria.model.link import Link
+from sefaria.model.timeperiod import TimePeriod
+from sefaria.system.varnish.wrapper import invalidate_title
+from sefaria.utils.hebrew import strip_nikkud
+from sefaria.utils.util import get_all_subclass_attribute, get_size
+
+from . import (Link, LinkSet, NoteSet, RefTopicLinkSet, link, place,
+               timeperiod, topic, version_state)
+from .autospell import AutoCompleter, LexiconTrie
+from .lexicon import LexiconSet
+from .linker import (MatchTemplateGraph, MatchTemplateTrie, NonUniqueTermSet,
+                     RefResolver, TermMatcher)
+from .topic import (AuthorTopic, IntraTopicLinkSet, Topic, TopicDataSourceSet,
+                    TopicLinkTypeSet, TopicSet)
 
 try:
     import re2 as re
@@ -45,7 +63,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.util import list_depth
 
-from . import abstract as abst
+from . import abstract
 from .schema import (AddressTalmud, AddressType, DictionaryEntryNode,
                      DictionaryNode, JaggedArrayNode, SchemaNode, SheetNode,
                      Term, TermSet, TitledTreeNode, TitleGroup, VirtualNode,
@@ -66,7 +84,6 @@ class AbstractIndex(object):
         return VersionSet({"title": self.title})
 
     def versionState(self):
-        from . import version_state
         return version_state.VersionState(self.title)
 
     def is_new_style(self):
@@ -137,7 +154,6 @@ class AbstractIndex(object):
         return refs
 
     def author_objects(self):
-        from . import topic
         return [topic.Topic.init(slug) for slug in getattr(self, "authors", []) if topic.Topic.init(slug)]
 
     def composition_time_period(self):
@@ -183,7 +199,7 @@ class AbstractIndex(object):
         return contents
 
 
-class Index(abst.AbstractMongoRecord, AbstractIndex):
+class Index(abstract.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
     There is an Index object for every text.
@@ -426,13 +442,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
 
     def composition_place(self):
-        from . import place
         if getattr(self, "compPlace", None) is None:
             return None
         return place.Place().load({"key": self.compPlace})
 
     def publication_place(self):
-        from . import place
         if getattr(self, "pubPlace", None) is None:
             return None
         return place.Place().load({"key": self.pubPlace})
@@ -481,7 +495,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
-            from sefaria.model.timeperiod import TimePeriod
             if not startIsApprox is None:
                 return TimePeriod({
                     "start": start,
@@ -496,7 +509,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 })
 
     def _get_time_period(self, date_field, margin_field=None):
-        from . import timeperiod
         if not getattr(self, date_field, None):
             return None
 
@@ -721,7 +733,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        from sefaria.model import Category
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
@@ -771,7 +782,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             raise InputError('All new Index records must have a valid schema.')
 
         if getattr(self, "authors", None):
-            from .topic import AuthorTopic, Topic
             if not isinstance(self.authors, list):
                 raise InputError(f'{self.title} authors must be a list.')
             for author_slug in self.authors:
@@ -869,7 +879,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return {btitle: self.get_first_ref_in_base_text(btitle) for btitle in self.base_text_titles}
 
     def get_first_ref_in_base_text(self, base_text_title):
-        from sefaria.model.link import Link
         orig_ref = Ref(self.title)
         base_text_ref = Ref(base_text_title)
         first_link = Link().load(
@@ -940,7 +949,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return alone_nodes
 
 
-class IndexSet(abst.AbstractMongoSet):
+class IndexSet(abstract.AbstractMongoSet):
     """
     A set of :class:`Index` objects.
     """
@@ -1261,7 +1270,7 @@ class AbstractTextRecord(object):
     def has_manually_wrapped_refs(self):
         return True
 
-class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
+class Version(AbstractTextRecord, abstract.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
     NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
@@ -1275,7 +1284,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     An existing version is queried for with a slightly different syntax:
     existing_version = Version().load({Mongo-query-for-that-specific-version})
 
-    For basic operations such as loading, saving, and updating existing versions, see abst.AbstractMongoRecord
+    For basic operations such as loading, saving, and updating existing versions, see abstract.AbstractMongoRecord
     in abstract.py - the parent class for the Version class.
     """
     history_noun = 'text'
@@ -1493,7 +1502,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             action(item, tref, heTref, self)
 
 
-class VersionSet(abst.AbstractMongoSet):
+class VersionSet(abstract.AbstractMongoSet):
     """
     A collection of :class:`Version` objects
 
@@ -1873,7 +1882,6 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         changed = self._check_available_segments_changed_post_save(lang=self.lang)
 
         if len(changed):
-            from . import link
             for change in changed:
                 link.update_link_language_availabiliy(change[0], self.lang, change[1])
 
@@ -2292,7 +2300,6 @@ class TextFamily(object):
             self._chunks[language] = c
             text_modification_funcs = []
             if wrapNamedEntities and len(c._versions) > 0:
-                from . import RefTopicLinkSet
                 named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
                 if len(named_entities) > 0:
                     # assumption is that refTopicLinks are all to unranged refs
@@ -2310,7 +2317,6 @@ class TextFamily(object):
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
-                from . import Link
                 query = oref.ref_regex_query()
                 query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
                 if Link().load(query) is not None:
@@ -2323,7 +2329,6 @@ class TextFamily(object):
             self.spanning = True
         #// todo: should this parameter be renamed? it gets all links, not strictly commentary...
         if commentary:
-            from sefaria.client.wrapper import get_links
             if not oref.is_spanning():
                 links = get_links(oref.normal())  #todo - have this function accept an object
             else:
@@ -2504,7 +2509,6 @@ class RefCacheType(type):
         return len(cls.__tref_oref_map)
 
     def cache_size_bytes(cls):
-        from sefaria.utils.util import get_size
         return get_size(cls.__tref_oref_map)
 
     def cache_dump(cls):
@@ -3557,7 +3561,6 @@ class Ref(object, metaclass=RefCacheType):
         """
         :return: :class:`sefaria.model.version_state.StateNode`
         """
-        from . import version_state
         return version_state.StateNode(snode=self.index_node, meta=meta, hint=hint)
 
     def get_state_ja(self, lang="all"):
@@ -4366,7 +4369,6 @@ class Ref(object, metaclass=RefCacheType):
             "title": self.index.title,
         }
         if actual_lang:
-            import re as pyre  # pymongo can only encode re.compile objects, not regex or re2.
             pattern = r"^(?!.*\[[a-z]{2}\]$).*" if actual_lang in {'en', 'he'} else fr"\[{actual_lang}\]$"
             d.update({"versionTitle": pyre.compile(pattern)})
         if lang:
@@ -4585,7 +4587,6 @@ class Ref(object, metaclass=RefCacheType):
         """
         :return: :class:`NoteSet` for this Ref
         """
-        from . import NoteSet
         if public and uid:
             query = {"ref": {"$regex": self.regex()}, "$or": [{"public": True}, {"owner": uid}]}
         elif public:
@@ -4601,11 +4602,9 @@ class Ref(object, metaclass=RefCacheType):
         """
         :return: :class:`LinkSet` for this Ref
         """
-        from . import LinkSet
         return LinkSet(self)
 
     def topiclinkset(self, with_char_level_links=False):
-        from . import RefTopicLinkSet
         regex_list = self.regex(as_list=True)
         query = {"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]}
         if not with_char_level_links:
@@ -4618,7 +4617,6 @@ class Ref(object, metaclass=RefCacheType):
         according to the "base_text_mapping" attr on the Index record.
         :return:
         """
-        from sefaria.helper.link import AutoLinkerFactory
         if self.is_dependant() and getattr(self.index, 'base_text_mapping', None):
             return AutoLinkerFactory.instance_factory(self.index.base_text_mapping, self, **kwargs)
         else:
@@ -4921,7 +4919,6 @@ class Library(object):
         on mobile until the navigation redesign happens there.
         """
         if rebuild or not self._toc_tree:
-            from sefaria.model.category import TocTree
             self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
@@ -4960,7 +4957,6 @@ class Library(object):
         @param: explored Set
         @param: with_descriptions boolean
         """
-        from .topic import IntraTopicLinkSet, Topic, TopicSet
         explored = explored or set()
         unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
                                         # this variable will allow us to force all top level categories to have children
@@ -5040,7 +5036,6 @@ class Library(object):
         """
         Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
         """
-        from sefaria.model.category import CategorySet, TocCategory, TocTree
         toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
         root = toctree.get_root()
         toc_roots = [x.lastPath for x in sorted(library.get_top_categories(full_records=True), key=lambda x: x.order)]
@@ -5080,7 +5075,6 @@ class Library(object):
         Returns a TopicLinkType with a slug of link_type (parameter) if not already present
         @param: link_type String
         """
-        from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
             # pre-populate topic link types
             self._topic_link_types = {
@@ -5093,7 +5087,6 @@ class Library(object):
         Returns a TopicDataSource with the data_source (parameter) slug if not already present
         @param: data_source String
         """
-        from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
             # pre-populate topic data sources
             self._topic_data_sources = {
@@ -5114,7 +5107,6 @@ class Library(object):
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
-        from .autospell import AutoCompleter
         self._full_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
@@ -5128,7 +5120,6 @@ class Library(object):
         Builds the autocomplete for Refs across the languages in the library
         Sets internal boolean to True upon successful completion to indicate Ref auto completer is ready.
         """
-        from .autospell import AutoCompleter
         self._ref_auto_completer = {
             lang: AutoCompleter(lang, library, include_people=False, include_categories=False, include_parasha=False) for lang in self.langs
         }
@@ -5141,10 +5132,7 @@ class Library(object):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
-
         """
-        from .autospell import LexiconTrie
-        from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
             lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
         }
@@ -5155,7 +5143,6 @@ class Library(object):
         Builds the cross lexicon auto completer excluding titles
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
-        from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
 
@@ -5479,7 +5466,6 @@ class Library(object):
         return tm
 
     def _build_topic_mapping(self):
-        from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
@@ -5491,10 +5477,6 @@ class Library(object):
 
     def build_ref_resolver(self):
         from sefaria.helper.linker import load_spacy_model
-
-        from .linker import (MatchTemplateGraph, MatchTemplateTrie,
-                             NonUniqueTermSet, RefResolver, TermMatcher)
-
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
@@ -5666,8 +5648,6 @@ class Library(object):
         if book_title:
             q['base_text_titles'] = book_title
         if structure_match:  # get only indices who's "base_text_mapping" is one that indicates it has the similar underlying schema as the base
-            from sefaria.helper.link import AbstractStructureAutoLinker
-            from sefaria.utils.util import get_all_subclass_attribute
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
@@ -5713,7 +5693,6 @@ class Library(object):
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
         if lang == "he":
-            from sefaria.utils.hebrew import strip_nikkud
             st = strip_nikkud(st)
             unique_titles = set(self.get_titles_in_string(st, lang, citing_only))
             for title in unique_titles:
@@ -5773,8 +5752,6 @@ class Library(object):
 
         if reg is None or title_nodes is None:
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
-
-        from sefaria.utils.hebrew import strip_nikkud
 
         #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
 
@@ -6100,7 +6077,6 @@ class Library(object):
 
     @staticmethod
     def get_top_categories(full_records=False):
-        from sefaria.model.category import CategorySet
         return CategorySet({'depth': 1}) if full_records else CategorySet({'depth': 1}).distinct('path')
 
 
@@ -6170,7 +6146,6 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
     elif USE_VARNISH:
-        from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(old_title)
 
 
@@ -6189,7 +6164,6 @@ def process_index_change_in_core_cache(indx, **kwargs):
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
         elif USE_VARNISH:
-            from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
 
 
@@ -6225,7 +6199,6 @@ def process_index_delete_in_core_cache(indx, **kwargs):
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
     elif USE_VARNISH:
-        from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(indx.title)
 
 

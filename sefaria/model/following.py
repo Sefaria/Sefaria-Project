@@ -1,12 +1,13 @@
 """
-following.py - handle following relationships between users
-
+Handle following relationships between users
 Writes to MongoDB Collection: following
 """
 from datetime import datetime
+from random import choices
 
 import structlog
-
+from django.contrib.auth.models import User
+from sefaria.model.notification import Notification
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 
@@ -23,8 +24,6 @@ class FollowRelationship(object):
         bool(db.following.find_one({"follower": self.follower, "followee": self.followee}))
 
     def follow(self):
-        from sefaria.model.notification import Notification
-
         db.following.save(vars(self))
 
         # Notification for the Followee
@@ -101,12 +100,6 @@ def general_follow_recommendations(lang="english", n=4):
     """
     Recommend people to follow without any information about the person we're recommending for.
     """
-    from random import choices
-
-    from django.contrib.auth.models import User
-
-    from sefaria.system.database import db
-
     global creators
     if not creators:
         creators = []

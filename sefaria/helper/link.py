@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import structlog
-
-logger = structlog.get_logger(__name__)
-
 import sefaria.tracker as tracker
+import structlog
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 
@@ -14,6 +11,8 @@ except ImportError:
     USE_VARNISH = False
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref
+
+logger = structlog.get_logger(__name__)
 
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 

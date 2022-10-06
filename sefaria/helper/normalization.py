@@ -1,13 +1,11 @@
+"""Tools for normalizing text."""
 import re
 from bisect import bisect_right
 from functools import lru_cache, reduce
-from typing import Callable, Dict, List
+from typing import Callable
 
-from bs4 import BeautifulSoup, Tag
-
-"""
-Tools for normalizing text
-"""
+from bs4 import BeautifulSoup
+from sefaria.model.text import AbstractTextRecord
 
 UNIDECODE_TABLE = {
     "ḥ": "h",
@@ -142,7 +140,6 @@ class ITagNormalizer(AbstractNormalizer):
 
     @staticmethod
     def _find_itags(tag):
-        from sefaria.model.text import AbstractTextRecord
         return AbstractTextRecord._find_itags(tag)
 
     @staticmethod
@@ -151,7 +148,6 @@ class ITagNormalizer(AbstractNormalizer):
         Very similar to sefaria.model.text.AbstractTextRecord
         Originally called `_strip_itags`
         """
-        from sefaria.model.text import AbstractTextRecord
 
         all_itags = []
         soup = BeautifulSoup(f"<root>{s}</root>", 'lxml')
@@ -314,7 +310,7 @@ class NormalizerComposer(AbstractNormalizer):
 
 class TableReplaceNormalizer(AbstractNormalizer):
 
-    def __init__(self, table: Dict[str, str]):
+    def __init__(self, table: dict[str, str]):
         """
         :param table: will replace every key with value in string
         """
@@ -379,7 +375,7 @@ class NormalizerFactory:
 
 class NormalizerByLang(AbstractNormalizer):
 
-    def __init__(self, normalizers_by_lang: Dict[str, AbstractNormalizer]):
+    def __init__(self, normalizers_by_lang: dict[str, AbstractNormalizer]):
         """
         :param normalizers_by_lang: dict with keys that are letter lang codes (usually "en" or "he") and values that are subclasses of AbstractNormalizer
         """
@@ -481,7 +477,7 @@ class TextSanitizer:
     for use in dibbur_hamatchil_matcher.match_text. It is primarily helpful when we need to keep track of text before and after edits were
     made to said text that were necessary for improving text matching.
     """
-    def __init__(self, section: List[str], divider_pattern: str):
+    def __init__(self, section: list[str], divider_pattern: str):
         self._original_segments = tuple(section)
         self._sanitized_segments = None
         self.sanitizer = None

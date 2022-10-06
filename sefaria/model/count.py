@@ -1,18 +1,13 @@
-"""
-count.py
-Writes to MongoDB Collection: counts
-"""
+"""Writes to MongoDB Collection: counts."""
+import sefaria.datatype.jagged_array as ja
 import structlog
+from sefaria.system.exceptions import BookNameError
+
+from . import abstract
 
 logger = structlog.get_logger(__name__)
 
-import sefaria.datatype.jagged_array as ja
-from sefaria.system.exceptions import BookNameError
-
-from . import abstract as abst
-
-
-class Count(abst.AbstractMongoRecord):
+class Count(abstract.AbstractMongoRecord):
     """
     """
     collection = 'counts'
@@ -87,7 +82,7 @@ class Count(abst.AbstractMongoRecord):
         return self._allVersionCountsJA.sub_array_length([s - 1 for s in section_numbers])
 
 
-class CountSet(abst.AbstractMongoSet):
+class CountSet(abstract.AbstractMongoSet):
     recordClass = Count
 
 

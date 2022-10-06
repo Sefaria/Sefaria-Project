@@ -1,6 +1,6 @@
 import datetime
 
-import sefaria.model as model
+from sefaria import model
 
 
 def test_locks():

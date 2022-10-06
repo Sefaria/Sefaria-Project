@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
+"""Abstract classes for Sefaria models."""
 
-"""
-abstract.py - abstract classes for Sefaria models
-"""
 import collections
 import copy
 import re
@@ -10,9 +7,10 @@ import re
 import bleach
 import structlog
 from bson.objectid import ObjectId
-
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
+from functools import reduce
+from sefaria.model.lexicon import DictionaryEntry
 
 #Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
@@ -451,7 +449,6 @@ def get_record_classes(concrete=True, dynamic_classes=False):
     if concrete:
         sc = [s for s in sc if s.collection is not None]
     if not dynamic_classes:
-        from sefaria.model.lexicon import DictionaryEntry
         sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
     return sc
 
@@ -580,7 +577,6 @@ def cascade(set_class, attr):
         There is support for any level of nested attributes, e.g. "contents.properties.value"
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
-    from functools import reduce
 
     attrs = attr.split(".")
     if len(attrs) == 1:

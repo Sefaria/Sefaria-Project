@@ -1,13 +1,11 @@
 # encoding=utf-8
 
-
 import csv
 import re
 from collections import defaultdict
 from io import StringIO
 
 import requests
-
 from sefaria.model import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.system.database import db

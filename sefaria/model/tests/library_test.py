@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import re
 from functools import reduce
 
 import pytest
-
 from sefaria.model import *
 
 
@@ -516,7 +516,6 @@ class TestNamedEntityWrapping:
         return link
 
     def test_get_wrapped_named_entities_string(self):
-        import re
         text = "A blah. BBB yoyo and C"
         links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
         wrapped = library.get_wrapped_named_entities_string(links, text)
@@ -524,7 +523,6 @@ class TestNamedEntityWrapping:
         assert wrapped == wrapped_comp
 
     def test_get_wrapped_named_entities_string_text_mismatch(self):
-        import re
         text = "A blah. BBB yoyo and C"
         links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
         links[0].charLevelData['startChar'] += 1  # manual offset to make text mismatch

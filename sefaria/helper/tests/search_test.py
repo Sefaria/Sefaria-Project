@@ -1,7 +1,7 @@
 # encoding=utf-8
 import json
 
-from sefaria.helper.search import *
+from sefaria.helper.search import get_query_obj
 
 
 def test_query_obj():

@@ -1,16 +1,16 @@
 import math
 
 import structlog
-
+from sefaria.model.text import prepare_index_regex_for_dependency_process
 from sefaria.system.exceptions import InputError
 
-from . import abstract as abst
-from . import text
+from . import abstract, text
+from .text import re as reg_reg
 
 logger = structlog.get_logger(__name__)
 
 
-class RefData(abst.AbstractMongoRecord):
+class RefData(abstract.AbstractMongoRecord):
     """
     A segment ref with stats
     """
@@ -30,7 +30,7 @@ class RefData(abst.AbstractMongoRecord):
         return 1.0 / (math.log(self.pagesheetrank) - math.log(MIN_PR)) if self.pagesheetrank < PR_MAX_CUTOFF else 0.0
 
 
-class RefDataSet(abst.AbstractMongoSet):
+class RefDataSet(abstract.AbstractMongoSet):
     recordClass = RefData
 
     @classmethod
@@ -52,7 +52,6 @@ def process_index_title_change_in_ref_data(indx, **kwargs):
     print("Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in text.Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
@@ -66,6 +65,5 @@ def process_index_title_change_in_ref_data(indx, **kwargs):
 
 
 def process_index_delete_in_ref_data(indx, **kwargs):
-    from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     RefDataSet({"ref": {"$regex": pattern}}).delete()

@@ -2,9 +2,8 @@
 import json
 
 import pytest
-from deepdiff import DeepDiff
-
 import sefaria.model.category as c
+from deepdiff import DeepDiff
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 

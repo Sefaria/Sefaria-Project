@@ -6,7 +6,7 @@ http://scottlobdell.me/2015/02/writing-autocomplete-engine-scratch-python/
 """
 import math
 from collections import defaultdict
-from typing import Iterable, List
+from typing import Iterable
 
 import datrie
 import structlog

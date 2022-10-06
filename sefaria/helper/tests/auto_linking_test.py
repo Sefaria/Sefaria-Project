@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sefaria.tracker as tracker
-from sefaria.helper.link import AutoLinkerFactory, rebuild_links_for_title
-from sefaria.helper.schema import (convert_simple_index_to_complex,
-                                   insert_first_child)
+
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 

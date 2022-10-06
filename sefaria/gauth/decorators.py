@@ -3,7 +3,6 @@ from functools import wraps
 
 import google.auth
 import google.oauth2
-import google_auth_oauthlib.flow
 import structlog
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse

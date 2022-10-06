@@ -1,14 +1,13 @@
-"""
-dependencies.py -- list cross model dependencies and subscribe listeners to changes.
-"""
+"""List cross model dependencies and subscribe listeners to changes."""
 
-import sefaria.system.cache as scache
+from sefaria.search import (TextIndexer, delete_version,
+                            get_new_and_current_index_names)
+from sefaria.settings import SEARCH_INDEX_ON_SAVE
 
-from . import (abstract, category, collection, garden, history, layer, library,
-               link, manuscript, note, notification, ref_data, schema, story,
-               text, timeperiod, topic, user_profile, version_state)
-from .abstract import (cascade, cascade_delete, cascade_delete_to_list,
-                       cascade_to_list, subscribe)
+from . import (category, collection, garden, history, layer, library, link,
+               manuscript, note, notification, ref_data, schema, story, text,
+               timeperiod, topic, user_profile, version_state)
+from .abstract import cascade, cascade_delete, subscribe
 
 # Index Save / Create
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
@@ -52,10 +51,7 @@ subscribe(ref_data.process_index_delete_in_ref_data,                    text.Ind
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import (TextIndexer, delete_version,
-                                    get_new_and_current_index_names)
         search_index_name = get_new_and_current_index_names("text")['current']
         # no reason to deal with merged index since versions don't exist. still leaving this here in case it is necessary
         # search_index_name_merged = get_new_and_current_index_names("merged")['current']

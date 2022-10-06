@@ -1,6 +1,5 @@
 # encoding=utf-8
 import pytest
-
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.helper.text import modify_text_by_function
 from sefaria.model import *

@@ -6,14 +6,14 @@ import re
 import unicodedata
 
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria.system.exceptions import InputError
+from sefaria.model import Ref
 from sefaria.utils.hebrew import (has_cantillation, is_hebrew,
                                   strip_cantillation)
 
-from . import abstract as abst
+from . import abstract
 
 
-class WordForm(abst.AbstractMongoRecord):
+class WordForm(abstract.AbstractMongoRecord):
 
     collection = 'word_form'
     required_attrs = [
@@ -37,11 +37,11 @@ class WordForm(abst.AbstractMongoRecord):
         pass
 
 
-class WordFormSet(abst.AbstractMongoSet):
+class WordFormSet(abstract.AbstractMongoSet):
     recordClass = WordForm
 
 
-class Lexicon(abst.AbstractMongoRecord):
+class Lexicon(abstract.AbstractMongoRecord):
     collection = 'lexicon'
     required_attrs = [
         "name",
@@ -74,7 +74,7 @@ class Lexicon(abst.AbstractMongoRecord):
         return LexiconEntrySet({"parent_lexicon": self.name})
 
 
-class LexiconSet(abst.AbstractMongoSet):
+class LexiconSet(abstract.AbstractMongoSet):
     recordClass = Lexicon
 
 
@@ -82,7 +82,7 @@ class Dictionary(Lexicon):
     pass
 
 
-class LexiconEntry(abst.AbstractMongoRecord):
+class LexiconEntry(abstract.AbstractMongoRecord):
     collection   = 'lexicon_entry'
 
     required_attrs = [
@@ -375,7 +375,7 @@ class LexiconEntrySubClassMapping(object):
         return cls.instance_factory(record['parent_lexicon'], record)
 
 
-class LexiconEntrySet(abst.AbstractMongoSet):
+class LexiconEntrySet(abstract.AbstractMongoSet):
     recordClass = LexiconEntry
 
     def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, primary_tuples=None):
@@ -411,8 +411,6 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
-        from sefaria.model import Ref
-
         lookup_ref = kwargs.get("lookup_ref", None)
         wform_pkey = lookup_key
         if is_hebrew(input_word):

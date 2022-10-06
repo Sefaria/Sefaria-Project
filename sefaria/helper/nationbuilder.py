@@ -3,7 +3,6 @@ import time
 from urllib.parse import unquote
 
 from rauth import OAuth2Service
-
 from sefaria import settings as sls
 from sefaria.helper.trend_manager import (CategoryTrendManager,
                                           CustomTraitManager,

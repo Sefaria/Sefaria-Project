@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
+from collections import defaultdict
+
 import structlog
-
-logger = structlog.get_logger(__name__)
-
+from sefaria.model import library
+from sefaria.model.text import library
 from sefaria.system.database import db
 from sefaria.system.exceptions import (BookNameError, DuplicateRecordError,
                                        InputError)
 
-from . import abstract as abstract
-from . import collection as collection
-from . import schema as schema
-from . import text as text
+from . import abstract, collection, schema, text
+from .version_state import VersionState
+
+logger = structlog.get_logger(__name__)
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -107,7 +108,6 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         return d
 
     def get_toc_object(self):
-        from sefaria.model import library
         toc_tree = library.get_toc_tree()
         return toc_tree.lookup(self.path)
 
@@ -129,8 +129,6 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         :return: Category
         """
 
-        from collections import defaultdict
-
         cat_choice_dict = defaultdict(list)
         for index in indexes:
             for icat, cat in enumerate(index.categories):
@@ -145,7 +143,6 @@ class CategorySet(abstract.AbstractMongoSet):
 
 
 def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
-    from sefaria.model.text import library
 
     old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
     assert isinstance(old_toc_node, TocCategory)
@@ -342,7 +339,6 @@ class TocTree(object):
         node = self.lookup(index.categories, title)
 
         if recount or not node:
-            from .version_state import VersionState
             try:
                 vs = VersionState(title)
             except BookNameError:
