@@ -791,7 +791,7 @@ class ReaderApp extends Component {
       // console.log("Push History - " + hist.url);
       // this.trackPageview();
       if (typeof window !== 'undefined') {
-        gtag('event', 'page_view', {'our_page_view': 'true'})
+        gtag('event', 'history_ping', {'our_page_view': 'true'})
       }
     }
 
