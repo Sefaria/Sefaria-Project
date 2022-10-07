@@ -19,8 +19,9 @@ class TopicSearch extends Component {
   }
 
   getSuggestions = async (input) => {
-    let results = {"inputValue": input, "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+    let results = {"previewText": null, "helperPromptText": null, "currentSuggestions": null,
                         "showAddButton": false};
+    this.changeInputValue(input);
     if (input === "") {
       return results;
     }
@@ -91,24 +92,29 @@ class TopicSearch extends Component {
       });
   }
 
-  onClickSuggestionFunc = (title) => {
-    if (title.startsWith(this.props.createNewTopicStr)) {
-      this.setState({showTopicEditor: true, value: title.replace(this.props.createNewTopicStr, "")});
+  changeInputValue = (newValue) => {
+    if (newValue.startsWith(this.props.createNewTopicStr)) {
+        this.setState({showTopicEditor: true, value: newValue.replace(this.props.createNewTopicStr, "")});
+    }
+    else {
+        this.setState({value: newValue});
     }
   }
+
   reset = () => {
       this.setState({showTopicEditor: false, value: ""});
   }
 
+
   render() {
     return (
         <div>{this.state.showTopicEditor ? <TopicEditor origEn={this.state.value} close={this.reset} redirect={this.post}/> : null}
-        <Autocompleter selectedRefCallback={this.validate}
+        <Autocompleter selectedCallback={this.validate}
                  getSuggestions={this.getSuggestions}
-                 onClickSuggestionFunc={this.onClickSuggestionFunc}
-                 initInputValue={this.state.value}
                  inputPlaceholder="Search for a Topic."
                  buttonTitle="Add Topic"
+                 inputValue={this.state.value}
+                 changeInputValue={this.changeInputValue}
                  showSuggestionsOnSelect={false}
                  getColor={(selectedBool) => !selectedBool ? "#000000" : "#4B71B7"}
                  autocompleteClassNames="topicSearch addInterfaceInput"

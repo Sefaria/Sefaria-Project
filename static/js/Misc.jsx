@@ -2536,13 +2536,10 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFunc,
-                         inputPlaceholder, buttonTitle,
-                         getColor,
+const Autocompleter = ({selectedCallback, getSuggestions,
+                         inputPlaceholder, inputValue, changeInputValue, getColor, buttonTitle,
                          autocompleteClassNames = "addInterfaceInput",
-                         initInputValue,
                          showSuggestionsOnSelect= true }) => {
-  const [inputValue, setInputValue] = useState(initInputValue);
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
@@ -2594,7 +2591,6 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
 
   const processSuggestions = (resultsPromise) => {
     resultsPromise.then(results => {
-      setInputValue(results.inputValue);
       setPreviewText(results.previewText);
       setHelperPromptText(results.helperPromptText);
       setCurrentSuggestions(results.currentSuggestions);
@@ -2616,12 +2612,9 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
   }
 
   const handleOnClickSuggestion = (title) => {
-      setInputValue(title);
+      changeInputValue(title);
       setShowCurrentSuggestions(showSuggestionsOnSelect);
       processSuggestions(getSuggestions(title));
-      if (onClickSuggestionFunc) {
-        onClickSuggestionFunc(title);
-      }
       setSelected(true);
       resizeInputIfNeeded();
       inputEl.current.focus();
@@ -2652,15 +2645,16 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
 
   return(div)
   }
-  const handleRefCallback = (inputValue, currentSuggestions) => {
-    selectedRefCallback(inputValue, currentSuggestions);
-    setInputValue("");
-    setCurrentSuggestions(null);
+
+  const handleSelection = () => {
+    selectedCallback(inputValue, currentSuggestions);
+    changeInputValue("");
+    // setCurrentSuggestions(null);
   }
 
   const onKeyDown = e => {
     if (e.key === 'Enter' && showAddButton) {
-      handleRefCallback(inputValue, currentSuggestions);
+      handleSelection(inputValue, currentSuggestions);
     }
 
     else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
@@ -2716,7 +2710,7 @@ const Autocompleter = ({selectedRefCallback, getSuggestions, onClickSuggestionFu
           style={{color: getColor(selected) }}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleRefCallback(inputValue, currentSuggestions)
+                    handleSelection(inputValue, currentSuggestions)
                 }}>{buttonTitle}</button> : null}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?

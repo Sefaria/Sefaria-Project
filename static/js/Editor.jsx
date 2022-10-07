@@ -872,10 +872,10 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
 
     const getSuggestions = async (input) => {
         let results = {
-            "inputValue": null, "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+            "previewText": null, "helperPromptText": null, "currentSuggestions": null,
             "showAddButton": false
         };
-        results.inputValue = input;
+        setInputValue(input);
         if (input === "") {
             return results;
         }
@@ -892,7 +892,7 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         }
 
         //We want to show address completions when book exists but not once we start typing further
-        if (d.is_book && isNaN(input.trim().slice(-1))) {
+        if (d.is_book && isNaN(input.trim().slice(-1)) && !!d?.addressExamples) {
             results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}}/>;
         } else {
             results.helperPromptText = null;
@@ -904,12 +904,11 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 key: suggestion.key,
                 border_color: Sefaria.palette.refColor(suggestion.key)
             }))
-
         return results;
     }
 
-    const selectedRefCallback = (ref) => {
-          insertSource(editor, ref)
+    const selectedCallback = () => {
+          insertSource(editor, inputValue)
     }
 
 
@@ -935,8 +934,10 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
     else if (inputType === "source") {
         return (
             <Autocompleter
-                selectedRefCallback={selectedRefCallback}
+                selectedCallback={selectedCallback}
                 getSuggestions={getSuggestions}
+                inputValue={inputValue}
+                changeInputValue={setInputValue}
                 inputPlaceholder="Search for a Text or Commentator."
                 buttonTitle="Add Source"
                 getColor={(selectedBool) => "#000000"}
