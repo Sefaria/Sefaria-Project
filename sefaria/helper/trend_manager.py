@@ -17,7 +17,7 @@ class TrendManager:
             else:
                 value = False
             person_info["value"] = value
-        except:
+        except Exception:
             person_info["value"] = False
         return person_info
 
@@ -48,7 +48,7 @@ class ParashaLearnerManager(TrendManager):
             else:
                 value = False
             person_info["value"] = value
-        except:
+        except Exception:
             person_info["value"] = False
         return person_info
 
@@ -75,7 +75,7 @@ class SheetCreatorManager(TrendManager):
                     else:
                         value = False
                     person_info_public["value"] = value
-                except:
+                except Exception:
                     person_info_public["value"] = False
             if(person_info_public["value"] == False):
                 return person_info_public 
@@ -95,7 +95,7 @@ class CustomTraitManager(TrendManager):
         }
         try:
             value = trends.get(self.key, {}).get(self.period)
-        except:
+        except Exception:
             value = None
         person_info["value"] = value
         return person_info

@@ -38,10 +38,10 @@ for book in books:
 
    try:
       author = book_index.authors[0]
-   except:
+   except Exception:
       try:
          author = book_index.collective_title
-      except:
+      except Exception:
          author = "unknown"
 
    merged = flatten(text)

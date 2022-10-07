@@ -10,7 +10,7 @@ def add_he_ref_to_source(source):
     if "ref" in source:
         try:
             source["heRef"] = Ref(source["ref"]).he_normal()
-        except:
+        except Exception:
             pass
 
     if "subsources" in source:

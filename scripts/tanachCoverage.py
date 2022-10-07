@@ -85,7 +85,7 @@ for (name, ref) in prefs:
         if opposite_tref:
             try:
                 linkTuples.append((text.Ref(from_tref), text.Ref(opposite_tref)))
-            except:
+            except Exception:
                 pass
 
     froms = [a[0] for a in linkTuples if a[0].is_segment_level()]

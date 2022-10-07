@@ -252,7 +252,7 @@ def assignments_from_sheet(sheet_id):
     try:
         query = {"assignment_id": int(sheet_id)}
         return db.sheets.find(query)
-    except:
+    except Exception:
         return None
 
 

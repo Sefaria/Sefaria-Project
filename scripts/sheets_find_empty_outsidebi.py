@@ -67,7 +67,7 @@ for sheet in sheets:
 					source["outsideText"] = source["outsideBiText"]["en"]
 					del source["outsideBiText"]
 					sheets_with_default_he_in_outsideBiText_he.add(sheet["id"])
-			except:
+			except Exception:
 				print(sheet["id"])
 
 	db.sheets.save(sheet)

@@ -1986,7 +1986,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     def has_manually_wrapped_refs(self):
         try:
             return getattr(self.version(), 'hasManuallyWrappedRefs', False)
-        except:
+        except Exception:
             # merged version
             return False
 
@@ -2107,7 +2107,7 @@ class VirtualTextChunk(AbstractTextRecord):
 
         try:
             self.text = self._oref.index_node.get_text()  # <- This is where the magic happens
-        except:
+        except Exception:
             self.text = []
             self._versions = []
             return
@@ -4362,7 +4362,7 @@ class Ref(object, metaclass=RefCacheType):
         if self.index_node.is_virtual:
             try:
                 d.update({"versionTitle": self.index_node.parent.lexicon.version_title})
-            except:
+            except Exception:
                 pass
             return d
 

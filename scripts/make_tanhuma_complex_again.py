@@ -122,7 +122,7 @@ def needs_rewrite(ref_str, *args):
             return ref.book == "Midrash Tanchuma" and ref.sections[0] == 1 and ref.sections[1] > 12 and ref.sections[1] <= 54
         else:
             return False
-    except:
+    except Exception:
         return False
 
 

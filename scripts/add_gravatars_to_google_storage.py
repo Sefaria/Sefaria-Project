@@ -19,7 +19,7 @@ import sys
 count = 0
 try:
     start_at = int(sys.argv[1])
-except:
+except Exception:
     start_at = 0
 
 cursor = db.profiles.find({"profile_pic_url": {"$not": {"$regex": "{}.*".format(GoogleStorageManager.BASE_URL)}}, "id" : {"$gt": start_at}}, no_cursor_timeout=True).sort("id")

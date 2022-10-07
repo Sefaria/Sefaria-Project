@@ -12,7 +12,7 @@ db.vstate.remove({})
 for x in ["titleVariants", "titleVariants_1"]:
     try:
         db.index.drop_index(x)
-    except:
+    except Exception:
         pass
 
 #Covert Indexes to new format

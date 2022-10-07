@@ -141,7 +141,7 @@ def write():
                         print("writing... {}".format(other_ref.normal()))
                         writer.writerow([other_ref.normal(), vtitle])
                         text_results.write(text+"\n")
-                    except:
+                    except Exception:
                         print(other_ref)
 
     #print "INPUT ERRORS = {}".format(input_errors)

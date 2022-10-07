@@ -51,7 +51,7 @@ def add_profiles_to_nationbuilder(gt=0):
         user_profile = UserProfile(id=profile["id"])
         try:
             active_user =  User.objects.get(id=user_profile.id).is_active
-        except:
+        except Exception:
             active_user = False
             print("Failed to get user: " + str(user_profile.id))
         if active_user == True:
@@ -79,7 +79,7 @@ def add_profiles_to_nationbuilder(gt=0):
                             user_profile.nationbuilder_id = nationbuilder_id
                             user_profile.save()
                             print("added user with nationbuilder_id: " + str(nationbuilder_id))
-                        except:
+                        except Exception:
                             print("failed to save added user: " + user_profile.email)
                             print(res_data)
                     break

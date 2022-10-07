@@ -87,7 +87,7 @@ class SheetStats(object):
 
 					try:
 						is_translated = oref.is_text_translated()
-					except:
+					except Exception:
 						is_translated = False 
 					if not is_translated:
 						self.untrans_categories[oref.index.categories[0]] += 1
@@ -105,7 +105,7 @@ class SheetStats(object):
 				
 				elif "outsideText" in s or "outsideBiText" in s:
 					self.outside_count += 1
-			except:
+			except Exception:
 				continue
 
 	def sort(self):

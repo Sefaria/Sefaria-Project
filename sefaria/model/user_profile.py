@@ -302,7 +302,7 @@ class UserWrapper(object):
         try:
             group = Group.objects.get(name=group_name)
             return group in self.user.groups.all()
-        except:
+        except Exception:
             return False
 
 
@@ -333,7 +333,7 @@ class UserProfile(object):
             self.email             = user.email
             self.date_joined       = user.date_joined
             self.user              = user
-        except:
+        except Exception:
             # These default values allow profiles to function even
             # if the Django User records are missing (for testing)
             self.first_name        = "User"
@@ -770,7 +770,7 @@ def detect_potential_spam_message_notifications():
                 spammer_account = User.objects.get(id=spammer_id)
                 spammer_account.is_active = False
                 spammer_account.save()
-            except:
+            except Exception:
                 continue
 
         print(spammer["_id"])
@@ -844,7 +844,7 @@ def public_user_data(uid, ignore_cache=False):
     try:
         user = User.objects.get(id=uid)
         is_staff = user.is_staff()
-    except:
+    except Exception:
         is_staff = False
 
     data = {
@@ -888,7 +888,7 @@ def is_user_staff(uid):
         uid  = int(uid)
         user = User.objects.get(id=uid)
         return user.is_staff
-    except:
+    except Exception:
         return False
 
 

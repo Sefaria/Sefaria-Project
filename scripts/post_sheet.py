@@ -11,7 +11,7 @@ from sefaria.sheets import get_sheet
 
 try:
   from sefaria.local_settings import SEFARIA_API_KEY
-except:
+except Exception:
   print("To post sheets, please set SEFARIA_API_KEY in your local_settings.py")
   sys.exit()
 

@@ -316,7 +316,7 @@ def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
                     return "{}{}{}".format(m.group(1), roman.fromRoman(s), m.group(7))
             else:
                 return m.group(0)
-        except:
+        except Exception:
             return m.group(0)
 
     return re.sub(regex, replace_roman_numerals_in_match, text)

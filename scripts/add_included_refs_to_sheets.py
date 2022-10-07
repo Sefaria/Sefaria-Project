@@ -18,7 +18,7 @@ for sheet in sheets:
         if "ref" in source:
             try:
                 included_refs.append(Ref(source["ref"]).normal())
-            except:
+            except Exception:
                 print("Bad Ref: {0}".format(source["ref"]))
 
     newdoc = olddoc

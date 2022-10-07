@@ -286,7 +286,7 @@ class LinkSet(abst.AbstractMongoSet):
                         refs.append((text.Ref(from_tref), text.Ref(opposite_tref)))
                     else:
                         refs.append(text.Ref(opposite_tref))
-                except:
+                except Exception:
                     pass
         return refs
 
@@ -322,7 +322,7 @@ class LinkSet(abst.AbstractMongoSet):
             ref = link.refs[0] if link.refs[1] == relative_ref.normal() else link.refs[1]
             try:
                 oref = text.Ref(ref)
-            except:
+            except Exception:
                 continue
             cat  = oref.primary_category
             if (cat not in results):

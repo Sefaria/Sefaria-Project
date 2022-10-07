@@ -50,7 +50,7 @@ def ref_link(value, absolute=False):
 	try:
 		oref = m.Ref(value)
 		link = '<a href="/' + oref.url() + '">' + value + '</a>'
-	except:
+	except Exception:
 		link = value
 	ref_link_cache[value] = mark_safe(link)
 	return ref_link_cache[value]
@@ -71,7 +71,7 @@ def he_ref_link(value, absolute=False):
 	try:
 		oref = m.Ref(value)
 		link = '<a class="heRef" href="/' + oref.url() + '">' + re.sub(r"\d+(-\d+)?", "", oref.he_normal()) + '</a>'
-	except:
+	except Exception:
 		link = '<a class="heRef" href="#invalid-ref">' + value + '</a>'
 	he_ref_link_cache[value] = mark_safe(link)
 	return he_ref_link_cache[value]
@@ -88,7 +88,7 @@ def he_ref(value):
 	try:
 		oref = m.Ref(value)
 		he   = oref.he_normal()
-	except:
+	except Exception:
 		he   = value
 
 	return he
@@ -125,7 +125,7 @@ def version_link(v):
 	except IndexError:
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
-		except:  # Better if we knew how this may fail...
+		except Exception:  # Better if we knew how this may fail...
 			return mark_safe('<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
 
 	link = '<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
@@ -238,7 +238,7 @@ def text_category(text):
 	try:
 		i = m.library.get_index(text)
 		result = mark_safe(getattr(i, "categories", ["[no cats]"])[0])
-	except:
+	except Exception:
 		result = "[text not found]"
 	return result
 
@@ -368,7 +368,7 @@ def abbreviate_number(value):
 	"""
 	try:
 		n = int(value)
-	except:
+	except Exception:
 		return mark_safe(value)
 
 	if n > 1000000000:

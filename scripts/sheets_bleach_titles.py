@@ -22,6 +22,6 @@ for sheet in sheets:
         newdoc["title"] = bleach_text(sheet.get("title", ""))
         db.sheets.update({'_id': olddoc["_id"]}, newdoc)
 
-    except:
+    except Exception:
         print(sheet)
 

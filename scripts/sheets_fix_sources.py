@@ -68,7 +68,7 @@ for sheet in sheets:
                 if tc_heb:
                     source["text"]["he"] = tc_heb.ja().flatten_to_string()
 
-            except:
+            except Exception:
                 print("error on " + str(source["ref"]) + " on sheet " + str(sheet["id"]))
                 continue
 

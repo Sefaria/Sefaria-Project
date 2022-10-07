@@ -69,7 +69,7 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
                 do_actual_func = True
                 """try:
                     delete_cache_elem(_cache_key, cache_type=cache_type)
-                except:
+                except Exception:
                     pass"""
                 result = None
             else:

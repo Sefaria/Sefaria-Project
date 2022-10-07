@@ -294,7 +294,7 @@ class Notification(abst.AbstractMongoRecord):
             try:
                c = Collection().load({"slug": collection_slug})
                n["content"]["collection_name"] = c.name
-            except:
+            except Exception:
                c = Collection().load({"privateSlug": collection_slug})
                n["content"]["collection_name"] = c.name
 
