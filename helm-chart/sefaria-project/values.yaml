@@ -118,9 +118,11 @@ linker:
         requests:
           memory: "2Gi"
           cpu: "100m"
+          nvidia.com/gpu: 1
         limits:
           memory: "3Gi"
           cpu: "1000m"
+          nvidia.com/gpu: 1
     djangoLog:
       requests:
         memory: "100Mi"
@@ -128,6 +130,11 @@ linker:
       limits:
         memory: "150Mi"
         cpu: "100m"
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Equal
+      value: present
+      effect: NoSchedule
   secrets:
     googleClient:
       # for local testing purposes or CI pipeline use input a value

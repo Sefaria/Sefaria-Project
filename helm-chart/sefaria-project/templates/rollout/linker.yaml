@@ -59,6 +59,7 @@ spec:
             topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      tolerations: {{ toYaml .Values.linker.tolerations | nindent 8 }}
       serviceAccountName: "{{ .Values.linker.serviceAccount }}"
       containers:
       - name: linker
