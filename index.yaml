@@ -32,6 +32,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.1.1-set-fsr-on-title-change.1.tgz
     version: 0.1.1-set-fsr-on-title-change.1
   - apiVersion: v2
+    appVersion: v5.6.1
+    created: "2022-10-07T08:22:13.23971022Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: d07b0201717131de1aed5c323d5108f40badcc9304d4e8ac6b714cb29886fdd4
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.1.1-linker-gpu.1.tgz
+    version: 0.1.1-linker-gpu.1
+  - apiVersion: v2
     appVersion: v5.6.0
     created: "2022-10-03T11:40:43.548592782Z"
     description: Chart to deploy complete Sefaria environment
@@ -1005,4 +1020,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-10-04T16:43:33.4596081Z"
+generated: "2022-10-07T08:22:13.237359086Z"
