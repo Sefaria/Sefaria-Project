@@ -1,10 +1,9 @@
 # coding=utf-8
-import pytest
+import re
 
+import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-import re
-from sefaria.utils.util import list_depth
 
 
 def test_text_index_map():

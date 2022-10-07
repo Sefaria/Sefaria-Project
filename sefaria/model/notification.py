@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-
 """
-notifications.py - handle user event notifications
-
-Writes to MongoDB Collection: notifications
+Handle user event notifications.
+Writes to MongoDB Collection: notifications.
 """
-import re
 from datetime import datetime
-import json
-
-from django.template.loader import render_to_string
-
-from . import abstract as abst
-from . import user_profile
-from sefaria.model.collection import Collection
-from sefaria.utils.util import strip_tags
-from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
 
 import structlog
+from sefaria.model.collection import Collection
+from sefaria.model.text import Version, library
+from sefaria.sheets import get_sheet_metadata
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
+
+from . import abstract, user_profile
+
 logger = structlog.get_logger(__name__)
 
 
-class GlobalNotification(abst.AbstractMongoRecord):
+class GlobalNotification(abstract.AbstractMongoRecord):
     """
     "type" attribute can be: "index", "version", or "general"
 
@@ -54,13 +50,11 @@ class GlobalNotification(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
-        from sefaria.model.text import library
         if self.type == "index" or self.type == "version":
             i = library.get_index(self.content.get("index"))
             self.content["index"] = i.title
 
     def _validate(self):
-        from sefaria.model.text import library, Version
         if self.type == "index":
             assert self.content.get("index")
             assert library.get_index(self.content.get("index"))
@@ -136,7 +130,7 @@ class GlobalNotification(abst.AbstractMongoRecord):
         return str(self._id)
 
 
-class GlobalNotificationSet(abst.AbstractMongoSet):
+class GlobalNotificationSet(abstract.AbstractMongoSet):
     recordClass = GlobalNotification
 
     def __init__(self, query=None, page=0, limit=0, sort=[["_id", -1]]):
@@ -153,7 +147,7 @@ class GlobalNotificationSet(abst.AbstractMongoSet):
         return [n.client_contents() for n in self]
 
 
-class Notification(abst.AbstractMongoRecord):
+class Notification(abstract.AbstractMongoRecord):
     collection   = 'notifications'
     history_noun = 'notification'
 
@@ -270,8 +264,6 @@ class Notification(abst.AbstractMongoRecord):
         Returns contents of notification in format usable by client, including needed merged
         data from profiles, sheets, etc
         """
-        from sefaria.sheets import get_sheet_metadata
-
         n = super(Notification, self).contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
         if "global_id" in n:
@@ -320,7 +312,7 @@ class Notification(abst.AbstractMongoRecord):
         return n
 
 
-class NotificationSet(abst.AbstractMongoSet):
+class NotificationSet(abstract.AbstractMongoSet):
     recordClass = Notification
 
     def __init__(self, query=None, page=0, limit=0, sort=[["date", -1]]):

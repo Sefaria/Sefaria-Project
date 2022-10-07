@@ -4,47 +4,53 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
-from sefaria.client.util import jsonResponse
-import sys
 import hashlib
-import urllib.request, urllib.parse, urllib.error
-import structlog
-import regex
-import dateutil.parser
-import bleach
+import re
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+from collections import defaultdict
 from datetime import datetime, timedelta
 from functools import wraps
+
+import bleach
+import dateutil.parser
+import regex
+import structlog
 from bson.son import SON
-from collections import defaultdict
 from pymongo.errors import DuplicateKeyError
-import uuid
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
-from sefaria.system.database import db
-from sefaria.model.notification import Notification, NotificationSet
-from sefaria.model.following import FollowersSet
-from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.collection import Collection, CollectionSet
-from sefaria.model.story import UserStory, UserStorySet
-from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
-from sefaria.utils.util import strip_tags, string_overlap, titlecase
-from sefaria.utils.hebrew import is_hebrew
-from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.system.cache import django_cache
-from .history import record_sheet_publication, delete_sheet_publication
-from .settings import SEARCH_INDEX_ON_SAVE
-from . import search
+from sefaria.client.util import jsonResponse
 from sefaria.google_storage_manager import GoogleStorageManager
-import re
+from sefaria.model.collection import Collection, CollectionSet
+from sefaria.model.following import FollowersSet
+from sefaria.model.notification import Notification, NotificationSet
+from sefaria.model.story import UserStory, UserStorySet
+from sefaria.model.topic import RefTopicLink, RefTopicLinkSet, Topic, TopicSet
+from sefaria.model.user_profile import (UserProfile, annotate_user_list,
+                                        public_user_data, user_link)
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError, InputError
+from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.util import string_overlap, strip_tags, titlecase
+
+from . import search
+from .history import delete_sheet_publication, record_sheet_publication
+from .settings import SEARCH_INDEX_ON_SAVE
 
 logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
-from django.contrib.humanize.templatetags.humanize import naturaltime
 
 import structlog
+from django.contrib.humanize.templatetags.humanize import naturaltime
+
 logger = structlog.get_logger(__name__)
 
 

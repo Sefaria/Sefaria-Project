@@ -1,12 +1,19 @@
+import re
+import tarfile
+from tempfile import TemporaryDirectory
+from typing import Union
+
 import spacy
-from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
+from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model import text
-from typing import List, Union, Optional
-from collections import defaultdict
+from sefaria.model.linker import (AmbiguousResolvedRef, RefPartType,
+                                  ResolvedRef, TermContext)
+from sefaria.spacy_function_registry import \
+    inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
+from sefaria.utils.util import wrap_chars_with_overlaps
 
 
-def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
-    from sefaria.utils.util import wrap_chars_with_overlaps
+def make_html(bulk_resolved_list: list[list[list[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: list[list[str]], output_filename, lang='he'):
 
     def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
         metadata =  {
@@ -261,10 +268,6 @@ def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
 
 
 def load_spacy_model(path: str) -> spacy.Language:
-    import re, tarfile
-    from tempfile import TemporaryDirectory
-    from sefaria.google_storage_manager import GoogleStorageManager
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
 
     spacy.prefer_gpu()
     if path.startswith("gs://"):

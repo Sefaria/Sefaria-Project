@@ -4,8 +4,9 @@ history.py - managing the revision/activity history.
 Writes to MongoDB collection: history
 """
 from datetime import datetime
-from diff_match_patch import diff_match_patch
+
 from bson.code import Code
+from diff_match_patch import diff_match_patch
 
 from sefaria.model import *
 from sefaria.system.database import db

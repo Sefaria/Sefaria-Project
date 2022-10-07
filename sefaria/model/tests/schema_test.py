@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-from sefaria.model import *
 import re
-from sefaria.system.exceptions import InputError, BookNameError
 
+import pytest
+from sefaria.helper.schema import insert_last_child, prepare_ja_for_children
+from sefaria.model import *
+from sefaria.system.exceptions import BookNameError, InputError
 
 
 def setup_module(module):
@@ -312,7 +313,6 @@ class TestDefaultNodeWithChildren:
         cls.test_version.delete()
 
     def test_default_node_with_children(self):
-        from sefaria.helper.schema import insert_last_child, prepare_ja_for_children
         ja_parent = JaggedArrayNode()
         ja_parent.key = "default"
         ja_parent.default = True

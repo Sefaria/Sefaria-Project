@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import re
+
 from sefaria.model import *
 from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
+from sefaria.model.schema import TitleGroup
 from sefaria.sheets import save_sheet
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 from sefaria.utils.util import list_depth, traverse_dict_tree
-
-import re
 
 """
 
@@ -181,7 +182,6 @@ def merge_default_into_parent(parent_node):
 
 # todo: Can we share code with this method and the next?
 def convert_jagged_array_to_schema_with_default(ja_node):
-    from sefaria.model.schema import TitleGroup
 
     assert isinstance(ja_node, JaggedArrayNode)
     assert len(ja_node.children) == 0
@@ -227,7 +227,6 @@ def convert_simple_index_to_complex(index):
     :param index:
     :return:
     """
-    from sefaria.model.schema import TitleGroup
 
     assert isinstance(index, Index)
 

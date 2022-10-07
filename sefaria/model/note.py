@@ -1,18 +1,15 @@
-"""
-note.py
-Writes to MongoDB Collection: notes
-"""
+"""Writes to MongoDB Collection: notes."""
 
 import regex as re
-
-from . import abstract as abst
-from sefaria.model.text import Ref
-
 import structlog
+from sefaria.model.text import Ref, prepare_index_regex_for_dependency_process
+
+from . import abstract
+
 logger = structlog.get_logger(__name__)
 
 
-class Note(abst.AbstractMongoRecord):
+class Note(abstract.AbstractMongoRecord):
     """
     A note on a specific place in a text.  May be public or private.
     """
@@ -41,7 +38,7 @@ class Note(abst.AbstractMongoRecord):
         self.ref = Ref(self.ref).normal()
 
 
-class NoteSet(abst.AbstractMongoSet):
+class NoteSet(abstract.AbstractMongoSet):
     recordClass = Note
 
 
@@ -59,6 +56,5 @@ def process_index_title_change_in_notes(indx, **kwargs):
             n.delete()
 
 def process_index_delete_in_notes(indx, **kwargs):
-    from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     NoteSet({"ref": {"$regex": pattern}}).delete()

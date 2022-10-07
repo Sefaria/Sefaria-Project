@@ -1,4 +1,5 @@
 from sefaria.model import *
+from sefaria.model.category import TocCategory
 from sefaria.system.exceptions import BookNameError
 
 
@@ -160,6 +161,5 @@ def get_category_paths(path):
     Used for populating rows of the Categories spreadsheet, e.g. to add all the categories that
     appear as Tanakh Commentaries
     """
-    from sefaria.model.category import TocCategory
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]

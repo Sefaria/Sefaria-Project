@@ -3,6 +3,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
+
 class Test_Ref(object):
 
     def test_short_names(self):

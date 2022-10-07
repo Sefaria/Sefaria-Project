@@ -1,14 +1,16 @@
-import pytest, re
+import re
 from functools import reduce
-from sefaria.model.text import Ref, library
-from sefaria.model.linker import *
+
+import pytest
+import spacy
+from sefaria.model import schema
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.model.linker import RefPartType as RPT
+from sefaria.model.linker import *
 from sefaria.model.schema import DiburHamatchilNodeSet
-import spacy
-from spacy.language import Language
-from sefaria.model import schema
+from sefaria.model.text import Ref, library
 from sefaria.settings import ENABLE_LINKER
+from spacy.language import Language
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)

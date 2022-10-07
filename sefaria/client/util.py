@@ -2,13 +2,12 @@
 import json
 from datetime import datetime
 
-from django.http import HttpResponse, JsonResponse
 from django.core.mail import EmailMultiAlternatives
-from functools import wraps
+from django.http import HttpResponse
 
 from sefaria import settings as sls
 from sefaria.helper.nationbuilder import get_nationbuilder_connection
-# from sefaria.model.user_profile import UserProfile
+from sefaria.model.user_profile import UserProfile
 
 
 def jsonResponse(data, callback=None, status=200):
@@ -41,7 +40,6 @@ def jsonpResponse(data, callback, status=200):
 
 
 def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
-    from sefaria.model.user_profile import UserProfile
 
     if not sls.NATIONBUILDER:
         return

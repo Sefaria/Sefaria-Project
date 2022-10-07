@@ -1,11 +1,15 @@
-from urllib.parse import unquote
-from rauth import OAuth2Service
-import time
 import json
+import time
+from urllib.parse import unquote
 
-from sefaria.system.database import db
-from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, CustomTraitManager, ParashaLearnerManager
+from rauth import OAuth2Service
 from sefaria import settings as sls
+from sefaria.helper.trend_manager import (CategoryTrendManager,
+                                          CustomTraitManager,
+                                          ParashaLearnerManager,
+                                          SheetCreatorManager,
+                                          SheetReaderManager)
+from sefaria.system.database import db
 
 base_url = "https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com"
 

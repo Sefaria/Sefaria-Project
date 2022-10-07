@@ -8,13 +8,16 @@ Issues:
    Okay to construct 15/16 and then make tet-vav/etc?
 """
 import dataclasses
-import re
-import regex
-import math
-from typing import List
 import itertools
-from sefaria.system.decorators import memoized
+import math
+import re
+from typing import List
+
+import regex
 import structlog
+
+from sefaria.system.decorators import memoized
+
 logger = structlog.get_logger(__name__)
 
 

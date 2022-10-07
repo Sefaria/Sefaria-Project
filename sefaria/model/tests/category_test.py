@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import pytest
 import json
-from deepdiff import DeepDiff
 
-from sefaria.system.exceptions import InputError
-from sefaria.model import *
+import pytest
 import sefaria.model.category as c
+from deepdiff import DeepDiff
+from sefaria.model import *
+from sefaria.system.exceptions import InputError
 
 
 class Test_Categories(object):

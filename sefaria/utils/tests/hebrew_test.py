@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.utils import hebrew as h
 import pytest
+
+from sefaria.utils import hebrew as h
+
 
 def setup_module(module):
     global e

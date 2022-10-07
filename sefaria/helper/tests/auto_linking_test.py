@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from sefaria.model import *
-from sefaria.helper.link import rebuild_links_for_title, AutoLinkerFactory
 import sefaria.tracker as tracker
+
+from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_child
 
 
 class Test_AutoLinker(object):

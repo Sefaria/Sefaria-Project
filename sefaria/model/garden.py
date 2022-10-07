@@ -2,21 +2,19 @@
 
 import copy
 from itertools import groupby
-from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
-from . import abstract as abst
-from . import text
-from . import place
-from . import timeperiod
-from . import topic
-from . import link
-from . import user_profile
 
 import structlog
+from sefaria.search import query
+from sefaria.sheets import Sheet, get_sheets_by_topic, refine_ref_by_text
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+
+from . import abstract, link, place, text, timeperiod, topic, user_profile
+
 logger = structlog.get_logger(__name__)
 
 
-class Garden(abst.AbstractMongoRecord):
+class Garden(abstract.AbstractMongoRecord):
     """
     https://saravanamudaliar.files.wordpress.com/2014/03/102_5996.jpg
     """
@@ -212,8 +210,6 @@ class Garden(abst.AbstractMongoRecord):
             self.import_sheet(sheet["id"])
 
     def import_sheets_by_tag(self, tag):
-        from sefaria.sheets import get_sheets_by_topic
-
         self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": "מחבר דף"})
         self.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})
         sheet_list = get_sheets_by_topic(tag)
@@ -247,7 +243,6 @@ class Garden(abst.AbstractMongoRecord):
         return links
 
     def import_search(self, q):
-        from sefaria.search import query
         res = query(q)
 
         self.updateFilter("default", {"en": "Categories", "he": "קטגוריות"})
@@ -293,8 +288,6 @@ class Garden(abst.AbstractMongoRecord):
         return self
 
     def import_sheet(self, sheet_id, remove_tags=None):
-        from sefaria.sheets import Sheet, refine_ref_by_text
-
         sheet = Sheet().load({"id": sheet_id})
         if not sheet:
             logger.warning("Failed to load sheet {}".format(sheet_id))
@@ -342,11 +335,11 @@ class Garden(abst.AbstractMongoRecord):
         return self
 
 
-class GardenSet(abst.AbstractMongoSet):
+class GardenSet(abstract.AbstractMongoSet):
     recordClass = Garden
 
 
-class GardenStop(abst.AbstractMongoRecord):
+class GardenStop(abstract.AbstractMongoRecord):
     collection = 'garden_stop'
     track_pkeys = True
     pkeys = ["ref"]
@@ -509,11 +502,11 @@ class GardenStop(abst.AbstractMongoRecord):
     def get_all_tags(self):
         return self.tags
 
-class GardenStopSet(abst.AbstractMongoSet):
+class GardenStopSet(abstract.AbstractMongoSet):
     recordClass = GardenStop
 
 
-class GardenStopRelation(abst.AbstractMongoRecord):
+class GardenStopRelation(abstract.AbstractMongoRecord):
     collection = 'garden_rel'
     required_attrs = [
         'garden'
@@ -522,7 +515,7 @@ class GardenStopRelation(abst.AbstractMongoRecord):
 
     ]
 
-class GardenStopRelationSet(abst.AbstractMongoSet):
+class GardenStopRelationSet(abstract.AbstractMongoSet):
     recordClass = GardenStopRelation
 
 

@@ -1,16 +1,22 @@
+import math
 import re
-from tqdm import tqdm
-from pymongo import UpdateOne, InsertOne
-from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
-from sefaria.model import *
-from sefaria.system.exceptions import InputError
-from sefaria.model.topic import TopicLinkHelper
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
+from itertools import chain
+from statistics import mean, stdev
+from typing import Optional, Union
 
 import structlog
+from pymongo import InsertOne, UpdateOne
+from sefaria.model import *
+from sefaria.model.topic import TopicLinkHelper
+from sefaria.pagesheetrank import pagerank_rank_ref_list
+from sefaria.recommendation_engine import RecommendationEngine
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import strip_cantillation
+from tqdm import tqdm
 
 logger = structlog.get_logger(__name__)
 
@@ -296,10 +302,6 @@ def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
-    from sefaria.recommendation_engine import RecommendationEngine
-    from statistics import mean, stdev
-    import math
-
     OWNER_THRESH = 3
     TFIDF_CUTOFF = 0.15
     STD_DEV_CUTOFF = 2
@@ -443,7 +445,6 @@ def generate_sheet_topic_links():
 
 
 def calculate_tfidf_related_sheet_links(related_links):
-    import math
 
     MIN_SCORE_THRESH = 0.1  # min tfidf score that will be saved in db
 
@@ -489,7 +490,6 @@ def calculate_tfidf_related_sheet_links(related_links):
 
 
 def tokenize_words_for_tfidf(text, stopwords):
-    from sefaria.utils.hebrew import strip_cantillation
 
     try:
         text = TextChunk._strip_itags(text)
@@ -521,7 +521,7 @@ def tokenize_words_for_tfidf(text, stopwords):
 
 
 def calculate_mean_tfidf(ref_topic_links):
-    import math
+
     with open('data/hebrew_stopwords.txt', 'r') as fin:
         stopwords = set()
         for line in fin:
@@ -583,8 +583,6 @@ def calculate_mean_tfidf(ref_topic_links):
 
 
 def calculate_pagerank_scores(ref_topic_map):
-    from sefaria.pagesheetrank import pagerank_rank_ref_list
-    from statistics import mean
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
@@ -731,9 +729,6 @@ def update_intra_topic_link_orders(sheet_related_links):
     add relevance order to intra topic links in sidebar
     :return:
     """
-    import math
-    from itertools import chain
-
     uncats = Topic.get_uncategorized_slug_set()
     topic_link_dict = defaultdict(lambda: defaultdict(lambda: []))
     other_related_links = IntraTopicLinkSet({"generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}})

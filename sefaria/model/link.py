@@ -1,21 +1,20 @@
-"""
-link.py
-Writes to MongoDB Collection: links
-"""
+"""Writes to MongoDB Collection: links."""
 
 import regex as re
-from bson.objectid import ObjectId
-from sefaria.model.text import AbstractTextRecord, VersionSet
-from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
-from sefaria.system.database import db
-from . import abstract as abst
-from . import text
-
 import structlog
+from bson.objectid import ObjectId
+from sefaria.model.text import (AbstractTextRecord, VersionSet,
+                                prepare_index_regex_for_dependency_process)
+from sefaria.system.exceptions import (BookNameError, DuplicateRecordError,
+                                       InputError)
+
+from . import abstract, text
+from .text import re as reg_reg
+
 logger = structlog.get_logger(__name__)
 
 
-class Link(abst.AbstractMongoRecord):
+class Link(abstract.AbstractMongoRecord):
     """
     A link between two texts (or more specifically, two references)
     """
@@ -212,7 +211,7 @@ class Link(abst.AbstractMongoRecord):
                 return None
 
 
-class LinkSet(abst.AbstractMongoSet):
+class LinkSet(abstract.AbstractMongoSet):
     recordClass = Link
 
     def __init__(self, query_or_ref={}, page=0, limit=0):
@@ -339,7 +338,6 @@ def process_index_title_change_in_links(indx, **kwargs):
     print("Cascading Links {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in text.Ref(indx.title).regex(as_list=True)]
     queries = [{'refs': {'$regex': pattern}} for pattern in patterns]
@@ -358,7 +356,6 @@ def process_index_title_change_in_links(indx, **kwargs):
 
 
 def process_index_delete_in_links(indx, **kwargs):
-    from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     LinkSet({"refs": {"$regex": pattern}}).delete()
 

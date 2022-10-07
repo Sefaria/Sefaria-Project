@@ -3,9 +3,11 @@ database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
 import sys
-from sefaria.settings import *
+
 import pymongo
 from pymongo.errors import OperationFailure
+
+from sefaria.settings import *
 
 if hasattr(sys, '_doc_build'):
     db = ""

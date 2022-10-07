@@ -1,4 +1,5 @@
 import pytest
+
 from sefaria.model.link import get_link_counts
 
 

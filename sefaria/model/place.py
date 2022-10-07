@@ -1,13 +1,16 @@
 
 import geojson
-from . import abstract as abst
-from . import schema
+import structlog
+
 from sefaria.system.exceptions import InputError
 
-import structlog
+from . import abstract
+from . import schema
+
 logger = structlog.get_logger(__name__)
 
-class Place(abst.AbstractMongoRecord):
+
+class Place(abstract.AbstractMongoRecord):
     """
     Homo Sapiens
     """
@@ -63,7 +66,7 @@ class Place(abst.AbstractMongoRecord):
 
 
 
-class PlaceSet(abst.AbstractMongoSet):
+class PlaceSet(abstract.AbstractMongoSet):
     recordClass = Place
 
     def asGeoJson(self, with_polygons=False, as_string=False):

@@ -4,17 +4,16 @@ import sys
 from datetime import datetime
 from functools import wraps
 
-from django.http import HttpRequest
+import structlog
 from django.core.cache import DEFAULT_CACHE_ALIAS
+from django.http import HttpRequest
 
 from sefaria import settings
 
-import structlog
 logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
-    from django.core.cache import cache
-    from django.core.cache import caches
+    from django.core.cache import cache, caches
 
 SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 

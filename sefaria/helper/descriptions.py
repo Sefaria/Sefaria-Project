@@ -1,17 +1,15 @@
 # encoding=utf-8
 
-
-import re
 import csv
-import requests
-from io import StringIO
+import re
 from collections import defaultdict
+from io import StringIO
 
-from sefaria.system.database import db
+import requests
 from sefaria.model import *
-from sefaria.system.exceptions import DuplicateRecordError
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-
+from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError
 
 
 def update_authors_data():

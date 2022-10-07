@@ -1,16 +1,16 @@
-from functools import wraps, partial
-
-from django.http import HttpResponse, Http404
-from django.template import RequestContext
-from django.shortcuts import render_to_response
-
-from sefaria.client.util import jsonResponse
-import sefaria.system.exceptions as exps
-import sefaria.settings
-
 import collections
+from functools import partial, wraps
+
 import bleach
 import structlog
+from django.http import Http404, HttpResponse
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+
+import sefaria.settings
+import sefaria.system.exceptions as exps
+from sefaria.client.util import jsonResponse
+
 logger = structlog.get_logger(__name__)
 
 

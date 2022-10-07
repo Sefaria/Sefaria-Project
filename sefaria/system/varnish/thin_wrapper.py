@@ -1,9 +1,11 @@
 # Varnish wrapper that does not depend on core code.  Used for the multiserver monitor.
 
-from .common import ban_url, purge_url, FRONT_END_URL
+import structlog
+
 from sefaria.utils.util import graceful_exception
 
-import structlog
+from .common import FRONT_END_URL, ban_url, purge_url
+
 logger = structlog.get_logger(__name__)
 
 

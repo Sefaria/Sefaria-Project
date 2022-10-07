@@ -1,9 +1,7 @@
-"""
-chatroom.py
-Writes to MongoDB Collection: chatrooms
-"""
+"""Writes to MongoDB Collection: chatrooms."""
 
-from . import abstract as abst
+from . import abstract
+
 
 class Chatroom(abst.AbstractMongoRecord):
     """
@@ -23,10 +21,10 @@ class Chatroom(abst.AbstractMongoRecord):
         return self
 
 
-class ChatroomSet(abst.AbstractMongoSet):
+class ChatroomSet(abstract.AbstractMongoSet):
     recordClass = Chatroom
 
-class Message(abst.AbstractMongoRecord):
+class Message(abstract.AbstractMongoRecord):
     collection = 'messages'
 
     required_attrs = [
@@ -39,7 +37,7 @@ class Message(abst.AbstractMongoRecord):
     def client_contents(self):
         return self.contents()
 
-class MessageSet(abst.AbstractMongoSet):
+class MessageSet(abstract.AbstractMongoSet):
     recordClass = Message
 
     def client_contents(self):

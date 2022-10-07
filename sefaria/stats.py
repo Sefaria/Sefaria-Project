@@ -1,14 +1,15 @@
 import re
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 from random import randrange
 
-from sefaria.model import *
 from django.contrib.auth.models import User
-from sefaria.system.exceptions import InputError
+
+from sefaria.model import *
 from sefaria.sheets import save_sheet, sheet_topics_counts
-from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
+from sefaria.utils.util import strip_tags
 
 
 class SheetStats(object):

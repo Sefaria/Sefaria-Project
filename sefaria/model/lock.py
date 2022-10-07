@@ -1,5 +1,5 @@
 """
-lock.py - Edit Locks for Sefaria texts.
+Edit Locks for Sefaria texts.
 
 Writes to MongoDB Collection: locks
 
@@ -13,12 +13,12 @@ E.g., locking "Genesis 4" will probably break something.
 
 import datetime
 
-from . import abstract as abst
+from . import abstract
 
 LOCK_TIMEOUT = 300  # seconds after which locks expire
 
 
-class Lock(abst.AbstractMongoRecord):
+class Lock(abstract.AbstractMongoRecord):
     collection = 'locks'
     required_attrs = [
         "ref",
@@ -30,7 +30,7 @@ class Lock(abst.AbstractMongoRecord):
     optional_attrs = []
 
 
-class LockSet(abst.AbstractMongoSet):
+class LockSet(abstract.AbstractMongoSet):
     recordClass = Lock
 
 

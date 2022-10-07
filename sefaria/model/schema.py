@@ -1,10 +1,28 @@
 # -*- coding: utf-8 -*-
 import copy
 import dataclasses
-from typing import Optional, List
-
-import structlog
 from functools import reduce
+from typing import Optional
+
+import regex
+import structlog
+from sefaria.model import library
+from sefaria.model.lexicon import LexiconEntrySet
+from sefaria.system.database import db
+from sefaria.system.exceptions import (DictionaryEntryNotFoundError,
+                                       IndexSchemaError, InputError,
+                                       SheetNotFoundError)
+from sefaria.utils.hebrew import (decode_hebrew_numeral, encode_hebrew_daf,
+                                  encode_hebrew_numeral,
+                                  encode_small_hebrew_numeral,
+                                  get_prefixless_inds, hebrew_starts_with,
+                                  hebrew_term, sanitize)
+from sefaria.utils.util import text_preview
+
+from . import abstract, text, version_state
+from .lexicon import Lexicon, LexiconEntrySubClassMapping
+from .linker import MatchTemplate, MatchTemplateTrie, SectionContext
+
 logger = structlog.get_logger(__name__)
 
 try:
@@ -14,13 +32,6 @@ except ImportError:
     logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
-import regex
-from . import abstract as abst
-from sefaria.system.database import db
-from sefaria.model.lexicon import LexiconEntrySet
-from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
-from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
-from sefaria.utils.talmud import daf_to_section
 
 """
                 -----------------------------------------
@@ -208,8 +219,6 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
     def _process_terms(self):
         # To be called after raw data load
-        from sefaria.model import library
-
         if self.sharedTitle:
             term = library.get_term(self.sharedTitle)
             try:
@@ -228,7 +237,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             return 1
 
 
-class Term(abst.AbstractMongoRecord, AbstractTitledObject):
+class Term(abstract.AbstractMongoRecord, AbstractTitledObject):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
     Examples:  Noah, Perek HaChovel, Even HaEzer
@@ -285,11 +294,11 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
         return t.get_primary_title(lang=lang) if t else term
 
 
-class TermSet(abst.AbstractMongoSet):
+class TermSet(abstract.AbstractMongoSet):
     recordClass = Term
 
 
-class TermScheme(abst.AbstractMongoRecord):
+class TermScheme(abstract.AbstractMongoRecord):
     """
     A TermScheme is a category of terms.
     Example: Parasha, Perek
@@ -309,7 +318,7 @@ class TermScheme(abst.AbstractMongoRecord):
         return TermSet({"scheme": self.name})
 
 
-class TermSchemeSet(abst.AbstractMongoSet):
+class TermSchemeSet(abstract.AbstractMongoSet):
     recordClass = TermScheme
 
 
@@ -791,7 +800,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
     def ref_part_title_trie(self, lang: str):
-        from .linker import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
     def validate(self):
@@ -847,7 +855,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return d
 
     def get_match_templates(self):
-        from .linker import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
 
@@ -1100,7 +1107,6 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         Does the address at index `section_index` match the address in `section_context`?
         """
-        from .linker import SectionContext
         assert isinstance(section_context, SectionContext)
         if self.depth == 0: return False
         addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])
@@ -1133,7 +1139,7 @@ class DiburHamatchilMatch:
         return self.order_key() <= other.order_key()
 
 
-class DiburHamatchilNode(abst.AbstractMongoRecord):
+class DiburHamatchilNode(abstract.AbstractMongoRecord):
     """
     Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
     """
@@ -1145,14 +1151,13 @@ class DiburHamatchilNode(abst.AbstractMongoRecord):
     ]
 
     def fuzzy_match_score(self, lang, raw_ref_part) -> DiburHamatchilMatch:
-        from sefaria.utils.hebrew import hebrew_starts_with
         for dh, dh_index in raw_ref_part.get_dh_text_to_match(lang):
             if hebrew_starts_with(self.dibur_hamatchil, dh):
                 return DiburHamatchilMatch(1.0, dh, dh_index)
         return DiburHamatchilMatch(0.0, None, dh_index)
 
 
-class DiburHamatchilNodeSet(abst.AbstractMongoSet):
+class DiburHamatchilNodeSet(abstract.AbstractMongoSet):
     recordClass = DiburHamatchilNode
 
     def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9) -> List[DiburHamatchilMatch]:
@@ -1194,8 +1199,6 @@ class ArrayMapNode(NumberedTitledTreeNode):
         if kwargs.get("expand_refs"):
             if getattr(self, "includeSections", False):
                 # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
-                from . import text
-
                 refs         = text.Ref(self.wholeRef).split_spanning_ref()
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
@@ -1219,9 +1222,6 @@ class ArrayMapNode(NumberedTitledTreeNode):
 
     # Move this over to Ref and cache it?
     def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
-        from . import text
-        from sefaria.utils.util import text_preview
-
         oref = text.Ref(tref)
         if oref.is_spanning():
             oref = oref.first_spanned_ref()
@@ -1245,7 +1245,6 @@ class ArrayMapNode(NumberedTitledTreeNode):
             super(ArrayMapNode, self).validate()
 
     def ref(self):
-        from . import text
         return text.Ref(self.wholeRef)
 
 
@@ -1372,7 +1371,6 @@ class SchemaNode(TitledTreeNode):
         if self.index.has_alt_structures():
             res['alts'] = {}
             if not self.children: #preload text and pass it down to the preview generation
-                from . import text
                 he_text_ja = text.TextChunk(self.ref(), "he").ja()
                 en_text_ja = text.TextChunk(self.ref(), "en").ja()
             else:
@@ -1416,7 +1414,6 @@ class SchemaNode(TitledTreeNode):
         return self.address()[1:]
 
     def ref(self):
-        from . import text
         d = {
             "index": self.index,
             "book": self.full_title("en"),
@@ -1435,9 +1432,6 @@ class SchemaNode(TitledTreeNode):
     def last_section_ref(self):
         if self.children:
             return self.ref()
-
-        from . import version_state
-        from . import text
 
         sn = version_state.StateNode(snode=self)
         sections = [i + 1 for i in sn.ja("all").last_index(self.depth - 1)]
@@ -1731,7 +1725,6 @@ class DictionaryEntryNode(TitledTreeNode):
 
     # This is identical to SchemaNode.ref().  Inherit?
     def ref(self):
-        from . import text
         d = {
             "index": self.index,
             "book": self.full_title("en"),
@@ -1760,8 +1753,6 @@ class DictionaryNode(VirtualNode):
         :return:
         """
         super(DictionaryNode, self).__init__(serial, **kwargs)
-
-        from .lexicon import LexiconEntrySubClassMapping, Lexicon
 
         self.lexicon = Lexicon().load({"name": self.lexiconName})
 
@@ -1817,7 +1808,6 @@ class DictionaryNode(VirtualNode):
 
     # This is identical to SchemaNode.ref() and DictionaryEntryNode.ref().  Inherit?
     def ref(self):
-        from . import text
         d = {
             "index": self.index,
             "book": self.full_title("en"),
@@ -1928,7 +1918,6 @@ class SheetNode(NumberedTitledTreeNode):
         return None
 
     def ref(self):
-        from . import text
         d = {
             "index": self.index,
             "book": self.full_title("en"),
@@ -2111,8 +2100,6 @@ class AddressType(object):
         :param fromSections: optional. in case of parsing toSections, these represent the sections. Used for parsing edge-case of toSections='b' which is relative to sections
         :param strip_prefixes: optional. if true, consider possibilities when stripping potential prefixes
         """
-        from sefaria.utils.hebrew import get_prefixless_inds
-
         sections = []
         toSections = []
         addr_classes = []

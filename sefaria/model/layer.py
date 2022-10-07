@@ -1,15 +1,13 @@
-"""
-layer.py
-Writes to MongoDB Collection: layers
-"""
+"""Writes to MongoDB Collection: layers."""
 from bson.objectid import ObjectId
 
-from . import abstract as abst
-from sefaria.model.text import Ref
 from sefaria.model.note import Note, NoteSet
+from sefaria.model.text import Ref
+
+from . import abstract
 
 
-class Layer(abst.AbstractMongoRecord):
+class Layer(abstract.AbstractMongoRecord):
     """
     A collection of notes and sources.
     """
@@ -87,7 +85,7 @@ class Layer(abst.AbstractMongoRecord):
         return listeners
 
 
-class LayerSet(abst.AbstractMongoSet):
+class LayerSet(abstract.AbstractMongoSet):
     recordClass = Layer
 
 

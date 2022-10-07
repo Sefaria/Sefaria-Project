@@ -1,7 +1,10 @@
 import pytest
-from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
 from sefaria.model.text import Ref
+from sefaria.model.topic import (IntraTopicLink, IntraTopicLinkSet,
+                                 RefTopicLink, RefTopicLinkSet, Topic,
+                                 TopicLinkHelper, TopicSet)
 from sefaria.system.database import db
+from sefaria.system.exceptions import DuplicateRecordError
 
 
 def make_topic(slug):
@@ -177,7 +180,6 @@ class TestTopicLinkHelper(object):
 class TestIntraTopicLink(object):
 
     def test_validate(self, topic_graph):
-        from sefaria.system.exceptions import DuplicateRecordError, InputError
 
         attrs = {
             'fromTopic': '1',
@@ -300,7 +302,6 @@ class TestRefTopicLink(object):
         l.delete()
 
     def test_duplicate(self, topic_graph):
-        from sefaria.system.exceptions import DuplicateRecordError
 
         attrs = {
             'ref': 'Genesis 1:1',

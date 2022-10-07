@@ -1,9 +1,10 @@
-from PIL import Image, ImageDraw, ImageFont
-import textwrap
-from bidi.algorithm import get_display
-import re
-from django.http import HttpResponse
 import io
+import re
+import textwrap
+
+from bidi.algorithm import get_display
+from django.http import HttpResponse
+from PIL import Image, ImageDraw, ImageFont
 
 palette = { # [(bg), (font)]
     "Commentary": [(75, 113, 183), (255, 255, 255)],

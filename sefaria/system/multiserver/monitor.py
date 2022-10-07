@@ -1,13 +1,16 @@
 import json
 import time
 
-from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
-
 import structlog
+
+from sefaria.settings import (MULTISERVER_REDIS_CONFIRM_CHANNEL,
+                              MULTISERVER_REDIS_EVENT_CHANNEL)
+
 logger = structlog.get_logger(__name__)
 
-from .messaging import MessagingNode
 from sefaria.system.varnish.thin_wrapper import invalidate_title
+
+from .messaging import MessagingNode
 
 
 class MultiServerMonitor(MessagingNode):

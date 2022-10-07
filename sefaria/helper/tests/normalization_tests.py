@@ -1,6 +1,11 @@
+import re
+
 import django
+from sefaria.helper.normalization import (ITagNormalizer, NormalizerComposer,
+                                          ReplaceNormalizer, TextSanitizer,
+                                          char_indices_from_word_indices)
+
 django.setup()
-from sefaria.helper.normalization import *
 
 
 def test_itag_normalizer():

@@ -1,20 +1,27 @@
 # coding=utf-8
-from urllib.parse import urlparse
-import regex as re
 from collections import defaultdict
+from urllib.parse import urlparse
+
+import bleach
+import regex as re
+import structlog
+
+from sefaria.system.cache import in_memory_cache
+from sefaria.system.database import db
 
 from . import abstract as abst
 from . import text
-from sefaria.system.database import db
-from sefaria.system.cache import in_memory_cache
-import bleach
-import structlog
+
 logger = structlog.get_logger(__name__)
 from collections import Counter
-from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
-from sefaria.system.exceptions import InputError
+
 from tqdm import tqdm
+
+from sefaria.system.exceptions import InputError
+from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
+
+
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 

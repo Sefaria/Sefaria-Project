@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
 from sefaria.system.exceptions import BookNameError
 from sefaria.utils.testing_utils import *
 

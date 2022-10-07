@@ -1,14 +1,12 @@
 """
-blocking.py - handle block relationships between users
+Handle block relationships between users
 
 Writes to MongoDB Collection: blocking
 """
 from datetime import datetime
 
-from sefaria.system.database import db
-from sefaria.system.cache import django_cache
-
 import structlog
+from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 

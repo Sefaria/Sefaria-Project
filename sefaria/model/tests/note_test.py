@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import pytest
-import sefaria.model as m
-from sefaria.system.exceptions import InputError
+
+from sefaria import model
 
 
 class Test_Note(object):
 
     def test_save(self):
-        n = m.Note({
+        n = model.Note({
             "text": "what a beautiful moment <333",
             "public": False,
             "owner": 1,

@@ -1,6 +1,6 @@
 
-from structlog.processors import _figure_out_exc_info
 from structlog._frames import _format_exception
+from structlog.processors import _figure_out_exc_info
 
 
 def log_exception_info(logger, method_name, event_dict):

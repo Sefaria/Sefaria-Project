@@ -2,10 +2,10 @@
 """
 Miscellaneous functions for Sefaria.
 """
-from datetime import datetime
-from html.parser import HTMLParser
 import re
+from datetime import datetime
 from functools import wraps
+from html.parser import HTMLParser
 from itertools import zip_longest
 
 epoch = datetime.utcfromtimestamp(0)
@@ -68,6 +68,7 @@ def list_chunks(l, n):
 #checks if a file is in directory
 def in_directory(file, directory):
     import os.path
+
     # make both absolute
     directory = os.path.join(os.path.realpath(directory), '')
     file = os.path.realpath(file)
@@ -440,8 +441,8 @@ def get_all_subclass_attribute(cls, attr):
 
 def get_size(obj, seen=None):
     """Recursively finds size of objects in bytes"""
-    import sys
     import inspect
+    import sys
     size = sys.getsizeof(obj)
     if seen is None:
         seen = set()

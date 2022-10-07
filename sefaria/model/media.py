@@ -1,19 +1,17 @@
 # coding=utf-8
-from urllib.parse import urlparse
-import regex as re
-from datetime import datetime
-from collections import defaultdict
 
-from . import abstract as abst
-from . import text
-from sefaria.system.database import db
+import regex as re
+import structlog
+
 from sefaria.model.text import Ref
 
-import structlog
+from . import abstract
+from . import text
+
 logger = structlog.get_logger(__name__)
 
 
-class Media(abst.AbstractMongoRecord):
+class Media(abstract.AbstractMongoRecord):
     """
     Media for sidebar connection pannel.
     """
@@ -48,7 +46,7 @@ class Media(abst.AbstractMongoRecord):
         t['description_he'] = d['description_he']
         return t
 
-class MediaSet(abst.AbstractMongoSet):
+class MediaSet(abstract.AbstractMongoSet):
     recordClass = Media
 
 def get_media_for_ref(tref):

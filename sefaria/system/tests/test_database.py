@@ -1,9 +1,11 @@
 
-import sefaria.system.database as d
 import pymongo
-import sefaria.model.lock as lock
-from sefaria.settings import *
 import pytest
+
+import sefaria.model.lock as lock
+import sefaria.system.database as d
+from sefaria.settings import *
+
 
 #This one is purposefully circumvented on Travis, to speed up build time.
 @pytest.mark.xfail(reason="unknown")

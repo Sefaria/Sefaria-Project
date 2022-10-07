@@ -1,9 +1,10 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 from datetime import timedelta
-import structlog
-import sefaria.system.logging as sefaria_logging
 
+import structlog
+
+import sefaria.system.logging as sefaria_logging
 
 # These are things you need to change!
 

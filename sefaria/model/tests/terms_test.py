@@ -4,6 +4,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
+
 class Test_Terms_Validation(object):
     @classmethod
     def setup_class(cls):

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import django
-django.setup()
 import pytest
 import regex as re
+from sefaria import model
 from sefaria.utils.hebrew import is_hebrew
-import sefaria.model as m
 
+django.setup()
 
 
 class In(object):
@@ -36,7 +36,7 @@ class In(object):
         match = self._do_search(self._needle, self._haystack)
         if not match:
             return False
-        if m.Ref(match.group(1)).normal() == result:
+        if model.Ref(match.group(1)).normal() == result:
             return True
         else:
             print("Mismatched.  Found: {}, which normalizes to: {}, not {}".format(match.group(1), m.Ref(match.group(1)).normal(), result))
@@ -44,15 +44,15 @@ class In(object):
 
     def finds_multiple(self, result):
         lang = "he" if is_hebrew(self._needle) else "en"
-        for title_match in m.library.all_titles_regex(lang, citing_only=False).finditer(self._haystack):
+        for title_match in model.library.all_titles_regex(lang, citing_only=False).finditer(self._haystack):
             match = self._do_search(self._needle, self._haystack[title_match.start():])
             if not match:
                 return False
-            if m.Ref(match.group(1)).normal() in result:
+            if model.Ref(match.group(1)).normal() in result:
                 return True
             else:
                 print("Mismatched.  Found: {}, which normalizes to: {}, which is not in {}".format(match.group(1),
-                                                                                       m.Ref(match.group(1)).normal(),
+                                                                                       model.Ref(match.group(1)).normal(),
                                                                                        result))
                 return False
 
@@ -61,7 +61,7 @@ class In(object):
 
     def _do_search(self, needle, haystack):
         lang = "he" if is_hebrew(needle) else "en"
-        reg_str = m.library.get_regex_string(
+        reg_str = model.library.get_regex_string(
             needle, lang, for_js=True, anchored=False, capture_title=False, parentheses=self._with_parenthesis)
         reg = re.compile(reg_str, re.VERBOSE)
         match = reg.search(haystack)

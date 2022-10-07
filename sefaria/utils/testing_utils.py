@@ -1,6 +1,5 @@
 import sefaria.model as model
 
-
 """ SOME UTILS """
 
 def get_all_toc_locations(title, toc):

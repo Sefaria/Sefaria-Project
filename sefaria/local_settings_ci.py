@@ -1,8 +1,8 @@
 
-from datetime import timedelta
-import structlog
 import os
+from datetime import timedelta
 
+import structlog
 
 DATABASES = {
     'default': {
