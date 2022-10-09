@@ -5,8 +5,8 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-const SEFARIA_BASE_URL = 'http://localhost:8000';
-// const SEFARIA_BASE_URL = 'https://www.sefaria.org';
+// const SEFARIA_BASE_URL = 'http://localhost:8000';
+const SEFARIA_BASE_URL = 'https://www.sefaria.org';
 
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
@@ -258,14 +258,19 @@ const SELECTOR_WHITE_LIST = {
 
     function onFindRefs(resp) {
         const startTime = performance.now();
-        ns.debugData = resp.text.debugData;
-        resp.text.results.map((linkObj, iLinkObj) => {
-            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData, iLinkObj);
-        });
-        bindRefClickHandlers(resp.text.refData);
+        let numResults = 0;
+        ns.debugData = [];
+        for (let resultsKey of ['title', 'text']) {
+            numResults += resp[resultsKey].results.length;
+            ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
+            resp[resultsKey].results.map((linkObj, iLinkObj) => {
+                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj);
+            });
+            bindRefClickHandlers(resp[resultsKey].refData);
+        }
         const endTime = performance.now();
         if (ns.debug) {
-            alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
+            alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${numResults} citations wrapped`);
         }
     }
 
@@ -364,12 +369,15 @@ const SELECTOR_WHITE_LIST = {
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
-        ns.normalizedInputText = readableText + getWhiteListText(readableText);
+
+        ns.normalizedInputText = {
+            text: readableText + getWhiteListText(readableText),
+            title: readableObj.title,
+        };
 
         const postData = {
-            text: ns.normalizedInputText,
             url: window.location.href,
-            title: readableObj.title,
+            ...ns.normalizedInputText,
         }
 
         getCachedResults(postData).then(results => {
