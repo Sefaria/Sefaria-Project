@@ -233,7 +233,9 @@ const SELECTOR_WHITE_LIST = {
             if (searchText.length >= maxSearchLength) { break; }
         }
         if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
-            console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            if (ns.debug) {
+                console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            }
             return;
         }
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
@@ -261,9 +263,10 @@ const SELECTOR_WHITE_LIST = {
             wrapRef(linkObj, ns.normalizedInputText, resp.text.refData, iLinkObj);
         });
         bindRefClickHandlers(resp.text.refData);
-        const endTime = performance.now()
-        alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
-
+        const endTime = performance.now();
+        if (ns.debug) {
+            alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
+        }
     }
 
     function reportCitation(elem, event, ...rest) {
