@@ -362,6 +362,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
     url(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
+    url(r'^api/find-refs/(?P<hash>.+)$', sefaria_views.find_refs_cache_api),
     url(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),

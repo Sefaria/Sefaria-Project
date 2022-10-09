@@ -1,11 +1,12 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
+import md5 from 'md5';
 import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// const SEFARIA_BASE_URL = 'http://localhost:8000';
-const SEFARIA_BASE_URL = 'https://www.sefaria.org';
+const SEFARIA_BASE_URL = 'http://localhost:8000';
+// const SEFARIA_BASE_URL = 'https://www.sefaria.org';
 
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
@@ -301,6 +302,41 @@ const SELECTOR_WHITE_LIST = {
         });
     }
 
+    function handleAPIResult(resp) {
+        if (resp.ok || !ns.debug) {
+            return resp.json();
+        } else {
+            resp.text().then(text => alert(text));
+            return Promise.reject("Response not OK");
+        }
+    }
+
+    function getCachedResults({ text, title }) {
+        const hash = md5(`${title}|${text}`);
+        return new Promise((resolve, reject) => {
+            fetch(`${SEFARIA_BASE_URL}/api/find-refs/${hash}`, {method: 'GET'})
+                .then(handleAPIResult)
+                .then(resp => {
+                    if (resp.cacheHit) {
+                        resolve(resp.results);
+                    } else {
+                        resolve(null);
+                    }
+                });
+        });
+    }
+
+    function getUncachedResults(postData) {
+        return new Promise((resolve, reject) => {
+            fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${ns.maxParagraphs}`, {
+                method: 'POST',
+                body: JSON.stringify(postData)
+            })
+                .then(handleAPIResult)
+                .then(resp => resolve(resp));
+        });
+    }
+
     // public API
 
     ns.link = function({
@@ -319,30 +355,28 @@ const SELECTOR_WHITE_LIST = {
         maxParagraphs = 0,
     }) {
         ns.debug = debug;
+        ns.maxParagraphs = maxParagraphs;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = readableText + getWhiteListText(readableText);
+
         const postData = {
             text: ns.normalizedInputText,
             url: window.location.href,
             title: readableObj.title,
         }
 
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
-            method: 'POST',
-            body: JSON.stringify(postData)
-        })
-        .then(
-            (resp) => {
-                if (resp.ok) {
-                    resp.json().then(onFindRefs);
-                } else {
-                    resp.text().then(text => alert(text));
-                }
+        getCachedResults(postData).then(results => {
+            if (results) {
+                onFindRefs(results);
+            } else {
+                getUncachedResults(postData).then(onFindRefs);
             }
-        );
+        });
+
+
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
