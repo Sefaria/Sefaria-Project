@@ -230,9 +230,9 @@ class RawRefPart(TrieEntry, abst.Cloneable):
             dh = m.group(1)
             if self.potential_dh_continuation:
                 for i in range(len(self.potential_dh_continuation), 0, -1):
-                    yield f"{dh} {self.potential_dh_continuation[:i]}"
+                    yield f"{dh} {self.potential_dh_continuation[:i]}", i
             # no matter what yield just the dh
-            yield dh
+            yield dh, 0
 
     @property
     def is_context(self):
@@ -387,21 +387,25 @@ class RawRef(abst.Cloneable):
         """
         Preprocessing function to merge together Daf and Amud parts if they mistakenly are recognized as separate
         """
+        addr_talmud = schema.AddressTalmud(0)
+        addr_integer = schema.AddressInteger(0)
         merged_parts = raw_ref_parts.copy()
         inds_to_del = []
-        for ipart, part in enumerate(raw_ref_parts[:-1]):
-            if part.type != RefPartType.NUMBERED: continue
-            addr_talmud = schema.AddressTalmud(0)
-            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            if schema.AddressTalmud not in addr_classes: continue
-            _, _, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
-            next_part = raw_ref_parts[ipart+1]
-            proposed_text = f"{part.text} {next_part.text}"
-            _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
-            if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
-            part.merge(next_part)
-            inds_to_del += [ipart + 1]
+        for ipart, part in enumerate(raw_ref_parts):
+            if part.type == RefPartType.RANGE:
+                part.sections = RawRef._merge_daf_amud_parts(lang, part.sections)
+                part.toSections = RawRef._merge_daf_amud_parts(lang, part.toSections)
+            elif part.type == RefPartType.NUMBERED and (ipart < len(raw_ref_parts) - 1):
+                _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+                if schema.AddressTalmud not in addr_classes: continue
+                _, _, addr_classes = addr_integer.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
+                if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
+                next_part = raw_ref_parts[ipart+1]
+                proposed_text = f"{part.text} {next_part.text}"
+                _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
+                if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
+                part.merge(next_part)
+                inds_to_del += [ipart + 1]
         for i in reversed(inds_to_del):
             del merged_parts[i]
         return merged_parts
@@ -532,7 +536,7 @@ class ResolvedRef(abst.Cloneable):
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
@@ -540,6 +544,46 @@ class ResolvedRef(abst.Cloneable):
         self.context_ref = context_ref
         self.context_type = context_type
         self._thoroughness = _thoroughness
+        self._matched_dh_map = _matched_dh_map or {}
+
+    @property
+    def pretty_text(self) -> str:
+        """
+        Return text of underlying RawRef with modifications to make it nicer
+        Currently
+        - adds ending parentheses if just outside span
+        - adds extra DH words that were matched but aren't in span
+        @return:
+        """
+        new_raw_ref_span = self._get_pretty_dh_span(self.raw_ref.span)
+        new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
+        return new_raw_ref_span.text
+
+    def _get_pretty_dh_span(self, curr_span) -> SpanOrToken:
+        curr_start, curr_end = span_inds(curr_span)
+        for dh_span in self._matched_dh_map.values():
+            temp_start, temp_end = span_inds(dh_span)
+            curr_start = temp_start if temp_start < curr_start else curr_start
+            curr_end = temp_end if temp_end > curr_end else curr_end
+
+        return curr_span.doc[curr_start:curr_end]
+
+    def _get_pretty_end_paren_span(self, curr_span) -> SpanOrToken:
+        import re
+
+        curr_start, curr_end = span_inds(curr_span)
+        if re.search(r'\([^)]+$', curr_span.text) is not None:
+            for temp_end in range(curr_end, curr_end+2):
+                if ")" not in curr_span.doc[temp_end].text: continue
+                curr_end = temp_end + 1
+                break
+
+        return curr_span.doc[curr_start:curr_end]
+
+    def _set_matched_dh(self, part: RawRefPart, potential_dh_token_idx: int):
+        if part.potential_dh_continuation is None: return
+        matched_dh_continuation = part.potential_dh_continuation[:potential_dh_token_idx]
+        self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
         for part in other.resolved_parts:
@@ -579,14 +623,18 @@ class ResolvedRef(abst.Cloneable):
     def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
-        Currently a very simplistic algorithm
+        Currently a simplistic algorithm
         If there is a DH match, return the corresponding ResolvedRef
         """
         if self._thoroughness < ResolutionThoroughness.HIGH and self.ref.is_book_level():
             return []
         best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
-        # TODO modify self with final dh
-        return [self.clone(resolved_parts=refined_parts.copy(), node=max_node, ref=text.Ref(max_node.ref)) for _, max_node, _ in best_matches]
+
+        if len(best_matches):
+            best_dh = max(best_matches, key=lambda x: x.order_key())
+            self._set_matched_dh(raw_ref_part, best_dh.potential_dh_token_idx)
+
+        return [self.clone(resolved_parts=refined_parts.copy(), node=dh_match.dh_node, ref=text.Ref(dh_match.dh_node.ref)) for dh_match in best_matches]
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
@@ -688,7 +736,7 @@ class ResolvedRef(abst.Cloneable):
                 matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
-    
+
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
         Returns list of resolved_parts according to criteria `include` and `exclude`
@@ -734,7 +782,12 @@ class ResolvedRef(abst.Cloneable):
         # return len(self.resolved_parts)
         # alternate sorting criteria that seems better than the above
         matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
-        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), self.num_resolved(include={ContextPart})
+
+        # this sort criteria solves the case where context is "Gen 1" and input is "Ibid 7". Prefer "Gen 7" over "Gen 1:7"
+        ibid_sections_match = 1
+        if self.context_type == ContextType.IBID:
+            ibid_sections_match = int(len(self.context_ref.sections) == len(self.ref.sections))
+        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), ibid_sections_match, self.num_resolved(include={ContextPart})
 
 
 class AmbiguousResolvedRef:
@@ -748,6 +801,11 @@ class AmbiguousResolvedRef:
             raise InputError("Length of `resolved_refs` must be at least 1")
         self.resolved_raw_refs = resolved_refs
         self.raw_ref = resolved_refs[0].raw_ref  # assumption is all resolved_refs share same raw_ref. expose at top level
+
+    @property
+    def pretty_text(self):
+        # assumption is first resolved refs pretty_text is good enough
+        return self.resolved_raw_refs[0].pretty_text
 
 
 class MatchTemplateTrie:
@@ -993,30 +1051,35 @@ class TermMatcher:
 
 class IbidHistory:
 
-    def __init__(self, last_n_to_store: int = 3):
-        self.last_n_to_store = last_n_to_store
-        self._last_match: Optional[text.Ref] = None
+    def __init__(self, last_n_titles: int = 3, last_n_refs: int = 3):
+        self.last_n_titles = last_n_titles
+        self.last_n_refs = last_n_refs
+        self._last_refs: List[text.Ref] = []
         self._last_titles: List[str] = []
         self._title_ref_map: Dict[str, text.Ref] = {}
 
-    def _get_last_match(self) -> Optional[text.Ref]:
-        return self._last_match
+    def _get_last_refs(self) -> List[text.Ref]:
+        return self._last_refs
 
     def _set_last_match(self, oref: text.Ref):
-        self._last_match = oref
+        self._last_refs += [oref]
         title = oref.index.title
         if title not in self._title_ref_map:
             self._last_titles += [title]
         self._title_ref_map[oref.index.title] = oref
 
-        # enforce last_n_to_store
-        if len(self._last_titles) > self.last_n_to_store:
+        # enforce last_n_titles
+        if len(self._last_titles) > self.last_n_titles:
             oldest_title = self._last_titles.pop(0)
             del self._title_ref_map[oldest_title]
 
-    last_match = property(_get_last_match, _set_last_match)
+        # enforce last_n_refs
+        if len(self._last_refs) > self.last_n_refs:
+            self._last_refs.pop(0)
 
-    def get_match_by_title(self, title: str) -> Optional[text.Ref]:
+    last_refs = property(_get_last_refs, _set_last_match)
+
+    def get_ref_by_title(self, title: str) -> Optional[text.Ref]:
         return self._title_ref_map.get(title, None)
 
 
@@ -1103,7 +1166,7 @@ class RefResolver:
                     # TODO can probably salvage parts of history if matches are ambiguous within one book
                     self.reset_ibid_history()
                 else:
-                    self._ibid_history.last_match = temp_resolved[-1].ref
+                    self._ibid_history.last_refs = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         self._map_normal_output_to_original_input(lang, input, resolved)
@@ -1245,13 +1308,22 @@ class RefResolver:
                 resolved_list += [AmbiguousResolvedRef(temp_resolved_list)]
             else:
                 resolved_list += temp_resolved_list
+
+        if len(resolved_list) == 0:
+            # support basic ref instantiation as fall-back
+            try:
+                ref = text.Ref(raw_ref.text)
+                resolved_list += [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
+            except:
+                pass
+
         return resolved_list
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
         'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
         context_full_matches = []
-        contexts = ((book_context_ref, ContextType.CURRENT_BOOK), (self._ibid_history.last_match, ContextType.IBID))
+        contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         # NOTE: removing graph context for now since I can't think of a case when it's helpful
         # for context_ref, context_type in contexts:
         #     context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
@@ -1359,7 +1431,7 @@ class RefResolver:
             # context
             # if unrefined_match already used context, make sure it continues to use it
             # otherwise, consider other possible context
-            context_ref_list = [book_context_ref, self._ibid_history.last_match] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
+            context_ref_list = [book_context_ref, self._ibid_history.get_ref_by_title(unrefined_match.ref.index.title)] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
             for context_ref, context_type in zip(context_ref_list, context_type_list):
                 matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
@@ -1476,16 +1548,8 @@ class RefResolver:
         """
         Applies some heuristics to remove false positives
         """
-        resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
-
         # remove matches that don't match all ref parts to avoid false positives
-        # used to only apply to context matches
-        def filter_context_matches(match: ResolvedRef) -> bool:
-            if match.num_resolved(include={ContextPart}) == 0:
-                # no context
-                # return True
-                pass
-
+        def filter_matches(match: ResolvedRef) -> bool:
             # make sure no explicit sections matched before context sections
             first_explicit_section = None
             for part in match.get_resolved_parts():
@@ -1508,8 +1572,13 @@ class RefResolver:
                     to_match_explicit.remove(part)
             return resolved_explicit == to_match_explicit
 
-        resolved_refs = list(filter(filter_context_matches, resolved_refs))
-        if len(resolved_refs) == 0: return resolved_refs
+        temp_resolved_refs = list(filter(filter_matches, resolved_refs))
+        if len(temp_resolved_refs) == 0:
+            temp_resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
+            temp_resolved_refs = list(filter(filter_matches, temp_resolved_refs))
+            if len(temp_resolved_refs) == 0:
+                return temp_resolved_refs
+        resolved_refs = temp_resolved_refs
 
         # if any context-free match uses all input parts, dont need to try context
         context_free_matches = list(filter(lambda m: m.context_ref is None and set(m.get_resolved_parts()) == set(m.raw_ref.parts_to_match), resolved_refs))
@@ -1525,7 +1594,7 @@ class RefResolver:
 
         # make unique
         max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
-        if self._thoroughness >= ResolutionThoroughness.HIGH:
+        if self._thoroughness >= ResolutionThoroughness.HIGH or len(max_resolved_refs) > 1:
             # remove matches that have empty refs
             max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
         return max_resolved_refs

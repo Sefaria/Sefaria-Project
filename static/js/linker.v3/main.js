@@ -5,7 +5,7 @@ import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
 // const SEFARIA_BASE_URL = 'http://localhost:8000';
-const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
+const SEFARIA_BASE_URL = 'https://www.sefaria.org';
 
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
@@ -13,6 +13,8 @@ const SELECTOR_WHITE_LIST = {
     "torah.etzion.org.il": ["p.footnote", "#maintext"],
     "haretzion.linnovate.co.il": ["p.footonote"],
     "www.mayim.org.il": [".footnotes.wpb_column"],
+    "daf-yomi.com": ["#oContent"],
+    "benyehuda.org": [".footnotes"],
 };
 
 (function(ns) {
@@ -314,6 +316,7 @@ const SELECTOR_WHITE_LIST = {
         dynamic = false,
         hidePopupsOnMobile = true,
         debug = false,
+        maxParagraphs = 0,
     }) {
         ns.debug = debug;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
@@ -328,7 +331,7 @@ const SELECTOR_WHITE_LIST = {
             title: readableObj.title,
         }
 
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}`, {
+        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
             method: 'POST',
             body: JSON.stringify(postData)
         })

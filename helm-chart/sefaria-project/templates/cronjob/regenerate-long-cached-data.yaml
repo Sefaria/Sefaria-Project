@@ -1,4 +1,4 @@
-{{- if ne .Values.sandbox "true" }}
+{{- if and (ne .Values.sandbox "true") ( .Values.cronJobs.regenerate.enabled )  }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob

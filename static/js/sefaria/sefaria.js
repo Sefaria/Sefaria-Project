@@ -509,11 +509,12 @@ Sefaria = extend(Sefaria, {
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
+    "jrb": {"name": "Judeo-Arabic", "nativeName": "ערביה יהודיה", "showTranslations": 0},
   },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
     const lookupVar = native ? "nativeName" : "name";
-    return Sefaria.ISOMap[code.toLowerCase()][lookupVar] || code; 
+    return Sefaria.ISOMap?.[code.toLowerCase()]?.[lookupVar] || code;
   },
   getHebrewTitle: function(slug) {
     return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ;
