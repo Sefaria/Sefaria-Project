@@ -34,7 +34,7 @@ web:
     googleClient:
       ref: google-client-secret
 linker:
-  enabled: true
+  enabled: false
   containerImage:
     imageRegistry:
     tag:
