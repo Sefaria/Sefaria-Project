@@ -1,5 +1,5 @@
 import spacy
-from sefaria.model.ref_part import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
+from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union, Optional
 from collections import defaultdict
@@ -171,7 +171,15 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False):
+def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
+    """
+
+    @param resolved:
+    @param with_text:
+    @param debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
+    @param max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
+    @return:
+    """
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -179,8 +187,9 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
         start_char, end_char = resolved_ref.raw_ref.char_indices
-        text = resolved_ref.raw_ref.text
+        text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
+        if not link_failed and resolved_refs[0].ref.is_book_level(): continue
         ref_results += [{
             "startChar": start_char,
             "endChar": end_char,
@@ -192,7 +201,7 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             if rr.ref is None: continue
             tref = rr.ref.normal()
             if tref in ref_data: continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text)
+            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text, max_segments)
         if debug:
             debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
@@ -206,22 +215,28 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False) -> dict:
+def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
+    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", max_segments)
+    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", max_segments)
     if with_text:
-        text_fam = text.TextFamily(oref, commentary=0, context=0, pad=False, stripItags=True)
-        he = text_fam.he
-        en = text_fam.text
         res.update({
             'he': he,
             'en': en,
+            'isTruncated': he_truncated or en_truncated,
         })
 
     return res
+
+
+def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
+    chunk = text.TextChunk(oref, lang=lang)
+    as_array = [chunk._strip_itags(s) for s in chunk.ja().flatten_to_array()]
+    return as_array[:max_segments or None], (len(as_array) > max_segments)
 
 
 def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:

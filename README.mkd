@@ -1,4 +1,3 @@
-## New Interfaces for Constitutional Texts
 
 [ContextUS](https://www.contextus.org) is an living repository of American constitutional texts.
 The underlying code is derived from [The Sefaria Project](http://www.github.com/Sefaria/Sefaria-Project).
