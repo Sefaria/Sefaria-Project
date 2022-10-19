@@ -18,7 +18,7 @@ backup:
     enabled: false
     version: 10.3
     prefix: ""
-    bucket: sefaria-mongo-backup
+    bucket: sefaria-user-backup
     serviceAccount: database-backup-write
 web:
   containerImage: 
