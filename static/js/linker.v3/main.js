@@ -15,6 +15,7 @@ const SELECTOR_WHITE_LIST = {
     "www.mayim.org.il": [".footnotes.wpb_column"],
     "daf-yomi.com": ["#oContent"],
     "benyehuda.org": [".footnotes"],
+    "daatemet.org.il": ["#main"],
 };
 
 (function(ns) {
