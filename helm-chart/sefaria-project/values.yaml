@@ -35,12 +35,20 @@ restore:
 
 # config to backup environment DB
 backup:
-  enabled: false
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: false
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+    version: 4.4
+  postgres:
+    enabled: false
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-mongo-backup
+    serviceAccount: database-backup-write
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
