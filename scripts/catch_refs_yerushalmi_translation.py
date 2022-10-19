@@ -8,7 +8,7 @@ from tqdm import tqdm
 from collections import defaultdict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.ref_part import ResolvedRef, RefPartType
+from sefaria.model.linker import ResolvedRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
 
 VTITLE = 'The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015'

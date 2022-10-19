@@ -101,24 +101,30 @@ def get_community_page_items(date=None, language="english", diaspora=True, refre
 
 
 def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
-  parashah = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora)
-  parashah_name = parashah["parasha"]
+  todays_data = get_todays_data(data, date) # First we want the row in the sheet representing today. Always.
+  weekend_reading = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora) # What is this week's torah reading on Saturday. Can be a special reading for Holiday.
+  parashah_name = weekend_reading["parasha"]
   parashah_topic = get_topic_by_parasha(parashah_name)
 
-  todays_data = None
-  for day_data in data:
-    if day_data["Date"] == date and day_data["Parashah"] == parashah_name:
-      todays_data = day_data
-      break
-  if not todays_data or not todays_data["Sheet URL"]:
+  if not todays_data or not (todays_data["Sheet URL"]):
     sheet = None
   else:
     sheet = sheet_with_customization(todays_data)
     if sheet:
-      sheet["heading"] = {
-        "en": "This Week's Torah Portion: " + parashah_name,
-        "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
-      }
+      if parashah_topic and todays_data["Parashah"] in [parashah_topic.parasha] + parashah_topic.get_titles():  # We have a matched official parasha to the day's entry in the sheet
+        parashah_name = parashah_topic.parasha
+        sheet["heading"] = {
+          "en": "This Week's Torah Portion: " + parashah_name,
+          "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
+        }
+      else:  
+        # We have a sheet row where the title doesn't match a known parasha. It might be a mid week holiday reading (doesnt appear in our parshiot db).
+        # Since this sheet column can now essentially be a custom block title, we dont know how to translate automatically, so
+        # this will also mostly rely on the fact that the Hebrew only shows up in Hebrew interface and Heb comms team can enter custom Hebrew to begin with.
+        sheet["heading"] = {
+          "en": "Torah Reading For: " + todays_data["Parashah"],
+          "he": "קריאת התורה ל:" + todays_data["Parashah"]
+        }
 
   if not parashah_topic and not sheet:
     return None
@@ -139,7 +145,7 @@ def get_featured_item(data, date):
     return None
 
   return {
-    "heading": todays_data["Block Title"],
+    "heading": todays_data["Block Title"], # This is never actually used and is confusing here (since it also appears inside the sheet object below). 
     "sheet": sheet
   }
 

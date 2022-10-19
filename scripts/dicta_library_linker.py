@@ -3,7 +3,7 @@ from functools import reduce
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation
-from sefaria.helper.ref_part import make_html
+from sefaria.helper.linker import make_html
 
 
 def get_text(dicta_obj):
