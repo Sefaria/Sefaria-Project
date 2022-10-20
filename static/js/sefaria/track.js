@@ -25,7 +25,8 @@ class Track {
                 'event_category': category,
                 'event_label': label,
                 'value': value,
-                'track_function': true
+                'track_ga_4': true,
+                'book':options?options['book']:'not sure of the book here' // where is page location coming from? that is where we want the book to come from... but it is being red from the
             });
         }
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
