@@ -5,12 +5,21 @@ previousServicesCount: "3"
 restore:
   enabled: false
 backup:
+  #legacy compat section, remove once deploy chart sufficienctly updated
   enabled: true
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: true
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+  postgres:
+    enabled: false
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
 web:
   containerImage: 
     imageRegistry:
