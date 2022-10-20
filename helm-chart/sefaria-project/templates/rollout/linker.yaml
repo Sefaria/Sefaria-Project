@@ -59,6 +59,7 @@ spec:
             topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      tolerations: {{ toYaml .Values.linker.tolerations | nindent 8 }}
       serviceAccountName: "{{ .Values.linker.serviceAccount }}"
       containers:
       - name: linker
@@ -187,6 +188,7 @@ spec:
         - name: school-lookup-data
           secret:
             secretName: {{ template "sefaria.secrets.schoolLookup" . }}
+            optional: true
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}
