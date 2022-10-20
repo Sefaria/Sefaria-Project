@@ -200,16 +200,11 @@ def source_text(source):
     """
     Recursive function to translate a source dictionary into text.
     """
-    content = [
-        source.get("customTitle", ""),
-        source.get("ref", ""),
-        source.get("text", {"he": ""}).get("he", ""),
-        source.get("text", {"en": ""}).get("en", ""),
-        source.get("comment", ""),
-        source.get("outside", ""),
-        ]
-    content = [strip_tags(c) for c in content]
-    text = " ".join(content)
+    str_fields = ["customTitle", "ref", "comment", "outsideText"]
+    dict_fields = ["text", "outsideBiText"]
+    content = [source.get(field, "") for field in str_fields]
+    content += [val for field in dict_fields for val in source.get(field, {}).values()]
+    text = " ".join([strip_tags(c) for c in content])
 
     if "subsources" in source:
         for s in source["subsources"]:
@@ -393,6 +388,24 @@ def put_sheet_mapping(index_name):
         }
     }
     index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
+
+def get_search_categories(oref, categories):
+    toc_tree = library.get_toc_tree()
+    cats = oref.index.categories
+
+    indexed_categories = categories  # the default
+
+    # get the full path of every cat along the way.
+    # starting w/ the longest,
+    # check if they're root swapped.
+    paths = [cats[:i] for i in range(len(cats), 0, -1)]
+    for path in paths:
+        cnode = toc_tree.lookup(path)
+        if getattr(cnode, "searchRoot", None) is not None:
+            # Use the specified searchRoot, with the rest of the category path appended.
+            indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+            break
+    return indexed_categories
 
 
 class TextIndexer(object):
@@ -597,21 +610,8 @@ class TextIndexer(object):
             return False
 
         oref = Ref(tref)
-        toc_tree = library.get_toc_tree()
-        cats = oref.index.categories
 
-        indexed_categories = categories  # the default
-
-        # get the full path of every cat along the way.
-        # starting w/ the longest,
-        # check if they're root swapped.
-        paths = [cats[:i] for i in range(len(cats), 0, -1)]
-        for path in paths:
-            cnode = toc_tree.lookup(path)
-            if getattr(cnode, "searchRoot", None) is not None:
-                # Use the specified searchRoot, with the rest of the category path appended.
-                indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
-                break
+        indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
         if tp is not None:

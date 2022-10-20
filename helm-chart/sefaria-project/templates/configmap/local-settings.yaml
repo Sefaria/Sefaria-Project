@@ -20,3 +20,5 @@ data:
   GLOBAL_WARNING: "{{ .Values.localSettings.GLOBAL_WARNING }}"
   GLOBAL_WARNING_MESSAGE: {{ .Values.localSettings.GLOBAL_WARNING_MESSAGE | quote }}
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
+  DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
+  SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"

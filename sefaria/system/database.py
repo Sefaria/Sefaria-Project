@@ -69,6 +69,9 @@ def ensure_indices(active_db=None):
         ('history', ["title"],{}),
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
+        ('index', ["categories.0"], {}),
+        ('index', ["order.0"], {}),
+        ('index', ["order.1"], {}),
         # ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
         ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
@@ -107,6 +110,7 @@ def ensure_indices(active_db=None):
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
+        ('texts', ["actualLanguage"], {}),
         ('topics', ["titles.text"], {}),
         ('topic_links', ["class"], {}),
         ('topic_links', ["expandedRefs"], {}),
@@ -142,6 +146,8 @@ def ensure_indices(active_db=None):
         ('manuscripts', ['slug'], {}),
         ('manuscripts', ['title'], {}),
         ('messages', [[("room_id", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]], {}),
+        ('vstate', ["title"], {}),
+        ('vstate', ["flags.enComplete"], {}),
     ]
 
     for col, args, kwargs in indices:

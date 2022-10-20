@@ -19,6 +19,7 @@ import {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
+  RabbisPage,
   DonatePage
 } from './StaticPages';
 import {
@@ -71,6 +72,7 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
+        translationsSlug:        props.initialTranslationsSlug
       };
     }
 
@@ -145,6 +147,7 @@ class ReaderApp extends Component {
       collectionName:          state.collectionName          || null,
       collectionSlug:          state.collectionSlug          || null,
       collectionTag:           state.collectionTag           || null,
+      translationsSlug:        state.translationsSlug        || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       showHighlight:           state.showHighlight           || null,
@@ -157,6 +160,7 @@ class ReaderApp extends Component {
       displaySettingsOpen:     false,
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
+      sidebarSearchQuery:      state.sidebarSearchQuery      || null,
       selectedNamedEntity:     state.selectedNamedEntity     || null,
       selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
@@ -185,10 +189,10 @@ class ReaderApp extends Component {
       $("a").not($(ReactDOM.findDOMNode(this)).find("a"))
         .on("click", this.handleInAppLinkClick);
     }
-    //Add a default handler on all (link) clicks that is set to fire first 
+    //Add a default handler on all (link) clicks that is set to fire first
     // and check if we need to just ignore other handlers because someone is doing ctrl+click or something.
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
-    // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift) 
+    // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
@@ -199,7 +203,7 @@ class ReaderApp extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
-    
+
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
@@ -407,9 +411,9 @@ class ReaderApp extends Component {
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
     const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
 
-    // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
+    // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -510,11 +514,16 @@ class ReaderApp extends Component {
             }
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
-            break;          
+            break;
           case "collectionsPublic":
             hist.title = Sefaria._("Collections") + " | " + Sefaria._(siteName);
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
+            break;
+          case "translationsPage":
+            hist.url   = "translations/" + state.translationsSlug;
+            hist.title = Sefaria.getHebrewTitle(state.translationsSlug);
+            hist.mode  = "translations";
             break;
           case "calendars":
             hist.title = Sefaria._("Learning Schedules") + " | " + Sefaria._(siteName);
@@ -582,6 +591,12 @@ class ReaderApp extends Component {
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
+        }
+        if (state.connectionsMode ==="SidebarSearch") {
+            state.refs = states[i-1].refs
+            if (state.sidebarSearchQuery) {
+              hist.sidebarSearchQuery = state.sidebarSearchQuery
+            }
         }
         if (state.connectionsMode === "Lexicon") {
           if (state.selectedWords.length) { hist.selectedWords = state.selectedWords; }
@@ -697,6 +712,9 @@ class ReaderApp extends Component {
           if (histories[1].selectedNamedEntity) {
             hist.url += "&namedEntity=" + histories[1].selectedNamedEntity;
           }
+          if (histories[1].sidebarSearchQuery) {
+            hist.url += "&sbsq=" + histories[1].sidebarSearchQuery;
+          }
           if (histories[1].selectedNamedEntityText) {
             hist.url += "&namedEntityText=" + encodeURIComponent(histories[1].selectedNamedEntityText);
           }
@@ -719,6 +737,9 @@ class ReaderApp extends Component {
           }
           if (histories[i].selectedWords) {
             hist.url += `&lookup${i}=${encodeURIComponent(histories[i].selectedWords)}`;
+          }
+          if (histories[i].sidebarSearchQuery) {
+            hist.url += `&sbsq{i}=${histories[i].sidebarSearchQuery}`;
           }
           if (histories[i].selectedNamedEntity) {
             hist.url += `&namedEntity${i}=${histories[i].selectedNamedEntity}`;
@@ -817,7 +838,7 @@ class ReaderApp extends Component {
       const state = history.state;
       if (scrollTop == state.scrollPosition) { return; }
       state.scrollPosition = scrollTop;
-      history.replaceState(state, window.location.href);      
+      history.replaceState(state, window.location.href);
     }, 300);
   }
   getDefaultPanelSettings() {
@@ -841,7 +862,7 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container and body so that the App can function as a  
+    // Applies CSS classes to the React container and body so that the App can function as a
     // header only on top of a static page.
     if (this.props.headerMode) {
       if (this.state.panels && this.state.panels.length) {
@@ -942,10 +963,24 @@ class ReaderApp extends Component {
   clearNamedEntity(n) {
     this.setPanelState(n, {selectedNamedEntity: null, selectedNamedEntityText: null});
   }
+  setSidebarSearchQuery(n, query) {
+    this.setPanelState(n, {sidebarSearchQuery: query});
+  }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     this.replacePanel(n, ref, currVersions, options);
   }
+  handleSidebarSearchClick(n, ref, currVersions, options) {
+    const refs = typeof ref == "string" ? [ref] : ref;
+    const new_opts = {
+                      scrollToHighlighted: true,
+                      refs: refs,
+                      highlightedRefs: refs,
+                      showHighlight: true,
+                      currentlyVisibleRef: refs,
+                    }
+    this.replacePanel(n-1, ref, currVersions, new_opts);
+}
   getHTMLLinkParentOfEventTarget(event){
     //get the lowest level parent element of an event target that is an HTML link tag. Or Null.
     let target = event.target,
@@ -954,7 +989,7 @@ class ReaderApp extends Component {
     while (parent) {
       if(parent.nodeName == 'A'){
         return parent
-      } 
+      }
       else if (parent.parentNode === outmost) {
         return null;
       }
@@ -1009,12 +1044,13 @@ class ReaderApp extends Component {
     //All links within sheet content should open in a new panel
     const isSheet = !!(linkTarget.closest(".sheetItem"))
     const replacePanel = !(isSheet)
-    const handled = this.openURL(href,replacePanel);
+    const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
+    const handled = this.openURL(href,replacePanel, isTranslationsPage);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(href, replace=true) {
+  openURL(href, replace=true, overrideContentLang=false) {
     // Attempts to open `href` in app, return true if successful.
     href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
     let url;
@@ -1031,6 +1067,11 @@ class ReaderApp extends Component {
     }
     const path = decodeURI(url.pathname);
     const params = url.searchParams;
+    if(overrideContentLang && params.get('lang')) {
+      let lang = params.get("lang")
+      lang = lang === "bi" ? "bilingual" : lang === "en" ? "english" : "hebrew";
+      this.setDefaultOption("language", lang)
+    }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
     if (path === "/") {
       this.showLibrary();
@@ -1086,6 +1127,9 @@ class ReaderApp extends Component {
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13), params.get("tag"));
 
+    } else if (path.match(/^\/translations\/.+/)) {
+      let slug = path.slice(14);
+      this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1))) {
       const currVersions = {en: params.get("ven"), he: params.get("vhe")};
       const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
@@ -1514,7 +1558,7 @@ class ReaderApp extends Component {
   }
   setSelectedWords(n, words){
     //console.log(this.state.panels[n].refs);
-    var next = this.state.panels[n+1];
+    const next = this.state.panels[n+1];
     if (next && !next.menuOpen) {
       this.state.panels[n+1].selectedWords = words;
       this.setState({panels: this.state.panels});
@@ -1629,10 +1673,10 @@ class ReaderApp extends Component {
     });
   }
   openTopicCategory(slug) {
-    this.setSinglePanelState({ 
+    this.setSinglePanelState({
       menuOpen: "topics",
       navigationTopicCategory: slug,
-      navigationTopicTitle: Sefaria.topicTocCategoryTitle(slug), 
+      navigationTopicTitle: Sefaria.topicTocCategoryTitle(slug),
       navigationTopic: null,
     });
   }
@@ -1647,6 +1691,9 @@ class ReaderApp extends Component {
   }
   openCollection(slug, tag) {
     this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug, collectionTag: tag});
+  }
+  openTranslationsPage(slug) {
+    this.setSinglePanelState({menuOpen: "translationsPage", translationsSlug: slug})
   }
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
@@ -1775,7 +1822,7 @@ class ReaderApp extends Component {
 
 
       // Remove invisible languages based on the class of the readerPanel you're
-      // copying from. 
+      // copying from.
       const selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
       if (selectionAncestor.nodeType == 1) {
 
@@ -1875,7 +1922,7 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
-    
+
     // Header should not show box-shadow over panels that have color line
     const menuOpen = this.state.panels?.[0]?.menuOpen;
     const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
@@ -1917,6 +1964,7 @@ class ReaderApp extends Component {
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var closeNamedEntityInConnectionPanel = this.closeNamedEntityInConnectionPanel.bind(null,i);
       var onSearchResultClick            = i > 0 ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
+      var onSidebarSearchClick           = this.handleSidebarSearchClick.bind(null, i);
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
       var updateSearchTab                = this.updateSearchTab.bind(null, i);
@@ -1929,6 +1977,7 @@ class ReaderApp extends Component {
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
       var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
       var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
+      var setSidebarSearchQuery          = this.setSidebarSearchQuery.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
       var closePanel                     = panel.compare ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
@@ -1959,6 +2008,7 @@ class ReaderApp extends Component {
                       closeConnectionPanel={onCloseConnectionClick}
                       closeNamedEntityInConnectionPanel={closeNamedEntityInConnectionPanel}
                       onSearchResultClick={onSearchResultClick}
+                      onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
@@ -1995,6 +2045,7 @@ class ReaderApp extends Component {
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
+                      setSidebarSearchQuery={setSidebarSearchQuery}
                       translationLanguagePreference={this.state.translationLanguagePreference}
                       setTranslationLanguagePreference={this.setTranslationLanguagePreference}
                       navigatePanel={navigatePanel}
@@ -2037,12 +2088,12 @@ class ReaderApp extends Component {
           />
       </div>
     ) : null
-    
+
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-  
+
     return (
       <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
@@ -2119,5 +2170,6 @@ export {
   PoweredByPage,
   RambanLandingPage,
   EducatorsPage,
+  RabbisPage,
   DonatePage
 };
