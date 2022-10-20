@@ -1398,7 +1398,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
-        Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+        Walk through the contents of a version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
