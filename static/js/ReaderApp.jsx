@@ -326,7 +326,7 @@ class ReaderApp extends Component {
 
       // After setting the dimensions, post the hit
       var url = window.location.pathname + window.location.search;
-      Sefaria.track.pageview(url);
+      // Sefaria.track.pageview(url);
 
       if (!this.state.initialAnalyticsTracked) {
         this.setState({initialAnalyticsTracked: true});
