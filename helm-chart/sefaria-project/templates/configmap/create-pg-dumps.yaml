@@ -1,0 +1,28 @@
+{{- if eq .Values.backup.postgres.enabled true }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-pg-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  create-dumps.sh: |-
+    #!/usr/bin/env bash
+
+    DATADIR="/pgdumps/shared_volume"
+
+    DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST --port $DATABASES_PORT"
+    DUMP_CMD+=" --username $DATABASES_USER"
+    IF [[ ! $DATABASES_PASSWORD ]]; THEN
+      DUMP_CMD+=" --no_passowrd"
+    ELSE
+      DUMP_CMD+=" --password $DATABASES_PASSWORD"
+    FI
+    DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
+    DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'" 
+
+    eval $DUMP_CMD
+
+    tar cvzf "${DATADIR}/postgres_dump.tar.gz" -C "${DATADIR}" ./dump
+{{- end }}

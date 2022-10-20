@@ -113,6 +113,8 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "catane_number",
         "rid",
         "strong_numbers",
+        "GK",
+        "TWOT",
         'peculiar',
         'all_cited',
         'ordinal',
@@ -270,11 +272,11 @@ class KleinDictionaryEntry(DictionaryEntry):
 
 class BDBEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
-    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes']
+    optional_attrs = ['strong_numbers', 'next_hw', 'prev_hw', 'peculiar', 'all_cited', 'ordinal', 'brackets', 'headword_suffix', 'alt_headwords', 'root', 'occurrences', 'quotes', 'GK', 'TWOT']
 
     def headword_string(self):
         hw = f'<span dir="rtl">{re.sub("[⁰¹²³⁴⁵⁶⁷⁸⁹]*", "", self.headword)}</span>'
-        if hasattr(self, 'occurrences'):
+        if hasattr(self, 'occurrences') and not hasattr(self, 'headword_suffix'):
             hw += f'</big><sub>{self.occurrences}</sub><big>' #the sub shouldn't be in big
         alts = []
         if hasattr(self, 'alt_headwords'):
@@ -286,8 +288,10 @@ class BDBEntry(DictionaryEntry):
         if getattr(self, 'brackets', '') == 'all':
             if hasattr(self, 'headword_suffix'):
                 hw = f'[{hw}{self.headword_suffix}]' #if there's a space, it'll be part of headword_suffix
+                if hasattr(self, 'occurrences'):
+                    hw += f'</big><sub>{self.occurrences}</sub><big>'
             else:
-                hw = ", ".join([hw] + alts)
+                hw = f'[{", ".join([hw] + alts)}]'
         else:
             if hasattr(self, 'brackets') and self.brackets == 'first_word':
                 hw = f'[{hw}]'
@@ -295,7 +299,7 @@ class BDBEntry(DictionaryEntry):
                 hw = ", ".join([hw] + alts)
         hw = f'<big>{hw}</big>'
         if hasattr(self, 'root'):
-            hw = f'<big>{hw}</big>'
+            hw = re.sub('(</?big>)', r'\1\1', hw)
         if hasattr(self, 'ordinal'):
             hw = f'{self.ordinal} {hw}'
         if hasattr(self, 'all_cited'):
@@ -311,12 +315,22 @@ class BDBEntry(DictionaryEntry):
 
     def get_sense(self, sense):
         string = ''
+        if 'note' in sense:
+            string = '<em>Note.</em>'
+        if 'pre_num' in sense:
+            string += f"{sense['pre_num']} "
         if 'all_cited' in sense:
             string += '†'
         if 'form' in sense:
-            string += f'<strong>{sense["form"]}</strong> '
-        if 'num' in sense:
-            string += f'<strong>{sense["num"]}</strong> '
+            if 'note' in sense:
+                string += f' {sense["num"]}'
+            else:
+                string += f'<strong>{sense["form"]}</strong>'
+        elif 'num' in sense:
+            string += f'<strong>{sense["num"]}</strong>'
+        if 'occurrences' in sense:
+            string += f'<sub>{sense["occurrences"]}</sub>'
+        string += ' '
         if 'definition' in sense:
             return string + sense['definition']
         else:
@@ -335,12 +349,12 @@ class BDBEntry(DictionaryEntry):
         for sense in self.content['senses']:
             sense = self.get_sense(sense)
             if type(sense) == list:
-                strings += sense
+                strings.append(' '.join(sense))
             else:
                 strings.append(sense)
         if with_headword:
             strings[0] = self.headword_string() + ' ' + strings[0]
-        return strings
+        return ['<br>'.join(strings)]
 
 
 class LexiconEntrySubClassMapping(object):
