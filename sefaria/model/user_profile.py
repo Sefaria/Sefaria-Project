@@ -13,6 +13,8 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
 from sefaria.utils.user import delete_user_account
+from sefaria.site.site_settings import SITE_SETTINGS
+
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -358,7 +360,7 @@ class UserProfile(object):
         self.twitter               = ""
         self.linkedin              = ""
         self.pinned_sheets         = []
-        self.interrupting_messages = ["newUserWelcome"]
+        self.interrupting_messages = ["newUserWelcome_"+SITE_SETTINGS["SITE_NAME"]["en"]]
         self.last_sync_web        = 0  # epoch time for last sync of web app
         self.profile_pic_url      = ""
         self.profile_pic_url_small = ""
