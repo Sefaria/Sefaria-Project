@@ -1,0 +1,32 @@
+{{- if .Values.backup.postgres.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-pg-dumps-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+data:
+  upload-dumps.sh: |-
+    #!/usr/bin/env bash
+    set -x
+    {{- if .Values.backup.postgres.serviceAccount }}
+    gloud auth activate
+    {{- else }}
+    gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
+    {{- end }}
+    cd "/pgdumps/shared_volume"
+    today="$(date +'%d.%m.%y')"
+    last_month="$(date --date='last month' +'%d.%m.%y')"
+
+    gsutil rm "gs://${BUCKET}/${PREFIX}postgres_dump_${last_month}.tar.gz"
+
+    if [ -f "postgres_dump.tar.gz" ]; then
+        echo "uploading private dump"
+        gsutil cp postgres_dump.tar.gz "gs://${BUCKET}/${PREFIX}postgres_dump_${today}.tar.gz"
+    else
+        echo "Private dump missing"
+    fi
+
+    curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The {{ .Values.deployEnv }} Postgres Database was routinely dumped to cloud storage: '"$(date)"'", "icon_emoji": ":cloud:"}' ${SLACK_URL}
+{{- end }}
