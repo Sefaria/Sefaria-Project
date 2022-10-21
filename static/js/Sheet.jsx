@@ -126,7 +126,7 @@ class Sheet extends Component {
     }
     return (
       <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
+        { sheet && Sefaria._uid === sheet.owner ?
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
