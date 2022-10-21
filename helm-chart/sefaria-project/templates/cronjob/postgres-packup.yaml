@@ -1,20 +1,20 @@
-{{- if eq .Values.backup.mongo.enabled true }}
+{{- if eq .Values.backup.postgres.enabled true }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-mongobackup
+  name: {{ .Values.deployEnv }}-postgresbackup
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   concurrencyPolicy: Replace
-  schedule: "0 0 * * *"
+  schedule: "0 0 * * 0"
   jobTemplate:
     spec:
       backoffLimit: 1
       template:
         spec:
-          serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
+          serviceAccount: {{ .Values.backup.postgres.serviceAccount }}
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -23,7 +23,7 @@ spec:
                   - key: app
                     operator: In
                     values:
-                    - mongo
+                    - postgres
                 topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
@@ -31,12 +31,11 @@ spec:
               value: "true"
               effect: "NoSchedule"
           initContainers:
-          - name: mongo-dumper
-            image:  mongo:{{ .Values.backup.mongo.version }}
+          - name: postgres-dumper
+            image:  postgres:{{ .Values.backup.postgres.version }}
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
-                optional: true
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             - secretRef:
@@ -44,7 +43,7 @@ spec:
                 optional: true
             volumeMounts:
             - name: shared-volume
-              mountPath: /mongodumps/shared_volume
+              mountPath: /pgdumps/shared_volume
             - name: create-dumps-script
               mountPath: /scripts/create-dumps.sh
               subPath: create-dumps.sh
@@ -55,22 +54,22 @@ spec:
               limits:
                 memory: "500Mi"
           containers:
-          - name: mongodump-uploader
+          - name: pgdump-uploader
             image:  google/cloud-sdk
             volumeMounts:
             - name: shared-volume
-              mountPath: /mongodumps/shared_volume
+              mountPath: /pgdumps/shared_volume
             - name: upload-dumps-script
               mountPath: /scripts/upload-dumps.sh
               subPath: upload-dumps.sh
               readOnly: true
             env:
             - name: PREFIX
-              value: {{ .Values.backup.mongo.prefix }}
+              value: {{ .Values.backup.postgres.prefix }}
             - name: BUCKET
-              value: {{ .Values.backup.mongo.bucket }}
+              value: {{ .Values.backup.postgres.bucket }}
             - name: ARCHIVE_BUCKET
-              value: {{ .Values.backup.mongo.archiveBucket }}
+              value: {{ .Values.backup.postgres.archiveBucket }}
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:
@@ -85,11 +84,11 @@ spec:
           volumes:
           - name: create-dumps-script
             configMap:
-              name: create-dumps-{{ .Values.deployEnv }}
+              name: create-pg-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: upload-dumps-script
             configMap:
-              name: upload-dumps-{{ .Values.deployEnv }}
+              name: upload-pg-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: shared-volume
             emptyDir: {}

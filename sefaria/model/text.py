@@ -1251,7 +1251,7 @@ class AbstractTextRecord(object):
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
-    NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
+    NOTE: AbstractTextRecord is inherited before AbstractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
 
     A new version is created with a dict of correlating information inside. Two example fields are below:
@@ -1398,7 +1398,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
-        Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+        Walk through the contents of a version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
@@ -1593,7 +1593,7 @@ class TextFamilyDelegator(type):
 
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
