@@ -808,17 +808,9 @@ ToolsList.propTypes = {
 const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
 
   const [isOwner, setIsOwner] = useState(false);
-  const [showEditButton, setShowEditButton] = useState(false);
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
-    setShowEditButton(
-        !Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit" ||
-            sheet.options.collaboration == "anyone-can-add"
-        )
-    )
     console.log(sheet)
   }, []);
 
@@ -828,11 +820,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
         :
         <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
     }
-    {showEditButton  ?
-        <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
-          window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
-        }} />
-        : null }
+
 
     <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
@@ -961,7 +949,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
-      Sefaria._siteSettings.TORAH_SPECIFIC && Sefaria._uses_new_editor && Sefaria._uid && (
+      Sefaria._siteSettings.TORAH_SPECIFIC && Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration == "anyone-can-edit"
         ) ?

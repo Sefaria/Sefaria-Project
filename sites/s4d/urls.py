@@ -11,7 +11,5 @@ site_urlpatterns = [
     url(r'^health-check/?$', reader_views.application_health_api_nonlibrary),
     url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
-    url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
-    url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
 ]
 

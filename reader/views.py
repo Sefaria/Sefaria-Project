@@ -192,7 +192,6 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -849,21 +848,6 @@ def search(request):
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _(SITE_SETTINGS["SITE_NAME"]["en"]+" Search"),
         "desc":      desc
     })
-
-
-@login_required
-def enable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
-
-@login_required
-def disable_new_editor(request):
-    profile = UserProfile(id=request.user.id)
-    profile.update({"uses_new_editor": False})
-    profile.save()
-    return redirect(f"/profile/{profile.slug}")
 
 
 def public_collections(request):
