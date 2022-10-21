@@ -14,8 +14,8 @@ backup:
     enabled: true
     prefix: ""
     public: true
-    bucket: sefaria-mongo-backup
-    archiveBucket: sefaria-mongo-archive
+    bucket: sefaria-contextus-backup
+    archiveBucket: sefaria-contextus-archive
     serviceAccount: database-backup-write
   postgres:
     enabled: false
