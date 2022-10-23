@@ -2850,7 +2850,7 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        #retrieve the address class of the last section in the ref
+        # retrieve the address class of the last section in the ref
         address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
 
         if hasattr(address_class, "parse_range_end"):
@@ -2905,7 +2905,7 @@ class Ref(object, metaclass=RefCacheType):
     @staticmethod
     def is_ref(tref):
         """
-        Static method for testing if a string is valid for instanciating a Ref object.
+        Static method for testing if a string is valid for instantiating a Ref object.
 
         :param string tref: the string to test
         :return bool:
@@ -3612,7 +3612,7 @@ class Ref(object, metaclass=RefCacheType):
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
             return None
 
-        #arrays are 0 based. text sections are 1 based. so shift the numbers back.
+        # arrays are 0 based. text sections are 1 based. so shift the numbers back.
         if not forward:
             # Going backward, start from begginning of Ref
             starting_points = [s - 1 for s in self.sections[:self.index_node.depth - depth_up]]
@@ -3621,11 +3621,11 @@ class Ref(object, metaclass=RefCacheType):
             starting_points = [s - 1 for s in self.toSections[:self.index_node.depth - depth_up]]
 
 
-        #start from the next one
+        # start from the next one
         if len(starting_points) > 0:
             starting_points[-1] += 1 if forward else -1
 
-        #let the counts obj calculate the correct place to go.
+        # let the counts obj calculate the correct place to go.
         if vstate:
             c = vstate.state_node(self.index_node).ja("all", "availableTexts")
         else:
@@ -4005,7 +4005,7 @@ class Ref(object, metaclass=RefCacheType):
 
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
-        #todo: move over to the regex methods of the index nodes
+        # todo: move over to the regex methods of the index nodes
         patterns = []
 
         if self.is_range():
@@ -4389,7 +4389,7 @@ class Ref(object, metaclass=RefCacheType):
                     condition_addr: {"$exists": True, "$elemMatch": {"$nin": ["", [], 0]}}
                 })
         else:
-            #todo: If this method gets cached, then copies need to be made before the del below.
+            # todo: If this method gets cached, then copies need to be made before the del below.
             parts = []
             refs = self.split_spanning_ref()
             for r in refs:
@@ -4516,7 +4516,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         '''
             18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
-            Previously, talmud lines had been normalised as arabic numerals
+            Previously, Talmud lines had been normalised as Arabic numerals
         '''
         return self.normal('he')
 
@@ -4712,7 +4712,7 @@ class Library(object):
     """
 
     def __init__(self):
-        #Timestamp when library last stored shared cache items (toc, terms, etc)
+        # Timestamp when library last stored shared cache items (toc, terms, etc)
         self.last_cached = None
 
         self.langs = ["en", "he"]
@@ -4780,7 +4780,7 @@ class Library(object):
 
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
+            self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
         """
@@ -5243,9 +5243,9 @@ class Library(object):
 
         indx = self._index_map.get(bookname)
         if not indx:
-            bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  #todo: factor out method
+            bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  # todo: factor out method
 
-            #todo: cache
+            # todo: cache
             lang = "he" if is_hebrew(bookname) else "en"
             node = self._title_node_maps[lang].get(bookname)
             if node:
@@ -5329,8 +5329,8 @@ class Library(object):
         assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
-    #todo: the for_js path here does not appear to be in use.
-    #todo: Rename, as method not gauraunteed to return all titles
+    # todo: the for_js path here does not appear to be in use.
+    # todo: Rename, as method not gauraunteed to return all titles
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
         """
         :param lang: "en" or "he"
@@ -5518,7 +5518,7 @@ class Library(object):
         """
         return self._title_node_maps[lang]
 
-    #todo: handle terms
+    # todo: handle terms
     def get_schema_node(self, title, lang=None):
         """
         :param string title:
@@ -5634,7 +5634,7 @@ class Library(object):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    #TODO: add category filtering here or in another method?
+    # TODO: add category filtering here or in another method?
     def get_dependant_indices(self, book_title=None, dependence_type=None, structure_match=False, full_records=False):
         """
         Replacement for all get commentary title methods
@@ -5684,7 +5684,7 @@ class Library(object):
 
     def get_refs_in_string(self, st, lang=None, citing_only=False):
         """
-        Returns an list of Ref objects derived from string
+        Returns a list of Ref objects derived from string
 
         :param string st: the input string
         :param lang: "he" or "en"
@@ -5760,7 +5760,7 @@ class Library(object):
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
 
         from sefaria.utils.hebrew import strip_nikkud
-        #st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
+        # st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
 
         if reg is not None:
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
@@ -5888,7 +5888,7 @@ class Library(object):
     def _internal_ref_from_string(self, title=None, st=None, lang=None, stIsAnchored=False, return_locations = False):
         node = self.get_schema_node(title, lang)
         if not isinstance(node, JaggedArrayNode):
-            #TODO fix when not JaggedArrayNode
+            # TODO fix when not JaggedArrayNode
             # Assumes that node is a JaggedArrayNode
             return None
 
@@ -6041,7 +6041,7 @@ class Library(object):
         """
         :param ref_or_cat:
         :param lang:
-        :param dependents_regex: string - filter dependents by those that have this string (treat this as a category))
+        :param dependents_regex: string - filter dependents by those that have this string (treat this as a category)
         :return:
         """
         if isinstance(ref_or_cat, Ref):
