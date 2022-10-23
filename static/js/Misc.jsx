@@ -2284,7 +2284,7 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME.en}. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME.en}.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
