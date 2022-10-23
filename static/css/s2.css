@@ -76,17 +76,32 @@ a, a:hover {
   unicode-range: U+0041-007A;
 }
 @font-face {
-  font-family: 'Noto Color Emoji'; 
+  font-family: 'Noto Color Emoji';
   src: url('/static/fonts/NotoColorEmoji.ttf');
   unicode-range: U+1F1E6-1F1FF;
+}
+@font-face {
+  font-family: 'Meltho';
+  src: url('/static/fonts/SyrCOMBatnan.otf');
+  unicode-range: U+0700-074F;
+}
+@font-face {
+  font-family: 'Noto Sans Samaritan';
+  unicode-range: U+0800-083F;
+}
+@font-face {
+  /*Greek*/
+  font-family: 'Cardo';
+    src: url('/static/fonts/Cardo-Regular.ttf');
+  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
 }
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  --hebrew-serif-font-family: "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -1213,6 +1228,9 @@ div.interfaceLinks-row a {
   width: 18px;
   opacity: 0.4;
 }
+.sidebarSearch .readerNavMenuSearchButton img {
+  margin-top: 12px;
+}
 .header .headerNavContent {
   position: absolute;
   height: 100%;
@@ -1649,6 +1667,40 @@ div.interfaceLinks-row a {
 .navSidebarLink.gray a {
   color: #666;
 }
+
+.navSidebarLink > ul {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+  padding: 0;
+  margin: 0;
+}
+.navSidebarLink > ul > li {
+  display: inline;
+}
+.navSidebarLink > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+
+.navSidebarLink > ul > li:last-child:after {
+  content: none;
+}
+
+.navSidebarLink .languageItem, .translationsPage .languageItem {
+  display: inline;
+  font-size: 18px;
+}
+
+.navSidebarLink.language {
+  font-size: 18px;
+  margin-top: 16px;
+  display: flex;
+  flex-wrap:wrap;
+}
+
 .navSidebarLink.ref {
   font-size: 18px;
 }
@@ -1833,6 +1885,58 @@ div.interfaceLinks-row a {
   align-items: center;
   justify-content: flex-start;
 }
+.interface-hebrew .sidebarSearch .searchBox,
+.interface-hebrew .sidebarSearch .version,
+.interface-hebrew .sidebarSearch .result-title {
+  direction: rtl;
+}
+.sidebarSearch .searchBox {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  text-align: inherit;
+  background: var(--lighter-grey);
+  border-radius: 250px;
+  width: 100%;
+  height: 30px;
+  margin-bottom: 0;
+}
+
+.sidebarSearch .searchBox input {
+  background: transparent;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  font-size: var(--serif-body-font-size);
+  width: 100%;
+}
+.sidebarSearch .searchTopMatter,
+.sidebarSearch .searchTopic {
+  display: none;
+}
+.sidebarSearch .result-title {
+  padding: 14px 0 14px 0;
+  font-size: var(--serif-body-font-size);
+  border-top: 1px solid var(--lighter-grey);
+  margin-top: 14px;
+  color: var(--dark-grey);
+}
+
+.sidebarSearch .similar-results {
+  margin-inline-start: 30px;
+}
+
+.sidebarSearch .snippet.he,
+.sidebarSearch .snippet.en {
+  font-size: var(--serif-body-font-size);
+  display: block;
+}
+
+.sidebarSearch .colorBarBox {
+  border-inline-start: none;
+  padding-inline-start: 0;
+}
+
 .readerNavTop .searchBox .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
 }
@@ -2063,6 +2167,39 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.readerPanel .translationsPage h2 {
+  margin: 40px 0 0 0;
+  font-size: 24px;
+  text-transform: none;
+  color: #000;
+}
+.translationsPage details > ul,
+.translationsPage > ul {
+  padding: 0;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.translationsPage details > ul > li:after,
+.translationsPage > ul > li:after {
+  content: "\2022";
+  white-space:pre;
+  margin: 0 5px;
+}
+.translationsPage details > ul > li:last-child:after,
+.translationsPage > ul > li:last-child:after{
+  content: none;
+}
+.readerPanel .translationsPage details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.readerPanel .translationsPage  details > summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
 h1 .languageToggle {
   text-align: center;
   position: absolute;
@@ -2156,12 +2293,13 @@ h1 .languageToggle .he {
   border-bottom: 2px solid #999;
   padding-bottom: 4px;
 }
-.readerPanel h2, .readerPanel h3 {
+.readerPanel h2, .readerPanel h3,
+.translationsPage details > summary {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
   color: #666;
-  margin-bottom: 20px;
+  margin: 30px 0 0 0;
   font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
@@ -3465,7 +3603,11 @@ select {
   margin-inline-end: 5px;
 }
 .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  margin-bottom: 2px;
   border: none;
+}
+.interface-hebrew .searchBox.dictionarySearchBox .keyboardInputInitiator {
+  display: none;
 }
 .dictionarySearchBox input {
   font-size: 17px;
@@ -3958,7 +4100,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result {
   padding-bottom: 20px;
 }
-.searchContent .result a:hover {
+.searchContent .result a:hover,
+.sidebarSearch .result a:hover {
   text-decoration: none;
 }
 .searchContent .similar-results {
@@ -4020,7 +4163,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .similar-results .result .result-title {
   padding: 0 0 5px;
 }
-.searchContent .result .version {
+.searchContent .result .version,
+.sidebarSearch .result .version {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
@@ -4031,7 +4175,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .version .ownerMetadata {
   margin-inline-start: 10px;
 }
-.searchContent .result .similar-trigger-box {
+.searchContent .result .similar-trigger-box,
+.sidebarSearch .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
   --english-font: var(--english-sans-serif-font-family);
@@ -5012,6 +5157,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment.enOnly .en{
   display: initial;
+}
+/* 
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+But not to use a display block directive that might break continuous mode for other English only texts
+ */
+.readerPanel.hebrew.continuous .segment.enOnly .en{
+  unicode-bidi: embed;
 }
 .readerPanel.hebrew .segment.enOnly .sheetSegmentNumber .en{
   display: none;
@@ -12384,9 +12536,6 @@ span.ref-link-color-3 {color: blue}
   height: 18px;
   width: 18px;
   margin-inline-start: 6px;
-}
-.samaritan{
-   font-family: 'Noto Sans Samaritan';
 }
 
 @-webkit-keyframes load5 {

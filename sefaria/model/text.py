@@ -35,7 +35,7 @@ from sefaria.system.exceptions import InputError, BookNameError, PartialRefInput
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 
 """
@@ -915,13 +915,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return default_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
+        """
+        Return list of nodes on Index where each node has at least one match template with scope "alone"
+        @return: List of TitledTreeNodes
+        """
         alone_nodes = []
-        alone_scopes = {'any', 'alone'}
         for child in self.referenceable_children():
-            if any(template.scope in alone_scopes for template in child.get_match_templates()):
+            if child.has_scope_alone_match_template():
                 alone_nodes += [child]
-            # TODO used to be hard-coded to include grandchildren as well. Can't be recursive unless we add this to SchemaNode as well.
-            # alone_nodes += child.get_referenceable_alone_nodes()
+            alone_nodes += child.get_referenceable_alone_nodes()
         return alone_nodes
 
 
@@ -1249,8 +1251,19 @@ class AbstractTextRecord(object):
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
-    NOTE: AbstractTextRecord is inherited before AbastractMongoRecord in order to overwrite ALLOWED_TAGS
+    NOTE: AbstractTextRecord is inherited before AbstractMongoRecord in order to overwrite ALLOWED_TAGS
     Relates to a complete single record from the texts collection.
+
+    A new version is created with a dict of correlating information inside. Two example fields are below:
+    new_version = Version({"versionTitle": "ABCD",
+                            "versionSource": "EFGHI"
+                            ......})
+
+    An existing version is queried for with a slightly different syntax:
+    existing_version = Version().load({Mongo-query-for-that-specific-version})
+
+    For basic operations such as loading, saving, and updating existing versions, see abst.AbstractMongoRecord
+    in abstract.py - the parent class for the Version class.
     """
     history_noun = 'text'
     collection = 'texts'
@@ -1289,6 +1302,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
+        "actualLanguage",
     ]
 
     def __str__(self):
@@ -1303,11 +1317,27 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
+        languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
+        if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
+            raise InputError("Version actualLanguage does not match bracketed language")
+        if getattr(self,"language", None) not in ["en", "he"]:
+            raise InputError("Version language must be either 'en' or 'he'")
         if self.get_index() is None:
             raise InputError("Versions cannot be created for non existing Index records")
+        
         return True
 
     def _normalize(self):
+        # add actualLanguage -- TODO: migration to get rid of bracket notation completely
+        actualLanguage = getattr(self, "actualLanguage", None) 
+        versionTitle = getattr(self, "versionTitle", None) 
+        if not actualLanguage and versionTitle:
+            languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
+            if languageCode and languageCode.group(1):
+                self.actualLanguage = languageCode.group(1)
+            else:
+                self.actualLanguage = self.language
+
         if getattr(self, "priority", None):
             try:
                 self.priority = float(self.priority)
@@ -1368,7 +1398,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
-        Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
+        Walk through the contents of a version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
 
         action() is a callback function that can have any behavior you would like. It should return None.
@@ -1453,6 +1483,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 class VersionSet(abst.AbstractMongoSet):
     """
     A collection of :class:`Version` objects
+
+    You can call a VersionSet by running something like the following:
+    my_version_set = VersionSet(mongo-query-here)
+
+    Even if it yields only a single result, the results will always be a list of the matching versions
+    that came up for the given query. 
     """
     recordClass = Version
 
@@ -1557,7 +1593,7 @@ class TextFamilyDelegator(type):
 
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optionall version name.
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
     :param oref: :class:`Ref`
@@ -2596,16 +2632,13 @@ class Ref(object, metaclass=RefCacheType):
         self._range_index = None
 
     def _validate(self):
-        offset = 0
-        if self.is_bavli():
-            offset = 2
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
                 raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
-                if check[0] > self.index_node.lengths[0] + offset:
-                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0] + offset)
+                if check[0] > self.index_node.lengths[0]:
+                    display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
                     raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
         if len(self.sections) != len(self.toSections):
@@ -4827,6 +4860,7 @@ class Library(object):
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
+        self.get_virtual_books(rebuild=rebuild)
         if rebuild:
             scache.delete_shared_cache_elem("regenerating")
 
@@ -5463,8 +5497,8 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .ref_part import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
-        from sefaria.helper.ref_part import load_spacy_model
+        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from sefaria.helper.linker import load_spacy_model
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
@@ -5642,9 +5676,18 @@ class Library(object):
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_virtual_books(self):
-        if not self._virtual_books:
-            self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
+    def get_virtual_books(self, rebuild=False):
+        if rebuild or not self._virtual_books:
+            if not rebuild:
+                self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
+            if rebuild or not self._virtual_books:
+                self.build_virtual_books()
+                scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+                self.set_last_cached_time()
+        return self._virtual_books
+
+    def build_virtual_books(self):
+        self._virtual_books = [index.title for index in IndexSet({'lexiconName': {'$exists': True}})]
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):
@@ -6047,8 +6090,17 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        return self._toc_tree_is_ready and self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and\
-               self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
+        if not is_initialized:
+            logger.warning({"message": "Application not fully initialized", "Current State": {
+                "toc_tree_is_ready": self._toc_tree_is_ready,
+                "full_auto_completer_is_ready": self._full_auto_completer_is_ready,
+                "ref_auto_completer_is_ready": self._ref_auto_completer_is_ready,
+                "lexicon_auto_completer_is_ready": self._lexicon_auto_completer_is_ready,
+                "cross_lexicon_auto_completer_is_ready": self._cross_lexicon_auto_completer_is_ready,
+            }})
+        return is_initialized
 
     @staticmethod
     def get_top_categories(full_records=False):

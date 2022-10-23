@@ -26,7 +26,7 @@ const server = express();
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
-const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" };
+const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en", "virtualBooks": "virtualBooks" };
 let sharedCacheData = {
   /*
   Not data, but a unix timestamp (originally) passed from django indicating when data was last updated on this node process. i
@@ -37,7 +37,8 @@ let sharedCacheData = {
   "toc": null,
   "topic_toc": null,
   "terms": null,
-  "books": null
+  "books": null,
+  "virtualBooks": null,
 };
 
 const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});

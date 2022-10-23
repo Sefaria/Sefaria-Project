@@ -55,21 +55,75 @@ spec:
       - name: varnish
         image: "{{ .Values.varnish.containerImage.imageRegistry }}:{{ .Values.varnish.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c"]
-        # args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,14440m -p nuke_limit=400" ]
-        args: [ "envsubst < /etc/varnish/sefaria.template.vcl > /etc/varnish/sefaria.vcl && exec /usr/sbin/varnishd -j unix,user=varnish -F -f /etc/varnish/sefaria.vcl -a :8040 -T :6082 -S /varnish-secret/varnish-secret -s malloc,{{ .Values.varnish.tuning.malloc }} -p nuke_limit={{ .Values.varnish.tuning.nuke_limit }} -p thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }} -p first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }} -p between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}" ]
+        args:
+          - -F
+          - -f 
+          - /etc/varnish/sefaria.vcl
+          - -S
+          - /etc/varnish-secret/varnish-secret
+          - -T
+          - 0.0.0.0:6082
+          - -a
+          - 0.0.0.0:8040
+          - -p
+          - between_bytes_timeout={{ .Values.varnish.tuning.between_bytes_timeout }}
+          - -p
+          - first_byte_timeout={{ .Values.varnish.tuning.first_byte_timeout }}
+          - -p
+          - nuke_limit={{ .Values.varnish.tuning.nuke_limit }}
+          - -p
+          - thread_pool_max={{ .Values.varnish.tuning.thread_pool_max }}
+          - -s
+          - malloc,{{ .Values.varnish.tuning.malloc }}
         ports:
         - containerPort: 8040
         - containerPort: 6082
         resources: {{ toYaml .Values.varnish.resources | nindent 10 }}
         volumeMounts:
-        - mountPath: /varnish-secret
+        - mountPath: /etc/varnish-secret
           name: varnish-secret
           readOnly: true
-        env:
-          - name: BACKEND_HOST
-            value: "web-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+        - mountPath: /etc/varnish/
+          name: varnish-config
+          readOnly: true
+        - mountPath: /var/lib/varnish
+          name: workdir
+      {{- if .Values.varnish.monitoring.enabled }}
+      - image: {{ .Values.varnish.monitoring.image }}:{{ .Values.varnish.monitoring.tag }}
+        imagePullPolicy: Always
+        name: metrics-exporter
+        ports:
+        - containerPort: 9131
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 9131
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 30
+        resources:
+          requests:
+            cpu: 100m
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/varnish
+          name: workdir
+          readOnly: true
+        - mountPath: /etc/varnish
+          name: varnish-config
+          readOnly: true
+      {{- end }}
       volumes:
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
+        - name:  varnish-config
+          configMap:
+            name: {{ .Values.deployEnv }}-varnish-config
+        - emptyDir: {}
+          name: workdir

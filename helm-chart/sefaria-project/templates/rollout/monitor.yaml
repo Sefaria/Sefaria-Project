@@ -13,7 +13,7 @@ metadata:
 spec:
   strategy:
     blueGreen:
-      activeService: monitor-{{ .Values.deployEnv }}-{{ .Release.Revision }}
+      activeService: monitor-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
       prePromotionAnalysis:
         templates:

@@ -24,6 +24,7 @@ import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
 import AboutSheet from './AboutSheet';
+import SidebarSearch from './SidebarSearch';
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
@@ -181,11 +182,11 @@ class ConnectionsPanel extends Component {
       Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
       Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
         const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
-        // consistent response. Its either the ref from cache or the entire text api response if async. 
+        // consistent response. Its either the ref from cache or the entire text api response if async.
         this.setState({currentlyVisibleSectionRef: currRef});
       });
       //this.setState({currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef)});
-      
+
     }
   }
   reloadData() {
@@ -318,6 +319,7 @@ class ConnectionsPanel extends Component {
             <div className="topToolsButtons">
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
+              <ToolsButton en="Search in this Text" he="חפש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
             </div>
           }
@@ -684,6 +686,14 @@ class ConnectionsPanel extends Component {
           setDivineNameReplacement={this.props.setDivineNameReplacement}
           divineNameReplacement={this.props.divineNameReplacement}
       />
+    } else if (this.props.mode === "SidebarSearch") {
+    content = <SidebarSearch
+                title={this.props.title}
+                navigatePanel={this.props.navigatePanel}
+                sidebarSearchQuery={this.props.sidebarSearchQuery}
+                setSidebarSearchQuery={this.props.setSidebarSearchQuery}
+                onSidebarSearchClick={this.props.onSidebarSearchClick}
+              />
     }
 
     const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
@@ -705,7 +715,7 @@ class ConnectionsPanel extends Component {
             closePanel={this.props.closePanel}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang} />}
-        <div className="texts">
+        <div className="texts content">
           <div className="contentInner">{content}</div>
         </div>
       </div>);
@@ -1346,8 +1356,8 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, 
-                       count = null, control = "interface", typeface = "system", alwaysShow = false, 
+const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
+                       count = null, control = "interface", typeface = "system", alwaysShow = false,
                        secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
@@ -1885,5 +1895,3 @@ export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 };
-
-
