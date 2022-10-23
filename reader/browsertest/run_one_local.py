@@ -3,11 +3,14 @@
 # For instance: python run_one_local.py ClickVersionedSearchResultDesktop
 __package__ = "reader.browsertest"
 
-import django
-django.setup()
-from .framework import Trial
-from . import basic_tests
 import sys
+
+import django
+
+from . import basic_tests
+from .framework import Trial
+
+django.setup()
 
 test = sys.argv[1]
 klass = getattr(basic_tests, test)

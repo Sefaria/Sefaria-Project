@@ -1,11 +1,15 @@
 # This script runs all available tests on the remote service, and displays a report
 # It takes the build name as its only command line argument
 __package__ = "reader.browsertest"
-import django
-django.setup()
-from .framework import Trial
-from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
 import sys
+
+import django
+
+from . import \
+    basic_tests  # This is in fact needed - to register subclasses Trial, etc.
+from .framework import Trial
+
+django.setup()
 
 build = sys.argv[1]
 

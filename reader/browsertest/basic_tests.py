@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-from urllib.parse import urlparse, quote_plus
-
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support.expected_conditions import title_contains, staleness_of, element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element
-from selenium.common.exceptions import WebDriverException
+import time  # import stand library below name collision in sefaria.model
+from urllib.parse import quote_plus, urlparse
 
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
-from sefaria.utils.hebrew import has_cantillation
-from .framework import SefariaTest, one_of_these_texts_present_in_element
+from sefaria.utils.hebrew import (has_cantillation, strip_cantillation,
+                                  strip_nikkud)
+from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.expected_conditions import (
+    element_to_be_clickable, invisibility_of_element_located, staleness_of,
+    text_to_be_present_in_element, title_contains,
+    visibility_of_element_located)
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
-import time  # import stand library below name collision in sefaria.model
+from .framework import SefariaTest, one_of_these_texts_present_in_element
 
 TEMPER = 30
 
