@@ -31,7 +31,6 @@ static_pages = [
     "the-sefaria-story",
     "aramaic-translation-contest",
     "newsletter",
-    "shavuot-map-2018",
     "testimonials",
     "torah-tab",
     "dicta-thanks",
