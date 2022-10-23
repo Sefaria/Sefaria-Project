@@ -1,6 +1,5 @@
 import django, csv, json, re
 from typing import List, Optional, Union, Tuple
-django.setup()
 from lxml import etree
 from io import StringIO
 from lxml.etree import XMLSyntaxError
@@ -10,6 +9,10 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.linker import ResolvedRef, RefPartType
 from sefaria.helper.normalization import NormalizerComposer
+from bs4 import BeautifulSoup
+from sefaria.tracker import modify_bulk_text
+
+django.setup()
 
 VTITLE = 'The Jerusalem Talmud, translation and commentary by Heinrich W. Guggenheimer. Berlin, De Gruyter, 1999-2015'
 
@@ -101,7 +104,6 @@ class YerushalmiCatcher:
 
     @staticmethod
     def create_footnote_mapping():
-        from bs4 import BeautifulSoup
         footnote_map = {}
 
         def footnote_mapper(s: str, en_tref: str, he_tref: str, version: Version) -> None:
@@ -419,7 +421,6 @@ class YerushalmiCatcher:
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def wrap_refs_in_title(self, title, output_html=False, skip_empty=True):
-        from sefaria.tracker import modify_bulk_text
         total = 0
         link_obj_by_ref = defaultdict(list)
         text_map = {}
