@@ -2537,16 +2537,30 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-const Autocompleter = ({selectedCallback, getSuggestions,
-                         inputPlaceholder, inputValue, changeInputValue, getColor, buttonTitle,
-                         autocompleteClassNames = "addInterfaceInput",
-                         showSuggestionsOnSelect= true }) => {
+const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
+                         buttonTitle, autocompleteClassNames }) => {
+  /*
+  Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
+  select menu that shows autcomplete suggestions, and a button.  To officially a select an autocomplete suggestion, user
+  can press enter in the input box, click on a suggestion in the select menu, or click on the button.
+  `getSuggestions` is a callback function that is called whenever the user types in the input box or selects an option
+                from the suggestions.
+  `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,
+                `getSuggestions` will be called, narrowing the possible suggestions.
+                Useful when autocompleting a Ref in AddInterfaceInput.
+  `inputPlaceholder` is the placeholder for the input component.
+  `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the
+                parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
+  `selectedCallback` is a callback function called when the button with `buttonTitle` is clicked, or the user presses enter,
+                or selects an option from the suggestions select menu.
+  `autocompleteClassNames` are styling options
+   */
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
-  const [selected, setSelected] = useState(false);
+  const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
   const buttonClassNames = classNames({button: 1, small: 1});
@@ -2606,7 +2620,7 @@ const Autocompleter = ({selectedCallback, getSuggestions,
   }
 
   const onChange = (input) => {
-    setSelected(false);
+    setInputClassNames(classNames({selected: 0}));
     setShowCurrentSuggestions(true);
     processSuggestions(getSuggestions(input));
     resizeInputIfNeeded();
@@ -2615,8 +2629,10 @@ const Autocompleter = ({selectedCallback, getSuggestions,
   const handleOnClickSuggestion = (title) => {
       changeInputValue(title);
       setShowCurrentSuggestions(showSuggestionsOnSelect);
-      processSuggestions(getSuggestions(title));
-      setSelected(true);
+      if (showSuggestionsOnSelect) {
+        processSuggestions(getSuggestions(title));
+      }
+      setInputClassNames(classNames({selected: 1}));
       resizeInputIfNeeded();
       inputEl.current.focus();
   }
@@ -2650,7 +2666,6 @@ const Autocompleter = ({selectedCallback, getSuggestions,
   const handleSelection = () => {
     selectedCallback(inputValue, currentSuggestions);
     changeInputValue("");
-    // setCurrentSuggestions(null);
   }
 
   const onKeyDown = e => {
@@ -2662,7 +2677,10 @@ const Autocompleter = ({selectedCallback, getSuggestions,
       suggestionEl.current.focus();
       (suggestionEl.current).firstChild.selected = 'selected';
     }
-
+    else
+    {
+      changeInputValue(inputEl.current.value);
+    }
   }
 
 
@@ -2708,7 +2726,7 @@ const Autocompleter = ({selectedCallback, getSuggestions,
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
-          style={{color: getColor(selected) }}
+          className={inputClassNames}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
                     handleSelection(inputValue, currentSuggestions)

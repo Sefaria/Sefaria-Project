@@ -940,7 +940,8 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
                 changeInputValue={setInputValue}
                 inputPlaceholder="Search for a Text or Commentator."
                 buttonTitle="Add Source"
-                getColor={(selectedBool) => "#000000"}
+                autocompleteClassNames="addInterfaceInput"
+                showSuggestionsOnSelect={true}
             />)
     }
 

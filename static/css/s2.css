@@ -9625,9 +9625,6 @@ background-color: white;
 .addInterfaceInput button,
 .addInterfaceInput .suggestion {
   pointer-events: auto;
-}
-.addInterfaceInput button,
-.addInterfaceInput .suggestion {
   cursor: pointer;
 }
 
@@ -9659,13 +9656,19 @@ background-color: white;
   background-color: var(--lighter-grey);
 }
 
-.addInterfaceInput.topicSearch .SuggestionBox {
+.topicSearch.addInterfaceInput .SuggestionBox {
   margin: 0 0 0 30px;
 }
-.addInterfaceInput.topicSearch input {
+.topicSearch.addInterfaceInput input {
   margin: 30px 0 0 30px;
   max-width: 250px;
   min-width: 250px;
+}
+.topicSearch.addInterfaceInput input.selected {
+  color: #4B71B7;
+}
+.topicSearch.addInterfaceInput select.suggestionBox {
+  margin-left: 20px;
 }
 
 .addInterfaceInput.topicSearch .button {
@@ -11356,14 +11359,15 @@ body .homeFeedWrapper.userStats {
 }
 #categoryChooserMenu {
   overflow: hidden;
-  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
-  width: 660px;
+  background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
+  width: 100%;
   height: 50px;
   margin: 0 0 10px 0;
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
+
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11372,6 +11376,18 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
+
+.connectionsPanel .editTextInfo #categoryChooserMenu {
+  width: 102%;
+}
+
+.connectionsPanel .editTextInfo .collectionsWidget {
+  width: 70%;
+}
+.connectionsPanel .editTextInfo #categoryChooserMenu select {
+  width: 98.5%;
+}
+
 .searchBox .editTextInfo .collectionsWidget {
   width: 280px;
 }
@@ -11424,7 +11440,7 @@ body .homeFeedWrapper.userStats {
   height: 50px;
   font-size: 16px;
   margin: 0 0 10px 0;
-  max-width: 100%;
+  max-width: 97%;
 }
 
 .editTextInfo #newIndex #heTitle {
@@ -11508,7 +11524,7 @@ body .homeFeedWrapper.userStats {
   z-index: 1;
 }
 .editTextInfo .collectionsWidget {
-  width: 580px;
+  width: 39%;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;
   position: absolute;

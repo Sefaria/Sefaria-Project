@@ -116,7 +116,6 @@ class TopicSearch extends Component {
                  inputValue={this.state.value}
                  changeInputValue={this.changeInputValue}
                  showSuggestionsOnSelect={false}
-                 getColor={(selectedBool) => !selectedBool ? "#000000" : "#4B71B7"}
                  autocompleteClassNames="topicSearch addInterfaceInput"
         />
         </div>
