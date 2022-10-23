@@ -264,24 +264,24 @@ class LexiconEntry extends Component {
     );
   }
   renderBDBEntrySenses(content) {
-    var note = ('note' in content) ? <em>Note.</em> : '';
-    var preNun = ('pre_num' in content) ? content['pre_num'] : '';
-    var allCited = ('all_cited' in content) ? '†' : '';
-    var num = ('num' in content) ? content['num'] : '';
-    var form = ('form' in content) ? content['form'] : '';
-    var occurrences = ('occurrences' in content) ? content['occurrences'] : '';
-    var def = ('definition' in content) ? (<span className="def"  dangerouslySetInnerHTML={ {__html: content['definition']}}></span>) : '';
-    var sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
-      return <div>{this.renderBDBEntrySenses(sense)}</div>;
+    const note = ('note' in content) ? <em>Note.</em> : '';
+    const preNun = ('pre_num' in content) ? content['pre_num'] : '';
+    const allCited = ('all_cited' in content) ? '†' : '';
+    const num = ('num' in content) ? content['num'] : '';
+    const form = ('form' in content) ? content['form'] : '';
+    const occurrences = ('occurrences' in content) ? content['occurrences'] : '';
+    const def = ('definition' in content) ? content['definition'] : '';
+    if ('definition' in content) {
+      const text = `${note} ${preNun} ${allCited}<b>${num}${form}</b><sub>${occurrences}</sub> ${def}`;
+      return (
+      <span className="def"  dangerouslySetInnerHTML={ {__html: text}}></span>       );
+    }
+    const pre = `${note} ${preNun} ${allCited}`
+    const sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
+      return <div>{i==0 && pre}{i==0 && <b>{num}{form}</b>}{i==0 && <sub>{occurrences}</sub>}{this.renderBDBEntrySenses(sense)}</div>;
     }) : "";
-    var senses = sensesElems.length ? (<div>{sensesElems}</div>) : "";
-    return (
-        <div>
-          {note} {preNun} {allCited}<b>{num}{form}</b><sub>{occurrences}</sub>
-          {def}
-          {senses}
-        </div>
-    );
+    const senses = sensesElems.length ? (<div>{sensesElems}</div>) : "";
+    return (<div>{senses}</div>);
   }
   getRef() {
     var ind = this.props.data.parent_lexicon_details.index_title;
