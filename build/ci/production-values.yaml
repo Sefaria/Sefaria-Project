@@ -16,7 +16,7 @@ backup:
     archiveBucket: sefaria-contextus-archive
     serviceAccount: database-backup-write
   postgres:
-    enabled: false
+    enabled: true
     version: 10.3
     prefix: ""
     bucket: sefaria-contextus-user-backup
