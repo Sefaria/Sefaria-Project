@@ -2,73 +2,49 @@ FROM python:3.7.15-bullseye
 
 # Copied from: https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.8.0/ubuntu2004/devel/Dockerfile
 # Lines marked 'ADDED' show where this code was modified
-ENV NV_CUDA_LIB_VERSION "11.7.1-1"
 
-ENV NV_CUDA_CUDART_DEV_VERSION 11.7.99-1
-ENV NV_NVML_DEV_VERSION 11.7.91-1
-ENV NV_LIBCUSPARSE_DEV_VERSION 11.7.4.91-1
-ENV NV_LIBNPP_DEV_VERSION 11.7.4.75-1
-ENV NV_LIBNPP_DEV_PACKAGE libnpp-dev-11-7=${NV_LIBNPP_DEV_VERSION}
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update --allow-releaseinfo-change \
+ && apt-get install --no-install-recommends -y \
+    # install essentials
+    gnupg2 \
+    wget \
+    ca-certificates \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-ENV NV_LIBCUBLAS_DEV_VERSION 11.10.3.66-1
-ENV NV_LIBCUBLAS_DEV_PACKAGE_NAME libcublas-dev-11-7
-ENV NV_LIBCUBLAS_DEV_PACKAGE ${NV_LIBCUBLAS_DEV_PACKAGE_NAME}=${NV_LIBCUBLAS_DEV_VERSION}
+RUN apt-key del 7fa2af80
+ADD https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb .
+RUN dpkg -i cuda-keyring_1.0-1_all.deb
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/debian10/x86_64/3bf863cc.pub
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/debian10/x86_64/7fa2af80.pub
 
-ENV NV_NVPROF_VERSION 11.7.101-1
-ENV NV_NVPROF_DEV_PACKAGE cuda-nvprof-11-7=${NV_NVPROF_VERSION}
+RUN apt-get update -qq \
+ && apt-get install --no-install-recommends -y \
+    # install cuda toolkit
+    cuda-libraries-11-6 \
+    libnpp-11-6 \
+    cuda-nvtx-11-6 \
+    libcublas-11-6 \
+    libnccl2 \
+    # install cudnn
+    libcudnn8=8.4.0.27-1+cuda11.6 \
+ && apt-mark hold libcublas-11-6 \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-ENV NV_LIBNCCL_DEV_PACKAGE_NAME libnccl-dev
-ENV NV_LIBNCCL_DEV_PACKAGE_VERSION 2.13.4-1
-ENV NCCL_VERSION 2.13.4-1
-ENV NV_LIBNCCL_DEV_PACKAGE ${NV_LIBNCCL_DEV_PACKAGE_NAME}=${NV_LIBNCCL_DEV_PACKAGE_VERSION}+cuda11.7
-
-ENV NV_CUDA_CUDART_DEV_VERSION 11.7.99-1
-ENV NV_NVML_DEV_VERSION 11.7.91-1
-ENV NV_LIBCUSPARSE_DEV_VERSION 11.7.4.91-1
-ENV NV_LIBNPP_DEV_VERSION 11.7.4.75-1
-ENV NV_LIBNPP_DEV_PACKAGE libnpp-dev-11-7=${NV_LIBNPP_DEV_VERSION}
-
-ENV NV_LIBCUBLAS_DEV_PACKAGE_NAME libcublas-dev-11-7
-ENV NV_LIBCUBLAS_DEV_VERSION 11.10.3.66-1
-ENV NV_LIBCUBLAS_DEV_PACKAGE ${NV_LIBCUBLAS_DEV_PACKAGE_NAME}=${NV_LIBCUBLAS_DEV_VERSION}
-
-ENV NV_NVPROF_VERSION 11.7.101-1
-ENV NV_NVPROF_DEV_PACKAGE cuda-nvprof-11-7=${NV_NVPROF_VERSION}
-
-ENV NV_LIBNCCL_DEV_PACKAGE_NAME libnccl-dev
-ENV NV_LIBNCCL_DEV_PACKAGE_VERSION 2.12.12-1
-ENV NCCL_VERSION 2.12.12-1
-ENV NV_LIBNCCL_DEV_PACKAGE ${NV_LIBNCCL_DEV_PACKAGE_NAME}=${NV_LIBNCCL_DEV_PACKAGE_VERSION}+cuda11.7
-
-# ADDED. see: https://developer.nvidia.com/blog/updating-the-cuda-linux-gpg-repository-key/
-RUN apt-key del 7fa2af80 && \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb && \
-    dpkg -i cuda-keyring_1.0-1_all.deb
-
-RUN apt-get update && apt-get install -y --no-install-recommends --allow-downgrades \
-    libtinfo5 libncursesw5 \
-    cuda-cudart-dev-11-7=${NV_CUDA_CUDART_DEV_VERSION} \
-    cuda-command-line-tools-11-7=${NV_CUDA_LIB_VERSION} \
-    cuda-minimal-build-11-7=${NV_CUDA_LIB_VERSION} \
-    cuda-libraries-dev-11-7=${NV_CUDA_LIB_VERSION} \
-    cuda-nvml-dev-11-7=${NV_NVML_DEV_VERSION} \
-    ${NV_NVPROF_DEV_PACKAGE} \
-    ${NV_LIBNPP_DEV_PACKAGE} \
-    libcusparse-dev-11-7=${NV_LIBCUSPARSE_DEV_VERSION} \
-    ${NV_LIBCUBLAS_DEV_PACKAGE} \
-    ${NV_LIBNCCL_DEV_PACKAGE} \
-    && rm -rf /var/lib/apt/lists/*
-
-# Keep apt from auto upgrading the cublas and nccl packages. See https://gitlab.com/nvidia/container-images/cuda/-/issues/88
-RUN apt-mark hold ${NV_LIBCUBLAS_DEV_PACKAGE_NAME} ${NV_LIBNCCL_DEV_PACKAGE_NAME}
+# fix issues with shared objects
+RUN ls /usr/local/cuda-11.6/targets/x86_64-linux/lib/* | xargs -I{} ln -s {} /usr/lib/x86_64-linux-gnu/ \
+ && ln -s libcuda.so /usr/lib/x86_64-linux-gnu/libcuda.so.1 \
+ && ln -s libnvidia-ml.so /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
 
 ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
 # END COPIED
 
 RUN echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc && \
-    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64/' >> ~/.bashrc && \
-#    echo 'export LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so' >> ~/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/nvidia/lib64/' >> ~/.bashrc && \
+    echo 'export LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so' >> ~/.bashrc && \
     . ~/.bashrc
 
-RUN pip uninstall spacy -y && pip install spacy[cuda118]==3.4.1
+RUN pip uninstall spacy -y && pip install spacy[cuda116]==3.4.1
 
