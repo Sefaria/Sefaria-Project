@@ -67,6 +67,13 @@ const Strings = {
     "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
 
+    // Topics Tool
+    "Search for a Topic.": "חפש נושא",
+    "Add Topic": "הוספת נושא",
+    "Create a new topic: ": "יצירת נושא: ",
+
+
+
     // All Topics
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",

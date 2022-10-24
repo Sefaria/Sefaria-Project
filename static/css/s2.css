@@ -6457,7 +6457,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
   margin: initial;
 }
-.topicButton.isFirst {
+.topicButton:first-child {
   border-top: none;
 }
 .topicButton:hover {
@@ -9655,24 +9655,37 @@ background-color: white;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
 }
-
-.topicSearch.addInterfaceInput .SuggestionBox {
-  margin: 0 0 0 30px;
+.topicSearch.addInterfaceInput {
+  display: flex;
+  margin-left: 30px;
+  margin-right: 30px;
+  justify-content: space-between;
 }
+
 .topicSearch.addInterfaceInput input {
-  margin: 30px 0 0 30px;
+  margin-top: 30px;
+  height: 30px;
   max-width: 250px;
   min-width: 250px;
+  padding-inline-end: 30px;
+  margin-left:  0;
+  margin-right: 0;
+  font-size: 20px;
 }
 .topicSearch.addInterfaceInput input.selected {
   color: #4B71B7;
 }
-.topicSearch.addInterfaceInput select.suggestionBox {
-  margin-left: 20px;
-}
 
-.addInterfaceInput.topicSearch .button {
-  margin: 30px 0px 20px 30px;
+.topicSearch.addInterfaceInput .button {
+  margin-top: 30px;
+  position: relative;
+  white-space: nowrap;
+}
+.addInterfaceInput .suggestion {
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput select.suggestionBox {
+  margin-top: 60px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;

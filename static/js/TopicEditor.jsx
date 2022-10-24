@@ -23,7 +23,7 @@ function useTopicToggle() {
 }
 
 const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="",
-                     redirect=(slug) => window.location.href = "/topics/" + slug, close}) => {
+                     onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc?.en);
@@ -83,7 +83,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                 if (data.error) {
                     alert(data.error);
                 } else {
-                    redirect(newSlug);
+                    onCreateSuccess(newSlug);
                 }
             }).fail(function(xhr, status, errorThrown) {
                 alert("Please reset TOC manually: "+errorThrown);

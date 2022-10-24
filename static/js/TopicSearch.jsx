@@ -107,26 +107,28 @@ class TopicSearch extends Component {
 
 
   render() {
-    return (
-        <div>{this.state.showTopicEditor ? <TopicEditor origEn={this.state.value} close={this.reset} redirect={this.post}/> : null}
-        <Autocompleter selectedCallback={this.validate}
+        if (this.state.showTopicEditor) {
+            return <TopicEditor origEn={this.state.value} close={this.reset} onCreateSuccess={this.post}/>;
+        }
+        else {
+            return (<Autocompleter selectedCallback={this.validate}
                  getSuggestions={this.getSuggestions}
-                 inputPlaceholder="Search for a Topic."
-                 buttonTitle="Add Topic"
+                 inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
+                 buttonTitle={Sefaria.translation(this.props.contentLang, "Add Topic")}
                  inputValue={this.state.value}
                  changeInputValue={this.changeInputValue}
                  showSuggestionsOnSelect={false}
                  autocompleteClassNames="topicSearch addInterfaceInput"
-        />
-        </div>
-    );
+            />)
+        }
   }
 }
 TopicSearch.propTypes = {
   contextSelector:  PropTypes.string.isRequired, // CSS Selector for uniquely identifiable context that this is in.
   srefs: PropTypes.array.isRequired, //srefs of TopicList
   update: PropTypes.func.isRequired, //used to add topic to TopicList
-  createNewTopicStr: PropTypes.string.isRequired // whatever should be displayed when there's an option to create new topic
+  createNewTopicStr: PropTypes.string.isRequired, // string that should be displayed when there's an option to create new topic
+  contentLang: PropTypes.string.isRequired //
 };
 
 
