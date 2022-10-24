@@ -724,7 +724,7 @@ class TestModifyVersion:
         original_len = len(node[0])
         node[0] += ['', '', '   ', None]
         self.complexVersion._trim_ending_whitespace()
-        assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
+        assert len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len
 
 
 class TestVersionActualLanguage:

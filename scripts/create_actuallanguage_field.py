@@ -8,7 +8,7 @@ from sefaria.helper.text import merge_text_versions
 
 i = 1
 test_run = False
-while(i < len(sys.argv)):
+while i < len(sys.argv):
     if sys.argv[i] == "--test":
         test_run=True
     i+=1

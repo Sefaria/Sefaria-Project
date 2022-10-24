@@ -293,7 +293,7 @@ class Collection(abst.AbstractMongoRecord):
         """
         Returns a list of all collection members, regardless of sole
         """
-        return (self.admins + self.members)
+        return self.admins + self.members
 
     def is_member(self, uid):
         """

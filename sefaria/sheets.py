@@ -666,7 +666,7 @@ def add_ref_to_sheet(id, ref, request):
 	sheet = db.sheets.find_one({"id": id})
 	if not sheet:
 		return {"error": "No sheet with id %s." % (id)}
-	if(sheet["owner"] != request.user.id):
+	if sheet["owner"] != request.user.id:
 		return jsonResponse({"error": "user can only add refs to their own sheet"})
 	sheet["dateModified"] = datetime.now().isoformat()
 	sheet["sources"].append({"ref": ref})
@@ -1102,7 +1102,7 @@ def likers_list_for_sheet(sheet_id):
 	"""
 	sheet = get_sheet(sheet_id)
 	likes = sheet.get("likes", [])
-	return(annotate_user_list(likes))
+	return annotate_user_list(likes)
 
 
 def broadcast_sheet_publication(publisher_id, sheet_id):

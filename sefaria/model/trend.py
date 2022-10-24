@@ -88,7 +88,7 @@ class DateRange(object):
         today = date.today()                     
         this_gregorian_year_rh = cls.new_years_dict[today.year]
         try:
-            if (this_gregorian_year_rh.date() > today):
+            if this_gregorian_year_rh.date() > today:
                 return cls("this_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)
             else:
                 return cls("this_hebrew_year", this_gregorian_year_rh, cls.new_years_dict[today.year+1])
@@ -102,7 +102,7 @@ class DateRange(object):
         today = date.today()
         this_gregorian_year_rh = cls.new_years_dict[today.year]
         try:
-            if (this_gregorian_year_rh.date() > today):
+            if this_gregorian_year_rh.date() > today:
                 return cls("previous_hebrew_year", cls.new_years_dict[today.year-2], cls.new_years_dict[today.year-1])
             else:
                 return cls("previous_hebrew_year", cls.new_years_dict[today.year-1], this_gregorian_year_rh)

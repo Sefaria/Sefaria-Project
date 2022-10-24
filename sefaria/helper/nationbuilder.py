@@ -128,7 +128,7 @@ def nationbuilder_update_person_custom_fields(session, id, person_info_list):
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
-    while(next_endpoint):
+    while next_endpoint:
         print(next_endpoint) # TODO comment out before mergin to master
         for attempt in range(0,3):
             try:

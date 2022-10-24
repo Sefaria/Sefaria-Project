@@ -723,7 +723,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         try:
             int(getattr(self, "errorMargin", 0))
-        except (ValueError):
+        except ValueError:
             raise InputError("composition date error margin must be an integer")
 
         #complex style records- all records should now conform to this

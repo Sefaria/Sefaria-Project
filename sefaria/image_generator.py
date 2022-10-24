@@ -135,7 +135,7 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
     img = Image.alpha_composite(img, logo_padded)
 
 
-    return(img)
+    return img
 
 def make_img_http_response(text, category, ref_str, lang, platform):
     try:

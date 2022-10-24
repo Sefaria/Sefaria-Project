@@ -140,7 +140,7 @@ class Queue(object):
                 #if (self.__que[self.__front])[0] =='Numbers 26:4':
                     #cur += 1
             else:
-                if ((tag+"-" + aliyot) != 'Pinchas-1'):
+                if (tag+"-" + aliyot) != 'Pinchas-1':
                     time_stamps[(self.__que[self.__front])[0]] = ("ERROR")
                     self.remove()
                     end_time = start_time + (self.__que[self.__front])[1]

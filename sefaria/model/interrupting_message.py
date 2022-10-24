@@ -58,7 +58,7 @@ class InterruptingMessage(object):
     if self.is_fundraising:
       if self.request.user.is_authenticated:
         profile = UserProfile(id=self.request.user.id)
-        if(profile.is_sustainer):
+        if profile.is_sustainer:
           return False
 
     return True

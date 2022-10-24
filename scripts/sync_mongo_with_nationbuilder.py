@@ -23,9 +23,9 @@ def add_nationbuilder_id_to_mongo(mongo_only):
     already_synced_count = 0
     for nationbuilder_user in nationbuilder_get_all(get_everyone):
         user_profile = UserProfile(email=nationbuilder_user['email']) 
-        if (user_profile.id != None): # has user profile
+        if user_profile.id is not None:  # has user profile
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
-            if User.objects.get(id=user_profile.id).is_active == False: # delete spam users
+            if not User.objects.get(id=user_profile.id).is_active:  # delete spam users
                 if not mongo_only:
                     delete_from_nationbuilder_if_spam(user_profile.id, nationbuilder_id)
             elif user_profile.nationbuilder_id != nationbuilder_id: # add nb id to mongo

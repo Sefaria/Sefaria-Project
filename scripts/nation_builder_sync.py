@@ -28,7 +28,7 @@ def sync_sustainers_to_mongo():
         
         nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email']) 
 
-        if (nationbuilder_sustainer_profile.id != None): # has user profile
+        if nationbuilder_sustainer_profile.id is not None:  # has user profile
             existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
 
             if existing_sustainer: # remove sustainer from dictionary; already synced
@@ -57,7 +57,7 @@ nonexistent_nb_id_only = False
 gt = 0
 skip = []
 i = 1
-while(i < len(sys.argv)):
+while i < len(sys.argv):
     if sys.argv[i] == "--trends-only":
         trends_only = True
     elif sys.argv[i] == "--tags-only":

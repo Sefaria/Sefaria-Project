@@ -106,7 +106,7 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
   parashah_name = weekend_reading["parasha"]
   parashah_topic = get_topic_by_parasha(parashah_name)
 
-  if not todays_data or not (todays_data["Sheet URL"]):
+  if not todays_data or not todays_data["Sheet URL"]:
     sheet = None
   else:
     sheet = sheet_with_customization(todays_data)

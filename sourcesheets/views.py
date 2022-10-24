@@ -1173,7 +1173,7 @@ def next_untagged(request):
     from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    if("sheetId" in body):
+    if "sheetId" in body:
        update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("topics", body['skipIds']))
 
@@ -1184,7 +1184,6 @@ def next_uncategorized(request):
     from sefaria.sheets import update_sheet_tags_categories, get_sheet_categorization_info
     body_unicode = request.body.decode('utf-8')
     body = json.loads(body_unicode)
-    if("sheetId" in body):
+    if "sheetId" in body:
        update_sheet_tags_categories(body, request.user.id)
     return jsonResponse(get_sheet_categorization_info("categories", body['skipIds']))
-

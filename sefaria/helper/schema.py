@@ -450,7 +450,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     # `delta` is difference in depth.  If positive, we're adding depth.
     delta = len(section_names) - len(ja_node.sectionNames)
     if upsize_in_place:
-        assert (delta > 0)
+        assert delta > 0
 
     if address_types is None:
         address_types = ['Integer'] * len(section_names)

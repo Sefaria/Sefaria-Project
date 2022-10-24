@@ -325,10 +325,10 @@ class LinkSet(abst.AbstractMongoSet):
             except:
                 continue
             cat  = oref.primary_category
-            if (cat not in results):
+            if cat not in results:
                 results[cat] = {"count": 0, "books": {}}
             results[cat]["count"] += 1
-            if (oref.book not in results[cat]["books"]):
+            if oref.book not in results[cat]["books"]:
                 results[cat]["books"][oref.book] = 0
             results[cat]["books"][oref.book] += 1
 

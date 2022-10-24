@@ -271,7 +271,7 @@ class RecommendationEngine:
         last_cluster = None
         for temp_oref, temp_data in item_list:
             new_cluster_item = {"ref": temp_oref, "data": temp_data}
-            if last_cluster is None or (not (-1 < last_cluster[-1]["ref"].distance(temp_oref) <= dist_threshold)):
+            if last_cluster is None or not (-1 < last_cluster[-1]["ref"].distance(temp_oref) <= dist_threshold):
                 last_cluster = [new_cluster_item]
                 clusters += [last_cluster]
             else:

@@ -1207,7 +1207,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["offset"] = offset
             elif getattr(self, "startingAddress", False):
                 d["offset"] = self.address_class(0).toIndex("en", self.startingAddress)
-            if (kwargs.get("include_previews", False)):
+            if kwargs.get("include_previews", False):
                 d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
                 if d.get("refs"):
                     d["refsPreview"] = []
@@ -1890,15 +1890,15 @@ class SheetNode(NumberedTitledTreeNode):
 
     def return_text_from_sheet_source(self, source):
         if source.get("text"):
-            return (source.get("text"))
+            return source.get("text")
         elif source.get("outsideText"):
-            return (source.get("outsideText"))
+            return source.get("outsideText")
         elif source.get("outsideBiText"):
-            return (source.get("outsideBiText"))
+            return source.get("outsideBiText")
         elif source.get("comment"):
-            return (source.get("comment"))
+            return source.get("comment")
         elif source.get("media"):
-            return (source.get("media"))
+            return source.get("media")
 
     def get_text(self):
         text = []

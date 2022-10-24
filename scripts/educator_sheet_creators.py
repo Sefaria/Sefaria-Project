@@ -78,7 +78,7 @@ def write_sheet_makers_csv(query={}):
                 reader = csv.reader(tsvfile, delimiter='\t')
                 for row in reader:
                     try:
-                        if (profile.email.split("@")[1] == row[1]):
+                        if profile.email.split("@")[1] == row[1]:
                             add_author = True
                     except:
                         add_author = False
