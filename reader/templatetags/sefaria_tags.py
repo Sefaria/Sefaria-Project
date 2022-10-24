@@ -27,6 +27,7 @@ from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
 
 import sefaria.model.text
 import sefaria.model as m
+from sefaria.model.text import library, AbstractIndex
 
 
 register = template.Library()
@@ -137,7 +138,6 @@ def text_toc_link(indx):
 	"""
 	Return an <a> tag linking to the text TOC for the Index
 	"""
-	from sefaria.model.text import library, AbstractIndex
 	if not isinstance(indx, AbstractIndex):
 		indx = library.get_index(indx)
 
