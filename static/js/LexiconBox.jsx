@@ -217,7 +217,7 @@ class LexiconEntry extends Component {
     return RegExp(/^BDB.*?Dict/).test(entry['parent_lexicon']);
   }
   defaultHeadwordString(entry) {
-    var headwords = [entry['headword']];
+    let headwords = [entry['headword']];
     if ('alt_headwords' in entry) {
       headwords = headwords.concat(entry['alt_headwords']);
     }
@@ -226,19 +226,19 @@ class LexiconEntry extends Component {
           .reduce((prev, curr) => [prev, ', ', curr]);
   }
   bdbHeadwordString(entry) {
-    var peculiar = ('peculiar' in entry) ? '‡ ' : '';
-    var allCited = ('all_cited' in entry) ? '† ' : '';
-    var ordinal = ('ordinal' in entry) ? `${entry["ordinal"]} ` : '';
-    var hw = (<span dir="rtl">{entry['headword'].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]*$/, '')}</span>);
-    var occurrences = ('occurrences' in entry) ? (<sub>{entry['occurrences']}</sub>) : '';
-    var alts = ('alt_headwords' in entry) ? entry['alt_headwords']
+    const peculiar = entry.peculiar ? '‡ ' : '';
+    const allCited = entry.all_cited ? '† ' : '';
+    const ordinal = entry.ordinal ? `${entry["ordinal"]} ` : '';
+    const hw = (<span dir="rtl">{entry['headword'].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]*$/, '')}</span>);
+    const occurrences = entry.occurrence ? (<sub>{entry['occurrences']}</sub>) : '';
+    const alts = entry.alt_headwords ? entry['alt_headwords']
         .map(alt => {
-            var ahw = <span dir="rtl">{alt['word']}</span>;
-            var aocc = ('occurrences' in alt) ? <sub>{alt['occurrences']}</sub> : '';
+            const ahw = <span dir="rtl">{alt['word']}</span>;
+            const aocc = ('occurrences' in alt) ? <sub>{alt['occurrences']}</sub> : '';
           return <span>, {ahw}{aocc}</span>
         })
         .reduce((prev, curr) => [prev, curr]) : '';
-    var allHeadwords = ('headword_suffix' in entry) ? <span>[{hw}{entry['headword_suffix']}]{occurrences}</span>:
+    const allHeadwords = entry.headword_suffix ? <span>[{hw}{entry['headword_suffix']}]{occurrences}</span>:
         (entry['brackets'] == 'all') ? <span>[{hw}{occurrences}{alts}]</span> :
         (entry['brackets'] == 'first_word') ? <span>[{hw}{occurrences}]{alts}</span> :
             <span>{hw}{occurrences}{alts}</span>;
@@ -264,20 +264,20 @@ class LexiconEntry extends Component {
     );
   }
   renderBDBEntrySenses(content) {
-    const note = ('note' in content) ? <em>Note.</em> : '';
-    const preNun = ('pre_num' in content) ? content['pre_num'] : '';
-    const allCited = ('all_cited' in content) ? '†' : '';
-    const num = ('num' in content) ? content['num'] : '';
-    const form = ('form' in content) ? content['form'] : '';
-    const occurrences = ('occurrences' in content) ? content['occurrences'] : '';
-    const def = ('definition' in content) ? content['definition'] : '';
-    if ('definition' in content) {
+    const note = content.note ? <em>Note.</em> : '';
+    const preNun = content.pre_num || '';
+    const allCited = content.all_cited ? '†' : '';
+    const num = content.num || '';
+    const form = content.form || '';
+    const occurrences = content.occurrences || '';
+    const def = content.definition || '';
+    if (content.definition) {
       const text = `${note} ${preNun} ${allCited}<b>${num}${form}</b><sub>${occurrences}</sub> ${def}`;
       return (
-      <span className="def"  dangerouslySetInnerHTML={ {__html: text}}></span>       );
+      <span className="def"  dangerouslySetInnerHTML={ {__html: text}}></span>);
     }
     const pre = `${note} ${preNun} ${allCited}`
-    const sensesElems = ('senses' in content) ? content['senses'].map((sense, i) => {
+    const sensesElems = content.senses ? content.senses.map((sense, i) => {
       return <div>{i==0 && pre}{i==0 && <b>{num}{form}</b>}{i==0 && <sub>{occurrences}</sub>}{this.renderBDBEntrySenses(sense)}</div>;
     }) : "";
     const senses = sensesElems.length ? (<div>{sensesElems}</div>) : "";
