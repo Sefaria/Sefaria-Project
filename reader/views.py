@@ -3251,6 +3251,10 @@ def add_new_topic_api(request):
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
+        library._topic_toc = library.get_topic_toc(rebuild=True)
+        library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
+        library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
+
         def protected_index_post(request):
             return jsonResponse(t.contents())
         return protected_index_post(request)
@@ -3262,6 +3266,9 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            library._topic_toc = library.get_topic_toc(rebuild=True)
+            library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
+            library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3289,17 +3296,19 @@ def topics_api(request, topic, v2=False):
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
+        reset_topic_toc = False             #reset if title or category changed
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
             topic_obj.add_title(topic_data["title"], 'en', True, True)
             topic_obj.set_slug_to_primary_title()
+            reset_topic_toc = True
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
             # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
             # as top level topics don't need intratopiclinks
-
+            reset_topic_toc = True
             origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
                                               "toTopic": topic_data["origCategory"],
                                               "linkType": "displays-under"})
@@ -3328,18 +3337,29 @@ def topics_api(request, topic, v2=False):
                 origLink.dataSource = "sefaria"
                 origLink.save()
 
-        needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
+        topic_needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
 
         if (topic_data["category"] == "Main Menu") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
-            needs_save = True
+            topic_needs_save = True
             topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
-            needs_save = True
+            topic_needs_save = True
 
-        if needs_save:
+        if topic_needs_save:
             topic_obj.save()
+
+        # currentLevel = TopicSet({"isTopLevelDisplay": True})
+        # while True:
+        #     for t in currentLevel:
+        #         if t.slug == topic_data["origSlug"]:
+        #             t[l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+
+        if reset_topic_toc:
+            library._topic_toc = library.get_topic_toc(rebuild=True)
+            library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
+            library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
