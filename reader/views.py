@@ -58,7 +58,10 @@ from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.search import get_search_categories
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source, ref_topic_link_prep, annotate_topic_link
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
+                                get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
+                                get_random_topic_source, ref_topic_link_prep, annotate_topic_link, \
+                                get_node_in_library_topic_toc, get_path_for_topic_slug
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3292,26 +3295,18 @@ def topics_api(request, topic, v2=False):
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
-        reset_topic_toc = False             #reset if title or category changed
 
         if topic_data["origTitle"] != topic_data["title"]:
             # rename Topic
             topic_obj.add_title(topic_data["title"], 'en', True, True)
             topic_obj.set_slug_to_primary_title()
-            reset_topic_toc = True
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
             # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
             # as top level topics don't need intratopiclinks
-            reset_topic_toc = True
-            origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
-                                              "toTopic": topic_data["origCategory"],
-                                              "linkType": "displays-under"})
-            if topic_data["origCategory"] == "Main Menu":
-                assert origLink is None
-                origLink = IntraTopicLink()
-
+            origLinkDict = {"fromTopic": topic_obj.slug, "toTopic": topic_data["origCategory"], "linkType": "displays-under"}
+            origLink = IntraTopicLink() if topic_data["origCategory"] == "Main Menu" else IntraTopicLink().load(origLinkDict)
             if topic_data["category"] == "Main Menu":
                 # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                 child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
@@ -3346,16 +3341,19 @@ def topics_api(request, topic, v2=False):
         if topic_needs_save:
             topic_obj.save()
 
-        # currentLevel = TopicSet({"isTopLevelDisplay": True})
-        # while True:
-        #     for t in currentLevel:
-        #         if t.slug == topic_data["origSlug"]:
-        #             t[l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+        if topic_data["origCategory"] != topic_data["category"]:
+            library.get_topic_toc(rebuild=True)
+        else:
+            path = get_path_for_topic_slug(topic_data["origSlug"])
+            old_node = get_node_in_library_topic_toc(path)
+            if topic_obj.slug != old_node["slug"]:
+                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found library._topic_toc."})
+            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
+            if hasattr(topic_obj, "categoryDescription"):
+                old_node["categoryDescription"] = topic_obj.categoryDescription
 
-        if reset_topic_toc:
-            library._topic_toc = library.get_topic_toc(rebuild=True)
-            library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
-            library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
+        library.get_topic_toc_json(rebuild=True)
+        library.get_topic_toc_category_mapping(rebuild=True)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())

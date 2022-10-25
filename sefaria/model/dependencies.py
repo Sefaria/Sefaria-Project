@@ -74,6 +74,8 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 
 # Topic
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
+subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+
 
 # Terms
 # TODO cascade change to Term.name.

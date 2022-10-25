@@ -6457,7 +6457,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
   margin: initial;
 }
-.topicButton:first-child {
+.topicList #topicItem-0 {
   border-top: none;
 }
 .topicButton:hover {

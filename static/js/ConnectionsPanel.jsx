@@ -1194,9 +1194,10 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
           </div>
         </div>
       ) : topics.map(
-          (topic) => (
+          (topic, i) => (
           <TopicListItem
             key={topic.topic}
+            id={i}
             topic={topic}
             interfaceLang={interfaceLang}
             srefs={srefs}
@@ -1207,14 +1208,14 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-      <a href={`/topics/${topic.topic}`} target="_blank">
+      <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`}>
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
