@@ -1,5 +1,4 @@
 import django, csv, json, re
-django.setup()
 from tqdm import tqdm
 from collections import defaultdict
 from pymongo.errors import AutoReconnect
@@ -8,6 +7,11 @@ from sefaria.utils.util import titlecase
 from sefaria.system.database import db
 from sefaria.helper.topic import generate_all_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.utils.hebrew import is_hebrew
+from sefaria.model.abstract import SluggedAbstractMongoRecord
+from pymongo import UpdateOne, DeleteOne
+
+django.setup()
 
 # with open("data/final_ref_topic_links.csv", 'r') as fin:
 #     cin = csv.DictReader(fin)
@@ -556,7 +560,6 @@ def do_ref_topic_link(slug_to_sheet_map):
 
 
 def do_sheet_refactor(tag_to_slug_map):
-    from sefaria.utils.hebrew import is_hebrew
     IntraTopicLinkSet({"toTopic": Topic.uncategorized_topic}).delete()
     sheets = autoreconnect_query('sheets', {}, {"tags": 1, "id": 1})
     uncategorized_dict = {}
@@ -929,8 +932,6 @@ def recat_top_level():
 
 
 def renormalize_slugs():
-    from tqdm import tqdm
-    from sefaria.model.abstract import SluggedAbstractMongoRecord
     ts = TopicSet()
 
     for t in tqdm(ts, total=ts.count()):
@@ -972,7 +973,6 @@ def set_should_display():
 
 
 def new_edge_type_research():
-    from tqdm import tqdm
     itls = IntraTopicLinkSet({"linkType": "specifically-dependent-on"})
     for l in tqdm(itls, total=itls.count()):
         ft = Topic().load({'slug': l.fromTopic})
@@ -1081,8 +1081,6 @@ def export_law_toc():
 
 
 def apply_recat_toc():
-    from sefaria.system.database import db
-
     law_slugs = [
         'law',
         'legal-text',
@@ -1424,11 +1422,6 @@ if __name__ == '__main__':
 
 
 def yo():
-    import re
-    from tqdm import tqdm
-    from sefaria.system.database import db
-    from pymongo import UpdateOne
-
     rtls = RefTopicLinkSet({"is_sheet": True})
     sheet_cache = {}
     updates = {}
@@ -1449,10 +1442,6 @@ def yo():
 
 
 def yoyo():
-    from sefaria.system.database import db
-    from tqdm import tqdm
-    from pymongo import UpdateOne
-
     ts = TopicSet()
     updates = {}
     for topic in tqdm(ts, total=ts.count()):
@@ -1488,9 +1477,6 @@ def yoyo():
 
 
 def sup():
-    from tqdm import tqdm
-    import re, json
-    from sefaria.system.database import db
     is_hebrew = re.compile('[א-ת]')
     query = {"topics.asTyped": is_hebrew}
     bad = list(db.sheets.find(query, {'topics': True, 'id': True}))
@@ -1519,10 +1505,6 @@ def sup():
 
 
 def supyo():
-    from tqdm import tqdm
-    from sefaria.system.database import db
-    from pymongo import DeleteOne
-
     deletes = set()
     sheet_links = RefTopicLinkSet({"is_sheet": True})
     sheet_cache = {}
@@ -1570,10 +1552,6 @@ def make_desc_csv():
 
 
 def add_good_to_promote():
-    from tqdm import tqdm
-    from collections import defaultdict
-    from sefaria.system.database import db
-
     terms = TermSet({"good_to_promote": True})
     all_terms = set()
     for t in terms:
@@ -1595,8 +1573,6 @@ def add_good_to_promote():
 
 
 def add_gens_to_rabs():
-    from tqdm import tqdm
-
     gens = TimePeriodSet.get_generations()
     all_peeps = []
     for gen in gens:
@@ -1680,7 +1656,6 @@ def merge_rav_nataf():
 
 
 def add_disambiguation():
-    import csv
     with open('data/Analyze Ambiguous Topics - ambig_topics.csv', 'r') as fin:
         c = csv.DictReader(fin)
         for row in c:
