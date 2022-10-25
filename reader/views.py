@@ -3250,9 +3250,9 @@ def add_new_topic_api(request):
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
-        library._topic_toc = library.get_topic_toc(rebuild=True)
-        library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
-        library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
+        library.get_topic_toc(rebuild=True)
+        library.get_topic_toc_json(rebuild=True)
+        library.get_topic_toc_category_mapping(rebuild=True)
 
         def protected_index_post(request):
             return jsonResponse(t.contents())
@@ -3265,9 +3265,9 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library._topic_toc = library.get_topic_toc(rebuild=True)
-            library._topic_toc_json = library.get_topic_toc_json(rebuild=True)
-            library._topic_toc_category_mapping = library.get_topic_toc_category_mapping(rebuild=True)
+            library.get_topic_toc(rebuild=True)
+            library.get_topic_toc_json(rebuild=True)
+            library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})

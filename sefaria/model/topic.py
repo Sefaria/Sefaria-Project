@@ -111,7 +111,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         """
         self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
         self.description = desc
-        if hasattr(self, "isTopLevelDisplay"):
+        if getattr(self, "isTopLevelDisplay", False):
             self.categoryDescription = cat_desc
         elif getattr(self, "categoryDescription", False):
             delattr(self, "categoryDescription")
