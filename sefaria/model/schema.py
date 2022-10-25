@@ -268,7 +268,7 @@ class Term(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def _validate(self):
         super(Term, self)._validate()
-        #do not allow duplicates:
+        # do not allow duplicates:
         for title in self.get_titles():
             other_term = Term().load_by_title(title)
             if other_term and not self.same_record(other_term):
@@ -343,7 +343,7 @@ def deserialize_tree(serial=None, **kwargs):
             raise IndexSchemaError("No matching class for nodeType {}".format(serial.get("nodeType")))
 
     if serial.get(kwargs.get("children_attr", "nodes")) or (kwargs.get("struct_title_attr") and serial.get(kwargs.get("struct_title_attr"))):
-        #Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
+        # Structure class - use explicitly defined 'nodeType', code overide 'struct_class', or default SchemaNode
         struct_class = klass or kwargs.get("struct_class", SchemaNode)
         return struct_class(serial, **kwargs)
     elif klass:
@@ -500,11 +500,11 @@ class TreeNode(object):
             return None
         return self._next_in_list(self.parent.children)
 
-    #Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
+    # Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
     def next_leaf(self):
         return self._next_in_list(self.root().get_leaf_nodes())
 
-    #Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
+    # Currently assumes being called from leaf node - could integrate a call to first_leaf/last_leaf
     def prev_leaf(self):
         return self._prev_in_list(self.root().get_leaf_nodes())
 
@@ -559,7 +559,7 @@ class TreeNode(object):
         if self.children:
             d[self.children_attr] = [n.serialize(**kwargs) for n in self.children]
 
-        #Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
+        # Only output nodeType and nodeParameters if there is at least one param. This seems like it may not remain a good measure.
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if getattr(self, k, None) is not None}
         if any(params):
             d["nodeType"] = self.__class__.__name__
@@ -752,7 +752,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         Overridden in subclasses.
         :return:
         """
-        #overidden in subclasses
+        # overidden in subclasses
         for child in self.children:
             if child.is_default():
                 if child.has_numeric_continuation():
@@ -779,7 +779,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
     def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
         """
         :param text: Text of the title
-        :param language:  Language code of the title (e.g. "en" or "he")
+        :param lang:  Language code of the title (e.g. "en" or "he")
         :param primary: Is this a primary title?
         :param replace_primary: must be true to replace an existing primary title
         :param presentation: The "presentation" field of a title indicates how it combines with earlier titles. Possible values:
@@ -829,7 +829,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
                             raise InputError(
                                 "Nodes that represent Parashot must contain the corresponding sharedTitles.")
 
-        #if not self.default and not self.primary_title("he"):
+        # if not self.default and not self.primary_title("he"):
         #    raise IndexSchemaError("Schema node {} missing primary Hebrew title".format(self.key))
 
     def serialize(self, **kwargs):
@@ -993,7 +993,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 else:
                     reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                word_break_group = r'(?:^|\s|\(|\[|-|/)' #r'(?:^|\s|\(|\[)'
+                word_break_group = r'(?:^|\s|\(|\[|-|/)' # r'(?:^|\s|\(|\[)'
                 if kwargs.get("for_js"):
                     reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
                 else:
@@ -1026,9 +1026,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     reg += "?"
 
         if kwargs.get("match_range"):
-            #TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
-            #TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
-            #TODO However, most false positives will be filtered out in library._get_ref_from_match()
+            # TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
+            # TODO Really, the depths should be filled in the opposite order, but it's difficult to write a regex to match.
+            # TODO However, most false positives will be filtered out in library._get_ref_from_match()
 
             reg += r"(?:\s*([-\u2010-\u2015\u05be]|to)\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += r"(?=\S)"  # must be followed by something (Lookahead)
@@ -1371,7 +1371,7 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
-            if not self.children: #preload text and pass it down to the preview generation
+            if not self.children: # preload text and pass it down to the preview generation
                 from . import text
                 he_text_ja = text.TextChunk(self.ref(), "he").ja()
                 en_text_ja = text.TextChunk(self.ref(), "en").ja()
@@ -1393,8 +1393,8 @@ class SchemaNode(TitledTreeNode):
             d["checkFirst"] = self.checkFirst
         return d
 
-    #http://stackoverflow.com/a/14692747/213042
-    #http://stackoverflow.com/a/16300379/213042
+    # http://stackoverflow.com/a/14692747/213042
+    # http://stackoverflow.com/a/16300379/213042
     def address(self):
         """
         Returns a list of keys to uniquely identify and to access this node.
@@ -1630,7 +1630,7 @@ class DictionaryEntryNode(TitledTreeNode):
         :param title:
         :param tref:
         :param word:
-        :param lexicon_entry: LexiconEntry. if you pass this param and dont pass title, tref or word, then this will bootstrap the DictionaryEntryNode and avoid an extra mongo call
+        :param lexicon_entry: LexiconEntry. if you pass this param and don't pass title, tref or word, then this will bootstrap the DictionaryEntryNode and avoid an extra mongo call
         """
         if title and tref:
             self.title = title
@@ -1711,7 +1711,7 @@ class DictionaryEntryNode(TitledTreeNode):
     def next_sibling(self):
         return self.next_leaf()
 
-    #Currently assumes being called from leaf node
+    # Currently assumes being called from leaf node
     def next_leaf(self):
         if not self.has_word_match:
             return None
@@ -1720,7 +1720,7 @@ class DictionaryEntryNode(TitledTreeNode):
         except AttributeError:
             return None
 
-    #Currently assumes being called from leaf node
+    # Currently assumes being called from leaf node
     def prev_leaf(self):
         if not self.has_word_match:
             return None
@@ -1912,7 +1912,7 @@ class SheetNode(NumberedTitledTreeNode):
 
         return text
 
-    #def address(self):
+    # def address(self):
     #    return self.parent.address() + [self.sheetId]
 
     def prev_sibling(self):
@@ -2045,7 +2045,7 @@ class AddressType(object):
         """
         The regular expression part that matches this address reference
         :param lang: "en" or "he"
-        :param group_id: The id of the regular expression group the this match will be catured in
+        :param group_id: The id of the regular expression group the this match will be captured in
         :return string: regex component
         """
         pass
@@ -2251,7 +2251,7 @@ class AddressTalmud(AddressType):
                 # looking for rest of ref after dash
                 end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
                 return f"{start_daf}-{end_range}"
-        else: #range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
+        else: # range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
             return ref._get_normal(lang)
 
     @classmethod
@@ -2314,7 +2314,7 @@ class AddressTalmud(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d*" if group_id == "ar0" else r"\d+" #if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
+            reg += r"\d*" if group_id == "ar0" else r"\d+" # if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
             reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
@@ -2342,7 +2342,7 @@ class AddressTalmud(AddressType):
                 raise InputError("Couldn't parse Talmud reference: {}".format(s))
 
             if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                # todo: Catch this above and put the book name on it.  Proably change Exception type.
                 raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
@@ -2357,7 +2357,7 @@ class AddressTalmud(AddressType):
                 return daf  # amud B
             return daf - 1
 
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+            # if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
 
 
     @classmethod
@@ -2393,7 +2393,7 @@ class AddressTalmud(AddressType):
                 "Amud": number,
                 "Daf": number / 2
             }
-        else: #shouldn't get here
+        else: # shouldn't get here
             return {name: number}
 
     def storage_offset(self):
@@ -2465,7 +2465,7 @@ class AddressFolio(AddressType):
                 raise InputError("Couldn't parse Talmud reference: {}".format(s))
 
             if self.length and daf > self.length:
-                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                # todo: Catch this above and put the book name on it.  Proably change Exception type.
                 raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 4
@@ -2532,7 +2532,7 @@ class AddressFolio(AddressType):
                 "Amud": number,
                 "Daf": number / 2
             }
-        else:  #shouldn't get here
+        else:  # shouldn't get here
             return {name: number}
 
     def storage_offset(self):
