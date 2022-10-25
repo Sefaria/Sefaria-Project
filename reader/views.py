@@ -34,7 +34,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
+from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
@@ -45,10 +45,9 @@ from sefaria.client.wrapper import format_object_for_client, format_note_object_
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.utils.util import short_to_long_lang_code
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
@@ -59,11 +58,22 @@ from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.search import get_search_categories
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
+
+from sefaria.settings import NODE_TIMEOUT, DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+from sefaria.model.category import TocCollectionNode
+from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.utils.calendars import parashat_hashavua_and_haftara
+import sefaria.model.story as sefaria_story
+from PIL import Image
+from io import BytesIO
+from sefaria.utils.user import delete_user_account
+from django.core.mail import EmailMultiAlternatives
+from babel import Locale
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -138,8 +148,6 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
-    from sefaria.settings import NODE_TIMEOUT
-
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
@@ -174,10 +182,6 @@ def base_props(request):
     Returns a dictionary of props that all App pages get based on the request
     AND are able to be sent over the wire to the Node SSR server.
     """
-    from sefaria.model.user_profile import UserProfile, UserWrapper
-    from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
-
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
         library.init_shared_cache(rebuild=True)
@@ -1111,7 +1115,6 @@ def _crumb(pos, id, name):
 
 
 def sheet_crumbs(request, sheet=None):
-    from sefaria.helper.topic import get_top_topic
     if sheet is None:
         return ""
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
@@ -1794,8 +1797,6 @@ def shape_api(request, title):
 
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
-    from sefaria.model.category import TocCollectionNode
-
     def _simple_shape(snode):
         sn = StateNode(snode=snode)
         shape = sn.var("all", "shape")
@@ -2363,7 +2364,6 @@ def tag_category_api(request, path=None):
         if not path or path == "index":
             categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            from sefaria.model.abstract import SluggedAbstractMongoRecord
             slug = SluggedAbstractMongoRecord.normalize_slug(path)
             topic = Topic.init(slug)
             if not topic:
@@ -2453,7 +2453,6 @@ def category_api(request, path=None):
 @csrf_exempt
 def calendars_api(request):
     if request.method == "GET":
-        import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
         zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
@@ -2469,7 +2468,7 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             # If a user is asking the API for a specific date there's really no reason to specify a timezone.
             # The user also doesnt expect the date to get mangled by the default timzone which might implicitly set it back a day
-            datetimeobj = datetime.datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
+            datetimeobj = datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
         except Exception as e:
             datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
@@ -2493,7 +2492,6 @@ def parasha_next_read_api(request, parasha):
     :param request:
     :return:
     """
-    from sefaria.utils.calendars import parashat_hashavua_and_haftara
     if request.method == "GET":
         datetimeobj = timezone.localtime(timezone.now())
         return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
@@ -2878,18 +2876,17 @@ def story_reflector(request):
             try:
                 del payload["factory"]
                 del payload["method"]
-                import sefaria.model.story as s
-                factory = getattr(s, factory_name)
+                factory = getattr(sefaria_story, factory_name)
                 method = getattr(factory, method_name)
-                s = method(**payload)
-                return jsonResponse(s.contents())
+                sefaria_story = method(**payload)
+                return jsonResponse(sefaria_story.contents())
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
         else:
             #Treat payload as attrs to story object
             try:
-                s = SharedStory(payload)
-                return jsonResponse(s.contents())
+                sefaria_story = SharedStory(payload)
+                return jsonResponse(sefaria_story.contents())
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
 
@@ -3186,7 +3183,6 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        from sefaria.model.abstract import SluggedAbstractMongoRecord
         topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
@@ -3381,7 +3377,6 @@ def bulk_topic_api(request):
     :param request:
     :return:
     """
-    from sefaria.helper.topic import get_bulk_topics
     if request.method == "POST":
         minify = request.GET.get("minify", False)
         postJSON = request.POST.get("json")
@@ -3395,8 +3390,6 @@ def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
     """
-    from sefaria.helper.topic import recommend_topics
-
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
@@ -3707,9 +3700,6 @@ def profile_upload_photo(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
-        from PIL import Image
-        from io import BytesIO
-        from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         profile = UserProfile(id=request.user.id)
@@ -3748,7 +3738,6 @@ def profile_sync_api(request):
     if request.method == "POST":
         profile_updated = False
         post = request.POST
-        from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
         annotate = bool(int(request.GET.get("annotate", 0)))
@@ -3823,9 +3812,6 @@ def profile_sync_api(request):
 @permission_classes([IsAuthenticated])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
-    from sefaria.utils.user import delete_user_account
-    from django.core.mail import EmailMultiAlternatives
-
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to delete your account.")})
     uid = request.user.id
@@ -3878,7 +3864,6 @@ def saved_history_for_ref(request):
 
 
 def _get_anonymous_user_history(request):
-    import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return history
 
@@ -3952,7 +3937,6 @@ def account_settings(request):
     """
     Page for managing a user's account settings.
     """
-    from babel import Locale
     profile = UserProfile(id=request.user.id)
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
@@ -3982,8 +3966,6 @@ def community_page(request, props={}):
 
 
 def community_page_data(request, language="english"):
-    from sefaria.model.user_profile import UserProfile
-
     data = {
         "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
@@ -4051,7 +4033,6 @@ def new_discussion_api(request):
         return jsonResponse({"error": "You must be logged in to start a discussion."})
 
     if request.method == "POST":
-        import uuid
         attempts = 10
         while attempts > 0:
             key = str(uuid.uuid4())[:8]
@@ -4276,8 +4257,6 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    from sefaria.helper.topic import get_random_topic, get_random_topic_source
-
     cb = request.GET.get("callback", None)
     random_topic = get_random_topic(good_to_promote=True)
     if random_topic is None:

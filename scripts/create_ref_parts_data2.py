@@ -1,5 +1,4 @@
 import django, re
-django.setup()
 from tqdm import tqdm
 from functools import partial
 from sefaria.model import *
@@ -10,6 +9,12 @@ from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.linker import MatchTemplate
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
+from sefaria.utils.hebrew import encode_hebrew_numeral
+from sefaria.utils.hebrew import strip_cantillation
+import unicodedata
+from pymongo import InsertOne
+
+django.setup()
 
 """
 Documentation of new fields which can be added to SchemaNodes
@@ -186,7 +191,6 @@ class ReusableTermManager:
         return term
 
     def create_numeric_perek_terms(self):
-        from sefaria.utils.hebrew import encode_hebrew_numeral
         ord_en = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth', 'Twenty First', 'Twenty Second', 'Twenty Third', 'Twenty Fourth', 'Twenty Fifth', 'Twenty Sixth', 'Twenty Seventh', 'Twenty Eighth', 'Twenty Ninth', 'Thirtieth']
         ordinals = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'ששי', 'שביעי', 'שמיני', 'תשיעי', 'עשירי']
         cardinals = ['אחד', 'שניים', 'שלוש', 'ארבע', 'חמש', 'שש', 'שבע', 'שמנה', 'תשע', 'עשר', 'אחד עשרה', 'שניים עשרה', 'שלוש עשרה', 'ארבע עשרה', 'חמש עשרה', 'שש עשרה', 'שבע עשרה', 'שמונה עשרה', 'תשע עשרה', 'עשרים', 'עשרים ואחד', 'עשרים ושניים', 'עשרים ושלוש', 'עשרים וארבע', 'עשרים וחמש', 'עשרים ושש', 'עשרים ושבע', 'עשרים ושמונה', 'עשרים ותשע', 'שלושים']
@@ -515,8 +519,6 @@ class DiburHamatchilAdder:
 
     @staticmethod
     def get_dh(s, regexes, oref):
-        from sefaria.utils.hebrew import strip_cantillation
-        import unicodedata
         matched_reg = False
         s = s.strip()
         for reg in regexes:
@@ -578,7 +580,6 @@ class DiburHamatchilAdder:
         primary_version.walk_thru_contents(add_dh_for_seg)
 
     def add_all_dibur_hamatchils(self):
-        from pymongo import InsertOne
         db.dibur_hamatchils.delete_many({})
         for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
             self.add_dibur_hamatchil_to_index(index)
