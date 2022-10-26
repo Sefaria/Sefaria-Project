@@ -21,6 +21,8 @@ backup:
     prefix: ""
     bucket: sefaria-contextus-user-backup
     serviceAccount: database-backup-write
+  sitemaps:
+    enabled: true
 web:
   containerImage:
     imageRegistry:
