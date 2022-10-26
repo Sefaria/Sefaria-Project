@@ -1352,6 +1352,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
+    Sefaria.FeatureTrack.clicked(`toolsbutton; ${en}`)
     onClick();
   }
   let iconElem = null;
@@ -1367,6 +1368,10 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
+  useEffect( () => {
+    Sefaria.FeatureTrack.visible(`toolbutton; ${en}`)
+    console.log(`${en}_toolbutton visible`)
+  }, [])
   return (
     count == null || count > 0 || alwaysShow ?
     <div className="toolsButtonContainer">

@@ -6,6 +6,7 @@ import Search from './search';
 import Strings from './strings';
 import palette from './palette';
 import Track from './track';
+import FeatureTrack from './track_ga4';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
@@ -2874,6 +2875,7 @@ Sefaria.loadServerData = function(data){
 Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
 Sefaria.track   = Track;
+Sefaria.FeatureTrack   = FeatureTrack;
 Sefaria.palette = palette;
 
 Sefaria.palette.indexColor = function(title) {

@@ -19,19 +19,10 @@ var SEND = trackerName + ".send";
 
 class Track {
     // Helper functions for event tracking (with Google Analytics and Mixpanel)
-    static event(category, event_name, label, value, options) {
-        if (typeof window !== 'undefined') {
-            gtag('event', event_name, {
-                'event_category': category,
-                'event_label': label,
-                'value': value,
-                'track_ga_4': true,
-                'book':options?options['book']:'not sure of the book here' // where is page location coming from? that is where we want the book to come from... but it is being red from the
-            });
-        }
+    static event(category, action, label, value, options) {
         // https://developers.google.com/analytics/devguides/collection/analyticsjs/command-queue-reference#send
-        ga(SEND, 'event', category, event_name, label, value, options);
-        console.log(SEND, 'event', category, event_name, label, value, options);
+        ga(SEND, 'event', category, action, label, value, options);
+        console.log(SEND, 'event', category, action, label, value, options);
         if (ga._mock && value && value.hitCallback) {
           // When Google Analytics isn't being used, trigger hitCallback immediately.
           value.hitCallback();
