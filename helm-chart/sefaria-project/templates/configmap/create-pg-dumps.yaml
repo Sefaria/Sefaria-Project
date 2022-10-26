@@ -14,11 +14,11 @@ data:
 
     DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST --port $DATABASES_PORT"
     DUMP_CMD+=" --username $DATABASES_USER"
-    IF [[ ! $DATABASES_PASSWORD ]]; THEN
-      DUMP_CMD+=" --no_passowrd"
-    ELSE
+    if [[ ! $DATABASES_PASSWORD ]]; then
+      DUMP_CMD+=" --no_password"
+    else
       DUMP_CMD+=" --password $DATABASES_PASSWORD"
-    FI
+    fi
     DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
     DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'" 
 
