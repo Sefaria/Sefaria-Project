@@ -154,6 +154,9 @@ spec:
           mountPath: /app/gunicorn.conf.py
           subPath: gunicorn.conf.py
           readOnly: true
+        - name: elastic-cert
+          mountPath: /etc/ssl/certs/elastic
+          readOnly: true
       volumes:
         - name:  local-settings
           configMap:
@@ -161,6 +164,10 @@ spec:
             items:
               - key: local_settings.py
                 path: local_settings.py
+        - name: elastic-cert
+          secret:
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} 
+            optional: true
         - name: client-secret
           secret:
             secretName: {{ template "sefaria.secrets.googleClient" . }} # needs to be checked if it's a reference object or the data object we created.
@@ -170,12 +177,14 @@ spec:
         - name: logging-secret
           secret:
             secretName: {{ template "sefaria.secrets.logging" . }}
+            optional: true
         - name: varnish-secret
           secret:
             secretName: {{ template "sefaria.secrets.varnish" . }}
         - name: school-lookup-data
           secret:
             secretName: {{ template "sefaria.secrets.schoolLookup" . }}
+            optional: true
         - name: gunicorn-config
           configMap:
             name: gunicorn-config-{{ .Values.deployEnv }}

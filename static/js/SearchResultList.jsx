@@ -94,7 +94,7 @@ class SearchResultList extends Component {
         topics:         []
       }
 
-      // Load search results from cache so they are available for immedate render
+      // Load search results from cache so they are available for immediate render
       this.types.map(t => {
         const args = this._getQueryArgs(props, t);
         let cachedQuery = Sefaria.search.getCachedQuery(args);
