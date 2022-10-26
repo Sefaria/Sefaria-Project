@@ -48,5 +48,5 @@ RUN echo 'export PATH=/usr/local/nvidia/bin:$PATH' >> ~/.bashrc && \
     echo 'export LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so' >> ~/.bashrc && \
     . ~/.bashrc
 
-RUN pip uninstall spacy -y && pip install spacy[cuda116]==3.4.1
+RUN pip install spacy[cuda116]==3.4.1
 
