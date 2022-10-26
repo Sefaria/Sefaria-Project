@@ -371,7 +371,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         }
         if filter and len(filter):
             panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
-            if deleteFilter == True:
+            if deleteFilter:
                 del panel['filter']
 
         settings_override = {}
@@ -387,7 +387,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             settings_override.update({"aliyotTorah": aliyotOverride})
         if settings_override:
             panel["settings"] = settings_override
-        if mode != "Connections" and oref != None:
+        if mode != "Connections" and oref is not None:
             try:
                 text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
@@ -498,7 +498,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
     Handles views of ReaderApp that involve texts, connections, and text table of contents in panels.
     """
-    if sheet == None:
+    if sheet is None:
         try:
             primary_ref = oref = Ref(ref)
             if primary_ref.book == "Sheet":
@@ -522,7 +522,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     noindex = False
 
-    if sheet == None:
+    if sheet is None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
         if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
@@ -549,7 +549,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
-    elif sheet == True:
+    elif sheet is True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
@@ -620,7 +620,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationTopicTitle":    None,
         "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
-    if sheet == None:
+    if sheet is None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
 
@@ -4673,7 +4673,7 @@ def rollout_health_api(request):
     def isRedisReachable():
         try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
-            return redis_client.ping() == True
+            return redis_client.ping() is True
         except Exception as e:
             logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
