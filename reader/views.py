@@ -1551,8 +1551,8 @@ def social_image_api(request, tref):
 
         tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
 
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
+        he = tf["he"] if isinstance(tf["he"], list) else [tf["he"]]
+        en = tf["text"] if isinstance(tf["text"], list) else [tf["text"]]
 
         text = en if lang == "en" else he
         text = ' '.join(text)
@@ -1813,7 +1813,7 @@ def shape_api(request, title):
 
     def _collapse_book_leaf_shapes(leaf_shapes):
         """Groups leaf node shapes for a single book into one object so that resulting list corresponds 1:1 to books"""
-        if type(leaf_shapes) != list:
+        if not isinstance(leaf_shapes, list):
             return leaf_shapes
 
         results = []

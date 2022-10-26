@@ -157,12 +157,12 @@ def make_cltk_full(doc):
                     sec_name_count[section_names] += 1
                 except KeyError:
                     sec_name_count[section_names] = 1
-            elif type(old_js) == list:
-                #Traversing jagged array
+            elif isinstance(old_js, list):
+                # Traversing jagged array
                 content_list = old_js
-            for i,content in enumerate(content_list):
-                if type(content) == list:
-                    temp = traverse_to_cltk(content,**kwargs)
+            for i, content in enumerate(content_list):
+                if isinstance(content, list):
+                    temp = traverse_to_cltk(content, **kwargs)
                     if len(list(temp.keys())) > 0:
                         new_js[str(i)] = temp
                 elif content != "":

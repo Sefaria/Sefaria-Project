@@ -171,7 +171,7 @@ class JaggedArray(object):
                 return None
             a = a[indexes[i]]
         try:
-            if until_last_nonempty and len(a) > 0 and type(a[-1]) == list:  # and not at end of `a`
+            if until_last_nonempty and len(a) > 0 and isinstance((a[-1]), list):  # and not at end of `a`
                 curr_result = len(a)
                 while self.sub_array_length(indexes + [curr_result - 1]) == 0 and curr_result > 0:
                     curr_result -= 1

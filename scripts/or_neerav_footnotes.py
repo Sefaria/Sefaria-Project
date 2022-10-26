@@ -12,7 +12,7 @@ def get_ftnotes(sec_ref, title):
         if "Subject" in relevant_footnote_ref:
             relevant_footnote_ref = relevant_footnote_ref.replace(", Subject", " 1")
     ftnotes = Ref(relevant_footnote_ref).text('en').text
-    assert type(ftnotes[0]) is str
+    assert isinstance(ftnotes[0], str)
     ftnotes = dict(enumerate(ftnotes))
     return ftnotes
 

@@ -66,11 +66,11 @@ def rewrite(tc, mappings, finds):
         else:
             not_found.append("In {}, there is the following reference: {}".format(ref.normal(), find))
 
-    if type(text) is list and type(text[0]) is not list:
+    if isinstance(text, list) and not isinstance(text[0], list):
         for i, line in enumerate(text):
             for key in replace_dict:
                 text[i] = text[i].replace(key, replace_dict[key])
-    elif type(text) is not list:
+    elif not isinstance(text, list):
         if len(finds) > 0:
             for key in replace_dict:
                 text = text.replace(key, replace_dict[key])
@@ -152,6 +152,3 @@ def write():
 
 if __name__ == "__main__":
     execute()
-
-
-    
