@@ -1,11 +1,16 @@
 from typing import Optional
 import django, re, csv, json
 from tqdm import tqdm
-django.setup()
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.person import Person, PersonSet, PersonRelationship, PersonRelationshipSet
 from collections import defaultdict
+from sefaria.system.database import db
+from sefaria.helper.topic import calculate_popular_writings_for_authors
+import time
+import requests
+
+django.setup()
 
 # BASE_PATH = "/Users/nss/Downloads"
 # BASE_PATH = "/home/nss/Downloads"
@@ -247,7 +252,6 @@ def import_and_merge_authors():
             
 
 def refactor_authors_on_indexes():
-    from sefaria.system.database import db
     topics_by_person = defaultdict(list)
     for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):
         topics_by_person[t.alt_ids['old-person-key']] += [t]
@@ -428,7 +432,6 @@ def create_topic_tocs():
 
 
 def find_popular_writings(top_n, min_pr):
-    from sefaria.helper.topic import calculate_popular_writings_for_authors
     tlt = {
         "slug": "popular-writing-of",
         "inverseSlug" : "has-popular-writing", 
@@ -468,8 +471,6 @@ def percent_refs_translated(percent):
     print(f'Num translated for {percent}% cutoff - {num_translated}/{cutoff} = {num_translated/cutoff}%')
     
 def get_wikidata_entries():
-    import time
-    import requests
     good_guys = [t.alt_ids['wikidata'] for t in TopicSet({"alt_ids.wikidata": {"$exists": True}})]
     out = {"entities": {}}
     for i in tqdm(list(range(0, len(good_guys), 50))):
