@@ -8,8 +8,6 @@ restore:
   tarball: jmc-private_dump_21.09.22.tar
   serviceAccount: database-backup-read
 backup:
-  #legacy compat section, remove once deploy chart sufficienctly updated
-  enabled: true
   mongo:
     enabled: true
     prefix: ""
@@ -21,7 +19,7 @@ backup:
     enabled: true
     version: 10.3
     prefix: ""
-    bucket: sefaria-user-backup
+    bucket: sefaria-contextus-user-backup
     serviceAccount: database-backup-write
   sitemaps:
     enabled: true
