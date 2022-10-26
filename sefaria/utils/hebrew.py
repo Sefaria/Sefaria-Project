@@ -204,7 +204,7 @@ def break_int_magnitudes(n, start=None):
 	[10000, 5000, 0, 0, 0]
 	"""
 
-	if type(n) is not int:
+	if not isinstance(n, int):
 		raise TypeError("Argument 'n' must be int, {} provided.".format(type(n)))
 
 	# if n == 0:

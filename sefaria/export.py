@@ -216,15 +216,15 @@ def make_cltk_flat(doc):
                     sec_name_count[tuple(section_names)] += 1
                 except KeyError:
                     sec_name_count[tuple(section_names)] = 1
-            elif type(old_js) == list:
-                #Traversing jagged array
+            elif isinstance(old_js, list):
+                # Traversing jagged array
                 content_list = old_js
                 section_names = section_names[1:]
 
-            for i,content in enumerate(content_list):
+            for i, content in enumerate(content_list):
                 curr_section = "" if len(section_names) == 0 else "_{}".format(section_names[0])
                 temp_title = "{}{}{}".format(title_begin,str(i),curr_section)
-                if type(content) == list:
+                if isinstance(content, list):
                     new_js.update(traverse_to_cltk(content,temp_title,section_names,**kwargs))
                 elif content != "":
                     new_js[temp_title] = content
@@ -353,8 +353,7 @@ def prepare_text_for_export(text):
 
 
 def text_is_copyright(text):
-    return "license" in text and (type(text['license']) is str or type(text['license']) is str) \
-           and text["license"].startswith("Copyright")
+    return "license" in text and isinstance(text['license'], str) and text["license"].startswith("Copyright")
 
 
 def export_texts():

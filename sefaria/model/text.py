@@ -153,7 +153,7 @@ class AbstractIndex(object):
         def aggregate_available_texts(available):
             """Returns a jagged arrary of ints that counts the number of segments in each section,
             (by throwing out the number of versions of each segment)"""
-            if len(available) == 0 or type(available[0]) is int:
+            if len(available) == 0 or isinstance(available[0], int):
                 return len(available)
             else:
                 return [aggregate_available_texts(x) for x in available]
@@ -270,7 +270,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         def aggregate_available_texts(available):
             """Returns a jagged arrary of ints that counts the number of segments in each section,
             (by throwing out the number of versions of each segment)"""
-            if len(available) == 0 or type(available[0]) is int:
+            if len(available) == 0 or isinstance(available[0], int):
                 return len(available)
             else:
                 return [aggregate_available_texts(x) for x in available]
@@ -1442,7 +1442,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
         if addressTypes is None and schema is not None:
             addressTypes = schema["addressTypes"] if "addressTypes" in schema else None
-        if type(item) is dict:
+        if isinstance(item, dict):
             for n in schema["nodes"]:
                 try:
                     is_virtual_node = VirtualNode in globals()[n.get("nodeType", "")].__bases__
@@ -1467,7 +1467,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                         self.walk_thru_contents(action, vstring, vref.normal(), vref.he_normal(), n, [])
                 else:
                     self.walk_thru_contents(action, item[n["key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
-        elif type(item) is list:
+        elif isinstance(item, list):
             for ii, i in enumerate(item):
                 try:
                     temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))

@@ -269,7 +269,7 @@ class AbstractMongoRecord(object):
         """
 
         """
-        if type(other) is type(self):
+        if isinstance(other) is isinstance(self):
             return self._saveable_attrs() == other._saveable_attrs()
         return False
 

@@ -337,7 +337,7 @@ class BDBEntry(DictionaryEntry):
             senses = []
             for s in sense['senses']:
                 subsenses = self.get_sense(s)
-                if type(subsenses) == list:
+                if isinstance(subsenses, list):
                     senses += subsenses
                 else:
                     senses.append(subsenses)
@@ -348,7 +348,7 @@ class BDBEntry(DictionaryEntry):
         strings = []
         for sense in self.content['senses']:
             sense = self.get_sense(sense)
-            if type(sense) == list:
+            if isinstance(sense, list):
                 strings.append(' '.join(sense))
             else:
                 strings.append(sense)

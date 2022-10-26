@@ -72,16 +72,15 @@ class Link(abst.AbstractMongoRecord):
                     assert VersionSet({"title": index_title, "versionTitle": versionTitle, "language": versionLanguage}).count() > 0, \
                         f"No version found for book '{index_title}', with versionTitle '{versionTitle}', and language '{versionLanguage}'"
 
-
         if False in self.refs:
             return False
 
         if hasattr(self, "charLevelData"):
             try:
-                assert type(self.charLevelData) is list
+                assert isinstance(self.charLevelData, list)
                 assert len(self.charLevelData) == 2
-                assert type(self.charLevelData[0]) is dict
-                assert type(self.charLevelData[1]) is dict
+                assert isinstance(self.charLevelData[0], dict)
+                assert isinstance(self.charLevelData[1], dict)
             except AssertionError:
                 raise InputError(f'Structure of the charLevelData in Link is wrong. link refs: {self.refs[0]} - {self.refs[1]}. charLevelData should be a list of length 2 containing 2 dicts coresponding to the refs list, each dict consists of the following keys: ["startChar","endChar","versionTitle","language"]')
             assert self.charLevelData[0]['versionTitle'] in [v['versionTitle'] for v in text.Ref(self.refs[0]).version_list()], 'Dictionaries in charLevelData should be in correspondence to the "refs" list'

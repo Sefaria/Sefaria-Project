@@ -431,7 +431,7 @@ class TextIndexer(object):
         cls.version_priority_map = {}
 
         def traverse(mini_toc):
-            if type(mini_toc) == list:
+            if isinstance(mini_toc, list):
                 for t in mini_toc:
                     traverse(t)
             elif "contents" in mini_toc:
