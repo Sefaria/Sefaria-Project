@@ -49,6 +49,10 @@ backup:
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
+  sitemaps:
+    enabled: false
+    serviceAccount: database-backup-write
+    bucket: sefaria-sitemaps
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
