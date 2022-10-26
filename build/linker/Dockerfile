@@ -1,4 +1,6 @@
-FROM gcr.io/production-deployment/web:latest
+ARG SRC_IMG
+
+FROM ${SRC_IMG}  
 
 # Copied from: https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.8.0/ubuntu2004/devel/Dockerfile
 # Lines marked 'ADDED' show where this code was modified
