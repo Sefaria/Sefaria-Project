@@ -23,6 +23,7 @@ backup:
     serviceAccount: database-backup-write
   sitemaps:
     enabled: true
+    bucket: sefaria-contextus-sitemaps
 web:
   containerImage:
     imageRegistry:
