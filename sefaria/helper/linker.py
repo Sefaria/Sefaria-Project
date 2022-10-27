@@ -189,7 +189,8 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
         start_char, end_char = resolved_ref.raw_ref.char_indices
         text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
-        if not link_failed and resolved_refs[0].ref.is_book_level(): continue
+        if not link_failed and resolved_refs[0].ref.is_book_level():
+            continue
         ref_results += [{
             "startChar": start_char,
             "endChar": end_char,
@@ -198,9 +199,11 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             "refs": None if link_failed else [rr.ref.normal() for rr in resolved_refs]
         }]
         for rr in resolved_refs:
-            if rr.ref is None: continue
+            if rr.ref is None:
+                continue
             tref = rr.ref.normal()
-            if tref in ref_data: continue
+            if tref in ref_data:
+                continue
             ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text, max_segments)
         if debug:
             debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]

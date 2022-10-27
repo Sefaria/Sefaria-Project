@@ -1086,11 +1086,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
             serial['depth'] -= next_refereceable_depth
             for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
                 # truncate every list attribute by `next_referenceable_depth`
-                if list_attr not in serial: continue
+                if list_attr not in serial:
+                    continue
                 serial[list_attr] = serial[list_attr][next_refereceable_depth:]
             if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
                 return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
-            if self.depth <= 1: return
+            if self.depth <= 1:
+                return
         else:
             # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
             serial = self.serialize()
@@ -1102,10 +1104,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         from .linker import SectionContext
         assert isinstance(section_context, SectionContext)
-        if self.depth == 0: return False
+        if self.depth == 0:
+            return False
         addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])
-        if addr_type.__class__ != section_context.addr_type.__class__: return False
-        if self.sectionNames[section_index] != section_context.section_name: return False
+        if addr_type.__class__ != section_context.addr_type.__class__:
+            return False
+        if self.sectionNames[section_index] != section_context.section_name:
+            return False
         return True
 
 
@@ -1165,7 +1170,8 @@ class DiburHamatchilNodeSet(abst.AbstractMongoSet):
         best_list = [DiburHamatchilMatch(0.0, '', 0)]
         for node in self:
             dh_match = node.fuzzy_match_score(lang, raw_ref_part)
-            if dh_match.dh is None: continue
+            if dh_match.dh is None:
+                continue
             if dh_match >= best_list[-1]:
                 dh_match.dh_node = node
                 best_list += [dh_match]
@@ -2122,8 +2128,10 @@ class AddressType(object):
         for starti in starti_list:
             curr_s = s[starti:]
             for SuperClass in cls.__mro__:  # mro gives all super classes
-                if SuperClass == AddressType: break
-                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0: continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
+                if SuperClass == AddressType:
+                    break
+                if SuperClass in {AddressInteger, AddressTalmud} and starti > 0:
+                    continue  # prefixes don't really make sense on AddressInteger or Talmud (in my opinion)
                 addr = SuperClass(0)  # somewhat hacky. trying to get access to super class implementation of `regex` but actually only AddressTalmud implements this function. Other classes just overwrite class fields which modify regex's behavior. Simplest to just instantiate the appropriate address and use it.
                 section_str = None
                 if addr.is_special_case(curr_s):
@@ -2131,7 +2139,8 @@ class AddressType(object):
                 else:
                     strict = SuperClass != AddressTalmud  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
-                    if regex_str is None: continue
+                    if regex_str is None:
+                        continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
                     match = reg.match(curr_s)
                     if match:

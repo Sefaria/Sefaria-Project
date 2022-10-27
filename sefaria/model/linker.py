@@ -397,13 +397,16 @@ class RawRef(abst.Cloneable):
                 part.toSections = RawRef._merge_daf_amud_parts(lang, part.toSections)
             elif part.type == RefPartType.NUMBERED and (ipart < len(raw_ref_parts) - 1):
                 _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-                if schema.AddressTalmud not in addr_classes: continue
+                if schema.AddressTalmud not in addr_classes:
+                    continue
                 _, _, addr_classes = addr_integer.get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-                if schema.AddressInteger in addr_classes: continue  # Don't consider if also matches AddressInteger. This is too ambiguous
+                if schema.AddressInteger in addr_classes:
+                    continue  # Don't consider if also matches AddressInteger. This is too ambiguous
                 next_part = raw_ref_parts[ipart+1]
                 proposed_text = f"{part.text} {next_part.text}"
                 _, _, addr_classes = addr_talmud.get_all_possible_sections_from_string(lang, proposed_text, strip_prefixes=True)
-                if schema.AddressTalmud not in addr_classes: continue  # Only consider if still matches AddressTalmud with merged text
+                if schema.AddressTalmud not in addr_classes:
+                    continue  # Only consider if still matches AddressTalmud with merged text
                 part.merge(next_part)
                 inds_to_del += [ipart + 1]
         for i in reversed(inds_to_del):
@@ -420,7 +423,8 @@ class RawRef(abst.Cloneable):
             if part.type == RefPartType.RANGE_SYMBOL:
                 ranged_symbol_ind = i
                 break
-        if ranged_symbol_ind is None or ranged_symbol_ind == len(raw_ref_parts) - 1: return raw_ref_parts
+        if ranged_symbol_ind is None or ranged_symbol_ind == len(raw_ref_parts) - 1:
+            return raw_ref_parts
         section_slice, toSection_slice = None, None
         for i in range(ranged_symbol_ind-1, -1, -1):
             if i == 0 or raw_ref_parts[i-1].type != RefPartType.NUMBERED:
@@ -430,7 +434,8 @@ class RawRef(abst.Cloneable):
             if i == len(raw_ref_parts) - 1 or raw_ref_parts[i+1].type != RefPartType.NUMBERED:
                 toSection_slice = slice(ranged_symbol_ind+1, i+1)
                 break
-        if section_slice is None: return raw_ref_parts
+        if section_slice is None:
+            return raw_ref_parts
         sections = raw_ref_parts[section_slice]
         toSections = sections[:]
         num_explicit_to_sections = toSection_slice.stop - toSection_slice.start
@@ -447,7 +452,8 @@ class RawRef(abst.Cloneable):
         AddressInteger sections must resolve in order because resolving out of order would be meaningless
         Returns a map from NUMBERED RawRefParts to directly preceeding NUMBERED RawRefParts
         """
-        if len(raw_ref_parts) == 0: return {}
+        if len(raw_ref_parts) == 0:
+            return {}
         prev_num_parts_map = {}
         prev_part = raw_ref_parts[0]
         for part in raw_ref_parts[1:]:
@@ -523,11 +529,13 @@ class RawRef(abst.Cloneable):
         Remap self.span and all spans of parts to new indices
         """
         self.span = new_doc.char_span(*new_indices)
-        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        if self.span is None:
+            raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
         doc_span = self.span.as_doc()
         for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
             part.span = doc_span.char_span(*[i-new_indices[0] for i in temp_part_indices])
-            if part.span is None: raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}. Using 'expand' alignment mode text is '{new_doc.char_span(*temp_part_indices, alignment_mode='expand')}'")
+            if part.span is None:
+                raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}. Using 'expand' alignment mode text is '{new_doc.char_span(*temp_part_indices, alignment_mode='expand')}'")
 
 
 class ResolvedRef(abst.Cloneable):
@@ -574,20 +582,23 @@ class ResolvedRef(abst.Cloneable):
         curr_start, curr_end = span_inds(curr_span)
         if re.search(r'\([^)]+$', curr_span.text) is not None:
             for temp_end in range(curr_end, curr_end+2):
-                if ")" not in curr_span.doc[temp_end].text: continue
+                if ")" not in curr_span.doc[temp_end].text:
+                    continue
                 curr_end = temp_end + 1
                 break
 
         return curr_span.doc[curr_start:curr_end]
 
     def _set_matched_dh(self, part: RawRefPart, potential_dh_token_idx: int):
-        if part.potential_dh_continuation is None: return
+        if part.potential_dh_continuation is None:
+            return
         matched_dh_continuation = part.potential_dh_continuation[:potential_dh_token_idx]
         self._matched_dh_map[part] = matched_dh_continuation
 
     def merge_parts(self, other: 'ResolvedRef') -> None:
         for part in other.resolved_parts:
-            if part in self.resolved_parts: continue
+            if part in self.resolved_parts:
+                continue
             if part.is_context:
                 # prepend context parts, so they pass validation that context parts need to precede non-context parts
                 self.resolved_parts = [part] + self.resolved_parts
@@ -600,7 +611,8 @@ class ResolvedRef(abst.Cloneable):
         Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
         """
         prev_part = self.raw_ref.prev_num_parts_map.get(part, None)
-        if prev_part is None: return False
+        if prev_part is None:
+            return False
         return prev_part not in set(self.resolved_parts)
 
     def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: schema.SchemaNode) -> bool:
@@ -615,8 +627,10 @@ class ResolvedRef(abst.Cloneable):
         try:
             possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
             for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-                if sec != node.numeric_equivalent: continue
-                if addr_class == schema.AddressInteger: return True
+                if sec != node.numeric_equivalent:
+                    continue
+                if addr_class == schema.AddressInteger:
+                    return True
         except KeyError:
             return False
 
@@ -638,7 +652,8 @@ class ResolvedRef(abst.Cloneable):
 
     def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
-        if node is None: return []
+        if node is None:
+            return []
         try:
             possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections, strip_prefixes=True)
         except (IndexError, TypeError, KeyError):
@@ -833,7 +848,8 @@ class MatchTemplateTrie:
         for node in nodes:
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
-                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
+                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope:
+                    continue
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
                     if term is None:
@@ -877,7 +893,8 @@ class MatchTemplateTrie:
 
     def get(self, key, default=None):
         sub_trie = self._trie.get(key, default)
-        if sub_trie is None: return
+        if sub_trie is None:
+            return
         return MatchTemplateTrie(self.lang, sub_trie=sub_trie, scope=self.scope)
 
     def has_continuations(self, key: str, key_is_id=False) -> bool:
@@ -942,7 +959,8 @@ class MatchTemplateTrie:
             for match in reversed(list(re.finditer(r'(\s+|$)', key[starti:]))):
                 endi = match.start() + starti
                 sub_key = key[starti:endi]
-                if sub_key not in prev_sub_tries: continue
+                if sub_key not in prev_sub_tries:
+                    continue
                 if endi == len(key):
                     next_sub_tries += [prev_sub_tries[sub_key]]
                     partial_key_end_list += [None]
@@ -979,7 +997,8 @@ class MatchTemplateGraph:
         self._graph = defaultdict(set)
         for node in nodes:
             for match_template in node.get_match_templates():
-                if len(match_template.term_slugs) < 2: continue
+                if len(match_template.term_slugs) < 2:
+                    continue
                 terms = list(match_template.terms)
                 for iterm, term in enumerate(terms[:-1]):
                     next_term = terms[iterm+1]
@@ -1033,7 +1052,8 @@ class TermMatcher:
         from sefaria.utils.hebrew import get_prefixless_inds
 
         matches = []
-        if ref_part.type != RefPartType.NAMED: return matches
+        if ref_part.type != RefPartType.NAMED:
+            return matches
         starti_inds = [0]
         if self.lang == 'he':
             starti_inds += get_prefixless_inds(ref_part.text)
@@ -1257,7 +1277,8 @@ class RefResolver:
 
     @staticmethod
     def split_non_cts_parts(lang, raw_ref: RawRef) -> List[RawRef]:
-        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
+        if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts):
+            return [raw_ref]
         split_raw_refs = []
         curr_parts = []
         curr_part_start = 0
@@ -1265,9 +1286,11 @@ class RefResolver:
             if part.type != RefPartType.NON_CTS:
                 curr_parts += [part]
             if part.type == RefPartType.NON_CTS or ipart == len(raw_ref.raw_ref_parts) - 1:
-                if len(curr_parts) == 0: continue
+                if len(curr_parts) == 0:
+                    continue
                 curr_part_end = ipart  # exclude curr part which is NON_CTS
-                if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
+                if ipart == len(raw_ref.raw_ref_parts) - 1:
+                    curr_part_end = ipart + 1  # include curr part
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
                     [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
@@ -1336,13 +1359,16 @@ class RefResolver:
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
-        if context_ref is None: return matches
+        if context_ref is None:
+            return matches
         term_contexts = self._get_term_contexts(context_ref.index.nodes)
-        if len(term_contexts) == 0: return matches
+        if len(term_contexts) == 0:
+            return matches
         temp_ref_parts = raw_ref.parts_to_match + term_contexts
         temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
         for match in temp_matches:
-            if match.num_resolved(include={TermContext}) == 0: continue
+            if match.num_resolved(include={TermContext}) == 0:
+                continue
             match.context_ref = context_ref
             match.context_type = context_type
             matches += [match]
@@ -1358,7 +1384,8 @@ class RefResolver:
         # I dont think this is necessary anymore since this case is covered by title context
         # context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
         for context_slug in (context_parent,):
-            if context_slug is None: continue
+            if context_slug is None:
+                continue
             term_context = TermContext(NonUniqueTerm.init(context_slug))
             temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
             matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
@@ -1377,17 +1404,20 @@ class RefResolver:
         """
         swapped_ref_parts = []
         term_matcher = self.get_term_matcher(lang)
-        if context_swap_map is None: return
+        if context_swap_map is None:
+            return
         for part in raw_ref.raw_ref_parts:
             # TODO assumes only one match in term_matches
             term_matches = term_matcher.match_term(part)
             found_match = False
             for match in term_matches:
-                if match.slug not in context_swap_map: continue
+                if match.slug not in context_swap_map:
+                    continue
                 swapped_ref_parts += [TermContext(NonUniqueTerm.init(slug)) for slug in context_swap_map[match.slug]]
                 found_match = True
                 break
-            if not found_match: swapped_ref_parts += [part]
+            if not found_match:
+                swapped_ref_parts += [part]
         raw_ref.parts_to_match = swapped_ref_parts
 
     def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
@@ -1397,10 +1427,12 @@ class RefResolver:
         for part in ref_parts:
             temp_raw_ref = raw_ref
             # no need to consider other types at root level
-            if part.type != RefPartType.NAMED: continue
+            if part.type != RefPartType.NAMED:
+                continue
 
             temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
-            if temp_title_trie is None: continue
+            if temp_title_trie is None:
+                continue
             if partial_key_end is None:
                 matched_part = part
             else:
@@ -1465,12 +1497,14 @@ class RefResolver:
         context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames, referenceable_sections))
         match_sec_set  = get_section_set(match_index)
         common_sec_set = get_section_set(common_index) & match_sec_set & set(context_sec_list)
-        if len(common_sec_set) == 0: return []
+        if len(common_sec_set) == 0:
+            return []
         sec_contexts = []
         for isec, sec_tuple in enumerate(context_sec_list):
             if sec_tuple in common_sec_set and isec < len(context_ref.sections):
                 addr_type_str, sec_name, referenceable = sec_tuple
-                if not referenceable: continue
+                if not referenceable:
+                    continue
                 addr_type = schema.AddressType.to_class_by_address_type(addr_type_str)
                 sec_contexts += [SectionContext(addr_type, sec_name, context_ref.sections[isec])]
         return sec_contexts
@@ -1492,7 +1526,8 @@ class RefResolver:
     @staticmethod
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
         match_templates = list(node.get_match_templates())
-        if len(match_templates) == 0: return []
+        if len(match_templates) == 0:
+            return []
         # assumption is longest template will be uniquest. is there a reason to consider other templates?
         longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
         return [TermContext(term) for term in longest_template.terms]
@@ -1502,7 +1537,8 @@ class RefResolver:
         """
         Tries to infer sections from context ref and uses them to refine `ref_part_match`
         """
-        if context_ref is None: return []
+        if context_ref is None:
+            return []
         context_titles = set(getattr(context_ref.index, 'base_text_titles', [])) | {context_ref.index.title}
         match_titles = set(getattr(ref_part_match.ref.index, 'base_text_titles', [])) | {ref_part_match.ref.index.title}
         matches = []
@@ -1589,7 +1625,8 @@ class RefResolver:
         top_order_key = resolved_refs[0].order_key
         max_resolved_refs = []
         for resolved_ref in resolved_refs:
-            if resolved_ref.order_key != top_order_key: break
+            if resolved_ref.order_key != top_order_key:
+            break
             max_resolved_refs += [resolved_ref]
 
         # make unique
