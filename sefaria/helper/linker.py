@@ -269,7 +269,7 @@ def load_spacy_model(path: str) -> spacy.Language:
     from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
 
     using_gpu = spacy.prefer_gpu()
-    logger.debug(f"Spacy successfully connected to GPU: {using_gpu}")
+    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
 
     if path.startswith("gs://"):
         # file is located in Google Cloud
