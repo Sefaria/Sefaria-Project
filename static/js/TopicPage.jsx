@@ -19,7 +19,7 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
-    SimpleLinkedBlock
+    SimpleLinkedBlock, ContentText
 } from './Misc';
 
 
@@ -306,6 +306,31 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     );
 };
 
+const TopicSponsorship = ({topic_slug}) => {
+    // TODO: Store this data somewhere intelligent
+    const topic_sponsorship_map = {
+        "parashat-lech-lecha": {
+            "en": "Sponsored by The Kaplan Foundation in honor of Scott and Erika’s wedding anniversary.",
+            "he": "נתרם על-ידי קרן קפלן לכבוד יום הנישואים של סקוט ואריקה."
+        },
+        "parashat-toldot" : {
+            "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
+            "he": "מוקדש על-ידי ננסי (שם נעורים: אקרמן) ואלכס ורשופסקי בתודה על לימודי היהדות, לציון עלייתה של בתם אביגיל לתורה לרגל בת המצווה שלה ולזכרה האהוב של פריידי גיטל שסללה את הדרך בחייה היהודיים."
+        },
+        "parashat-vayigash": {
+            "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
+            "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
+        }
+    };
+    const sponsorship_language = topic_sponsorship_map[topic_slug];
+    if (!sponsorship_language) return;
+
+    return (
+        <div className="topicSponsorship systemText">
+            <InterfaceText text={sponsorship_language}/>
+        </div>
+    );
+}
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
@@ -337,6 +362,9 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
              </a>
            </div>
        : null}
+       {topicData && topicData.ref ?
+           <TopicSponsorship topic_slug={topicData.slug} />
+       : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
               <span className="int-en">{topicData.description.en}</span>

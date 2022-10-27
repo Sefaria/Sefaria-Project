@@ -2087,6 +2087,12 @@ div.interfaceLinks-row a {
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
+
+.topicPanel .topicSponsorship {
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
   color: #666;
