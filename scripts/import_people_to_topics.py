@@ -85,7 +85,8 @@ def import_and_merge_talmud():
             slugs = []
             for i in range(1, 9):
                 temp_slug = row[f'Slug {i}']
-                if len(temp_slug) == 0: continue
+                if len(temp_slug) == 0:
+                    continue
                 slugs += [temp_slug]
             main_topic = Topic.init(slugs[0])
             if main_topic is None:
@@ -106,7 +107,8 @@ def import_and_merge_talmud():
                 continue
             for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
                 val = getattr(person, prop, None)
-                if val is None: continue
+                if val is None:
+                    continue
                 main_topic.properties[prop] = {
                     'value': val,
                     'dataSource': 'person-collection'
@@ -158,16 +160,19 @@ def import_and_merge_authors():
     with open(f'{BASE_PATH}/Person Topic Matching - Authors.csv', 'r') as fin:
         c = csv.reader(fin)
         for irow, row in enumerate(c):
-            if irow == 0: continue
+            if irow == 0:
+                continue
             book_slugs = []
             author_slugs = []
             for icol in range(book_col_start, book_col_start+5):
                 temp_slug = row[icol]
-                if len(temp_slug) == 0: continue
+                if len(temp_slug) == 0:
+                    continue
                 book_slugs += [temp_slug]
             for icol in range(auth_col_start, auth_col_start+5):
                 temp_slug = row[icol]
-                if len(temp_slug) == 0: continue
+                if len(temp_slug) == 0:
+                    continue
                 author_slugs += [temp_slug]
             if len(book_slugs) > 1:
                 main_book = Topic.init(book_slugs[0])
@@ -212,8 +217,10 @@ def import_and_merge_authors():
             main_author = Topic(main_author_dict)
             for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox', 'era']:
                 val = getattr(person, prop, None)
-                if val is None: continue
-                if getattr(main_author, 'properties', None) is None: main_author.properties = {}
+                if val is None:
+                    continue
+                if getattr(main_author, 'properties', None) is None:
+                    main_author.properties = {}
                 main_author.properties[prop] = {
                     'value': val,
                     'dataSource': 'person-collection'
@@ -221,7 +228,8 @@ def import_and_merge_authors():
             description = {}
             for prop in ['enBio', 'heBio']:
                 val = getattr(person, prop, None)
-                if val is None: continue
+                if val is None:
+                    continue
                 description[prop[:2]] = val
             if len(description) > 0:
                 main_author.description = description
@@ -501,13 +509,16 @@ def get_wikipedia_links_for_wikidata_ids():
     lang_count = defaultdict(int)
     for wikidata_id, topic in good_guys:
         sitelinks = entity_map[wikidata_id].get('sitelinks', None)
-        if sitelinks is None: continue
+        if sitelinks is None:
+            continue
         for lang in ('en', 'he', 'de', 'es', 'fr', 'ru'):
             wiki_link_dict = sitelinks.get(f'{lang}wiki', None)
-            if wiki_link_dict is None: continue
+            if wiki_link_dict is None:
+                continue
             wiki_link = f'https://{lang}.wikipedia.org/wiki/{wiki_link_dict["title"].replace(" ", "_")}'
             lang_count[lang] += 1
-            if getattr(topic, 'properties', None) is None: topic.properties = {}
+            if getattr(topic, 'properties', None) is None:
+                topic.properties = {}
             topic.properties[f'{lang}WikiLink'] = {
                 "value": wiki_link,
                 "dataSource": "wikidata"
@@ -574,6 +585,7 @@ def refactor_isas():
         for l in linkset:
             l.generatedBy = "update_authors_data"
             l.save()
+
 
 if __name__ == "__main__":
     # create_csvs_to_match()

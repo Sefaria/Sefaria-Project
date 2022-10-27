@@ -15,9 +15,10 @@ class Queue(object):
         self.__rear = 0   # should be to right of rear.
         self.__nItems = 0
 
-    # insert item at rear of queue
     def insert(self, item):
-        if self.isFull(): return False
+        """Insert item at rear of queue."""
+        if self.isFull():
+            return False
         if self.__rear == self.__maxSize-1:  # deal with wraparound
             self.__rear = -1
 
@@ -27,9 +28,10 @@ class Queue(object):
         self.__nItems += 1
         return True
 
-    # remove the front element of the queue, or None if empty
     def remove(self):
-        if self.isEmpty(): return None
+        """Remove the front element of the queue, or None if empty."""
+        if self.isEmpty():
+            return None
         temp = self.__que[self.__front]    # get the value at front
 
         self.__que[self.__front] = None    # keep garbage collector happy
@@ -40,12 +42,15 @@ class Queue(object):
         self.__nItems -= 1
         return temp
 
-    # return the item at front or None if queue is empty
+    def isEmpty(self):
+        """Return the item at front or None if queue is empty."""
+        return self.__nItems == 0
 
-    def isEmpty(self): return self.__nItems == 0
+    def isFull(self):
+        return self.__nItems == self.__maxSize
 
-    def isFull(self):  return self.__nItems == self.__maxSize
-    def size(self):    return self.__nItems
+    def size(self):
+        return self.__nItems
 
     def __str__(self):
         if self.__nItems <= 0:

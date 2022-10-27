@@ -320,7 +320,8 @@ class ReusableTermManager:
         minor_tractates = {title for title in library.get_indexes_in_category("Minor Tractates")}
         indexes = library.get_indexes_in_category("Bavli", full_records=True)
         for index in tqdm(indexes, desc='talmud', total=indexes.count()):
-            if index.title in minor_tractates: continue
+            if index.title in minor_tractates:
+                continue
             title_map[(index.title, index.get_title('he'))] |= {re.sub(r'<[^>]+>', '', re.sub(repl_reg, '', tit['text'])) for tit in index.nodes.title_group.titles}
 
         # SOME STRAGGLERS FROM TOSEFTA
@@ -475,11 +476,16 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or not node.is_root(): return
-        try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return
-        if comm_term is None: return
-        if self.get_match_template_suffixes is None: return
+        if is_alt_node or not node.is_root():
+            return
+        try:
+            comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
+        except:
+            return
+        if comm_term is None:
+            return
+        if self.get_match_template_suffixes is None:
+            return
 
         match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
         for template in match_templates:
@@ -523,10 +529,12 @@ class DiburHamatchilAdder:
         s = s.strip()
         for reg in regexes:
             match = re.search(reg, s)
-            if not match: continue
+            if not match:
+                continue
             matched_reg = True
             s = match.group(1)
-        if not matched_reg: return
+        if not matched_reg:
+            return
         s = s.strip()
         s = unicodedata.normalize('NFKD', s)
         s = strip_cantillation(s, strip_vowels=True)
@@ -542,9 +550,11 @@ class DiburHamatchilAdder:
             except:
                 print("not a valid ref", en_tref)
                 return
-            if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
+            if not getattr(oref.index_node, "diburHamatchilRegexes", None):
+                return
             dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
-            if not dh: return
+            if not dh:
+                return
             container_refs = [oref.top_section_ref().normal(), index.title]
             perek_ref = None
             for temp_perek_ref in perek_refs:
@@ -642,7 +652,8 @@ class LinkerIndexConverter:
         [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child) in enumerate(node.children)]
 
     def _update_lengths(self):
-        if self.index.is_complex(): return
+        if self.index.is_complex():
+            return
         sn = StateNode(self.index.title)
         ac = sn.get_available_counts("he")
         # really only outer shape is checked. including rest of shape even though it's technically only a count of what's available and skips empty sections
@@ -695,7 +706,8 @@ class LinkerIndexConverter:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
             if other_fields_dict is not None:
                 for key, val in other_fields_dict.items():
-                    if val is None: continue
+                    if val is None:
+                        continue
                     setattr(node, key, val)
 
 
@@ -882,7 +894,8 @@ class SpecificConverterManager:
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
 
-            if is_alt_node: return []
+            if is_alt_node:
+                return []
             cat = node.index.categories[0]
             if cat == "Talmud":
                 cat = node.index.categories[1]
@@ -905,7 +918,8 @@ class SpecificConverterManager:
             return match_templates
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node: return
+            if is_alt_node:
+                return
             cat = node.index.categories[0]
             if cat == "Talmud":
                 cat = node.index.categories[1]
@@ -978,7 +992,8 @@ class SpecificConverterManager:
                 ]
 
         def get_other_fields(node, depth, *args):
-            if depth != 2: return
+            if depth != 2:
+                return
             title = node.get_primary_title('en')
             num_match = re.search(' (\d+)$', title)
             if num_match is None:
@@ -1003,7 +1018,8 @@ class SpecificConverterManager:
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             nonlocal tanakh_title_map
-            if node.is_default(): return []
+            if node.is_default():
+                return []
             rabbah_slug = RTM.get_term_by_primary_title('base', 'Rabbah').slug
             mid_slug = RTM.get_term_by_primary_title('base', 'Midrash').slug
             mid_rab_slug = RTM.get_term_by_primary_title('base', 'Midrash Rabbah').slug
@@ -1091,7 +1107,8 @@ class SpecificConverterManager:
 
     def convert_shulchan_arukh(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node or node.is_default(): return
+            if is_alt_node or node.is_default():
+                return
             title = node.get_primary_title('en')
             sa_slug = RTM.get_term_by_primary_title('base', 'Shulchan Arukh').slug
             term_key = title.replace("Shulchan Arukh, ", "")
@@ -1107,7 +1124,8 @@ class SpecificConverterManager:
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
 
-            if is_alt_node: return
+            if is_alt_node:
+                return
             if depth == 1 and node.is_default():
                 # for some reason this one was missed in a previous pass
                 new_addr_types = node.addressTypes[:]
@@ -1158,7 +1176,8 @@ class SpecificConverterManager:
             #Maybe we have to add them as one term for cacthing refs like זוהר בראשית סתרי תורה כג. ?
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
-            if not is_alt_node: return {
+            if not is_alt_node:
+                return {
                     "referenceableSections": [True, True, False]
                 }
 
@@ -1644,7 +1663,8 @@ class SpecificConverterManager:
 
     def convert_mesilat_yesharim(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            if is_alt_node or node.is_default(): return
+            if is_alt_node or node.is_default():
+                return
             if node.get_primary_title('en') == "Introduction":
                 title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
             else:
