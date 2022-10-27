@@ -326,7 +326,7 @@ const TopicSponsorship = ({topic_slug}) => {
     if (!sponsorship_language) return;
 
     return (
-        <div className="topicSponsorship systemText">
+        <div className="dedication">
             <InterfaceText text={sponsorship_language}/>
         </div>
     );
