@@ -182,6 +182,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.2.1-sitemap-buckets.1.tgz
     version: 0.2.1-sitemap-buckets.1
   - apiVersion: v2
+    appVersion: v5.8.3
+    created: "2022-10-27T11:58:06.539692208Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: c3f029fea9799e6121b4b3f9feb92cf9efddd8d780506a4189027a3e397cff33
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.2.1-linker-v3.1.tgz
+    version: 0.2.1-linker-v3.1
+  - apiVersion: v2
     appVersion: v5.8.0
     created: "2022-10-20T07:41:09.50177219Z"
     description: Chart to deploy complete Sefaria environment
@@ -1260,4 +1275,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-10-27T10:59:14.764000579Z"
+generated: "2022-10-27T11:58:06.535706415Z"
