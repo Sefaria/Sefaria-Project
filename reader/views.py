@@ -105,7 +105,7 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
-    library.build_ref_resolver()
+    # library.build_ref_resolver()
 
 if server_coordinator:
     server_coordinator.connect()
