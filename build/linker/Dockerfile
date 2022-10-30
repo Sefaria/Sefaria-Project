@@ -43,10 +43,9 @@ RUN ls /usr/local/cuda-11.6/targets/x86_64-linux/lib/* | xargs -I{} ln -s {} /us
 ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
 # END COPIED
 
-RUN echo 'export PATH=/usr/local/nvidia/bin:$PATH' >> ~/.bashrc && \
-    echo 'export LD_LIBRARY_PATH=/usr/local/nvidia/lib64/' >> ~/.bashrc && \
-    echo 'export LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so' >> ~/.bashrc && \
-    . ~/.bashrc
+ENV PATH=/usr/local/nvidia/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64/
+ENV LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so
 
 RUN pip install spacy[cuda116]==3.4.1
 
