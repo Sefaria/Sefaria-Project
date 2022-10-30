@@ -105,6 +105,10 @@ if not DISABLE_AUTOCOMPLETER:
 
 if ENABLE_LINKER:
     logger.info("Initializing Linker")
+    logger.info("PATH", os.environ['PATH'])
+    logger.info("LD_LIBRARY_PATH", os.environ.get('LD_LIBRARY_PATH', 'N/A'))
+    logger.info("LD_PRELOAD", os.environ.get('LD_PRELOAD', 'N/A'))
+    logger.info("LIBRARY_PATH", os.environ.get('LIBRARY_PATH', 'N/A'))
     library.build_ref_resolver()
 
 if server_coordinator:
