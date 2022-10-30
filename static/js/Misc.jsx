@@ -2541,18 +2541,12 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
                          buttonTitle, autocompleteClassNames }) => {
   /*
   Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
-  select menu that shows autcomplete suggestions, and a button.  To officially a select an autocomplete suggestion, user
-  can press enter in the input box, click on a suggestion in the select menu, or click on the button.
-  `getSuggestions` is a callback function that is called whenever the user types in the input box or selects an option
-                from the suggestions.
-  `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,
-                `getSuggestions` will be called, narrowing the possible suggestions.
-                Useful when autocompleting a Ref in AddInterfaceInput.
+  select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
+  `getSuggestions` is a callback function that is called whenever the user types in the input box, which causes the select menu to be populated.
+  `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,`getSuggestions` will be called. Useful when autocompleting a Ref in AddInterfaceInput.
   `inputPlaceholder` is the placeholder for the input component.
-  `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the
-                parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
-  `selectedCallback` is a callback function called when the button with `buttonTitle` is clicked, or the user presses enter,
-                or selects an option from the suggestions select menu.
+  `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
+  `selectedCallback` is a callback function called when the user submits an autocomplete suggestion.
   `autocompleteClassNames` are styling options
    */
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
@@ -2606,14 +2600,14 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   const processSuggestions = (resultsPromise) => {
     resultsPromise.then(results => {
-      setPreviewText(results.previewText);
-      setHelperPromptText(results.helperPromptText);
       setCurrentSuggestions(results.currentSuggestions);
       setShowAddButton(results.showAddButton);
       if (!!results.previewText) {
+        setPreviewText(results.previewText);
         generatePreviewText(results.previewText);
       }
       if (!!results.helperPromptText) {
+        setHelperPromptText(results.helperPromptText);
         document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
       }
     });
