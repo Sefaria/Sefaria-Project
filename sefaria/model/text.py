@@ -1004,7 +1004,7 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a", "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "h1", "h2", "h3", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a", "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
     ALLOWED_ATTRS   = {
         'sup': ['class'],
         'span':['class', 'dir'],

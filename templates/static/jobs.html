@@ -35,28 +35,24 @@
             <!-- Comment out when jobs page has no content -->
         </header>
 
-        <!---<nav id="jobsNav">
-            <h3>
-                <span class="int-en">All Jobs</span>
-                <span class="int-he">כלל המשרות</span>
-            </h3>
-            <ul id="jobsLinks" class="serif"></ul>
-        </nav>--->
-        
-        <section class="section department englishOnly">
+       
+        <!---<section class="section department englishOnly">
             <header>
                 <h2 class="anchorable">Operations</h2>
             </header>
             <section class="jobsListForDepartment">
-                <div class="job"><a class="jobLink" target="_blank" href="https://sefaria.breezy.hr/p/7c5bd0c219f7-development-associate">Development Associate</a></div>
+                <div class="job"><a class="jobLink" target="_blank" href=""></a></div>
             </section>
-        </section>
+        </section>--->
 
-        <!---<section class="section department englishOnly">
+        <section class="section department englishOnly">
             <header>
                 <h2 class="anchorable">Engineering</h2>
             </header>
-        </section>--->
+            <section class="jobsListForDepartment">
+                <div class="job"><a class="jobLink" target="_blank" href="https://sefaria.breezy.hr/p/0cb8dd2c3153-junior-content-engineer">Junior Content Engineer</a></div>
+            </section>
+        </section>
         <!---<section class="section department englishOnly">
             <header>
                 <h2 class="anchorable">Learning Team</h2>
@@ -115,26 +111,6 @@
 
 {% endblock %}
 
-{% block js %}
-    <script type="application/javascript">
-        /*let jobs = document.querySelectorAll(".job");
-        let jobsList = document.getElementById("jobsLinks");
-        if(jobs.length > 1){
-            jobs.forEach( job => {
-                const href = job.id;
-                const title = job.querySelector("h2.anchorable").innerHTML;
-                let item = document.createElement("li");
-                let link = document.createElement("a");
-                link.href = `#${href}`;
-                link.innerText = title;
-                item.appendChild(link);
-                jobsList.appendChild(item);
-            })
-            document.getElementById("jobsNav").classList.add("navigationVisible");
-        }*/
-    </script>
-
-{% endblock %}
 
 
 
