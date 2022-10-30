@@ -19,7 +19,7 @@ class TopicSearch extends Component {
   }
 
   getSuggestions = async (input) => {
-    let results = {"previewText": null, "helperPromptText": null, "currentSuggestions": null,
+    let results = {"currentSuggestions": null,
                         "showAddButton": false};
     this.changeInputValue(input);
     if (input === "") {

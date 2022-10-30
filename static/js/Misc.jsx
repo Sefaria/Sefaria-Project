@@ -2543,6 +2543,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
   select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
   `getSuggestions` is a callback function that is called whenever the user types in the input box, which causes the select menu to be populated.
+  It returns an object with the necessary props of "currentSuggestions" and "showAddButton" and optional props "previewText" and "helperPromptText" (latter are used in Editor.jsx)
   `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,`getSuggestions` will be called. Useful when autocompleting a Ref in AddInterfaceInput.
   `inputPlaceholder` is the placeholder for the input component.
   `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
