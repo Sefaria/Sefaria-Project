@@ -2603,12 +2603,12 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     resultsPromise.then(results => {
       setCurrentSuggestions(results.currentSuggestions);
       setShowAddButton(results.showAddButton);
+      setHelperPromptText(results.helperPromptText);
       if (!!results.previewText) {
         setPreviewText(results.previewText);
         generatePreviewText(results.previewText);
       }
       if (!!results.helperPromptText) {
-        setHelperPromptText(results.helperPromptText);
         document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
       }
     });
