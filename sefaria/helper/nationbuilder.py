@@ -56,12 +56,12 @@ def get_tags_for_user(profile, trendManagers, custom_field_trend_managers=[]): #
     to_remove = []
     for trendManager in trendManagers:
         info = trendManager.getPersonInfo(trends)
-        if info['value'] == True:
+        if info['value'] is True:
             to_add.append(info['name'])
         else:
             to_remove.append(info['name'])
     custom_tags_info = [trend_manager.getPersonInfo(trends) for trend_manager in custom_field_trend_managers]
-    return to_add,to_remove, custom_tags_info
+    return to_add, to_remove, custom_tags_info
 
 
 def nationbuilder_update_all_tags():

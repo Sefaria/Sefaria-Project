@@ -68,7 +68,7 @@ class Queue(object):
         sefarim = ["Genesis 1", "Exodus 1", "Leviticus 1", "Numbers 1", "Deuteronomy 1"]
         for book in range(len(sefarim)):
             reference = sefarim[book]
-            while reference != None: 
+            while reference is not None: 
                 print(reference)
                 try:
                     data = requests.get("https://www.sefaria.org/api/texts/"+reference+"?context=0")

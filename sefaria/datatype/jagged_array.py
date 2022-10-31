@@ -685,7 +685,7 @@ class JaggedTextArray(JaggedArray):
 
     #warning, writes!
     def trim_ending_whitespace(self, _cur=None):
-        if _cur == None:
+        if _cur is None:
             self._store = self.trim_ending_whitespace(self._store)
             return self
         if not isinstance(_cur, list):  # shouldn't get here

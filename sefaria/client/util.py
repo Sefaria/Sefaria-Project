@@ -81,7 +81,7 @@ def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign
         nationbuilder_user = r.json()
         nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
         user_profile = UserProfile(email=email, user_registration=True)
-        if user_profile.id != None and user_profile.nationbuilder_id != nationbuilder_id:
+        if user_profile.id is not None and user_profile.nationbuilder_id != nationbuilder_id:
             user_profile.nationbuilder_id = nationbuilder_id
             user_profile.save()
     except:

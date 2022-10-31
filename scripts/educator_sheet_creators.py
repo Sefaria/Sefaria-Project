@@ -91,7 +91,7 @@ def write_sheet_makers_csv(query={}):
                         add_author = True
 
 
-        if add_author == True:
+        if add_author:
 
             author_list_for_csv.append([
                 author,

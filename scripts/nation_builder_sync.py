@@ -25,10 +25,10 @@ def sync_sustainers_to_mongo():
     no_profile_count = 0
     already_synced_count = 0
     for nationbuilder_sustainer in nationbuilder_get_all(get_by_tag, ['sustainer_current_engineering']):
-        
-        nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email']) 
 
-        if (nationbuilder_sustainer_profile.id != None): # has user profile
+        nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email'])
+
+        if (nationbuilder_sustainer_profile.id is not None): # has user profile
             existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
 
             if existing_sustainer: # remove sustainer from dictionary; already synced

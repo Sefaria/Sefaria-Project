@@ -22,69 +22,69 @@ for sheet in sheets:
 	for source in sources:
 		if "text" in source:
 			for lang in source["text"]:
-				if source["text"][lang] != None and "font-size" in source["text"][lang]:
+				if source["text"][lang] is not None and "font-size" in source["text"][lang]:
 					sheets_with_resized_text.add(sheet["id"])
-				if source["text"][lang] != None and "font-family" in source["text"][lang]:
+				if source["text"][lang] is not None and "font-family" in source["text"][lang]:
 					sheets_with_changed_fonts.add(sheet["id"])
-				if source["text"][lang] != None and "<table" in source["text"][lang]:
+				if source["text"][lang] is not None and "<table" in source["text"][lang]:
 					sheets_with_tables.add(sheet["id"])
-				if source["text"][lang] != None and "<strong" in source["text"][lang]:
+				if source["text"][lang] is not None and "<strong" in source["text"][lang]:
 					sheets_with_bold.add(sheet["id"])
-				if source["text"][lang] != None and "<em" in source["text"][lang]:
+				if source["text"][lang] is not None and "<em" in source["text"][lang]:
 					sheets_with_italics.add(sheet["id"])
-				if source["text"][lang] != None and "background-color:#" in source["text"][lang]:
+				if source["text"][lang] is not None and "background-color:#" in source["text"][lang]:
 					sheets_with_bg_color.add(sheet["id"])
-				if source["text"][lang] != None and "color:#" in source["text"][lang]:
+				if source["text"][lang] is not None and "color:#" in source["text"][lang]:
 					sheets_with_font_color.add(sheet["id"])
 
 		elif "comment" in source:
-			if source["comment"] != None and "font-size" in source["comment"]:
+			if source["comment"] is not None and "font-size" in source["comment"]:
 				sheets_with_resized_text.add(sheet["id"])
-			if source["comment"] != None and "font-family" in source["comment"]:
+			if source["comment"] is not None and "font-family" in source["comment"]:
 				sheets_with_changed_fonts.add(sheet["id"])
-			if source["comment"] != None and "<table" in source["comment"]:
+			if source["comment"] is not None and "<table" in source["comment"]:
 				sheets_with_tables.add(sheet["id"])
-			if source["comment"] != None and "<strong" in source["comment"]:
+			if source["comment"] is not None and "<strong" in source["comment"]:
 				sheets_with_bold.add(sheet["id"])
-			if source["comment"] != None and "<em" in source["comment"]:
+			if source["comment"] is not None and "<em" in source["comment"]:
 				sheets_with_italics.add(sheet["id"])
-			if source["comment"] != None and "background-color:#" in source["comment"]:
+			if source["comment"] is not None and "background-color:#" in source["comment"]:
 				sheets_with_bg_color.add(sheet["id"])
-			if source["comment"] != None and "color:#" in source["comment"]:
+			if source["comment"] is not None and "color:#" in source["comment"]:
 				sheets_with_font_color.add(sheet["id"])
 
 
 		elif "outsideBiText" in source:
 			for lang in source["outsideBiText"]:
-				if source["outsideBiText"][lang] != None and "font-size" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "font-size" in source["outsideBiText"][lang]:
 					sheets_with_resized_text.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "font-family" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "font-family" in source["outsideBiText"][lang]:
 					sheets_with_changed_fonts.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "<table" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "<table" in source["outsideBiText"][lang]:
 					sheets_with_tables.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "<strong" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "<strong" in source["outsideBiText"][lang]:
 					sheets_with_bold.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "<em" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "<em" in source["outsideBiText"][lang]:
 					sheets_with_italics.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "background-color:#" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "background-color:#" in source["outsideBiText"][lang]:
 					sheets_with_bg_color.add(sheet["id"])
-				if source["outsideBiText"][lang] != None and "color:#" in source["outsideBiText"][lang]:
+				if source["outsideBiText"][lang] is not None and "color:#" in source["outsideBiText"][lang]:
 					sheets_with_font_color.add(sheet["id"])
 
 		elif "outsideText" in source:
-			if source["outsideText"] != None and "font-size" in source["outsideText"]:
+			if source["outsideText"] is not None and "font-size" in source["outsideText"]:
 				sheets_with_resized_text.add(sheet["id"])
-			if source["outsideText"] != None and "font-family" in source["outsideText"]:
+			if source["outsideText"] is not None and "font-family" in source["outsideText"]:
 				sheets_with_changed_fonts.add(sheet["id"])
-			if source["outsideText"] != None and "<table" in source["outsideText"]:
+			if source["outsideText"] is not None and "<table" in source["outsideText"]:
 				sheets_with_tables.add(sheet["id"])
-			if source["outsideText"] != None and "<strong" in source["outsideText"]:
+			if source["outsideText"] is not None and "<strong" in source["outsideText"]:
 				sheets_with_bold.add(sheet["id"])
-			if source["outsideText"] != None and "<em" in source["outsideText"]:
+			if source["outsideText"] is not None and "<em" in source["outsideText"]:
 				sheets_with_italics.add(sheet["id"])
-			if source["outsideText"] != None and "background-color:#" in source["outsideText"]:
+			if source["outsideText"] is not None and "background-color:#" in source["outsideText"]:
 				sheets_with_bg_color.add(sheet["id"])
-			if source["outsideText"] != None and "color:#" in source["outsideText"]:
+			if source["outsideText"] is not None and "color:#" in source["outsideText"]:
 				sheets_with_font_color.add(sheet["id"])
 
 print("****************************")

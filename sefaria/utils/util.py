@@ -519,7 +519,7 @@ def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_stat
     """
     from babel import languages
     lang_dict = languages.get_territory_language_info(territory_code)
-    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
+    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status is False) or x[1]['official_status'] == official_status), lang_dict.items())]
     return langs
 
 

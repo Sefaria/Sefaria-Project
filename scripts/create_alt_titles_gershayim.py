@@ -40,7 +40,7 @@ for i in IndexSet({"is_cited": True}):
     if count % 100 == 0:
         print(count)
 
-    if change == True:
+    if change:
         changed.append(i.title)
         i.save()
 

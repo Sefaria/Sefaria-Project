@@ -47,23 +47,23 @@ for sheet in sheets:
 		if "outsideBiText" in source:
 			try:
 
-				if source["outsideBiText"]["en"] == None or strip_tags(source["outsideBiText"]["en"]) == "":
+				if source["outsideBiText"]["en"] is None or strip_tags(source["outsideBiText"]["en"]) == "":
 					source["outsideText"] = source["outsideBiText"]["he"]
 					del source["outsideBiText"]
 					sheets_with_empty_outsideBiText_en.add(sheet["id"])
 
-				elif source["outsideBiText"]["he"] == None or strip_tags(source["outsideBiText"]["he"]) == "":
+				elif source["outsideBiText"]["he"] is None or strip_tags(source["outsideBiText"]["he"]) == "":
 					source["outsideText"] = source["outsideBiText"]["en"]
 					del source["outsideBiText"]
 					sheets_with_empty_outsideBiText_he.add(sheet["id"])
 
-				elif source["outsideBiText"]["en"] != None and strip_tags(source["outsideBiText"]["en"]) == "English":
+				elif source["outsideBiText"]["en"] is not None and strip_tags(source["outsideBiText"]["en"]) == "English":
 					source["outsideText"] = source["outsideBiText"]["he"]
 					del source["outsideBiText"]
 					sheets_with_default_en_in_outsideBiText_en.add(sheet["id"])
 
 
-				elif source["outsideBiText"]["he"] != None and strip_tags(source["outsideBiText"]["he"]) == "עברית":
+				elif source["outsideBiText"]["he"] is not None and strip_tags(source["outsideBiText"]["he"]) == "עברית":
 					source["outsideText"] = source["outsideBiText"]["en"]
 					del source["outsideBiText"]
 					sheets_with_default_he_in_outsideBiText_he.add(sheet["id"])
@@ -71,8 +71,6 @@ for sheet in sheets:
 				print(sheet["id"])
 
 	db.sheets.save(sheet)
-
-
 
 
 all_suspect_sheets |= sheets_with_default_he_in_outsideBiText_he
