@@ -9,6 +9,7 @@ class FeatureTrack {
                 'feature_name': feature_name,
                 // 'book': analytics_dict.book,
                 // 'ref': analytics_dict.ref,
+                // 'item_category' : "Tanakh",
                 'logged_in': !!Sefaria._uid,
                 'interface_language': Sefaria.interfaceLang,
             });
