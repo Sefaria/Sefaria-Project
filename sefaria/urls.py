@@ -223,6 +223,7 @@ urlpatterns += [
 # Collections API
 urlpatterns += [
     url(r'^api/collections/user-collections/(?P<user_id>\d+)$', sheets_views.user_collections_api),
+    url(r'^api/collections/upload$', sefaria_views.collections_image_upload),
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
     url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
     url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
@@ -360,7 +361,8 @@ urlpatterns += [
 # Linker js, text upload & download
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
-    url(r'^api/find-refs$', sefaria_views.find_refs_api),
+    url(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
+    url(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
@@ -374,11 +376,6 @@ urlpatterns += [
 
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
-]
-
-# File Uploads
-urlpatterns += [
-    url(r'^api/file/upload$', sefaria_views.file_upload), #SEC-AUDIT: do we limit how many files users can upload?
 ]
 
 # Send Feedback

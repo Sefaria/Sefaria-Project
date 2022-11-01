@@ -35,12 +35,24 @@ restore:
 
 # config to backup environment DB
 backup:
-  enabled: false
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: false
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+    version: 4.4
+  postgres:
+    enabled: false
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
+  sitemaps:
+    enabled: false
+    serviceAccount: database-backup-write
+    bucket: sefaria-sitemaps
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -118,9 +130,11 @@ linker:
         requests:
           memory: "2Gi"
           cpu: "100m"
+          nvidia.com/gpu: 1
         limits:
           memory: "3Gi"
           cpu: "1000m"
+          nvidia.com/gpu: 1
     djangoLog:
       requests:
         memory: "100Mi"
@@ -128,6 +142,11 @@ linker:
       limits:
         memory: "150Mi"
         cpu: "100m"
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Equal
+      value: present
+      effect: NoSchedule
   secrets:
     googleClient:
       # for local testing purposes or CI pipeline use input a value
@@ -181,9 +200,9 @@ nodejs:
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
+    imageRegistry: ibmcom/varnish
     # Version of varnish that's required for the application.
-    tag: v6
+    tag: 0.32.0
   logging: {}
   replicaCount: 1
   resources:
@@ -213,6 +232,10 @@ varnish:
       # data:
       # Reference to an existing secret in the cluster
       ref:
+  monitoring:
+    enabled: false
+    image: ibmcom/varnish-metrics-exporter
+    tag: 0.32.0
 
 ingress:
  # You can set path: serviceName: and port: for each host. By default they are
@@ -316,9 +339,6 @@ secrets:
     #   CLOUDFLARE_EMAIL:
     #   CLOUDFLARE_TOKEN:
     #   GOOGLE_TAG_MANAGER_CODE:
-    #   GOOGLE_ANALYTICS_CODE:
-    #   GOOGLE_MAPS_API_KEY:
-    #   MIXPANEL_CODE:
     #   HOTJAR_ID:
     #   AWS_ACCESS_KEY:
     #   AWS_SECRET_KEY:
@@ -347,6 +367,12 @@ secrets:
     ref:
     # data:
 
+# Settings for various cronjobs
+cronJobs:
+  # Settings for regenerating long cached data
+  regenerate:
+    enabled: true
+
 localSettings:
   DEBUG: "False"
   DOMAIN_LANGUAGE: {}
@@ -364,3 +390,5 @@ localSettings:
   GLOBAL_WARNING: "False"
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
+  DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
+  SERVER_EMAIL: "dev@sefaria.org"

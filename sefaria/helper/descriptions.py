@@ -90,7 +90,7 @@ def update_authors_data():
             error_texts.append(f"ERROR: slug '{slug}' does not match slugified version which is '{SluggedAbstractMongoRecord.normalize_slug(slug)}'. Please slugify in the sheet.")
             has_slug_issues = True
     if has_slug_issues:
-        return
+        return ["Errors:"] + error_texts + ["Please Correct these errors and re-run the update:"]
 
     response_texts.append("*** Deleting old authorTopic relationships ***")
     link_query = {"generatedBy": "update_authors_data"}
@@ -215,7 +215,7 @@ def update_authors_data():
                             continue
 
     link_query = {"generatedBy": "update_authors_data"}
-    error_texts.append(f"links created '{db.topic_links.count_documents(link_query)}' ")
+    response_texts.append(f"links created '{db.topic_links.count_documents(link_query)}' ")
     
     return ["Errors:"] + error_texts + ["Updates:"] + response_texts 
 
