@@ -379,7 +379,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null}
        {topicData?.indexes?.length ?
         <div>
-          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on {Sefaria._siteSettings.SITE_NAME.en}</InterfaceText></div>
           <div className="authorIndexList">
             {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
           </div>
