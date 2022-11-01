@@ -134,7 +134,7 @@ class Util {
             //     body: {"lists": lists},
             // });
         } else {
-        console.log("not vaild email address")
+        console.log("not valid email address")
         }
     }
     static naturalTimePlural(n, singular, plural) {
