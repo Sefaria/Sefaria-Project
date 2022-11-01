@@ -200,8 +200,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description || ""} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription || ""}
+                         origDesc={topicData?.description || {}} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription || {}}
                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
@@ -317,8 +317,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
       const initCatSlug = TopicToCategorySlug(topicData, category);
       return <TopicEditor origEn={en}
                           origHe={he}
-                          origDesc={topicData?.description || ""}
-                          origCategoryDesc={topicData?.categoryDescription || ""}
+                          origDesc={topicData?.description || {}}
+                          origCategoryDesc={topicData?.categoryDescription || {}}
                           origSlug={topicData["slug"]}
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                           origCategorySlug={initCatSlug}

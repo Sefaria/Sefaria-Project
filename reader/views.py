@@ -3352,7 +3352,7 @@ def topics_api(request, topic, v2=False):
         else:
             path = get_path_for_topic_slug(topic_data["origSlug"])
             old_node = get_node_in_library_topic_toc(path)
-            if topic_obj.slug != old_node["slug"]:
+            if topic_data["origSlug"] != old_node["slug"]:
                 return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
             old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
             if "heTitle" in topic_data:
