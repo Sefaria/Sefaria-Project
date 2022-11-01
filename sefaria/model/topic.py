@@ -70,6 +70,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for title in self.title_group.titles:
             title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
+        if IntraTopicLink().load({"toTopic": "authors", "fromTopic": self.slug, "linkType": "displays-under"}):
+            author = AuthorTopic()
+            author.add_primary_titles()
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)

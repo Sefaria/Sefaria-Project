@@ -22,14 +22,18 @@ function useTopicToggle() {
   return [addingTopics, toggleAddingTopics];
 }
 
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="",
-                     onCreateSuccess, close}) => {
+const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="",
+                      origHeDesc="", origHeCategoryDesc="",
+                      origCategoryDesc="", origCategorySlug="",
+                      onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [catSlug, setCatSlug] = useState(origCategorySlug);
     const [description, setDescription] = useState(origDesc?.en);
     const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
     const [enTitle, setEnTitle] = useState(origEn);
     const [heTitle, setHeTitle] = useState(origHe);
+    const [heDescription, setHeDescription] = useState(origHeDesc);
+    const [heCategoryDescription, setHeCategoryDescription] = useState(origHeCategoryDesc);
     const isNewTopic = origSlug === "";
     const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
 
@@ -53,22 +57,21 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
+        let data = {"description": {"en": description, "he": heDescription}, "title": enTitle, "heTitle": heTitle,
+                    "category": catSlug};
         if (isNewTopic) {
           url = "/api/topic/new";
           if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": catDescription};
+            data.catDescription = {"en": catDescription, "he": heCategoryDescription};
           }
         }
         else {
           url = `/api/topics/${origSlug}`;
-          data["origCategory"] = origCategorySlug;
-          data["origDescription"] = origDesc;
-          data["origTitle"] = origEn;
-          data["origSlug"] = origSlug;
+          data = {...data, origCategory: origCategorySlug, origDescription: {"en": origDesc, "he": origHeDesc},
+                    origTitle: origEn,origHeTitle: origHe,origSlug: origSlug}
           if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": catDescription};
-            data["origCatDescription"] = origCategoryDesc;
+            data.catDescription = {"en": catDescription, "he": heCategoryDescription}
+            data.origCatDescription = {"en": origCategoryDesc, "he": origHeCategoryDesc}
           }
         }
 
@@ -79,16 +82,8 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
             alert(data.error);
           } else {
             const newSlug = data["slug"];
-            $.get("/admin/reset/toc", function(data) {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    onCreateSuccess(newSlug);
-                }
-            }).fail(function(xhr, status, errorThrown) {
-                alert("Please reset TOC manually: "+errorThrown);
-              });
-            }
+            onCreateSuccess(newSlug);
+          }
           }).fail( function(xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
           });
@@ -126,6 +121,15 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
         else if (e.target.id === "topicCatDesc") {
             setCatDescription(e.target.value);
         }
+        else if (e.target.id === "topicHeTitle") {
+            setHeTitle(e.target.value);
+        }
+        else if (e.target.id === "topicHeDesc") {
+            setHeDescription(e.target.value);
+        }
+        else if (e.target.id === "topicHeCatDesc") {
+            setHeCategoryDescription(e.target.value);
+        }
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -139,6 +143,11 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                             <label><InterfaceText>Topic Title</InterfaceText></label>
                             <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder="Add a title."/>
                         </div>
+                        {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                            <div className="section">
+                                <label><InterfaceText>Hebrew Topic Title</InterfaceText></label>
+                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria._translation("Add a title.")}/>
+                            </div> : null}
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>
                           <div id="categoryChooserMenu">
@@ -149,14 +158,33 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
                         </div>
                         <div className="section">
                             <label><InterfaceText>Topic Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={setValues}
+                            <textarea id="topicHeDesc" onBlur={setValues}
                                    defaultValue={description} placeholder="Add a description."/>
                         </div>
-                       {isCategory ? <div className="section">
-                                      <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
-                                      <textarea id="topicCatDesc" onBlur={setValues}
-                                             defaultValue={catDescription} placeholder="Add a short description."/>
-                                  </div> : null}
+                        {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                            <div className="section">
+                                <label><InterfaceText>Hebrew Topic Description</InterfaceText></label>
+                                <textarea id="topicDesc" onBlur={setValues}
+                                       defaultValue={heDescription} placeholder={Sefaria._translation('he', "Add a description.")}/>
+                            </div> : null}
+                       {isCategory ?  <div> <div className="section">
+                                                     <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
+                                                     <textarea
+                                                         id="topicCatDesc"
+                                                         onBlur={setValues}
+                                                         defaultValue={catDescription}
+                                                         placeholder="Add a short description."/>
+                                            </div>
+                                            {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
+                                                    <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
+                                                    <textarea
+                                                        id="topicHeCatDesc"
+                                                        onBlur={setValues}
+                                                        defaultValue={heCategoryDescription}
+                                                        placeholder={Sefaria.translation('he', "Add a short description.")}/>
+                                            </div> : null}
+                                      </div> :
+                       null}
                       {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete Topic</InterfaceText>
                                     </div> : null}

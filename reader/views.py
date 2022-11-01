@@ -3241,6 +3241,8 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
         t.add_title(data["title"], 'en', True, True)
+        if "heTitle" in data:
+            t.add_title(data["heTitle"], "he", True, True)
         t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
@@ -3334,6 +3336,10 @@ def topics_api(request, topic, v2=False):
             topic_needs_save = True
             topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
+        if topic_data["origHeTitle"] != topic_data["heTitle"]:
+            topic_obj.add_title(topic_data["heTitle"], 'he', True, True)
+            topic_needs_save = True
+
         if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
             topic_needs_save = True
@@ -3347,8 +3353,10 @@ def topics_api(request, topic, v2=False):
             path = get_path_for_topic_slug(topic_data["origSlug"])
             old_node = get_node_in_library_topic_toc(path)
             if topic_obj.slug != old_node["slug"]:
-                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found library._topic_toc."})
+                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
             old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
+            if "heTitle" in topic_data:
+                old_node["he"] = topic_obj.get_primary_title('he')
             if hasattr(topic_obj, "categoryDescription"):
                 old_node["categoryDescription"] = topic_obj.categoryDescription
 
