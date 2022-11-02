@@ -1922,7 +1922,6 @@ class InterruptingMessage extends Component {
               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
               <div className="colorLine"></div>
             </div>
-            <div className="colorLine"></div>
           </div>
         </div>;
     }
