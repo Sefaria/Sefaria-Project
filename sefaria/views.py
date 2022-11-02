@@ -419,7 +419,7 @@ def geo_api(request):
                 "$geoNear": {
                     "near": {"type": "Point", "coordinates": [float(lat), float(lon)]},
                     "distanceField": "distance",
-                    "maxDistance": 1000,
+                    "maxDistance": 4000,
                     "spherical": True
                 }
             },
