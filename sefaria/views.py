@@ -58,7 +58,7 @@ from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
-from reader.views import base_props, render_template 
+from reader.views import base_props, render_template
 from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
 
 
@@ -197,7 +197,7 @@ def unlink_gauth(request):
             return redirect(f"/profile/{profile.slug}")
         else:
             return jsonResponse({"status": "ok"})
-    except: 
+    except:
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
@@ -407,6 +407,51 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
             res[tref] = {"error": 1}
     return res
+
+def geo_api(request):
+    lon = request.GET.get("lon", None)
+    lat = request.GET.get("lat", None)
+    if not lat or not lon:
+        return {"error": "API requires lat & lon"}
+    else:
+        refs = db.topics.aggregate([
+            {
+                "$geoNear": {
+                    "near": {"type": "Point", "coordinates": [float(lat), float(lon)]},
+                    "distanceField": "distance",
+                    "maxDistance": 1000,
+                    "spherical": True
+                }
+            },
+            {"$project": {"slug": 1, "distance": 1}},
+            {
+                "$lookup": {
+                    "from": "topic_links",
+                    "localField": "slug",
+                    "foreignField": "toTopic",
+                    "as": "refs"
+                }
+            },
+            {"$unwind": '$refs'},
+            {
+                "$match": {
+                    "refs.ref": { "$exists": True}
+                }
+            },
+            {"$sort": {"distance": -1}},
+            {"$project": {"refs.ref": 1, "slug": 1}},
+        ])
+
+        refs = list(refs)[:25]
+        ref_string = ""
+        for ref in refs:
+            ref_string = f'{ref_string}|{ref["refs"]["ref"]}'
+
+        ref_string = ref_string[1:]
+
+        print(ref_string)
+
+        return(bulktext_api(request, ref_string))
 
 
 def bulktext_api(request, refs):
