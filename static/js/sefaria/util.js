@@ -115,7 +115,7 @@ class Util {
     }
      static subscribeToNbList(email) {
         console.log(email, Sefaria.util.isValidEmailAddress(email))
-        if (Sefaria.util.isValidEmailAddress(email)) {
+        // if (Sefaria.util.isValidEmailAddress(email)) {
             const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
             $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
                 if ("error" in data) {
@@ -133,9 +133,9 @@ class Util {
             //     method: 'POST',
             //     body: {"lists": lists},
             // });
-        } else {
-        console.log("not valid email address")
-        }
+        // } else {
+        // console.log("not valid email address")
+        // }
     }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
