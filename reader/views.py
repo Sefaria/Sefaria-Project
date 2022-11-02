@@ -3305,18 +3305,23 @@ def topics_api(request, topic, v2=False):
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
-            # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
-            # as top level topics don't need intratopiclinks
+            # special casing for moving to and fro the Main Menu
+            # and if we move the topic from top level, we must create one
+
             origLinkDict = {"fromTopic": topic_obj.slug, "toTopic": topic_data["origCategory"], "linkType": "displays-under"}
-            origLink = IntraTopicLink() if topic_data["origCategory"] == "Main Menu" else IntraTopicLink().load(origLinkDict)
+
             if topic_data["category"] == "Main Menu":
+                # create new link if existing link links topic to itself, as this means the topic
+                # functions as both a topic and category. otherwise modify existing link
+                origLink = IntraTopicLink() if topic_data["origCategory"] == topic_obj.slug else IntraTopicLink().load(origLinkDict)
+
                 # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                 child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
                 if child is None:
                     topic_obj.shouldDisplay = True
                     topic_obj.save()
 
-                origLink.delete() # get rid of link to previous category
+                origLink.delete() # if we move topic to top level, we delete the IntraTopicLink
 
                 # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
                 linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
@@ -3324,6 +3329,9 @@ def topics_api(request, topic, v2=False):
                 if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
                     IntraTopicLink(linkToItself).save()
             else:
+                # create new link (1) if existing link links topic to itself, as this means the topic
+                # functions as both a topic and category, or (2) if topic is being moved out of main menu, as this means no current link may exist
+                origLink = IntraTopicLink() if topic_data["origCategory"] in ["Main Menu", topic_obj.slug] else IntraTopicLink().load(origLinkDict)
                 origLink.fromTopic = topic_obj.slug
                 origLink.toTopic = topic_data["category"]
                 origLink.linkType = "displays-under"
