@@ -299,7 +299,7 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-8-10-modal-newsletter-B",
+    "name": "2022-8-10-modal-newsletter-A",
     "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": True,
