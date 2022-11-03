@@ -118,7 +118,7 @@ export class PopupManager {
             '}' +
             '.truncatedMessage {' +
                 'direction: ltr;' +
-                'margin-top: 40px;' +
+                'margin-top: 10px;' +
                 'padding: 20px;' +
                 'color: #666;' +
                 'font-size: 14px;' +
