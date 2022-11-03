@@ -1538,7 +1538,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'skip_nums']
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
@@ -1552,6 +1552,16 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
         SchemaNode.validate(self)
         NumberedTitledTreeNode.validate(self)
+        if hasattr(self, 'skip_nums'):
+            assert all(int(num) <= self.depth for num in self.skip_nums)
+            def check_skip(to_check, depth=0):
+                if depth == 0:
+                    assert isinstance(to_check, int)
+                else:
+                    for array in to_check:
+                        check_skip(array, depth-1)
+            for v in self.skip_nums.values():
+                check_skip(v, self.depth-1)
 
     def has_numeric_continuation(self):
         return True

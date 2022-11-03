@@ -2634,6 +2634,10 @@ class Ref(object, metaclass=RefCacheType):
     def _validate(self):
         checks = [self.sections, self.toSections]
         for check in checks:
+            if getattr(self.index_node, 'skip_nums', None):
+                for c, che in enumerate(check):
+                    if che < 1:
+                        raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_skip([x-1 for x in check[:c]])}')
             if 0 in check:
                 raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
             if getattr(self.index_node, "lengths", None) and len(check):
@@ -2871,12 +2875,19 @@ class Ref(object, metaclass=RefCacheType):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
         for i in range(delta, len(self.sections)):
+            skip = self._get_skip([x-1 for x in self.sections[:i]])
             try:
                 self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                range_parts[i - delta], sections=self.sections[i])
+                                                                                range_parts[i - delta], sections=self.sections[i] - skip)
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
+    def _get_skip(self, indexes):
+        skip_dict = getattr(self.index_node, 'skip_nums', None)
+        current_depth = len(indexes) + 1
+        if not skip_dict or str(current_depth) not in skip_dict:
+            return 0
+        return reduce(lambda x, y: x[y], indexes, skip_dict[str(current_depth)])
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2886,10 +2897,12 @@ class Ref(object, metaclass=RefCacheType):
             raise InputError("Can not parse sections from ref: {}".format(tref))
 
         gs = ref_match.groupdict()
+        indexes = []
         for i in range(0, use_node.depth):
             gname = "a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - self._get_skip(indexes))
+            indexes.append(sections[-1]-1)
         return sections
 
 
@@ -4460,14 +4473,14 @@ class Ref(object, metaclass=RefCacheType):
         normal += " "
 
         normal += ":".join(
-            [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
+            [self.normalize_section(i, lang) for i in range(len(self.sections))]
         )
 
         for i in range(len(self.sections)):
             if not self.sections[i] == self.toSections[i]:
                 normal += "-{}".format(
                     ":".join(
-                        [self.index_node.address_class(i + j).toStr(lang, n) for j, n in enumerate(self.toSections[i:])]
+                        [self.normalize_section(i+j, lang, 'toSections') for j in range(len(self.toSections[i:]))]
                     )
                 )
                 break
@@ -4475,10 +4488,16 @@ class Ref(object, metaclass=RefCacheType):
         return normal
 
     def normal_sections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
+        return [self.normalize_section(i, lang) for i in range(len(self.sections))]
 
     def normal_toSections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
+        return [self.normalize_section(i, lang, 'toSections') for i in range(len(self.toSections))]
+
+    def normalize_section(self, section_index, lang='en', attr='sections'):
+        sections = getattr(self, attr)
+        assert len(sections) > section_index
+        skip = self._get_skip([x-1 for x in sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+skip)
 
     def normal_section(self, section_index, lang="en", **kwargs):
         """
@@ -4493,7 +4512,8 @@ class Ref(object, metaclass=RefCacheType):
         """
         assert not self.is_range()
         assert len(self.sections) > section_index
-        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index], **kwargs)
+        skip = self._get_skip([x-1 for x in self.sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index]+skip, **kwargs)
 
     def normal_last_section(self, lang="en", **kwargs):
         """

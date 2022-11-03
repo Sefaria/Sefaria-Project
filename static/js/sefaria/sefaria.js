@@ -315,6 +315,25 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+  getSectionByAddressType: function(addressType, i, start=1) {
+    let section = start + i - 1;
+    let heSection;
+    if (addressType === 'Talmud') {
+      section = Sefaria.hebrew.intToDaf(section);
+      heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+    } else if (addressType === "Year") {
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
+      section += 1241;
+    } else if (addressType === "Folio") {
+      heSection = Sefaria.hebrew.encodeHebrewFolio(section);
+      section = Sefaria.hebrew.intToFolio(section);
+    } else {
+      section += 1;
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section);
+    }
+  return [section, heSection];
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -410,6 +429,7 @@ Sefaria = extend(Sefaria, {
   },
   getText: function(ref, settings) {
     // returns a promise
+      console.log(settings);
     settings = this._complete_text_settings(settings);
 
     const data = this.getTextFromCache(ref, settings);

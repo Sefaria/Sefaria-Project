@@ -769,21 +769,9 @@ class JaggedArrayNodeSection extends Component {
   render() {
     if (this.props.depth > 2) {
       let content = [];
-      let enSection, heSection;
       for (let i = 0; i < this.props.contentCounts.length; i++) {
-        if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
-        if (this.props.addressTypes[0] === "Talmud") {
-          enSection = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
-        } else if (this.props.addressTypes[0] === "Year") {
-          enSection = i + 1241;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
-        }
-        else {
-          enSection = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+        if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; };
+        let [enSection, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i);
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
@@ -803,21 +791,9 @@ class JaggedArrayNodeSection extends Component {
     }
     let contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     let sectionLinks = [];
-    let section, heSection;
     for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
-      if (this.props.addressTypes[0] === "Talmud") {
-          section = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (this.props.addressTypes[0] === "Year") {
-          section = i + 1241;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
-        }
-        else {
-          section = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+      let [section, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
@@ -860,22 +836,12 @@ class ArrayMapNode extends Component {
     const schema = this.props.schema;
     const includeSections = schema?.includeSections ?? true; //either undefined or explicitly true
     if ("refs" in schema && schema.refs.length && includeSections) {
-      let section, heSection;
       let sectionLinks = schema.refs.map(function(ref, i) {
         i += schema.offset || 0;
         if (ref === "") {
           return null;
         }
-        if (schema.addressTypes[0] === "Talmud") {
-          section = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (schema.addressTypes[0] === "Folio") {
-          section = Sefaria.hebrew.intToFolio(i);
-          heSection = Sefaria.hebrew.encodeHebrewFolio(section);
-        } else {
-          section = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+        let [section, heSection] = Sefaria.getSectionByAddressType(schema.addressTypes[0], i);
         let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
