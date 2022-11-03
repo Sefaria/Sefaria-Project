@@ -836,8 +836,20 @@ class ArrayMapNode extends Component {
     const schema = this.props.schema;
     const includeSections = schema?.includeSections ?? true; //either undefined or explicitly true
     if ("refs" in schema && schema.refs.length && includeSections) {
+      let skip = 0;
       let sectionLinks = schema.refs.map(function(ref, i) {
-        i += schema.offset || 0;
+        if ('addresses' in schema) {
+          i = schema.addresses[i] - 1;
+        } else {
+          i += schema.offset || 0;
+          if ('skipped_addresses' in schema) {
+            i += skip;
+            while (schema.skipped_addresses.includes(i+1)) {
+              skip++;
+              i++;
+            }
+          }
+        }
         if (ref === "") {
           return null;
         }

@@ -429,7 +429,6 @@ Sefaria = extend(Sefaria, {
   },
   getText: function(ref, settings) {
     // returns a promise
-      console.log(settings);
     settings = this._complete_text_settings(settings);
 
     const data = this.getTextFromCache(ref, settings);
