@@ -5,6 +5,7 @@ import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria  from './sefaria';
 import {HDate, months} from '@hebcal/core';
+import FeatureTrack from "./track_ga4";
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -120,6 +121,7 @@ class Util {
                 if ("error" in data) {
                     console.log(data.error);
                 } else {
+                    FeatureTrack.clicked(`subscribeToNbList_${lists}`)
                     console.log("Subscribed! Welcome to our list.");
                 }
             }).error(data => console.log("Sorry, there was an error."));
