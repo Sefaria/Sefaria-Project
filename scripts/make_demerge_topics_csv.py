@@ -1,10 +1,11 @@
 import django
-django.setup()
 from sefaria.model import *
 import re
 import sys, getopt, csv
 from sefaria.system.database import db
+from bson.objectid import ObjectId
 
+django.setup()
 
 def prettify_text(t):
     return ' '.join(re.sub(r'<[^>]+>', ' ', t).split())
@@ -82,8 +83,6 @@ def get_args(argv):
 
 
 def do_demerge(fnames, cols, slug_dict_list):
-    import csv
-    from bson.objectid import ObjectId
     # cols = ['Moon or Month?', 'Prophet or Amora?']
     # slugs = [{'moon': 'the-moon-(לבנה)', 'month': 'months'}, {'amora': 'shmuel-(amora)', 'prophet': 'shmuel-(prophet)'}]
     for slug_dict, col, fname in zip(slug_dict_list, cols, fnames):

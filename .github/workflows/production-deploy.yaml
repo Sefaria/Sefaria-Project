@@ -55,7 +55,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-${{ matrix.app }}
+            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -67,8 +67,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v2
         with:
-          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
@@ -101,7 +101,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-asset
+            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-asset
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -113,12 +113,12 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v2
         with:
-          cache-from: type=registry, ref=sefaria-asset/cache
-          cache-to: type=registry, ref=sefaria-asset/cache, mode=max
+          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-asset/cache
+          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-asset/cache, mode=max
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/sefaria-web:${{ needs.workflow-check.outputs.ref }}
+            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
           file: ./build/nginx/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -141,12 +141,15 @@ jobs:
         uses: frenck/action-setup-yq@v1
       - name: setup helm
         uses: azure/setup-helm@v1
+        with:
+          version: v3.9.0
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GKE_PROJECT}}
-      - name: Deploy Sandbox
+      - name: Deploy Production
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
           GIT_COMMIT: "${{ needs.workflow-check.outputs.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
-          CHART_VERSION: 0.0.27
+          IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
+          CHART_VERSION: 0.0.34

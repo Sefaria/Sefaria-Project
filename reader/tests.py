@@ -23,6 +23,7 @@ from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet
     VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet
 from sefaria.system.database import db
 import sefaria.system.cache as scache
+import random as rand
 
 c = Client()
 
@@ -1082,7 +1083,6 @@ class PostLinks(SefariaTestCase):
            posts a batch of links
         """
         # Post a new Index
-        import random as rand
         bible_books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth', 'Esther',
                        'Lamentations']
         links = []

@@ -5,12 +5,23 @@ previousServicesCount: "3"
 restore:
   enabled: false
 backup:
+  #legacy compat section, remove once deploy chart sufficienctly updated
   enabled: true
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: true
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+  postgres:
+    enabled: true
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
+  sitemaps:
+    enabled: true
 web:
   containerImage: 
     imageRegistry:
@@ -63,9 +74,6 @@ nodejs:
       memory: "1500Mi"
       cpu: "1500m"
 varnish:
-  containerImage:
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
-    tag: v6
   logging: {}
   replicaCount: 1
   resources:
@@ -177,4 +185,6 @@ localSettings:
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
   SEARCH_HOST: elasticsearch.data  
+  DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
+  SERVER_EMAIL: "dev@sefaria.org"
 

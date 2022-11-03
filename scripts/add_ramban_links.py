@@ -8,6 +8,7 @@ from functools import reduce
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.helper.link import add_links_from_text
+from urllib.parse import urlparse
 
 vtitles = ['On Your Way', 'On Your Way New', 'On Your Way New', 'On Your Way New', 'On Your Way new']
 books = ['Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy']
@@ -316,7 +317,6 @@ def add_edited_links(dry_run=True):
     print("Issues", issue_count)
 
 def add_halachic_midrash_links():
-    from urllib.parse import urlparse
     with open("data/Ramban links - Halachic Midrash.csv", "r") as fin:
         c = csv.DictReader(fin)
         for row in c:
