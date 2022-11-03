@@ -1164,6 +1164,15 @@ const EditTextInfo = function({initTitle, close}) {
   const [categories, setCategories] = useState(index.current.categories);
   const [savingStatus, setSavingStatus] = useState(false);
   const [sections, setSections] = useState(index.current.sectionNames);
+  const [enDesc, setEnDesc] = useState(index.current?.enDesc || "");
+  const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
+  const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
+  const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
+  const [authors, setAuthors] = useState(index.current.authors);
+  let authorTitleVariants = authorsToTitleVariants();
+  const authorsToTitleVariants = () => {
+    return authors.map((item, i) => {return {name: item.en, id: i}});
+  }
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
@@ -1173,7 +1182,7 @@ const EditTextInfo = function({initTitle, close}) {
       return false;
     }
 
-    if (!heTitle) {
+    if (!heTitle && Sefaria._siteSettings.TORAH_SPECIFIC) {
       alert("Please give a Hebrew text title.");
       return false;
     }
@@ -1208,12 +1217,8 @@ const EditTextInfo = function({initTitle, close}) {
   const save = function() {
     const enTitleVariantNames = titleVariants.map(i => i["name"]);
     const heTitleVariantNames = heTitleVariants.map(i => i["name"]);
-    let postIndex = {}
-    postIndex.title = enTitle;
-    postIndex.heTitle = heTitle;
-    postIndex.titleVariants = enTitleVariantNames;
-    postIndex.heTitleVariants = heTitleVariantNames;
-    postIndex.categories = categories;
+    let postIndex = {title: enTitle, heTitle, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
+                    categories, enDesc, enShortDesc, heDesc, heShortDesc, authors}
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
@@ -1245,6 +1250,22 @@ const EditTextInfo = function({initTitle, close}) {
       save();
     }
   }
+  const updateAuthors = function (currentAuthors) {
+    const newTitle = currentAuthors[currentAuthors.length-1].name;
+    for (let topic of Sefaria.topic_toc) {
+      if (topic.slug === "authors") {
+        for (let author of topic.children) {
+          if (author["en"] === newTitle || author["he"] === newTitle) {
+            setAuthors([].concat(authors, author));
+            return true;
+          }
+        }
+        break;
+      }
+    }
+    alert("Invalid author.  Make sure it is listed under the 'Authors' category in the Topic Table of Contents.");
+    return false;
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1256,32 +1277,56 @@ const EditTextInfo = function({initTitle, close}) {
                 <label><InterfaceText>Text Title</InterfaceText></label>
               <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="section">
+                <label><InterfaceText>Hebrew Title</InterfaceText></label>
+                <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                </div> : null}
 
             <div className="section">
-              <label><InterfaceText>Hebrew Title</InterfaceText></label>
-              <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <label><InterfaceText>English Description</InterfaceText></label>
+              <textarea onBlur={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
             </div>
+            <div className="section">
+                <label><InterfaceText>Short English Description</InterfaceText></label>
+              <textarea onBlur={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
+            </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <div className="section">
+                  <label><InterfaceText>Hebrew Description</InterfaceText></label>
+                <textarea onBlur={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
+              </div> : null}
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <div className="section">
+                  <label><InterfaceText>Short Hebrew Description</InterfaceText></label>
+                <textarea onBlur={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
+              </div> : null}
 
             <div className="section">
               <label><InterfaceText>Category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
-            <div className="section">
-              <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
-              <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
-            </div> : null}
+              <div className="section">
+                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+              </div> : null}
 
+            <div className="section">
+              <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <TitleVariants update={() => {}} titles={authors.map((a) => a.en)} additionalValidation={updateAuthors}/>
+            </div>
             <div className="section">
               <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
 
               <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
 
-            <div className="section">
-              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-              <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
-            </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="section">
+                  <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
+                </div> : null}
           </div>
         </div>
       </div>

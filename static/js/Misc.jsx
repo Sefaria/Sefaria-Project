@@ -2476,7 +2476,7 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TitleVariants = function({titles, update}) {
+const TitleVariants = function({titles, update, additionalValidation=(title) => true}) {
   /*
   Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
   and `update` is method to call after deleting or adding to titles
@@ -2492,9 +2492,11 @@ const TitleVariants = function({titles, update}) {
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title+" already exists.");
+      alert(title.name+" already exists.");
     }
-    return validTitle;
+    if (additionalValidation(title)) {
+      return validTitle;
+    }
   }
 
   return <div className="publishBox">
