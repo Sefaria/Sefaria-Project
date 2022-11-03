@@ -5,7 +5,7 @@ class FeatureTrack {
     static visible(feature_name) {
         if (typeof window !== 'undefined') {
             console.log("in FeatureTrack")
-            gtag('event', 'feature_seen', {
+            gtag('event', `feature_seen_${feature_name}`, {
                 'feature_name': feature_name,
                 // 'book': analytics_dict.book,
                 // 'ref': analytics_dict.ref,
@@ -16,16 +16,17 @@ class FeatureTrack {
         }
     }
 
-    static clicked(feature_name) {
+    static clicked(feature_name, feature_data) {
         if (typeof window !== 'undefined') {
             console.log("in FeatureTrack clicked")
-            gtag('event', 'feature_clicked', {
+            gtag('event',  `feature_clicked_${feature_name}`, {
                 'feature_name': feature_name,
                 // 'book': analytics_dict.book,
                 // 'ref': analytics_dict.ref,
                 'logged_in': !!Sefaria._uid,
                 'interface_language': Sefaria.interfaceLang,
-            });
+                'feature_data' : feature_data? feature_data: {}}
+            );
         }
     }
 }

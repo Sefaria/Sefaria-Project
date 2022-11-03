@@ -121,8 +121,8 @@ class Util {
                 if ("error" in data) {
                     console.log(data.error);
                 } else {
-                    FeatureTrack.clicked(`subscribeToNbList_${lists}`)
                     console.log("Subscribed! Welcome to our list.");
+                    FeatureTrack.clicked(`subscribeToNbList`,`${lists}`)
                 }
             }).error(data => console.log("Sorry, there was an error."));
         } else {
