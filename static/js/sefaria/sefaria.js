@@ -509,7 +509,7 @@ Sefaria = extend(Sefaria, {
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
-    "jrb": {"name": "Judeo-Arabic", "nativeName": "ערביה יהודיה", "showTranslations": 0},
+    "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
   },
   translateISOLanguageCode(code, native = false) {
     //takes two-letter ISO 639.2 code and returns full language name
