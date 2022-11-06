@@ -64,11 +64,6 @@ class TextColumn extends Component {
       // console.log("setting initialScroll for brand new ref")
       this.setInitialScrollPosition();
 
-    } else if (layoutWidthChanged) {
-      // When the width of the text column changes, keep highlighted text in place
-      // console.log("restore scroll by percentage for layout Width Change")
-      this.restoreScrollPositionByPercentage();
-
     } else if (prevProps.srefs.length === this.props.srefs.length &&
       !prevProps.srefs.compare(this.props.srefs)) {
       // When the highlighted segment has changed, scroll to it.
@@ -81,6 +76,10 @@ class TextColumn extends Component {
       // When the content the changes but we are anchored on a line, scroll to it
       // console.log("scroll to highlighted on text content change")
       this.scrollToHighlighted();
+    } else if (layoutWidthChanged) {
+      // When the width of the text column changes, keep highlighted text in place
+      // console.log("restore scroll by percentage for layout Width Change")
+      this.restoreScrollPositionByPercentage();
     }
   }
   handleScroll(event) {
