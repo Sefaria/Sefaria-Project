@@ -224,9 +224,9 @@ def create_index(index_name, type):
             "blocks": {
                 "read_only_allow_delete": False
             },
-            "analysis" : {
-                "analyzer" : {
-                    "my_standard" : {
+            "analysis": {
+                "analyzer": {
+                    "my_standard": {
                         "tokenizer": "standard",
                         "char_filter": [
                             "icu_normalizer"
@@ -239,10 +239,10 @@ def create_index(index_name, type):
                                 ]
                     }
                 },
-                "filter" : {
-                    "my_snow" : {
-                        "type" : "snowball",
-                        "language" : "English"
+                "filter": {
+                    "my_snow": {
+                        "type": "snowball",
+                        "language": "English"
                     }
                 }
             }
