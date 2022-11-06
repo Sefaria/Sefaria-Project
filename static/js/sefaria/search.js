@@ -357,7 +357,7 @@ class Search {
         this.queryAborter = queryAborter;
 
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
-        if (this.queryDictaFlag) {
+        if (this.queryDictaFlag && !args.exact) {
             Promise.all([
                 this.sefariaQuery(args, updateAggreagations, queryAborter),
                 this.dictaQuery(args, updateAggreagations, queryAborter),
