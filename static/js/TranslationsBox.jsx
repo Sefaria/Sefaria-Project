@@ -35,7 +35,7 @@ class TranslationsBox extends Component {
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
       if (!this._excludedLangs.includes(lang)) {
         versionsByLang[lang].sort((a, b) => {
-          return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;
+          return a.versionTitle === ver.versionTitle ? -1 : b.versionTitle === ver.versionTitle ? 1 : 0;
         });
       }
     }
