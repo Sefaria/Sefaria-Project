@@ -379,7 +379,7 @@ def put_sheet_mapping(index_name):
             },
             'content': {
                 'type': 'text',
-                'analyzer': 'my_standard'
+                'analyzer': 'stemmed_english'
             },
             'version': {
                 'type': 'keyword'
@@ -475,8 +475,7 @@ class TextIndexer(object):
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0):
-        if versions is None:
-            versions = []
+        versions = versions or []
         try:
             version_limit = 10
             temp_versions = []
