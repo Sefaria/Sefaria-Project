@@ -213,6 +213,26 @@ def source_text(source):
     return text
 
 
+def get_exact_english_analyzer():
+    return {
+        "tokenizer": "standard",
+        "char_filter": [
+            "icu_normalizer",
+        ],
+        "filter": [
+            "standard",
+            "lowercase",
+            "icu_folding",
+        ],
+    }
+
+
+def get_stemmed_english_analyzer():
+    stemmed_english_analyzer = get_exact_english_analyzer()
+    stemmed_english_analyzer['filter'] += ["my_snow"]
+    return stemmed_english_analyzer
+
+
 def create_index(index_name, type):
     """
     Clears the indexes and creates it fresh with the below settings.
@@ -226,18 +246,8 @@ def create_index(index_name, type):
             },
             "analysis": {
                 "analyzer": {
-                    "my_standard": {
-                        "tokenizer": "standard",
-                        "char_filter": [
-                            "icu_normalizer"
-                        ],
-                        "filter": [
-                                "standard",
-                                "lowercase",
-                                "icu_folding",
-                                "my_snow"
-                                ]
-                    }
+                    "stemmed_english": get_stemmed_english_analyzer(),
+                    "exact_english": get_exact_english_analyzer(),
                 },
                 "filter": {
                     "my_snow": {
@@ -301,7 +311,7 @@ def put_text_mapping(index_name):
             },
             "exact": {
                 'type': 'text',
-                'analyzer': 'my_standard'
+                'analyzer': 'exact_english'
             },
             "naive_lemmatizer": {
                 'type': 'text',
@@ -310,7 +320,7 @@ def put_text_mapping(index_name):
                 'fields': {
                     'exact': {
                         'type': 'text',
-                        'analyzer': 'my_standard'                        
+                        'analyzer': 'exact_english'
                     }
                 }
             }
