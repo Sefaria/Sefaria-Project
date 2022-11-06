@@ -299,11 +299,6 @@ def put_text_mapping(index_name):
                 'type': 'integer',
                 'index': False
             },
-            #"hebmorph_semi_exact": {
-            #    'type': 'string',
-            #    'analyzer': 'hebrew',
-            #    'search_analyzer': 'sefaria-semi-exact'
-            #},
             "exact": {
                 'type': 'text',
                 'analyzer': 'my_standard'
