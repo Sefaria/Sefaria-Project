@@ -3,6 +3,7 @@ import textwrap
 from bidi.algorithm import get_display
 import re
 from django.http import HttpResponse
+from sefaria.site.site_settings import SITE_SETTINGS
 import io
 
 palette = { # [(bg), (font)]
@@ -87,14 +88,14 @@ def generate_image(text="", category="System", ref_str="", lang="he", platform="
 
     if lang == "en":
         align = "left"
-        logo_url = "static/img/logo.png"
+        logo_url = "static"+SITE_SETTINGS.LOGO
         spacing = 0
         ref_font = ImageFont.truetype(font='static/fonts/Roboto-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (0, 0, 0, img.size[1])
 
     else:
         align = "right"
-        logo_url = "static/img/logo-hebrew.png"
+        logo_url = "static"+SITE_SETTINGS.HE_LOGO
         spacing = platforms[platform]["he_spacing"]
         ref_font = ImageFont.truetype(font='static/fonts/Heebo-Regular.ttf', size=platforms[platform]["ref_font_size"])
         cat_border_pos = (img.size[0], 0, img.size[0], img.size[1])
@@ -145,7 +146,7 @@ def make_img_http_response(text, category, ref_str, lang, platform):
         height = platforms[platform]["height"]
         width = platforms[platform]["width"]
         img = Image.new('RGBA', (width, height), color="#18345D")
-        logo = Image.open("static/img/logo-white.png")
+        logo = Image.open("static"+SITE_SETTINGS.LOGO)  #Image.open("static/img/logo-white.png")
         logo.thumbnail((400, 400))
         logo_padded = Image.new('RGBA', (width, height))
         logo_padded.paste(logo, (int(width/2-logo.size[0]/2), int(height/2-logo.size[1]/2)))
