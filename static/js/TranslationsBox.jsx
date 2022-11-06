@@ -18,7 +18,7 @@ class TranslationsBox extends Component {
     };
   }
   componentDidMount() {
-    if(!this.isSheet()){
+    if(!this.isSheet()) {
       Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
     }
   }
@@ -56,7 +56,7 @@ class TranslationsBox extends Component {
           </div>
       );
     }
-    if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
+    if (this.props.mode === "Translation Open") { // A single translation open in the sidebar
       return (
         <VersionsTextList
           srefs={this.props.srefs}
@@ -69,7 +69,7 @@ class TranslationsBox extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
         />
       );
-    }else if(this.props.mode == "Translations"){
+    }else if(this.props.mode === "Translations"){
       if (!this.state.versionLangMap) {
         return (
           <div className="versionsBox">
