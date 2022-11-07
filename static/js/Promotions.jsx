@@ -95,7 +95,7 @@ const Promotions = ({adType, rerender}) => {
         for (let c = 0; c < columns; c++) {
           row.push(data.getFormattedValue(r, c));
         }
-        let keywordTargetsArray = row[5].split(",").map(x => x.trim());
+        let keywordTargetsArray = row[5].split(",").map(x => x.trim().toLowerCase());
         let excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
         excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
         keywordTargetsArray = keywordTargetsArray.filter(x => x.indexOf("!") !== 0)
