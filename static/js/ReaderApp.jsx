@@ -673,7 +673,7 @@ class ReaderApp extends Component {
         histories[0].url += "&" + window.location.search.slice(1);
       }
     }
-console.log(histories);
+
     // Now merge all history objects into one
     var title =  histories.length ? histories[0].title : "Sefaria";
 
@@ -689,16 +689,16 @@ console.log(histories);
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
-    let mobileTwoPanels = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
-    for (var i = 1; i < histories.length || (mobileTwoPanels && i===1); i++) {
-      let pcTwoPanels = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
+    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
+    for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
+      let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections"));
-      if (pcTwoPanels || mobileTwoPanels) {
+      if (isMultiPanelConnectionsOpen || isMobileConnectionsOpen) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
-          var sideHistory = (pcTwoPanels) ? histories[1] : histories[0];
+          var connectionsHistory = (isMultiPanelConnectionsOpen) ? histories[1] : histories[0];
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + sideHistory.url; // Rewrite the URL
+          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + connectionsHistory.url; // Rewrite the URL
           hist.url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
@@ -706,24 +706,24 @@ console.log(histories);
           if("aliyot" in histories[0]) {
               url += "&aliyot=" + histories[0].aliyot;
           }
-          if(sideHistory.versionFilter) {
-            hist.url += "&vside=" + Sefaria.util.encodeVtitle(sideHistory.versionFilter);
+          if(connectionsHistory.versionFilter) {
+            hist.url += "&vside=" + Sefaria.util.encodeVtitle(connectionsHistory.versionFilter);
           }
-          if (sideHistory.selectedWords) {
-            hist.url += "&lookup=" + encodeURIComponent(sideHistory.selectedWords);
+          if (connectionsHistory.selectedWords) {
+            hist.url += "&lookup=" + encodeURIComponent(connectionsHistory.selectedWords);
           }
-          if (sideHistory.selectedNamedEntity) {
-            hist.url += "&namedEntity=" + sideHistory.selectedNamedEntity;
+          if (connectionsHistory.selectedNamedEntity) {
+            hist.url += "&namedEntity=" + connectionsHistory.selectedNamedEntity;
           }
-          if (sideHistory.sidebarSearchQuery) {
-            hist.url += "&sbsq=" + sideHistory.sidebarSearchQuery;
+          if (connectionsHistory.sidebarSearchQuery) {
+            hist.url += "&sbsq=" + connectionsHistory.sidebarSearchQuery;
           }
-          if (sideHistory.selectedNamedEntityText) {
-            hist.url += "&namedEntityText=" + encodeURIComponent(sideHistory.selectedNamedEntityText);
+          if (connectionsHistory.selectedNamedEntityText) {
+            hist.url += "&namedEntityText=" + encodeURIComponent(connectionsHistory.selectedNamedEntityText);
           }
-          hist.url += "&with=" + sideHistory.sources;
+          hist.url += "&with=" + connectionsHistory.sources;
 
-          hist.title = sheetAndCommentary ? histories[0].title : sideHistory.title;
+          hist.title = sheetAndCommentary ? histories[0].title : connectionsHistory.title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
@@ -760,7 +760,7 @@ console.log(histories);
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
-      if (!mobileTwoPanels) {
+      if (!isMobileConnectionsOpen) {
         if (histories[i].lang) {
           hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
         }
