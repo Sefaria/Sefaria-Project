@@ -603,9 +603,19 @@ class TextIndexer(object):
         if not content:
             return False
 
+        ftnote_regex = """(<sup class=['"]{1}footnote-marker['"]{1}>(.+)</sup><i class=['"]{1}footnote['"]{1}>(.+)</i>)"""
+        ftnotes = re.findall(ftnote_regex, content)
+        for ftnote in ftnotes:
+            ftnote_contents, sup_contents, i_tag_contents = ftnote
+            content = content.replace(ftnote_contents, "", 1)
+            content += f" {sup_contents} {i_tag_contents}"
+
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
-        content_wo_cant = re.sub(r'\([^)]+\)', '', content_wo_cant)  # remove all parens
+        content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
+        content_wo_cant = re.sub(r'\([^)]+\)', ' ', content_wo_cant)   # remove all parens
+        while "  " in content_wo_cant:                                 # make sure there are not many spaces in a row
+            content_wo_cant = content_wo_cant.replace("  ", " ")
+
         if len(content_wo_cant) == 0:
             return False
 
