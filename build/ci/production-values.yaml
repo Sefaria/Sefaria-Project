@@ -33,10 +33,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "10Gi"
+          memory: "11Gi"
           cpu: "1500m"
         limits:
-          memory: "11Gi"
+          memory: "13Gi"
           cpu: "2"
   secrets:
     googleClient:
