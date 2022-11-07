@@ -2632,6 +2632,10 @@ class Ref(object, metaclass=RefCacheType):
         self._range_index = None
 
     def _validate(self):
+        self.__validate_sections_in_range()
+        self.__validate_toSections()
+
+    def __validate_sections_in_range(self):
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
@@ -2641,6 +2645,7 @@ class Ref(object, metaclass=RefCacheType):
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
                     raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
+    def __validate_toSections(self):
         if len(self.sections) != len(self.toSections):
             raise InputError("{} is an invalid range. depth of beginning of range must equal depth of end of range")
 
