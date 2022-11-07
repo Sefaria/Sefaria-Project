@@ -3652,7 +3652,7 @@ class Ref(object, metaclass=RefCacheType):
         E.g. for input:
             - segment ref -> unchanged
             - section ref -> last segment ref in section
-            - book ref -> last segment ref in book
+            - book ref -> last segment ref in book (equivalent to :meth:`last_segment_ref`)
         :return:
         """
 
