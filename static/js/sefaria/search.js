@@ -167,7 +167,7 @@ class Search {
                     total: x.total,
                     hits: adaptedHits
                 },
-                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length
+                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length - 1
 
             }
         }).catch(x => {
