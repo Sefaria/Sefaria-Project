@@ -3647,7 +3647,12 @@ class Ref(object, metaclass=RefCacheType):
 
     def pad_to_last_segment_ref(self):
         """
-        From current position in jagged array, pad self so that it reaches the last segment ref
+        From current position in jagged array, pad :class:`Ref` so that it reaches the last segment ref
+        ``self`` remains unchanged.
+        E.g. for input:
+            - segment ref -> unchanged
+            - section ref -> last segment ref in section
+            - book ref -> last segment ref in book
         :return:
         """
 
