@@ -435,7 +435,10 @@ def geo_api(request):
             {"$unwind": '$refs'},
             {
                 "$match": {
-                    "refs.ref": { "$exists": True}
+                    "$and": [
+                        {"refs.ref": {"$exists": True}},
+                        {"refs.ref": {"$not": {"$regex": "^Sheet.*"}}}
+                    ]
                 }
             },
             {"$sort": {"distance": -1}},
