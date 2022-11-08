@@ -15,8 +15,8 @@ class Queue(object):
         self.__rear = 0   # should be to right of rear.
         self.__nItems = 0
 
-    # Insert item at rear of queue
     def insert(self, item):
+        """Insert item at rear of queue."""
         if self.isFull():
             return False
         if self.__rear == self.__maxSize-1:  # deal with wraparound
@@ -28,8 +28,8 @@ class Queue(object):
         self.__nItems += 1
         return True
 
-    # Remove the front element of the queue, or None if empty
     def remove(self):
+        """Remove the front element of the queue, or None if empty."""
         if self.isEmpty():
             return None
         temp = self.__que[self.__front]    # get the value at front

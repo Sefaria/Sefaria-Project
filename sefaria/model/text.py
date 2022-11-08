@@ -5006,7 +5006,7 @@ class Library(object):
         while len(topic_stack) > 0:
             curr_topic = topic_stack.pop()
             if curr_topic['slug'] in discovered_slugs:
-            continue
+                continue
             discovered_slugs.add(curr_topic['slug'])
             for child_topic in curr_topic.get('children', []):
                 topic_stack += [child_topic]

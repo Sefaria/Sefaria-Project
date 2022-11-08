@@ -336,6 +336,7 @@ def get_from_word_2_ref(word, words_2_ref_nums, ref_num_min_N_title, ref_num_2_p
 
         ref_strs.append(full_ref_str)
         continue
+
         # TODO: test weird part refs and make more complete and test that word always shows up in texts
         if full_ref_str != ref_num_2_full_name[ref_num]:
             print(('DIFF:',))
