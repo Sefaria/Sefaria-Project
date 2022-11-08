@@ -62,7 +62,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       topicStatus = <TopicEditor close={toggleAddingTopics}/>;
   }
   else if (Sefaria.is_moderator) {
-      topicStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
+      topicStatus = <TopicEditorButton text={<InterfaceText>Create a Topic</InterfaceText>} toggleAddingTopics={toggleAddingTopics}/>;
   }
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">

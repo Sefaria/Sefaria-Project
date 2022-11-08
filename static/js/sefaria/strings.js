@@ -66,6 +66,7 @@ const Strings = {
     "Less": "פחות",
     "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
+    "Create a Topic": "ליצירת נושא חדש",
 
     // All Topics
     "All Topics": "כל הנושאים",
