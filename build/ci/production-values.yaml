@@ -31,10 +31,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "11Gi"
+          memory: "12Gi"
           cpu: "1500m"
         limits:
-          memory: "13Gi"
+          memory: "14Gi"
           cpu: "2"
   secrets:
     googleClient:
@@ -92,6 +92,8 @@ varnish:
   secrets:
     varnish:
       ref: varnish-secret-production
+  monitoring:
+    enabled: true
 ingress:
   hosts: 
     - host: "sefaria.org"
