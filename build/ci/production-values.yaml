@@ -92,6 +92,8 @@ varnish:
   secrets:
     varnish:
       ref: varnish-secret-production
+  monitoring:
+    enabled: true
 ingress:
   hosts: 
     - host: "sefaria.org"
