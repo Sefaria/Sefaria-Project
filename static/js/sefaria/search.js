@@ -113,6 +113,8 @@ class Search {
                     const jsonData = this.sortedJSON(ammendArgsForDicta(args, this.dictaQueryQueue.lastSeen));
                     const cacheKey = "dictaQuery|" + jsonData;
                     const cacheResult = this.cache(cacheKey);
+                    console.log("DICTA CACHE KEY!");
+                    console.log(cacheKey);
                     if (cacheResult) {
                         resolve(cacheResult);
                         return null;
@@ -137,6 +139,9 @@ class Search {
                 resolve({total: 0, hits: []});
             }
         }).then(x => {
+            if (args.type === "sheet") {
+                return null;
+            }
             let adaptedHits = [];
             x.hits.forEach(hit => {
                 const bookData = hit.xmlId.split(".");
@@ -245,6 +250,8 @@ class Search {
     }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
+        console.log("BEFORE MERGE");
+        console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
         if(addAggregations) {
 
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
@@ -317,6 +324,9 @@ class Search {
             this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
             dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
+
+            console.log("AFTER MERGE");
+            console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
         }
 
         result.hits.hits = finalHits;

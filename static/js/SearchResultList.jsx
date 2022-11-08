@@ -271,6 +271,11 @@ class SearchResultList extends Component {
 
       var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
       var margin = 300;
+      // console.log("DATA");
+      // console.log($scrollable.scrollTop());
+      // console.log($scrollable.innerHeight());
+      // console.log($scrollable[0].scrollHeight);
+      // console.log("*****");
       if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
         this._loadNextPage(tab);
       }
