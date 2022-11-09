@@ -5,7 +5,7 @@ class FeatureTrack {
     static visible(feature_name) {
         if (typeof window !== 'undefined') {
             console.log("in FeatureTrack")
-            gtag('event', 'feature_seen', {
+            gtag('event', `feature_visible_${feature_name}`, {
                 'feature_name': feature_name,
                 // 'book': analytics_dict.book,
                 // 'ref': analytics_dict.ref,
@@ -16,22 +16,23 @@ class FeatureTrack {
         }
     }
 
-    static clicked(feature_name) {
+    static clicked(feature_name, feature_data) {
         if (typeof window !== 'undefined') {
             console.log("in FeatureTrack clicked")
-            gtag('event', 'feature_clicked', {
+            gtag('event',  `feature_clicked_${feature_name}`, {
                 'feature_name': feature_name,
                 // 'book': analytics_dict.book,
                 // 'ref': analytics_dict.ref,
                 'logged_in': !!Sefaria._uid,
                 'interface_language': Sefaria.interfaceLang,
+                'feature_data' : feature_data? feature_data: {}
             });
         }
     }
 }
 
 class SideBarFeatureTrack extends FeatureTrack {
-    // inherits Helper functions for tracking use of features (with Google Analytics 4)
+    // Inherits Helper functions for tracking use of features (with Google Analytics 4)
     static visible(feature_name, analytics_dict) {
         super.visible()
         if (typeof window !== 'undefined') {
