@@ -19,12 +19,8 @@ class Search {
       this.dictaSearchUrl = 'https://sefaria.loadbalancer.dicta.org.il';
     }
     cache(key, result) {
-        if (result !== undefined) {
-           this._cache[key] = result;
-        }
-        if (!this._cache[key]) {
-            //console.log("Cache miss");
-            //console.log(key);
+        if (!this._cache[key] && result !== undefined) {
+            this._cache[key] = result;
         }
         return this._cache[key];
     }
@@ -33,7 +29,9 @@ class Search {
             const jsonData = this.sortedJSON(this.get_query_object(args));
             const cacheKey = "sefariaQuery|" + jsonData;
             const cacheResult = this.cache(cacheKey);
+            console.log(cacheKey);
             if (cacheResult) {
+                console.log("in sefaria query cache!")
                 resolve(cacheResult);
                 return null;
             }
@@ -91,6 +89,7 @@ class Search {
                 book = book.replace(/\//g, '.');
                 return book.replace(/ /g, '_');
             }) : false;
+            console.log("DICTA SORT TYPE "+standardArgs.sort_type);
             return {
                 query: standardArgs.query,
                 from: ('start' in standardArgs) ? lastSeen + 1 : 0,
@@ -250,8 +249,8 @@ class Search {
     }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
-        console.log("BEFORE MERGE");
-        console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
+        // console.log("BEFORE MERGE");
+        // console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
         if(addAggregations) {
 
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
@@ -305,7 +304,7 @@ class Search {
                 for (let i=0; i<dictaHits.length; i++) {
                     dictaHits[i].score = dictaHits[i].score * factor;
                 }
-
+                console.log(`${sefariaMeanScore} & ${sefariaStd}; ${dictaMeanScore} & ${dictaStd}; yields ${factor}`);
                 dictaMeanScore = dictaHits.reduce(
                     (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
                 );
@@ -318,15 +317,23 @@ class Search {
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
             const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
             const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
-
+            // console.log("queues hits and pivots");
+            // console.log(this.sefariaQueryQueue.hits.hits);
+            // console.log(sefariaHits);
+            // console.log(sefariaPivot);
+            // console.log(this.dictaQueryQueue.hits.hits);
+            // console.log(dictaHits);
+            // console.log(dictaPivot);
             this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
             sefariaHits = sefariaHits.slice(0, sefariaPivot);
             this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
             dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
-
-            console.log("AFTER MERGE");
-            console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
+            // console.log("final");
+            // console.log(finalHits);
+            //
+            // console.log("AFTER MERGE");
+            // console.log(`sefaria ${this.sefariaQueryQueue.hits.total} vs dicta ${this.dictaQueryQueue.hits.total}`);
         }
 
         result.hits.hits = finalHits;
@@ -414,6 +421,7 @@ class Search {
     }) {
       const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
       const { sort_method, fieldArray, score_missing, direction } = sortTypeArray.find( x => x.type === sort_type );
+      console.log("Sefaria sort "+sort_type);
       return {
         type,
         query,
