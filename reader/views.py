@@ -376,8 +376,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             if deleteFilter == True:
                 del panel['filter']
             if panel["connectionsMode"] == "ConnectionsList":
-                panel['filter'] = list(map(lambda x: x.replace(" ConnectionsList", ""), panel['filter']))
-
+                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
