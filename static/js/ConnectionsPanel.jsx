@@ -1037,7 +1037,7 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
-      let essayLinks = Sefaria.essayLinks(refs, this.props.currObjectVersions);
+      let essayLinks = this.props.currObjectVersions ? Sefaria.essayLinks(refs, this.props.currObjectVersions) : [];
       if (essayLinks.length > 0) {
         essayLinks.forEach(function (link, i) {
           const essayTextFilter = <TextFilter

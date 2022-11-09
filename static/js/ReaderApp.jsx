@@ -588,6 +588,7 @@ class ReaderApp extends Component {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+        filter = state.connectionsMode === "ConnectionsList" ? filter.map(x => x + " ConnectionsList") : filter ; // "Reflect ConnectionsList
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
