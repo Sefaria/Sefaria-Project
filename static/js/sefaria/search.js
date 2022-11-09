@@ -371,10 +371,14 @@ class Search {
                 else {
                     const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
                     const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters);
-                    if (!this.getCachedQuery(args)) {
+                    const cacheResult = this.getCachedQuery(args);
+                    if (!cacheResult) {
                         this._cacheQuery(args, mergedQueries);
+                        args.success(mergedQueries);
                     }
-                    args.success(mergedQueries);
+                    else {
+                        args.success(cacheResult);
+                    }
                 }
             }).catch(x => console.log(x));
         }
