@@ -515,8 +515,9 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
-  setTab(tab, replaceHistory=false) {
-    this.replaceHistory = replaceHistory;
+  setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
+    // race condition so only replace history if ReaderApp ComponentDidUpdate has already been called
+    this.replaceHistory = replaceHistoryIfReaderAppUpdated ? !history.state.panels[0].mode : false
     this.conditionalSetState({tab: tab})
   }
   currentMode() {
