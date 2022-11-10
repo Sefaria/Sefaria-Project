@@ -1199,6 +1199,14 @@ class AbstractTextRecord(object):
         return t
 
     @staticmethod
+    def find_all_itags(s, only_footnotes=False):
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        if only_footnotes:
+            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
+        return soup, itag_list
+
+    @staticmethod
     def _itag_is_footnote(tag):
         return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
 
@@ -1213,8 +1221,7 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def _strip_itags(s, sections=None):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
             try:
                 if AbstractTextRecord._itag_is_footnote(itag):
