@@ -782,7 +782,7 @@ class ReaderApp extends Component {
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url + " | " + currentUrl);
+      // console.log("Replace History - " + hist.url + " | " + currentUrl);
       if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
