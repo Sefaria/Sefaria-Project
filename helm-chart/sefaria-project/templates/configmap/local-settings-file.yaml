@@ -130,7 +130,6 @@ data:
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
     SEARCH_ADMIN_USER = os.getenv("SEARCH_ADMIN_USER")
     SEARCH_ADMIN_PW = os.getenv("SEARCH_ADMIN_PW")
-    SEARCH_ADMIN_K8S = os.getenv("SEARCH_ADMIN_K8S")
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME = "sefaria"
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use

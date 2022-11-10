@@ -331,7 +331,6 @@ secrets:
     #   SEFARIA_DB_PASSWORD:
     #   SEARCH_ADMIN_USER:
     #   SEARCH_ADMIN_PW:
-    #   SEARCH_ADMIN_K8S:
     #   TURN_SECRET:
     #   TURN_USER:
     #   SEFARIA_BOT_API_KEY:
