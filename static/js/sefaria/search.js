@@ -223,7 +223,7 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return Sefaria.hebrew.isHebrew(args.query);
+        return Sefaria.hebrew.isHebrew(args.query) && !args.exact;
     }
     sortedJSON(obj) {
         // Returns JSON with keys sorted consistently, suitable for a cache key
@@ -357,7 +357,7 @@ class Search {
         this.queryAborter = queryAborter;
 
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
-        if (this.queryDictaFlag && !args.exact) {
+        if (this.queryDictaFlag) {
             Promise.all([
                 this.sefariaQuery(args, updateAggreagations, queryAborter),
                 this.dictaQuery(args, updateAggreagations, queryAborter),
