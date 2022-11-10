@@ -31,7 +31,9 @@ class TextList extends Component {
     this._isMounted = false;
   }
   componentWillReceiveProps(nextProps) {
-    this.preloadText(nextProps.filter);
+    if (!Sefaria.util.object_equals(this.props.filter, nextProps.filter)) {
+      this.preloadText(nextProps.filter);
+    }
   }
   componentWillUpdate(nextProps) {
   }
