@@ -1121,7 +1121,7 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
-            segment = self._strip_itags(segment)
+            segment = self.strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
             accumulator += joiner + segment
@@ -1220,7 +1220,7 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s, sections=None):
+    def strip_itags(s, sections=None):
         soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
             try:
@@ -2300,7 +2300,7 @@ class TextFamily(object):
                         ne_by_secs[temp_secs] += [ne]
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
-                text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
