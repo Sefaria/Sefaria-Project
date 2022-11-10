@@ -96,7 +96,11 @@ class ConnectionsPanel extends Component {
     if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
       this.removeScrollListener();
 
-      if (this.props.scrollPosition) {
+      if(this.isScrollReset()) {
+        this.props.setSideScrollPosition(null);
+      }
+
+      else if (this.props.scrollPosition && this.isScrollMonitored()) {
         $(".content").scrollTop(this.props.scrollPosition)
             .trigger("scroll");
       }
@@ -104,7 +108,12 @@ class ConnectionsPanel extends Component {
       this.addScrollListener();
     }
   }
-
+  isScrollMonitored() {
+    return ["ConnectionsList", "WebPages", "Sheets"].includes(this.props.mode);
+  }
+  isScrollReset() {
+    return ["Resources"].includes(this.props.mode);
+  }
   addScrollListener() {
     this.$scrollView = $(".connectionsPanel .texts");
     if (this.$scrollView[0]) {
@@ -117,11 +126,8 @@ class ConnectionsPanel extends Component {
     }
   }
   handleScroll(event) {
-    if (this.props.mode === "ConnectionsList") {
-      this.props.setScrollPosition(this.props.connectionsCategory, $(event.target).scrollTop());
-    }
-    else if (this.props.mode === "WebPages" || this.props.mode === "Sheets") {
-      this.props.setScrollPosition(this.props.mode, $(event.target).scrollTop());
+    if(this.isScrollMonitored()) {
+      this.props.setSideScrollPosition($(event.target).scrollTop());
     }
     else if (this.props.mode === "TextList") {
       this.debouncedCheckVisibleSegments();
@@ -776,7 +782,7 @@ ConnectionsPanel.propTypes = {
   clearNamedEntity: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
   scrollPosition: PropTypes.number,
-  setScrollPosition: PropTypes.func.isRequired,
+  setSideScrollPosition: PropTypes.func.isRequired,
 };
 
 

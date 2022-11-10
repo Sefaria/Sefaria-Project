@@ -168,7 +168,7 @@ class ReaderApp extends Component {
       tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
       webPagesFilter:          state.webPagesFilter          || null,
-      scrollPositions:         state.scrollPositions  || {},
+      sideScrollPosition:      state.sideScrollPosition      || null
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1533,8 +1533,8 @@ class ReaderApp extends Component {
         connectionsPanel.recentFilters = [filter].concat(connectionsPanel.recentFilters);
       }
       connectionsPanel.filter = [filter];
-      var filterAndSuffix = filter.split("|");
-      connectionsPanel.connectionsMode = filterAndSuffix.length == 2 && filterAndSuffix[1] == "Essay" ? "EssayList" : "TextList";
+      const filterAndSuffix = filter.split("|");
+      connectionsPanel.connectionsMode = filterAndSuffix.length === 2 && filterAndSuffix[1] === "Essay" ? "EssayList" : "TextList";
     } else {
       connectionsPanel.filter = [];
       connectionsPanel.connectionsMode = "ConnectionsList";
@@ -1545,16 +1545,14 @@ class ReaderApp extends Component {
     }
     this.setState({panels: this.state.panels});
   }
-  setScrollPosition(n, filter, pos) {
+  setSideScrollPosition(n, pos) {
     const connectionsPanel = this.state.panels[n];
-    if (filter && pos) {
-      connectionsPanel.scrollPositions[filter] = pos;
-      this.setState({panels: this.state.panels});
-    }
+    connectionsPanel.sideScrollPosition = pos;
+    this.setState({panels: this.state.panels});
   }
   setVersionFilter(n, filter) {
-    var connectionsPanel = this.state.panels[n];
-    var basePanel        = this.state.panels[n-1];
+    const connectionsPanel = this.state.panels[n];
+    const basePanel        = this.state.panels[n-1];
     if (filter) {
       if (Sefaria.util.inArray(filter, connectionsPanel.recentVersionFilters) === -1) {
         connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
@@ -1585,7 +1583,7 @@ class ReaderApp extends Component {
   }
   closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
-    if (this.state.panels.length == 1 && n == 0) {
+    if (this.state.panels.length === 1 && n === 0) {
       this.state.panels = [];
     } else {
       // If this is a Connection panel, we need to unset the filter in the base panel
@@ -1599,15 +1597,15 @@ class ReaderApp extends Component {
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
         // Close connections panel or compare panel when text panel is closed
-        if (this.state.panels.length == 1) {
+        if (this.state.panels.length === 1) {
           this.state.panels = [];
         } else {
           this.state.panels.splice(n, 1);
         }
       }
     }
-    var state = {panels: this.state.panels};
-    if (state.panels.length == 0) {
+    const state = {panels: this.state.panels};
+    if (state.panels.length === 0) {
       this.showLibrary();
     } else {
       this.setState(state);
@@ -1997,7 +1995,7 @@ class ReaderApp extends Component {
       var closePanel                     = panel.compare ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
-      var setScrollPosition              = this.setScrollPosition.bind(this, i);
+      var setSideScrollPosition          = this.setSideScrollPosition.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
       var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
@@ -2030,7 +2028,7 @@ class ReaderApp extends Component {
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}
-                      setScrollPosition={setScrollPosition}
+                      setSideScrollPosition={setSideScrollPosition}
                       setVersionFilter={setVersionFilter}
                       setSelectedWords={setSelectedWords}
                       selectVersion={selectVersion}
