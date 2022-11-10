@@ -5708,7 +5708,7 @@ class Library(object):
                 except AssertionError as e:
                     logger.info("Skipping Schema Node: {}".format(title))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
@@ -5723,7 +5723,7 @@ class Library(object):
                 except InputError as e:
                     logger.info("Input Error searching for refs in string: {}".format(e))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         return refs
 
