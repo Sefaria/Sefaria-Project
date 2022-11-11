@@ -367,6 +367,7 @@ secrets:
     ref:
     # data:
 
+
 # Settings for various cronjobs
 cronJobs:
   # Settings for regenerating long cached data

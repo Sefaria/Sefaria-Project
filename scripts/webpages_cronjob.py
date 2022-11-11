@@ -8,7 +8,7 @@ import argparse
 from sefaria.model import *
 
 TRELLO_KEY = TRELLO_TOKEN = -1
-def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
+def run_job(test=True, board_id="", idList_mapping={}):
 	board = TrelloBoard(board_id=board_id)
 	board.get_lists()
 	sites = {}
@@ -56,7 +56,7 @@ def run_job(test=True, board_id="", idList_mapping={}, members_mapping={}):
 						#board.add_comment(site_on_trello, comment)
 						break
 				if not already_on_trello:
-					card = board.create_card(site_name_in_DB, idList_mapping[kind], members_mapping[kind])
+					card = board.create_card(site_name_in_DB, idList_mapping[kind])
 					board.add_comment(card, comment)
 
 
@@ -98,7 +98,7 @@ class TrelloBoard:
 		else:
 			raise Exception(response.content)
 
-	def create_card(self, site_name, idList, members):
+	def create_card(self, site_name, idList):
 		url = f"https://api.trello.com/1/cards?idList={idList}&name={site_name}&key={TRELLO_KEY}&token={TRELLO_TOKEN}"
 		response = requests.request(
 			"POST",
@@ -109,15 +109,6 @@ class TrelloBoard:
 			raise Exception(response.content)
 		else:
 			card = json.loads(response.content)
-			for member in members:
-				url = f"https://api.trello.com/1/cards/{card['id']}/idMembers?value={member}&key={TRELLO_KEY}&token={TRELLO_TOKEN}"
-				response = requests.request(
-					"POST",
-					url,
-					headers={"Accept": "application/json"}
-				)
-				if response.status_code != 200:
-					raise Exception(response.content)
 			return card
 
 
@@ -202,10 +193,7 @@ if __name__ == "__main__":
 						help="Board ID")
 	parser.add_argument("-d", "--delete", default='no', help="Use this option to delete bad refs instead of running the default job.")
 	args = parser.parse_args()
-	members_mapping = {"Linker uninstalled": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
-					   "Site uses linker but is not whitelisted": ["53c2c1b503849ae6a6e56870", "5f0c575790c4a913b3992da2"],
-					   "Websites that may need exclusions set": ["53c2c1b503849ae6a6e56870"]}
-	lists = ["Linker uninstalled", "Site uses linker but is not whitelisted", "Websites that may need exclusions set"]
+	lists = ["Linker uninstalled", "Site uses linker but is not whitelisted"]
 
 	TRELLO_KEY = args.key
 	TRELLO_TOKEN = args.token
@@ -225,6 +213,6 @@ if __name__ == "__main__":
 			if list_on_board["name"] in lists:
 				idList_mapping[list_on_board["name"]] = list_on_board["id"]
 
-		run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping, members_mapping=members_mapping)
+		run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping)
 	else:
 		delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN)
