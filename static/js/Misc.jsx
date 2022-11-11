@@ -1844,7 +1844,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 1000,
+        "showDelay": 30000,
       },
       "banner": {
         "trackingName": "Banner Message",
@@ -1920,8 +1920,8 @@ class InterruptingMessage extends Component {
             <div id="interruptingMessageContentBox" className="hasColorLine">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+              <div className="colorLine"></div>
             </div>
-            <div className="colorLine"></div>
           </div>
         </div>;
     }
