@@ -765,7 +765,7 @@ class ReaderApp extends Component {
       }
     }
     // Replace the first only & with a ?
-    hist.url = hist.url.replace(/&/, "?");
+    hist.url = encodeURI(hist.url.replace(/&/, "?"));
 
     return hist;
   }
@@ -782,11 +782,11 @@ class ReaderApp extends Component {
 
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      // console.log("Replace History - " + hist.url);
-      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
+      // console.log("Replace History - " + hist.url + " | " + currentUrl);
+      if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
-      if (currentUrl == hist.url) { return; } // Never push history with the same URL
+      if (currentUrl === hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       // console.log("Push History - " + hist.url);
       this.trackPageview();
