@@ -1,4 +1,3 @@
-import dataclasses
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import Enum, IntEnum
