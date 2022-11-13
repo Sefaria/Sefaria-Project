@@ -2874,11 +2874,12 @@ class Ref(object, metaclass=RefCacheType):
     def _parse_range_end(self, range_parts):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
+        sections = self.sections[:delta] + [int(x) for x in range_parts]
         for i in range(delta, len(self.sections)):
-            skip = self._get_skip([x-1 for x in self.sections[:i]])
+            skip = self._get_skip([x-1 for x in sections[:i]])
             try:
                 self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                range_parts[i - delta], sections=self.sections[i] - skip)
+                                                                                range_parts[i - delta], sections=self.sections[i]) - skip
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
