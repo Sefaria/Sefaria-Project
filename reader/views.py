@@ -3195,7 +3195,7 @@ def topic_page(request, topic):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_data(topic),
+        "topicData": _topic_page_data(topic),
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
@@ -3267,7 +3267,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        response = get_topic(v2, topic, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3363,10 +3363,16 @@ def topic_ref_api(request, tref):
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
-def _topic_data(topic):
+
+def _topic_page_data(topic):
+    _topic_data(topic=topic, annotate_time_period=True)
+
+
+def _topic_data(**kwargs):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
+
+    response = get_topic(True, ref_link_type_filters=ref_link_type_filters, **kwargs)
     return response
 
 

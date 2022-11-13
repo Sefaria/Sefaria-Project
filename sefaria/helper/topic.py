@@ -15,7 +15,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes):
+def get_topic(v2, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         return {}
