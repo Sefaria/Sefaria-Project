@@ -146,7 +146,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Title</InterfaceText></label>
-                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria.translation("Add a title.")}/>
+                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria.translation('he',"Add a title.")}/>
                             </div> : null}
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>

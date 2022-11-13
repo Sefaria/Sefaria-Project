@@ -57,6 +57,10 @@ const Strings = {
     "Daily Study": "לימוד יומי",
 
     // Topics
+    "Short Description for Topic Table of Contents": "תיאור קצר עבור מפתח תוכן נושאים",
+    "Add a short description.": "הוסף תיאור קצר",
+    "Add a description.": "הוסף תיאור",
+    "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
