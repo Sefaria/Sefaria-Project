@@ -4,14 +4,23 @@ from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import Enum, IntEnum
 from functools import reduce
 from itertools import product
+from tqdm import tqdm
 from sefaria.system.exceptions import InputError
 from . import abstract as abst
 from . import text
 from . import schema
-import spacy
-from tqdm import tqdm
-from spacy.tokens import Span, Token
-from spacy.language import Language
+import structlog
+logger = structlog.get_logger(__name__)
+try:
+    import spacy
+    from spacy.tokens import Span, Token, Doc
+    from spacy.language import Language
+except ImportError:
+    spacy = Doc = Span = Token = Language = None
+    logger.warning("Failed to load spaCy. spaCy is not part of general requirements in requirements.txt since it is "
+                   "only used for machine learning tasks currently and not required for general server functionality. "
+                   "To install, follow instructions here: https://spacy.io/usage.")
+
 
 # keys correspond named entity labels in spacy models
 # values are properties in RefPartType
@@ -518,7 +527,7 @@ class RawRef(abst.Cloneable):
         """
         return span_char_inds(self.span)
 
-    def map_new_indices(self, new_doc: spacy.tokens.Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
+    def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
         """
         Remap self.span and all spans of parts to new indices
         """
