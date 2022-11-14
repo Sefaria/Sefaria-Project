@@ -541,11 +541,6 @@ class ReaderApp extends Component {
             hist.url = "modtools";
             hist.mode = "modtools";
             break;
-          case "story_editor":
-            hist.title = Sefaria._("Story Editor");
-            hist.url = "story_editor";
-            hist.mode = "story_editor";
-            break;
           case "user_stats":
             hist.title = Sefaria._("Torah Tracker");
             hist.url = "torahtracker";

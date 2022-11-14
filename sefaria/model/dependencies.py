@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript, topic
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -98,7 +98,6 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 
 # Notifications, Stories
 subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
-subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Collections
 subscribe(collection.process_collection_slug_change_in_sheets,             collection.Collection, "attributeChange", "slug")
