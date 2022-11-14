@@ -47,41 +47,40 @@ crrd = create_raw_ref_data
     [crrd(['#ר"פ בתרא', '@דמשנה ברכות']), ("Mishnah Berakhot 9",)],
     [crrd(['#רפ"ג', '@דכלאים']), ['Kilayim 3']],
     [crrd(['#ספ"ג', '@דכלאים']), ['Kilayim 3']],
-    #
-    # # Named alt structs
+
+    # Named alt structs
     [crrd(["@פרק אלו דברים", "@בפסחים"]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
     [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
     [crrd(["@רש\"י", "@פרק יום טוב", "@בביצה"]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק מאימתי"]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
-    #
-    # # Numbered alt structs
+
+    # Numbered alt structs
     [crrd(["#פרק קמא", "@בפסחים"]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
     [crrd(['#פ"ק', '@בפסחים']), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
     [crrd(["#פרק ה", "@בפסחים"]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
     [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
     [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
-    #
-    # # Dibur hamatchils
+
+    # Dibur hamatchils
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
     [crrd(["@רש\"י", "@ביצה", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה אלא ביבנה"]), ("Rashi on Rosh Hashanah 29b:5:3",)],
     [crrd(['@שבועות', '#דף כה ע"א', '@תוד"ה', '*חומר']), ("Tosafot on Shevuot 25a:11:1",)],
     [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
-    #
-    # # Ranged refs
-    # [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
-    # [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
-    # [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
-    # pytest.param(crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, 2, 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"], marks=pytest.mark.xfail(reason="Deciding that we can't handle daf and amud being separate in this case because difficult to know we need to merge")),
-    # [crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, slice(2, 5), 5, 6],
-    #       [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"]],
-    #
-    # # Base text context
-    # [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
-    #
-    # # Ibid
+
+    # Ranged refs
+    [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א', '^עד', '#פרק יד', '#פסוק ד']), ("Genesis 13:1-14:4",)],
+    [crrd(['@בראשית', '#יג', '#א', '^-', '#יד', '#ד']), ("Genesis 13:1-14:4",)],
+    [crrd(['@דברים', '#פרק יד', '#פסוקים מ', '^-', '#מה']), ("Deuteronomy 14:40-45",)],
+    pytest.param(crrd(['@תלמוד', '@כתובות', '#קיב', '#א', '^-', '#ב']), ["Ketubot 112"], marks=pytest.mark.xfail(reason="Deciding that we can't handle daf and amud being separate in this case because difficult to know we need to merge")),
+    [crrd(['@תלמוד', '@כתובות', '#קיב א', '^-', '#ב']), ["Ketubot 112"]],
+
+    # Base text context
+    [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
+
+    # Ibid
     # [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
     # [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     # [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
@@ -102,15 +101,15 @@ crrd = create_raw_ref_data
     # # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
     # [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
     # [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
-    #
-    # # Relative (e.g. Lekaman)
+
+    # Relative (e.g. Lekaman)
     # [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     # [crrd("Mishnah Berakhot 1", 'he', 'לקמן משנה א', [0, slice(1, 3)], [RPT.RELATIVE, RPT.NUMBERED], ['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
-    #
-    # # Superfluous information
+
+    # Superfluous information
     # [crrd(None, 'he', 'תוספות פרק קמא דברכות (דף ב', [0, slice(1, 3), 3, slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ['Tosafot on Berakhot 2']],
-    #
-    # # YERUSHALMI EN
+
+    # YERUSHALMI EN
     # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
     # pytest.param(crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",), marks=pytest.mark.xfail(reason="Tricky case. We've decided to always prefer explicit or ibid citations so this case fails.")),
     # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a/b', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Shabbat 2",)],
@@ -127,13 +126,13 @@ crrd = create_raw_ref_data
     # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosafot Megillah 21b, s. v . כנגד', [0, 1, 2, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Megillah 21b:7:1",)],  # make sure title context doesn't match this
     # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Behar Parašah 6(5', [0, 1, slice(2, 4), 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Section 6 5",)],
     # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), tuple()],  # if raw ref gets broken into incorrect parts, make sure it handles it correctly
-    #
-    # # gilyon hashas
+
+    # gilyon hashas
     # [crrd("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 5)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
     # [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 5), slice(5, 7), slice(7, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:3:1", "Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH. ambiguous.
     # [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [slice(0, 3), slice(3, 7)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
-    #
-    # # specific books
+
+    # specific books
     # [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
     # [crrd(None, 'he', 'ספרא בהר ב:ד', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
     # [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
@@ -171,7 +170,7 @@ crrd = create_raw_ref_data
     # [crrd(None, 'he', 'סדר אליהו פ"י', [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Rabbah 10"]],
     # pytest.param(crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna debei Eliyahu Zuta 11"], marks=pytest.mark.xfail(reason="Currently there's an unnecessary SchemaNode 'Seder Eliyahu Zuta' that needs to be removed for this to pass")),
     # [crrd(None, 'he', 'מכילתא דרשב"י פרק יב', [slice(0, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Mekhilta DeRabbi Shimon Ben Yochai 12"]],
-    #
+
     # [crrd(None, 'he', "ספרי במדבר קמב", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
     # pytest.param(crrd(None, 'he', "ספרי במדבר פיס' קמב", [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
     # pytest.param(crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),

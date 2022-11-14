@@ -30,6 +30,7 @@ class EncodedPart:
         "#": RPT.NUMBERED,
         "*": RPT.DH,
         "0": RefPartTypeNone,
+        "^": RPT.RANGE_SYMBOL,
     }
 
     def __init__(self, raw_encoded_part):
