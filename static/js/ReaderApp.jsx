@@ -689,13 +689,16 @@ class ReaderApp extends Component {
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
-    for (var i = 1; i < histories.length; i++) {
-      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
-        (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
+    let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections" || histories[0].mode === "SheetAndConnections";
+    for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
+      let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
+        (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections"));
+      if (isMultiPanelConnectionsOpen || isMobileConnectionsOpen) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
+          var connectionsHistory = (isMultiPanelConnectionsOpen) ? histories[1] : histories[0];
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
-          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + histories[1].url; // Rewrite the URL
+          hist.url  = sheetAndCommentary ? "/" + histories[0].url : "/" + connectionsHistory.url; // Rewrite the URL
           hist.url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
           if(histories[0].lang) {
             hist.url += "&lang=" + histories[0].lang;
@@ -703,24 +706,24 @@ class ReaderApp extends Component {
           if("aliyot" in histories[0]) {
               url += "&aliyot=" + histories[0].aliyot;
           }
-          if(histories[1].versionFilter) {
-            hist.url += "&vside=" + Sefaria.util.encodeVtitle(histories[1].versionFilter);
+          if(connectionsHistory.versionFilter) {
+            hist.url += "&vside=" + Sefaria.util.encodeVtitle(connectionsHistory.versionFilter);
           }
-          if (histories[1].selectedWords) {
-            hist.url += "&lookup=" + encodeURIComponent(histories[1].selectedWords);
+          if (connectionsHistory.selectedWords) {
+            hist.url += "&lookup=" + encodeURIComponent(connectionsHistory.selectedWords);
           }
-          if (histories[1].selectedNamedEntity) {
-            hist.url += "&namedEntity=" + histories[1].selectedNamedEntity;
+          if (connectionsHistory.selectedNamedEntity) {
+            hist.url += "&namedEntity=" + connectionsHistory.selectedNamedEntity;
           }
-          if (histories[1].sidebarSearchQuery) {
-            hist.url += "&sbsq=" + histories[1].sidebarSearchQuery;
+          if (connectionsHistory.sidebarSearchQuery) {
+            hist.url += "&sbsq=" + connectionsHistory.sidebarSearchQuery;
           }
-          if (histories[1].selectedNamedEntityText) {
-            hist.url += "&namedEntityText=" + encodeURIComponent(histories[1].selectedNamedEntityText);
+          if (connectionsHistory.selectedNamedEntityText) {
+            hist.url += "&namedEntityText=" + encodeURIComponent(connectionsHistory.selectedNamedEntityText);
           }
-          hist.url += "&with=" + histories[1].sources;
+          hist.url += "&with=" + connectionsHistory.sources;
 
-          hist.title = sheetAndCommentary ? histories[0].title : histories[1].title;
+          hist.title = sheetAndCommentary ? histories[0].title : connectionsHistory.title;
         } else {
           var replacer = "&p" + i + "=";
           hist.url    = hist.url.replace(RegExp(replacer + ".*"), "");
@@ -757,11 +760,13 @@ class ReaderApp extends Component {
         hist.url += Sefaria.util.getUrlVersionsParams(histories[i].currVersions, i+1);
         hist.title += Sefaria._(" & ") + histories[i].title;
       }
-      if(histories[i].lang) {
-        hist.url += "&lang" + (i+1) + "=" + histories[i].lang;
-      }
-      if("aliyot" in histories[i]) {
-            hist.url += "&aliyot" + (i+1) + "=" + histories[i].aliyot;
+      if (!isMobileConnectionsOpen) {
+        if (histories[i].lang) {
+          hist.url += "&lang" + (i + 1) + "=" + histories[i].lang;
+        }
+        if ("aliyot" in histories[i]) {
+          hist.url += "&aliyot" + (i + 1) + "=" + histories[i].aliyot;
+        }
       }
     }
     // Replace the first only & with a ?
