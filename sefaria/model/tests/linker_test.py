@@ -48,7 +48,8 @@ class EncodedPart:
 
     PART_TYPE_MAP = {
         "@": RPT.NAMED,
-        "#": RPT.NUMBERED
+        "#": RPT.NUMBERED,
+        "*": RPT.DH,
     }
 
     def __init__(self, raw_encoded_part):
@@ -95,7 +96,8 @@ class EncodedPartList:
 
     @property
     def input_str(self):
-        return reduce(lambda a, b: (a.text if isinstance(a, EncodedPart) else a) + self._get_part_separator() + b.text, self.encoded_part_list)
+        part_texts = [x.text for x in self.encoded_part_list]
+        return reduce(lambda a, b: a + self._get_part_separator() + b, part_texts)
 
     @property
     def part_types(self):
@@ -197,11 +199,11 @@ crrd = create_raw_ref_data
     [crrd(['#ספ"ג', '@דכלאים']), ['Kilayim 3']],
     #
     # # Named alt structs
-    # [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
-    # [crrd(None, 'he', "פרק אלו דברים", [slice(0, 3)], [RPT.NAMED]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
-    # [crrd(None, 'he', "רש\"י פרק יום טוב בביצה", [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
-    # [crrd(None, 'he', "רש\"י פרק מאימתי", [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
-    # [crrd(None, 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [slice(0, 3), slice(3, 7), 7, slice(8, 14)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
+    [crrd(["@פרק אלו דברים", "@בפסחים"]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
+    [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
+    [crrd(["@רש\"י", "@פרק יום טוב", "@בביצה"]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
+    [crrd(["@רש\"י", "@פרק מאימתי"]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
+    [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
     #
     # # Numbered alt structs
     # [crrd(None, 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
