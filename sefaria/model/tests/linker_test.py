@@ -44,12 +44,20 @@ def model(project_name: str) -> Language:
     return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
 
+class RefPartTypeNone:
+    """
+    Represents no ref part type. A RefPart with this type will not be considered in parsing
+    """
+    pass
+
+
 class EncodedPart:
 
     PART_TYPE_MAP = {
         "@": RPT.NAMED,
         "#": RPT.NUMBERED,
         "*": RPT.DH,
+        "0": RefPartTypeNone,
     }
 
     def __init__(self, raw_encoded_part):
@@ -72,6 +80,24 @@ class EncodedPart:
 
         return self.PART_TYPE_MAP.get(symbol)
 
+    @staticmethod
+    def get_symbol_by_part_type(part_type):
+        for symbol, temp_part_type in EncodedPart.PART_TYPE_MAP.items():
+            if part_type == temp_part_type: return symbol
+
+    @staticmethod
+    def convert_to_raw_encoded_part_list(lang, text, span_inds, part_types):
+        nlp = ref_resolver.get_raw_ref_part_model(lang)
+        doc = nlp.make_doc(text)
+        span = doc[0:]
+        raw_encoded_part_list = []
+
+        for part_type, span_ind in zip(part_types, span_inds):
+            subspan = span[span_ind]
+            symbol = EncodedPart.get_symbol_by_part_type(part_type)
+            raw_encoded_part_list += [f"{symbol}{subspan.text}"]
+
+        return raw_encoded_part_list
 
 class EncodedPartList:
 
@@ -126,7 +152,14 @@ class EncodedPartList:
         except IndexError as e:
             self.print_debug_info()
             raise e
-        return [RawRefPart(part_type, part_span) for part_type, part_span in zip(self.part_types, part_spans)]
+        raw_ref_parts = []
+        for part_type, part_span in zip(self.part_types, part_spans):
+            if part_type == RefPartTypeNone: continue
+            raw_ref_parts += [RawRefPart(part_type, part_span)]
+        return raw_ref_parts
+
+    def get_raw_ref_params(self):
+        return self.lang, self.raw_ref_parts, self.span
 
     def print_debug_info(self):
         print('Input:', self.input_str)
@@ -136,16 +169,12 @@ class EncodedPartList:
             print(f'{i}) {subspan.text}')
 
 
-def create_raw_ref_params(lang, raw_encoded_parts):
-    encode_parts = EncodedPartList(lang, raw_encoded_parts)
-    return lang, encode_parts.raw_ref_parts, encode_parts.span
-
-
-def create_raw_ref_data(encoded_parts: List[str], context_tref=None, lang='he', prev_matches_trefs=None):
+def create_raw_ref_data(raw_encoded_parts: List[str], context_tref=None, lang='he', prev_matches_trefs=None):
     """
-    Just reflecting prev_matches_trefs here b/c pytest.parametrize cant handle optional parameters
+    Just reflecting prev_matches_trefs here b/c pytest.parametrize can't handle optional parameters
     """
-    raw_ref = RawRef(*create_raw_ref_params(lang, encoded_parts))
+    encoded_parts = EncodedPartList(lang, raw_encoded_parts)
+    raw_ref = RawRef(*encoded_parts.get_raw_ref_params())
     context_oref = context_tref and Ref(context_tref)
     return raw_ref, context_oref, lang, prev_matches_trefs
 
@@ -165,7 +194,7 @@ def test_referenceable_child():
 
 def test_resolved_raw_ref_clone():
     index = library.get_index("Berakhot")
-    raw_ref, context_ref, lang, _ = create_raw_ref_data(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED])
+    raw_ref, context_ref, lang, _ = create_raw_ref_data(["@בבלי", "@ברכות", "#דף ב"])
     rrr = ResolvedRef(raw_ref, [], index.nodes, Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
@@ -206,12 +235,12 @@ crrd = create_raw_ref_data
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
     #
     # # Numbered alt structs
-    # [crrd(None, 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    # [crrd(None, 'he', 'פ"ק בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    # [crrd(None, 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
-    # [crrd(None, 'he', 'פ"ה בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
-    # [crrd(None, 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
-    # [crrd(None, 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), slice(2, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+    [crrd(["#פרק קמא", "@בפסחים"]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
+    [crrd(['#פ"ק', '@בפסחים']), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
+    [crrd(["#פרק ה", "@בפסחים"]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
+    [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
+    [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
+    [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
     #
     # # Dibur hamatchils
     # [crrd(None, 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
@@ -510,16 +539,15 @@ def test_ibid_history(last_n_to_store, trefs, expected_title_len):
 
 
 @pytest.mark.parametrize(('crrd_params',), [
-    [(None, 'he', '''ויקרא י, י”ב''', [0, 1, slice(3, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED])],  # no change in inds
-    [(None, 'he', '''ויקרא י, <b> י”ב </b>''', [0, 1, slice(6, 9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED])],
+    [[['@ויקרא', '#י', '#י”ב']]],  # no change in inds
+    [[['@ויקרא', '#י', '0<b>', '#י”ב', '0</b>']]],
 
 ])
 def test_map_new_indices(crrd_params):
     # unnorm data
-    lang = crrd_params[1]
-    text = crrd_params[2]
+    raw_ref, _, lang, _ = crrd(*crrd_params)
+    text = raw_ref.text
     doc = ref_resolver.get_raw_ref_model(lang).make_doc(text)
-    raw_ref, _, _, _ = crrd(*crrd_params)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
@@ -532,9 +560,11 @@ def test_map_new_indices(crrd_params):
     norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
     norm_part_token_inds = [span.i if isinstance(span, spacy.tokens.Token) else slice(span.start, span.end) for span in norm_part_spans]
-    norm_crrd_params = list(crrd_params)
-    norm_crrd_params[2] = norm_text
-    norm_crrd_params[3] = norm_part_token_inds
+
+    part_types = [part.type for part in raw_ref.raw_ref_parts]
+    raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_token_inds, part_types)
+    norm_crrd_params = crrd_params[:]
+    norm_crrd_params[0] = raw_encoded_part_list
     norm_raw_ref, _, _, _ = crrd(*norm_crrd_params)
 
     # test
