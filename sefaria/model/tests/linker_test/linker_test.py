@@ -64,11 +64,11 @@ crrd = create_raw_ref_data
     [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
     #
     # # Dibur hamatchils
-    # [crrd(None, 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    # [crrd(None, 'he', "רש\"י ביצה ד\"ה שמא יפשע", [slice(0, 3), 3, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    # [crrd(None, 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
-    # [crrd(None, 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 6), slice(6, 9), 9], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
-    # [crrd(None, 'he', "רש\"י דף ב עמוד א בסוכה ד\"ה סוכה ורבי", [slice(0, 3), slice(3, 7), 7, slice(8, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
+    [crrd(["@רש\"י", "@יום טוב", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
+    [crrd(["@רש\"י", "@ביצה", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
+    [crrd(["@רש\"י", "@יום טוב", "*ד\"ה אלא ביבנה"]), ("Rashi on Rosh Hashanah 29b:5:3",)],
+    [crrd(['@שבועות', '#דף כה ע"א', '@תוד"ה', '*חומר']), ("Tosafot on Shevuot 25a:11:1",)],
+    [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
     #
     # # Ranged refs
     # [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
