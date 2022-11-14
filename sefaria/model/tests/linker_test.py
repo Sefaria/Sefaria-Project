@@ -187,13 +187,14 @@ crrd = create_raw_ref_data
     [crrd(['@בבלי', '#דף ב עמוד א', '@במכות']), ("Makkot 2a",)],  # out of order with prefix on title
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א']), ("Genesis 13:1",)],
     [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
-    #
-    # [crrd(None, 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
-    # [crrd(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
-    # [crrd(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
-    # [crrd(None, 'he', 'ר"פ בתרא דמשנה ברכות', [slice(0, 4), slice(4, 6)], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Berakhot 9",)],
-    # [crrd(None, 'he', 'רפ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
-    # [crrd(None, 'he', 'ספ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
+    [crrd(['@שמות', '#א', '#ב']), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
+
+    # Aliases for perakim
+    [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
+    [crrd(["@משנה", "@ברכות", "#פרק בתרא"]), ("Mishnah Berakhot 9",)],
+    [crrd(['#ר"פ בתרא', '@דמשנה ברכות']), ("Mishnah Berakhot 9",)],
+    [crrd(['#רפ"ג', '@דכלאים']), ['Kilayim 3']],
+    [crrd(['#ספ"ג', '@דכלאים']), ['Kilayim 3']],
     #
     # # Named alt structs
     # [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
