@@ -1631,7 +1631,7 @@ class ReaderApp extends Component {
   showSearch(searchQuery) {
     let panel;
     const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
-    const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchStateSheet) ? this.state.panels[0].searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
+    const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].sheetSearchState) ? this.state.panels[0].sheetSearchState.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
     const searchTab = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchTab : "text";
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
