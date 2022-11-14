@@ -1322,9 +1322,30 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version actualLanguage does not match bracketed language")
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
-        if self.get_index() is None:
+        index = self.get_index()
+        if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
-        
+        def check_arrays_lengths(array1, array2):
+            if len(array1) < len(array2):
+                return False
+            if isinstance(array1[0], list):
+                for subarray1, subarray2 in zip(array1, array2):
+                    if not check_arrays_lengths(subarray1, subarray2):
+                        return False
+            return True
+        def check_node_skips(content, node):
+            if isinstance(content, list) and hasattr(node, 'skip_nums'):
+                for depth in node.skip_nums:
+                    if int(depth) > 1 and not check_arrays_lengths(node.skip_nums[depth], content):
+                        return False
+                return True
+            elif isinstance(content, dict):
+                for k in content:
+                    if not check_node_skips(content[k], node.get_child_by_key(k)):
+                        return False
+            return True
+        assert check_node_skips(self.chapter, index.nodes), 'there are more sections than skip_nums'
+
         return True
 
     def _normalize(self):

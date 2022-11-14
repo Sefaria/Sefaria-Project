@@ -740,6 +740,12 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
                 return child
         return None
 
+    def get_child_by_key(self, key):
+        for child in self.children:
+            if hasattr(child, 'key') and child.key == key:
+                return child
+        return None
+
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
