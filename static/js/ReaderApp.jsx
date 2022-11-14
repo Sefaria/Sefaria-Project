@@ -1879,7 +1879,7 @@ class ReaderApp extends Component {
           .concat(refs)
           .flat()
           .filter(ref => !!ref);
-    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse);
+    const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
