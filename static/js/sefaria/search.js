@@ -137,6 +137,9 @@ class Search {
                 resolve({total: 0, hits: []});
             }
         }).then(x => {
+            if (args.type === "sheet") {
+                return null;
+            }
             let adaptedHits = [];
             x.hits.forEach(hit => {
                 const bookData = hit.xmlId.split(".");
@@ -298,7 +301,6 @@ class Search {
                 for (let i=0; i<dictaHits.length; i++) {
                     dictaHits[i].score = dictaHits[i].score * factor;
                 }
-
                 dictaMeanScore = dictaHits.reduce(
                     (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
                 );
@@ -311,7 +313,6 @@ class Search {
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
             const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
             const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
-
             this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
             sefariaHits = sefariaHits.slice(0, sefariaPivot);
             this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
@@ -369,9 +370,15 @@ class Search {
                 }
                 else {
                     const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters); 
-                    this._cacheQuery(args, mergedQueries);
-                    args.success(mergedQueries);
+                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters);
+                    const cacheResult = this.getCachedQuery(args);
+                    if (!cacheResult) {
+                        this._cacheQuery(args, mergedQueries);
+                        args.success(mergedQueries);
+                    }
+                    else {
+                        args.success(cacheResult);
+                    }
                 }
             }).catch(x => console.log(x));
         }
