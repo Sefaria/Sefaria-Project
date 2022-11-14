@@ -848,7 +848,10 @@ class SpecificConverterManager:
                 book_oref = Ref(f"{collective_title} on {base_index.title}")
                 try:
                     perek_begin_ref = get_ref_by_book_oref_and_sections(book_oref, base_ref.sections[:])
-                    perek_end_ref = perek_begin_ref.last_segment_ref()
+                    try:
+                        perek_end_ref = get_ref_by_book_oref_and_sections(book_oref, base_ref.toSections[:])
+                    except Exception:
+                        perek_end_ref = perek_begin_ref.last_segment_ref()
                     perek_ref = perek_begin_ref.to(perek_end_ref)
                 except Exception as yoE:
                     print(f"Couldn't make perek ref '{collective_title} on {base_ref}'")
