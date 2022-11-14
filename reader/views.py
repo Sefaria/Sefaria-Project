@@ -320,6 +320,10 @@ def get_connections_mode(filter):
     sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
+    elif filter[0].endswith(" ConnectionsList"):
+        return "ConnectionsList", False
+    elif filter[0].startswith("WebPage:"):
+        return "WebPagesList", False
     else:
         return "TextList", False
 
@@ -371,9 +375,12 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         }
         if filter and len(filter):
             panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
-            if deleteFilter == True:
+            if panel["connectionsMode"] == "ConnectionsList":
+                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+            if panel['connectionsMode'] == "WebPagesList":
+                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+            if deleteFilter:
                 del panel['filter']
-
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")

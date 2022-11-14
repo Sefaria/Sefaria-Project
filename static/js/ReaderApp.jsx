@@ -72,7 +72,7 @@ class ReaderApp extends Component {
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
         collectionTag:           props.initialCollectionTag,
-        translationsSlug:        props.initialTranslationsSlug
+        translationsSlug:        props.initialTranslationsSlug,
       };
     }
 
@@ -167,6 +167,7 @@ class ReaderApp extends Component {
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
+      webPagesFilter:          state.webPagesFilter          || null
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -586,9 +587,14 @@ class ReaderApp extends Component {
 
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
-        var filter    = state.filter.length ? state.filter :
+        if(state.connectionsMode === "WebPagesList") {
+          hist.sources = "WebPage:" + state.webPagesFilter;
+        } else {
+           var filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+        filter = state.connectionsMode === "ConnectionsList" ? filter.map(x => x + " ConnectionsList") : filter ; // "Reflect ConnectionsList
         hist.sources  = filter.join("+");
+        }
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
