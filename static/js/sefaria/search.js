@@ -223,7 +223,7 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return Sefaria.hebrew.isHebrew(args.query);
+        return Sefaria.hebrew.isHebrew(args.query) && !args.exact;
     }
     sortedJSON(obj) {
         // Returns JSON with keys sorted consistently, suitable for a cache key
