@@ -44,27 +44,106 @@ def model(project_name: str) -> Language:
     return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
 
-def create_raw_ref_params(lang, input_str, span_indexes, part_types):
-    nlp = ref_resolver.get_raw_ref_part_model(lang)
-    doc = nlp.make_doc(input_str)
-    span = doc[0:]
-    try:
-        part_spans = [span[index] for index in span_indexes]
-    except IndexError as e:
-        print('Input:', input_str)
-        print('Span indexes:', span_indexes)
+class EncodedPart:
+
+    PART_TYPE_MAP = {
+        "@": RPT.NAMED,
+        "#": RPT.NUMBERED
+    }
+
+    def __init__(self, raw_encoded_part):
+        self.raw_encoded_part = raw_encoded_part
+
+    def _get_symbol(self):
+        return self.raw_encoded_part[0]
+
+    @property
+    def text(self):
+        return self.raw_encoded_part[1:]
+
+    @property
+    def part_type(self):
+        symbol = self._get_symbol()
+
+        if symbol not in self.PART_TYPE_MAP:
+            raise Exception(f"Symbol '{symbol}' does not exist in EncodedParts.PART_TYPE_MAP. Valid symbols are "
+                            f"{', '.join(self.PART_TYPE_MAP.keys())}")
+
+        return self.PART_TYPE_MAP.get(symbol)
+
+
+class EncodedPartList:
+
+    def __init__(self, lang, raw_encoded_part_list: List[str]):
+        self.lang = lang
+        self.encoded_part_list: List[EncodedPart] = [EncodedPart(x) for x in raw_encoded_part_list]
+        self._span = None
+
+    @staticmethod
+    def _get_part_separator():
+        return " "
+
+    def _get_char_inds(self):
+        char_inds = []
+        for part in self.encoded_part_list:
+            if len(char_inds) > 0:
+                last_char_ind = char_inds[-1][-1] + len(self._get_part_separator())
+            else:
+                last_char_ind = 0
+            char_inds += [(last_char_ind, last_char_ind + len(part.text))]
+        return char_inds
+
+    @property
+    def input_str(self):
+        return reduce(lambda a, b: (a.text if isinstance(a, EncodedPart) else a) + self._get_part_separator() + b.text, self.encoded_part_list)
+
+    @property
+    def part_types(self):
+        return [part.part_type for part in self.encoded_part_list]
+
+    @property
+    def span(self):
+        if not self._span:
+            nlp = ref_resolver.get_raw_ref_part_model(self.lang)
+            doc = nlp.make_doc(self.input_str)
+            self._span = doc[0:]
+        return self._span
+
+    @property
+    def span_indexes(self):
+        span_inds = []
+        for char_start, char_end in self._get_char_inds():
+            subspan = self.span.char_span(char_start, char_end)
+            span_inds += [slice(subspan.start, subspan.end)]
+        return span_inds
+
+    @property
+    def raw_ref_parts(self):
+        try:
+            part_spans = [self.span[index] for index in self.span_indexes]
+        except IndexError as e:
+            self.print_debug_info()
+            raise e
+        return [RawRefPart(part_type, part_span) for part_type, part_span in zip(self.part_types, part_spans)]
+
+    def print_debug_info(self):
+        print('Input:', self.input_str)
+        print('Span indexes:', self.span_indexes)
         print('Spans:')
-        for i, subspan in enumerate(span):
+        for i, subspan in enumerate(self.span):
             print(f'{i}) {subspan.text}')
-        raise e
-    return lang, [RawRefPart(part_type, part_span) for part_type, part_span in zip(part_types, part_spans)], span
 
 
-def create_raw_ref_data(context_tref, lang, input_str, span_indexes, part_types, prev_matches_trefs=None):
+def create_raw_ref_params(lang, raw_encoded_parts):
+    encode_parts = EncodedPartList(lang, raw_encoded_parts)
+    return lang, encode_parts.raw_ref_parts, encode_parts.span
+
+
+def create_raw_ref_data(encoded_parts: List[str], context_tref=None, lang='he', prev_matches_trefs=None):
     """
     Just reflecting prev_matches_trefs here b/c pytest.parametrize cant handle optional parameters
     """
-    raw_ref = RawRef(*create_raw_ref_params(lang, input_str, span_indexes, part_types))
+    raw_ref = RawRef(*create_raw_ref_params(lang, encoded_parts))
     context_oref = context_tref and Ref(context_tref)
     return raw_ref, context_oref, lang, prev_matches_trefs
 
@@ -102,187 +181,187 @@ crrd = create_raw_ref_data
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
     # Numbered JAs
-    [crrd(None, 'he', "בבלי ברכות דף ב", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],   # amud-less talmud
-    [crrd(None, 'he', "ברכות דף ב", [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED]), ("Berakhot 2",)],  # amud-less talmud
-    [crrd(None, 'he', "בבלי שבת דף ב.", [0, 1, slice(2, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],  # amud-ful talmud
-    [crrd(None, 'he', "בבלי דף ב עמוד א במכות", [0, slice(1, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Makkot 2a",)],  # out of order with prefix on title
-    [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],
-    [crrd(None, 'he', 'ספר בראשית פסוק א פרק יג', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1",)],  # sections out of order
-
-    [crrd(None, 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
-    [crrd(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
-    [crrd(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
-    [crrd(None, 'he', 'ר"פ בתרא דמשנה ברכות', [slice(0, 4), slice(4, 6)], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Berakhot 9",)],
-    [crrd(None, 'he', 'רפ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
-    [crrd(None, 'he', 'ספ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
-
-    # Named alt structs
-    [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
-    [crrd(None, 'he', "פרק אלו דברים", [slice(0, 3)], [RPT.NAMED]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
-    [crrd(None, 'he', "רש\"י פרק יום טוב בביצה", [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
-    [crrd(None, 'he', "רש\"י פרק מאימתי", [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
-    [crrd(None, 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [slice(0, 3), slice(3, 7), 7, slice(8, 14)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
-
-    # Numbered alt structs
-    [crrd(None, 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(None, 'he', 'פ"ק בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(None, 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
-    [crrd(None, 'he', 'פ"ה בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
-    [crrd(None, 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
-    [crrd(None, 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), slice(2, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
-
-    # Dibur hamatchils
-    [crrd(None, 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    [crrd(None, 'he', "רש\"י ביצה ד\"ה שמא יפשע", [slice(0, 3), 3, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
-    [crrd(None, 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
-    [crrd(None, 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 6), slice(6, 9), 9], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
-    [crrd(None, 'he', "רש\"י דף ב עמוד א בסוכה ד\"ה סוכה ורבי", [slice(0, 3), slice(3, 7), 7, slice(8, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
-
-    # Ranged refs
-    [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
-    [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
-    [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
-    pytest.param(crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, 2, 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"], marks=pytest.mark.xfail(reason="Deciding that we can't handle daf and amud being separate in this case because difficult to know we need to merge")),
-    [crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, slice(2, 5), 5, 6],
-          [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"]],
-
-    # Base text context
-    [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
-
-    # Ibid
-    [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
-    [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
-    [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
-    [crrd(None, 'he', 'שם ב:ז', [0, 1, 3], [RPT.IBID, RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 2:7"]],
-    [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
-    [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1", None]), tuple()],
-    [crrd(None, 'he', 'תוספות ד"ה והלכתא', [0, slice(1, 5)], [RPT.NAMED, RPT.DH], ["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
-    [crrd('Berakhot 2a', 'he', 'דף כ', [slice(0, 2)], [RPT.NUMBERED], ["Shabbat 2a"]), ("Berakhot 20", "Shabbat 20")],  # conflicting contexts
-    [crrd('Berakhot 2a', 'he', 'דף כ שם', [slice(0, 2), 2], [RPT.NUMBERED, RPT.IBID], ["Shabbat 2a"]), ("Shabbat 20",)],  # conflicting contexts which can be resolved by explicit sham
-    [crrd("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 7)], [RPT.NAMED, RPT.IBID, RPT.DH], ["Berakhot 17b"]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid.
-    [crrd("Mishnah Berakhot 1", 'he', 'שם שם ב', [0, 1, slice(2, 4)], [RPT.IBID, RPT.IBID, RPT.NUMBERED], ['Mishnah Shabbat 1:1']), ("Mishnah Shabbat 1:2",)],  # multiple shams. TODO failing because we're not enforcing order
-    [crrd(None, 'he', 'שם', [0], [RPT.IBID], ['Genesis 1:1']), ('Genesis 1:1',)],
-    [crrd(None, 'he', 'פסוקים מ-מה', [slice(0, 2), 2, 3], [RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 14']), ("Deuteronomy 14:40-45",)],
-    [crrd(None, 'he', 'יג, א-ב', [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
-    [crrd(None, 'he', 'ברכות דף ב', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED], ['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
-    [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
-    [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
-    # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
-    [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
-    [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
-
-    # Relative (e.g. Lekaman)
-    [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
-    [crrd("Mishnah Berakhot 1", 'he', 'לקמן משנה א', [0, slice(1, 3)], [RPT.RELATIVE, RPT.NUMBERED], ['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
-
-    # Superfluous information
-    [crrd(None, 'he', 'תוספות פרק קמא דברכות (דף ב', [0, slice(1, 3), 3, slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ['Tosafot on Berakhot 2']],
-
-    # YERUSHALMI EN
-    [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
-    pytest.param(crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",), marks=pytest.mark.xfail(reason="Tricky case. We've decided to always prefer explicit or ibid citations so this case fails.")),
-    [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a/b', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Shabbat 2",)],
-    [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Halakha 2:3', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
-    [crrd("Jerusalem Talmud Shabbat 1:1", 'en', '2:3', [0, 2], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
-    #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Chapter 2, Note 34', [slice(0, 2), slice(3, 5)], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:1:4",)],
-    #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Yalqut Psalms 116', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Yalkut Shimoni on Nach 874:1-875:4",)],
-    [crrd("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, slice(1, 4), 4, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
-    [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Babli 28b,31a', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED]), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
-    [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Exodus 21:1,3,22:5', [0, 1, 3, 4, 5, 6, 7, 9], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
-    pytest.param(crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Roš Haššanah 4, Notes 42–43', [slice(0, 2), 2, slice(4, 6), 6, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosaphot 85a, s.v. ולרבינא', [0, 1, slice(3, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Pesachim 85a:14:1",)],
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Unknown book 2', [slice(0, 2), 1], [RPT.NAMED, RPT.NUMBERED]), tuple()],  # make sure title context doesn't match this
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosafot Megillah 21b, s. v . כנגד', [0, 1, 2, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Megillah 21b:7:1",)],  # make sure title context doesn't match this
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Behar Parašah 6(5', [0, 1, slice(2, 4), 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Section 6 5",)],
-    [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), tuple()],  # if raw ref gets broken into incorrect parts, make sure it handles it correctly
-
-    # gilyon hashas
-    [crrd("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 5)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
-    [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 5), slice(5, 7), slice(7, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:3:1", "Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH. ambiguous.
-    [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [slice(0, 3), slice(3, 7)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
-
-    # specific books
-    [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
-    [crrd(None, 'he', 'ספרא בהר ב:ד', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
-    [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
-    [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
-    [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
-    [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
-    [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
-    [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
-    [crrd(None, 'he', "באה\"ע סימן קנ\"ה סי\"ד", [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
-    [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
-    pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
-    [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
-    [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
-    [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
-    [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
-    [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
-    [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
-    [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
-    pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
-    [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
-    [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
-    [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
-    [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    [crrd(None, 'he', 'ד"א זוטא פרק השלום ג', [slice(0, 4), slice(4, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
-    [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), 6], [RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
-    pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
-    [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
-    [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
-    [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
-    [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
-    [crrd(None, 'he', 'במדרש שמות רבה י"א ג', [0, slice(1, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Shemot Rabbah 11:3"]],
-    [crrd(None, 'he', 'ובפרשת ואלה שמות', [slice(0, 3)], [RPT.NAMED]), ["Exodus 1:1-6:1"]],
-    [crrd(None, 'he', 'פדר"א פרק כג', [slice(0,3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Pirkei DeRabbi Eliezer 23"]],
-    [crrd(None, 'he', 'סדר אליהו פ"י', [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Rabbah 10"]],
-    pytest.param(crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna debei Eliyahu Zuta 11"], marks=pytest.mark.xfail(reason="Currently there's an unnecessary SchemaNode 'Seder Eliyahu Zuta' that needs to be removed for this to pass")),
-    [crrd(None, 'he', 'מכילתא דרשב"י פרק יב', [slice(0, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Mekhilta DeRabbi Shimon Ben Yochai 12"]],
-
-    [crrd(None, 'he', "ספרי במדבר קמב", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
-    pytest.param(crrd(None, 'he', "ספרי במדבר פיס' קמב", [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
-    pytest.param(crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
-    pytest.param(crrd(None, 'he', 'ספרי במדבר פסקא יז', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 17"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
-    pytest.param(crrd(None, 'he', 'ספרי במדבר פרשת בהעלותך פיסקא עח', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Bamidbar 78"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
-    [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
-    [crrd(None, 'he', 'פסיקתא דר"כ ג', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta D'Rav Kahanna 3"]],
-    [crrd(None, 'he', "פסיקתא רבתי טו", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta Rabbati 15"]],
-    pytest.param(crrd(None, 'he', "ילקוט שמעוני כג", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"], marks=pytest.mark.xfail(reason="Can't infer which Yalkut Shimoni from Remez")),
-    pytest.param(crrd(None, 'he', "ילקוט שמעוני בראשית רמז כג", [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"], marks=pytest.mark.xfail(reason="Can't infer which Yalkut Shimoni from book")),
-    pytest.param(crrd(None, 'he', 'ילקוט שמעוני על נ"ך רמז כג', [slice(0, 6), 6], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"], marks=pytest.mark.xfail(reason="Can't infer which book in Yalkut Shimoni on Nach from Remez")),
-    [crrd(None, 'he', 'ילקוט שמעוני יהושע כג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
-    [crrd(None, 'he', 'מדרש תהילים כג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Tehillim 23"]],
-    [crrd(None, 'he', 'מדרש משלי פרק כג', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Mishlei 23"]],
-    [crrd(None, 'he', 'תנחומא בראשית יג', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma, Bereshit 13"]],
-    [crrd(None, 'he', 'תנחומא בובר בראשית יג', [slice(0,2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma Buber, Bereshit 13"]],
-    [crrd(None, 'he', 'תקוני זוהר כג ע"ב', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 23b"]],
-    pytest.param(crrd(None, 'he', 'תקו"ז ט', [slice(0, 3), 3], [RPT.NAMED, RPT.NUMBERED]),["Tikkunei Zohar 24a:7-24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
-    pytest.param(crrd(None, 'he', 'ת"ז תיקון ט', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 24a:7-24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
-    pytest.param(crrd(None, 'he', 'תקו"ז ט כד ע"ב', [slice(0, 3), 3, slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Tikkunei Zohar 24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
-    [crrd(None, 'he', 'הקדמה לתקו"ז', [0, slice(1, 4)], [RPT.NAMED, RPT.NAMED]), ["Tikkunei Zohar 1a:1-16b:4"]],
-    [crrd(None, 'he', 'ס"ע פי"א', [slice(0, 3), slice(3, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Seder Olam Rabbah 11"]],
-    [crrd(None, 'he', 'מק"א ג ד', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees I 3:4"]],
-    [crrd(None, 'he', 'ספר חשמונאים ב ו ב', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees II 6:2"]],
-    [crrd(None, 'he', 'ליקוטי מוהר"ן כג ב', [slice(0,4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
-    pytest.param(crrd(None, 'he', 'ליקוטי מוהר"ן תורה כג אות ב', [slice(0, 4), slice(4, 6), slice(6, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"], marks=pytest.mark.xfail(reason="Torah and Ot are not valid AddressTypes yet")),
-    [crrd(None, 'he', 'ליקוטי מוהר"ן תניינא ד ב', [slice(0,4), 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan, Part II 4:2"]],
-    [crrd(None, 'he', 'ספר יצירה פ"א מ"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah 1:1"]],
-    [crrd(None, 'he', 'ספר יצירה נוסח הגר"א ב ב', [0, 1, slice(3, 6), 6, 7], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah Gra Version 2:2"]],
-    [crrd(None, 'he', 'לקוטי הלכות או"ח הלכות ציצית ב א', [slice(0, 2), slice(2, 5), slice(5, 7), 7, 8], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Halakhot, Orach Chaim, Laws of Fringes 2:1"]],
-    [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
-    [crrd(None, 'he', "בתלמוד ירושלמי כתובות פ\"א ה\"ב", [slice(0, 2), 2, slice(3, 6), slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Jerusalem Talmud Ketubot 1:2"]],
-    [crrd(None, 'he', 'סוטה מג', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ['Sotah 43']],
-    [crrd(None, 'he', 'משנה ברורה סימן א סק"א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
-    [crrd(None, 'he', 'משנה ברורה סימן א סקט״ו', [slice(0, 2), slice(2, 4), slice(4, 7)],  [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:15']],
-    [crrd(None, 'he', 'משנה ברורה סימן א סעיף קטן א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
-    [crrd(None, 'he', 'משנה ברורה סימן א ס״ק א', [slice(0, 2), slice(2, 4), slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
-    [crrd(None, 'he', 'בשו"ע או"ח סימן שכ"ט ס"ו', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 329:6']],
-    [crrd(None, 'he', 'בשו"ע או"ח סימן ש"ל סי"א', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)],
-          [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 330:11']],
-
-    # support basic ref instantiation as fall-back
-    [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
+    [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
+    [crrd(["@ברכות", "#דף ב"]), ("Berakhot 2",)],  # amud-less talmud
+    [crrd(["@בבלי", "@שבת", "#דף ב."]), ("Shabbat 2a",)],  # amud-ful talmud
+    [crrd(['@בבלי', '#דף ב עמוד א', '@במכות']), ("Makkot 2a",)],  # out of order with prefix on title
+    [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א']), ("Genesis 13:1",)],
+    [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
+    #
+    # [crrd(None, 'he', "משנה ברכות פרק קמא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 1",)],
+    # [crrd(None, 'he', "משנה ברכות פרק בתרא", [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Mishnah Berakhot 9",)],
+    # [crrd(None, 'he', 'שמות א ב', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
+    # [crrd(None, 'he', 'ר"פ בתרא דמשנה ברכות', [slice(0, 4), slice(4, 6)], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Berakhot 9",)],
+    # [crrd(None, 'he', 'רפ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
+    # [crrd(None, 'he', 'ספ"ג דכלאים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ['Kilayim 3']],
+    #
+    # # Named alt structs
+    # [crrd(None, 'he', "פרק אלו דברים בפסחים", [slice(0, 3), 3], [RPT.NAMED, RPT.NAMED]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
+    # [crrd(None, 'he', "פרק אלו דברים", [slice(0, 3)], [RPT.NAMED]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
+    # [crrd(None, 'he', "רש\"י פרק יום טוב בביצה", [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
+    # [crrd(None, 'he', "רש\"י פרק מאימתי", [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
+    # [crrd(None, 'he', "רש\"י פרק כל כנויי נזירות בנזיר ד\"ה כל כינויי נזירות", [slice(0, 3), slice(3, 7), 7, slice(8, 14)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
+    #
+    # # Numbered alt structs
+    # [crrd(None, 'he', "פרק קמא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
+    # [crrd(None, 'he', 'פ"ק בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
+    # [crrd(None, 'he', "פרק ה בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
+    # [crrd(None, 'he', 'פ"ה בפסחים', [slice(0, 3), 3], [RPT.NUMBERED, RPT.NAMED]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
+    # [crrd(None, 'he', "פרק בתרא בפסחים", [slice(0, 2), 2], [RPT.NUMBERED, RPT.NAMED]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
+    # [crrd(None, 'he', '''מגמ' דרפ"ו דנדה''', [slice(0, 2), slice(2, 5), 5], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED]), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+    #
+    # # Dibur hamatchils
+    # [crrd(None, 'he', "רש\"י יום טוב ד\"ה שמא יפשע", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
+    # [crrd(None, 'he', "רש\"י ביצה ד\"ה שמא יפשע", [slice(0, 3), 3, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Beitzah 15b:8:1",)],
+    # [crrd(None, 'he', "רש\"י יום טוב ד\"ה אלא ביבנה", [slice(0, 3), slice(3, 5), slice(5, 10)], [RPT.NAMED, RPT.NAMED, RPT.DH]), ("Rashi on Rosh Hashanah 29b:5:3",)],
+    # [crrd(None, 'he', 'שבועות דף כה ע"א תוד"ה חומר', [0, slice(1, 6), slice(6, 9), 9], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Shevuot 25a:11:1",)],
+    # [crrd(None, 'he', "רש\"י דף ב עמוד א בסוכה ד\"ה סוכה ורבי", [slice(0, 3), slice(3, 7), 7, slice(8, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
+    #
+    # # Ranged refs
+    # [crrd(None, 'he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
+    # [crrd(None, 'he', 'בראשית יג:א-יד:ד', [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), ("Genesis 13:1-14:4",)],
+    # [crrd(None, 'he', 'דברים פרק יד פסוקים מ-מה', [0, slice(1, 3), slice(3, 5), 5, 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Deuteronomy 14:40-45",)],
+    # pytest.param(crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, 2, 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"], marks=pytest.mark.xfail(reason="Deciding that we can't handle daf and amud being separate in this case because difficult to know we need to merge")),
+    # [crrd(None, 'he', 'תלמוד כתובות קיב, א-ב', [0, 1, slice(2, 5), 5, 6],
+    #       [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ["Ketubot 112"]],
+    #
+    # # Base text context
+    # [crrd("Rashi on Berakhot 2a", 'he', 'ובתוס\' דכ"ז ע"ב ד"ה והלכתא', [slice(0, 2), slice(2, 8), slice(8, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
+    #
+    # # Ibid
+    # [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
+    # [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
+    # [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
+    # [crrd(None, 'he', 'שם ב:ז', [0, 1, 3], [RPT.IBID, RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 2:7"]],
+    # [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
+    # [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1", None]), tuple()],
+    # [crrd(None, 'he', 'תוספות ד"ה והלכתא', [0, slice(1, 5)], [RPT.NAMED, RPT.DH], ["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
+    # [crrd('Berakhot 2a', 'he', 'דף כ', [slice(0, 2)], [RPT.NUMBERED], ["Shabbat 2a"]), ("Berakhot 20", "Shabbat 20")],  # conflicting contexts
+    # [crrd('Berakhot 2a', 'he', 'דף כ שם', [slice(0, 2), 2], [RPT.NUMBERED, RPT.IBID], ["Shabbat 2a"]), ("Shabbat 20",)],  # conflicting contexts which can be resolved by explicit sham
+    # [crrd("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 7)], [RPT.NAMED, RPT.IBID, RPT.DH], ["Berakhot 17b"]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid.
+    # [crrd("Mishnah Berakhot 1", 'he', 'שם שם ב', [0, 1, slice(2, 4)], [RPT.IBID, RPT.IBID, RPT.NUMBERED], ['Mishnah Shabbat 1:1']), ("Mishnah Shabbat 1:2",)],  # multiple shams. TODO failing because we're not enforcing order
+    # [crrd(None, 'he', 'שם', [0], [RPT.IBID], ['Genesis 1:1']), ('Genesis 1:1',)],
+    # [crrd(None, 'he', 'פסוקים מ-מה', [slice(0, 2), 2, 3], [RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 14']), ("Deuteronomy 14:40-45",)],
+    # [crrd(None, 'he', 'יג, א-ב', [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
+    # [crrd(None, 'he', 'ברכות דף ב', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED], ['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
+    # [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
+    # [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
+    # # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    # [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
+    # [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
+    #
+    # # Relative (e.g. Lekaman)
+    # [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
+    # [crrd("Mishnah Berakhot 1", 'he', 'לקמן משנה א', [0, slice(1, 3)], [RPT.RELATIVE, RPT.NUMBERED], ['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
+    #
+    # # Superfluous information
+    # [crrd(None, 'he', 'תוספות פרק קמא דברכות (דף ב', [0, slice(1, 3), 3, slice(5, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ['Tosafot on Berakhot 2']],
+    #
+    # # YERUSHALMI EN
+    # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ("Shabbat 2a",)],
+    # pytest.param(crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Berakhot 2:1', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Berakhot 2:1",), marks=pytest.mark.xfail(reason="Tricky case. We've decided to always prefer explicit or ibid citations so this case fails.")),
+    # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Bavli 2a/b', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Shabbat 2",)],
+    # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Halakha 2:3', [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
+    # [crrd("Jerusalem Talmud Shabbat 1:1", 'en', '2:3', [0, 2], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:3",)],
+    # #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Chapter 2, Note 34', [slice(0, 2), slice(3, 5)], [RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Shabbat 2:1:4",)],
+    # #[crrd("Jerusalem Talmud Shabbat 1:1", 'en', 'Yalqut Psalms 116', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Yalkut Shimoni on Nach 874:1-875:4",)],
+    # [crrd("Jerusalem Talmud Sheviit 1:1:3", 'en', 'Tosephta Ševi‘it 1:1', [0, slice(1, 4), 4, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
+    # [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Babli 28b,31a', [0, 1, 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED]), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
+    # [crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Exodus 21:1,3,22:5', [0, 1, 3, 4, 5, 6, 7, 9], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NON_CTS, RPT.NUMBERED, RPT.NUMBERED]), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
+    # pytest.param(crrd("Jerusalem Talmud Taanit 1:1:3", 'en', 'Roš Haššanah 4, Notes 42–43', [slice(0, 2), 2, slice(4, 6), 6, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
+    # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosaphot 85a, s.v. ולרבינא', [0, 1, slice(3, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Pesachim 85a:14:1",)],
+    # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Unknown book 2', [slice(0, 2), 1], [RPT.NAMED, RPT.NUMBERED]), tuple()],  # make sure title context doesn't match this
+    # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Tosafot Megillah 21b, s. v . כנגד', [0, 1, 2, slice(4, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.DH]), ("Tosafot on Megillah 21b:7:1",)],  # make sure title context doesn't match this
+    # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Behar Parašah 6(5', [0, 1, slice(2, 4), 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Section 6 5",)],
+    # [crrd("Jerusalem Talmud Pesachim 1:1:3", 'en', 'Sifra Saw Parashah 2(9–10', [0, 1, slice(2, 8)], [RPT.NAMED, RPT.NAMED, RPT.NAMED]), tuple()],  # if raw ref gets broken into incorrect parts, make sure it handles it correctly
+    #
+    # # gilyon hashas
+    # [crrd("Gilyon HaShas on Berakhot 51b:1", 'he', '''תוספות ד"ה אין''', [0, slice(1, 5)], [RPT.NAMED, RPT.DH]), ("Tosafot on Berakhot 51b:8:1",)],  # commentator with implied book and daf from context commentator
+    # [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''קדושין טו ע"ב תוס' ד"ה א"ק''', [0, slice(1, 5), slice(5, 7), slice(7, 13)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.DH]), ("Tosafot on Kiddushin 15b:3:1", "Tosafot on Kiddushin 15b:4:1",)],  # abbrev in DH. ambiguous.
+    # [crrd("Gilyon HaShas on Berakhot 21a:3", 'he', '''בב"מ פח ע"ב''', [slice(0, 3), slice(3, 7)], [RPT.NAMED, RPT.NUMBERED]), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
+    #
+    # # specific books
+    # [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
+    # [crrd(None, 'he', 'ספרא בהר ב:ד', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
+    # [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
+    # [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
+    # [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
+    # [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
+    # [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
+    # [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
+    # [crrd(None, 'he', "באה\"ע סימן קנ\"ה סי\"ד", [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
+    # [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
+    # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
+    # [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
+    # [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
+    # [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
+    # [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
+    # [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
+    # [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
+    # [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
+    # pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
+    # [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
+    # [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
+    # [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
+    # [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    # [crrd(None, 'he', 'ד"א זוטא פרק השלום ג', [slice(0, 4), slice(4, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), 6], [RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    # pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
+    # [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
+    # [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    # [crrd(None, 'he', 'מכילתא שמות כא ג', [0, 1, 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    # [crrd(None, 'he', 'מכילתא כא ג', [0, 1, 2], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
+    # [crrd(None, 'he', 'במדרש שמות רבה י"א ג', [0, slice(1, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Shemot Rabbah 11:3"]],
+    # [crrd(None, 'he', 'ובפרשת ואלה שמות', [slice(0, 3)], [RPT.NAMED]), ["Exodus 1:1-6:1"]],
+    # [crrd(None, 'he', 'פדר"א פרק כג', [slice(0,3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Pirkei DeRabbi Eliezer 23"]],
+    # [crrd(None, 'he', 'סדר אליהו פ"י', [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tanna Debei Eliyahu Rabbah 10"]],
+    # pytest.param(crrd(None, 'he', 'תנד"א זוטא יא', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Tanna debei Eliyahu Zuta 11"], marks=pytest.mark.xfail(reason="Currently there's an unnecessary SchemaNode 'Seder Eliyahu Zuta' that needs to be removed for this to pass")),
+    # [crrd(None, 'he', 'מכילתא דרשב"י פרק יב', [slice(0, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Mekhilta DeRabbi Shimon Ben Yochai 12"]],
+    #
+    # [crrd(None, 'he', "ספרי במדבר קמב", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"]],
+    # pytest.param(crrd(None, 'he', "ספרי במדבר פיס' קמב", [slice(0, 2), slice(2, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 142"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
+    # pytest.param(crrd(None, 'he', 'ספרי דברים פיסקא צט', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Devarim 99"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
+    # pytest.param(crrd(None, 'he', 'ספרי במדבר פסקא יז', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Sifrei Bamidbar 17"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
+    # pytest.param(crrd(None, 'he', 'ספרי במדבר פרשת בהעלותך פיסקא עח', [slice(0, 2), slice(2, 4), slice(4, 6)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Bamidbar 78"], marks=pytest.mark.xfail(reason="Don't support Piska AddressType")),
+    # [crrd(None, 'he', "ספרי דברים וזאת הברכה סי' שמד", [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sifrei Devarim 344"]],
+    # [crrd(None, 'he', 'פסיקתא דר"כ ג', [slice(0, 4), 4], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta D'Rav Kahanna 3"]],
+    # [crrd(None, 'he', "פסיקתא רבתי טו", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Pesikta Rabbati 15"]],
+    # pytest.param(crrd(None, 'he', "ילקוט שמעוני כג", [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"], marks=pytest.mark.xfail(reason="Can't infer which Yalkut Shimoni from Remez")),
+    # pytest.param(crrd(None, 'he', "ילקוט שמעוני בראשית רמז כג", [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Torah 23"], marks=pytest.mark.xfail(reason="Can't infer which Yalkut Shimoni from book")),
+    # pytest.param(crrd(None, 'he', 'ילקוט שמעוני על נ"ך רמז כג', [slice(0, 6), 6], [RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"], marks=pytest.mark.xfail(reason="Can't infer which book in Yalkut Shimoni on Nach from Remez")),
+    # [crrd(None, 'he', 'ילקוט שמעוני יהושע כג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Yalkut Shimoni on Nach 23"]],
+    # [crrd(None, 'he', 'מדרש תהילים כג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Tehillim 23"]],
+    # [crrd(None, 'he', 'מדרש משלי פרק כג', [slice(0, 2), slice(2, 4)], [RPT.NAMED, RPT.NUMBERED]), ["Midrash Mishlei 23"]],
+    # [crrd(None, 'he', 'תנחומא בראשית יג', [0, 1, 2], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma, Bereshit 13"]],
+    # [crrd(None, 'he', 'תנחומא בובר בראשית יג', [slice(0,2), 2, 3], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Midrash Tanchuma Buber, Bereshit 13"]],
+    # [crrd(None, 'he', 'תקוני זוהר כג ע"ב', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 23b"]],
+    # pytest.param(crrd(None, 'he', 'תקו"ז ט', [slice(0, 3), 3], [RPT.NAMED, RPT.NUMBERED]),["Tikkunei Zohar 24a:7-24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
+    # pytest.param(crrd(None, 'he', 'ת"ז תיקון ט', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Tikkunei Zohar 24a:7-24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
+    # pytest.param(crrd(None, 'he', 'תקו"ז ט כד ע"ב', [slice(0, 3), 3, slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Tikkunei Zohar 24b:1"], marks=pytest.mark.xfail(reason="Currently invalid way to refer to Tikkunei Zohar")),
+    # [crrd(None, 'he', 'הקדמה לתקו"ז', [0, slice(1, 4)], [RPT.NAMED, RPT.NAMED]), ["Tikkunei Zohar 1a:1-16b:4"]],
+    # [crrd(None, 'he', 'ס"ע פי"א', [slice(0, 3), slice(3, 6)], [RPT.NAMED, RPT.NUMBERED]), ["Seder Olam Rabbah 11"]],
+    # [crrd(None, 'he', 'מק"א ג ד', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees I 3:4"]],
+    # [crrd(None, 'he', 'ספר חשמונאים ב ו ב', [slice(0, 3), 3, 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["The Book of Maccabees II 6:2"]],
+    # [crrd(None, 'he', 'ליקוטי מוהר"ן כג ב', [slice(0,4), 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"]],
+    # pytest.param(crrd(None, 'he', 'ליקוטי מוהר"ן תורה כג אות ב', [slice(0, 4), slice(4, 6), slice(6, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan 23:2"], marks=pytest.mark.xfail(reason="Torah and Ot are not valid AddressTypes yet")),
+    # [crrd(None, 'he', 'ליקוטי מוהר"ן תניינא ד ב', [slice(0,4), 4, 5, 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Moharan, Part II 4:2"]],
+    # [crrd(None, 'he', 'ספר יצירה פ"א מ"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah 1:1"]],
+    # [crrd(None, 'he', 'ספר יצירה נוסח הגר"א ב ב', [0, 1, slice(3, 6), 6, 7], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Sefer Yetzirah Gra Version 2:2"]],
+    # [crrd(None, 'he', 'לקוטי הלכות או"ח הלכות ציצית ב א', [slice(0, 2), slice(2, 5), slice(5, 7), 7, 8], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Likutei Halakhot, Orach Chaim, Laws of Fringes 2:1"]],
+    # [crrd(None, 'he', 'לקוטי הלכות הלכות מעקה ושמירת הנפש', [slice(0, 2), slice(2, 6)], [RPT.NAMED, RPT.NAMED]), ["Likutei Halakhot, Choshen Mishpat, Laws of Roof Rails and Preservation of Life"]],
+    # [crrd(None, 'he', "בתלמוד ירושלמי כתובות פ\"א ה\"ב", [slice(0, 2), 2, slice(3, 6), slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Jerusalem Talmud Ketubot 1:2"]],
+    # [crrd(None, 'he', 'סוטה מג', [0, 1], [RPT.NAMED, RPT.NUMBERED]), ['Sotah 43']],
+    # [crrd(None, 'he', 'משנה ברורה סימן א סק"א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    # [crrd(None, 'he', 'משנה ברורה סימן א סקט״ו', [slice(0, 2), slice(2, 4), slice(4, 7)],  [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:15']],
+    # [crrd(None, 'he', 'משנה ברורה סימן א סעיף קטן א', [slice(0, 2), slice(2, 4), slice(4, 7)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    # [crrd(None, 'he', 'משנה ברורה סימן א ס״ק א', [slice(0, 2), slice(2, 4), slice(4, 8)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Mishnah Berurah 1:1']],
+    # [crrd(None, 'he', 'בשו"ע או"ח סימן שכ"ט ס"ו', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 329:6']],
+    # [crrd(None, 'he', 'בשו"ע או"ח סימן ש"ל סי"א', [slice(0, 3), slice(3, 6), slice(6, 10), slice(10, 13)],
+    #       [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 330:11']],
+    #
+    # # support basic ref instantiation as fall-back
+    # [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
@@ -304,7 +383,9 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
+class TestResolveRawRef:
 
+    pass
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts'), [
     [None, """גמ' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)""", 'he', ("Rashi on Beitzah 15b:8:1",), ['ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)']],
@@ -348,11 +429,11 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
 
 
 @pytest.mark.parametrize(('raw_ref_params', 'expected_section_slices'), [
-    [create_raw_ref_params('he', "בראשית א:א-ב", [0, 1, 3, 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(1,3),slice(4,5))],  # standard case
-    [create_raw_ref_params('he', "א:א-ב", [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(0,2),slice(3,4))],  # only numbered sections
-    [create_raw_ref_params('he', "בראשית א:א-ב:א", [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3),slice(4,6))],  # full sections and toSections
-    [create_raw_ref_params('he', "בראשית א:א", [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), (None, None)],  # no ranged symbol
-    [create_raw_ref_params('he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3), slice(4,6))],  # verbose range
+    # [create_raw_ref_params('he', "בראשית א:א-ב", [0, 1, 3, 4, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(1,3),slice(4,5))],  # standard case
+    # [create_raw_ref_params('he', "א:א-ב", [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED]), (slice(0,2),slice(3,4))],  # only numbered sections
+    # [create_raw_ref_params('he', "בראשית א:א-ב:א", [0, 1, 3, 4, 5, 7], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3),slice(4,6))],  # full sections and toSections
+    # [create_raw_ref_params('he', "בראשית א:א", [0, 1, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), (None, None)],  # no ranged symbol
+    # [create_raw_ref_params('he', 'ספר בראשית פרק יג פסוק א עד פרק יד פסוק ד', [slice(0, 2), slice(2, 4), slice(4, 6), 6, slice(7, 9), slice(9, 11)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED, RPT.NUMBERED]), (slice(1,3), slice(4,6))],  # verbose range
 ])
 def test_group_ranged_parts(raw_ref_params, expected_section_slices):
     lang, raw_ref_parts, span = raw_ref_params
