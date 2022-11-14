@@ -492,7 +492,7 @@ def tokenize_words_for_tfidf(text, stopwords):
     from sefaria.utils.hebrew import strip_cantillation
 
     try:
-        text = TextChunk._strip_itags(text)
+        text = TextChunk.strip_itags(text)
     except AttributeError:
         pass
     text = strip_cantillation(text, strip_vowels=True)

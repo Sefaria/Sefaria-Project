@@ -25,7 +25,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex
+from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
@@ -599,6 +599,18 @@ class TextIndexer(object):
                 logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
 
     @classmethod
+    def remove_footnotes(cls, content):
+        ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
+        if len(ftnotes) == 0:
+            return content
+        else:
+            for sup_tag in ftnotes:
+                i_tag = sup_tag.next_sibling
+                content += f" {sup_tag.text} {i_tag.text}"
+            content = AbstractTextRecord.strip_itags(content)
+            return content
+
+    @classmethod
     def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories):
         """
         Create a document for indexing from the text specified by ref/version/lang
@@ -607,9 +619,13 @@ class TextIndexer(object):
         if not content:
             return False
 
+        content = cls.remove_footnotes(content)
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
-        content_wo_cant = re.sub(r'\([^)]+\)', '', content_wo_cant)  # remove all parens
+        content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
+        content_wo_cant = re.sub(r'\([^)]+\)', ' ', content_wo_cant)   # remove all parens
+        while "  " in content_wo_cant:                                 # make sure there are not many spaces in a row
+            content_wo_cant = content_wo_cant.replace("  ", " ")
+
         if len(content_wo_cant) == 0:
             return False
 
