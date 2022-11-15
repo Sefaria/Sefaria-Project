@@ -11,7 +11,7 @@ data:
     #!/usr/bin/env bash
     set -x
     {{- if .Values.backup.postgres.serviceAccount }}
-    gloud auth activate
+    gcloud auth activate
     {{- else }}
     gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
     {{- end }}
