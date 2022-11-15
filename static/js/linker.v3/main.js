@@ -307,31 +307,15 @@ const SELECTOR_WHITE_LIST = {
         return (canonical && !ns.dynamic) ? canonical.href : window.location.href;
     }
 
-    // public API
+    function getPopupModeOnMobile(mode) {
+        if (window.innerWidth < 700) {
+            // If the screen is small, default to link mode
+            return "link";
+        }
+        return mode;
+    }
 
-    ns.link = function({
-        sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
-        mode = "popup-click",
-        selector = "body",           // CSS Selector
-        excludeFromLinking = null,    // CSS Selector
-        excludeFromTracking = null,   // CSS Selector
-        popupStyles = {},
-        interfaceLang = "english",
-        contentLang = "bilingual",
-        parenthesesOnly = false,
-        quotationOnly = false,
-        dynamic = false,
-        hidePopupsOnMobile = true,
-        debug = false,
-        maxParagraphs = 0,
-    }) {
-        ns.sefariaUrl = sefariaUrl;
-        ns.debug = debug;
-        ns.dynamic = dynamic;
-        // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
-        if (debug || true) { removeExistingSefariaLinks(); }
-        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
-        ns.popupManager.setupPopup();
+    function findRefs() {
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = readableText + getWhiteListText(readableText);
         const postData = {
@@ -353,5 +337,37 @@ const SELECTOR_WHITE_LIST = {
                 }
             }
         );
+    }
+
+    // public API
+
+    ns.link = function({
+        sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
+        mode = "popup-click",
+        selector = "body",           // CSS Selector
+        excludeFromLinking = null,    // CSS Selector
+        excludeFromTracking = null,   // CSS Selector
+        popupStyles = {},
+        interfaceLang = "english",
+        contentLang = "bilingual",
+        parenthesesOnly = false,
+        quotationOnly = false,
+        dynamic = false,
+        hidePopupsOnMobile = true,
+        debug = false,
+        maxParagraphs = 0,
+    }) {
+        ns.sefariaUrl = sefariaUrl;
+        ns.excludeFromLinking = excludeFromLinking;
+        ns.debug = debug;
+        ns.dynamic = dynamic;
+        // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
+        if (debug || true) { removeExistingSefariaLinks(); }
+        if (hidePopupsOnMobile) {
+            mode = getPopupModeOnMobile(mode);
+        }
+        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
+        ns.popupManager.setupPopup();
+        findRefs(maxParagraphs);
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
