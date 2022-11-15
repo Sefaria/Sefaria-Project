@@ -208,14 +208,14 @@ varnish:
   resources:
     requests:
       # must be in megabibytes, because we pass it into the malloc definition
-      memory: "30Mi"
+      memory: "25Mi"
       cpu: "10m"
     limits:
-      memory: "350Mi"
+      memory: "300Mi"
       cpu: "100m"
   tuning:
     # malloc should be ~75% of the memory request.
-    malloc: "350m"
+    malloc: "250m"
     nuke_limit: "400"
     # Threading
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
