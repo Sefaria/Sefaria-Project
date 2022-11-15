@@ -153,25 +153,29 @@ class WebPage(abst.AbstractMongoRecord):
 
 
     @staticmethod
-    def add_or_update_from_linker(data):
-        """Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
-        Returns True is data was saved, False if data was determined to be exluded"""
-        data["url"] = WebPage.normalize_url(data["url"])
-        webpage = WebPage().load(data["url"])
-        data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
-        data["title"] = WebPage.clean_title(data["title"], getattr(webpage, "_site_data", {}),
+    def add_or_update_from_linker(webpage_contents: dict):
+        """
+        Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        Returns True is data was saved, False if data was determined to be exluded
+
+        @param webpage_contents: a dict representing the contents of a `WebPage`
+        """
+        webpage_contents["url"] = WebPage.normalize_url(webpage_contents["url"])
+        webpage = WebPage().load(webpage_contents["url"])
+        webpage_contents["refs"] = WebPage._normalize_refs(webpage_contents["refs"])  # remove bad refs so pages with empty refs won't get saved
+        webpage_contents["title"] = WebPage.clean_title(webpage_contents["title"], getattr(webpage, "_site_data", {}),
                                             getattr(webpage, "site_name", ""))
-        data["description"] = WebPage.clean_description(data.get("description", ""))
+        webpage_contents["description"] = WebPage.clean_description(webpage_contents.get("description", ""))
 
         if webpage:
             existing = True
-            if data["title"] == webpage.title and data["description"] == getattr(webpage, "description", "") and set(data["refs"]) == set(webpage.refs):
+            if webpage_contents["title"] == webpage.title and webpage_contents["description"] == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
-            if data["title"] == "":
-                data["title"] = webpage.title  # dont save an empty title if title exists
-            webpage.load_from_dict(data)
+            if webpage_contents["title"] == "":
+                webpage_contents["title"] = webpage.title  # dont save an empty title if title exists
+            webpage.load_from_dict(webpage_contents)
         else:
-            webpage = WebPage(data)
+            webpage = WebPage(webpage_contents)
             existing = False
 
         if webpage.should_be_excluded():
