@@ -190,11 +190,12 @@ const SELECTOR_WHITE_LIST = {
          * else, return a span with n a tags to represent an ambiguous reference.
          * urls should only be more than len 1 in debug mode
          */
-        if (!urls) {
+        if (!urls || (!ns.debug && urls.length > 1)) {
             return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj);
         } else if (urls.length === 1) {
             return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj);
         } else {
+            // debug and more than 1 url
             const node = document.createElement("span");
             node.className="sefaria-ref-wrapper";
             for (let i = 0; i < urls.length; i++) {
