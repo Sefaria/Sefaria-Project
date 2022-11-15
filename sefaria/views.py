@@ -291,24 +291,14 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_html, make_find_refs_response
-    from sefaria.utils.hebrew import is_hebrew
+    from sefaria.helper.linker import make_find_refs_response
+
     with_text = bool(int(request.GET.get("with_text", False)))
     debug = bool(int(request.GET.get("debug", False)))
     max_segments = int(request.GET.get("max_segments", 0))
+    post_body = json.loads(request.body)
 
-    post = json.loads(request.body)
-    resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
-    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
-
-    return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text, debug, max_segments),
-        "text": make_find_refs_response(resolved, with_text, debug, max_segments),
-    })
+    return jsonResponse(make_find_refs_response(post_body, with_text, debug, max_segments))
 
 
 def linker_data_api(request, titles):

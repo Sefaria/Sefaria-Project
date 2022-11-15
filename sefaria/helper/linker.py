@@ -1,11 +1,12 @@
 import spacy
 import structlog
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
-from sefaria.model import text
+from sefaria.model import text, library
 from typing import List, Union, Optional
 from collections import defaultdict
 
 logger = structlog.get_logger(__name__)
+
 
 def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
@@ -173,7 +174,23 @@ def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousRes
         fout.write(html)
 
 
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
+def make_find_refs_response(post_body, with_text, debug, max_segments):
+    from sefaria.utils.hebrew import is_hebrew
+
+    resolver = library.get_ref_resolver()
+    lang = 'he' if is_hebrew(post_body['text']) else 'en'
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post_body['title']])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']], with_failures=True)
+    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+
+    return {
+        "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
+        "text": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
+    }
+
+
+def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
     """
 
     @param resolved:
