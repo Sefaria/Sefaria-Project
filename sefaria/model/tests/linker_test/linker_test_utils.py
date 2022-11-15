@@ -32,6 +32,8 @@ class EncodedPart:
         "0": RefPartTypeNone,
         "^": RPT.RANGE_SYMBOL,
         "&": RPT.IBID,
+        "<": RPT.RELATIVE,
+        "~": RPT.NON_CTS,
     }
 
     def __init__(self, raw_encoded_part):
