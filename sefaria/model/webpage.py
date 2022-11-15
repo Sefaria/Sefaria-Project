@@ -128,7 +128,7 @@ class WebPage(abst.AbstractMongoRecord):
                     if site["is_whitelisted"]:
                         bad_urls += [re.escape(domain_in_site)+"/search.*?$"]
 
-        if len(bad_urls) is 0:
+        if len(bad_urls) == 0:
             return None
         else:
             return "({})".format("|".join(bad_urls))
