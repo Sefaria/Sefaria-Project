@@ -151,5 +151,5 @@ jobs:
           GIT_COMMIT: "${{ needs.workflow-check.outputs.ref }}"
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
-          CHART_VERSION: 0.2.2
+          CHART_VERSION: 0.2.3
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
