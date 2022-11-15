@@ -1708,7 +1708,7 @@ def index_api(request, title, raw=False):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def bare_link_api(request, book, cat):
     if request.method == "GET":
         resp = get_book_link_collection(book, cat)
@@ -1720,7 +1720,7 @@ def bare_link_api(request, book, cat):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
@@ -2213,7 +2213,7 @@ def version_status_api(request):
 
 
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def version_status_tree_api(request, lang=None):
     return library.simplify_toc(lang=lang)
 

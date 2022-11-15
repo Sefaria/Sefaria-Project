@@ -40,17 +40,20 @@ data:
 
         if ((req.method == "GET") && (
             (req.url ~"^/api/texts" && req.url !~"^/api/texts/versions/" && req.url !~"^/api/texts/parashat_hashavua" && req.url !~"^/api/texts/random" && req.url !~"layer=")
-            || (req.url ~"^/api/links" && req.url !~"^/api/links/bare")
+            || req.url ~"^/api/texts/version-status/tree/"
+            || req.url ~"^/api/links/bare"
+            || req.url ~"^/api/links"
             || (req.url ~"^/api/related" && req.url !~"private=1")
-            || req.url ~"^/api/preview"
-            || (req.url ~"^/api/counts" && req.url !~"^/api/counts/links/" && req.url !~"^/api/counts/words")
-    	    || req.url ~"^/api/index/.+"
+            || req.url ~"^/api/preview" 
+            || req.url ~"^/api/counts/links/"
+            || (req.url ~"^/api/counts" && req.url !~"^/api/counts/words")
+            || req.url ~"^/api/index/.+"
             || req.url ~"^/api/v2/index"
             || req.url ~"^/api/v2/raw/index"
-    	    || req.url ~"^/api/regexs/"
-    	    || req.url ~"^/api/bulktext/"
-    	    || req.url ~"^/linker.js"
-    	    || req.url ~"^/api/stats/"
+            || req.url ~"^/api/regexs/"
+            || req.url ~"^/api/bulktext/"
+            || req.url ~"^/linker.js"
+            || req.url ~"^/api/stats/"
         )) {
             unset req.http.Cookie;
             unset req.http.Accept-Language;
