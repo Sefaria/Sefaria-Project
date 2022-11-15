@@ -561,13 +561,15 @@ class TextIndexer(object):
         except ValueError:
             cls.best_time_period = None
         version_priority = 0
+        hebrew_version_title = None
         for priority, v in enumerate(cls.get_ref_version_list(oref)):
             if v.versionTitle == version_title:
                 version_priority = priority
+                hebrew_version_title = getattr(v, 'versionTitleInHebrew', None)
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
-        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
+        doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title)
         id = make_text_doc_id(tref, version_title, lang)
         es_client.index(index_name, doc, id=id)
 
@@ -576,10 +578,11 @@ class TextIndexer(object):
         # Index this document as a whole
         vtitle = version.versionTitle
         vlang = version.language
+        hebrew_version_title = getattr(version, 'versionTitleInHebrew', None)
         try:
             version_priority, categories = cls.version_priority_map[(version.title, vtitle, vlang)]
             #TODO include sgement_str in this func
-            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories)
+            doc = cls.make_text_index_document(tref, heTref, vtitle, vlang, version_priority, segment_str, categories, hebrew_version_title)
             # print doc
         except Exception as e:
             logger.error("Error making index document {} / {} / {} : {}".format(tref, vtitle, vlang, str(e)))
@@ -598,7 +601,6 @@ class TextIndexer(object):
             except Exception as e:
                 logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
 
-    @classmethod
     def remove_footnotes(cls, content):
         ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
         if len(ftnotes) == 0:
@@ -611,7 +613,7 @@ class TextIndexer(object):
             return content
 
     @classmethod
-    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories):
+    def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
@@ -657,6 +659,7 @@ class TextIndexer(object):
             #"hebmorph_semi_exact": content_wo_cant,
             "exact": content_wo_cant,
             "naive_lemmatizer": content_wo_cant,
+            'hebrew_version_title': hebrew_version_title,
         }
 
 
