@@ -304,6 +304,12 @@ const SELECTOR_WHITE_LIST = {
         });
     }
 
+    function getPageUrl() {
+        const canonical = document.head.querySelector("link[rel~=canonical]");
+        // don't use canonical url if dynamic site b/c canonical urls tend to only be correct on initial load
+        return (canonical && !ns.dynamic) ? canonical.href : window.location.href;
+    }
+
     // public API
 
     ns.link = function({
@@ -322,6 +328,7 @@ const SELECTOR_WHITE_LIST = {
         maxParagraphs = 0,
     }) {
         ns.debug = debug;
+        ns.dynamic = dynamic;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
@@ -330,7 +337,7 @@ const SELECTOR_WHITE_LIST = {
         ns.normalizedInputText = readableText + getWhiteListText(readableText);
         const postData = {
             text: ns.normalizedInputText,
-            url: window.location.href,
+            url: getPageUrl(),
             title: readableObj.title,
         }
 
