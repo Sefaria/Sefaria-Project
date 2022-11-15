@@ -131,6 +131,7 @@ crrd = create_raw_ref_data
     [crrd(["@בב\"מ", "#פח ע\"ב"], "Gilyon HaShas on Berakhot 21a:3"), ("Bava Metzia 88b",)],  # TODO should this match Gilyon HaShas as well?
 
     # specific books
+    # TODO still need to convert the following tests to new `crrd` syntax
     # [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
     # [crrd(None, 'he', 'ספרא בהר ב:ד', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
     # [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
