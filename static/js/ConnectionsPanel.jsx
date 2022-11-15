@@ -1037,7 +1037,7 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
-      let essayLinks = Sefaria.essayLinks(refs, this.props.currObjectVersions);
+      let essayLinks = this.props.currObjectVersions ? Sefaria.essayLinks(refs, this.props.currObjectVersions) : [];
       if (essayLinks.length > 0) {
         essayLinks.forEach(function (link, i) {
           const essayTextFilter = <TextFilter
@@ -1254,7 +1254,7 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" onClick={() => this.setFilter(site.name)} key={site.name}>
+        return (<div className="website" role="button" tabindex="0" onKeyUp={(eventq) => event.key==='Enter' && this.setFilter(site.name)} onClick={() => this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);

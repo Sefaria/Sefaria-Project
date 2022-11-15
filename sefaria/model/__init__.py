@@ -23,9 +23,6 @@ from .link import Link, LinkSet, get_link_counts, get_book_link_collection, get_
 from .note import Note, NoteSet
 from .layer import Layer, LayerSet
 from .notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
-from .story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
-    TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, CollectionSheetListFactory, TopicListStoryFactory, \
-    MultiTextStoryFactory
 from .trend import get_session_traits
 from .interrupting_message import InterruptingMessage
 from .queue import IndexQueue, IndexQueueSet

@@ -25,7 +25,7 @@ from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex
+from sefaria.model.text import AbstractIndex, AbstractTextRecord
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
@@ -213,6 +213,26 @@ def source_text(source):
     return text
 
 
+def get_exact_english_analyzer():
+    return {
+        "tokenizer": "standard",
+        "char_filter": [
+            "icu_normalizer",
+        ],
+        "filter": [
+            "standard",
+            "lowercase",
+            "icu_folding",
+        ],
+    }
+
+
+def get_stemmed_english_analyzer():
+    stemmed_english_analyzer = get_exact_english_analyzer()
+    stemmed_english_analyzer['filter'] += ["my_snow"]
+    return stemmed_english_analyzer
+
+
 def create_index(index_name, type):
     """
     Clears the indexes and creates it fresh with the below settings.
@@ -224,25 +244,15 @@ def create_index(index_name, type):
             "blocks": {
                 "read_only_allow_delete": False
             },
-            "analysis" : {
-                "analyzer" : {
-                    "my_standard" : {
-                        "tokenizer": "standard",
-                        "char_filter": [
-                            "icu_normalizer"
-                        ],
-                        "filter": [
-                                "standard",
-                                "lowercase",
-                                "icu_folding",
-                                "my_snow"
-                                ]
-                    }
+            "analysis": {
+                "analyzer": {
+                    "stemmed_english": get_stemmed_english_analyzer(),
+                    "exact_english": get_exact_english_analyzer(),
                 },
-                "filter" : {
-                    "my_snow" : {
-                        "type" : "snowball",
-                        "language" : "English"
+                "filter": {
+                    "my_snow": {
+                        "type": "snowball",
+                        "language": "English"
                     }
                 }
             }
@@ -299,14 +309,9 @@ def put_text_mapping(index_name):
                 'type': 'integer',
                 'index': False
             },
-            #"hebmorph_semi_exact": {
-            #    'type': 'string',
-            #    'analyzer': 'hebrew',
-            #    'search_analyzer': 'sefaria-semi-exact'
-            #},
             "exact": {
                 'type': 'text',
-                'analyzer': 'my_standard'
+                'analyzer': 'exact_english'
             },
             "naive_lemmatizer": {
                 'type': 'text',
@@ -315,7 +320,7 @@ def put_text_mapping(index_name):
                 'fields': {
                     'exact': {
                         'type': 'text',
-                        'analyzer': 'my_standard'                        
+                        'analyzer': 'exact_english'
                     }
                 }
             }
@@ -374,7 +379,7 @@ def put_sheet_mapping(index_name):
             },
             'content': {
                 'type': 'text',
-                'analyzer': 'my_standard'
+                'analyzer': 'stemmed_english'
             },
             'version': {
                 'type': 'keyword'
@@ -470,8 +475,7 @@ class TextIndexer(object):
 
     @classmethod
     def get_all_versions(cls, tries=0, versions=None, page=0):
-        if versions is None:
-            versions = []
+        versions = versions or []
         try:
             version_limit = 10
             temp_versions = []
@@ -597,6 +601,17 @@ class TextIndexer(object):
             except Exception as e:
                 logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
 
+    def remove_footnotes(cls, content):
+        ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
+        if len(ftnotes) == 0:
+            return content
+        else:
+            for sup_tag in ftnotes:
+                i_tag = sup_tag.next_sibling
+                content += f" {sup_tag.text} {i_tag.text}"
+            content = AbstractTextRecord.strip_itags(content)
+            return content
+
     @classmethod
     def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
         """
@@ -606,9 +621,13 @@ class TextIndexer(object):
         if not content:
             return False
 
+        content = cls.remove_footnotes(content)
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
-        content_wo_cant = re.sub(r'\([^)]+\)', '', content_wo_cant)  # remove all parens
+        content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
+        content_wo_cant = re.sub(r'\([^)]+\)', ' ', content_wo_cant)   # remove all parens
+        while "  " in content_wo_cant:                                 # make sure there are not many spaces in a row
+            content_wo_cant = content_wo_cant.replace("  ", " ")
+
         if len(content_wo_cant) == 0:
             return False
 
