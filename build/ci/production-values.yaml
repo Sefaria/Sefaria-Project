@@ -5,8 +5,6 @@ previousServicesCount: "3"
 restore:
   enabled: false
 backup:
-  #legacy compat section, remove once deploy chart sufficienctly updated
-  enabled: true
   mongo:
     enabled: true
     prefix: ""
@@ -33,10 +31,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "10Gi"
+          memory: "12Gi"
           cpu: "1500m"
         limits:
-          memory: "11Gi"
+          memory: "14Gi"
           cpu: "2"
   secrets:
     googleClient:
@@ -46,7 +44,7 @@ web:
     schoolLookup:
       ref: school-lookup-data-production
 linker:
-  enabled: true
+  enabled: false
   containerImage:
     imageRegistry:
     tag:
@@ -78,7 +76,7 @@ varnish:
   replicaCount: 1
   resources:
     requests:
-      memory: "16Gi"
+      memory: "17Gi"
       cpu: "1"
     limits:
       memory: "18Gi"
@@ -94,6 +92,8 @@ varnish:
   secrets:
     varnish:
       ref: varnish-secret-production
+  monitoring:
+    enabled: true
 ingress:
   hosts: 
     - host: "sefaria.org"

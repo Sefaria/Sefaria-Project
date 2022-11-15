@@ -83,7 +83,8 @@
         });
         WebFont.load({
           google: {
-            families: ['Noto Sans Samaritan']
+            families: ['Noto Sans Samaritan'],
+            text: 'ࠀࠁࠂࠃࠄࠅࠆࠇࠈࠉࠊࠋࠌࠍࠎࠏࠐࠑࠒࠓࠔࠕ'
           }
         });
     </script>
@@ -113,7 +114,7 @@
     h.end=i=function(){s.className=s.className.replace(RegExp(' ?'+y),'')};
     (a[n]=a[n]||[]).hide=h;setTimeout(function(){i();h.end=null},c);h.timeout=c;
     })(window,document.documentElement,'async-hide','dataLayer',4000,
-    {'GTM-NBGXSLP':true});</script>
+    {'{{ GOOGLE_TAG_MANAGER_CODE }}':true});</script>
     <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -147,6 +148,16 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNP9R1SLL3"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-LNP9R1SLL3', {'debug_mode':true});
+        </script>
+    <!-- End Google tag -->
     {% endif %}
 
     {% autoescape off %}
