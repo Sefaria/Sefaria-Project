@@ -4,9 +4,6 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// const SEFARIA_BASE_URL = 'http://localhost:8000';
-const SEFARIA_BASE_URL = 'https://linker.cauldron.sefaria.org';
-
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
     "etzion.org.il": ["p.footnote"],
@@ -178,7 +175,7 @@ const SELECTOR_WHITE_LIST = {
 
         if (linkFailed) { return atag; }  // debug and linkFailed
 
-        atag.href = `${SEFARIA_BASE_URL}/${url}`;
+        atag.href = `${ns.sefariaUrl}/${url}`;
         atag.setAttribute('data-ref', ref);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
@@ -278,7 +275,7 @@ const SELECTOR_WHITE_LIST = {
             url: window.location.href,
         };
         console.log("Report citation debug info:", postData);
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
+        fetch(`${ns.sefariaUrl}/api/find-refs/report`, {
             method: 'POST',
             body: JSON.stringify(postData)
         })
@@ -300,7 +297,7 @@ const SELECTOR_WHITE_LIST = {
             if (!ref && !ns.debug) { /* failed link */ return; }
             const source = refData[ref] || {};
             source.ref = ref;
-            ns.popupManager.bindEventHandler(elem, SEFARIA_BASE_URL, source);
+            ns.popupManager.bindEventHandler(elem, ns.sefariaUrl, source);
         });
     }
 
@@ -313,6 +310,7 @@ const SELECTOR_WHITE_LIST = {
     // public API
 
     ns.link = function({
+        sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
         mode = "popup-click",
         selector = "body",           // CSS Selector
         excludeFromLinking = null,    // CSS Selector
@@ -327,6 +325,7 @@ const SELECTOR_WHITE_LIST = {
         debug = false,
         maxParagraphs = 0,
     }) {
+        ns.sefariaUrl = sefariaUrl;
         ns.debug = debug;
         ns.dynamic = dynamic;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
@@ -341,7 +340,7 @@ const SELECTOR_WHITE_LIST = {
             title: readableObj.title,
         }
 
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
+        fetch(`${ns.sefariaUrl}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
             method: 'POST',
             body: JSON.stringify(postData)
         })
