@@ -31,6 +31,7 @@ class EncodedPart:
         "*": RPT.DH,
         "0": RefPartTypeNone,
         "^": RPT.RANGE_SYMBOL,
+        "&": RPT.IBID,
     }
 
     def __init__(self, raw_encoded_part):
@@ -143,14 +144,14 @@ class EncodedPartList:
             print(f'{i}) {subspan.text}')
 
 
-def create_raw_ref_data(raw_encoded_parts: List[str], context_tref=None, lang='he', prev_matches_trefs=None):
+def create_raw_ref_data(raw_encoded_parts: List[str], context_tref=None, lang='he', prev_trefs=None):
     """
-    Just reflecting prev_matches_trefs here b/c pytest.parametrize can't handle optional parameters
+    Just reflecting prev_trefs here b/c pytest.parametrize can't handle optional parameters
     """
     encoded_parts = EncodedPartList(lang, raw_encoded_parts)
     raw_ref = RawRef(*encoded_parts.get_raw_ref_params())
     context_oref = context_tref and Ref(context_tref)
-    return raw_ref, context_oref, lang, prev_matches_trefs
+    return raw_ref, context_oref, lang, prev_trefs
 
 
 def print_spans(raw_ref: RawRef):

@@ -81,26 +81,26 @@ crrd = create_raw_ref_data
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # Ibid
-    # [crrd(None, 'he', 'שם ז', [0, 1], [RPT.IBID, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 7"]],
-    # [crrd(None, 'he', 'ב:ז', [0, 2], [RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
-    # [crrd(None, 'he', 'בראשית שם ז', [0, 1, 2], [RPT.NAMED, RPT.IBID, RPT.NUMBERED], ["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
-    # [crrd(None, 'he', 'שם ב:ז', [0, 1, 3], [RPT.IBID, RPT.NUMBERED, RPT.NUMBERED], ["Genesis 1"]), ["Genesis 2:7"]],
-    # [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],
-    # [crrd(None, 'he', 'פרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1", None]), tuple()],
-    # [crrd(None, 'he', 'תוספות ד"ה והלכתא', [0, slice(1, 5)], [RPT.NAMED, RPT.DH], ["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
-    # [crrd('Berakhot 2a', 'he', 'דף כ', [slice(0, 2)], [RPT.NUMBERED], ["Shabbat 2a"]), ("Berakhot 20", "Shabbat 20")],  # conflicting contexts
-    # [crrd('Berakhot 2a', 'he', 'דף כ שם', [slice(0, 2), 2], [RPT.NUMBERED, RPT.IBID], ["Shabbat 2a"]), ("Shabbat 20",)],  # conflicting contexts which can be resolved by explicit sham
-    # [crrd("Gilyon HaShas on Berakhot 30a:2", 'he', '''ותוס' שם ד"ה תרי''', [slice(0, 2), 2, slice(3, 7)], [RPT.NAMED, RPT.IBID, RPT.DH], ["Berakhot 17b"]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid.
-    # [crrd("Mishnah Berakhot 1", 'he', 'שם שם ב', [0, 1, slice(2, 4)], [RPT.IBID, RPT.IBID, RPT.NUMBERED], ['Mishnah Shabbat 1:1']), ("Mishnah Shabbat 1:2",)],  # multiple shams. TODO failing because we're not enforcing order
-    # [crrd(None, 'he', 'שם', [0], [RPT.IBID], ['Genesis 1:1']), ('Genesis 1:1',)],
-    # [crrd(None, 'he', 'פסוקים מ-מה', [slice(0, 2), 2, 3], [RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 14']), ("Deuteronomy 14:40-45",)],
-    # [crrd(None, 'he', 'יג, א-ב', [0, 2, 3, 4], [RPT.NUMBERED, RPT.NUMBERED, RPT.RANGE_SYMBOL, RPT.NUMBERED], ['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
-    # [crrd(None, 'he', 'ברכות דף ב', [0, slice(1, 3)], [RPT.NAMED, RPT.NUMBERED], ['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
-    # [crrd(None, 'he', 'שבפרק ד', [slice(0, 2)], [RPT.NUMBERED], ["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
-    # [crrd(None, 'he', 'שמות י"ב א', [0, slice(1, 4), 4], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
-    # # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
-    # [crrd(None, 'he', 'פרק ז', [slice(0, 2)], [RPT.NUMBERED], ["II Kings 17:31"]), ["II Kings 7"]],
-    # [crrd(None, 'he', 'ערוך השולחן תצג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED], ["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
+    [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7"]],
+    [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
+    [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
+    [crrd(['&שם', '#ב', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 2:7"]],
+    [crrd(['#פרק ד'], prev_trefs=["Genesis 1"]), ("Genesis 4",)],
+    [crrd(['#פרק ד'], prev_trefs=["Genesis 1", None]), tuple()],
+    [crrd(['@תוספות', '*ד"ה והלכתא'], prev_trefs=["Berakhot 27b"]), ("Tosafot on Berakhot 27b:14:2",)],
+    [crrd(['#דף כ'], 'Berakhot 2a', prev_trefs=["Shabbat 2a"]), ("Berakhot 20", "Shabbat 20")],  # conflicting contexts
+    [crrd(['#דף כ', '&שם'], 'Berakhot 2a', prev_trefs=["Shabbat 2a"]), ("Shabbat 20",)],  # conflicting contexts which can be resolved by explicit sham
+    [crrd(["@ותוס'", "&שם", "*ד\"ה תרי"], "Gilyon HaShas on Berakhot 30a:2", prev_trefs=["Berakhot 17b"]), ("Tosafot on Berakhot 17b:5:1",)],  # Ibid.
+    [crrd(['&שם', '&שם', '#ב'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1:1']), ("Mishnah Shabbat 1:2",)],  # multiple shams. TODO failing because we're not enforcing order
+    [crrd(['&שם'], prev_trefs=['Genesis 1:1']), ('Genesis 1:1',)],
+    [crrd(['#פסוקים מ', '^-', '#מה'], prev_trefs=['Deuteronomy 14']), ("Deuteronomy 14:40-45",)],
+    [crrd(['#יג', '#א', '^-', '#ב'], prev_trefs=['Deuteronomy 1:20']), ("Deuteronomy 13:1-2",)],
+    [crrd(['@ברכות', '#דף ב'], prev_trefs=['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
+    [crrd(['#שבפרק ד'], prev_trefs=["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
+    [crrd(['@שמות', '#י"ב', '#א'], prev_trefs=['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
+    # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(['#פרק ז'], prev_trefs=["II Kings 17:31"]), ["II Kings 7"]],
+    [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
 
     # Relative (e.g. Lekaman)
     # [crrd("Gilyon HaShas on Berakhot 2a:2", 'he', '''תוס' לקמן ד ע"ב ד"ה דאר"י''', [slice(0, 2), 2, slice(3, 7), slice(7, 13)], [RPT.NAMED, RPT.RELATIVE, RPT.NUMBERED, RPT.DH]), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -217,9 +217,9 @@ crrd = create_raw_ref_data
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
-    raw_ref, context_ref, lang, prev_matches_trefs = resolver_data
-    if prev_matches_trefs:
-        for prev_tref in prev_matches_trefs:
+    raw_ref, context_ref, lang, prev_trefs = resolver_data
+    if prev_trefs:
+        for prev_tref in prev_trefs:
             if prev_tref is None:
                 ref_resolver.reset_ibid_history()
             else:
