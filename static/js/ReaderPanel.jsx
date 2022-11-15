@@ -516,7 +516,12 @@ class ReaderPanel extends Component {
     });
   }
   setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
-    // race condition so only replace history if ReaderApp ComponentDidUpdate has already been called
+    // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
+    // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
+    // before the previous page's history state has been pushed to the history object. If this happens, we want
+    // this.replaceHistory to be false so that we don't override the previous page's history.
+    // If history.state.panels[0].mode is undefined, we know that conditionalSetState has been called already, and we
+    // can replace the history state. Otherwise, we want to push the history state, so we set replaceHistory to false.
     this.replaceHistory = replaceHistoryIfReaderAppUpdated ? !history.state.panels[0].mode : false
     this.conditionalSetState({tab: tab})
   }
