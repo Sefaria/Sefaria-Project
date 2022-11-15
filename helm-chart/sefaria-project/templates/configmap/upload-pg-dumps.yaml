@@ -12,10 +12,12 @@ data:
     set -x
     set -e
     {{- if .Values.backup.postgres.serviceAccount }}
-    gcloud auth activate
+
     {{- else }}
+
     gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
     {{- end }}
+
     cd "/pgdumps/shared_volume"
     today="$(date +'%d.%m.%y')"
     last_month="$(date --date='28 day ago' +'%d.%m.%y')"
