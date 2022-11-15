@@ -315,18 +315,24 @@ const SELECTOR_WHITE_LIST = {
         return mode;
     }
 
-    function findRefs() {
+    function getFindRefsUrl() {
+        return `${ns.sefariaUrl}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${ns.maxParagraphs}`;
+    }
+
+    function getFindRefsRequest() {
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = readableText + getWhiteListText(readableText);
-        const postData = {
+        return {
             text: ns.normalizedInputText,
             url: getPageUrl(),
             title: readableObj.title,
         }
+    }
 
-        fetch(`${ns.sefariaUrl}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
+    function findRefs() {
+        fetch(getFindRefsUrl(), {
             method: 'POST',
-            body: JSON.stringify(postData)
+            body: JSON.stringify(getFindRefsRequest())
         })
         .then(
             (resp) => {
@@ -344,6 +350,7 @@ const SELECTOR_WHITE_LIST = {
     ns.link = function({
         sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
         mode = "popup-click",
+        whitelistSelector = null,
         selector = "body",           // CSS Selector
         excludeFromLinking = null,    // CSS Selector
         excludeFromTracking = null,   // CSS Selector
@@ -358,9 +365,11 @@ const SELECTOR_WHITE_LIST = {
         maxParagraphs = 0,
     }) {
         ns.sefariaUrl = sefariaUrl;
+        ns.whitelistSelector = whitelistSelector;
         ns.excludeFromLinking = excludeFromLinking;
-        ns.debug = debug;
         ns.dynamic = dynamic;
+        ns.debug = debug;
+        ns.maxParagraphs = maxParagraphs;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
         if (hidePopupsOnMobile) {
@@ -368,6 +377,6 @@ const SELECTOR_WHITE_LIST = {
         }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
-        findRefs(maxParagraphs);
+        findRefs();
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
