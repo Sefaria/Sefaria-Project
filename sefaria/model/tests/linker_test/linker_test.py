@@ -211,7 +211,7 @@ crrd = create_raw_ref_data
     #       [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Shulchan Arukh, Orach Chayim 330:11']],
     #
     # # support basic ref instantiation as fall-back
-    # [crrd(None, 'en', 'Rashi on Genesis 1:1:1', [0, 2, 3, 5, 7], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED, RPT.NUMBERED]), ["Rashi on Genesis 1:1:1"]],
+    [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     ref_resolver.reset_ibid_history()  # reset from previous test runs
