@@ -277,6 +277,7 @@ const SELECTOR_WHITE_LIST = {
             debugData: ns.debugData[iLinkObj],
             url: window.location.href,
         };
+        console.log("Report citation debug info:", postData);
         fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
             method: 'POST',
             body: JSON.stringify(postData)
