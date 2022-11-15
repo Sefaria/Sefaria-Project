@@ -25,6 +25,9 @@ const SELECTOR_WHITE_LIST = {
 
     function getWhiteListText(currText) {
         const whiteListSelectors = SELECTOR_WHITE_LIST[window.location.hostname];
+        if (ns.whitelistSelector) {
+            whiteListSelectors.push(ns.whitelistSelector);
+        }
         if (!whiteListSelectors) { return ""; }
         const whiteListElems = document.querySelectorAll(whiteListSelectors.join(", "));
         return [].reduce.call(whiteListElems, (prev, curr) => {
