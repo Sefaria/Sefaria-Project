@@ -3,8 +3,7 @@
 from sefaria.model import *
 
 
-class Test_VState(object):
-
+class Test_VState():
     def test_integrity(self):
         titles = ["Exodus", "Shabbat", "Rashi on Exodus", "Rashi on Genesis", "Rashi on Shabbat"]
         for title in titles:
@@ -14,7 +13,7 @@ class Test_VState(object):
             assert getattr(vs, "content")
 
 
-class Test_VSNode(object):
+class Test_VSNode():
     def test_section_counts(self):
         sn = StateNode("Exodus")
         cd = sn.get_available_counts_dict("he")

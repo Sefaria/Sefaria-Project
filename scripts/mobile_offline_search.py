@@ -67,7 +67,8 @@ def read(name):
     with open(save_read_filename(name), 'r') as f:
         return json.load(f)
 
-class OfflineTextIndexer(object):
+
+class OfflineTextIndexer():
     @staticmethod
     def get_section_ref(segment_ref):
         return re.sub(r":[^:]+$", '', segment_ref)

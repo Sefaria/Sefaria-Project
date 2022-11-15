@@ -149,8 +149,8 @@ class ServerCoordinator(MessagingNode):
             logger.error("Failed to connect to Redis instance while doing confirm publish")
 
 
-class MultiServerEventListenerMiddleware(object):
-    delay = 20  # Will check for library updates every X requests.  0 means every request.
+class MultiServerEventListenerMiddleware():
+    delay = 20  # Will check for library updates every X requests. 0 means every request.
 
     def __init__(self, get_response):
         self.get_response = get_response

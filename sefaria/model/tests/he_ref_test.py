@@ -30,7 +30,7 @@ def setup_module(module):
     texts['ignored_middle'] = '(תהלים לז, א) אל תתחר במרעים ולא עוד אלא שדרכיו מצליחין שנא תהלים י, ה יחילו דרכיו בכל עת ולא עוד אלא שזוכה בדין שנאמר מרום משפטיך מנגדו ולא עוד אלא שרואה בשונאיו שנאמר כל צורריו יפיח בהם איני והאמר ר יוחנן משום רש בן יוחי מותר להתגרות ברשעים בעולם הזה שנא (משלי כח, ד)'
 
 
-class Test_parse_he_ref(object):
+class Test_parse_he_ref():
     def test_simple_bible(self):
         r = m.Ref("שמות כא, ד")
         assert r.book == 'Exodus'
@@ -261,7 +261,7 @@ class Test_parse_he_ref(object):
         repr(m.Ref('טהרות פרק ג משנה ב'))
 
 
-class Test_Hebrew_Quoting_Styles(object):
+class Test_Hebrew_Quoting_Styles():
     def test_leading_geresh(self):
         assert m.Ref("שמות י׳ י״ב") == m.Ref('Exodus 10:12')
         assert m.Ref("שמות י׳ יב") == m.Ref('Exodus 10:12')
@@ -284,13 +284,13 @@ class Test_Hebrew_Quoting_Styles(object):
         assert m.Ref("שמות י׳ י״ב") == m.Ref('Exodus 10:12')
 
 
-#todo: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
-class Test_parse_he_commentary(object):
+# TODO: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
+class Test_parse_he_commentary():
     def test_hebrew_commentary(self):
         assert m.Ref('רש"י על ויקרא ט״ו:ג׳') == m.Ref("Rashi on Leviticus 15:3")
 
 
-class Test_parse_he_ref_range(object):
+class Test_parse_he_ref_range():
     def test_hebrew_range_simple(self):
         assert m.Ref('שמות, כ"ד, יג-יד') == m.Ref('Exodus 24:13-14')
         assert m.Ref('במדבר, כ"ז, טו - כג') == m.Ref("Numbers 27:15-23")
@@ -314,7 +314,7 @@ class Test_parse_he_ref_range(object):
         assert m.Ref('') == m.Ref("Rashi on Shabbat 15a:15-15b:13")
 
 
-class Test_Hebrew_Normal(object):
+class Test_Hebrew_Normal():
 
     def test_simple(self):
         assert m.Ref("Exodus").he_normal() == 'שמות'
@@ -342,7 +342,7 @@ class Test_Hebrew_Normal(object):
         pass
 
 
-class Test_parse_he_Data_Types(object):
+class Test_parse_he_Data_Types():
 
     def test_perek_pasuk(self):
         pass
@@ -359,8 +359,8 @@ class Test_parse_he_Data_Types(object):
         # assert m.Ref(u'שמות פרק ד - פרק ה פסוק ו') == m.Ref('Exodus 4:1-5:6')
 
 
-#todo: convert to all_titles_regex
-class Test_get_titles_in_string(object):
+# TODO: convert to all_titles_regex
+class Test_get_titles_in_string():
     def test_bible_ref(self):
         res = m.library.get_titles_in_string(texts['bible_ref'], "he")
         assert set(res) >= set(["שופטים"])
@@ -385,7 +385,3 @@ class Test_get_titles_in_string(object):
         t = 'דכתיב, ויצא איש הבינים (ש"א יז ד), ויגש הפלשתי השכם'
         res = m.library.get_refs_in_string(t)
         assert len(res) == 1
-
-
-
-

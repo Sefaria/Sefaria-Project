@@ -19,7 +19,7 @@ def setup_module(module):
     library.build_cross_lexicon_auto_completer()
 
 
-class Test_Complete_Method(object):
+class Test_Complete_Method():
     # Does limit return exactly the right number of results?
     @pytest.mark.parametrize("ac,search", [
         (library.full_auto_completer("en"), "cor"),
@@ -55,9 +55,6 @@ class Test_Complete_Method(object):
         assert library.full_auto_completer("he").complete(he_str,10)[0] == library.full_auto_completer("en").complete(en_str, 10)[0]
 
 """
-
-
-
 
     # Does 0 limit work to have no limits?
     # How do we test that?

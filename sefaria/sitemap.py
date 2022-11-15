@@ -19,8 +19,7 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-class SefariaSiteMapGenerator(object):
-
+class SefariaSiteMapGenerator():
     hostnames = {
         'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
         'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},

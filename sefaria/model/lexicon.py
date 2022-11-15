@@ -357,7 +357,7 @@ class BDBEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
-class LexiconEntrySubClassMapping(object):
+class LexiconEntrySubClassMapping():
     lexicon_class_map = {
         'BDB Augmented Strong': StrongsDictionaryEntry,
         'Rashi Foreign Lexicon': RashiDictionaryEntry,
@@ -406,7 +406,7 @@ class LexiconEntrySet(abst.AbstractMongoSet):
                 self.records.sort(key=is_primary)
 
 
-class LexiconLookupAggregator(object):
+class LexiconLookupAggregator():
 
     @classmethod
     def _split_input(cls, input_str):

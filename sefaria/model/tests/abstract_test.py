@@ -21,8 +21,7 @@ def setup_module(module):
     print(record_classes)
 
 
-class Test_Mongo_Record_Models(object):
-
+class Test_Mongo_Record_Models():
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
@@ -125,16 +124,16 @@ class Test_Mongo_Record_Models(object):
             assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
 
 
-class Test_Mongo_Set_Models(object):
-
+class Test_Mongo_Set_Models():
     def test_record_class(self):
         for sub in set_classes:
             assert sub.recordClass != abstract.AbstractMongoRecord
             assert issubclass(sub.recordClass, abstract.AbstractMongoRecord)
 
 
-class Test_Mongo_Record_Methods(object):
-    """ Tests of the methods on the abstract models.
+class Test_Mongo_Record_Methods():
+    """
+    Tests of the methods on the abstract models.
     They often need instanciation, but are not designed to test the subclasses specifically.
     """
     def test_equality_and_identity(self):

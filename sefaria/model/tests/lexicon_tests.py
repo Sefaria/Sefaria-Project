@@ -3,8 +3,7 @@ import pytest
 from sefaria.model import *
 
 
-class Test_Lexicon_Lookup(object):
-
+class Test_Lexicon_Lookup():
     def test_bible_lookup(self):
         word = "תִּשְׁמֹ֑רוּ"
         lookup_ref = "Leviticus 19.3"
@@ -42,7 +41,7 @@ class Test_Lexicon_Lookup(object):
         assert results.count() == 1
 
 
-class Test_Lexicon_Save(object):
+class Test_Lexicon_Save():
 
     def test_sanitize(self):
         entry = {
@@ -80,5 +79,3 @@ class Test_Lexicon_Save(object):
         assert l.content["senses"][0]["definition"] == """ as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" data-ref="Shabbat 104a" href="/Shabbat.104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a class="refLink" data-ref="Jastrow, א׳ 1" dir="rtl" href="/Jastrow,_א׳.1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a class="refLink" data-ref="Jastrow, ב׳ 1" dir="rtl" href="/Jastrow,_ב׳.1">ב׳</a> for <a class="refLink" data-ref="Jastrow, שְׁנַיִם 1" dir="rtl" href="/Jastrow,_שְׁנַיִם.1">שנים</a>, <span dir="rtl">שתים</span>, <a class="refLink" data-ref="Jastrow, שתי 1" dir="rtl" href="/Jastrow,_שתי.1">שתי</a> &amp;c.]"""
         assert l.content["senses"][1]["definition"] == 'Seemingly ok definition... <a>Click me</a>'
         l.delete()
-
-

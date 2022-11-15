@@ -18,8 +18,7 @@ except ImportError:
     SEFARIA_BOT_API_KEY = None
 
 
-class ServerTextCopier(object):
-
+class ServerTextCopier():
     def __init__(self, dest_server, apikey, title, post_index=True, versions=None, post_links=False, step=0):
         self._dest_server = dest_server
         self._apikey = apikey

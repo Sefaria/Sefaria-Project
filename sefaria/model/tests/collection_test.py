@@ -4,8 +4,7 @@ import sefaria.model as m
 from sefaria.system.exceptions import InputError
 
 
-class Test_Collection(object):
-
+class Test_Collection():
     def test_save(self):
         g = m.Collection({
             "name": "Test Collection!",

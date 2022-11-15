@@ -4,8 +4,8 @@ if USE_VARNISH:
     import sefaria.system.varnish.wrapper as v
     from sefaria.model import Ref
 
-    class Test_Varnish(object):
 
+    class Test_Varnish():
         def test_url_regex(self):
             if USE_VARNISH:
                 assert v.url_regex(Ref("Exodus 15")) == r'Exodus(\\.15$|\\.15\\.)'

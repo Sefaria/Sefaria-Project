@@ -59,14 +59,12 @@ class TestSpecificInOutTests():
         assert 'טז׳' == e(16000)
 
 
-class TestFunctionTests(object):
-
+class TestFunctionTests():
     def test_break_int_magnitudes(self):
         assert h.break_int_magnitudes(15000) == [10000, 5000, 0, 0, 0]
 
 
 class TestNikkudUtils():
-
     def test_strip_nikkud(self):
         assert h.strip_nikkud('הַדְּבָרִים אֲשֶׁר') == 'הדברים אשר'
         assert h.strip_nikkud("הַמּוֹצִיא בְמִסְפָּר צְבָאָם לְכֻלָּם בְּשֵׁם יִקְרָא") == "המוציא במספר צבאם לכלם בשם יקרא"

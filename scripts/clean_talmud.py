@@ -157,8 +157,7 @@ def span_attrs(tractate_list=None):
         print("Found lots and lots of things")
 
 
-class SegmentFixerTester(object):
-
+class SegmentFixerTester():
     @staticmethod
     def test_base_cases():
         fixer = SegementFixer()

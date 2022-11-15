@@ -3,8 +3,8 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
-class Test_Ref(object):
 
+class Test_Ref():
     def test_short_names(self):
         ref = Ref("Exo. 3:1")
         assert ref.book == "Exodus"
@@ -537,7 +537,8 @@ class Test_Ref(object):
     def test_word_to(self):
         assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
 
-class Test_Cache(object):
+
+class Test_Cache():
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
         r2 = Ref("Exodus 3")
@@ -585,7 +586,8 @@ class Test_Cache(object):
         assert r.tref == "Shabbat 31a"
     '''
 
-class Test_normal_forms(object):
+
+class Test_normal_forms():
     def test_normal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
         assert Ref("Shabbat 32b").normal() == "Shabbat 32b"
@@ -650,11 +652,7 @@ class Test_normal_forms(object):
         assert Ref('Jastrow, שְׁמַע I 1').first_available_section_ref() == Ref('Jastrow, שְׁמַע I 1')
 
 
-
-
-
-
-class Test_term_refs(object):
+class Test_term_refs():
     def test_ref_resolution(self):
         assert Ref("bo") ==  Ref('Exodus 10:1-13:16')
         assert Ref("משפטים") == Ref("Exodus 21:1-24:18")
@@ -669,7 +667,7 @@ class Test_term_refs(object):
             assert not Ref("משפטים ועוד")
 
 
-class Test_Ambiguous_Forms(object):
+class Test_Ambiguous_Forms():
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
         assert Ref("Shabbat 28:7").normal() == 'Shabbat 28a:7'
@@ -677,7 +675,7 @@ class Test_Ambiguous_Forms(object):
         assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 
-class Test_comparisons(object):
+class Test_comparisons():
     def test_overlaps(self):
         assert Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:18-25"))
         assert Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:13-28"))
@@ -851,7 +849,7 @@ class Test_comparisons(object):
         assert Ref("Shabbat 5b:23-29").follows(Ref("Shabbat 5b:10-20"))
         assert not Ref("Shabbat 5b:15-29").follows(Ref("Shabbat 5b:10-20"))
 
-class Test_Talmud_at_Second_Place(object):
+class Test_Talmud_at_Second_Place():
     def test_simple_ref(self):
         assert Ref("Zohar 1.15b.3").sections[1] == 30
         assert Ref("Zohar 1.15a.3").sections[1] == 29
@@ -904,7 +902,8 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar 2.15a - b").sections[1] == 29
         assert Ref("Zohar 2.15a - b").toSections[1] == 30
 
-class Test_condition_and_projection(object):
+
+class Test_condition_and_projection():
     def test_condition(self):
         #many variations
         pass
@@ -970,7 +969,7 @@ class Test_condition_and_projection(object):
         assert p['chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [49, 3]}
 
 
-class Test_set_construction_from_ref(object):
+class Test_set_construction_from_ref():
     def test_ref_noteset(self):
         pass
 
@@ -978,7 +977,7 @@ class Test_set_construction_from_ref(object):
         pass
 
 
-class Test_Order_Id(object):
+class Test_Order_Id():
     def test_order_id_processes(self):
         assert Ref("Klein Dictionary, א").order_id()
         assert Ref("Shabbat 17b").order_id()

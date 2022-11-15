@@ -4,8 +4,8 @@ import re
 from io import BytesIO
 from sefaria.site.site_settings import SITE_SETTINGS
 
-class GoogleStorageManager(object):
 
+class GoogleStorageManager():
     """
     Wrapper class for interacting with Google Cloud storage via Google's API classes.
     Please note that several Google exceptions (mostly subclasses of google.cloud.exceptions.GoogleAPICallError)

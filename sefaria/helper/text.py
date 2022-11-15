@@ -570,8 +570,7 @@ def word_frequency_for_text(title, lang="en"):
     return counts
 
 
-class WorkflowyParser(object):
-
+class WorkflowyParser():
     title_lang_delim = r"/"
     alt_title_delim = r"|"
     comment_delim = r'#'

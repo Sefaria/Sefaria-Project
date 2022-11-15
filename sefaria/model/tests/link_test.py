@@ -3,8 +3,8 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError
 
-class Test_Link_Save(object):
 
+class Test_Link_Save():
     @classmethod
     def setup_class(cls):
         LinkSet({"generated_by": "link_tester"}).delete()

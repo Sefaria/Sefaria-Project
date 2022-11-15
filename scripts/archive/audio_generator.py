@@ -7,7 +7,7 @@ import re
 import time
 
 
-class Queue(object):
+class Queue():
     def __init__(self, size):
         self.__maxSize = size
         self.__que = [None] * size

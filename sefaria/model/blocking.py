@@ -13,7 +13,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class BlockRelationship(object):
+class BlockRelationship():
     def __init__(self, blocker=None, blockee=None):
         self.blocker = blocker
         self.blockee = blockee
@@ -30,7 +30,7 @@ class BlockRelationship(object):
         db.blocking.remove({"blocker": self.blocker, "blockee": self.blockee})
 
 
-class BlockSet(object):
+class BlockSet():
     def __init__(self):
         self.uids = []
         return self

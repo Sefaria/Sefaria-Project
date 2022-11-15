@@ -5,7 +5,7 @@ import pprint
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
-class Test_Schema(object):
+class Test_Schema():
     # This needs a bunch of hebrew titles to validate
 
     @classmethod
@@ -942,7 +942,8 @@ class Test_Schema(object):
 
         assert quick_way.serialize() == old_style.serialize()
 
-class Test_Default_Nodes(object):
+
+class Test_Default_Nodes():
     @classmethod
     def setup_class(cls):
         pass

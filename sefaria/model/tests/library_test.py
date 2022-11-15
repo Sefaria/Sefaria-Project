@@ -34,8 +34,7 @@ def setup_module(module):
     texts['weird_ref_he'] = "המקור (ספר שושנה א ב) אמור לעבוד רק בחיפוש המלא, אבל המקור (ויקרא יב ד) צריך לעבוד בשניהם"
 
 
-class Test_get_refs_in_text(object):
-
+class Test_get_refs_in_text():
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_bare_digits(self, citing_only):
         assert set() == set(library.get_refs_in_string(texts['barenum'], citing_only=citing_only)) # Fixed in 5a4b813819ef652def8360da2ac1b7539896c732
@@ -137,7 +136,8 @@ class Test_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
         assert wrapped == res
 
-class Test_he_get_refs_in_text(object):
+
+class Test_he_get_refs_in_text():
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_positions(self, citing_only):
         for a in ['he_bible_mid', 'he_bible_begin', 'he_bible_end']:
@@ -302,7 +302,7 @@ class Test_he_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="he", citing_only=True)
 
 
-class Test_get_titles_in_text(object):
+class Test_get_titles_in_text():
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_no_bare_number(self, citing_only):
@@ -360,7 +360,7 @@ class Test_get_titles_in_text(object):
             assert set(titles) == {'ויקרא', 'ספר שושנה'}
 
 
-class Test_Library(object):
+class Test_Library():
     def test_schema_validity(self):
         for i in library.all_index_records():
             assert isinstance(i, Index)
@@ -442,7 +442,7 @@ class Test_Library(object):
             assert len(library.get_indexes_in_corpus(corpus)) == count
 
 
-class Test_Term_Map(object):
+class Test_Term_Map():
     @classmethod
     def teardown_class(cls):
         CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()

@@ -11,7 +11,7 @@ from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 
 
-class SheetStats(object):
+class SheetStats():
 	def __init__(self):
 		self.show_count         = 20
 		self.refs               = defaultdict(int)

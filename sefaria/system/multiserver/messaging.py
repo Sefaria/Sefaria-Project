@@ -6,7 +6,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class MessagingNode(object):
+class MessagingNode():
     subscription_channels = []
 
     def connect(self):

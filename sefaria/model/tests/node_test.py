@@ -8,9 +8,8 @@ from sefaria.model.schema import JaggedArrayNode, SchemaNode
 from sefaria.system.exceptions import IndexSchemaError
 
 
-class Test_Validate(object):
+class Test_Validate():
     def test_jaggedarray_fields(self):
-
         j = JaggedArrayNode()
         j.add_title("title1", "en", primary=True)\
          .add_title("ייי", "he", primary=True)\
@@ -59,7 +58,7 @@ class Test_Validate(object):
             s.validate()
 
 
-class Test_Titles(object):
+class Test_Titles():
 
     def test_add(self):
         j = JaggedArrayNode()

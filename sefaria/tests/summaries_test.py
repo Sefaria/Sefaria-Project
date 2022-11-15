@@ -18,8 +18,8 @@ model.library.rebuild_toc()
 
 """ THE TESTS """
 
-class Test_Toc(object):
 
+class Test_Toc():
     @classmethod
     def setup_class(cls):
         model.library.rebuild_toc()

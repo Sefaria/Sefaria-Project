@@ -333,14 +333,14 @@ class UserStorySet(abst.AbstractMongoSet):
         return cls(uid=uid, page=page, limit=limit)
 
 
-'''
 ###   Story Factories ###
-'''
 
 
-class AbstractStoryFactory(object):
-    # Implemented at concrete level
-    # Returns a dictionary with the story attributes
+class AbstractStoryFactory():
+    """
+    Implemented at concrete level.
+    # Returns a dictionary with the story attributes.
+    """
     @classmethod
     def _data_object(cls, **kwargs):
         pass
@@ -381,8 +381,8 @@ class AbstractStoryFactory(object):
         return UserStory(d)
 
 
-#todo: convert this into a Free Form story
-class FreeTextStoryFactory(object):
+# TODO: convert this into a Free Form story
+class FreeTextStoryFactory():
     """
     freeText
         "he"    : hebrew long description
@@ -402,7 +402,7 @@ class FreeTextStoryFactory(object):
         return "freeText"
 
 
-class NewIndexStoryFactory(object):
+class NewIndexStoryFactory():
     """
     newIndex
         "index" : title of index
@@ -439,7 +439,7 @@ class NewIndexStoryFactory(object):
         return "newIndex"
 
 
-class NewVersionStoryFactory(object):
+class NewVersionStoryFactory():
     """
        newVersion
             "index"     : title of index

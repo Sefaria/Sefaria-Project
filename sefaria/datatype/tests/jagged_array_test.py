@@ -55,8 +55,8 @@ def setup_module(module):
         ],
     ]
 
-class Test_Jagged_Array(object):
 
+class Test_Jagged_Array():
     def test_ja_normalize(self):
         input_ja = ["a",[],["","a", ["c"]],["",""],["b"]]
         output_ja = [[["a"]],[],[[],["a"], ["c"]],[[],[]],[["b"]]]
@@ -77,12 +77,13 @@ class Test_Jagged_Array(object):
         ]).last_index(3) == [2, 3, 4]
 
 
-class Test_Jagged_Int_Array(object):
+class Test_Jagged_Int_Array():
     def test_sum(self):
         x = ja.JaggedIntArray([[1, 2], [3, 4]]) + ja.JaggedIntArray([[2, 3], [4]])
         assert x.array() == [[3, 5], [7, 4]]
 
-class Test_Jagged_Text_Array(object):
+
+class Test_Jagged_Text_Array():
     def test_until_last_nonempty(self):
         sparse_ja = ja.JaggedTextArray([["", "", ""], ["", "foo", "", "bar", ""], ["", "", ""],[]])
         assert sparse_ja.sub_array_length([],until_last_nonempty=True) == 3
@@ -305,7 +306,7 @@ class Test_Jagged_Text_Array(object):
         assert sparse_ja.prev_index() == [1, 3]
 
 
-class Test_Depth_0(object):
+class Test_Depth_0():
     def test_depth_0(self):
         j = ja.JaggedTextArray("Fee Fi Fo Fum")
         assert j._store == "Fee Fi Fo Fum"

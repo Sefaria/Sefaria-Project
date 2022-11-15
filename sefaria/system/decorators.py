@@ -95,11 +95,14 @@ def sanitize_get_params(func):
     return wrapper
 
 
-class memoized(object):
-    """Decorator. Caches a function's return value each time it is called.
-    If called later with the same arguments, the cached value is returned
-    (not reevaluated).
-    Handling of kwargs is simplistic.  There are situations where it could break down.  Currently works dependably for one kwarg.
+class memoized():
+    """
+    Decorator.
+    Caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned (not reevaluated).
+    Handling of kwargs is simplistic.
+    There are situations where it could break down.
+    Currently works dependably for one kwarg.
     """
 
     def __init__(self, func):

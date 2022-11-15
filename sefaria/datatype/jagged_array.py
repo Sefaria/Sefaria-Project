@@ -16,8 +16,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class JaggedArray(object):
-
+class JaggedArray():
     def __init__(self, ja=None):
         if ja is None:
             ja = []

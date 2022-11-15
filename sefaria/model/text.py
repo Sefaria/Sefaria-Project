@@ -45,7 +45,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 """
 
 
-class AbstractIndex(object):
+class AbstractIndex():
     def contents(self, raw=False, **kwargs):
         pass
 
@@ -945,7 +945,8 @@ class IndexSet(abst.AbstractMongoSet):
                     -------------------
 """
 
-class AbstractSchemaContent(object):
+
+class AbstractSchemaContent():
     content_attr = "content"
 
     def get_content(self):
@@ -1000,9 +1001,8 @@ class AbstractSchemaContent(object):
             return node
 
 
-class AbstractTextRecord(object):
-    """
-    """
+class AbstractTextRecord():
+
     text_attr = "chapter"
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
@@ -2127,7 +2127,7 @@ class VirtualTextChunk(AbstractTextRecord):
 
 
 # This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
-class TextFamily(object):
+class TextFamily():
     """
     A text with its translations and optionally the commentary on it.
 
@@ -4687,7 +4687,7 @@ class Ref(object, metaclass=RefCacheType):
         return list(expanded_set)
 
 
-class Library(object):
+class Library():
     """
     Operates as a singleton, through the instance called ``library``.
 

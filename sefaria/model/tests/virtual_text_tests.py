@@ -10,8 +10,7 @@ Refs pointing to virtual schemas, etc
 from sefaria.model import *
 
 
-class Test_VirtualRefs(object):
-
+class Test_VirtualRefs():
     def test_identity(self):
         assert Ref('Jastrow,_אַבִּיר.1').url() == "Jastrow,_אַבִּיר.1"
 

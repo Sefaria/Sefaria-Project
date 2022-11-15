@@ -15,10 +15,10 @@ except ImportError:
 
 from sefaria.model import *
 
-class WLCStrongParser(object):
+
+class WLCStrongParser():
     data_dir = 'data/tmp/hebmorphwlc'
     raw_github_url = 'https://raw.githubusercontent.com/openscriptures/morphhb/master/'
-
 
     hebmorph_shorthands = {
         'Genesis' : 'Gen',
@@ -125,7 +125,7 @@ class WLCStrongParser(object):
         return full_file
 
 
-class WLCStrongWordFormBookParser(object):
+class WLCStrongWordFormBookParser():
 
     def __init__(self, parent_parser, book):
         self.parent_parser = parent_parser
@@ -227,12 +227,7 @@ class WLCStrongWordFormBookParser(object):
         pass
 
 
-
-
-
-
-
-class StrongHebrewGLexiconXMLParser(object):
+class StrongHebrewGLexiconXMLParser():
     data_dir = 'data/tmp'
     filename = 'StrongHebrewG.xml'
     heb_stems = ["qal","niphal","piel","pual","hiphil","hophal","hithpael","polel","polal","hithpolel","poel","poal","palel","pulal","qal passive","pilpel","polpal","hithpalpel","nithpael","pealal","pilel","hothpaal","tiphil","hishtaphel","nithpalel","nithpoel","hithpoel"]

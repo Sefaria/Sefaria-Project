@@ -8,8 +8,7 @@ from sefaria.utils.hebrew import is_hebrew
 import sefaria.model as m
 
 
-
-class In(object):
+class In():
     """
     Support test assertions for `library.get_regex_string`
 
@@ -68,7 +67,7 @@ class In(object):
         return match
 
 
-class Test_find_citation_in_text(object):
+class Test_find_citation_in_text():
 
     def test_regex_string_en_js(self):
         assert In('Ruth 1 1').looking_for('Ruth').finds("Ruth 1:1")

@@ -345,7 +345,7 @@ class VersionStateSet(abst.AbstractMongoSet):
     recordClass = VersionState
 
 
-class StateNode(object):
+class StateNode():
     lang_map = {lang: "_" + lang for lang in ["he", "en", "all"]}
     lang_keys = list(lang_map.values())
     meta_proj = {'content._all.completenessPercent': 1,

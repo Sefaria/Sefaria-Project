@@ -256,10 +256,11 @@ class UserHistorySet(abst.AbstractMongoSet):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
 
 
-"""
-Wrapper class for operations on the user object. Currently only for changing primary email.
-"""
-class UserWrapper(object):
+class UserWrapper():
+    """
+    Wrapper class for operations on the user object.
+    Currently only for changing primary email.
+    """
     def __init__(self, email=None, user_obj=None):
         if email:
             self.user = get_user(email)
@@ -306,7 +307,7 @@ class UserWrapper(object):
             return False
 
 
-class UserProfile(object):
+class UserProfile():
     def __init__(self, user_obj=None, id=None, slug=None, email=None, user_registration=False):
         """
         :param user_registration: pass during user registration so as to not create an extra profile record as init side effect

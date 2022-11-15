@@ -51,7 +51,7 @@ def get_session_traits(request, uid=None):
     return [k for k, v in list(traits.items()) if v]
 
 
-class DateRange(object):
+class DateRange():
     new_years_dict = {
         2020: datetime(2020, 9, 18),
         2021: datetime(2021, 9, 6),
@@ -510,8 +510,9 @@ def user_stats_data(uid):
 
     return user_stats_dict
 
+
 # vv Needs thought / refactor vv
-class TrendFactory(object):
+class TrendFactory():
     """
     Name
     DataType
@@ -548,12 +549,14 @@ class TrendFactory(object):
     def _process_users(self, users, period):
         pass
 
+
 class EnglishToleranceFactory(TrendFactory):
     name = "EnglishTolerance"
     desc = "Value between 0 and 1 - 1 Being clear English appreciation, 0 being clear English intolerance"
     datatype = "float"   # int, float, str, bool, dict
     for_user = True
     for_group = False
+
 
 class HebrewAbilityFactory(TrendFactory):
     name = "HebrewAbility"
@@ -562,7 +565,8 @@ class HebrewAbilityFactory(TrendFactory):
     for_user = True
     for_group = False
 
-class DateRefRange(object):
+
+class DateRefRange():
     def __init__(self, refRangeString, start, end, name):
         """
         hosts ref range and acceptable date parameters to help with determining whether a date/ref combination meets
@@ -592,7 +596,8 @@ class DateRefRange(object):
         # else:
         #     return False
 
-class ScheduleManager(object):
+
+class ScheduleManager():
     def __init__(self, segmentHits, numberOfSegments, dateRangeEnd, varianceForward, varianceBack, name):
         """
         :param segmentHits: number of segment hits in the correct range that need to be met for user to be a schedule learner

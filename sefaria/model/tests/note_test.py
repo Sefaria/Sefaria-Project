@@ -4,8 +4,7 @@ import sefaria.model as m
 from sefaria.system.exceptions import InputError
 
 
-class Test_Note(object):
-
+class Test_Note():
     def test_save(self):
         n = m.Note({
             "text": "what a beautiful moment <333",

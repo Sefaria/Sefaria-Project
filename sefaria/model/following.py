@@ -13,7 +13,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class FollowRelationship(object):
+class FollowRelationship():
     def __init__(self, follower=None, followee=None):
         self.follower = follower
         self.followee = followee
@@ -38,7 +38,7 @@ class FollowRelationship(object):
         db.following.remove({"follower": self.follower, "followee": self.followee})
 
 
-class FollowSet(object):
+class FollowSet():
     def __init__(self):
         self.uids = []
         return self

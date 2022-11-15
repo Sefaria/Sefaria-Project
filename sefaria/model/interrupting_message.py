@@ -2,7 +2,8 @@ import json
 from django.template.loader import render_to_string
 from sefaria.model.user_profile import UserProfile
 
-class InterruptingMessage(object):
+
+class InterruptingMessage():
   def __init__(self, attrs={}, request=None):
     if attrs is None:
       attrs = {}

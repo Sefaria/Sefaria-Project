@@ -11,7 +11,8 @@ import requests
 
 from sefaria.model import *
 
-class LaazRashiParser(object):
+
+class LaazRashiParser():
     bible_data_file = 'data/tmp/Laaz-Rashi-Bible.txt'
     talmud_data_file = 'data/tmp/Laaz-Rashi-Shas.txt'
 
@@ -22,8 +23,6 @@ class LaazRashiParser(object):
         control_talmud = list(range(1, 2463))
         control_bible = list(range(3001, 4383))
         self.control = control_talmud + control_bible
-
-
 
     def parse_input(self, filename):
         input_rows = []

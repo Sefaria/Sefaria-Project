@@ -7,7 +7,7 @@ from optparse import OptionParser
 from sefaria.model import *
 
 
-class SugyaDeriver(object):
+class SugyaDeriver():
     sugya_symbol = '§'
 
     def __init__(self, title):

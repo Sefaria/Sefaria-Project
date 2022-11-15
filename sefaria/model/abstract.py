@@ -20,7 +20,7 @@ from sefaria.system.exceptions import InputError
 logger = structlog.get_logger(__name__)
 
 
-class AbstractMongoRecord(object):
+class AbstractMongoRecord():
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
     "collection" attribute is set on subclass

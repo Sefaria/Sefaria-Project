@@ -16,7 +16,7 @@ if USE_VARNISH:
 #TODO: should all the functions here be decoupled from the need to enter a userid?
 
 
-class AbstractAutoLinker(object):
+class AbstractAutoLinker():
     """
     This abstract class defines the interface/contract for autolinking objects.
     There are four main methods:
@@ -317,7 +317,7 @@ def rebuild_links_for_title(tref, user=None):
 
 
 # TODO: refactor with lexicon class map into abstract
-class AutoLinkerFactory(object):
+class AutoLinkerFactory():
     _class_map = {
         CommentaryAutoLinker.class_key            : CommentaryAutoLinker,
         MatchBaseTextDepthAutoLinker.class_key    : MatchBaseTextDepthAutoLinker,

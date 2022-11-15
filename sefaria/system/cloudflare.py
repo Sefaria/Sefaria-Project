@@ -9,13 +9,12 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-class SefariaCloudflareManager(object):
-
+class SefariaCloudflareManager():
     valid_cached_dirs = ["static"]
     max_cloudflare_payload_size = 30
 
     def purge_cloudflare_url(self, path, preprocessed=False):
-        """ Calls the Cloudflare API to invalidate cache for the file at current site and `path`"""
+        """Calls the Cloudflare API to invalidate cache for the file at current site and `path`"""
         return self.purge_multiple_cloudflare_urls([path], preprocessed=preprocessed)
 
     def purge_cloudflare(self):

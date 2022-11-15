@@ -178,7 +178,7 @@ def toc_serial_to_objects(toc):
     return root
 
 
-class TocTree(object):
+class TocTree():
     def __init__(self, lib=None, mobile=False):
         """
         :param lib: Library object, in the process of being created

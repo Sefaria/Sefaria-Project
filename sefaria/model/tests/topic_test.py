@@ -103,8 +103,7 @@ def topic_graph_to_merge():
     db.sheets.delete_one({"id": 1234567890})
 
 
-class TestTopics(object):
-
+class TestTopics():
     def test_graph_funcs(self, topic_graph):
         ts = topic_graph['topics']
         assert ts['1'].get_types() == {'1', '2', '3', '4', '5'}
@@ -154,7 +153,7 @@ class TestTopics(object):
         ]
 
 
-class TestTopicLinkHelper(object):
+class TestTopicLinkHelper():
 
     def test_init_by_class(self, topic_graph):
         l1 = db.topic_links.find_one({'fromTopic': '1', 'toTopic': '2', 'linkType': 'is-a'})
@@ -174,7 +173,7 @@ class TestTopicLinkHelper(object):
         assert obj.topic == '2'
 
 
-class TestIntraTopicLink(object):
+class TestIntraTopicLink():
 
     def test_validate(self, topic_graph):
         from sefaria.system.exceptions import DuplicateRecordError, InputError
@@ -261,7 +260,7 @@ class TestIntraTopicLink(object):
         l1.delete()
 
 
-class TestRefTopicLink(object):
+class TestRefTopicLink():
 
     def test_add_expanded_refs(self, topic_graph):
         attrs = {
