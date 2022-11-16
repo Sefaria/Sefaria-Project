@@ -341,6 +341,13 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
+    },
+    'LINKER': {
+        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
     }
 
 }

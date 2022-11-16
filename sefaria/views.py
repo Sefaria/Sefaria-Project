@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
-from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -37,9 +36,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
+from sefaria.client.util import jsonResponse, subscribe_to_list, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -253,10 +252,7 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", context={}, request=request)
-    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
-        sefaria_js=file.read()
+    sefaria_js = read_webpack_bundle("SEFARIA_JS")
     attrs = {
         "data_js": data_js,
         "sefaria_js": sefaria_js,
@@ -271,6 +267,11 @@ def linker_js(request, linker_version=None):
     """
     CURRENT_LINKER_VERSION = "2"
     linker_version = linker_version or CURRENT_LINKER_VERSION
+
+    if linker_version == "3":
+        # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
+        return HttpResponse(read_webpack_bundle("LINKER"), content_type="text/javascript; charset=utf-8")
+
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
