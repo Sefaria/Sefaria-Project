@@ -48,6 +48,17 @@ data:
     )
 
     MANAGERS = ADMINS
+    
+    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_PORT = 27017
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
+    {{- else }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB")
+    {{- end }}
+    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
+    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
+    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
 
     DATABASES = {
         'default': {
@@ -77,6 +88,14 @@ data:
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
             "TIMEOUT": 60 * 60 * 24 * 30,
+        },
+        "persistent": {
+            'BACKEND': 'sefaria.system.caches.SimpleMongoDBCache',
+            "OPTIONS": {
+                "DATABASE": SEFARIA_DB,
+                "COLLECTION": "django_cache", # default: django_cache
+            },
+            "TIMEOUT": None, 
         },
     }
 
@@ -114,17 +133,6 @@ data:
         "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
-
-    MONGO_HOST = os.getenv("MONGO_HOST")
-    MONGO_PORT = 27017
-    {{- if eq .Values.sandbox "true" }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
-    {{- else }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB")
-    {{- end }}
-    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
-    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
-    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
 
     SEARCH_HOST = "/api/search"
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")

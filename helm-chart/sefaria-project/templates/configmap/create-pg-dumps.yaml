@@ -12,17 +12,20 @@ data:
 
     DATADIR="/pgdumps/shared_volume"
 
-    DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST --port $DATABASES_PORT"
+    DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST"
+    if [[ $DATABASES_PORT ]]; then
+      DUMPCMD+=" --port $DATABASES_PORT"
+    else
+      DUMPCMD+=" --port 5432"
+    fi
     DUMP_CMD+=" --username $DATABASES_USER"
-    IF [[ ! $DATABASES_PASSWORD ]]; THEN
-      DUMP_CMD+=" --no_passowrd"
-    ELSE
-      DUMP_CMD+=" --password $DATABASES_PASSWORD"
-    FI
+    if [[ ! $DATABASES_PASSWORD ]]; then
+      DUMP_CMD+=" --no_password"
+    else
+      export PGPASSWORD="${DATABASES_PASSWORD}"
+    fi
     DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
-    DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'" 
+    DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'"
 
     eval $DUMP_CMD
-
-    tar cvzf "${DATADIR}/postgres_dump.tar.gz" -C "${DATADIR}" ./dump
 {{- end }}
