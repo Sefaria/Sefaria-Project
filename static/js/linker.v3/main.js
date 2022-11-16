@@ -370,7 +370,7 @@ const SELECTOR_WHITE_LIST = {
     function getCachedResults({ text, title }) {
         const hash = md5(`${title}|${text}`);
         return new Promise((resolve, reject) => {
-            fetch(`${ns.sefariaUrl}/api/find-refs/${hash}`, {method: 'GET'})
+            fetch(`${ns.sefariaUrl}/api/find-refs/cache-lookup/${hash}`, {method: 'GET'})
                 .then(handleApiResponse)
                 .then(resp => {
                     if (resp.cacheHit) {
