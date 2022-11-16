@@ -122,7 +122,7 @@ jobs:
           push: true
           build-args: |
             SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
-          file: ./build/nginx/Dockerfile
+          file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   prod-deploy:
