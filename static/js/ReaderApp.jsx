@@ -788,11 +788,8 @@ class ReaderApp extends Component {
     } else {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      // console.log("Push History - " + hist.url);
-      // this.trackPageview();
-      if (typeof window !== 'undefined') {
-        gtag('event', 'history_ping', {'our_page_view': 'true'})
-      }
+      console.log("Push History - " + hist.url);
+      this.trackPageview();
     }
 
     $("title").html(hist.title);
