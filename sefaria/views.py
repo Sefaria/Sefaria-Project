@@ -301,6 +301,15 @@ def find_refs_api(request):
     return jsonResponse(make_find_refs_response(post_body, with_text, debug, max_segments))
 
 
+@api_view(["GET"])
+def websites_api(request, domain):
+    cb = request.GET.get("callback", None)
+    website = WebSite().load({"domains": domain})
+    if website is None:
+        return jsonResponse({"error": f"no website found with domain: '{domain}'"})
+    return jsonResponse(website.contents(), cb)
+
+
 def linker_data_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)

@@ -364,6 +364,7 @@ urlpatterns += [
     url(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
     url(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
+    url(r'^api/websites/(?P<domain>.+)$', sefaria_views.websites_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', sefaria_views.text_download_api),
