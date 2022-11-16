@@ -331,11 +331,17 @@ const SELECTOR_WHITE_LIST = {
         }
     }
 
-    function getWhitelistSelectors() {
+    function getFullWhitelistSelectors(userWhitelistSelector) {
         return fetch(getWebsiteApiUrl())
             .then(handleApiResponse)
             .then(json => {
                 return json.whitelist_selectors || [];
+            })
+            .then(websiteWhitelistSelectors => {
+                if (userWhitelistSelector) {
+                    return websiteWhitelistSelectors.concat([userWhitelistSelector]);
+                }
+                return websiteWhitelistSelectors;
             });
     }
 
@@ -379,13 +385,8 @@ const SELECTOR_WHITE_LIST = {
         }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
-        getWhitelistSelectors()
-            .then(whitelistSelectors => {
-                ns.whitelistSelectors = whitelistSelectors;
-                if (whitelistSelector) {
-                    ns.whitelistSelectors.push(whitelistSelector);
-                }
-            })
+        getFullWhitelistSelectors()
+            .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
