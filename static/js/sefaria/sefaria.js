@@ -1877,7 +1877,7 @@ _media: {},
     he = he.pad(topLength, "");
 
     var start = (data.textDepth == data.sections.length && !withContext ?
-                  data.sections.slice(-1)[0] : 1);
+                  data.sections.slice(-1)[0] : 1 + (data.offset || 0));
 
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
