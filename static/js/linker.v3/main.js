@@ -23,14 +23,10 @@ const SELECTOR_WHITE_LIST = {
         return cleanedElem.textContent;
     }
 
-    function getWhiteListText(currText) {
-        const whiteListSelectors = SELECTOR_WHITE_LIST[window.location.hostname];
-        if (ns.whitelistSelector) {
-            whiteListSelectors.push(ns.whitelistSelector);
-        }
-        if (!whiteListSelectors) { return ""; }
-        const whiteListElems = document.querySelectorAll(whiteListSelectors.join(", "));
-        return [].reduce.call(whiteListElems, (prev, curr) => {
+    function getWhitelistText(currText) {
+        if (!ns.whitelistSelectors || ns.whitelistSelectors.length === 0) { return ""; }
+        const whitelistElems = document.querySelectorAll(ns.whitelistSelectors.join(", "));
+        return [].reduce.call(whitelistElems, (prev, curr) => {
             const currCleaned = sanitizeElem(removeUnwantedElems(curr));
             if (currText.indexOf(currCleaned) > -1) { return prev; }  // assumption is this text was already included by Readability so no need to include again
             return prev + currCleaned;
@@ -255,6 +251,15 @@ const SELECTOR_WHITE_LIST = {
         });
     }
 
+    function handleApiResponse(resp) {
+        if (resp.ok) {
+            return resp.json();
+        } else if (ns.debug) {
+            resp.text().then(text => alert(text));
+        }
+        return Promise.reject("API response not ok");
+    }
+
     function onFindRefs(resp) {
         const startTime = performance.now();
         ns.debugData = resp.text.debugData;
@@ -282,15 +287,7 @@ const SELECTOR_WHITE_LIST = {
             method: 'POST',
             body: JSON.stringify(postData)
         })
-        .then(
-            (resp) => {
-                if (resp.ok) {
-                    resp.json();
-                } else {
-                    resp.text().then(text => alert(text));
-                }
-            }
-        );
+        .then(handleApiResponse);
     }
 
     function bindRefClickHandlers(refData) {
@@ -322,9 +319,14 @@ const SELECTOR_WHITE_LIST = {
         return `${ns.sefariaUrl}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${ns.maxParagraphs}`;
     }
 
+    function getWebsiteApiUrl() {
+        const domain = new URL(getPageUrl()).host;
+        return `${ns.sefariaUrl}/api/websites/${encodeURIComponent(domain)}`;
+    }
+
     function getFindRefsRequest() {
         const {text: readableText, readableObj} = getReadableText();
-        ns.normalizedInputText = readableText + getWhiteListText(readableText);
+        ns.normalizedInputText = readableText + getWhitelistText(readableText);
         return {
             text: ns.normalizedInputText,
             url: getPageUrl(),
@@ -332,20 +334,21 @@ const SELECTOR_WHITE_LIST = {
         }
     }
 
+    function getWhitelistSelectors() {
+        return fetch(getWebsiteApiUrl())
+            .then(handleApiResponse)
+            .then(json => {
+                return json.whitelist_selectors || [];
+            });
+    }
+
     function findRefs() {
-        fetch(getFindRefsUrl(), {
+        return fetch(getFindRefsUrl(), {
             method: 'POST',
             body: JSON.stringify(getFindRefsRequest())
         })
-        .then(
-            (resp) => {
-                if (resp.ok) {
-                    resp.json().then(onFindRefs);
-                } else {
-                    resp.text().then(text => alert(text));
-                }
-            }
-        );
+            .then(handleApiResponse)
+            .then(onFindRefs);
     }
 
     // public API
@@ -368,7 +371,6 @@ const SELECTOR_WHITE_LIST = {
         maxParagraphs = 0,
     }) {
         ns.sefariaUrl = sefariaUrl;
-        ns.whitelistSelector = whitelistSelector;
         ns.excludeFromLinking = excludeFromLinking;
         ns.dynamic = dynamic;
         ns.debug = debug;
@@ -380,6 +382,10 @@ const SELECTOR_WHITE_LIST = {
         }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
-        findRefs();
+        getWhitelistSelectors()
+            .then(whitelistSelectors => {
+                ns.whitelistSelectors = whitelistSelectors.concat([whitelistSelector])
+            })
+            .then(findRefs);
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
