@@ -254,7 +254,8 @@ class WebSite(abst.AbstractMongoRecord):
         "initial_title_branding",
         "linker_installed",
         "num_webpages",
-        "exclude_from_tracking"
+        "exclude_from_tracking",
+        "whitelist_selectors",
     ]
 
     def __key(self):
