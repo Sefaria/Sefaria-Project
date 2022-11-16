@@ -289,6 +289,11 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+@api_view(["GET"])
+def find_refs_cache_api(request, hash):
+    return jsonResponse({'cacheHit': False})
+
+
 @api_view(["POST"])
 def find_refs_api(request):
     from sefaria.helper.linker import make_find_refs_response

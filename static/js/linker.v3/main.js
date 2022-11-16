@@ -1,5 +1,6 @@
 import { Readability } from '@mozilla/readability';
 import DOMPurify from 'dompurify';
+import md5 from 'md5';
 import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
@@ -227,7 +228,9 @@ const SELECTOR_WHITE_LIST = {
             if (searchText.length >= maxSearchLength) { break; }
         }
         if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
-            console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            if (ns.debug) {
+                console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            }
             return;
         }
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
@@ -259,14 +262,20 @@ const SELECTOR_WHITE_LIST = {
 
     function onFindRefs(resp) {
         const startTime = performance.now();
-        ns.debugData = resp.text.debugData;
-        resp.text.results.map((linkObj, iLinkObj) => {
-            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData, iLinkObj);
-        });
-        bindRefClickHandlers(resp.text.refData);
-        const endTime = performance.now()
-        alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
-
+        let numResults = 0;
+        ns.debugData = [];
+        for (let resultsKey of ['title', 'text']) {
+            numResults += resp[resultsKey].results.length;
+            ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
+            resp[resultsKey].results.map((linkObj, iLinkObj) => {
+                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj);
+            });
+            bindRefClickHandlers(resp[resultsKey].refData);
+        }
+        const endTime = performance.now();
+        if (ns.debug) {
+            alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${numResults} citations wrapped`);
+        }
     }
 
     function reportCitation(elem, event, ...rest) {
@@ -323,12 +332,14 @@ const SELECTOR_WHITE_LIST = {
 
     function getFindRefsRequest() {
         const {text: readableText, readableObj} = getReadableText();
-        ns.normalizedInputText = readableText + getWhitelistText(readableText);
-        return {
-            text: ns.normalizedInputText,
-            url: getPageUrl(),
+        ns.normalizedInputText = {
+            text: readableText + getWhitelistText(readableText),
             title: readableObj.title,
-        }
+        };
+        return {
+            url: getPageUrl(),
+            ...ns.normalizedInputText,
+        };
     }
 
     function getFullWhitelistSelectors(userWhitelistSelector) {
@@ -346,12 +357,40 @@ const SELECTOR_WHITE_LIST = {
     }
 
     function findRefs() {
-        return fetch(getFindRefsUrl(), {
-            method: 'POST',
-            body: JSON.stringify(getFindRefsRequest())
-        })
-            .then(handleApiResponse)
-            .then(onFindRefs);
+        const postData = getFindRefsRequest();
+        return getCachedResults(postData).then(results => {
+            if (results) {
+                onFindRefs(results);
+            } else {
+                getUncachedResults(postData).then(onFindRefs);
+            }
+        });
+    }
+
+    function getCachedResults({ text, title }) {
+        const hash = md5(`${title}|${text}`);
+        return new Promise((resolve, reject) => {
+            fetch(`${ns.sefariaUrl}/api/find-refs/${hash}`, {method: 'GET'})
+                .then(handleApiResponse)
+                .then(resp => {
+                    if (resp.cacheHit) {
+                        resolve(resp.results);
+                    } else {
+                        resolve(null);
+                    }
+                });
+        });
+    }
+
+    function getUncachedResults(postData) {
+        return new Promise((resolve, reject) => {
+            fetch(getFindRefsUrl(), {
+                method: 'POST',
+                body: JSON.stringify(postData)
+            })
+                .then(handleApiResponse)
+                .then(resp => resolve(resp));
+        });
     }
 
     // public API
@@ -385,6 +424,7 @@ const SELECTOR_WHITE_LIST = {
         }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
+
         getFullWhitelistSelectors()
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
