@@ -323,7 +323,7 @@ const TopicSponsorship = ({topic_slug}) => {
         }
     };
     const sponsorship_language = topic_sponsorship_map[topic_slug];
-    if (!sponsorship_language) return;
+    if (!sponsorship_language) return null;
 
     return (
         <div className="dedication">
