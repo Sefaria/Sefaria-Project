@@ -1,11 +1,17 @@
 import spacy
 import structlog
+from hashlib import md5
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text, library
 from typing import List, Union, Optional
 from collections import defaultdict
 
 logger = structlog.get_logger(__name__)
+
+
+def get_find_refs_cache_key(post_body):
+   md5_input = f"{post_body['title']}|{post_body['text']}".encode()
+   return md5(md5_input).hexdigest()
 
 
 def make_find_refs_response(post_body, with_text, debug, max_segments):

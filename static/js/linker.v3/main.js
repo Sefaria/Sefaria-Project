@@ -373,10 +373,10 @@ const SELECTOR_WHITE_LIST = {
             fetch(`${ns.sefariaUrl}/api/find-refs/cache-lookup/${hash}`, {method: 'GET'})
                 .then(handleApiResponse)
                 .then(resp => {
-                    if (resp.cacheHit) {
-                        resolve(resp.results);
-                    } else {
+                    if (resp.cacheMiss) {
                         resolve(null);
+                    } else {
+                        resolve(resp);
                     }
                 });
         });
