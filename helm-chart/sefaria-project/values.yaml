@@ -117,7 +117,7 @@ linker:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: gcr.io/production-deployment/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
