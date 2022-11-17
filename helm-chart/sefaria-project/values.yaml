@@ -105,7 +105,7 @@ web:
       ref:
 
 linker:
-  enabled: false
+  enabled: true
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
   model_paths:
     # en: future_path
@@ -116,8 +116,8 @@ linker:
   localsettings:
   # APP: web
   containerImage:
-    # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    # Full path of the image registry inclusive of the image name
+    imageRegistry: gcr.io/production-deployment/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
