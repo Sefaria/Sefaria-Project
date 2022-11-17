@@ -1,4 +1,4 @@
-{{- if ne .Values.sandbox "true" }}
+{{- if .Values.backup.sitemaps.enabled }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -14,9 +14,6 @@ spec:
       template:
         spec:
           volumes:
-          - name: backup-manager-secret
-            secret:
-              secretName: {{ template "sefaria.secrets.backupManager" . }}
           - name: local-settings
             configMap:
               name: local-settings-file-{{ .Values.deployEnv }}
@@ -25,7 +22,7 @@ spec:
                   path: local_settings.py
           - name: shared-volume
             emptyDir: {}
-
+          serviceAccount: {{ .Values.backup.sitemaps.serviceAccount }}
           initContainers:
           - name: sitemap-generator
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
@@ -60,15 +57,13 @@ spec:
             volumeMounts:
             - name: shared-volume
               mountPath: /storage
-            - name: backup-manager-secret
-              mountPath: /conf
             env:
-            - name: GOOGLE_APPLICATION_CREDENTIALS
-              value: /conf/BackupManagerKey.json
+            - name: BUCKET
+              value: {{ .Values.backup.sitemaps.bucket }}
             command: ["bash"]
-            args: ["-c", "gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS} &&
-             gsutil -m cp -r /storage/sitemaps gs://sefaria-sitemaps/static &&
-             gsutil -m acl -r ch -u AllUsers:R gs://sefaria-sitemaps/static/sitemaps/"]
+            args: ["-c", "gcloud auth activate &&
+             gsutil -m cp -r /storage/sitemaps gs://$BUCKET/static &&
+             gsutil -m acl -r ch -u AllUsers:R gs://$BUCKET/static/sitemaps/"]
           restartPolicy: Never
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 2

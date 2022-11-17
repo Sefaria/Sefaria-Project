@@ -1,11 +1,13 @@
 import django, csv, json, re
-django.setup()
 from tqdm import tqdm
 from pymongo import InsertOne
 from sefaria.model import *
 from collections import defaultdict
 from sefaria.system.database import db
 from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.utils.hebrew import is_hebrew
+
+django.setup()
 
 # RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
 # DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"
@@ -124,7 +126,6 @@ def import_bonayich_into_topics():
         itl.save()
 
 def import_rabi_rav_rabbis_into_topics():
-    from sefaria.utils.hebrew import is_hebrew
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/new_rabbis.json", "r") as fin:
         j = json.load(fin)
     TopicSet({'alt_ids.rav_rabi': {"$exists": True}}).delete()
@@ -176,8 +177,6 @@ def import_rabi_rav_rabbis_into_topics():
                 t.save()
 
 def add_ambiguous_topics():
-    from sefaria.utils.hebrew import is_hebrew
-
     bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
     bon_set = {t.slug for t in bon_rabbis}
     all_slug_set = {t.slug for t in TopicSet()}

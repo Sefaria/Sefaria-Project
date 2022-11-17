@@ -5,11 +5,8 @@ class FeatureTrack {
     static visible(feature_name) {
         if (typeof window !== 'undefined') {
             console.log("in FeatureTrack")
-            gtag('event', `feature_visible_${feature_name}`, {
+            gtag('event', `feature_seen_${feature_name}`, {
                 'feature_name': feature_name,
-                // 'book': analytics_dict.book,
-                // 'ref': analytics_dict.ref,
-                // 'item_category' : "Tanakh",
                 'logged_in': !!Sefaria._uid,
                 'interface_language': Sefaria.interfaceLang,
             });
@@ -21,8 +18,6 @@ class FeatureTrack {
             console.log("in FeatureTrack clicked")
             gtag('event',  `feature_clicked_${feature_name}`, {
                 'feature_name': feature_name,
-                // 'book': analytics_dict.book,
-                // 'ref': analytics_dict.ref,
                 'logged_in': !!Sefaria._uid,
                 'interface_language': Sefaria.interfaceLang,
                 'feature_data' : feature_data? feature_data: {}

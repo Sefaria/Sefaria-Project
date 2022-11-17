@@ -1,9 +1,11 @@
 import spacy
+import structlog
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text
 from typing import List, Union, Optional
 from collections import defaultdict
 
+logger = structlog.get_logger(__name__)
 
 def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
     from sefaria.utils.util import wrap_chars_with_overlaps
@@ -266,7 +268,9 @@ def load_spacy_model(path: str) -> spacy.Language:
     from sefaria.google_storage_manager import GoogleStorageManager
     from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
 
-    spacy.prefer_gpu()
+    using_gpu = spacy.prefer_gpu()
+    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
+
     if path.startswith("gs://"):
         # file is located in Google Cloud
         # file is expected to be a tar.gz of the model folder
