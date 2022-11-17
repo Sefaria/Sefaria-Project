@@ -214,9 +214,8 @@
 					if ("error" in data) {
 						alert(data.error);
 					} else {
-                        Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
-                        {#gtag('event', 'on_account_settings');#}
-						{#alert(Sefaria._("Settings Saved"));#}
+						alert(Sefaria._("Settings Saved"));
+						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
 						const $newLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 						if($newLang != $curLang){
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
