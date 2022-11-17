@@ -656,6 +656,12 @@ class LinkerIndexConverter:
         # really only outer shape is checked. including rest of shape even though it's technically only a count of what's available and skips empty sections
         shape = sn.var('all', 'shape')
         outer_shape = shape if isinstance(shape, int) else len(shape)
+        if getattr(self.index, 'dependence', None) == 'Commentary' and getattr(self.index, 'base_text_titles', None):
+            sn = StateNode(self.index.base_text_titles)[0]
+            shape = sn.var('all', 'shape')
+            base_outer_shape = shape if isinstance(shape, int) else len(shape)
+            if base_outer_shape > outer_shape:
+                outer_shape = base_outer_shape
         self.index.nodes.lengths = [outer_shape] + ac[1:]
 
     def convert(self):
