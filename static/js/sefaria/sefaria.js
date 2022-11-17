@@ -1287,9 +1287,6 @@ Sefaria = extend(Sefaria, {
         category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       } else {
         category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
-        if (!(Sefaria.index(link["index_title"]))){
-                link["index_title"] = link["index_title"].split(" on")[0]
-        }
         category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
       }
     }
@@ -1307,10 +1304,6 @@ Sefaria = extend(Sefaria, {
           }
           if (!(l["collectiveTitle"]["en"] in summary["Commentary"].books)) {
             summary["Commentary"].books[l["collectiveTitle"]["en"]] = {count: 0};
-            console.log(l, Sefaria.index(l["index_title"]));
-            if (!(Sefaria.index(l["index_title"]))){
-                l["index_title"] = l["index_title"].split(" on")[0]
-            }
             summary["Commentary"].books[l["collectiveTitle"]["en"]].categoryList = Sefaria.index(l["index_title"]).categories
           }
         }
