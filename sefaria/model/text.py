@@ -1338,6 +1338,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 for depth in node.skip_nums:
                     if int(depth) > 1 and not check_arrays_lengths(node.skip_nums[depth], content):
                         return False
+                    elif depth == '1':
+                        if not isinstance(node.skip_nums[depth], int):
+                            return False
                 return True
             elif isinstance(content, dict):
                 for k in content:
@@ -2398,6 +2401,18 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
+        self._skip_nums = copy.deepcopy(getattr(self._inode, 'skip_nums', {}))
+        if self._skip_nums and oref.sections:
+            for depth in sorted(self._skip_nums.keys(), key=lambda x: int(x)):
+                intdepth = int(depth)
+                if depth == 1:
+                    continue
+                if len(oref.sections) > intdepth - 2:
+                    last = reduce(lambda x, y: x[-1], range(intdepth-2), self._skip_nums[depth])
+                    del last[oref.toSections[intdepth-2]:]
+                    first = reduce(lambda x, y: x[0], range(intdepth-2), self._skip_nums[depth])
+                    del first[:oref.sections[intdepth-2]-1]
+
     def contents(self):
         """
         :return dict: Returns the contents of the text family.
@@ -2485,6 +2500,7 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
+        d['skip_nums'] = self._skip_nums
 
         return d
 
@@ -2655,12 +2671,9 @@ class Ref(object, metaclass=RefCacheType):
     def _validate(self):
         checks = [self.sections, self.toSections]
         for check in checks:
-            if getattr(self.index_node, 'skip_nums', None):
-                for c, che in enumerate(check):
-                    if che < 1:
-                        raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_skip([x-1 for x in check[:c]])}')
-            if 0 in check:
-                raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
+            for c, che in enumerate(check):
+                if che < 1:
+                    raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_skip([x-1 for x in check[:c]])}')
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0]:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
@@ -2895,17 +2908,17 @@ class Ref(object, metaclass=RefCacheType):
     def _parse_range_end(self, range_parts):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
-        sections = self.sections[:delta] + [int(x) for x in range_parts]
         for i in range(delta, len(self.sections)):
-            skip = self._get_skip([x-1 for x in sections[:i]])
+            skip = self._get_skip([x-1 for x in self.toSections[:i]])
             try:
                 self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
                                                                                 range_parts[i - delta], sections=self.sections[i]) - skip
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def _get_skip(self, indexes):
-        skip_dict = getattr(self.index_node, 'skip_nums', None)
+    def _get_skip(self, indexes, use_node=None):
+        use_node = use_node if use_node else self.index_node
+        skip_dict = getattr(use_node, 'skip_nums', None)
         current_depth = len(indexes) + 1
         if not skip_dict or str(current_depth) not in skip_dict:
             return 0
@@ -2923,7 +2936,11 @@ class Ref(object, metaclass=RefCacheType):
         for i in range(0, use_node.depth):
             gname = "a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - self._get_skip(indexes))
+                try:
+                    skip = self._get_skip(indexes, use_node)
+                except IndexError:
+                    raise InputError(f"Can not parse sections from ref: {tref}")
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - skip)
             indexes.append(sections[-1]-1)
         return sections
 
