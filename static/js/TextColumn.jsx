@@ -208,7 +208,11 @@ class TextColumn extends Component {
     const $readerPanel = $container.closest(".readerPanel");
     const $highlighted = $container.find(".segment.invisibleHighlight").first();
     if ($highlighted.length) {
-      Sefaria.util.scrollIntoViewIfNeeded($highlighted[0], {block: "center"});
+      const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
+      let top = $highlighted.position().top + adjust - this.highlightThreshhold;
+      top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
+      this.setScrollTop(top);
+      // console.log("scroll to highlighted: ", top);
       if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
         $highlighted.focus();
       }
