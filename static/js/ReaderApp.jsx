@@ -326,7 +326,7 @@ class ReaderApp extends Component {
 
       // After setting the dimensions, post the hit
       var url = window.location.pathname + window.location.search;
-      // Sefaria.track.pageview(url);
+      Sefaria.track.pageview(url);
 
       if (!this.state.initialAnalyticsTracked) {
         this.setState({initialAnalyticsTracked: true});
@@ -788,7 +788,7 @@ class ReaderApp extends Component {
     } else {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History - " + hist.url);
+      // console.log("Push History - " + hist.url);
       this.trackPageview();
     }
 
@@ -809,7 +809,7 @@ class ReaderApp extends Component {
     this.scrollIntentTimer = this.checkIntentTimer(this.scrollIntentTimer, () => {
       if (initialRefs.compare(this._refState())) {
         console.log("TRACK PAGE VIEW");
-        // this.trackPageview();
+        this.trackPageview();
       }
       this.scrollIntentTimer = null;
     });
