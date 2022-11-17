@@ -392,13 +392,12 @@ class VersionsBlocksList extends Component{
   }
   isVersionCurrent(version){
     //make versions string key and check if that key is in the current keys array (hashing for morons)
-    let {actualLanguage, versionTitle} = version;
+    const {actualLanguage, versionTitle} = version;
     return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
   }
   getCurrentVersionsKeys(currentVersions){
     //make an array of strings that are keys of the current versions
-    let currs = Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
-    return currs
+    return Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
   }
   render(){
       const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);

@@ -87,8 +87,9 @@ class ReaderPanel extends Component {
     }
   }
   conditionalSetState(state) {
-    // Set state either in the central app or in the local component,
-    // depending on whether a setCentralState function was given.
+    // Set state either in the central app or in the local component.
+    // If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
+    // If it is not present, then the state for this ReaderPanel is managed from the component itself.
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -1550,7 +1551,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     let layoutToggle = this.props.settings.language !== "bilingual" ?
-      this.props.parentPanel == "Sheet" ? null :
+      this.props.parentPanel === "Sheet" ? null :
       (<ToggleSet
           ariaLabel="text layout toggle"
           label={Sefaria._("Layout")}

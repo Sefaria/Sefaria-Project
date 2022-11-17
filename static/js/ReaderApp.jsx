@@ -1307,8 +1307,8 @@ class ReaderApp extends Component {
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
-    var panel = this.state.panels[n];
-    var oRef = Sefaria.ref(panel.refs[0]);
+    const panel = this.state.panels[n];
+    const oRef = Sefaria.ref(panel.refs[0]);
     if (versionName && versionLanguage) {
       panel.currVersions[versionLanguage] = versionName;
       this.setCachedVersion(oRef.indexTitle, versionLanguage, versionName);
@@ -1319,7 +1319,7 @@ class ReaderApp extends Component {
     }
     panel.settings.language = this._getPanelLangOnVersionChange(panel, versionLanguage, panel.mode === "Connections");
     if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
-      var connectionsPanel =  this.state.panels[n+1];
+      const connectionsPanel =  this.state.panels[n+1];
       connectionsPanel.currVersions = panel.currVersions;
       connectionsPanel.settings.language = this._getPanelLangOnVersionChange(connectionsPanel, versionLanguage, true);
     } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
@@ -1331,10 +1331,10 @@ class ReaderApp extends Component {
   }
   navigatePanel(n, ref, currVersions={en: null, he: null}) {
     // Sets the ref on panel `n` and cascades to any attached panels (Text + Connections)
-    let panel = this.state.panels[n];
+    const panel = this.state.panels[n];
     // next few lines adapted from ReaderPanel.showBaseText()
     let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor == Array) {
+    if (ref.constructor === Array) {
       // When called with an array, set highlight for the whole spanning range
       refs = ref;
       currentlyVisibleRef = Sefaria.humanRef(ref);
@@ -1343,10 +1343,10 @@ class ReaderApp extends Component {
     } else {
       refs = [ref];
       currentlyVisibleRef = ref;
-      highlightedRefs = (panel.mode == "TextAndConnections") ? [ref] : [];
+      highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
     let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
-    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode == "Connections"){
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
       let connectionsPanel =  this.state.panels[n+1];
       Object.assign(connectionsPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
     } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
@@ -1404,8 +1404,8 @@ class ReaderApp extends Component {
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
-    var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
-    var panel;
+    const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
+    let panel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
@@ -1440,7 +1440,7 @@ class ReaderApp extends Component {
       });
     }
 
-    var newPanels = this.state.panels.slice();
+    const newPanels = this.state.panels.slice();
     newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     this.setState({panels: newPanels});
     this.saveLastPlace(panel, n+1);
@@ -1453,7 +1453,7 @@ class ReaderApp extends Component {
     this.openPanelAt(n, ref, currVersions, options, true);
   }
   openComparePanel(n, connectAfter) {
-    var comparePanel = this.makePanelState({
+    const comparePanel = this.makePanelState({
       menuOpen: "navigation",
       compare: true,
       openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
@@ -1467,9 +1467,9 @@ class ReaderApp extends Component {
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
     // `textListState` is an object of initial state to pass to the new panel. if `undefined`, no-op
-    var newPanels = this.state.panels.slice();
-    var panel = newPanels[n] || {};
-    var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text' || n >= 1 && newPanels[n-1].mode == 'Sheet') ? newPanels[n-1] : null;
+    const newPanels = this.state.panels.slice();
+    let panel = newPanels[n] || {};
+    const parentPanel = (n >= 1 && newPanels[n-1].mode === 'Text' || n >= 1 && newPanels[n-1].mode === 'Sheet') ? newPanels[n-1] : null;
 
     if (panel.mode !== "Connections") {
       // No connections panel is open yet, splice in a new one
@@ -1506,7 +1506,7 @@ class ReaderApp extends Component {
     this.state.panels[n].highlightedRefs = refs;
     this.setState({panels: this.state.panels});
     // If a connections panel is opened after n, update its refs as well.
-    var next = this.state.panels[n+1];
+    const next = this.state.panels[n+1];
     if (next && next.mode === "Connections" && !next.menuOpen) {
       this.openTextListAt(n+1, refs);
     }
