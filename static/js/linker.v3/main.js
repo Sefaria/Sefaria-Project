@@ -265,12 +265,12 @@ const SELECTOR_WHITE_LIST = {
         let numResults = 0;
         ns.debugData = [];
         for (let resultsKey of ['title', 'text']) {
-            numResults += resp[resultsKey].results.length;
             ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
             resp[resultsKey].results.map((linkObj, iLinkObj) => {
-                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj);
+                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj + numResults);
             });
             bindRefClickHandlers(resp[resultsKey].refData);
+            numResults += resp[resultsKey].results.length;
         }
         const endTime = performance.now();
         if (ns.debug) {
