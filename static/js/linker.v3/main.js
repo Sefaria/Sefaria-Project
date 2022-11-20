@@ -314,6 +314,16 @@ const SELECTOR_WHITE_LIST = {
         return (canonical && !ns.dynamic) ? canonical.href : window.location.href;
     }
 
+    function getPageDescription() {
+        const meta = document.head.querySelector("meta[name~=description]")
+            || document.head.querySelector("meta[property~=description]")
+            || document.head.querySelector("meta[name~='og:description']")
+            || document.head.querySelector("meta[property~='og:description']")
+            || document.head.querySelector("meta[name~='twitter:description']")
+            || document.head.querySelector("meta[property~='twitter:description']");
+        return meta ? meta.content : "";
+    }
+
     function getPopupModeOnMobile(mode) {
         if (window.innerWidth < 700) {
             // If the screen is small, default to link mode
@@ -338,8 +348,14 @@ const SELECTOR_WHITE_LIST = {
             title: readableObj.title,
         };
         return {
-            url: getPageUrl(),
-            ...ns.normalizedInputText,
+            metaDataForTracking: {
+                url: getPageUrl(),
+                description: getPageDescription(),
+                title: document.title,
+            },
+            text: {
+                ...ns.normalizedInputText,
+            },
         };
     }
 

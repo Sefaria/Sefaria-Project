@@ -3,6 +3,7 @@ import structlog
 from hashlib import md5
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text, library
+from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
 from typing import List, Union, Optional
 from collections import defaultdict
@@ -20,15 +21,36 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
     from sefaria.utils.hebrew import is_hebrew
 
     resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post_body['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post_body['title']])
+    lang = 'he' if is_hebrew(post_body['text']['text']) else 'en'
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post_body['text']['title']])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']], with_failures=True)
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']['text']], with_failures=True)
 
-    return {
+    response = {
         "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
         "text": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
     }
+
+    if 'metaDataForTracking' in post_body:
+        meta_data = post_body['metaDataForTracking']
+        url = WebPage.normalize_url(meta_data["url"])
+        _ = WebPage.add_or_update_from_linker({
+            "url": url,
+            "title": meta_data['title'],
+            "description": meta_data['description'],
+            "refs": get_trefs_from_response(response),
+        })
+        response['url'] = url
+
+    return response
+
+
+def get_trefs_from_response(response):
+    trefs = []
+    for key, value in response.items():
+        if isinstance(value, dict) and 'refData' in value:
+            trefs += list(value['refData'].keys())
+    return trefs
 
 
 def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):

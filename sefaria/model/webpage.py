@@ -15,6 +15,8 @@ from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
+
+
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
