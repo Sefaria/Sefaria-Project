@@ -1,9 +1,6 @@
-import pytest
-from sefaria.model.text import Ref, library
-from sefaria.model.linker import *
+from sefaria.model.linker import ResolvedRef, RawRef, ResolutionThoroughness, RangedRawRefParts, RefResolver, SectionContext, IbidHistory, span_inds
 from sefaria.model.tests.linker_test.linker_test_utils import *
 from sefaria.model.schema import DiburHamatchilNodeSet
-import spacy
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
 
@@ -305,8 +302,8 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
         assert ranged_raw_ref_parts.toSections == expected_ranged_raw_ref_parts.toSections
         start_span = sections[0].span
         end_span = toSections[-1].span
-        start_token_i = start_span.start if isinstance(start_span, Span) else start_span.i
-        end_token_i = end_span.end if isinstance(end_span, Span) else (end_span.i+1)
+        start_token_i, _ = span_inds(start_span)
+        _, end_token_i = span_inds(end_span)
         full_span = start_span.doc[start_token_i:end_token_i]
         assert ranged_raw_ref_parts.span.text == full_span.text
     assert expected_raw_ref_parts == raw_ref.raw_ref_parts
@@ -378,7 +375,10 @@ def test_map_new_indices(crrd_params):
     mapping = n.get_mapping_after_normalization(text, reverse=True, lang=lang)
     norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
-    norm_part_token_inds = [span.i if isinstance(span, spacy.tokens.Token) else slice(span.start, span.end) for span in norm_part_spans]
+    norm_part_token_inds = []
+    for span in norm_part_spans:
+        start, end = span_inds(span)
+        norm_part_token_inds += [slice(start, end)]
 
     part_types = [part.type for part in raw_ref.raw_ref_parts]
     raw_encoded_part_list = EncodedPart.convert_to_raw_encoded_part_list(lang, norm_text, norm_part_token_inds, part_types)

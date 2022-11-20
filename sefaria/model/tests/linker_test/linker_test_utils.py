@@ -1,19 +1,14 @@
 import pytest
+from typing import List
+from functools import reduce
 from sefaria.model.text import Ref, library
-from sefaria.model.linker import *
-from sefaria.model.linker import RefPartType as RPT
-import spacy
-from spacy.language import Language
+from sefaria.model.linker import RefPartType, RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
 ref_resolver = library.get_ref_resolver()
-
-
-def model(project_name: str) -> Language:
-    return spacy.load(f'/home/nss/sefaria/data/research/prodigy/output/{project_name}/model-last')
 
 
 class RefPartTypeNone:
@@ -26,14 +21,14 @@ class RefPartTypeNone:
 class EncodedPart:
 
     PART_TYPE_MAP = {
-        "@": RPT.NAMED,
-        "#": RPT.NUMBERED,
-        "*": RPT.DH,
+        "@": RefPartType.NAMED,
+        "#": RefPartType.NUMBERED,
+        "*": RefPartType.DH,
         "0": RefPartTypeNone,
-        "^": RPT.RANGE_SYMBOL,
-        "&": RPT.IBID,
-        "<": RPT.RELATIVE,
-        "~": RPT.NON_CTS,
+        "^": RefPartType.RANGE_SYMBOL,
+        "&": RefPartType.IBID,
+        "<": RefPartType.RELATIVE,
+        "~": RefPartType.NON_CTS,
     }
 
     def __init__(self, raw_encoded_part):
