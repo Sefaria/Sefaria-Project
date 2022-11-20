@@ -157,7 +157,7 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function createATag(linkFailed, ref, text, url, isAmbiguous, iLinkObj) {
+    function createATag(linkFailed, ref, text, url, isAmbiguous, iLinkObj, resultsKey) {
         const atag = document.createElement("a");
         atag.target = "_blank";
         atag.textContent = text;
@@ -169,6 +169,7 @@ const SELECTOR_WHITE_LIST = {
         }
 
         atag.setAttribute('data-result-index', iLinkObj);
+        atag.setAttribute('data-result-key', resultsKey);
 
         if (linkFailed) { return atag; }  // debug and linkFailed
 
@@ -178,30 +179,30 @@ const SELECTOR_WHITE_LIST = {
         return atag;
     }
 
-    function createATagWithDebugInfo(urls, linkObj, text, iLinkObj) {
+    function createATagWithDebugInfo(urls, linkObj, text, iLinkObj, resultsKey) {
         /**
          * if urls is null or len 1, return a tag
          * else, return a span with n a tags to represent an ambiguous reference.
          * urls should only be more than len 1 in debug mode
          */
         if (!urls || (!ns.debug && urls.length > 1)) {
-            return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj);
+            return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj, resultsKey);
         } else if (urls.length === 1) {
-            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj);
+            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj, resultsKey);
         } else {
             // debug and more than 1 url
             const node = document.createElement("span");
             node.className="sefaria-ref-wrapper";
             for (let i = 0; i < urls.length; i++) {
                 const tempText = i === 0 ? text : `[${i}]`;
-                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true, iLinkObj);
+                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true, iLinkObj, resultsKey);
                 node.appendChild(atag);
             }
             return node;
         }
     }
 
-    function wrapRef(linkObj, normalizedText, refData, iLinkObj, maxNumWordsAround = 10, maxSearchLength = 30) {
+    function wrapRef(linkObj, normalizedText, refData, iLinkObj, resultsKey, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
          * increases search scope to ensure we wrap the correct instance of linkObj.text
@@ -246,7 +247,7 @@ const SELECTOR_WHITE_LIST = {
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
-                return createATagWithDebugInfo(urls, linkObj, portion.text, iLinkObj);
+                return createATagWithDebugInfo(urls, linkObj, portion.text, iLinkObj, resultsKey);
             }
         });
     }
@@ -267,9 +268,9 @@ const SELECTOR_WHITE_LIST = {
         for (let resultsKey of ['title', 'text']) {
             ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
             resp[resultsKey].results.map((linkObj, iLinkObj) => {
-                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj + numResults);
+                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj + numResults, resultsKey);
             });
-            bindRefClickHandlers(resp[resultsKey].refData);
+            bindRefClickHandlers(resp[resultsKey].refData, resultsKey);
             numResults += resp[resultsKey].results.length;
         }
         const endTime = performance.now();
@@ -296,9 +297,9 @@ const SELECTOR_WHITE_LIST = {
         .then(handleApiResponse);
     }
 
-    function bindRefClickHandlers(refData) {
+    function bindRefClickHandlers(refData, resultsKey) {
         // Bind a click event and a mouseover event to each link
-        [].forEach.call(document.querySelectorAll('.sefaria-ref'),(elem) => {
+        [].forEach.call(document.querySelectorAll(`.sefaria-ref[data-result-key="${resultsKey}"]`),(elem) => {
             const ref = elem.getAttribute('data-ref');
             if (!ref && !ns.debug) { /* failed link */ return; }
             const source = refData[ref] || {};
