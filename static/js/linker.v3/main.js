@@ -265,7 +265,7 @@ const SELECTOR_WHITE_LIST = {
         const startTime = performance.now();
         let numResults = 0;
         ns.debugData = [];
-        for (let resultsKey of ['title', 'text']) {
+        for (let resultsKey of ['title', 'body']) {
             ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
             resp[resultsKey].results.map((linkObj, iLinkObj) => {
                 wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj + numResults, resultsKey);
@@ -344,7 +344,7 @@ const SELECTOR_WHITE_LIST = {
     function getFindRefsRequest() {
         const {text: readableText, readableObj} = getReadableText();
         ns.normalizedInputText = {
-            text: readableText + getWhitelistText(readableText),
+            body: readableText + getWhitelistText(readableText),
             title: readableObj.title,
         };
         return {

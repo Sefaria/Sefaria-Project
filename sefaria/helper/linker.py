@@ -11,24 +11,19 @@ from collections import defaultdict
 logger = structlog.get_logger(__name__)
 
 
-def get_find_refs_cache_key(post_body):
-   md5_input = f"{post_body['title']}|{post_body['text']}".encode()
-   return md5(md5_input).hexdigest()
-
-
 @django_cache(cache_type="persistent")
 def make_find_refs_response(post_body, with_text, debug, max_segments):
     from sefaria.utils.hebrew import is_hebrew
 
     resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post_body['text']['text']) else 'en'
+    lang = 'he' if is_hebrew(post_body['text']['body']) else 'en'
     resolved_title = resolver.bulk_resolve_refs(lang, [None], [post_body['text']['title']])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']['text']], with_failures=True)
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']['body']], with_failures=True)
 
     response = {
         "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
-        "text": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
+        "body": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
     }
 
     if 'metaDataForTracking' in post_body:
