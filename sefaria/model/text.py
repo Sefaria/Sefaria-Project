@@ -2403,15 +2403,16 @@ class TextFamily(object):
 
         self._skip_nums = copy.deepcopy(getattr(self._inode, 'skip_nums', {}))
         if self._skip_nums and oref.sections:
-            for depth in sorted(self._skip_nums.keys(), key=lambda x: int(x)):
-                intdepth = int(depth)
+            depths = sorted([int(x) for x in self._skip_nums.keys()])
+            for depth in depths:
                 if depth == 1:
                     continue
-                if len(oref.sections) > intdepth - 2:
-                    last = reduce(lambda x, y: x[-1], range(intdepth-2), self._skip_nums[depth])
-                    del last[oref.toSections[intdepth-2]:]
-                    first = reduce(lambda x, y: x[0], range(intdepth-2), self._skip_nums[depth])
-                    del first[:oref.sections[intdepth-2]-1]
+                if len(oref.sections) > depth - 2:
+                    for d in range(depth, max(depths)+1):
+                        last = reduce(lambda x, _: x[-1], range(depth-2), self._skip_nums[str(d)])
+                        del last[oref.toSections[depth-2]:]
+                        first = reduce(lambda x, _: x[0], range(depth-2), self._skip_nums[str(d)])
+                        del first[:oref.sections[depth-2]-1]
 
     def contents(self):
         """

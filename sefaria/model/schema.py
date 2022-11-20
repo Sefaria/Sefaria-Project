@@ -1566,8 +1566,8 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
                 else:
                     for array in to_check:
                         check_skip(array, depth-1)
-            for v in self.skip_nums.values():
-                check_skip(v, self.depth-1)
+            for k, v in self.skip_nums.items():
+                check_skip(v, int(k)-1)
 
     def has_numeric_continuation(self):
         return True
