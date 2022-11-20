@@ -290,27 +290,16 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
-@api_view(["GET"])
-def find_refs_cache_api(request, cache_key):
-    result = scache.get_cache_elem(cache_key, cache_type="persistent")
-    if not result:
-        return jsonResponse({'cacheMiss': True})
-    else:
-        return jsonResponse(result)
-
-
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response, get_find_refs_cache_key
+    from sefaria.helper.linker import make_find_refs_response
 
     with_text = bool(int(request.GET.get("with_text", False)))
     debug = bool(int(request.GET.get("debug", False)))
     max_segments = int(request.GET.get("max_segments", 0))
     post_body = json.loads(request.body)
-    cache_key = get_find_refs_cache_key(post_body)
 
     response = make_find_refs_response(post_body, with_text, debug, max_segments)
-    scache.set_cache_elem(cache_key, response, cache_type="persistent")
     return jsonResponse(response)
 
 

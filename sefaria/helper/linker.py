@@ -3,6 +3,7 @@ import structlog
 from hashlib import md5
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text, library
+from sefaria.system.cache import django_cache
 from typing import List, Union, Optional
 from collections import defaultdict
 
@@ -14,6 +15,7 @@ def get_find_refs_cache_key(post_body):
    return md5(md5_input).hexdigest()
 
 
+@django_cache(cache_type="persistent")
 def make_find_refs_response(post_body, with_text, debug, max_segments):
     from sefaria.utils.hebrew import is_hebrew
 

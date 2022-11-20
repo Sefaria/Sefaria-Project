@@ -359,31 +359,10 @@ const SELECTOR_WHITE_LIST = {
 
     function findRefs() {
         const postData = getFindRefsRequest();
-        return getCachedResults(postData).then(results => {
-            if (results) {
-                onFindRefs(results);
-            } else {
-                getUncachedResults(postData).then(onFindRefs);
-            }
-        });
+        return makeFindRefsApiRequest(postData).then(onFindRefs);
     }
 
-    function getCachedResults({ text, title }) {
-        const hash = md5(`${title}|${text}`);
-        return new Promise((resolve, reject) => {
-            fetch(`${ns.sefariaUrl}/api/find-refs/cache-lookup/${hash}`, {method: 'GET'})
-                .then(handleApiResponse)
-                .then(resp => {
-                    if (resp.cacheMiss) {
-                        resolve(null);
-                    } else {
-                        resolve(resp);
-                    }
-                });
-        });
-    }
-
-    function getUncachedResults(postData) {
+    function makeFindRefsApiRequest(postData) {
         return new Promise((resolve, reject) => {
             fetch(getFindRefsUrl(), {
                 method: 'POST',
