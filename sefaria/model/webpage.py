@@ -133,7 +133,6 @@ class WebPage(abst.AbstractMongoRecord):
     def add_hit(self):
         self.linkerHits += 1
         self.lastUpdated = datetime.now()
-        self.save()
 
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
