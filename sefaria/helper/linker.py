@@ -1,14 +1,19 @@
 import spacy
 import structlog
-from hashlib import md5
 from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
 from typing import List, Union, Optional
-from collections import defaultdict
 
 logger = structlog.get_logger(__name__)
+
+
+def add_webpage_hit_for_url(url):
+    if url is None: return
+    webpage = WebPage().load(url)
+    if not webpage: return
+    webpage.add_hit()
 
 
 @django_cache(cache_type="persistent")
