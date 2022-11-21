@@ -300,6 +300,10 @@ def find_refs_api(request):
     post_body = json.loads(request.body)
 
     response = make_find_refs_response(post_body, with_text, debug, max_segments)
+
+    webpage = WebPage().load(post_body['metaDataForTracking']['url'])
+    webpage.add_hit()
+
     return jsonResponse(response)
 
 
@@ -441,7 +445,8 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    status = WebPage.add_or_update_from_linker(data)
+    status, webpage = WebPage.add_or_update_from_linker(data)
+    webpage.add_hit()
 
     return jsonResponse({"status": status})
 

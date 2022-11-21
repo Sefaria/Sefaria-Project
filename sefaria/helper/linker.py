@@ -28,14 +28,13 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
 
     if 'metaDataForTracking' in post_body:
         meta_data = post_body['metaDataForTracking']
-        url = WebPage.normalize_url(meta_data["url"])
-        _ = WebPage.add_or_update_from_linker({
-            "url": url,
+        _, webpage = WebPage.add_or_update_from_linker({
+            "url": meta_data['url'],
             "title": meta_data['title'],
             "description": meta_data['description'],
             "refs": get_trefs_from_response(response),
         })
-        response['url'] = url
+        response['url'] = webpage.url
 
     return response
 

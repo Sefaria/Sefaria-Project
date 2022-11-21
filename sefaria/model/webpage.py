@@ -51,6 +51,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     def _init_defaults(self):
         self.linkerHits = 0
+        self.lastUpdated = datetime.now()
 
     @staticmethod
     def _normalize_refs(refs):
@@ -64,7 +65,6 @@ class WebPage(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(WebPage, self)._validate()
-
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
@@ -123,6 +123,18 @@ class WebPage(abst.AbstractMongoRecord):
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(url_match) or re.search(title_regex, self.title)
 
+    def delete_if_should_be_excluded(self):
+        if not self.should_be_excluded():
+            return False
+        if not self.is_new():
+            self.delete()
+        return True
+
+    def add_hit(self):
+        self.linkerHits += 1
+        self.lastUpdated = datetime.now()
+        self.save()
+
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
@@ -168,31 +180,23 @@ class WebPage(abst.AbstractMongoRecord):
         temp_webpage = WebPage(webpage_contents)
         webpage = WebPage().load(temp_webpage.url)
         if webpage:
-            existing = True
             if temp_webpage.title == webpage.title and temp_webpage.description == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
-                return "excluded"  # no new data
-            if temp_webpage.title == "":
-                temp_webpage.title = webpage.title  # dont save an empty title if title exists
+                return "excluded", webpage  # no new data
             contents_to_overwrite = {
                 "url": temp_webpage.url,
-                "title": temp_webpage.title,
+                "title": temp_webpage.title or webpage.title,
                 "refs": temp_webpage.refs,
                 "description": temp_webpage.description,
             }
             webpage.load_from_dict(contents_to_overwrite)
         else:
             webpage = temp_webpage
-            existing = False
 
-        if webpage.should_be_excluded():
-            if existing:
-                webpage.delete()
-            return "excluded"
+        if webpage.delete_if_should_be_excluded():
+            return "excluded", None
 
-        webpage.linkerHits += 1
-        webpage.lastUpdated = datetime.now()
         webpage.save()
-        return "saved"
+        return "saved", webpage
 
     def client_contents(self):
         d = self.contents()
