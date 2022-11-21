@@ -170,12 +170,13 @@ class WebPage(abst.AbstractMongoRecord):
         return None
 
     @staticmethod
-    def add_or_update_from_linker(webpage_contents: dict):
+    def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
         """
         Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
         Returns True is data was saved, False if data was determined to be excluded
 
         @param webpage_contents: a dict representing the contents of a `WebPage`
+        @param add_hit: True if you want to add hit to webpage in webpages collection
         """
         temp_webpage = WebPage(webpage_contents)
         webpage = WebPage().load(temp_webpage.url)
@@ -195,6 +196,8 @@ class WebPage(abst.AbstractMongoRecord):
         if webpage.delete_if_should_be_excluded():
             return "excluded", None
 
+        if add_hit:
+            webpage.add_hit()
         webpage.save()
         return "saved", webpage
 

@@ -444,7 +444,6 @@ def linker_tracking_api(request):
     data = json.loads(j)
 
     status, webpage = WebPage.add_or_update_from_linker(data)
-    webpage.add_hit()
 
     return jsonResponse({"status": status})
 

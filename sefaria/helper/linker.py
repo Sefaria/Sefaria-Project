@@ -38,7 +38,7 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
             "title": meta_data['title'],
             "description": meta_data['description'],
             "refs": get_trefs_from_response(response),
-        })
+        }, add_hit=False)
         response['url'] = webpage.url
 
     return response
