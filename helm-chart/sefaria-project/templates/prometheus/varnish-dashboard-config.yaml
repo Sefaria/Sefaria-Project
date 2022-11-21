@@ -1311,7 +1311,7 @@ data:
               "expr": "varnish_sma_g_bytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\", type=\"s0\"}",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{pod}}",
+              "legendFormat": {{ `"{{pod}}"` }},
               "refId": "A"
             }
           ],
@@ -1706,7 +1706,7 @@ data:
               "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])) by (backend)",
               "format": "time_series",
               "intervalFactor": 2,
-              "legendFormat": "backend {{ backend }}",
+              "legendFormat": {{ `"backend {{ backend }}"` }},
               "refId": "C",
               "step": 120
             }
@@ -2174,7 +2174,7 @@ data:
               "format": "time_series",
               "hide": false,
               "intervalFactor": 1,
-              "legendFormat": "{{type}}",
+              "legendFormat": {{ `"{{type}}"` }},
               "refId": "A"
             }
           ],
@@ -2352,7 +2352,7 @@ data:
               "expr": "sum(irate(varnish_main_fetch{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m])) by (type)",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": "{{type}}",
+              "legendFormat": {{ `"{{type}}"` }},
               "refId": "A"
             }
           ],

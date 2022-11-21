@@ -4,17 +4,12 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// const SEFARIA_BASE_URL = 'http://localhost:8000';
-const SEFARIA_BASE_URL = 'https://www.sefaria.org';
-
 // hard-coding for now list of elements that get cut off with Readability
 const SELECTOR_WHITE_LIST = {
-    "etzion.org.il": ["p.footnote"],
-    "torah.etzion.org.il": ["p.footnote", "#maintext"],
-    "haretzion.linnovate.co.il": ["p.footonote"],
     "www.mayim.org.il": [".footnotes.wpb_column"],
     "daf-yomi.com": ["#oContent"],
     "benyehuda.org": [".footnotes"],
+    "daatemet.org.il": ["#main"],
 };
 
 (function(ns) {
@@ -25,11 +20,10 @@ const SELECTOR_WHITE_LIST = {
         return cleanedElem.textContent;
     }
 
-    function getWhiteListText(currText) {
-        const whiteListSelectors = SELECTOR_WHITE_LIST[window.location.hostname];
-        if (!whiteListSelectors) { return ""; }
-        const whiteListElems = document.querySelectorAll(whiteListSelectors.join(", "));
-        return [].reduce.call(whiteListElems, (prev, curr) => {
+    function getWhitelistText(currText) {
+        if (!ns.whitelistSelectors || ns.whitelistSelectors.length === 0) { return ""; }
+        const whitelistElems = document.querySelectorAll(ns.whitelistSelectors.join(", "));
+        return [].reduce.call(whitelistElems, (prev, curr) => {
             const currCleaned = sanitizeElem(removeUnwantedElems(curr));
             if (currText.indexOf(currCleaned) > -1) { return prev; }  // assumption is this text was already included by Readability so no need to include again
             return prev + currCleaned;
@@ -162,7 +156,7 @@ const SELECTOR_WHITE_LIST = {
         };
     }
 
-    function createATag(linkFailed, ref, text, url, isAmbiguous, iLinkObj) {
+    function createATag(linkFailed, ref, text, url, isAmbiguous, iLinkObj, resultsKey) {
         const atag = document.createElement("a");
         atag.target = "_blank";
         atag.textContent = text;
@@ -174,38 +168,40 @@ const SELECTOR_WHITE_LIST = {
         }
 
         atag.setAttribute('data-result-index', iLinkObj);
+        atag.setAttribute('data-result-key', resultsKey);
 
         if (linkFailed) { return atag; }  // debug and linkFailed
 
-        atag.href = `${SEFARIA_BASE_URL}/${url}`;
+        atag.href = `${ns.sefariaUrl}/${url}`;
         atag.setAttribute('data-ref', ref);
         atag.setAttribute('aria-controls', 'sefaria-popup');
         return atag;
     }
 
-    function createATagWithDebugInfo(urls, linkObj, text, iLinkObj) {
+    function createATagWithDebugInfo(urls, linkObj, text, iLinkObj, resultsKey) {
         /**
          * if urls is null or len 1, return a tag
          * else, return a span with n a tags to represent an ambiguous reference.
          * urls should only be more than len 1 in debug mode
          */
-        if (!urls) {
-            return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj);
+        if (!urls || (!ns.debug && urls.length > 1)) {
+            return createATag(linkObj.linkFailed, null, text, null, false, iLinkObj, resultsKey);
         } else if (urls.length === 1) {
-            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj);
+            return createATag(linkObj.linkFailed, linkObj.refs[0], text, urls[0], false, iLinkObj, resultsKey);
         } else {
+            // debug and more than 1 url
             const node = document.createElement("span");
             node.className="sefaria-ref-wrapper";
             for (let i = 0; i < urls.length; i++) {
                 const tempText = i === 0 ? text : `[${i}]`;
-                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true, iLinkObj);
+                const atag = createATag(linkObj.linkFailed, linkObj.refs[i], tempText, urls[i], true, iLinkObj, resultsKey);
                 node.appendChild(atag);
             }
             return node;
         }
     }
 
-    function wrapRef(linkObj, normalizedText, refData, iLinkObj, maxNumWordsAround = 10, maxSearchLength = 30) {
+    function wrapRef(linkObj, normalizedText, refData, iLinkObj, resultsKey, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
          * wraps linkObj.text with an atag. In the case linkObj.text appears multiple times on the page,
          * increases search scope to ensure we wrap the correct instance of linkObj.text
@@ -232,7 +228,9 @@ const SELECTOR_WHITE_LIST = {
             if (searchText.length >= maxSearchLength) { break; }
         }
         if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
-            console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            if (ns.debug) {
+                console.log("MISSED", numWordsAround, occurrences.length, linkObj);
+            }
             return;
         }
         const globalLinkStarts = occurrences.map(([start, end]) => linkStartChar + start);
@@ -248,21 +246,36 @@ const SELECTOR_WHITE_LIST = {
                 const [excludeFromLinking, excludeFromTracking] = excluder.shouldExclude(matchKey, portion.node);
                 if (excludeFromLinking) { return portion.text; }
                 if (!excludeFromTracking) { /* TODO ns.trackedMatches.push(matched_ref); */ }
-                return createATagWithDebugInfo(urls, linkObj, portion.text, iLinkObj);
+                return createATagWithDebugInfo(urls, linkObj, portion.text, iLinkObj, resultsKey);
             }
         });
     }
 
+    function handleApiResponse(resp) {
+        if (resp.ok) {
+            return resp.json();
+        } else if (ns.debug) {
+            resp.text().then(text => alert(text));
+        }
+        return Promise.reject("API response not ok");
+    }
+
     function onFindRefs(resp) {
         const startTime = performance.now();
-        ns.debugData = resp.text.debugData;
-        resp.text.results.map((linkObj, iLinkObj) => {
-            wrapRef(linkObj, ns.normalizedInputText, resp.text.refData, iLinkObj);
-        });
-        bindRefClickHandlers(resp.text.refData);
-        const endTime = performance.now()
-        alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${resp.text.results.length} citations wrapped`);
-
+        let numResults = 0;
+        ns.debugData = [];
+        for (let resultsKey of ['title', 'body']) {
+            ns.debugData = ns.debugData.concat(resp[resultsKey].debugData);
+            resp[resultsKey].results.map((linkObj, iLinkObj) => {
+                wrapRef(linkObj, ns.normalizedInputText[resultsKey], resp[resultsKey].refData, iLinkObj + numResults, resultsKey);
+            });
+            bindRefClickHandlers(resp[resultsKey].refData, resultsKey);
+            numResults += resp[resultsKey].results.length;
+        }
+        const endTime = performance.now();
+        if (ns.debug) {
+            alert(`Linker results are ready! Took ${endTime - startTime} ms to wrap. ${numResults} citations wrapped`);
+        }
     }
 
     function reportCitation(elem, event, ...rest) {
@@ -275,36 +288,112 @@ const SELECTOR_WHITE_LIST = {
             debugData: ns.debugData[iLinkObj],
             url: window.location.href,
         };
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs/report`, {
+        console.log("Report citation debug info:", postData);
+        fetch(`${ns.sefariaUrl}/api/find-refs/report`, {
             method: 'POST',
             body: JSON.stringify(postData)
         })
-        .then(
-            (resp) => {
-                if (resp.ok) {
-                    resp.json();
-                } else {
-                    resp.text().then(text => alert(text));
-                }
-            }
-        );
+        .then(handleApiResponse);
     }
 
-    function bindRefClickHandlers(refData) {
+    function bindRefClickHandlers(refData, resultsKey) {
         // Bind a click event and a mouseover event to each link
-        [].forEach.call(document.querySelectorAll('.sefaria-ref'),(elem) => {
+        [].forEach.call(document.querySelectorAll(`.sefaria-ref[data-result-key="${resultsKey}"]`),(elem) => {
             const ref = elem.getAttribute('data-ref');
             if (!ref && !ns.debug) { /* failed link */ return; }
             const source = refData[ref] || {};
             source.ref = ref;
-            ns.popupManager.bindEventHandler(elem, SEFARIA_BASE_URL, source);
+            ns.popupManager.bindEventHandler(elem, ns.sefariaUrl, source);
+        });
+    }
+
+    function getPageUrl() {
+        const canonical = document.head.querySelector("link[rel~=canonical]");
+        // don't use canonical url if dynamic site b/c canonical urls tend to only be correct on initial load
+        return (canonical && !ns.dynamic) ? canonical.href : window.location.href;
+    }
+
+    function getPageDescription() {
+        const meta = document.head.querySelector("meta[name~=description]")
+            || document.head.querySelector("meta[property~=description]")
+            || document.head.querySelector("meta[name~='og:description']")
+            || document.head.querySelector("meta[property~='og:description']")
+            || document.head.querySelector("meta[name~='twitter:description']")
+            || document.head.querySelector("meta[property~='twitter:description']");
+        return meta ? meta.content : "";
+    }
+
+    function getPopupModeOnMobile(mode) {
+        if (window.innerWidth < 700) {
+            // If the screen is small, default to link mode
+            return "link";
+        }
+        return mode;
+    }
+
+    function getFindRefsUrl() {
+        return `${ns.sefariaUrl}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${ns.maxParagraphs}`;
+    }
+
+    function getWebsiteApiUrl() {
+        const domain = new URL(getPageUrl()).host;
+        return `${ns.sefariaUrl}/api/websites/${encodeURIComponent(domain)}`;
+    }
+
+    function getFindRefsRequest() {
+        const {text: readableText, readableObj} = getReadableText();
+        ns.normalizedInputText = {
+            body: readableText + getWhitelistText(readableText),
+            title: readableObj.title,
+        };
+        return {
+            metaDataForTracking: {
+                url: getPageUrl(),
+                description: getPageDescription(),
+                title: document.title,
+            },
+            text: {
+                ...ns.normalizedInputText,
+            },
+        };
+    }
+
+    function getFullWhitelistSelectors(userWhitelistSelector) {
+        return fetch(getWebsiteApiUrl())
+            .then(handleApiResponse)
+            .then(json => {
+                return json.whitelist_selectors || [];
+            })
+            .then(websiteWhitelistSelectors => {
+                if (userWhitelistSelector) {
+                    return websiteWhitelistSelectors.concat([userWhitelistSelector]);
+                }
+                return websiteWhitelistSelectors;
+            });
+    }
+
+    function findRefs() {
+        const postData = getFindRefsRequest();
+        return makeFindRefsApiRequest(postData).then(onFindRefs);
+    }
+
+    function makeFindRefsApiRequest(postData) {
+        return new Promise((resolve, reject) => {
+            fetch(getFindRefsUrl(), {
+                method: 'POST',
+                body: JSON.stringify(postData)
+            })
+                .then(handleApiResponse)
+                .then(resp => resolve(resp));
         });
     }
 
     // public API
 
     ns.link = function({
+        sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
         mode = "popup-click",
+        whitelistSelector = null,
         selector = "body",           // CSS Selector
         excludeFromLinking = null,    // CSS Selector
         excludeFromTracking = null,   // CSS Selector
@@ -318,31 +407,21 @@ const SELECTOR_WHITE_LIST = {
         debug = false,
         maxParagraphs = 0,
     }) {
+        ns.sefariaUrl = sefariaUrl;
+        ns.excludeFromLinking = excludeFromLinking;
+        ns.dynamic = dynamic;
         ns.debug = debug;
+        ns.maxParagraphs = maxParagraphs;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
+        if (hidePopupsOnMobile) {
+            mode = getPopupModeOnMobile(mode);
+        }
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
-        const {text: readableText, readableObj} = getReadableText();
-        ns.normalizedInputText = readableText + getWhiteListText(readableText);
-        const postData = {
-            text: ns.normalizedInputText,
-            url: window.location.href,
-            title: readableObj.title,
-        }
 
-        fetch(`${SEFARIA_BASE_URL}/api/find-refs?with_text=1&debug=${0+ns.debug}&max_segments=${maxParagraphs}`, {
-            method: 'POST',
-            body: JSON.stringify(postData)
-        })
-        .then(
-            (resp) => {
-                if (resp.ok) {
-                    resp.json().then(onFindRefs);
-                } else {
-                    resp.text().then(text => alert(text));
-                }
-            }
-        );
+        getFullWhitelistSelectors()
+            .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
+            .then(findRefs);
     }
 }(window.sefariaV3 = window.sefariaV3 || {}));
