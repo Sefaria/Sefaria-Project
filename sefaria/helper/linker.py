@@ -14,6 +14,7 @@ def add_webpage_hit_for_url(url):
     webpage = WebPage().load(url)
     if not webpage: return
     webpage.add_hit()
+    webpage.save()
 
 
 @django_cache(cache_type="persistent")
