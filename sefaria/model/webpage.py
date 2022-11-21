@@ -39,6 +39,10 @@ class WebPage(abst.AbstractMongoRecord):
 
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
+            self.url = self.normalize_url(self.url)
+            self.refs = self._normalize_refs(getattr(self, "refs", []))
+            self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
+            self.description = self.clean_description(getattr(self, "description", ""))
             self.domain      = WebPage.domain_for_url(self.url)
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
@@ -153,31 +157,31 @@ class WebPage(abst.AbstractMongoRecord):
                     return site
         return None
 
-
     @staticmethod
     def add_or_update_from_linker(webpage_contents: dict):
         """
         Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
-        Returns True is data was saved, False if data was determined to be exluded
+        Returns True is data was saved, False if data was determined to be excluded
 
         @param webpage_contents: a dict representing the contents of a `WebPage`
         """
-        webpage_contents["url"] = WebPage.normalize_url(webpage_contents["url"])
-        webpage = WebPage().load(webpage_contents["url"])
-        webpage_contents["refs"] = WebPage._normalize_refs(webpage_contents["refs"])  # remove bad refs so pages with empty refs won't get saved
-        webpage_contents["title"] = WebPage.clean_title(webpage_contents["title"], getattr(webpage, "_site_data", {}),
-                                            getattr(webpage, "site_name", ""))
-        webpage_contents["description"] = WebPage.clean_description(webpage_contents.get("description", ""))
-
+        temp_webpage = WebPage(webpage_contents)
+        webpage = WebPage().load(temp_webpage.url)
         if webpage:
             existing = True
-            if webpage_contents["title"] == webpage.title and webpage_contents["description"] == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
+            if temp_webpage.title == webpage.title and temp_webpage.description == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
                 return "excluded"  # no new data
-            if webpage_contents["title"] == "":
-                webpage_contents["title"] = webpage.title  # dont save an empty title if title exists
-            webpage.load_from_dict(webpage_contents)
+            if temp_webpage.title == "":
+                temp_webpage.title = webpage.title  # dont save an empty title if title exists
+            contents_to_overwrite = {
+                "url": temp_webpage.url,
+                "title": temp_webpage.title,
+                "refs": temp_webpage.refs,
+                "description": temp_webpage.description,
+            }
+            webpage.load_from_dict(contents_to_overwrite)
         else:
-            webpage = WebPage(webpage_contents)
+            webpage = temp_webpage
             existing = False
 
         if webpage.should_be_excluded():
@@ -199,7 +203,8 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.clean_client_contents(d)
         return d
 
-    def clean_client_contents(self, d):
+    @staticmethod
+    def clean_client_contents(d):
         d["title"]       = WebPage.clean_title(d["title"], d.get("_site_data", {}), d.get("site_name", ""))
         d["description"] = WebPage.clean_description(d.get("description", ""))
         return d
