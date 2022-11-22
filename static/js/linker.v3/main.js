@@ -4,13 +4,6 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// hard-coding for now list of elements that get cut off with Readability
-const SELECTOR_WHITE_LIST = {
-    "www.mayim.org.il": [".footnotes.wpb_column"],
-    "daf-yomi.com": ["#oContent"],
-    "benyehuda.org": [".footnotes"],
-    "daatemet.org.il": ["#main"],
-};
 
 (function(ns) {
     function sanitizeElem(elem) {
