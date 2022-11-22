@@ -423,4 +423,4 @@ const SELECTOR_WHITE_LIST = {
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }
-}(window.sefariaV3 = window.sefariaV3 || {}));
+}(window.sefaria = window.sefaria || {}));
