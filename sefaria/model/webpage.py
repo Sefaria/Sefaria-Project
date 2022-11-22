@@ -57,7 +57,7 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def _normalize_refs(refs):
-        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref)}
         return list(refs)
 
     def _normalize(self):
