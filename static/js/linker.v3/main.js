@@ -405,13 +405,12 @@ const SELECTOR_WHITE_LIST = {
         dynamic = false,
         hidePopupsOnMobile = true,
         debug = false,
-        maxParagraphs = 0,
     }) {
         ns.sefariaUrl = sefariaUrl;
         ns.excludeFromLinking = excludeFromLinking;
         ns.dynamic = dynamic;
         ns.debug = debug;
-        ns.maxParagraphs = maxParagraphs;
+        ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
         if (hidePopupsOnMobile) {
