@@ -7,11 +7,14 @@ import sefaria.system.logging as sefaria_logging
 
 # These are things you need to change!
 
-################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE (If the db.sqlite file does not exist, simply create it) ########################################
+################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE
+# (If the db.sqlite file does not exist, simply create a path to where it can be created.
+# You can just put to the path to your Sefaria-Project, as all sqlite files in our repo are ignored by git,
+# and won't accidentally be committed) ########################################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/path/to/your/sefaria/data/db.sqlite', # Or path to database file if using sqlite3.
+        'NAME': '/path/to/your/sefaria/data/', # Path to where you would like the database to be created, or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
