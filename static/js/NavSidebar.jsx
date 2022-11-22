@@ -466,7 +466,7 @@ const AboutTopics = ({hideTitle}) => (
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>
         <HebrewText>
-"בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
+בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
         </HebrewText>
         <EnglishText>
             Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.
