@@ -1090,11 +1090,19 @@ class NumberedTitledTreeNode(TitledTreeNode):
             serial['depth'] -= next_referenceable_depth
             if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
                 return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
-            if self.depth <= 1: return
-            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-                # truncate every list attribute by `next_referenceable_depth`
-                if list_attr not in serial: continue
-                serial[list_attr] = serial[list_attr][next_referenceable_depth:]
+            if (self.depth - next_referenceable_depth) == 0:
+                if self.addressTypes[0] == "Talmud":
+                    serial['addressTypes'] = ["Amud"]
+                    serial['sectionNames'] = ["Amud"]
+                    serial['lengths'] = [1]
+                    serial['referenceableSections'] = [True]
+                else:
+                    return
+            else:
+                for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
+                    # truncate every list attribute by `next_referenceable_depth`
+                    if list_attr not in serial: continue
+                    serial[list_attr] = serial[list_attr][next_referenceable_depth:]
         else:
             # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
             serial = self.serialize()
@@ -2699,3 +2707,7 @@ class AddressSection(AddressInteger):
         "en": r"""(?:(?:([Ss]ections?|§)?\s*))""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r""""""
     }
+
+
+class AddressAmud(AddressInteger):
+    pass

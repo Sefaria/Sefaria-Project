@@ -66,6 +66,18 @@ def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
         return idx, idx + len(span)
 
 
+def subref(ref: text.Ref, section: int):
+    if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
+        if section > 2:
+            raise InputError
+        d = ref._core_dict()
+        d['sections'][-1] += (section-1)
+        d['toSections'] = d['sections'][:]
+        return text.Ref(_obj=d)
+    else:
+        return ref.subref(section)
+
+
 class ResolutionThoroughness(IntEnum):
     NORMAL = 1
     HIGH = 2
@@ -676,9 +688,9 @@ class ResolvedRef(abst.Cloneable):
                 """
                 continue
             try:
-                refined_ref = self.ref.subref(sec)
+                refined_ref = subref(self.ref, sec)
                 if toSec != sec:
-                    to_ref = self.ref.subref(toSec)
+                    to_ref = subref(self.ref, toSec)
                     refined_ref = refined_ref.to(to_ref)
                 refined_refs += [refined_ref]
                 addr_classes_used += [addr_class]
