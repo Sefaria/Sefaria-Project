@@ -78,7 +78,8 @@ crrd = create_raw_ref_data
     [crrd(['@ובתוס\'', '#דכ"ז ע"ב', '*ד"ה והלכתא'], "Rashi on Berakhot 2a"), ("Tosafot on Berakhot 27b:14:2",)],  # shared context child via graph context
 
     # Ibid
-    [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7"]],
+    [crrd(['&שם', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 7", "Genesis 1:7"]],  # ambiguous ibid
+    [crrd(['#ב'], prev_trefs=["Genesis 1"]), ["Genesis 1:2", "Genesis 2"]],  # ambiguous ibid
     [crrd(['#ב', '#ז'], prev_trefs=["Genesis 1:3", "Exodus 1:3"]), ["Genesis 2:7", "Exodus 2:7"]],
     [crrd(['@בראשית', '&שם', '#ז'], prev_trefs=["Exodus 1:3", "Genesis 1:3"]), ["Genesis 1:7"]],
     [crrd(['&שם', '#ב', '#ז'], prev_trefs=["Genesis 1"]), ["Genesis 2:7"]],
