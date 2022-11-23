@@ -4,13 +4,6 @@ import findAndReplaceDOMText from 'findandreplacedomtext';
 import { PopupManager } from "./popup";
 import {LinkExcluder} from "./excluder";
 
-// hard-coding for now list of elements that get cut off with Readability
-const SELECTOR_WHITE_LIST = {
-    "www.mayim.org.il": [".footnotes.wpb_column"],
-    "daf-yomi.com": ["#oContent"],
-    "benyehuda.org": [".footnotes"],
-    "daatemet.org.il": ["#main"],
-};
 
 (function(ns) {
     function sanitizeElem(elem) {
@@ -405,13 +398,12 @@ const SELECTOR_WHITE_LIST = {
         dynamic = false,
         hidePopupsOnMobile = true,
         debug = false,
-        maxParagraphs = 0,
     }) {
         ns.sefariaUrl = sefariaUrl;
         ns.excludeFromLinking = excludeFromLinking;
         ns.dynamic = dynamic;
         ns.debug = debug;
-        ns.maxParagraphs = maxParagraphs;
+        ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (debug || true) { removeExistingSefariaLinks(); }
         if (hidePopupsOnMobile) {
@@ -424,4 +416,4 @@ const SELECTOR_WHITE_LIST = {
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }
-}(window.sefariaV3 = window.sefariaV3 || {}));
+}(window.sefaria = window.sefaria || {}));
