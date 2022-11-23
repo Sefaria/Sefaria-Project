@@ -1441,7 +1441,7 @@ class RefResolver:
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
             matches += self._get_unrefined_ref_part_matches_recursive(lang, temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
-        return self._prune_unrefined_ref_part_matches(matches)
+        return ResolvedRefPruner.prune_unrefined_ref_part_matches(matches)
 
     def refine_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         matches = []
@@ -1456,7 +1456,7 @@ class RefResolver:
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
             for context_ref, context_type in zip(context_ref_list, context_type_list):
                 matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
-        return self._prune_refined_ref_part_matches(matches)
+        return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, matches)
 
     @staticmethod
     def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
@@ -1554,8 +1554,14 @@ class RefResolver:
             return [match]
         return fully_refined
 
+
+class ResolvedRefPruner:
+
+    def __init__(self):
+        pass
+
     @staticmethod
-    def _prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
+    def prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
             key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
@@ -1594,24 +1600,25 @@ class RefResolver:
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
         # make sure no explicit sections matched before context sections
-        if RefResolver.do_explicit_sections_match_before_context_sections(match):
+        if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
             return False
-        return RefResolver.matched_all_explicit_sections(match)
+        return ResolvedRefPruner.matched_all_explicit_sections(match)
 
-    def remove_superfluous_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+    @staticmethod
+    def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         # make unique
         resolved_refs = list({r.ref: r for r in resolved_refs}.values())
-        if self._thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
+        if thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
             # remove matches that have empty refs
             resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
         return resolved_refs
 
     @staticmethod
     def remove_incorrect_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
-        temp_resolved_refs = list(filter(RefResolver.is_match_correct, resolved_refs))
+        temp_resolved_refs = list(filter(ResolvedRefPruner.is_match_correct, resolved_refs))
         if len(temp_resolved_refs) == 0:
-            temp_resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
-            temp_resolved_refs = list(filter(RefResolver.is_match_correct, temp_resolved_refs))
+            temp_resolved_refs = ResolvedRefPruner._merge_subset_matches(resolved_refs)
+            temp_resolved_refs = list(filter(ResolvedRefPruner.is_match_correct, temp_resolved_refs))
         return temp_resolved_refs
 
     @staticmethod
@@ -1630,21 +1637,22 @@ class RefResolver:
             top_resolved_refs += [resolved_ref]
         return top_resolved_refs
 
-    def _prune_refined_ref_part_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+    @staticmethod
+    def prune_refined_ref_part_matches(thoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         """
         Applies some heuristics to remove false positives
         """
-        resolved_refs = self.remove_incorrect_matches(resolved_refs)
+        resolved_refs = ResolvedRefPruner.remove_incorrect_matches(resolved_refs)
         if len(resolved_refs) == 0:
             return resolved_refs
 
         # if any context-free match uses all input parts, dont need to try context
-        context_free_matches = self.get_context_free_matches(resolved_refs)
+        context_free_matches = ResolvedRefPruner.get_context_free_matches(resolved_refs)
         if len(context_free_matches) > 0:
             resolved_refs = context_free_matches
 
-        resolved_refs = self.get_top_matches_by_order_key(resolved_refs)
-        resolved_refs = self.remove_superfluous_matches(resolved_refs)
+        resolved_refs = ResolvedRefPruner.get_top_matches_by_order_key(resolved_refs)
+        resolved_refs = ResolvedRefPruner.remove_superfluous_matches(thoroughness, resolved_refs)
 
         return resolved_refs
 
