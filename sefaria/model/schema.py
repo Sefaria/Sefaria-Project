@@ -1084,13 +1084,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
                     next_refereceable_depth += 1
             serial = self.serialize()
             serial['depth'] -= next_refereceable_depth
+            if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
+                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
+            if self.depth <= 1: return
             for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
                 # truncate every list attribute by `next_referenceable_depth`
                 if list_attr not in serial: continue
                 serial[list_attr] = serial[list_attr][next_refereceable_depth:]
-            if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
-                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
-            if self.depth <= 1: return
         else:
             # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
             serial = self.serialize()
