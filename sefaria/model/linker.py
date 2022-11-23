@@ -1565,60 +1565,88 @@ class RefResolver:
             pruned_matches += [max(match_list, key=lambda m: m.num_resolved())]
         return pruned_matches
 
+    @staticmethod
+    def do_explicit_sections_match_before_context_sections(match: ResolvedRef) -> bool:
+        first_explicit_section = None
+        for part in match.get_resolved_parts():
+            if not first_explicit_section and part.type == RefPartType.NUMBERED and not part.is_context:
+                first_explicit_section = part
+            elif first_explicit_section and part.is_context:
+                return True
+        return False
+
+    @staticmethod
+    def matched_all_explicit_sections(match: ResolvedRef) -> bool:
+        resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
+        to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
+
+        if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
+            # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate
+            # comparison. this is a bit hacky but seems to work for all known cases so far.
+            num_parts_to_remove = match.num_resolved(include={ContextPart})
+            for _ in range(num_parts_to_remove):
+                part = next((p for p in to_match_explicit if p.type in CONTEXT_TO_REF_PART_TYPE[match.context_type]), None)
+                if part is None:
+                    break  # no more
+                to_match_explicit.remove(part)
+        return resolved_explicit == to_match_explicit
+
+    @staticmethod
+    def is_match_correct(match: ResolvedRef) -> bool:
+        # make sure no explicit sections matched before context sections
+        if RefResolver.do_explicit_sections_match_before_context_sections(match):
+            return False
+        return RefResolver.matched_all_explicit_sections(match)
+
+    def remove_superfluous_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        # make unique
+        resolved_refs = list({r.ref: r for r in resolved_refs}.values())
+        if self._thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
+            # remove matches that have empty refs
+            resolved_refs = list(filter(lambda x: not x.ref.is_empty(), resolved_refs))
+        return resolved_refs
+
+    @staticmethod
+    def remove_incorrect_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        temp_resolved_refs = list(filter(RefResolver.is_match_correct, resolved_refs))
+        if len(temp_resolved_refs) == 0:
+            temp_resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
+            temp_resolved_refs = list(filter(RefResolver.is_match_correct, temp_resolved_refs))
+        return temp_resolved_refs
+
+    @staticmethod
+    def get_context_free_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        def match_is_context_free(match: ResolvedRef) -> bool:
+            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_ref.parts_to_match)
+        return list(filter(match_is_context_free, resolved_refs))
+
+    @staticmethod
+    def get_top_matches_by_order_key(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
+        top_order_key = resolved_refs[0].order_key
+        top_resolved_refs = []
+        for resolved_ref in resolved_refs:
+            if resolved_ref.order_key != top_order_key: break
+            top_resolved_refs += [resolved_ref]
+        return top_resolved_refs
+
     def _prune_refined_ref_part_matches(self, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         """
         Applies some heuristics to remove false positives
         """
-        # remove matches that don't match all ref parts to avoid false positives
-        def filter_matches(match: ResolvedRef) -> bool:
-            # make sure no explicit sections matched before context sections
-            first_explicit_section = None
-            for part in match.get_resolved_parts():
-                if not first_explicit_section and part.type == RefPartType.NUMBERED and not part.is_context:
-                    first_explicit_section = part
-                elif first_explicit_section and part.is_context:
-                    return False
-
-            resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
-            to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
-
-            if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
-                # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate
-                # comparison. this is a bit hacky but seems to work for all known cases so far.
-                num_parts_to_remove = match.num_resolved(include={ContextPart})
-                for _ in range(num_parts_to_remove):
-                    part = next((p for p in to_match_explicit if p.type in CONTEXT_TO_REF_PART_TYPE[match.context_type]), None)
-                    if part is None:
-                        break  # no more
-                    to_match_explicit.remove(part)
-            return resolved_explicit == to_match_explicit
-
-        temp_resolved_refs = list(filter(filter_matches, resolved_refs))
-        if len(temp_resolved_refs) == 0:
-            temp_resolved_refs = RefResolver._merge_subset_matches(resolved_refs)
-            temp_resolved_refs = list(filter(filter_matches, temp_resolved_refs))
-            if len(temp_resolved_refs) == 0:
-                return temp_resolved_refs
-        resolved_refs = temp_resolved_refs
+        resolved_refs = self.remove_incorrect_matches(resolved_refs)
+        if len(resolved_refs) == 0:
+            return resolved_refs
 
         # if any context-free match uses all input parts, dont need to try context
-        context_free_matches = list(filter(lambda m: m.context_ref is None and set(m.get_resolved_parts()) == set(m.raw_ref.parts_to_match), resolved_refs))
+        context_free_matches = self.get_context_free_matches(resolved_refs)
         if len(context_free_matches) > 0:
             resolved_refs = context_free_matches
 
-        resolved_refs.sort(key=lambda x: x.order_key, reverse=True)
-        top_order_key = resolved_refs[0].order_key
-        max_resolved_refs = []
-        for resolved_ref in resolved_refs:
-            if resolved_ref.order_key != top_order_key: break
-            max_resolved_refs += [resolved_ref]
+        resolved_refs = self.get_top_matches_by_order_key(resolved_refs)
+        resolved_refs = self.remove_superfluous_matches(resolved_refs)
 
-        # make unique
-        max_resolved_refs = list({r.ref: r for r in max_resolved_refs}.values())
-        if self._thoroughness >= ResolutionThoroughness.HIGH or len(max_resolved_refs) > 1:
-            # remove matches that have empty refs
-            max_resolved_refs = list(filter(lambda x: not x.ref.is_empty(), max_resolved_refs))
-        return max_resolved_refs
+        return resolved_refs
 
     @staticmethod
     def _merge_subset_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
