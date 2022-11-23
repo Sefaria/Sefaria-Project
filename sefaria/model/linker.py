@@ -557,13 +557,14 @@ class ResolvedRef(abst.Cloneable):
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
         self.node = node
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
+        self.context_parts = context_parts or []
         self._thoroughness = _thoroughness
         self._matched_dh_map = _matched_dh_map or {}
 
@@ -776,6 +777,13 @@ class ResolvedRef(abst.Cloneable):
 
     def num_resolved(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> int:
         return len(self.get_resolved_parts(include, exclude))
+
+    @staticmethod
+    def count_by_part_type(parts) -> Dict[RefPartType, int]:
+        part_type_counts = defaultdict(int)
+        for part in parts:
+            part_type_counts[part.type] += 1
+        return part_type_counts
 
     def get_node_children(self):
         """
@@ -1386,6 +1394,7 @@ class RefResolver:
             for match in matches:
                 match.context_ref = context_ref
                 match.context_type = context_type
+                match.context_parts += [term_context]
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
@@ -1531,12 +1540,16 @@ class RefResolver:
             common_index = text.library.get_index(common_base_text)
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
-            matches += RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts + term_contexts)
-        # remove matches which dont use context
-        matches = list(filter(lambda x: x.num_resolved(include={ContextPart}), matches))
-        for match in matches:
-            match.context_ref = context_ref
-            match.context_type = context_type
+            temp_matches = RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts + term_contexts)
+
+            # remove matches which dont use context
+            temp_matches = list(filter(lambda x: x.num_resolved(include={ContextPart}), temp_matches))
+            for match in temp_matches:
+                match.context_ref = context_ref
+                match.context_type = context_type
+                match.context_parts += sec_contexts + term_contexts
+
+            matches += temp_matches
         return matches
 
     @staticmethod
@@ -1598,11 +1611,42 @@ class ResolvedRefPruner:
         return resolved_explicit == to_match_explicit
 
     @staticmethod
+    def ignored_context_ref_part_type(match: ResolvedRef) -> bool:
+        """
+        When using context, must include at least same number of ref part types in match as were in context
+        Logic being, don't drop a section without replacing it with something equivalent
+        Prevents errors like the following:
+
+        Input = [DH]
+        Context = [Title] [Section]
+        Correct Output = [Title] [Section] [DH]
+        Invalid Output = [Title] [DH]
+
+        context_ref_part_type_counts = {NAMED: 1, NUMBERED: 1}
+        output_counts = {NAMED: 1, NUMBERED: 1, DH: 1}
+        invalid_output_counts = {NAMED: 1, DH: 1}
+        """
+        context_part_type_counts = match.count_by_part_type(match.context_parts)
+        explicit_part_type_counts = match.count_by_part_type(match.get_resolved_parts())
+        for part_type, count in context_part_type_counts.items():
+            if part_type not in explicit_part_type_counts:
+                return True
+            explicit_part_type_counts[part_type] -= 1
+            if explicit_part_type_counts[part_type] < 0:
+                return True
+        return False
+
+    @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
         # make sure no explicit sections matched before context sections
         if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
             return False
-        return ResolvedRefPruner.matched_all_explicit_sections(match)
+        if not ResolvedRefPruner.matched_all_explicit_sections(match):
+            return False
+        if ResolvedRefPruner.ignored_context_ref_part_type(match):
+            return False
+
+        return True
 
     @staticmethod
     def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
