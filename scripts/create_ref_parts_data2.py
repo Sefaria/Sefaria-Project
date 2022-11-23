@@ -487,11 +487,11 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or not node.is_root(): return
+        if is_alt_node or not node.is_root(): return "NO-OP"
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return
-        if comm_term is None: return
-        if self.get_match_template_suffixes is None: return
+        except: return "NO-OP"
+        if comm_term is None: return "NO-OP"
+        if self.get_match_template_suffixes is None: return "NO-OP"
 
         match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
         for template in match_templates:
@@ -700,13 +700,16 @@ class LinkerIndexConverter:
     def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
         if self.get_match_templates:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
-            if templates is not None:
+            if templates == "NO-OP":
+                pass
+            elif templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
-            # else:
-            #     try:
-            #         delattr(node, 'match_templates')
-            #     except:
-            #         pass
+            else:
+                # None
+                try:
+                    delattr(node, 'match_templates')
+                except:
+                    pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
