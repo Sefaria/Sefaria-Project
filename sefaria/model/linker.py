@@ -1343,14 +1343,17 @@ class RefResolver:
                 resolved_list += temp_resolved_list
 
         if len(resolved_list) == 0:
-            # support basic ref instantiation as fall-back
-            try:
-                ref = text.Ref(raw_ref.text)
-                resolved_list += [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
-            except:
-                pass
+            resolved_list += self.resolve_raw_ref_using_ref_instantiation(raw_ref)
 
         return resolved_list
+
+    @staticmethod
+    def resolve_raw_ref_using_ref_instantiation(raw_ref: RawRef) -> List[ResolvedRef]:
+        try:
+            ref = text.Ref(raw_ref.text)
+            return [ResolvedRef(raw_ref, raw_ref.parts_to_match, None, ref)]
+        except:
+            return []
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
         'ResolvedRef']:
