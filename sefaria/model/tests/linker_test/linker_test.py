@@ -37,7 +37,7 @@ crrd = create_raw_ref_data
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א']), ("Genesis 13:1",)],
     [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
     [crrd(['@שמות', '#א', '#ב']), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
-    [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
+    [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],  # daf and amud split into two parts
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
