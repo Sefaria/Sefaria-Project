@@ -188,6 +188,9 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 4
         assert len(r.sections) == 1
 
+        assert m.Ref('תהלים פד:ג') == m.Ref("Psalms 84:3")  # dont strip peh when no quotation
+
+
     def test_volume_address(self):
         assert m.Ref("זוהר, ח״א, נד, ב") == m.Ref("Zohar 1:54b")
         assert m.Ref("זוהר, א, נד, ב") == m.Ref("Zohar 1:54b")

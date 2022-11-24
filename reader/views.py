@@ -34,7 +34,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
+from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
@@ -45,11 +45,11 @@ from sefaria.client.wrapper import format_object_for_client, format_note_object_
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
-from sefaria.utils.util import text_preview
+from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.utils.util import short_to_long_lang_code
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
+    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -57,11 +57,23 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.search import get_search_categories
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
+
+from sefaria.settings import NODE_TIMEOUT, DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+from sefaria.model.category import TocCollectionNode
+from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.utils.calendars import parashat_hashavua_and_haftara
+import sefaria.model.story as sefaria_story
+from PIL import Image
+from io import BytesIO
+from sefaria.utils.user import delete_user_account
+from django.core.mail import EmailMultiAlternatives
+from babel import Locale
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -136,8 +148,6 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
-    from sefaria.settings import NODE_TIMEOUT
-
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
@@ -172,10 +182,6 @@ def base_props(request):
     Returns a dictionary of props that all App pages get based on the request
     AND are able to be sent over the wire to the Node SSR server.
     """
-    from sefaria.model.user_profile import UserProfile, UserWrapper
-    from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE, RTC_SERVER
-
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
         library.init_shared_cache(rebuild=True)
@@ -311,7 +317,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
     else:
@@ -372,6 +378,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
         panel["selectedWords"] = kwargs.get("selectedWords", None)
+        panel["sidebarSearchQuery"] = kwargs.get("sidebarSearchQuery", None)
         panel["selectedNamedEntity"] = kwargs.get("selectedNamedEntity", None)
         panel["selectedNamedEntityText"] = kwargs.get("selectedNamedEntityText", None)
         if panelDisplayLanguage:
@@ -537,6 +544,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         kwargs["selectedWords"] = request.GET.get("lookup", None)
+        kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
@@ -589,6 +597,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             if request.GET.get("aliyot{}".format(i), None):
                 kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot{}".format(i))) == 1 else "aliyotOff"
             kwargs["selectedWords"] = request.GET.get(f"lookup{i}", None)
+            kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
             if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
@@ -691,11 +700,11 @@ def texts_category_list(request, cats):
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
         if len(cats) == 0 or tocObject is None:
-            return texts_list(request)      
+            return texts_list(request)
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
-        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
         title = cat_string + _(" | Sefaria")
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
 
@@ -731,7 +740,7 @@ def topics_category_page(request, topicCategory):
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
-    
+
     return render_template(request, 'base.html', props, {
         "title": title,
         "desc":  desc,
@@ -1106,7 +1115,6 @@ def _crumb(pos, id, name):
 
 
 def sheet_crumbs(request, sheet=None):
-    from sefaria.helper.topic import get_top_topic
     if sheet is None:
         return ""
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
@@ -1700,7 +1708,7 @@ def index_api(request, title, raw=False):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def bare_link_api(request, book, cat):
     if request.method == "GET":
         resp = get_book_link_collection(book, cat)
@@ -1712,7 +1720,7 @@ def bare_link_api(request, book, cat):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
@@ -1789,8 +1797,6 @@ def shape_api(request, title):
 
     The "dependents" parameter, if true, includes dependent texts.  By default, they are filtered out.
     """
-    from sefaria.model.category import TocCollectionNode
-
     def _simple_shape(snode):
         sn = StateNode(snode=snode)
         shape = sn.var("all", "shape")
@@ -2207,7 +2213,7 @@ def version_status_api(request):
 
 
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def version_status_tree_api(request, lang=None):
     return library.simplify_toc(lang=lang)
 
@@ -2358,7 +2364,6 @@ def tag_category_api(request, path=None):
         if not path or path == "index":
             categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            from sefaria.model.abstract import SluggedAbstractMongoRecord
             slug = SluggedAbstractMongoRecord.normalize_slug(path)
             topic = Topic.init(slug)
             if not topic:
@@ -2448,7 +2453,6 @@ def category_api(request, path=None):
 @csrf_exempt
 def calendars_api(request):
     if request.method == "GET":
-        import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
         zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
@@ -2464,7 +2468,7 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             # If a user is asking the API for a specific date there's really no reason to specify a timezone.
             # The user also doesnt expect the date to get mangled by the default timzone which might implicitly set it back a day
-            datetimeobj = datetime.datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
+            datetimeobj = datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
         except Exception as e:
             datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
@@ -2488,7 +2492,6 @@ def parasha_next_read_api(request, parasha):
     :param request:
     :return:
     """
-    from sefaria.utils.calendars import parashat_hashavua_and_haftara
     if request.method == "GET":
         datetimeobj = timezone.localtime(timezone.now())
         return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
@@ -2873,18 +2876,17 @@ def story_reflector(request):
             try:
                 del payload["factory"]
                 del payload["method"]
-                import sefaria.model.story as s
-                factory = getattr(s, factory_name)
+                factory = getattr(sefaria_story, factory_name)
                 method = getattr(factory, method_name)
-                s = method(**payload)
-                return jsonResponse(s.contents())
+                sefaria_story = method(**payload)
+                return jsonResponse(sefaria_story.contents())
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
         else:
             #Treat payload as attrs to story object
             try:
-                s = SharedStory(payload)
-                return jsonResponse(s.contents())
+                sefaria_story = SharedStory(payload)
+                return jsonResponse(sefaria_story.contents())
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
 
@@ -3072,7 +3074,7 @@ def block_api(request, action, uid):
     """
     API for following and unfollowing another user.
     """
-    
+
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
@@ -3090,11 +3092,11 @@ def block_api(request, action, uid):
 
 def background_data_api(request):
     """
-    API that bundles data which we want the client to prefetch, 
+    API that bundles data which we want the client to prefetch,
     but should not block initial pageload.
     """
     language = request.GET.get("locale", 'english')
-    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'. 
+    # This is an API, its excluded from interfacelang middleware. There's no point in defaulting to request.interfaceLang here as its always 'english'.
 
     data = {}
     data.update(community_page_data(request, language=language))
@@ -3181,7 +3183,6 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        from sefaria.model.abstract import SluggedAbstractMongoRecord
         topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
@@ -3365,7 +3366,7 @@ _CAT_REF_LINK_TYPE_FILTER_MAP = {
 def _topic_data(topic):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True) 
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
     return response
 
 
@@ -3376,7 +3377,6 @@ def bulk_topic_api(request):
     :param request:
     :return:
     """
-    from sefaria.helper.topic import get_bulk_topics
     if request.method == "POST":
         minify = request.GET.get("minify", False)
         postJSON = request.POST.get("json")
@@ -3390,8 +3390,6 @@ def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
     """
-    from sefaria.helper.topic import recommend_topics
-
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
@@ -3567,8 +3565,8 @@ def chat_message_api(request):
 
 
         message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"], 
-                        "timestamp": messageJSON["timestamp"], 
+                        "sender_id": messageJSON["senderId"],
+                        "timestamp": messageJSON["timestamp"],
                         "message": messageJSON["messageContent"]})
         message.save()
         return jsonResponse({"status": "ok"})
@@ -3702,9 +3700,6 @@ def profile_upload_photo(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
-        from PIL import Image
-        from io import BytesIO
-        from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         profile = UserProfile(id=request.user.id)
@@ -3743,7 +3738,6 @@ def profile_sync_api(request):
     if request.method == "POST":
         profile_updated = False
         post = request.POST
-        from sefaria.utils.util import epoch_time
         now = epoch_time()
         no_return = request.GET.get("no_return", False)
         annotate = bool(int(request.GET.get("annotate", 0)))
@@ -3818,9 +3812,6 @@ def profile_sync_api(request):
 @permission_classes([IsAuthenticated])
 def delete_user_account_api(request):
     # Deletes the user and emails sefaria staff for followup
-    from sefaria.utils.user import delete_user_account
-    from django.core.mail import EmailMultiAlternatives
-    
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to delete your account.")})
     uid = request.user.id
@@ -3833,13 +3824,13 @@ def delete_user_account_api(request):
         email_msg += "\n\n The request was completed automatically."
         reply_email = user_email
         response = jsonResponse({"status": "ok"})
-    except Exception as e: 
-        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting 
+    except Exception as e:
+        # There are on rare occasions ForeignKeyViolation exceptions due to records in gauth_credentialsmodel or gauth_flowmodel in the sql db not getting
         # removed properly
         email_msg += "\n\n The request failed to complete automatically. The user has been directed to email in his request."
         logger.error("User {} deletion failed. {}".format(uid, e))
         response = jsonResponse({"error": "There was an error deleting the account", "user": user_email})
-        
+
     EmailMultiAlternatives(email_subject, email_msg, from_email="Sefaria System <dev@sefaria.org>", to=["Sefaria <hello@sefaria.org>"], reply_to=[reply_email if reply_email else "hello@sefaria.org"]).send()
     return response
 
@@ -3873,7 +3864,6 @@ def saved_history_for_ref(request):
 
 
 def _get_anonymous_user_history(request):
-    import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return history
 
@@ -3915,7 +3905,7 @@ def my_profile(request):
     url = "/profile/%s" % UserProfile(id=request.user.id).slug
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
-    return redirect(url) 
+    return redirect(url)
 
 
 def interrupting_messages_read_api(request, message):
@@ -3947,12 +3937,11 @@ def account_settings(request):
     """
     Page for managing a user's account settings.
     """
-    from babel import Locale
     profile = UserProfile(id=request.user.id)
     return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']), 
+        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None)
     })
 
@@ -3968,7 +3957,7 @@ def home(request):
 def community_page(request, props={}):
     """
     Community Page
-    """    
+    """
     title = _("From the Community: Today on Sefaria")
     desc  = _("New and featured source sheets, divrei torah, articles, sermons and more created by members of the Sefaria community.")
     data  = community_page_data(request, language=request.interfaceLang)
@@ -3977,8 +3966,6 @@ def community_page(request, props={}):
 
 
 def community_page_data(request, language="english"):
-    from sefaria.model.user_profile import UserProfile
-
     data = {
         "community": get_community_page_items(language=language, diaspora=(language != "hebrew"))
     }
@@ -4023,7 +4010,7 @@ def community_reset(request):
 
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
-    return redirect("/")    
+    return redirect("/")
 
 
 @ensure_csrf_cookie
@@ -4046,7 +4033,6 @@ def new_discussion_api(request):
         return jsonResponse({"error": "You must be logged in to start a discussion."})
 
     if request.method == "POST":
-        import uuid
         attempts = 10
         while attempts > 0:
             key = str(uuid.uuid4())[:8]
@@ -4191,40 +4177,40 @@ def translations_api(request, lang=None):
         return jsonResponse(res)
     # import time
     # t0 = time.time()
-    aggregation_query = [{"$match": {"actualLanguage":lang}},
-    {"$lookup": {
-            "from": "index",
-            "localField": "title",
-            "foreignField": "title",
-            "as": "index"
-        }}]
+    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+        "from": "index",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "index"
+    }}, {"$lookup": {
+        "from": "vstate",
+        "localField": "title",
+        "foreignField": "title",
+        "as": "vstate"
+    }}]
     if lang == "en":
-        aggregation_query.append({"$lookup": {
-            "from": "vstate",
-            "localField": "title",
-            "foreignField": "title",
-            "as": "vstate"
-        }})
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
-        aggregation_query.append({"$project": {"vstate": 0}})
-    aggregation_query.append({"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1, "index.title": 1, "index.schema": 1, "index.order": 1,
-    "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1, "priority": 1}})
-    aggregation_query.append({"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}})
+
+    aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
+                                            "index.title": 1, "index.order": 1,
+                                            "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
+                                            "priority": 1, "vstate.first_section_ref": 1}},
+                              {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
+
     texts = db.texts.aggregate(aggregation_query)
     # t1 = time.time()
     # print("aggregation: ")
     # print(f"{t1 - t0}")
     res = {}
     titles = []
-    for myIndex in texts:
-        if myIndex["title"] not in titles:
-            if len(myIndex["index"]) > 0:
-                myIndexInfo = myIndex["index"][0]
-                # vstate = myIndex["vstate"][0]
-                categories = myIndexInfo["categories"]
+    for my_index in texts:
+        if my_index["title"] not in titles:
+            if len(my_index["index"]) > 0:
+                my_index_info = my_index["index"][0]
+                categories = my_index_info["categories"]
                 if "Reference" in categories:
-                    continue # don't list references (also they don't fit assumptions)
-                titles.append(myIndex["title"])
+                    continue  # don't list references (also they don't fit assumptions)
+                titles.append(my_index["title"])
                 depth = 2
                 ind = 0
                 cur = res
@@ -4235,47 +4221,42 @@ def translations_api(request, lang=None):
                         cur[categories[ind]] = [] if ind == depth - 1 else {}
                     cur = cur[categories[ind]]
                     ind += 1
-                toAdd = {}
-                if "dependence" in myIndexInfo and "collective_title" in myIndexInfo and myIndexInfo["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
-                    if len(list(filter(lambda x: True if x["title"] == myIndexInfo["collective_title"] else False, cur))) > 0:
+                to_add = {}
+                if "dependence" in my_index_info and "collective_title" in my_index_info \
+                        and my_index_info["dependence"] == "Commentary" and lang in bundle_commentaries_langs:
+                    if len(list(filter(lambda x: True if x["title"] == my_index_info["collective_title"] else False,
+                                       cur))) > 0:
                         continue
                     else:
                         try:
-                            toAdd["title"] = myIndexInfo["collective_title"]
-                            categories_to_add = categories[:categories.index(myIndexInfo["collective_title"])+1]
-                            toAdd["url"] = "/texts/" + "/".join(categories_to_add)
+                            to_add["title"] = my_index_info["collective_title"]
+                            categories_to_add = categories[:categories.index(my_index_info["collective_title"]) + 1]
+                            to_add["url"] = "/texts/" + "/".join(categories_to_add)
                         except:
-                            print("failed to find author page for " + myIndexInfo["collective_title"] + ": " + myIndexInfo["title"])
+                            print("failed to find author page for " + my_index_info["collective_title"] + ": " +
+                                  my_index_info["title"])
                             # these are also not showing up in TOC
                             # TODO: fix assumptions?
                             continue
                 else:
-                    urlTitle = myIndexInfo["title"]
-                    curNode = myIndexInfo["schema"]
-                    while "nodes" in curNode:
-                        try:
-                            urlTitle = urlTitle + "%2C_" + myIndexInfo["schema"]["nodes"][0]["key"]
-                            curNode = curNode["nodes"][0]
-                        except:
-                            continue
-                    toAdd["title"] = myIndexInfo["title"]
-                    toAdd["url"] = f'/{urlTitle}.1?{"ven=" + myIndex["versionTitle"] if myIndex["language"] == "en" else "vhe=" + myIndex["versionTitle"]}'
-                if "order" in myIndex["index"][0]:
-                        toAdd["order"] = myIndex["index"][0]["order"]
-                toAdd["versionTitle"] = myIndex["versionTitle"]
-                toAdd["rtlLanguage"] = myIndex["language"]
-                cur.append(toAdd)
+                    to_add["title"] = my_index_info["title"]
+                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+
+                if "order" in my_index["index"][0]:
+                    to_add["order"] = my_index["index"][0]["order"]
+                to_add["versionTitle"] = my_index["versionTitle"]
+                to_add["rtlLanguage"] = my_index["language"]
+                cur.append(to_add)
     # t2 = time.time()
     # print("create dictionary")
     # print(f"{t2 - t1}")
     return jsonResponse(res)
-    
+
+
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
-    from sefaria.helper.topic import get_random_topic, get_random_topic_source
-
     cb = request.GET.get("callback", None)
     random_topic = get_random_topic(good_to_promote=True)
     if random_topic is None:
@@ -4370,6 +4351,16 @@ def search_wrapper_api(request):
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
+@csrf_exempt
+def search_path_filter(request, book_title):
+    oref = Ref(book_title)
+
+    categories = oref.index.categories
+    indexed_categories = get_search_categories(oref, categories)
+    path = "/".join(indexed_categories+[book_title])
+    return jsonResponse(path)
+
+
 
 @ensure_csrf_cookie
 def serve_static(request, page):
@@ -4385,6 +4376,16 @@ def serve_static_by_lang(request, page):
     """
     return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
 
+
+def annual_report(request, report_year):
+    pdfs = {
+        '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
+        '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
+    }
+    if report_year not in pdfs:
+        raise Http404
+    # Renders a simple template, does not extend base.html
+    return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
 
 
 @ensure_csrf_cookie
@@ -4505,7 +4506,7 @@ def person_page_redirect(request, name):
 
 def person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
-    
+
 
 def talmud_person_index_redirect(request):
     return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
@@ -4673,7 +4674,8 @@ def rollout_health_api(request):
         try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
-        except:
+        except Exception as e:
+            logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
 
     def isMultiserverReachable():
@@ -4685,7 +4687,7 @@ def rollout_health_api(request):
             statusCode = urllib.request.urlopen(url).status
             return statusCode == 200
         except Exception as e:
-            logger.warn(e)
+            logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
 
     allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()

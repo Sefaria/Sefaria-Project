@@ -223,6 +223,7 @@ urlpatterns += [
 # Collections API
 urlpatterns += [
     url(r'^api/collections/user-collections/(?P<user_id>\d+)$', sheets_views.user_collections_api),
+    url(r'^api/collections/upload$', sefaria_views.collections_image_upload),
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
     url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
     url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
@@ -235,7 +236,8 @@ urlpatterns += [
 # Search API
 urlpatterns += [
     url(r'^api/dummy-search$', reader_views.dummy_search_api),
-    url(r'^api/search-wrapper$', reader_views.search_wrapper_api)
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api),
+    url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
 ]
 
 # Following API
@@ -359,8 +361,10 @@ urlpatterns += [
 # Linker js, text upload & download
 urlpatterns += [
     url(r'^linker\.?v?([0-9]+)?\.js$', sefaria_views.linker_js),
-    url(r'^api/find-refs$', sefaria_views.find_refs_api),
+    url(r'^api/find-refs/report/?$', sefaria_views.find_refs_report_api),
+    url(r'^api/find-refs/?$', sefaria_views.find_refs_api),
     url(r'^api/regexs/(?P<titles>.+)$', sefaria_views.title_regex_api),
+    url(r'^api/websites/(?P<domain>.+)$', sefaria_views.websites_api),
     url(r'^api/linker-data/(?P<titles>.+)$', sefaria_views.linker_data_api),
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', sefaria_views.text_download_api),
@@ -373,11 +377,6 @@ urlpatterns += [
 
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
-]
-
-# File Uploads
-urlpatterns += [
-    url(r'^api/file/upload$', sefaria_views.file_upload), #SEC-AUDIT: do we limit how many files users can upload?
 ]
 
 # Send Feedback

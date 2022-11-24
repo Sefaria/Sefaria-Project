@@ -2814,6 +2814,11 @@ display: none;
   padding-top: 80px;
   padding-bottom: 80px;
 }
+#EducatorsInner .staticPage .blockVerticalPadding,
+#RabbisInner .staticPage .blockVerticalPadding {
+  background-color: #FBFBFA;
+}
+
 .staticPage .flexContainer {
   display: flex;
   flex-direction: row;
@@ -2840,12 +2845,18 @@ display: none;
   margin-top: 60px;
   color: white;
 }
-.staticPage .staticPageHeader.educators {
-  background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
+.staticPage .staticPageHeader.educators, .staticPage .staticPageHeader.rabbis {
   background-repeat: no-repeat;
   background-size: cover;
   padding: 70px 0 30px;
-  background-position: 50% 0%;
+}
+.staticPage .staticPageHeader.educators {
+ background-image: url("/static/img/educators-landing-page/edu_landingpage_header.png");
+ background-position: 50% 0%;
+}
+.staticPage .staticPageHeader.rabbis {
+  background-image: url("/static/img/rabbis-landing-page/rabbis-landing-page-header.png");
+  background-position: 50% 50%;
 }
 .staticPage .staticPageHeader.donate {
   background-image: url("/static/img/sofrut.png");
@@ -2887,7 +2898,9 @@ display: none;
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
-.staticPage .staticPageHeader .staticPageHeaderTextBox.educators {
+.staticPage .staticPageHeader .staticPageHeaderTextBox.educators,
+.staticPage .staticPageHeader .staticPageHeaderTextBox.rabbis
+{
   flex: inherit;
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
@@ -3028,6 +3041,7 @@ display: none;
 .staticPage .staticPageUserQuote img {
   height: 46px;
   width: 46px;
+  border-radius: 46px;
 }
 .staticPage .staticPageUserQuoteName {
   padding: 0 20px;

@@ -34,6 +34,7 @@ palette.categoryColors = {
   "Chasidut":           "var(--chasidut-green)",
   "Musar":              "var(--mussar-purple)",
   "Responsa":           "var(--responsa-red)",
+  "Second Temple":      "var(--apocrypha-pink)",
   "Quoting Commentary": "var(--responsa-red)",
   "Sheets":             "var(--sefaria-blue)",
   "Sheet":              "var(--sefaria-blue)",

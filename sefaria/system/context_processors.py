@@ -72,7 +72,6 @@ def global_settings(request):
         "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
-        "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
     }
 

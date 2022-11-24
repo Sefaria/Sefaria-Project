@@ -25,7 +25,9 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     
-#### 1) Install Python 3
+#### 1) Install Python 3.7
+
+*We Recommend using the latest Python 3.7 as opposed to later versions of Python (esp 3.10 and up) since it has been known to cause some compatability issues. These are solvable, but for an easier install experience, we currently recommend 3.7*
 
 ###### Linux and macOS
 Most UNIX systems come with a python interpreter pre-installed. However, this is generally still Python 2. The recommended way to get Python 3, and not mess up any software the OS is dependent on, is by using Pyenv. You can use the instructions [here](https://github.com/pyenv/pyenv#installation) and also [here](https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do).
@@ -167,7 +169,7 @@ The recommended dump (which is a more manageable size) is available [here](https
 
 A complete dump is also available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz). The complete dump includes the `history` collections, which contains a complete revision history of every text in our library. For many applications, this data is not relevant. We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
 
-Unzip the file and extract the `dump` folder. If you don't have an app for unzipping, this can be done from Command Prompt by navigating to the folder containing the download and using `tar -x dump.tar.gz` or `tar -x dump_small.tar.gz` (depending on which dump you downloaded).
+Unzip the file and extract the `dump` folder. If you don't have an app for unzipping, this can be done from Command Prompt by navigating to the folder containing the download and using `tar -xf dump.tar.gz` or `tar -xf dump_small.tar.gz` (depending on which dump you downloaded).
 
 This `dump` must be restored as a MongoDB database. 
 

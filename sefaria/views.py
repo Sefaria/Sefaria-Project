@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
-from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -37,9 +36,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
+from sefaria.client.util import jsonResponse, subscribe_to_list, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -172,14 +171,14 @@ def accounts(request):
 
 def subscribe(request, email):
     """
-    API for subscribg is mailing lists, in `lists` url param.
+    API for subscribing to mailing lists, in `lists` url param.
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
     lists = request.GET.get("lists", "")
     lists = lists.split("|")
     if len(lists) == 0:
-        return jsonResponse({"error": "Please specifiy a list."})
+        return jsonResponse({"error": "Please specify a list."})
     if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
         return jsonResponse({"status": "ok"})
     else:
@@ -253,10 +252,7 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", context={}, request=request)
-    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
-        sefaria_js=file.read()
+    sefaria_js = read_webpack_bundle("SEFARIA_JS")
     attrs = {
         "data_js": data_js,
         "sefaria_js": sefaria_js,
@@ -271,6 +267,11 @@ def linker_js(request, linker_version=None):
     """
     CURRENT_LINKER_VERSION = "2"
     linker_version = linker_version or CURRENT_LINKER_VERSION
+
+    if linker_version == "3":
+        # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
+        return HttpResponse(read_webpack_bundle("LINKER"), content_type="text/javascript; charset=utf-8")
+
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
@@ -282,23 +283,35 @@ def linker_js(request, linker_version=None):
 
 
 @api_view(["POST"])
-def find_refs_api(request):
-    from sefaria.helper.ref_part import make_html, make_find_refs_response
-    from sefaria.utils.hebrew import is_hebrew
-    with_text = bool(int(request.GET.get("with_text", False)))
+def find_refs_report_api(request):
+    from sefaria.system.database import db
     post = json.loads(request.body)
-    resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
+    db.linker_feedback.insert_one(post)
+    return jsonResponse({'ok': True})
 
-    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
 
-    return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text),
-        "text": make_find_refs_response(resolved, with_text),
-    })
+@api_view(["POST"])
+def find_refs_api(request):
+    from sefaria.helper.linker import make_find_refs_response, add_webpage_hit_for_url
+
+    with_text = bool(int(request.GET.get("with_text", False)))
+    debug = bool(int(request.GET.get("debug", False)))
+    max_segments = int(request.GET.get("max_segments", 0))
+    post_body = json.loads(request.body)
+
+    response = make_find_refs_response(post_body, with_text, debug, max_segments)
+    add_webpage_hit_for_url(post_body.get("metaDataForTracking", {}).get("url", None))
+
+    return jsonResponse(response)
+
+
+@api_view(["GET"])
+def websites_api(request, domain):
+    cb = request.GET.get("callback", None)
+    website = WebSite().load({"domains": domain})
+    if website is None:
+        return jsonResponse({"error": f"no website found with domain: '{domain}'"})
+    return jsonResponse(website.contents(), cb)
 
 
 def linker_data_api(request, titles):
@@ -430,7 +443,7 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    status = WebPage.add_or_update_from_linker(data)
+    status, webpage = WebPage.add_or_update_from_linker(data)
 
     return jsonResponse({"status": status})
 
@@ -465,10 +478,12 @@ def passages_api(request, refs):
 
 
 @login_required
-def file_upload(request, resize_image=True):
+def collections_image_upload(request, resize_image=True):
     from PIL import Image
     from tempfile import NamedTemporaryFile
-    from sefaria.s3 import HostedFile
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from io import BytesIO
+    import uuid
     if request.method == "POST":
         MAX_FILE_MB = 2
         MAX_FILE_SIZE = MAX_FILE_MB * 1024 * 1024
@@ -479,23 +494,21 @@ def file_upload(request, resize_image=True):
         name, extension = os.path.splitext(uploaded_file.name)
         with NamedTemporaryFile(suffix=extension) as temp_uploaded_file:
             temp_uploaded_file.write(uploaded_file.read())
-
-            with NamedTemporaryFile(suffix=extension) as temp_resized_file:
-                image = Image.open(temp_uploaded_file)
-                if resize_image:
-                    image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
-                image.save(temp_resized_file, optimize=True, quality=70)
-
-                name, extension = os.path.splitext(temp_resized_file.name)
-                hosted_file = HostedFile(filepath=temp_resized_file.name, content_type=uploaded_file.content_type)
-                try:
-                    url = hosted_file.upload()
-                    return jsonResponse({"status": "success", "url": url})
-                except:
-                    return jsonResponse({"error": "There was an error uploading your file."})
+            image = Image.open(temp_uploaded_file)
+            resized_image_file = BytesIO()
+            if resize_image:
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+            image.save(resized_image_file, optimize=True, quality=70, format="PNG")
+            resized_image_file.seek(0)
+            bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
+            unique_file_name = f"{request.user.id}-{uuid.uuid1()}.{uploaded_file.name[-3:].lower()}"
+            try:
+                url = GoogleStorageManager.upload_file(resized_image_file, unique_file_name, bucket_name)
+                return jsonResponse({"status": "success", "url": url})
+            except:
+                return jsonResponse({"error": "There was an error uploading your file."})
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
-
 
 @staff_member_required
 def reset_cache(request):

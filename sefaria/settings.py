@@ -297,12 +297,12 @@ CACHES = {
 }
 
 
-'''
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "2022-06-01-shavuot-donate-modal",
-    "style":      "modal", # "modal" or "banner"
+    "name": "2022-8-10-modal-newsletter-A",
+    "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": True,
+    "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
@@ -310,16 +310,15 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-'''
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try: 
+try:
     if os.getenv("CI_RUN"):
         from sefaria.local_settings_ci import *
     else:
@@ -339,6 +338,13 @@ WEBPACK_LOADER = {
     'SEFARIA_JS': {
         'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
         'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
+    'LINKER': {
+        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
