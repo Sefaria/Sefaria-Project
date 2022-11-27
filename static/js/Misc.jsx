@@ -1299,7 +1299,7 @@ class FollowButton extends Component {
     });
     let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
     buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
-    return ( 
+    return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
@@ -1428,7 +1428,7 @@ const SheetListing = ({
     </>
   );
 
-  const sheetSummary = showSheetSummary && sheet.summary? 
+  const sheetSummary = showSheetSummary && sheet.summary?
   <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
@@ -1844,7 +1844,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 30000,
+        "showDelay": 1000,
       },
       "banner": {
         "trackingName": "Banner Message",
