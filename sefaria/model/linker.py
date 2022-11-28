@@ -244,9 +244,6 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
 
 
 class NumberedReferenceableBookNode(ReferenceableBookNode):
-    """
-    TODO need something similar for NamedSection because JANs act as both and we'll want a virtual "SchemaNode"
-    """
     def __init__(self, ja_node: schema.NumberedTitledTreeNode):
         self._ja_node = ja_node
 
