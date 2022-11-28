@@ -601,6 +601,7 @@ class TextIndexer(object):
             except Exception as e:
                 logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
 
+    @classmethod
     def remove_footnotes(cls, content):
         ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
         if len(ftnotes) == 0:
