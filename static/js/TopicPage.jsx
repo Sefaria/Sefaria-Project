@@ -310,8 +310,8 @@ const TopicSponsorship = ({topic_slug}) => {
     // TODO: Store this data somewhere intelligent
     const topic_sponsorship_map = {
         "parashat-lech-lecha": {
-            "en": "Sponsored by The Kaplan Foundation in honor of Scott and Erika’s wedding anniversary.",
-            "he": "נתרם על-ידי קרן קפלן לכבוד יום הנישואים של סקוט ואריקה."
+            "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
+            "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
         },
         "parashat-toldot" : {
             "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
@@ -323,7 +323,7 @@ const TopicSponsorship = ({topic_slug}) => {
         }
     };
     const sponsorship_language = topic_sponsorship_map[topic_slug];
-    if (!sponsorship_language) return;
+    if (!sponsorship_language) return null;
 
     return (
         <div className="dedication">
