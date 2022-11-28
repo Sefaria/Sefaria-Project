@@ -1,6 +1,5 @@
-from sefaria.model.linker import ResolvedRef, RawRef, ResolutionThoroughness, RangedRawRefParts, RefResolver, SectionContext, IbidHistory, span_inds
+from sefaria.model.linker import ResolvedRef, RawRef, ResolutionThoroughness, RangedRawRefParts, RefResolver, SectionContext, IbidHistory, span_inds, DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.tests.linker_test.linker_test_utils import *
-from sefaria.model.schema import DiburHamatchilNodeSet
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
 
@@ -13,7 +12,8 @@ ref_resolver = library.get_ref_resolver()
 def test_referenceable_child():
     i = library.get_index("Rashi on Berakhot")
     assert i.nodes.depth == 3
-    child = i.nodes.get_referenceable_child(Ref("Rashi on Berakhot 2a"))
+    ref_node = NumberedReferenceableBookNode(i.nodes)
+    child = ref_node.get_children(Ref("Rashi on Berakhot 2a"))[0]
     assert isinstance(child, DiburHamatchilNodeSet)
 
 
@@ -332,7 +332,7 @@ def test_get_section_contexts(context_tref, match_title, common_title, expected_
 def test_address_matches_section_context():
     r = Ref("Berakhot")
     sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 34)
-    assert r.index_node.address_matches_section_context(0, sec_con)
+    assert NumberedReferenceableBookNode(r.index_node).matches_section_context(sec_con)
 
 
 @pytest.mark.parametrize(('last_n_to_store', 'trefs', 'expected_title_len'), [

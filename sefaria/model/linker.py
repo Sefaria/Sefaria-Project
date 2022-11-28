@@ -1,4 +1,5 @@
 from collections import defaultdict
+import dataclasses
 from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import Enum, IntEnum
 from functools import reduce
@@ -181,6 +182,186 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, schema.AbstractTitledObject
 
 class NonUniqueTermSet(abst.AbstractMongoSet):
     recordClass = NonUniqueTerm
+
+
+class ReferenceableBookNode:
+
+    def get_children(self, *args, **kwargs) -> List['ReferenceableBookNode']:
+        return []
+
+    def is_default(self) -> bool:
+        return False
+
+
+class NamedReferenceableBookNode(ReferenceableBookNode):
+
+    def __init__(self, titled_tree_node_or_index: Union[schema.TitledTreeNode, text.Index]):
+        self._titled_tree_node_or_index = titled_tree_node_or_index
+        self._titled_tree_node = titled_tree_node_or_index
+        if isinstance(titled_tree_node_or_index, text.Index):
+            self._titled_tree_node = titled_tree_node_or_index.nodes
+
+    def is_default(self):
+        return self._titled_tree_node.is_default()
+
+    def ref(self) -> text.Ref:
+        return self._titled_tree_node.ref()
+
+    def _get_schema_children(self):
+        thingy = self._titled_tree_node_or_index
+        if isinstance(thingy, text.Index):
+            return thingy.referenceable_children()
+        else:
+            # Any other type of TitledTreeNode
+            return self._titled_tree_node.children
+
+    def _get_pure_referenceable_children(self) -> List[ReferenceableBookNode]:
+        """
+        These children do not appear in schema tree
+        @return:
+        """
+        thingy = self._titled_tree_node_or_index
+        if isinstance(thingy, schema.NumberedTitledTreeNode) and thingy.is_segment_level_dibur_hamatchil():
+            return [DiburHamatchilNodeSet({"container_refs": self.ref().normal()})]
+        elif isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
+            return [NumberedReferenceableBookNode(thingy)]
+        return []
+
+    @staticmethod
+    def _transform_schema_node_to_referenceable(schema_node: schema.TitledTreeNode) -> ReferenceableBookNode:
+        if isinstance(schema_node, schema.JaggedArrayNode) and (schema_node.is_default() or schema_node.parent is None):
+            return NumberedReferenceableBookNode(schema_node)
+        return NamedReferenceableBookNode(schema_node)
+
+    def get_children(self, *args, **kwargs) -> List[ReferenceableBookNode]:
+        pure_children = self._get_pure_referenceable_children()
+        if len(pure_children) > 0:
+            return pure_children
+        return [self._transform_schema_node_to_referenceable(x) for x in self._get_schema_children()]
+
+    def ref_part_title_trie(self, *args, **kwargs):
+        return self._titled_tree_node.ref_part_title_trie(*args, **kwargs)
+
+
+class NumberedReferenceableBookNode(ReferenceableBookNode):
+    """
+    TODO need something similar for NamedSection because JANs act as both and we'll want a virtual "SchemaNode"
+    """
+    def __init__(self, ja_node: schema.NumberedTitledTreeNode):
+        self._ja_node = ja_node
+
+    def is_default(self):
+        return self._ja_node.is_default()
+
+    @property
+    def address_class(self) -> schema.AddressType:
+        return self._ja_node.address_class(0)
+
+    @property
+    def section_name(self) -> str:
+        return self._ja_node.sectionNames[0]
+
+    def get_all_possible_sections_from_string(self, *args, **kwargs):
+        """
+        wraps AddressType function with same name
+        @return:
+        """
+        return self.address_class.get_all_possible_sections_from_string(*args, **kwargs)
+
+    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
+        serial = self._ja_node.serialize()
+        next_referenceable_depth = self._ja_node.get_next_referenceable_depth()
+        serial['depth'] -= next_referenceable_depth
+        if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
+            return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+        if (self._ja_node.depth - next_referenceable_depth) == 0:
+            if isinstance(self.address_class, schema.AddressTalmud):
+                serial['addressTypes'] = ["Amud"]
+                serial['sectionNames'] = ["Amud"]
+                serial['lengths'] = [1]
+                serial['referenceableSections'] = [True]
+            else:
+                return []
+        else:
+            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
+                # truncate every list attribute by `next_referenceable_depth`
+                if list_attr not in serial: continue
+                serial[list_attr] = serial[list_attr][next_referenceable_depth:]
+        new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
+        return [NumberedReferenceableBookNode(new_ja)]
+
+    def matches_section_context(self, section_context: 'SectionContext') -> bool:
+        """
+        Does the address in `self` match the address in `section_context`?
+        """
+        if self.address_class.__class__ != section_context.addr_type.__class__: return False
+        if self.section_name != section_context.section_name: return False
+        return True
+
+
+@dataclasses.dataclass
+class DiburHamatchilMatch:
+    score: float
+    dh: Optional[str]
+    potential_dh_token_idx: int
+    dh_node: 'DiburHamatchilNode' = None
+
+    def order_key(self):
+        dh_len = len(self.dh) if self.dh else 0
+        return self.score, dh_len
+
+    def __gt__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() > other.order_key()
+
+    def __ge__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() >= other.order_key()
+
+    def __lt__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() < other.order_key()
+
+    def __le__(self, other: 'DiburHamatchilMatch'):
+        return self.order_key() <= other.order_key()
+
+
+class DiburHamatchilNode(abst.AbstractMongoRecord, ReferenceableBookNode):
+    """
+    Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
+    """
+    collection = "dibur_hamatchils"
+    required_attrs = [
+        "dibur_hamatchil",
+        "container_refs",
+        "ref",
+    ]
+
+    def fuzzy_match_score(self, lang, raw_ref_part) -> DiburHamatchilMatch:
+        from sefaria.utils.hebrew import hebrew_starts_with
+        for dh, dh_index in raw_ref_part.get_dh_text_to_match(lang):
+            if hebrew_starts_with(self.dibur_hamatchil, dh):
+                return DiburHamatchilMatch(1.0, dh, dh_index)
+        return DiburHamatchilMatch(0.0, None, dh_index)
+
+
+class DiburHamatchilNodeSet(abst.AbstractMongoSet, ReferenceableBookNode):
+    recordClass = DiburHamatchilNode
+
+    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9) -> List[DiburHamatchilMatch]:
+        """
+        :param lang: either 'he' or 'en'
+        :param raw_ref_part: of type "DH" to match
+        :param score_leeway: all scores within `score_leeway` of the highest score are returned
+        :param threshold: scores below `threshold` aren't returned
+        """
+        best_list = [DiburHamatchilMatch(0.0, '', 0)]
+        for node in self:
+            dh_match = node.fuzzy_match_score(lang, raw_ref_part)
+            if dh_match.dh is None: continue
+            if dh_match >= best_list[-1]:
+                dh_match.dh_node = node
+                best_list += [dh_match]
+        best_match = best_list[-1]
+        return [best for best in best_list if best.score > threshold and best.score + score_leeway >= best_match.score
+                and len(best.dh) == len(best_match.dh)]
 
 
 class MatchTemplate(abst.Cloneable):
@@ -636,7 +817,7 @@ class ResolvedRef(abst.Cloneable):
         if prev_part is None: return False
         return prev_part not in set(self.resolved_parts)
 
-    def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: schema.SchemaNode) -> bool:
+    def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: ReferenceableBookNode) -> bool:
         """
         For SchemaNodes or ArrayMapNodes that have numeric equivalents (e.g. an alt struct for perek)
         make sure we are not matching AddressIntegers out of order. See self.has_prev_unused_numbered_ref_part()
@@ -653,7 +834,7 @@ class ResolvedRef(abst.Cloneable):
         except KeyError:
             return False
 
-    def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: schema.DiburHamatchilNodeSet):
+    def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: DiburHamatchilNodeSet):
         """
         Finds dibur hamatchil ref which best matches `raw_ref_part`
         Currently a simplistic algorithm
@@ -669,11 +850,11 @@ class ResolvedRef(abst.Cloneable):
 
         return [self.clone(resolved_parts=refined_parts.copy(), node=dh_match.dh_node, ref=text.Ref(dh_match.dh_node.ref)) for dh_match in best_matches]
 
-    def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node, lang, fromSections: List[RawRefPart]=None) -> List[
+    def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: NumberedReferenceableBookNode, lang, fromSections: List[RawRefPart]=None) -> List[
         'ResolvedRef']:
         if node is None: return []
         try:
-            possible_sections, possible_to_sections, addr_classes = node.address_class(0).get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections, strip_prefixes=True)
+            possible_sections, possible_to_sections, addr_classes = node.get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections, strip_prefixes=True)
         except (IndexError, TypeError, KeyError):
             return []
         refined_refs = []
@@ -698,9 +879,9 @@ class ResolvedRef(abst.Cloneable):
                 continue
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
 
-    def _get_refined_refs_for_numbered_context_part(self, sec_context: SectionContext, refined_parts: List[RawRefPart], node) -> List[
+    def _get_refined_refs_for_numbered_context_part(self, sec_context: SectionContext, refined_parts: List[RawRefPart], node: NumberedReferenceableBookNode) -> List[
         'ResolvedRef']:
-        if node is None or not node.address_matches_section_context(0, sec_context):
+        if node is None or not node.matches_section_context(sec_context):
             return []
         try:
             refined_ref = self.ref.subref(sec_context.address)
@@ -708,7 +889,8 @@ class ResolvedRef(abst.Cloneable):
             return []
         return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref)]
 
-    def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_parts: List[RawRefPart], node, lang, fromSections: list=None):
+    def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_parts: List[RawRefPart],
+                                                 node: NumberedReferenceableBookNode, lang, fromSections: list=None):
         resolved_raw_refs = [self.clone(resolved_parts=refined_parts, node=node)]
         incomplete_resolved_raw_refs = []
         is_first_pass = True
@@ -717,7 +899,8 @@ class ResolvedRef(abst.Cloneable):
             for _ in range(queue_len):
                 temp_resolved_raw_ref = resolved_raw_refs.pop(0)
                 if not is_first_pass:
-                    temp_resolved_raw_ref.node = temp_resolved_raw_ref.node.get_referenceable_child(temp_resolved_raw_ref.ref)
+                    temp_children = temp_resolved_raw_ref.node.get_children(temp_resolved_raw_ref.ref)
+                    temp_resolved_raw_ref.node = None if len(temp_children) == 0 else temp_children[0]
                 is_first_pass = False
                 next_resolved_raw_refs = temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_parts, temp_resolved_raw_ref.node, lang, fromSections)
                 resolved_raw_refs += next_resolved_raw_refs
@@ -726,8 +909,8 @@ class ResolvedRef(abst.Cloneable):
                     incomplete_resolved_raw_refs += [temp_resolved_raw_ref]
         return resolved_raw_refs, incomplete_resolved_raw_refs
 
-    def _get_refined_matches_for_ranged_part(self, raw_ref_part: RangedRawRefParts, refined_parts: List[RawRefPart], node, lang) -> List[
-        'ResolvedRef']:
+    def _get_refined_matches_for_ranged_part(self, raw_ref_part: RangedRawRefParts, refined_parts: List[RawRefPart],
+                                             node: NumberedReferenceableBookNode, lang) -> List['ResolvedRef']:
         section_resolved_raw_refs, incomplete_section_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.sections, refined_parts, node, lang)
         toSection_resolved_raw_refs, _ = self._get_refined_matches_for_ranged_sections(raw_ref_part.toSections, refined_parts, node, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
         ranged_resolved_raw_refs = []
@@ -744,28 +927,27 @@ class ResolvedRef(abst.Cloneable):
     def get_refined_matches(self, part: RawRefPart, node, lang: str) -> List['ResolvedRef']:
         refined_ref_parts = self.resolved_parts + [part]
         matches = []
-        if isinstance(node, schema.TitledTreeNode) and node.is_default() and node.parent is not None:
+        if node.is_default():
             # default node automatically matches but doesnt append any new ref part to match
             matches += [self.clone(resolved_parts=self.resolved_parts, node=node, ref=node.ref())]
         # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
-        elif part.type == RefPartType.NUMBERED and isinstance(node, schema.JaggedArrayNode) and node.parent is None:
+        elif part.type == RefPartType.NUMBERED and isinstance(node, NumberedReferenceableBookNode):
             if isinstance(part, SectionContext):
                 matches += self._get_refined_refs_for_numbered_context_part(part, refined_ref_parts, node)
             else:
                 matches += self._get_refined_refs_for_numbered_part(part, refined_ref_parts, node, lang)
-        elif part.type == RefPartType.RANGE and isinstance(node, schema.JaggedArrayNode):
+        elif part.type == RefPartType.RANGE and isinstance(node, NumberedReferenceableBookNode):
             matches += self._get_refined_matches_for_ranged_part(part, refined_ref_parts, node, lang)
-        elif (part.type == RefPartType.NAMED and isinstance(node, schema.TitledTreeNode) or
-              part.type == RefPartType.NUMBERED and isinstance(node, schema.ArrayMapNode)) or \
-              part.type == RefPartType.NUMBERED and isinstance(node, schema.SchemaNode): # for case of numbered alt structs or schema nodes that look numbered (e.g. perakim and parshiot of Sifra)
+        elif isinstance(node, NamedReferenceableBookNode) and (part.type in {RefPartType.NAMED, RefPartType.NUMBERED}):
             if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.key_is_id) and not self.has_prev_unused_numbered_ref_part_for_node(part, lang, node):
                 matches += [self.clone(resolved_parts=refined_ref_parts, node=node, ref=node.ref())]
         elif part.type == RefPartType.DH:
-            if isinstance(node, schema.JaggedArrayNode):
+            if isinstance(node, NumberedReferenceableBookNode):
                 # jagged array node can be skipped entirely if it has a dh child
                 # technically doesn't work if there is a referenceable child in between ja and dh node
-                node = node.get_referenceable_child(self.ref)
-            if isinstance(node, schema.DiburHamatchilNodeSet):
+                node_children = node.get_children(self.ref)
+                node = None if len(node_children) == 0 else node_children[0]
+            if isinstance(node, DiburHamatchilNodeSet):
                 matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
         # TODO sham and directional cases
         return matches
@@ -790,22 +972,7 @@ class ResolvedRef(abst.Cloneable):
         return len(self.get_resolved_parts(include, exclude))
 
     def get_node_children(self):
-        """
-        Get children of currently matched node to try to further refine match
-        TODO can we make this less spaghetti code-ish?
-        """
-        if self.node is None:
-            children = []
-        elif isinstance(self.node, schema.NumberedTitledTreeNode):
-            child = self.node.get_referenceable_child(self.ref)
-            children = [] if child is None else [child]
-        elif isinstance(self.node, schema.DiburHamatchilNode):
-            children = []
-        elif isinstance(self.node, text.Index):
-            children = self.node.referenceable_children()
-        else:
-            children = self.node.children
-        return children
+        return self.node.get_children(self.ref)
 
     @property
     def order_key(self):
@@ -882,7 +1049,7 @@ class MatchTemplateTrie:
                         curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
                 # add nodes to leaves
                 for curr_dict in curr_dict_queue:
-                    leaf_node = node.index if is_index_level else node
+                    leaf_node = NamedReferenceableBookNode(node.index if is_index_level else node)
                     if LEAF_TRIE_ENTRY in curr_dict:
                         curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
                     else:
@@ -1449,7 +1616,7 @@ class RefResolver:
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
                     try:
-                        ref = (node.nodes if isinstance(node, text.Index) else node).ref()
+                        ref = node.ref()
                     except InputError:
                         continue
                     matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
@@ -1579,7 +1746,7 @@ class ResolvedRefPruner:
     def prune_unrefined_ref_part_matches(ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
         index_match_map = defaultdict(list)
         for match in ref_part_matches:
-            key = match.node.title if isinstance(match.node, text.Index) else match.node.ref().normal()
+            key = match.node.ref().normal()
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
