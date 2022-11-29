@@ -2040,7 +2040,7 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass != AddressTalmud  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
@@ -2121,6 +2121,34 @@ class AddressDictionary(AddressType):
         pass
 
 
+class AddressAmud(AddressType):
+    section_patterns = {
+        "en": r"""(?:[Aa]mud(?:im)?\s+)""",
+        "he": f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s+))''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+    }
+
+    section_num_patterns = {
+        "en": "[aAbB]",
+        "he": "([\u05d0\u05d1])['\u05f3\u2018\u2019]?",
+    }
+
+    def _core_regex(self, lang, group_id=None, **kwargs):
+        if group_id:
+            reg = r"(?P<" + group_id + r">"
+        else:
+            reg = r"("
+
+        reg += self.section_num_patterns[lang] + r")"
+
+        return reg
+
+    def toNumber(self, lang, s, **kwargs):
+        if lang == "en":
+            return 1 if s in {'a', 'A'} else 2
+        elif lang == "he":
+            return decode_hebrew_numeral(s)
+
+
 class AddressTalmud(AddressType):
     """
     :class:`AddressType` for Talmud style Daf + Amud addresses
@@ -2129,10 +2157,11 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
-    he_pattern = f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+
+    he_amud_pattern = AddressAmud(0).regex('he')
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
+        "he": '''([.:]|[,\\s]+{})'''.format(he_amud_pattern)  # Either (1) period / colon (2) some separator + AddressAmud.section_patterns["he"]
     }
     special_cases = {
         "B": [None],
@@ -2191,7 +2220,7 @@ class AddressTalmud(AddressType):
         elif len(parts) == 2:
             range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
-            he_bet_reg_ex = "^"+cls.he_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
+            he_bet_reg_ex = "^"+cls.he_amud_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
 
             if re.search(he_bet_reg_ex, range_parts[-1]):
                 # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
@@ -2606,7 +2635,3 @@ class AddressSection(AddressInteger):
         "en": r"""(?:(?:([Ss]ections?|§)?\s*))""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r""""""
     }
-
-
-class AddressAmud(AddressInteger):
-    pass
