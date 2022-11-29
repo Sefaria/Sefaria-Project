@@ -273,6 +273,7 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         serial = self._ja_node.serialize()
         next_referenceable_depth = self._ja_node.get_next_referenceable_depth()
         serial['depth'] -= next_referenceable_depth
+        serial['default'] = False  # any JA node that has been modified should lose 'default' flag
         if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
             return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
         if (self._ja_node.depth - next_referenceable_depth) == 0:
