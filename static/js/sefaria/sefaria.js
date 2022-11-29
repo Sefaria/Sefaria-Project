@@ -764,7 +764,7 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, "");
 
     const delim = data.ref === data.book ? " " : ":";
-    const skip = data.skip_nums[data.textDepth].flat() || [0];
+    const skip = (data.skip_nums === undefined || data.skip_nums[data.textDepth] === undefined) ? [0] : data.skip_nums[data.textDepth].flat();
     const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+skip[0];
 
     let prev = Array(length);
@@ -1877,7 +1877,8 @@ _media: {},
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
 
-    const skip_nums = data.skip_nums[data.textDepth].flat() || Array(topLength).fill(0);
+    const skip_nums = (data.skip_nums === undefined || data.skip_nums[data.textDepth] === undefined) ?
+        Array(topLength).fill(0) : data.skip_nums[data.textDepth].flat();
     var start = (data.textDepth == data.sections.length && !withContext ?
                   data.sections.slice(-1)[0] : 1+skip_nums[0]);
     if (!data.isSpanning) {
