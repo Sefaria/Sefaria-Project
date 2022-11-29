@@ -246,7 +246,10 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         self._ja_node = ja_node
 
     def is_default(self):
-        return self._ja_node.is_default()
+        return self._ja_node.is_default() and self._ja_node.parent is not None
+
+    def ref(self):
+        return self._ja_node.ref()
 
     @property
     def address_class(self) -> schema.AddressType:

@@ -1074,6 +1074,8 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return d
 
     def get_next_referenceable_depth(self):
+        if self.is_default():
+            return 0
         next_refereceable_depth = 1
         # if `referenceableSections` is not define, assume they're all referenceable
         if getattr(self, 'referenceableSections', False):
