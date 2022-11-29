@@ -139,30 +139,29 @@ crrd = create_raw_ref_data
     # TODO still need to convert the following tests to new `crrd` syntax
     [crrd(['@טור', '@אורח חיים', '#סימן א']), ("Tur, Orach Chaim 1",)],
     [crrd(['@ספרא', '@בהר', '#ב', '#ד']), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
-    # [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
-    # [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
-    # [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
+    [crrd(['@רמב"ן', '@דברים', '#יד', '#כא']), ("Ramban on Deuteronomy 14:21",)],
+    [crrd(['@הרמב"ם', '@תרומות', '#פ"א', '#ה"ח']), ("Mishneh Torah, Heave Offerings 1:8",)],
+    [crrd(['@בירושלמי', '@שביעית', '#פ"ו', '#ה"א']), ("Jerusalem Talmud Sheviit 6:1",)],
     [crrd(['@בגמרא במסכת בסנהדרין', '#צז:']), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
-    # [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
-    # [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
-    # [crrd(None, 'he', "באה\"ע סימן קנ\"ה סי\"ד", [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
-    # [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
+    [crrd(['@לפרשת וילך']), ("Deuteronomy 31:1-30",)],  # lamed prefix
+    [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
+    [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
+    [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
-    # [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
-    # [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
-    # [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
-    # [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
-    # [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
-    # [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
-    # [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
+    [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
+    [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],
+    [crrd(['@טור יורה דעה', '#סימן א']), ['Tur, Yoreh Deah 1']],
+    [crrd(['@תוספתא', '@ברכות', '#א', '#א']), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
+    [crrd(['@תוספתא', '@ברכות', '#א', '#טז']), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
+    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar 1:83b']],
     # pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
-    # [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
-    # [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
-    # [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
-    # [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    # [crrd(None, 'he', 'ד"א זוטא פרק השלום ג', [slice(0, 4), slice(4, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
-    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), 6], [RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
+    [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
+    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot D'Rabbi Natan 2:3"]],
+    [crrd(['@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
+    [crrd(['@ספר החינוך', '#ב']), ['Sefer HaChinukh 2']],
     # pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
     # [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
     # [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
