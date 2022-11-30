@@ -1,13 +1,15 @@
 import django
 django.setup()
 from sefaria.model.webpage import *
-import cProfile, pstats
 import requests
 import json
-import argparse
+import pstats, cProfile
 from sefaria.model import *
+import os
 
-TRELLO_KEY = TRELLO_TOKEN = -1
+TRELLO_KEY = os.getenv("TRELLO_KEY")
+TRELLO_TOKEN = os.getenv("TRELLO_TOKEN")
+SLACK_URL = os.getenv("SLACK_URL")
 def run_job(test=True, board_id="", idList_mapping={}):
 	board = TrelloBoard(board_id=board_id)
 	board.get_lists()
@@ -25,7 +27,22 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	print("Cleaning webpages...")
 	clean_webpages(test=test)
 	dedupe_webpages(test=test)
-
+	SLACK_URL = "https://hooks.slack.com/services/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"
+	post_object = {
+		"icon_emoji": ":facepalm:",
+		"username": "Reindex ElasticSearch",
+		"channel": "#test",
+		"attachments": [
+			{
+				"fallback": 'hi',
+				"color": "#a30200",
+				"pretext": "Cronjob Error",
+				"text": 'hi'
+			}
+		]
+	}
+	requests.post(SLACK_URL, json=post_object)
+	assert 3 == 2
 
 	print("Find sites that no longer have linker...")
 	sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
@@ -63,7 +80,7 @@ def run_job(test=True, board_id="", idList_mapping={}):
 def profile_job():
 	profiler = cProfile.Profile()
 	profiler.enable()
-	run_job(False)
+	get_webpage_set(stop=3000)
 	profiler.disable()
 	stats = pstats.Stats(profiler).sort_stats('cumtime')
 	stats.print_stats()
@@ -184,21 +201,10 @@ def delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN):
 
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser()
-	parser.add_argument("-k", "--key",
-						help="API Key")
-	parser.add_argument("-t", "--token",
-						help="API token")
-	parser.add_argument("-b", "--board",
-						help="Board ID")
-	parser.add_argument("-d", "--delete", default='no', help="Use this option to delete bad refs instead of running the default job.")
-	args = parser.parse_args()
 	lists = ["Linker uninstalled", "Site uses linker but is not whitelisted"]
 
-	TRELLO_KEY = args.key
-	TRELLO_TOKEN = args.token
-	BOARD_ID = args.board
-	DELETE = args.delete
+
+	BOARD_ID = os.getenv("BOARD_ID")
 
 	idList_mapping = {}
 	url = f'https://api.trello.com/1/boards/{BOARD_ID}/lists?key={TRELLO_KEY}&token={TRELLO_TOKEN}'
@@ -208,11 +214,8 @@ if __name__ == "__main__":
 		headers={"Accept": "application/json"}
 	)
 
-	if DELETE == 'no':
-		for list_on_board in json.loads(response.content):
-			if list_on_board["name"] in lists:
-				idList_mapping[list_on_board["name"]] = list_on_board["id"]
+	for list_on_board in json.loads(response.content):
+		if list_on_board["name"] in lists:
+			idList_mapping[list_on_board["name"]] = list_on_board["id"]
 
-		run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping)
-	else:
-		delete_bad_refs(BOARD_ID, TRELLO_KEY, TRELLO_TOKEN)
+	run_job(test=False, board_id=BOARD_ID, idList_mapping=idList_mapping)

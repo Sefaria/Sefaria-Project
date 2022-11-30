@@ -15,6 +15,7 @@ from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
+from sefaria.model import *
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -328,7 +329,7 @@ def get_webpages_for_ref(tref):
 
 
 def test_normalization():
-    pages = WebPageSet()
+    pages = get_webpage_set()
     count = 0
     for page in pages:
         norm = WebPage.normalize_url(page.url)
@@ -345,7 +346,7 @@ def dedupe_webpages(test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet()
+    webpages = get_webpage_set()
     for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
@@ -466,13 +467,13 @@ def clean_webpages(test=True):
 
 
 def webpages_stats():
-    webpages = WebPageSet()
+    webpages = WebPageSet(proj={"expandedRefs": False}) #get_webpage_set()
     total_pages  = webpages.count()
     total_links  = []
     websites = {}
     year_data = Counter()
 
-    for webpage in webpages:
+    for webpage in tqdm(webpages):
         website = webpage.get_website()
         if website:
             if website not in websites:
@@ -493,7 +494,7 @@ def webpages_stats():
 
 def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
-    webpages = WebPageSet()
+    webpages = get_webpage_set()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
 
@@ -531,7 +532,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 def find_sites_to_be_excluded():
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in tqdm(enumerate(WebPageSet())):
+    for i, webpage in tqdm(enumerate(get_webpage_set())):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
@@ -564,6 +565,16 @@ def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
             if c[1] > flag and 100.0*float(c[1])/total > relative_percent:
                 sites_to_exclude[website].append(c)
     return sites_to_exclude
+
+def get_webpage_set(init_limit=1000, skip=0, stop=-1):
+    total_ws = []
+    ws = IndexSet(limit=init_limit, skip=skip)
+    while ws.count() > 0 and (stop == -1 or stop > len(total_ws)):
+        print(f"Skipping {skip}")
+        total_ws += ws.array()
+        skip += init_limit
+        ws = IndexSet(limit=init_limit, skip=skip)
+    return total_ws
 
 def check_daf_yomi_and_parashat_hashavua(sites):
     previous = datetime.now() - timedelta(10)
