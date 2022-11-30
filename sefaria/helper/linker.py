@@ -14,6 +14,7 @@ def add_webpage_hit_for_url(url):
     webpage = WebPage().load(url)
     if not webpage: return
     webpage.add_hit()
+    webpage.save()
 
 
 @django_cache(cache_type="persistent")
@@ -38,8 +39,9 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
             "title": meta_data['title'],
             "description": meta_data['description'],
             "refs": get_trefs_from_response(response),
-        })
-        response['url'] = webpage.url
+        }, add_hit=False)
+        if webpage:
+            response['url'] = webpage.url
 
     return response
 

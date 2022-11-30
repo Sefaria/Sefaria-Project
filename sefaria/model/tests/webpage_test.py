@@ -87,8 +87,7 @@ def test_add_and_update_good_url_from_linker(create_good_web_page):
 	# now, we simply update an existing site with different refs and make sure it updated
 	data['refs'] = ["Genesis 3:3", 'Exodus 3:10']
 
-	result, webpage = WebPage().add_or_update_from_linker(data)
-	webpage.add_hit()
+	result, webpage = WebPage().add_or_update_from_linker(data, add_hit=True)
 	assert result == "saved"
 	assert set(WebPage().load(data["url"]).refs) == set(["Genesis 3:3", 'Exodus 3:10'])
 	assert WebPage().load(data["url"]).linkerHits == linker_hits + 1

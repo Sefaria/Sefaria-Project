@@ -140,6 +140,8 @@ On some macOS systems `gettext` will still not run after installation and `djang
     
 Replace the placeholder values with those matching your environment. For the most part, you should only have to specify values in the top part of the file where it directs you to change the given values.
 
+Note: Among the placeholder values that need to be replaced, set the `DATABASES` default `NAME` field to a path (including a file name) where Django can create a sqlite database. Using `/path/to/Sefaria-Project/db.sqlite` is sufficient, as we git-ignore all `.sqlite` files.
+
 You can name your local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on Mongo.
 
 #### 6) Create a log directory:
