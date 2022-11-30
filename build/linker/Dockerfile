@@ -3,6 +3,7 @@ ARG SRC_IMG
 FROM ${SRC_IMG}  
 
 # Copied from: https://gitlab.com/nvidia/container-images/cuda/-/blob/master/dist/11.8.0/ubuntu2004/devel/Dockerfile
+# Env vars have been integrated into the code for readability
 # Lines marked 'ADDED' show where this code was modified
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -15,6 +16,7 @@ RUN apt-get update --allow-releaseinfo-change \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# ADDED cuda repo
 RUN apt-key del 7fa2af80
 ADD https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.0-1_all.deb .
 RUN dpkg -i cuda-keyring_1.0-1_all.deb
