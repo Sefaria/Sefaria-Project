@@ -4514,14 +4514,14 @@ class Ref(object, metaclass=RefCacheType):
         normal += " "
 
         normal += ":".join(
-            [self.normalize_section(i, lang) for i in range(len(self.sections))]
+            [self.normal_section(i, lang) for i in range(len(self.sections))]
         )
 
         for i in range(len(self.sections)):
             if not self.sections[i] == self.toSections[i]:
                 normal += "-{}".format(
                     ":".join(
-                        [self.normalize_section(i+j, lang, 'toSections') for j in range(len(self.toSections[i:]))]
+                        [self.normal_section(i + j, lang, 'toSections') for j in range(len(self.toSections[i:]))]
                     )
                 )
                 break
@@ -4529,32 +4529,16 @@ class Ref(object, metaclass=RefCacheType):
         return normal
 
     def normal_sections(self, lang="en"):
-        return [self.normalize_section(i, lang) for i in range(len(self.sections))]
+        return [self.normal_section(i, lang) for i in range(len(self.sections))]
 
     def normal_toSections(self, lang="en"):
-        return [self.normalize_section(i, lang, 'toSections') for i in range(len(self.toSections))]
+        return [self.normal_section(i, lang, 'toSections') for i in range(len(self.toSections))]
 
-    def normalize_section(self, section_index, lang='en', attr='sections'):
+    def normal_section(self, section_index, lang='en', attr='sections', **kwargs):
         sections = getattr(self, attr)
         assert len(sections) > section_index
         offset = self._get_offset([x-1 for x in sections[:section_index]])
-        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+offset)
-
-    def normal_section(self, section_index, lang="en", **kwargs):
-        """
-        Return the display form of the section value at depth `section_index`
-        Does not support ranges
-        :param section_index: 0 based
-        :param lang:
-        :param kwargs:
-            dotted=<bool> - Use dotted form for Hebrew talmud?,
-            punctuation=<bool> - Use geresh for Hebrew numbers?
-        :return:
-        """
-        assert not self.is_range()
-        assert len(self.sections) > section_index
-        offset = self._get_offset([x-1 for x in self.sections[:section_index]])
-        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index]+offset, **kwargs)
+        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+offset, **kwargs)
 
     def normal_last_section(self, lang="en", **kwargs):
         """
@@ -4566,6 +4550,7 @@ class Ref(object, metaclass=RefCacheType):
             punctuation=<bool> - Use geresh for Hebrew numbers?
         :return:
         """
+        assert not self.is_range()
         length = len(self.sections)
         if length == 0:
             return ""
