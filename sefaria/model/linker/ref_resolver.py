@@ -68,7 +68,7 @@ class ResolvedRef(abst.Cloneable):
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
-        self.context_parts = context_parts or []
+        self.context_parts = context_parts[:] if context_parts else []
         self._thoroughness = _thoroughness
         self._matched_dh_map = _matched_dh_map or {}
 
@@ -298,15 +298,15 @@ class ResolvedRef(abst.Cloneable):
         """
         For sorting
         """
-        # return len(self.resolved_parts)
-        # alternate sorting criteria that seems better than the above
         matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
-
-        # this sort criteria solves the case where context is "Gen 1" and input is "Ibid 7". Prefer "Gen 7" over "Gen 1:7"
-        ibid_sections_match = 1
-        if self.context_type == ContextType.IBID:
-            ibid_sections_match = int(len(self.context_ref.sections) == len(self.ref.sections))
-        return self.num_resolved(exclude={ContextPart}), int(matches_context_book), ibid_sections_match, self.num_resolved(include={ContextPart})
+        explicit_matched = self.get_resolved_parts(exclude={ContextPart})
+        num_context_parts_matched = 0
+        # theory is more context is helpful specifically for DH matches because if DH still matches with more context,
+        # it's more likely to be correct (as opposed to with numbered sections, it's relatively easy to add more context
+        # and doesn't give more confidence that it's correct
+        if next(iter(part for part in explicit_matched if part.type == RefPartType.DH), False):
+            num_context_parts_matched = self.num_resolved(include={ContextPart})
+        return len(explicit_matched), int(matches_context_book), num_context_parts_matched
 
 
 class AmbiguousResolvedRef:
@@ -738,20 +738,27 @@ class RefResolver:
 
         return ResolvedRefPruner.prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], ref_part_matches: List[ResolvedRef]) -> List[ResolvedRef]:
-        matches = []
-        for unrefined_match in ref_part_matches:
+    def refine_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef]) -> List[ResolvedRef]:
+        temp_matches = []
+        refs_matched = {match.ref.normal() for match in matches}
+        for unrefined_match in matches:
             unused_parts = list(set(unrefined_match.raw_ref.parts_to_match) - set(unrefined_match.resolved_parts))
-            matches += self._get_refined_ref_part_matches_recursive(lang, unrefined_match, unused_parts)
+            context_free_matches = self._get_refined_ref_part_matches_recursive(lang, unrefined_match, unused_parts)
 
             # context
             # if unrefined_match already used context, make sure it continues to use it
             # otherwise, consider other possible context
             context_ref_list = [book_context_ref, self._ibid_history.get_ref_by_title(unrefined_match.ref.index.title)] if unrefined_match.context_ref is None else [unrefined_match.context_ref]
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
+            context_full_matches = []
             for context_ref, context_type in zip(context_ref_list, context_type_list):
-                matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
-        return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, matches)
+                context_full_matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
+
+            # combine
+            if len(context_full_matches) > 0:
+                context_free_matches = list(filter(lambda x: x.ref.normal() not in refs_matched, context_free_matches))
+            temp_matches += context_free_matches + context_full_matches
+        return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
     @staticmethod
     def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
@@ -809,8 +816,8 @@ class RefResolver:
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
         match_templates = list(node.get_match_templates())
         if len(match_templates) == 0: return []
-        # assumption is longest template will be uniquest. is there a reason to consider other templates?
-        longest_template = max(match_templates, key=lambda x: len(list(x.terms)))
+        # not clear which match_template to choose. shortest has advantage of adding minimum context to search
+        longest_template = min(match_templates, key=lambda x: len(list(x.terms)))
         return [TermContext(term) for term in longest_template.terms]
 
     @staticmethod
@@ -826,10 +833,11 @@ class RefResolver:
             common_index = text.library.get_index(common_base_text)
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
-            temp_matches = RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + sec_contexts + term_contexts)
+            context_to_consider = sec_contexts + term_contexts
+            temp_matches = RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + context_to_consider)
 
             # remove matches which dont use context
-            temp_matches = list(filter(lambda x: x.num_resolved(include={ContextPart}), temp_matches))
+            temp_matches = list(filter(lambda x: len(set(x.get_resolved_parts(include={ContextPart})) & set(context_to_consider)) > 0, temp_matches))
             for match in temp_matches:
                 match.context_ref = context_ref
                 match.context_type = context_type
@@ -917,7 +925,7 @@ class ResolvedRefPruner:
         for part_type, count in context_part_type_counts.items():
             if part_type not in explicit_part_type_counts:
                 return True
-            explicit_part_type_counts[part_type] -= 1
+            explicit_part_type_counts[part_type] -= count
             if explicit_part_type_counts[part_type] < 0:
                 return True
         return False
