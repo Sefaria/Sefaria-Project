@@ -659,6 +659,7 @@ class RefResolver:
             if match.num_resolved(include={TermContext}) == 0: continue
             match.context_ref = context_ref
             match.context_type = context_type
+            match.context_parts += term_contexts
             matches += [match]
         return matches
 
