@@ -2179,7 +2179,7 @@ class AddressAmud(AddressType):
 
     section_num_patterns = {
         "en": "[aAbB]",
-        "he": "([\u05d0\u05d1])['\u05f3\u2018\u2019]?",
+        "he": "(?P<amud_letter>[\u05d0\u05d1])['\u05f3\u2018\u2019]?",
     }
 
     def _core_regex(self, lang, group_id=None, **kwargs):
@@ -2343,7 +2343,7 @@ class AddressTalmud(AddressType):
             num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             amud_match = re.search(self.amud_patterns["he"] + "$", s)
-            if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
+            if s[-1] == ':' or (amud_match is not None and amud_match.group("amud_letter") == 'ב'):
                 return daf  # amud B
             return daf - 1
 
