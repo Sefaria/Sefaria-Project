@@ -39,10 +39,6 @@ class WebPage(abst.AbstractMongoRecord):
 
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
-            self.url = self.normalize_url(self.url)
-            self.refs = self._normalize_refs(getattr(self, "refs", []))
-            self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
-            self.description = self.clean_description(getattr(self, "description", ""))
             self.domain      = WebPage.domain_for_url(self.url)
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
@@ -53,14 +49,20 @@ class WebPage(abst.AbstractMongoRecord):
         self.linkerHits = 0
         self.lastUpdated = datetime.now()
 
+    def _normalize_data_sent_from_linker(self):
+        self.url = self.normalize_url(self.url)
+        self.refs = self._normalize_refs(getattr(self, "refs", []))
+        self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
+        self.description = self.clean_description(getattr(self, "description", ""))
+
     @staticmethod
     def _normalize_refs(refs):
-        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref)}
         return list(refs)
 
     def _normalize(self):
         super(WebPage, self)._normalize()
-        self.url = WebPage.normalize_url(self.url)
+        self._normalize_data_sent_from_linker()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
@@ -178,6 +180,7 @@ class WebPage(abst.AbstractMongoRecord):
         @param add_hit: True if you want to add hit to webpage in webpages collection
         """
         temp_webpage = WebPage(webpage_contents)
+        temp_webpage._normalize_data_sent_from_linker()
         webpage = WebPage().load(temp_webpage.url)
         if webpage:
             if temp_webpage.title == webpage.title and temp_webpage.description == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
