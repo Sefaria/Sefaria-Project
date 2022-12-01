@@ -313,6 +313,54 @@ class TermSchemeSet(abst.AbstractMongoSet):
     recordClass = TermScheme
 
 
+class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
+    """
+    The successor of the old `Term` class
+    Doesn't require titles to be globally unique
+    """
+    cacheable = True
+    collection = "non_unique_terms"
+    required_attrs = [
+        "slug",
+        "titles"
+    ]
+    optional_attrs = [
+        # currently either "structural", "context_swap" or "alt_title". structural should be used for terms that used to
+        # define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only
+        # included to generate more alt_titles (e.g. 'sefer'). "context_swap" is for parts that are meant to be swapped
+        # via SchemaNode.ref_resolver_context_swaps
+        "ref_part_role",
+    ]
+    slug_fields = ['slug']
+    title_group = None
+
+    def _normalize(self):
+        super()._normalize()
+        self.titles = self.title_group.titles
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
+
+    def _set_derived_attributes(self):
+        self.set_titles(getattr(self, "titles", None))
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.init("{self.slug}")'
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(self.slug)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class NonUniqueTermSet(abst.AbstractMongoSet):
+    recordClass = NonUniqueTerm
+
+
 """
                 ---------------------------------
                  Index Schema Trees - Core Nodes
@@ -791,7 +839,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
     def ref_part_title_trie(self, lang: str):
-        from .linker import MatchTemplateTrie
+        from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
     def validate(self):
@@ -847,7 +895,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return d
 
     def get_match_templates(self):
-        from .linker import MatchTemplate
+        from .linker.match_template import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
 

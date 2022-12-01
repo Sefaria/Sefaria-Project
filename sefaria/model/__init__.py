@@ -17,7 +17,7 @@ from . import history, schema, text, link, note, layer, notification, queue, loc
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
-    ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode
+    ArrayMapNode, JaggedArrayNode, NumberedTitledTreeNode, NonUniqueTerm, NonUniqueTermSet
 from .text import library, Index, IndexSet, Version, VersionSet, TextChunk, TextFamily, Ref, merge_texts
 from .link import Link, LinkSet, get_link_counts, get_book_link_collection, get_book_category_linkset
 from .note import Note, NoteSet
@@ -46,7 +46,8 @@ from .webpage import WebPage, WebPageSet
 from .media import Media, MediaSet
 from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
-from .linker import RawRef, NonUniqueTerm, NonUniqueTermSet, RefResolver
+from .linker.ref_part import RawRef
+from .linker.ref_resolver import RefResolver
 from .chatroom import Chatroom, ChatroomSet, Message, MessageSet
 
 from . import dependencies
