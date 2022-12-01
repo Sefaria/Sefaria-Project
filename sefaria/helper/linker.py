@@ -1,10 +1,11 @@
 import spacy
 import structlog
-from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
+from sefaria.model.linker.ref_part import TermContext, RefPartType
+from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
-from typing import List, Union, Optional
+from typing import List, Union
 
 logger = structlog.get_logger(__name__)
 

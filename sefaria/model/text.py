@@ -5487,7 +5487,9 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
+        from .linker.ref_resolver import RefResolver, TermMatcher
+        from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
 
         logger.info("Loading Spacy Model")

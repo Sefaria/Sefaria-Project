@@ -1,5 +1,5 @@
 import pytest
-from sefaria.model.linker import NonUniqueTerm
+from sefaria.model.schema import NonUniqueTerm
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 
 

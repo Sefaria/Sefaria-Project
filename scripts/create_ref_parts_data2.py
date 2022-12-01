@@ -10,8 +10,7 @@ from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.linker import MatchTemplate
-from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
+from sefaria.model.schema import TitleGroup
 from sefaria.utils.hebrew import encode_hebrew_numeral
 from sefaria.utils.hebrew import strip_cantillation
 import unicodedata
@@ -236,7 +235,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
         self.create_term(context="base", en="Talmud", he="תלמוד", ref_part_role='structural')
-        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
+        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"], ref_part_role='alt_title')
         self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
         self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
@@ -487,11 +486,11 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or not node.is_root(): return
+        if is_alt_node or not node.is_root(): return "NO-OP"
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return
-        if comm_term is None: return
-        if self.get_match_template_suffixes is None: return
+        except: return "NO-OP"
+        if comm_term is None: return "NO-OP"
+        if self.get_match_template_suffixes is None: return "NO-OP"
 
         match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
         for template in match_templates:
@@ -700,13 +699,16 @@ class LinkerIndexConverter:
     def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
         if self.get_match_templates:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
-            if templates is not None:
+            if templates == "NO-OP":
+                pass
+            elif templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
-            # else:
-            #     try:
-            #         delattr(node, 'match_templates')
-            #     except:
-            #         pass
+            else:
+                # None
+                try:
+                    delattr(node, 'match_templates')
+                except:
+                    pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
