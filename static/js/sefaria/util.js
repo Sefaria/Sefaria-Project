@@ -5,6 +5,7 @@ import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria  from './sefaria';
 import {HDate, months} from '@hebcal/core';
+import FeatureTrack from "./track_ga4";
 
 var INBROWSER = (typeof document !== 'undefined');
 
@@ -112,6 +113,21 @@ class Util {
         };
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
+    }
+     static subscribeToNbList(email) {
+        if (Sefaria.util.isValidEmailAddress(email)) {
+            const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
+            $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
+                if ("error" in data) {
+                    console.log(data.error);
+                } else {
+                    console.log("Subscribed! Welcome to our list.");
+                    FeatureTrack.clicked(`subscribeToNbList`,`${lists}`)
+                }
+            }).error(data => console.log("Sorry, there was an error."));
+        } else {
+        console.log("not valid email address")
+        }
     }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
