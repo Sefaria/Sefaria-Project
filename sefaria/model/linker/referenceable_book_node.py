@@ -6,6 +6,13 @@ from sefaria.model import schema
 
 
 class ReferenceableBookNode:
+    """
+    Represents tree of referenceable nodes. In general, this tree is based on the tree in an Index's schema, but with
+    some notable differences
+    - alt struct nodes are part of the tree, represented as NamedReferenceableBookNodes
+    - JaggedArrayNodes get split into N NumberedReferenceableNodes, where N is the depth of the JaggedArrayNode
+    - The leave node of a JaggedArrayNode with `isSegmentLevelDiburHamatchil == True` is a DiburHamatchilNodeSet
+    """
 
     def get_children(self, *args, **kwargs) -> List['ReferenceableBookNode']:
         return []
