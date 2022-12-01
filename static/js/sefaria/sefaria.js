@@ -744,6 +744,10 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
+  _get_offsets: function (data, length=1) {
+    return (data.index_offsets_by_depth === undefined || data.index_offsets_by_depth[data.textDepth] === undefined) ?
+        Array(length).fill(0) : data.index_offsets_by_depth[data.textDepth].flat();
+  },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
@@ -764,8 +768,8 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, "");
 
     const delim = data.ref === data.book ? " " : ":";
-    const skip = (data.skip_nums === undefined || data.skip_nums[data.textDepth] === undefined) ? [0] : data.skip_nums[data.textDepth].flat();
-    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+skip[0];
+    const offset = this._get_offsets(data);
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+offset[0];
 
     let prev = Array(length);
     let next = Array(length);
@@ -1877,10 +1881,9 @@ _media: {},
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
 
-    const skip_nums = (data.skip_nums === undefined || data.skip_nums[data.textDepth] === undefined) ?
-        Array(topLength).fill(0) : data.skip_nums[data.textDepth].flat();
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
     var start = (data.textDepth == data.sections.length && !withContext ?
-                  data.sections.slice(-1)[0] : 1+skip_nums[0]);
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
         var number = i+start;
@@ -1907,7 +1910,7 @@ _media: {},
         var delim       = baseSection ? ":" : " ";
         var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
 
-        start = (n == 0 ? start : 1+skip_nums[n]);
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
         for (var i = 0; i < length; i++) {
           var startSection = data.sections.slice(-2)[0];
           var section = typeof startSection == "string" ?

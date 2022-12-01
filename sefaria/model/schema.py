@@ -744,7 +744,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         for child in self.children:
             if hasattr(child, 'key') and child.key == key:
                 return child
-        return None
 
     def has_titled_continuation(self):
         """
@@ -1544,7 +1543,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'skip_nums']
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'index_offsets_by_depth']
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
@@ -1558,16 +1557,19 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
         SchemaNode.validate(self)
         NumberedTitledTreeNode.validate(self)
-        if hasattr(self, 'skip_nums'):
-            assert all(int(num) <= self.depth for num in self.skip_nums)
-            def check_skip(to_check, depth=0):
+        self.check_index_offsets_by_depth()
+
+    def check_index_offsets_by_depth(self):
+        if hasattr(self, 'index_offsets_by_depth'):
+            assert all(int(num) <= self.depth for num in self.index_offsets_by_depth)
+            def check_offsets(to_check, depth=0):
                 if depth == 0:
                     assert isinstance(to_check, int)
                 else:
                     for array in to_check:
-                        check_skip(array, depth-1)
-            for k, v in self.skip_nums.items():
-                check_skip(v, int(k)-1)
+                        check_offsets(array, depth-1)
+            for k, v in self.index_offsets_by_depth.items():
+                check_offsets(v, int(k)-1)
 
     def has_numeric_continuation(self):
         return True
@@ -1577,6 +1579,22 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["sectionNames"] = self.sectionNames
         res["depth"] = self.depth
         return res
+
+    def get_index_offsets(self, sections, toSections, depths=None):
+        index_offsets_by_depth = copy.deepcopy(getattr(self, 'index_offsets_by_depth', {}))
+        if index_offsets_by_depth and sections:
+            if not depths:
+                depths = sorted([int(x) for x in index_offsets_by_depth.keys()])
+            for depth in depths:
+                if depth == 1:
+                    continue
+                if len(sections) > depth - 2:
+                    for d in range(depth, max(depths)+1):
+                        last = reduce(lambda x, _: x[-1], range(depth-2), index_offsets_by_depth[str(d)])
+                        del last[toSections[depth-2]:]
+                        first = reduce(lambda x, _: x[0], range(depth-2), index_offsets_by_depth[str(d)])
+                        del first[:sections[depth-2]-1]
+        return index_offsets_by_depth
 
 
 class StringNode(JaggedArrayNode):

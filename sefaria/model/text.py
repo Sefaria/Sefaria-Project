@@ -1325,30 +1325,32 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         index = self.get_index()
         if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
-        def check_arrays_lengths(array1, array2):
-            if len(array1) < len(array2):
-                return False
-            if isinstance(array1[0], list):
-                for subarray1, subarray2 in zip(array1, array2):
-                    if not check_arrays_lengths(subarray1, subarray2):
-                        return False
-            return True
-        def check_node_skips(content, node):
-            if isinstance(content, list) and hasattr(node, 'skip_nums'):
-                for depth in node.skip_nums:
-                    if int(depth) > 1 and not check_arrays_lengths(node.skip_nums[depth], content):
-                        return False
-                    elif depth == '1':
-                        if not isinstance(node.skip_nums[depth], int):
-                            return False
-                return True
-            elif isinstance(content, dict):
-                for k in content:
-                    if not check_node_skips(content[k], node.get_child_by_key(k)):
-                        return False
-            return True
-        assert check_node_skips(self.chapter, index.nodes), 'there are more sections than skip_nums'
+        assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
 
+        return True
+
+    def _check_arrays_lengths(self, array1, array2):
+        if len(array1) < len(array2):
+            return False
+        if isinstance(array1[0], list):
+            for subarray1, subarray2 in zip(array1, array2):
+                if not self._check_arrays_lengths(subarray1, subarray2):
+                    return False
+        return True
+
+    def _check_node_offsets(self, content, node):
+        if isinstance(content, list) and hasattr(node, 'index_offsets_by_depth'):
+            for depth, nums in node.index_offsets_by_depth.items():
+                if int(depth) > 1 and not self._check_arrays_lengths(nums, content):
+                    return False
+                elif depth == '1':
+                    if not isinstance(nums, int):
+                        return False
+            return True
+        elif isinstance(content, dict):
+            for k, v in content.items():
+                if not self._check_node_offsets(v, node.get_child_by_key(k)):
+                    return False
         return True
 
     def _normalize(self):
@@ -2401,18 +2403,7 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
-        self._skip_nums = copy.deepcopy(getattr(self._inode, 'skip_nums', {}))
-        if self._skip_nums and oref.sections:
-            depths = sorted([int(x) for x in self._skip_nums.keys()])
-            for depth in depths:
-                if depth == 1:
-                    continue
-                if len(oref.sections) > depth - 2:
-                    for d in range(depth, max(depths)+1):
-                        last = reduce(lambda x, _: x[-1], range(depth-2), self._skip_nums[str(d)])
-                        del last[oref.toSections[depth-2]:]
-                        first = reduce(lambda x, _: x[0], range(depth-2), self._skip_nums[str(d)])
-                        del first[:oref.sections[depth-2]-1]
+        self._index_offsets_by_depth = self._inode.get_index_offsets(oref.sections, oref.toSections)
 
     def contents(self):
         """
@@ -2501,7 +2492,7 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
-        d['skip_nums'] = self._skip_nums
+        d['index_offsets_by_depth'] = self._index_offsets_by_depth
 
         return d
 
@@ -2678,7 +2669,7 @@ class Ref(object, metaclass=RefCacheType):
         for check in checks:
             for c, che in enumerate(check):
                 if che < 1:
-                    raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_skip([x-1 for x in check[:c]])}')
+                    raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_offset([x-1 for x in check[:c]])}')
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0]:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
@@ -2915,20 +2906,20 @@ class Ref(object, metaclass=RefCacheType):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
         for i in range(delta, len(self.sections)):
-            skip = self._get_skip([x-1 for x in self.toSections[:i]])
+            offset = self._get_offset([x-1 for x in self.toSections[:i]])
             try:
                 self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                range_parts[i - delta], sections=self.sections[i]) - skip
+                                                                                range_parts[i - delta], sections=self.sections[i]) - offset
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def _get_skip(self, indexes, use_node=None):
+    def _get_offset(self, indexes, use_node=None):
         use_node = use_node if use_node else self.index_node
-        skip_dict = getattr(use_node, 'skip_nums', None)
+        index_offsets_by_depth = getattr(use_node, 'index_offsets_by_depth', None)
         current_depth = len(indexes) + 1
-        if not skip_dict or str(current_depth) not in skip_dict:
+        if not index_offsets_by_depth or str(current_depth) not in index_offsets_by_depth:
             return 0
-        return reduce(lambda x, y: x[y], indexes, skip_dict[str(current_depth)])
+        return reduce(lambda x, y: x[y], indexes, index_offsets_by_depth[str(current_depth)])
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2943,10 +2934,10 @@ class Ref(object, metaclass=RefCacheType):
             gname = "a{}".format(i)
             if gs.get(gname) is not None:
                 try:
-                    skip = self._get_skip(indexes, use_node)
+                    offset = self._get_offset(indexes, use_node)
                 except IndexError:
                     raise InputError(f"Can not parse sections from ref: {tref}")
-                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - skip)
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - offset)
             indexes.append(sections[-1]-1)
         return sections
 
@@ -4382,9 +4373,9 @@ class Ref(object, metaclass=RefCacheType):
             # For complex texts, it can be a deeper branch of the dictionary: "chapter.Bereshit.Torah" or similar
             projection[self.storage_address()] = 1
         else:
-            skip = self.sections[0] - 1
+            offset = self.sections[0] - 1
             limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
-            slce = {"$slice": [skip, limit]}
+            slce = {"$slice": [offset, limit]}
             projection[self.storage_address()] = slce
             if len(self.index_node.address()) > 1:
                 # create dummy key at level of our selection - see above.
@@ -4546,8 +4537,8 @@ class Ref(object, metaclass=RefCacheType):
     def normalize_section(self, section_index, lang='en', attr='sections'):
         sections = getattr(self, attr)
         assert len(sections) > section_index
-        skip = self._get_skip([x-1 for x in sections[:section_index]])
-        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+skip)
+        offset = self._get_offset([x-1 for x in sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+offset)
 
     def normal_section(self, section_index, lang="en", **kwargs):
         """
@@ -4562,8 +4553,8 @@ class Ref(object, metaclass=RefCacheType):
         """
         assert not self.is_range()
         assert len(self.sections) > section_index
-        skip = self._get_skip([x-1 for x in self.sections[:section_index]])
-        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index]+skip, **kwargs)
+        offset = self._get_offset([x-1 for x in self.sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index]+offset, **kwargs)
 
     def normal_last_section(self, lang="en", **kwargs):
         """

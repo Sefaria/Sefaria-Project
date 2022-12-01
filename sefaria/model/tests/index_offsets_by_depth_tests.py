@@ -3,7 +3,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
 @pytest.fixture()
-def skip_nums():
+def index_offsets_by_depth():
     return {
             '1': 4,
             '2': [0, 3, 6, 9],
@@ -11,23 +11,23 @@ def skip_nums():
         }
 
 @pytest.fixture()
-def node(skip_nums):
+def node(index_offsets_by_depth):
     node = JaggedArrayNode({'depth': 3,
                             'addressTypes': ['Integer', 'Talmud', 'Integer'],
                             'sectionNames': ['Chapter','Chapter', 'Chapter'],
-                            'skip_nums': skip_nums
+                            'index_offsets_by_depth': index_offsets_by_depth
                             })
     node.add_primary_titles('test', 'בדיקה')
     return node
 
 @pytest.fixture()
 def false_node(node):
-    node.skip_nums['1'] = [5]
+    node.index_offsets_by_depth['1'] = [5]
     return node
 
 @pytest.fixture()
 def another_false_node(node):
-    node.skip_nums['3'] = [1, 2, 5]
+    node.index_offsets_by_depth['3'] = [1, 2, 5]
     return node
 
 def test_node(node):
@@ -106,23 +106,23 @@ def test_text(textchunck):
     assert Ref('Test 5').text('en').text == [['hello', 'world'], ['my', 'name']]
     assert Ref('Test 5:1b:4-7:4a:10').text('en').text == [[['name']], [['is'], ['skippy']], [['and', 'I']]]
 
-def test_api(textchunck, skip_nums):
+def test_api(textchunck, index_offsets_by_depth):
     tf = TextFamily(Ref('Test'), pad=False)
-    assert tf.contents()['skip_nums'] == skip_nums
+    assert tf.contents()['index_offsets_by_depth'] == index_offsets_by_depth
     tf = TextFamily(Ref('Test 5:1b:4-7:4a:9'), pad=False)
-    assert tf.contents()['skip_nums'] == {
+    assert tf.contents()['index_offsets_by_depth'] == {
             '1': 4,
             '2': [0, 3, 6],
             '3': [[2], [2, 6], [8]]
         }
     tf = TextFamily(Ref('Test 6:2b:7-7:4a:9'), pad=False)
-    assert tf.contents()['skip_nums'] == {
+    assert tf.contents()['index_offsets_by_depth'] == {
             '1': 4,
             '2': [3, 6],
             '3': [[2, 6], [8]]
         }
     tf = TextFamily(Ref('Test 6:3a:7-7:4a:9'), pad=False)
-    assert tf.contents()['skip_nums'] == {
+    assert tf.contents()['index_offsets_by_depth'] == {
             '1': 4,
             '2': [3, 6],
             '3': [[6], [8]]

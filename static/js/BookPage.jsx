@@ -770,7 +770,7 @@ class JaggedArrayNodeSection extends Component {
     if (this.props.depth > 2) {
       let content = [];
       for (let i = 0; i < this.props.contentCounts.length; i++) {
-        if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; };
+        if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
         let [enSection, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i);
         content.push(
           <div className="tocSection" key={i}>
