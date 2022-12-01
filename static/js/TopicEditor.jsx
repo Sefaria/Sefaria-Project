@@ -176,7 +176,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                                                          placeholder="Add a short description."/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
-                                                    <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
+                                                    <label><InterfaceText>Hebrew Short Description for Topic Table of Contents</InterfaceText></label>
                                                     <textarea
                                                         id="topicHeCatDesc"
                                                         onBlur={setValues}
