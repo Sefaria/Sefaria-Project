@@ -1369,8 +1369,8 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const nameClass = en.camelize();
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   useEffect( () => {
-    Sefaria.FeatureTrack.visible(`toolbutton; ${en}`)
-    console.log(`${en}_toolbutton visible`)
+    // Sefaria.FeatureTrack.visible(`toolbutton; ${en}`)
+    // console.log(`${en}_toolbutton visible`)
   }, [])
   return (
     count == null || count > 0 || alwaysShow ?
