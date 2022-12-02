@@ -317,6 +317,6 @@ We're grateful to the following organizations for providing us with donated serv
 
 ## License
 
-[GPL](http://www.gnu.org/copyleft/gpl.html)
+See the [LICENSE](LICENSE) file for license rights and limitations ([GPL](http://www.gnu.org/copyleft/gpl.html)).
 
 
