@@ -47,6 +47,8 @@ spec:
             - name: script
               mountPath: /script
           envFrom:
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
