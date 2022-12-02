@@ -10,6 +10,7 @@ import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ContentLanguageContext, AdContext} from './context';
+import FeatureTrack from "./sefaria/track_ga4";
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -277,7 +278,8 @@ class ReaderApp extends Component {
       var panels = this.state.panels;
       var textPanels = panels.filter(panel => (panel.refs.length || panel.bookRef) && panel.mode !== "Connections");
       var connectionPanels = panels.filter(panel => panel.mode == "Connections");
-
+      console.log("panels", this.state.panels.length)
+      FeatureTrack.numberOfPanels(this.state.panels.length)
       // Set Page Type
       // Todo: More specificity for sheets - browsing, reading, writing
       const pageType = !panels.length ? "Static" : (panels[0].menuOpen || panels[0].mode);

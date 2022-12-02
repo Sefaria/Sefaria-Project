@@ -24,6 +24,24 @@ class FeatureTrack {
             });
         }
     }
+
+    static numberOfPanels(number){
+        if (typeof window !== 'undefined') {
+            console.log("in readerApp about to count the panels")
+            gtag('event',  `numOfPanels`,{
+                'numberOfPanels': number,
+                'logged_in': !!Sefaria._uid,
+            });
+        }
+    }
+}
+
+class PanelTrack {
+
+}
+// Want to fallow pageView by category. Where would we put this? in the panel, because the book and category are per-panel... also this is the place to follow how many tabs are open
+class CategoryTrack {
+
 }
 
 class SideBarFeatureTrack extends FeatureTrack {
