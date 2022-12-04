@@ -634,14 +634,15 @@ class RefResolver:
             return []
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
-        'ResolvedRef']:
+            'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
-        context_full_matches = []
         contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
-        matches = context_full_matches + context_free_matches
+        matches = context_free_matches
         if len(matches) == 0:
+            context_full_matches = []
             for context_ref, context_type in contexts:
-                matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+                context_full_matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+            matches = context_full_matches + context_free_matches
         return matches
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
