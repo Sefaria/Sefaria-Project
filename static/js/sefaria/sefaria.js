@@ -315,8 +315,8 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
-  getSectionByAddressType: function(addressType, i, start=1) {
-    let section = start + i - 1;
+  getSectionByAddressType: function(addressType, i, offset=0) {
+    let section = i + offset;
     let heSection;
     if (addressType === 'Talmud') {
       section = Sefaria.hebrew.intToDaf(section);

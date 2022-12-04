@@ -701,6 +701,8 @@ SchemaNode.propTypes = {
 
 class JaggedArrayNode extends Component {
   render() {
+    const offset = (this.props.schema.index_offsets_by_depth === undefined || this.props.schema.index_offsets_by_depth['1'] === undefined) ?
+      0 : this.props.schema.index_offsets_by_depth['1'];
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
       return (<JaggedArrayNodeSection
@@ -711,6 +713,7 @@ class JaggedArrayNode extends Component {
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                offset={offset}
               />);
     }
     const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
@@ -733,6 +736,7 @@ class JaggedArrayNode extends Component {
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                offset={offset}
           />
         </>
     );
@@ -793,7 +797,7 @@ class JaggedArrayNodeSection extends Component {
     let sectionLinks = [];
     for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
-      let [section, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i);
+      let [section, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
