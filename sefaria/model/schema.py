@@ -2058,6 +2058,15 @@ class AddressType(object):
             return self.special_cases[s]
         return [self.toNumber(lang, s)]
 
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        """
+        Can `s` match out of order when parsing sections?
+        @param s:
+        @return:
+        """
+        return True
+
     def toIndex(self, lang, s):
         return self.toNumber(lang, s) - 1
 
@@ -2207,7 +2216,7 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
-
+    _can_match_out_of_order_patterns = None
     he_amud_pattern = AddressAmud(0).regex('he')
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
@@ -2287,16 +2296,6 @@ class AddressTalmud(AddressType):
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
 
-
-
-
-
-
-
-
-
-
-
     def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id and kwargs.get("for_js", False) == False:
             reg = r"(?P<" + group_id + r">"
@@ -2348,7 +2347,6 @@ class AddressTalmud(AddressType):
             return daf - 1
 
             # if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2412,6 +2410,21 @@ class AddressTalmud(AddressType):
         else:
             possibilities = [addr_num]
         return possibilities
+
+    @staticmethod
+    def _get_can_match_out_of_order_pattern(lang):
+        regex_str = AddressInteger(0).regex(lang, strict=True, group_id='section') + "$"
+        return regex.compile(regex_str, regex.VERBOSE)
+
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        if not cls._can_match_out_of_order_patterns:
+            cls._can_match_out_of_order_patterns = {
+                "en": cls._get_can_match_out_of_order_pattern("en"),
+                "he": cls._get_can_match_out_of_order_pattern("he"),
+            }
+        reg = cls._can_match_out_of_order_patterns[lang]
+        return reg.match(s) is None
 
 
 class AddressFolio(AddressType):
@@ -2551,6 +2564,15 @@ class AddressInteger(AddressType):
             return int(s)
         elif lang == "he":
             return decode_hebrew_numeral(s)
+
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        """
+        By default, this method should only apply to AddressInteger and no subclasses
+        Can still be overriden for a specific class that needs to
+        """
+        return cls != AddressInteger
+
 
 ''' Never used
 class AddressYear(AddressInteger):

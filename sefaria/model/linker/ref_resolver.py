@@ -172,7 +172,7 @@ class ResolvedRef(abst.Cloneable):
         refined_refs = []
         addr_classes_used = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and addr_class == schema.AddressInteger:
+            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and not addr_class.can_match_out_of_order(lang, raw_ref_part.text):
                 """
                 If raw_ref has NUMBERED parts [a, b]
                 and part b matches before part a

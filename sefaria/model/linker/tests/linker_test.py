@@ -42,9 +42,11 @@ crrd = create_raw_ref_data
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
+    [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#עמוד ב', '@במכות']), ("Makkot 2",)],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
+    [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
