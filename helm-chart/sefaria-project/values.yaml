@@ -35,12 +35,24 @@ restore:
 
 # config to backup environment DB
 backup:
-  enabled: false
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: false
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+    version: 4.4
+  postgres:
+    enabled: false
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
+  sitemaps:
+    enabled: false
+    serviceAccount: database-backup-write
+    bucket: sefaria-sitemaps
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -105,7 +117,7 @@ linker:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: gcr.io/production-deployment/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -327,6 +339,7 @@ secrets:
     #   CLOUDFLARE_EMAIL:
     #   CLOUDFLARE_TOKEN:
     #   GOOGLE_TAG_MANAGER_CODE:
+    #   GOOGLE_GTAG:
     #   HOTJAR_ID:
     #   AWS_ACCESS_KEY:
     #   AWS_SECRET_KEY:

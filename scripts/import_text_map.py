@@ -4,15 +4,14 @@ import sys
 import os
 import csv
 
+from sefaria import texts, summaries
+from sefaria.system.database import db
+import sefaria.tracker as tracker
+from sefaria.model import library
+
 path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, path)
 sys.path.insert(0, path + "/sefaria")
-
-from sefaria import texts
-from sefaria import summaries
-from sefaria.system.database import db
-import sefaria.tracker as tracker
-
 
 filename = '../tmp/Sefaria Text Map - Talmud.csv'
 action   = sys.argv[1] if len(sys.argv) > 1 else None
@@ -95,5 +94,4 @@ def import_from_csv(filename, action="status", category="all"):
 				print("Still no Hebrew:  %s" % i["title"])
 
 	if action in ("post", "update"):
-		from sefaria.model import library
 		library.rebuild_toc()

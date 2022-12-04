@@ -4,6 +4,7 @@ from sefaria.model.webpage import WebPage, get_webpages_for_ref
 
 title_good_url = "Dvar Torah"
 
+
 @pytest.fixture(scope='module')
 def create_good_web_page():
 	data_good_url = {'url': 'http://blogs.timesofisrael.com/dvar-torah2',
@@ -11,10 +12,9 @@ def create_good_web_page():
 									 'description': 'A Dvar Torah on Times of Israel',
 									 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1", 'Shulchan Aruch, Orach Chaim 7:1']}
 
-	result = WebPage().add_or_update_from_linker(data_good_url)
-	webpage = WebPage().load({"url": data_good_url["url"]})
+	result, webpage = WebPage().add_or_update_from_linker(data_good_url)
 	yield {"result": result, "webpage": webpage, "data": data_good_url}
-	WebPage().load({"url": data_good_url["url"]}).delete()
+	WebPage().load(data_good_url["url"]).delete()
 
 
 @pytest.fixture(scope='module')
@@ -23,8 +23,7 @@ def create_web_page_wout_desc():
 									 'title': title_good_url+" without description",
 									 'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 2", 'Genesis 3']}
 
-	result = WebPage().add_or_update_from_linker(data_good_url)
-	webpage = WebPage().load({"url": data_good_url["url"]})
+	result, webpage = WebPage().add_or_update_from_linker(data_good_url)
 	yield {"result": result, "webpage": webpage, "data": data_good_url}
 	webpage.delete()
 
@@ -32,8 +31,7 @@ def create_web_page_wout_desc():
 @pytest.fixture(scope='module')
 def create_web_page_wout_site():
 	data = {'url': 'http://notarealsite.org/123', 'title': "This is a good title", "refs": ["Genesis 2"]}
-	result = WebPage().add_or_update_from_linker(data)
-	webpage = WebPage().load({'url': data['url']})
+	result, webpage = WebPage().add_or_update_from_linker(data)
 	yield {'result': result, 'webpage': webpage, 'data': data}
 	webpage.delete()
 
@@ -45,7 +43,8 @@ def test_add_bad_domain_from_linker():
 					'description': 'A Page We Do Not Want',
 					'refs': ["Haamek Davar on Genesis, Kidmat Ha'Emek 1", 'Shulchan Aruch, Orach Chaim 7:1']}
 
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
+	result, _ = WebPage().add_or_update_from_linker(data)
+	assert result == "excluded"
 
 def test_add_no_refs_from_linker():
 	# blogs.timesofisrael.com/random should not be added to the linker, because it contains no refs
@@ -56,7 +55,8 @@ def test_add_no_refs_from_linker():
 					'description': 'A Page We Do Not Want',
 					'refs': []}
 
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
+	result, _ = WebPage().add_or_update_from_linker(data)
+	assert result == "excluded"
 
 
 def test_add_bad_title_from_linker():
@@ -67,7 +67,8 @@ def test_add_bad_title_from_linker():
 					'description': 'A Page We Do Not Want',
 					'refs': ["Genesis 1:1"]}
 
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
+	result, _ = WebPage().add_or_update_from_linker(data)
+	assert result == "excluded"
 
 
 def test_add_webpage_without_website(create_web_page_wout_site):
@@ -86,16 +87,18 @@ def test_add_and_update_good_url_from_linker(create_good_web_page):
 	# now, we simply update an existing site with different refs and make sure it updated
 	data['refs'] = ["Genesis 3:3", 'Exodus 3:10']
 
-	assert WebPage().add_or_update_from_linker(data) == "saved"
-	assert set(WebPage().load({"url": data["url"]}).refs) == set(["Genesis 3:3", 'Exodus 3:10'])
-	assert WebPage().load({"url": data["url"]}).linkerHits == linker_hits + 1
+	result, webpage = WebPage().add_or_update_from_linker(data, add_hit=True)
+	assert result == "saved"
+	assert set(WebPage().load(data["url"]).refs) == set(["Genesis 3:3", 'Exodus 3:10'])
+	assert WebPage().load(data["url"]).linkerHits == linker_hits + 1
 
 
 def test_add_and_update_with_same_data(create_good_web_page):
 	# create a page and then try to add_or_update it with same data and assert it fails
 	result, webpage, data = create_good_web_page["result"], create_good_web_page["webpage"], create_good_web_page["data"]
 	assert result == "saved"
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
+	result, _ = WebPage().add_or_update_from_linker(data)
+	assert result == "excluded"
 
 
 def test_update_blank_title_from_linker(create_good_web_page):
@@ -105,11 +108,10 @@ def test_update_blank_title_from_linker(create_good_web_page):
 
 	data["title"] = ""
 
-
-
-	assert WebPage().add_or_update_from_linker(data) == "saved"
-	print(WebPage().load({"url": data["url"]}).contents())
-	assert WebPage().load({"url": data["url"]}).title == title_good_url
+	result, _ = WebPage().add_or_update_from_linker(data)
+	assert result == "saved"
+	print(WebPage().load(data["url"]).contents())
+	assert WebPage().load(data["url"]).title == title_good_url
 
 
 
@@ -121,7 +123,9 @@ def test_add_search_URL():
 		 'description': 'Rabbi Dr. Abraham Joshua Heschel\'s speech, "On Prayer," delivered at an inter-religious convocation held under the auspices of the U.S. Liturgical Conference in Milwaukee, Wisconsin, on August 28, 1969. His talk was printed in the journal Conservative Judaism v.25:1 Fall 1970, p.1-12.   . . .',
 		 'refs': ['Psalms 1–41', 'Psalms 42–72', 'Psalms 73–89', 'Psalms 90–106', 'Psalms 107–150', 'Psalms 130:1',
 				  'Psalms 63:2-4', 'Psalms 42:2-4']}
-		assert WebPage.add_or_update_from_linker(linker_data) == "excluded"
+
+		result, _ = WebPage.add_or_update_from_linker(linker_data)
+		assert result == "excluded"
 
 
 def test_page_wout_description(create_web_page_wout_desc):
@@ -129,9 +133,9 @@ def test_page_wout_description(create_web_page_wout_desc):
 	assert result == "saved"
 
 	data["description"] = "here is a desc"
-	assert WebPage().add_or_update_from_linker(data) == "saved"
+	assert WebPage().add_or_update_from_linker(data)[0] == "saved"
 
-	assert WebPage().add_or_update_from_linker(data) == "excluded"
+	assert WebPage().add_or_update_from_linker(data)[0] == "excluded"
 
 
 def test_get_webpages_for_ref():

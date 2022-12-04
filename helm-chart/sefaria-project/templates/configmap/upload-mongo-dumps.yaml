@@ -1,4 +1,4 @@
-{{- if .Values.backup.enabled }}
+{{- if .Values.backup.mongo.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,11 +10,13 @@ data:
   upload-dumps.sh: |-
     #!/usr/bin/env bash
     set -x
-    {{- if .Values.backup.serviceAccount }}
-    gloud auth activate
+    {{- if .Values.backup.mongo.serviceAccount }}
+
     {{- else }}
+
     gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
     {{- end }}
+
     cd "/mongodumps/shared_volume"
     today="$(date +'%d.%m.%y')"
     last_week="$(date --date='last week' +'%d.%m.%y')"

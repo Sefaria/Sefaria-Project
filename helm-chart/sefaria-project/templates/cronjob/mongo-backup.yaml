@@ -1,4 +1,4 @@
-{{- if eq .Values.backup.enabled true }}
+{{- if eq .Values.backup.mongo.enabled true }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -14,7 +14,7 @@ spec:
       backoffLimit: 1
       template:
         spec:
-          serviceAccount: {{ .Values.backup.serviceAccount }}
+          serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
           affinity:
             podAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -32,7 +32,7 @@ spec:
               effect: "NoSchedule"
           initContainers:
           - name: mongo-dumper
-            image:  mongo:4.4
+            image:  mongo:{{ .Values.backup.mongo.version }}
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
@@ -66,11 +66,11 @@ spec:
               readOnly: true
             env:
             - name: PREFIX
-              value: {{ .Values.backup.prefix }}
+              value: {{ .Values.backup.mongo.prefix }}
             - name: BUCKET
-              value: {{ .Values.backup.bucket }}
+              value: {{ .Values.backup.mongo.bucket }}
             - name: ARCHIVE_BUCKET
-              value: {{ .Values.backup.archiveBucket }}
+              value: {{ .Values.backup.mongo.archiveBucket }}
             - name: SLACK_URL
               valueFrom:
                 secretKeyRef:

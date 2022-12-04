@@ -5,12 +5,21 @@ previousServicesCount: "3"
 restore:
   enabled: false
 backup:
-  enabled: true
-  prefix: ""
-  public: true
-  bucket: sefaria-mongo-backup
-  archiveBucket: sefaria-mongo-archive
-  serviceAccount: database-backup-write
+  mongo:
+    enabled: true
+    prefix: ""
+    public: true
+    bucket: sefaria-mongo-backup
+    archiveBucket: sefaria-mongo-archive
+    serviceAccount: database-backup-write
+  postgres:
+    enabled: true
+    version: 10.3
+    prefix: ""
+    bucket: sefaria-user-backup
+    serviceAccount: database-backup-write
+  sitemaps:
+    enabled: true
 web:
   containerImage: 
     imageRegistry:
@@ -22,10 +31,10 @@ web:
       gunicornThreadCount: 5
       resources:
         requests:
-          memory: "10Gi"
+          memory: "12Gi"
           cpu: "1500m"
         limits:
-          memory: "11Gi"
+          memory: "14Gi"
           cpu: "2"
   secrets:
     googleClient:
@@ -67,7 +76,7 @@ varnish:
   replicaCount: 1
   resources:
     requests:
-      memory: "16Gi"
+      memory: "17Gi"
       cpu: "1"
     limits:
       memory: "18Gi"
@@ -83,6 +92,8 @@ varnish:
   secrets:
     varnish:
       ref: varnish-secret-production
+  monitoring:
+    enabled: true
 ingress:
   hosts: 
     - host: "sefaria.org"
