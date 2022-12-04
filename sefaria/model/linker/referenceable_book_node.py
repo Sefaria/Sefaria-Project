@@ -99,9 +99,20 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         """
         return self.address_class.get_all_possible_sections_from_string(*args, **kwargs)
 
+    def _get_next_referenceable_depth(self):
+        if self.is_default():
+            return 0
+        next_refereceable_depth = 1
+        # if `referenceableSections` is not define, assume they're all referenceable
+        referenceable_sections = getattr(self._ja_node, 'referenceableSections', [])
+        if len(referenceable_sections) > 0:
+            while next_refereceable_depth < len(referenceable_sections) and not referenceable_sections[next_refereceable_depth]:
+                next_refereceable_depth += 1
+        return next_refereceable_depth
+
     def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
         serial = self._ja_node.serialize()
-        next_referenceable_depth = self._ja_node.get_next_referenceable_depth()
+        next_referenceable_depth = self._get_next_referenceable_depth()
         serial['depth'] -= next_referenceable_depth
         if serial['depth'] < 0:
             return []

@@ -1121,16 +1121,6 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 d["heSectionNames"] = list(map(hebrew_term, self.sectionNames))
         return d
 
-    def get_next_referenceable_depth(self):
-        if self.is_default():
-            return 0
-        next_refereceable_depth = 1
-        # if `referenceableSections` is not define, assume they're all referenceable
-        if getattr(self, 'referenceableSections', False):
-            while next_refereceable_depth < len(self.referenceableSections) and not self.referenceableSections[next_refereceable_depth]:
-                next_refereceable_depth += 1
-        return next_refereceable_depth
-
     def is_segment_level_dibur_hamatchil(self) -> bool:
         return getattr(self, 'isSegmentLevelDiburHamatchil', False)
 
