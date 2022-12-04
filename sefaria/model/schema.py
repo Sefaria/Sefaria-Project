@@ -2606,9 +2606,10 @@ class AddressPerek(AddressInteger):
 class AddressPasuk(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1?                                        # optional ב in front
-            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)    #pasuk spelled out, with a space after
-        )"""
+        "he": r"""(?:\u05d1?(?:                                        # optional ב in front
+            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)|    #pasuk spelled out, with a space after
+            (?:\u05e4\u05e1(?:['\u2018\u2019\u05f3])\s+)
+        ))"""
     }
 
 
