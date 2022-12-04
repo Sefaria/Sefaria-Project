@@ -15,6 +15,8 @@ from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
+
+
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
@@ -45,20 +47,26 @@ class WebPage(abst.AbstractMongoRecord):
 
     def _init_defaults(self):
         self.linkerHits = 0
+        self.lastUpdated = datetime.now()
+
+    def _normalize_data_sent_from_linker(self):
+        self.url = self.normalize_url(self.url)
+        self.refs = self._normalize_refs(getattr(self, "refs", []))
+        self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
+        self.description = self.clean_description(getattr(self, "description", ""))
 
     @staticmethod
     def _normalize_refs(refs):
-        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref)}
         return list(refs)
 
     def _normalize(self):
         super(WebPage, self)._normalize()
-        self.url = WebPage.normalize_url(self.url)
+        self._normalize_data_sent_from_linker()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
         super(WebPage, self)._validate()
-
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
@@ -117,6 +125,17 @@ class WebPage(abst.AbstractMongoRecord):
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(url_match) or re.search(title_regex, self.title)
 
+    def delete_if_should_be_excluded(self):
+        if not self.should_be_excluded():
+            return False
+        if not self.is_new():
+            self.delete()
+        return True
+
+    def add_hit(self):
+        self.linkerHits += 1
+        self.lastUpdated = datetime.now()
+
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
@@ -128,7 +147,7 @@ class WebPage(abst.AbstractMongoRecord):
                     if site["is_whitelisted"]:
                         bad_urls += [re.escape(domain_in_site)+"/search.*?$"]
 
-        if len(bad_urls) is 0:
+        if len(bad_urls) == 0:
             return None
         else:
             return "({})".format("|".join(bad_urls))
@@ -151,38 +170,38 @@ class WebPage(abst.AbstractMongoRecord):
                     return site
         return None
 
-
     @staticmethod
-    def add_or_update_from_linker(data):
-        """Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
-        Returns True is data was saved, False if data was determined to be exluded"""
-        data["url"] = WebPage.normalize_url(data["url"])
-        webpage = WebPage().load(data["url"])
-        data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
-        data["title"] = WebPage.clean_title(data["title"], getattr(webpage, "_site_data", {}),
-                                            getattr(webpage, "site_name", ""))
-        data["description"] = WebPage.clean_description(data.get("description", ""))
+    def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
+        """
+        Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        Returns True is data was saved, False if data was determined to be excluded
 
+        @param webpage_contents: a dict representing the contents of a `WebPage`
+        @param add_hit: True if you want to add hit to webpage in webpages collection
+        """
+        temp_webpage = WebPage(webpage_contents)
+        temp_webpage._normalize_data_sent_from_linker()
+        webpage = WebPage().load(temp_webpage.url)
         if webpage:
-            existing = True
-            if data["title"] == webpage.title and data["description"] == getattr(webpage, "description", "") and set(data["refs"]) == set(webpage.refs):
-                return "excluded"  # no new data
-            if data["title"] == "":
-                data["title"] = webpage.title  # dont save an empty title if title exists
-            webpage.load_from_dict(data)
+            if temp_webpage.title == webpage.title and temp_webpage.description == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
+                return "excluded", webpage  # no new data
+            contents_to_overwrite = {
+                "url": temp_webpage.url,
+                "title": temp_webpage.title or webpage.title,
+                "refs": temp_webpage.refs,
+                "description": temp_webpage.description,
+            }
+            webpage.load_from_dict(contents_to_overwrite)
         else:
-            webpage = WebPage(data)
-            existing = False
+            webpage = temp_webpage
 
-        if webpage.should_be_excluded():
-            if existing:
-                webpage.delete()
-            return "excluded"
+        if webpage.delete_if_should_be_excluded():
+            return "excluded", None
 
-        webpage.linkerHits += 1
-        webpage.lastUpdated = datetime.now()
+        if add_hit:
+            webpage.add_hit()
         webpage.save()
-        return "saved"
+        return "saved", webpage
 
     def client_contents(self):
         d = self.contents()
@@ -193,7 +212,8 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.clean_client_contents(d)
         return d
 
-    def clean_client_contents(self, d):
+    @staticmethod
+    def clean_client_contents(d):
         d["title"]       = WebPage.clean_title(d["title"], d.get("_site_data", {}), d.get("site_name", ""))
         d["description"] = WebPage.clean_description(d.get("description", ""))
         return d
@@ -250,7 +270,8 @@ class WebSite(abst.AbstractMongoRecord):
         "initial_title_branding",
         "linker_installed",
         "num_webpages",
-        "exclude_from_tracking"
+        "exclude_from_tracking",
+        "whitelist_selectors",
     ]
 
     def __key(self):
