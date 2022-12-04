@@ -298,7 +298,6 @@ class ResolvedRef(abst.Cloneable):
         """
         For sorting
         """
-        matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
         explicit_matched = self.get_resolved_parts(exclude={ContextPart})
         num_context_parts_matched = 0
         # theory is more context is helpful specifically for DH matches because if DH still matches with more context,
@@ -306,7 +305,7 @@ class ResolvedRef(abst.Cloneable):
         # and doesn't give more confidence that it's correct
         if next(iter(part for part in explicit_matched if part.type == RefPartType.DH), False):
             num_context_parts_matched = self.num_resolved(include={ContextPart})
-        return len(explicit_matched), int(matches_context_book), num_context_parts_matched
+        return len(explicit_matched), num_context_parts_matched
 
 
 class AmbiguousResolvedRef:
