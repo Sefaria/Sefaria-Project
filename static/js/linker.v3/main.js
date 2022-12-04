@@ -412,7 +412,7 @@ import {LinkExcluder} from "./excluder";
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
 
-        getFullWhitelistSelectors()
+        getFullWhitelistSelectors(whitelistSelector)
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }
