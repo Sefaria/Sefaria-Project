@@ -24,17 +24,10 @@ spec:
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
-              optional: true
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
-              optional: true
-          - configMapRef:
-              name: local-settings-web-{{ .Values.deployEnv }}
-              optional: true
-          - secretRef:
-              name: local-settings-web-secrets-{{ .Values.deployEnv }}
               optional: true
         command: ["/script/destroy-mongo.sh"]
         volumeMounts:
