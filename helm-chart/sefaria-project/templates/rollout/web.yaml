@@ -85,6 +85,8 @@ spec:
             value: "{{ .Release.Revision }}"
         envFrom:
           - secretRef:
+              name: {{ .Values.secrets.mongo.ref }}
+          - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
           - configMapRef:
