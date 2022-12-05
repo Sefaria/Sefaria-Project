@@ -5,7 +5,11 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data:
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
+    helm.sh/hook-weight: "10"
+data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
