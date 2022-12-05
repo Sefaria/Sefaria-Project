@@ -366,16 +366,6 @@ secrets:
     # should be commented out and vice-versa.
     ref:
     # data:
-  mongo:
-    # If you're using a reference to an existing secret then the data: section
-    # should be commented out and vice-versa.
-    ref:
-    # data:
-    #   MONGO_HOST:
-    #   MONGO_REPLICASET:
-    #   SEFARIA_DB
-    #   SEFARIA_DB_USER:
-    #   SEFARIA_DB_PASSWORD:
 
 # Settings for various cronjobs
 cronJobs:
