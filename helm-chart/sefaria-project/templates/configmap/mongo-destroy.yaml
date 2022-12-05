@@ -45,8 +45,8 @@ data:
 
     URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
 
-    if [[ ! -z "MONGO_REPLICASET" ]]; then
-    URI="${URI}&replicaSet=${MONGO_REPLICASET}"
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
 
 

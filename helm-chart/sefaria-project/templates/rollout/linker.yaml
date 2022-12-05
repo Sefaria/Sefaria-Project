@@ -96,6 +96,8 @@ spec:
             value: '{{ toJson .Values.linker.part_model_paths }}'
         envFrom:
           - secretRef:
+              name: {{ .Values.secrets.mongo.ref }}
+          - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
           - configMapRef:

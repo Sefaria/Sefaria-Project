@@ -32,18 +32,18 @@ data:
 
     URI="mongodb://"
 
-    if [[ ! -z MONGO_USER ]]; then
-      URI="${URI}${MONGO_USER}"
-      if [[ ! -z MONGO_PASSWORD ]]; then
-          URI="${URI}:${MONGO_PASSWORD}"
+    if [[ ! -z SEFARIA_DB_USER ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z SEFARIA_DB_PASSWORD ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
       fi
       URI="${URI}@"
     fi
 
     URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
 
-    if [[ ! -z "MONGO_REPLICASET" ]]; then
-      URI="${URI}&replicaSet=${MONGO_REPLICASET}"
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+      URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
     
 
