@@ -48,6 +48,17 @@ data:
     )
 
     MANAGERS = ADMINS
+    
+    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_PORT = 27017
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
+    {{- else }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB")
+    {{- end }}
+    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
+    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
+    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
 
     DATABASES = {
         'default': {
@@ -77,6 +88,14 @@ data:
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
             "TIMEOUT": 60 * 60 * 24 * 30,
+        },
+        "persistent": {
+            'BACKEND': 'sefaria.system.caches.SimpleMongoDBCache',
+            "OPTIONS": {
+                "DATABASE": SEFARIA_DB,
+                "COLLECTION": "django_cache", # default: django_cache
+            },
+            "TIMEOUT": None, 
         },
     }
 
@@ -115,17 +134,6 @@ data:
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
-    MONGO_HOST = os.getenv("MONGO_HOST")
-    MONGO_PORT = 27017
-    {{- if eq .Values.sandbox "true" }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
-    {{- else }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB")
-    {{- end }}
-    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
-    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
-    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
-
     SEARCH_HOST = "/api/search"
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
     SEARCH_ADMIN_USER = os.getenv("SEARCH_ADMIN_USER")
@@ -158,6 +166,7 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_GTAG = os.getenv("GOOGLE_GTAG")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")

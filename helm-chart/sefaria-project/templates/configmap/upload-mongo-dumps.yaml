@@ -11,10 +11,12 @@ data:
     #!/usr/bin/env bash
     set -x
     {{- if .Values.backup.mongo.serviceAccount }}
-    gloud auth activate
+
     {{- else }}
+
     gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
     {{- end }}
+
     cd "/mongodumps/shared_volume"
     today="$(date +'%d.%m.%y')"
     last_week="$(date --date='last week' +'%d.%m.%y')"
