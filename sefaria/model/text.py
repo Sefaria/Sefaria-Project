@@ -233,7 +233,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # self.nodes.validate()
         else:
             self.nodes = None
+        self._set_struct_objs()
 
+    def _set_struct_objs(self):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in list(self.alt_structs.items()):
@@ -332,6 +334,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 c = obj.serialize()
                 del c["titles"]
                 d["alt_structs"][name] = c
+        print(d)
         return d
 
     def versions_are_sparse(self):
@@ -657,6 +660,24 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.key = t
                     self.nodes.add_title(t, "en", True, True)
                     break
+
+            #change alt_structs titles
+            old_title = self.pkeys_orig_values["title"]
+            new_title = self.nodes.primary_title("en")
+            def change_alt_node_refs(node):
+                if 'wholeRef' in node:
+                    node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
+                if 'refs' in node:
+                    node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
+                if 'nodes' in node:
+                    for n in node['nodes']:
+                        change_alt_node_refs(n)
+            alts = getattr(self, 'alt_structs', None)
+            if alts and old_title != new_title:
+                for alt in alts.values():
+                    change_alt_node_refs(alt)
+                self._set_struct_objs()
+
         """
         Make sure these fields do not appear:
         "titleVariants",      # required for old style
@@ -6223,16 +6244,6 @@ def process_index_change_in_core_cache(indx, **kwargs):
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
-
-
-def process_index_change_in_alt_structs(indx, **kwargs):
-    # Note: this function is only a place holder.
-    old_title = kwargs["old"]
-    new_title = kwargs["new"]
-    if hasattr(indx, 'alt_structs'):
-        #make the change
-        # print("Cascading Alt_struct refs from  {} to {}".format(kwargs['old'], kwargs['new']))
-        pass
 
 
 def process_index_change_in_toc(indx, **kwargs):
