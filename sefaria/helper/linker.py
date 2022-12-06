@@ -119,7 +119,7 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0
 
 def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
     chunk = text.TextChunk(oref, lang=lang)
-    as_array = [chunk._strip_itags(s) for s in chunk.ja().flatten_to_array()]
+    as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
     was_truncated = 0 < max_segments < len(as_array)
     return as_array[:max_segments or None], was_truncated
 
