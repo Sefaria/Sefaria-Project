@@ -520,7 +520,9 @@ class ReaderPanel extends Component {
     // this.replaceHistory to be false so that we don't override the previous page's history.
     // If history.state.panels[0].mode is undefined, we know that conditionalSetState has been called already, and we
     // can replace the history state. Otherwise, we want to push the history state, so we set replaceHistory to false.
-    this.replaceHistory = replaceHistoryIfReaderAppUpdated ? !history.state.panels[0].mode : false
+    this.replaceHistory = replaceHistoryIfReaderAppUpdated ?
+        history.state ? !history.state.panels[0].mode : true // on page load history state may not yet exist -- in that case force update
+        : false
     this.conditionalSetState({tab: tab})
   }
   currentMode() {
