@@ -494,7 +494,7 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   ISOMap: {
-    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 0},
+    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1},
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
     "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
     "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
