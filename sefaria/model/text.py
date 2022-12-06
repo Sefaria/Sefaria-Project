@@ -1121,7 +1121,7 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
-            segment = self._strip_itags(segment)
+            segment = self.strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
             accumulator += joiner + segment
@@ -1199,6 +1199,14 @@ class AbstractTextRecord(object):
         return t
 
     @staticmethod
+    def find_all_itags(s, only_footnotes=False):
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        if only_footnotes:
+            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
+        return soup, itag_list
+
+    @staticmethod
     def _itag_is_footnote(tag):
         return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
 
@@ -1212,9 +1220,8 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s, sections=None):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+    def strip_itags(s, sections=None):
+        soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
             try:
                 if AbstractTextRecord._itag_is_footnote(itag):
@@ -2293,7 +2300,7 @@ class TextFamily(object):
                         ne_by_secs[temp_secs] += [ne]
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
-                text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
@@ -5722,7 +5729,7 @@ class Library(object):
                 except AssertionError as e:
                     logger.info("Skipping Schema Node: {}".format(title))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
@@ -5737,7 +5744,7 @@ class Library(object):
                 except InputError as e:
                     logger.info("Input Error searching for refs in string: {}".format(e))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         return refs
 

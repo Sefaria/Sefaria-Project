@@ -11,16 +11,16 @@ class CategoryFilter extends Component {
   // If `showBooks` list connections broken down by book as well.
   handleClick(e) {
     e.preventDefault();
-    if (this.props.showBooks) {
+    if (this.props.showBooks) { // 2nd level
       this.props.setFilter(this.props.category, this.props.updateRecent);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Category Filter Click", this.props.category); }
-    } else {
+    } else { // top level
       this.props.setConnectionsCategory(this.props.category);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Connections Category Click", this.props.category); }
     }
   }
   render() {
-    const filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
+    const filterSuffix = this.props.category  === "Quoting Commentary" ? "Quoting" : null;
     const textMissingDescription = null; //"missing description"
     const textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
       return (<TextFilter
@@ -44,8 +44,9 @@ class CategoryFilter extends Component {
     const style       = {"--category-color":color}
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
-    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count == 0, title:1});
+    const categoryForUrl = !this.props.showBooks ? this.props.category + " ConnectionsList" : this.props.category;
+    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + categoryForUrl :"";
+    const classesDesc = classNames({ sidebarDescription: 1, lowlight: this.props.count === 0, title:1});
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
     const catDesc = Sefaria.getDescriptionDict(this.props.category, []);
     const catEnDesc = catDesc[0];
