@@ -44,7 +44,7 @@ web:
     schoolLookup:
       ref: school-lookup-data-production
 linker:
-  enabled: false
+  enabled: true
   containerImage:
     imageRegistry:
     tag:

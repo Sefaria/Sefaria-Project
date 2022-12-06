@@ -1,4 +1,7 @@
-import django, re
+import django
+django.setup()
+
+import re
 from tqdm import tqdm
 from functools import partial
 from sefaria.model import *
@@ -7,14 +10,11 @@ from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.linker import MatchTemplate
-from sefaria.model.abstract import AbstractMongoRecord
-from sefaria.model.schema import DiburHamatchilNode, DiburHamatchilNodeSet, TitleGroup
+from sefaria.model.schema import TitleGroup
 from sefaria.utils.hebrew import encode_hebrew_numeral
 from sefaria.utils.hebrew import strip_cantillation
 import unicodedata
 from pymongo import InsertOne
-
-django.setup()
 
 """
 Documentation of new fields which can be added to SchemaNodes
@@ -76,6 +76,17 @@ Documentation of new fields which can be added to SchemaNodes
         E.g. Sifra has many nodes like "Chapter 1" that are SchemaNodes but should be referenceable by gematria        
 
 """
+
+
+def get_ref_by_book_oref_and_sections(book_oref, sections, toSections=None):
+    toSections = toSections or sections
+    return Ref(_obj={
+        "index": book_oref.index,
+        "book": book_oref.normal(),
+        "index_node": book_oref.index_node,
+        "sections": sections,
+        "toSections": toSections,
+    })
 
 
 class ReusableTermManager:
@@ -224,7 +235,7 @@ class ReusableTermManager:
         self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
         self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
         self.create_term(context="base", en="Talmud", he="תלמוד", ref_part_role='structural')
-        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], ref_part_role='alt_title')
+        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"], ref_part_role='alt_title')
         self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
         self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
         self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
@@ -475,11 +486,11 @@ class LinkerCommentaryConverter:
                 return match_templates
 
         # otherwise, use default implementation
-        if is_alt_node or not node.is_root(): return
+        if is_alt_node or not node.is_root(): return "NO-OP"
         try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return
-        if comm_term is None: return
-        if self.get_match_template_suffixes is None: return
+        except: return "NO-OP"
+        if comm_term is None: return "NO-OP"
+        if self.get_match_template_suffixes is None: return "NO-OP"
 
         match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
         for template in match_templates:
@@ -565,11 +576,7 @@ class DiburHamatchilAdder:
         index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
         perek_refs = []
         for perek_node in index.get_alt_struct_nodes():
-            try:
-                perek_ref = Ref(perek_node.wholeRef)
-            except:
-                # print("perek ref failed", perek_node.wholeRef)
-                continue
+            perek_ref = Ref(perek_node.wholeRef)
             perek_refs += [perek_ref]
 
         versions = VersionSet({"title": index.title, "language": "he"}).array()
@@ -648,6 +655,15 @@ class LinkerIndexConverter:
         # really only outer shape is checked. including rest of shape even though it's technically only a count of what's available and skips empty sections
         shape = sn.var('all', 'shape')
         outer_shape = shape if isinstance(shape, int) else len(shape)
+        if getattr(self.index, 'dependence', None) == 'Commentary' and getattr(self.index, 'base_text_titles', None):
+            if self.index.base_text_titles[0] == 'Shulchan Arukh, Even HaEzer':
+                outer_shape = 178
+            else:
+                sn = StateNode(self.index.base_text_titles[0])
+                shape = sn.var('all', 'shape')
+                base_outer_shape = shape if isinstance(shape, int) else len(shape)
+                if base_outer_shape > outer_shape:
+                    outer_shape = base_outer_shape
         self.index.nodes.lengths = [outer_shape] + ac[1:]
 
     def convert(self):
@@ -683,13 +699,16 @@ class LinkerIndexConverter:
     def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
         if self.get_match_templates:
             templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
-            if templates is not None:
+            if templates == "NO-OP":
+                pass
+            elif templates is not None:
                 node.match_templates = [template.serialize() for template in templates]
-            # else:
-            #     try:
-            #         delattr(node, 'match_templates')
-            #     except:
-            #         pass
+            else:
+                # None
+                try:
+                    delattr(node, 'match_templates')
+                except:
+                    pass
 
         if self.get_other_fields:
             other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
@@ -834,8 +853,24 @@ class SpecificConverterManager:
             collective_slug = RTM.get_term_by_primary_title('base', collective_title).slug
             alt_struct = base_index.get_alt_structures()['Chapters'].copy()
             base_templates = []
+            children_to_delete = []
             for perek_node in alt_struct.children:
-                perek_node.wholeRef = f"{collective_title} on {perek_node.wholeRef}"
+                base_ref = Ref(perek_node.wholeRef)
+                book_oref = Ref(f"{collective_title} on {base_index.title}")
+                try:
+                    perek_begin_ref = get_ref_by_book_oref_and_sections(book_oref, base_ref.sections[:])
+                    try:
+                        perek_end_ref = get_ref_by_book_oref_and_sections(book_oref, base_ref.toSections[:])
+                    except Exception:
+                        perek_end_ref = perek_begin_ref.last_segment_ref()
+                    perek_ref = perek_begin_ref.to(perek_end_ref)
+                except Exception as yoE:
+                    print(f"Couldn't make perek ref '{collective_title} on {base_ref}'")
+                    print(yoE)
+                    children_to_delete += [perek_node]
+                    continue
+                perek_node.wholeRef = perek_ref.normal()
+
                 perek_node.isSegmentLevelDiburHamatchil = True
                 base_templates += [perek_node.match_templates[:]]
                 alone_templates = []
@@ -854,6 +889,8 @@ class SpecificConverterManager:
                         pass
                     combined_templates += [temp_template]
                 perek_node.match_templates = alone_templates + combined_templates
+            for child in children_to_delete:
+                alt_struct.children.remove(child)
             return {
                 "Chapters": alt_struct,
             }

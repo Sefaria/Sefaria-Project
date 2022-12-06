@@ -2639,6 +2639,10 @@ class Ref(object, metaclass=RefCacheType):
         self._range_index = None
 
     def _validate(self):
+        self.__validate_sections_in_range()
+        self.__validate_toSections()
+
+    def __validate_sections_in_range(self):
         checks = [self.sections, self.toSections]
         for check in checks:
             if 0 in check:
@@ -2648,6 +2652,7 @@ class Ref(object, metaclass=RefCacheType):
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
                     raise InputError("{} ends at {} {}.".format(self.book, self.index_node.sectionNames[0], display_size))
 
+    def __validate_toSections(self):
         if len(self.sections) != len(self.toSections):
             raise InputError("{} is an invalid range. depth of beginning of range must equal depth of end of range")
 
@@ -3649,7 +3654,12 @@ class Ref(object, metaclass=RefCacheType):
 
     def pad_to_last_segment_ref(self):
         """
-        From current position in jagged array, pad self so that it reaches the last segment ref
+        From current position in jagged array, pad :class:`Ref` so that it reaches the last segment ref
+        ``self`` remains unchanged.
+        E.g. for input:
+            - segment ref -> unchanged
+            - section ref -> last segment ref in section
+            - book ref -> last segment ref in book (equivalent to :meth:`last_segment_ref`)
         :return:
         """
 
@@ -5484,8 +5494,12 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
+        from .linker.ref_resolver import RefResolver, TermMatcher
+        from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
+
+        logger.info("Loading Spacy Model")
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])

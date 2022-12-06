@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
-from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
@@ -37,9 +36,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
+from sefaria.client.util import jsonResponse, subscribe_to_list, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -253,10 +252,7 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", context={}, request=request)
-    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
-        sefaria_js=file.read()
+    sefaria_js = read_webpack_bundle("SEFARIA_JS")
     attrs = {
         "data_js": data_js,
         "sefaria_js": sefaria_js,
@@ -271,6 +267,11 @@ def linker_js(request, linker_version=None):
     """
     CURRENT_LINKER_VERSION = "2"
     linker_version = linker_version or CURRENT_LINKER_VERSION
+
+    if linker_version == "3":
+        # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
+        return HttpResponse(read_webpack_bundle("LINKER"), content_type="text/javascript; charset=utf-8")
+
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
@@ -291,24 +292,26 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_html, make_find_refs_response
-    from sefaria.utils.hebrew import is_hebrew
+    from sefaria.helper.linker import make_find_refs_response, add_webpage_hit_for_url
+
     with_text = bool(int(request.GET.get("with_text", False)))
     debug = bool(int(request.GET.get("debug", False)))
     max_segments = int(request.GET.get("max_segments", 0))
+    post_body = json.loads(request.body)
 
-    post = json.loads(request.body)
-    resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
-    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
+    response = make_find_refs_response(post_body, with_text, debug, max_segments)
+    add_webpage_hit_for_url(post_body.get("metaDataForTracking", {}).get("url", None))
 
-    return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text, debug, max_segments),
-        "text": make_find_refs_response(resolved, with_text, debug, max_segments),
-    })
+    return jsonResponse(response)
+
+
+@api_view(["GET"])
+def websites_api(request, domain):
+    cb = request.GET.get("callback", None)
+    website = WebSite().load({"domains": domain})
+    if website is None:
+        return jsonResponse({"error": f"no website found with domain: '{domain}'"})
+    return jsonResponse(website.contents(), cb)
 
 
 def linker_data_api(request, titles):
@@ -440,7 +443,7 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    status = WebPage.add_or_update_from_linker(data)
+    status, webpage = WebPage.add_or_update_from_linker(data)
 
     return jsonResponse({"status": status})
 
