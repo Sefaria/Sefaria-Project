@@ -13,9 +13,6 @@ releaseImageTag:
 # - Set appropriate labels to Nginx pod
 # - Requests images with the tag "sandbox-<releaseImageTag>"
 sandbox: "false"
-# Setting this to true setsup liveness, readiness & startup probes on the web
-# pod.
-contentSandbox: "false"
 
 # This value sets the name of the environment and it's associated objects. Some
 # suggestions for the values are prod/dev/test
