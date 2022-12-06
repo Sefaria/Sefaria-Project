@@ -3,7 +3,7 @@
 # MONGO_HOST: Mongo hostname
 # SANDBOX_NAME: The name of the table created by this job
 ---
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
 apiVersion: batch/v1
 kind: Job
 metadata:

@@ -32,6 +32,7 @@ restore:
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
+  cleanup: true
 
 # config to backup environment DB
 backup:

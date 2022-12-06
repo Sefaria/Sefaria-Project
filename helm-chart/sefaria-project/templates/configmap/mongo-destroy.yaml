@@ -1,4 +1,4 @@
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
