@@ -1004,7 +1004,7 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "h1", "h2", "h3", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a", "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
     ALLOWED_ATTRS   = {
         'sup': ['class'],
         'span':['class', 'dir'],
@@ -4984,7 +4984,8 @@ class Library(object):
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
 
-            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug", None) not in explored
+            unexplored_top_level = getattr(topic, "isTopLevelDisplay", False) and getattr(topic, "slug",
+                                                                                          None) not in explored
             explored.add(topic.slug)
         if len(children) > 0 or topic is None or unexplored_top_level:
             # make sure root gets children no matter what and make sure that unexplored top-level topics get children no matter what
@@ -5113,8 +5114,7 @@ class Library(object):
         """
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True,
-                                include_parasha=False, include_users=True, include_collections=True, min_topics=1) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5507,9 +5507,7 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
-        from .linker.ref_resolver import RefResolver, TermMatcher
-        from sefaria.model.schema import NonUniqueTermSet
+        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
 
         logger.info("Loading Spacy Model")
@@ -6104,8 +6102,7 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {
