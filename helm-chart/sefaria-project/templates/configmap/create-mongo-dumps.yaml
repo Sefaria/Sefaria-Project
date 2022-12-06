@@ -21,15 +21,6 @@ data:
       exit 1
     fi
 
-    # cast json-string host list intended for local settings into a raw URI string
-    # Since host can be a replicaset with multiple hosts/ports, this string should contain both
-    if [[ $MONGO_HOST =~ "," ]]; then
-      apt-get update && apt-get install curl
-      curl -sLo jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-      chmod +x jq
-      MONGO_HOST=$(echo $MONGO_HOST | ./jq -r '. | @tsv' - | sed 's/\t/,/g')
-    fi
-
     URI="mongodb://"
 
     if [[ ! -z SEFARIA_DB_USER ]]; then
