@@ -701,8 +701,7 @@ SchemaNode.propTypes = {
 
 class JaggedArrayNode extends Component {
   render() {
-    const offset = (this.props.schema.index_offsets_by_depth === undefined || this.props.schema.index_offsets_by_depth['1'] === undefined) ?
-      0 : this.props.schema.index_offsets_by_depth['1'];
+    const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
       return (<JaggedArrayNodeSection

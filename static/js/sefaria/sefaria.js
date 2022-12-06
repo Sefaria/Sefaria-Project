@@ -745,8 +745,9 @@ Sefaria = extend(Sefaria, {
     }
   },
   _get_offsets: function (data, length=1) {
-    return (data.index_offsets_by_depth === undefined || data.index_offsets_by_depth[data.textDepth] === undefined) ?
-        Array(length).fill(0) : data.index_offsets_by_depth[data.textDepth].flat();
+    let offsets = data?.index_offsets_by_depth?.[data.textDepth] || Array(length).fill(0);
+    offsets = (typeof(offsets) === 'number') ? [offsets] : offsets.flat();
+    return offsets;
   },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
