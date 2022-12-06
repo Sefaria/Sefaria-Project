@@ -809,6 +809,9 @@ class JaggedArrayNodeSection extends Component {
       if (this.props.addressTypes[0] === "Talmud") {
           section = Sefaria.hebrew.intToDaf(i);
           heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+        } else if (this.props.addressTypes[0] === "Folio") {
+          section = Sefaria.hebrew.intToFolio(i);
+          heSection = Sefaria.hebrew.encodeHebrewFolio(section);
         } else if (this.props.addressTypes[0] === "Year") {
           section = i + 1241;
           heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
