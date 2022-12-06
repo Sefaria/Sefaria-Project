@@ -2,7 +2,7 @@ import pytest
 from typing import List
 from functools import reduce
 from sefaria.model.text import Ref, library
-from sefaria.model.linker import RefPartType, RawRef, RawRefPart
+from sefaria.model.linker.ref_part import RefPartType, RawRef, RawRefPart
 from sefaria.settings import ENABLE_LINKER
 
 if not ENABLE_LINKER:
