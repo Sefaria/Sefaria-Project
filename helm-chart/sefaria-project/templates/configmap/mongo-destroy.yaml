@@ -21,15 +21,6 @@ data:
       exit 1
     fi
 
-    # cast json-string host list intended for local settings into a raw URI string
-    # Since host can be a replicaset with multiple hosts/ports, this string should contain both
-    if [[ $MONGO_HOST =~ "," ]]; then
-      apt-get update && apt-get install curl
-      curl -sLo jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
-      chmod +x jq
-      MONGO_HOST=$(echo $MONGO_HOST | ./jq -r '. | @tsv' - | sed 's/\t/,/g')
-    fi
-
     URI="mongodb://"
 
     if [[ ! -z SEFARIA_DB_USER ]]; then
@@ -39,9 +30,6 @@ data:
       fi
       URI="${URI}@"
     fi
-    {{- if eq .Values.sandbox "true" }}
-    SEFARIA_DB="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
-    {{- end}}
 
     URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
 
@@ -49,8 +37,14 @@ data:
     URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
 
+    {{- if eq .Values.sandbox "true" }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
 
-    mongo --uri "$URI" SEFARIA_DB <<EOF
+
+    mongo --uri "$URI" $DATABASE <<EOF
     db.dropDatabase();
     EOF
     
