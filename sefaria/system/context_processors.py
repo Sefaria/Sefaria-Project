@@ -69,7 +69,7 @@ def global_settings(request):
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
-        # "GOOGLE_GTAG":            GOOGLE_GTAG,
+        "GOOGLE_GTAG":            GOOGLE_GTAG,
         "HOTJAR_ID":              HOTJAR_ID,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
@@ -166,7 +166,7 @@ def header_html(request):
         LOGGED_IN_HEADER = ""
         MOBILE_LOGGED_OUT_HEADER = ""
         MOBILE_LOGGED_IN_HEADER = ""
-
+    
     return {
         "logged_in_header":  LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,
