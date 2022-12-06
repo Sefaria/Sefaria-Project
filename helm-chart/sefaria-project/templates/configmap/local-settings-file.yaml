@@ -50,10 +50,7 @@ data:
     MANAGERS = ADMINS
     
     MONGO_REPLICASET_NAME = os.getenv("MONGO_REPLICASET_NAME")
-    try:
-        MONGO_HOST = json.loads(os.getenv("MONGO_HOST")) # Could be an array 
-    except json.JSONDecodeError:
-        MONGO_HOST = os.getenv("MONGO_HOST") # or a string
+    MONGO_HOST = os.getenv("MONGO_HOST") 
     MONGO_PORT = 27017
     {{- if eq .Values.sandbox "true" }}
     SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
