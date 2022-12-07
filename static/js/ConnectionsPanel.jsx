@@ -304,7 +304,7 @@ class ConnectionsPanel extends Component {
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
         translations: this.state.availableTranslations.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
-      const showResourceButtons = Object.values(resourcesButtonCounts).some(elem => elem > 0);
+      const showResourceButtons = Sefaria.is_moderator || Object.values(resourcesButtonCounts).some(elem => elem > 0);
       const toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
       }
@@ -345,7 +345,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          {showResourceButtons || Sefaria.is_moderator ?
+          {showResourceButtons ?
             <ConnectionsPanelSection title={"Resources"}>
               {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
@@ -1173,7 +1173,11 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
+      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contentLang={contentLang} contextSelector=".topicList"
+                                                                         srefs={srefs}
+                                                                         update={updateTopics}
+                                                                         createNewTopicStr={Sefaria.translation(contentLang, "Create a new topic: ")}/>
+                                                                         : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
@@ -1183,8 +1187,8 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
       ) : topics.map(
           (topic, i) => (
           <TopicListItem
-            isFirst={i === 0}
             key={topic.topic}
+            id={i}
             topic={topic}
             interfaceLang={interfaceLang}
             srefs={srefs}
@@ -1195,15 +1199,14 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ isFirst, topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
-  const topicLinkClass = isFirst ? "topicButton isFirst" : "topicButton";
   return (
-      <a href={`/topics/${topic.topic}`} className={topicLinkClass} target="_blank">
+      <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`}>
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>

@@ -5,94 +5,61 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
-import {InterfaceText} from "./Misc";
+import {Autocompleter, InterfaceText} from "./Misc";
 import {TopicEditor} from "./TopicEditor";
 
 
 class TopicSearch extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
-      label: "", // what the user sees in drop down menu. e.g. topic title
-      slug: "", //topic slug
-      topics: [], //current list of autocomplete topics based on query
-      autocomplete: null,
       showTopicEditor: false,
-      selected: false
+      value: "",
     };
   }
-  componentDidMount() {
-    this.initAutocomplete();
+
+  getSuggestions = async (input) => {
+    let results = {"currentSuggestions": null,
+                        "showAddButton": false};
+    this.changeInputValue(input);
+    if (input === "") {
+      return results;
+    }
+    const word = input.trim();
+    const callback = (d) => {
+        let topics = [];
+        if (d[1].length > 0) {
+          topics = d[1].slice(0, 4).map(function (e) {
+                return {title: e.title, key: e.key}
+              });
+            }
+        topics.push({title: this.props.createNewTopicStr+word, key: ""})
+        return topics;
+     };
+    const completion_objects = await Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word,
+                              store: Sefaria._topicCompletions, processor: callback});
+    results.currentSuggestions = completion_objects
+        .map(suggestion => ({
+          name: suggestion.title,
+          key: suggestion.key,
+          type: suggestion.type,
+          border_color: "#ffffff"
+        }))
+
+    results.showAddButton = true;
+    return results;
   }
 
-  initAutocomplete() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").autocomplete({
-      position: {
-        my: "left top",
-        at: "left bottom",
-        of: this.props.contextSelector + ' .TopicSearchBox'
-      },
-      open: function(e) {
-        const searchBoxWidth = $(this.props.contextSelector + " .TopicSearchBox").width();
-        $(this.props.contextSelector + " .topic-toc-autocomplete").width(searchBoxWidth);
-        const menuItems = ReactDOM.findDOMNode(this).getElementsByClassName("ui-menu-item");
-        const lastItem = menuItems[menuItems.length-1];
-        $(lastItem).toggleClass("ui-menu-last-item");
-      }.bind(this),
-      classes: {
-        "ui-autocomplete": "topic-toc-autocomplete"
-      },
-      minLength: 1,
-      focus: function (event, ui) {
-        this.setState({label: ui.item.label});
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
-      }.bind(this),
-      select: function( event, ui ) {
-        if (ui.item.key == "__invalid") { return false; }
-        if (ui.item.key === "") {  //selected Create new topic
-          this.setState({slug: ui.item.key, label: ui.item.label.replace("Create new topic: ", ""), selected: true, showTopicEditor: true});
-        }
-        else {
-          this.setState({slug: ui.item.key, label: ui.item.label, selected: true, showTopicEditor: false});
-        }
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
-        return false;
-      }.bind(this),
-
-      source: function(request, response) {
-        this.setState({slug: "", label: request.term});
-        const word = request.term.trim();
-        const callback = function(d) {
-                    let topics = [];
-                    if (d[1].length > 0) {
-                      topics = d[1].map(function (e) {
-                        return {label: e.title, key: e.key}
-                      });
-                    }
-                    topics.push({"label": "Create new topic: "+request.term, key: ""})
-                    this.setState({topics: topics, selected: false});
-                    response(topics);
-            }.bind(this);
-        Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word, store: Sefaria._topicCompletions, processor: callback})
-      }.bind(this)
-    });
-  }
-
-  validate() {
-    if (this.state.slug === "") {
-      let match = false;
-      this.state.topics.map(topic => {
-        if (topic.label.toLowerCase() === this.state.label.toLowerCase()) {
-          this.post(topic.key);
-          match = true;
-        }
-      })
-      if (!match) {
-        alert("Please select an option through the dropdown menu.");
+  validate(input, suggestions) {
+    let match = false;
+    suggestions.map(topic => {
+      if (topic.name.toLowerCase() === input.toLowerCase()) {
+        this.post(topic.key);
+        match = true;
       }
-    } else {
-      this.post(this.state.slug);
+    })
+    if (!match) {
+      alert("Please select an option through the dropdown menu.");
     }
   }
 
@@ -117,40 +84,51 @@ class TopicSearch extends Component {
           }
           Sefaria._refTopicLinks[sectionRef].push(data);
           update();
-          alert("Topic added.");
           reset();
+          alert("Topic added.");
         }
       }).fail(function (xhr, status, errorThrown) {
         alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
       });
   }
-  reset() {
-    this.setState({showTopicEditor: false, label: "", selected: false, slug: "", topics: []});
-    $(ReactDOM.findDOMNode(this)).find("input.search").val(this.state.label);
-  }
-  render() {
-    let inputClasses = classNames({search: 1, selected: this.state.selected});
 
-    return (
-        <div className = "searchBox TopicSearchBox ui-front">
-          {this.state.showTopicEditor ? <TopicEditor origEn={this.state.label} close={this.reset} redirect={this.post}/> : null}
-          <input className={inputClasses}
-            id="searchInput"
-            placeholder={Sefaria._("Search for Topics Here.")}
-            maxLength={100}
-            title={Sefaria._("Topic Search")}
-          />
-          <div onClick={this.validate} id="submit" className="button small addTopic" tabIndex="0" role="button">
-            <InterfaceText>Add Topic</InterfaceText>
-          </div>
-        </div>
-    );
+  changeInputValue = (newValue) => {
+    if (newValue.startsWith(this.props.createNewTopicStr)) {
+        this.setState({showTopicEditor: true, value: newValue.replace(this.props.createNewTopicStr, "")});
+    }
+    else {
+        this.setState({value: newValue});
+    }
+  }
+
+  reset = () => {
+      this.setState({showTopicEditor: false, value: ""});
+  }
+
+
+  render() {
+        if (this.state.showTopicEditor) {
+            return <TopicEditor origEn={this.state.value} close={this.reset} onCreateSuccess={this.post}/>;
+        }
+        else {
+            return (<Autocompleter selectedCallback={this.validate}
+                 getSuggestions={this.getSuggestions}
+                 inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
+                 buttonTitle={Sefaria.translation(this.props.contentLang, "Add Topic")}
+                 inputValue={this.state.value}
+                 changeInputValue={this.changeInputValue}
+                 showSuggestionsOnSelect={false}
+                 autocompleteClassNames="topicSearch addInterfaceInput"
+            />)
+        }
   }
 }
 TopicSearch.propTypes = {
   contextSelector:  PropTypes.string.isRequired, // CSS Selector for uniquely identifiable context that this is in.
   srefs: PropTypes.array.isRequired, //srefs of TopicList
-  update: PropTypes.func.isRequired //used to add topic to TopicList
+  update: PropTypes.func.isRequired, //used to add topic to TopicList
+  createNewTopicStr: PropTypes.string.isRequired, // string that should be displayed when there's an option to create new topic
+  contentLang: PropTypes.string.isRequired //
 };
 
 

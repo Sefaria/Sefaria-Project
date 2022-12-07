@@ -566,11 +566,11 @@ class TabView extends Component {
   getTabIndex() {
     let tabIndex;
     if (typeof this.props.currTabName === 'undefined') {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.state.currTabName ? true : false)
     } else if (this.props.currTabName === null) {
       tabIndex = 0;
     } else {
-      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName)
+      tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
     }
     if(tabIndex === -1) {
       tabIndex = 0;
@@ -1517,6 +1517,11 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
+          editable && !Sefaria._uses_new_editor ?
+            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            : null
+        }
+        {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
@@ -1804,7 +1809,7 @@ class SignUpModal extends Component {
               <InterfaceText>Love Learning?</InterfaceText>
             </h2>
             <h3>
-              <InterfaceText>Sign up to get more from {Sefaria._siteSettings.en}</InterfaceText>
+              <InterfaceText>Sign up to get more from {Sefaria._siteSettings.SITE_NAME["en"]}</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -2284,7 +2289,7 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME.en}.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME["en"]}. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
@@ -2404,6 +2409,7 @@ const AdminToolHeader = function({en, he, validate, close}) {
               </div>
             </div>
 }
+
 
 const CategoryChooser = function({categories, update}) {
   /*
@@ -2531,17 +2537,28 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-
-const Autocompleter = ({selectedRefCallback}) => {
-  const [inputValue, setInputValue] = useState("");
+const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
+                         buttonTitle, autocompleteClassNames }) => {
+  /*
+  Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
+  select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
+  `getSuggestions` is a callback function that is called whenever the user types in the input box, which causes the select menu to be populated.
+  It returns an object with the necessary props of "currentSuggestions" and "showAddButton" and optional props "previewText" and "helperPromptText" (latter are used in Editor.jsx)
+  `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,`getSuggestions` will be called. Useful when autocompleting a Ref in AddInterfaceInput.
+  `inputPlaceholder` is the placeholder for the input component.
+  `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
+  `selectedCallback` is a callback function called when the user submits an autocomplete suggestion.
+  `autocompleteClassNames` are styling options
+   */
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
-
+  const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
+  const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-
+  const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2577,71 +2594,50 @@ const Autocompleter = ({selectedRefCallback}) => {
     }, [previewText]
   )
 
-
-
-
-  const getSuggestions = (input) => {
-    setInputValue(input)
-    if (input == "") {
-      setPreviewText(null)
-      setHelperPromptText(null)
-      setCurrentSuggestions(null)
-      return
-    }
-    Sefaria.getName(input, true, 5).then(d => {
-
-      if (d.is_section || d.is_segment) {
-        setCurrentSuggestions(null)
-        generatePreviewText(input);
-        setHelperPromptText(null)
-        setShowAddButton(true)
-        return
-      }
-      else {
-        setShowAddButton(false)
-        setPreviewText(null)
-      }
-
-      //We want to show address completions when book exists but not once we start typing further
-      if (d.is_book && isNaN(input.trim().slice(-1))) {
-        setHelperPromptText(<InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />)
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
-      }
-      else {
-        setHelperPromptText(null)
-      }
-
-      const suggestions = d.completion_objects
-          .map((suggestion, index) => ({
-            name: suggestion.title,
-            key: suggestion.key,
-            border_color: Sefaria.palette.refColor(suggestion.key)
-          })
-      )
-      setCurrentSuggestions(suggestions);
-    })
-  }
-
   const resizeInputIfNeeded = () => {
-    const currentWidth = getWidthOfInput()
+    const currentWidth = getWidthOfInput();
     if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
   }
 
-  const onChange = (input) => {
-    getSuggestions(input);
-    resizeInputIfNeeded()
+  const processSuggestions = (resultsPromise) => {
+    resultsPromise.then(results => {
+      setCurrentSuggestions(results.currentSuggestions);
+      setShowAddButton(results.showAddButton);
+      setHelperPromptText(results.helperPromptText);
+      if (!!results.previewText) {
+        setPreviewText(results.previewText);
+        generatePreviewText(results.previewText);
+      }
+      if (!!results.helperPromptText) {
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+      }
+    });
   }
 
+  const onChange = (input) => {
+    setInputClassNames(classNames({selected: 0}));
+    setShowCurrentSuggestions(true);
+    processSuggestions(getSuggestions(input));
+    resizeInputIfNeeded();
+  }
+
+  const handleOnClickSuggestion = (title) => {
+      changeInputValue(title);
+      setShowCurrentSuggestions(showSuggestionsOnSelect);
+      if (showSuggestionsOnSelect) {
+        processSuggestions(getSuggestions(title));
+      }
+      setInputClassNames(classNames({selected: 1}));
+      resizeInputIfNeeded();
+      inputEl.current.focus();
+  }
 
   const Suggestion = ({title, color}) => {
     return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
-                  setInputValue(title)
-                  getSuggestions(title)
-                  resizeInputIfNeeded()
-                  inputEl.current.focus()
+                  handleOnClickSuggestion(title)
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -2662,16 +2658,24 @@ const Autocompleter = ({selectedRefCallback}) => {
   return(div)
   }
 
+  const handleSelection = () => {
+    selectedCallback(inputValue, currentSuggestions);
+    changeInputValue("");
+  }
+
   const onKeyDown = e => {
     if (e.key === 'Enter' && showAddButton) {
-      selectedRefCallback(inputValue)
+      handleSelection(inputValue, currentSuggestions);
     }
 
     else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
       suggestionEl.current.focus();
       (suggestionEl.current).firstChild.selected = 'selected';
     }
-
+    else
+    {
+      changeInputValue(inputEl.current.value);
+    }
   }
 
 
@@ -2697,38 +2701,33 @@ const Autocompleter = ({selectedRefCallback}) => {
               )
             }
           })
-          setPreviewText(previewHTML)
+          setPreviewText(previewHTML);
         })
   }
 
    const checkEnterOnSelect = (e) => {
-      console.log(e.key)
       if (e.key === 'Enter') {
-        setInputValue(e.target.value);
-        getSuggestions(e.target.value);
-        inputEl.current.focus();
+          handleOnClickSuggestion(e.target.value);
       }
     }
 
-
   return(
-    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title="Add a source from Sefaria's library">
+    <div className={autocompleteClassNames} onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
       <input
           type="text"
-          placeholder={Sefaria._("Search for a text...")}
-          className="serif"
+          placeholder={Sefaria._(inputPlaceholder)}
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
           value={inputValue}
           ref={inputEl}
-          size={inputValue.length}
+          className={inputClassNames}
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className="button small" onClick={(e) => {
-                    selectedRefCallback(inputValue)
-      }}><InterfaceText>Add Source</InterfaceText></button> : null}
+      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
+                    handleSelection(inputValue, currentSuggestions)
+                }}>{buttonTitle}</button> : null}
 
-      {currentSuggestions && currentSuggestions.length > 0 ?
+      {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
@@ -2757,8 +2756,6 @@ const Autocompleter = ({selectedRefCallback}) => {
     </div>
     )
 }
-
-
 export {
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
