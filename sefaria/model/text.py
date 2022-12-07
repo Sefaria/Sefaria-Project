@@ -5779,7 +5779,7 @@ class Library(object):
         """
 
         @param st:
-        @param action: function of the form `(ref, regex_match) -> str`. return value will be used to replace regex_match in `st`
+        @param action: function of the form `(ref, regex_match) -> Optional[str]`. return value will be used to replace regex_match in `st` if returned.
         @param lang:
         @param citing_only:
         @param reg:
@@ -5959,7 +5959,10 @@ class Library(object):
             assert gs.get("title") is not None
             node = title_node_dict[gs.get("title")]
             ref = self._get_ref_from_match(match, node, lang)
-            return action(ref, match)
+            replacement = action(ref, match)
+            if replacement is None:
+                return match.group(0)
+            return replacement
         except InputError as e:
             logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
             return match.group(0)
