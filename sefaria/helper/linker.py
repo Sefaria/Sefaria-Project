@@ -21,17 +21,13 @@ def add_webpage_hit_for_url(url):
 @django_cache(cache_type="persistent")
 def make_find_refs_response(post_body, with_text, debug, max_segments):
     from sefaria.utils.hebrew import is_hebrew
-
-    resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post_body['text']['body']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post_body['text']['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post_body['text']['body']], with_failures=True)
-
-    response = {
-        "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
-        "body": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
-    }
+    title_text = post_body['text']['title']
+    body_text = post_body['text']['body']
+    lang = 'he' if is_hebrew(body_text) else 'en'
+    if lang == 'he':
+        response = _make_find_refs_response_linker_v3(title_text, body_text, with_text, debug, max_segments, lang)
+    else:
+        response = _make_find_refs_response_linker_v2(title_text, body_text, with_text, debug, max_segments, lang)
 
     if 'metaDataForTracking' in post_body:
         meta_data = post_body['metaDataForTracking']
@@ -43,6 +39,57 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
         }, add_hit=False)
         if webpage:
             response['url'] = webpage.url
+
+    return response
+
+
+def _make_find_refs_response_linker_v3(title_text, body_text, with_text, debug, max_segments, lang):
+    resolver = library.get_ref_resolver()
+    resolved_title = resolver.bulk_resolve_refs(lang, [None], [title_text])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [body_text], with_failures=True)
+
+    response = {
+        "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
+        "body": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
+    }
+
+    return response
+
+
+def _make_find_refs_response_linker_v2(title_text, body_text, with_text, debug, max_segments, lang):
+    response = {
+        "title": _make_find_refs_response_inner_linker_v2(lang, title_text, with_text, max_segments, debug),
+        "body": _make_find_refs_response_inner_linker_v2(lang, body_text, with_text, max_segments, debug),
+    }
+    return response
+
+
+def _make_find_refs_response_inner_linker_v2(lang, text, with_text, max_segments, debug):
+    import re
+    ref_results = []
+    ref_data = {}
+
+    def _find_refs_action(ref, match: re.Match):
+        nonlocal ref_results, ref_data
+        tref = ref.normal()
+        ref_results += [{
+            "startChar": match.start(0),
+            "endChar": match.end(0),
+            "text": match.group(0),
+            "linkFailed": False,
+            "refs": [tref]
+        }]
+        ref_data[tref] = make_ref_response_for_linker(ref, with_text, max_segments)
+
+    library.apply_action_for_all_refs_in_string(text, _find_refs_action, lang, citing_only=True)
+    response = {
+        "results": ref_results,
+        "refData": ref_data
+    }
+    if debug:
+        # debugData has no meaning for linker v2 since there are no ref parts
+        response['debugData'] = []
 
     return response
 

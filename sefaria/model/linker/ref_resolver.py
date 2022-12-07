@@ -172,7 +172,7 @@ class ResolvedRef(abst.Cloneable):
         refined_refs = []
         addr_classes_used = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and addr_class == schema.AddressInteger:
+            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and not addr_class.can_match_out_of_order(lang, raw_ref_part.text):
                 """
                 If raw_ref has NUMBERED parts [a, b]
                 and part b matches before part a
@@ -298,7 +298,6 @@ class ResolvedRef(abst.Cloneable):
         """
         For sorting
         """
-        matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
         explicit_matched = self.get_resolved_parts(exclude={ContextPart})
         num_context_parts_matched = 0
         # theory is more context is helpful specifically for DH matches because if DH still matches with more context,
@@ -306,7 +305,7 @@ class ResolvedRef(abst.Cloneable):
         # and doesn't give more confidence that it's correct
         if next(iter(part for part in explicit_matched if part.type == RefPartType.DH), False):
             num_context_parts_matched = self.num_resolved(include={ContextPart})
-        return len(explicit_matched), int(matches_context_book), num_context_parts_matched
+        return len(explicit_matched), num_context_parts_matched
 
 
 class AmbiguousResolvedRef:
@@ -634,18 +633,15 @@ class RefResolver:
             return []
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
-        'ResolvedRef']:
+            'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
-        context_full_matches = []
         contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
-        # NOTE: removing graph context for now since I can't think of a case when it's helpful
-        # for context_ref, context_type in contexts:
-        #     context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
-        matches = context_full_matches + context_free_matches
+        matches = context_free_matches
         if len(matches) == 0:
-            # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
+            context_full_matches = []
             for context_ref, context_type in contexts:
-                matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+                context_full_matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+            matches = context_full_matches + context_free_matches
         return matches
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
@@ -661,26 +657,6 @@ class RefResolver:
             match.context_type = context_type
             match.context_parts += term_contexts
             matches += [match]
-        return matches
-
-    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], context_type: ContextType, raw_ref: RawRef) -> List[ResolvedRef]:
-        matches = []
-        if context_ref is None:
-            return matches
-        context_match_templates = list(context_ref.index.nodes.get_match_templates())
-        raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
-        context_parent = self._ref_part_title_graph.get_parent_for_children(context_match_templates, raw_ref_term_slugs)
-        # I dont think this is necessary anymore since this case is covered by title context
-        # context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
-        for context_slug in (context_parent,):
-            if context_slug is None: continue
-            term_context = TermContext(schema.NonUniqueTerm.init(context_slug))
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
-            matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
-            for match in matches:
-                match.context_ref = context_ref
-                match.context_type = context_type
-                match.context_parts += [term_context]
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
