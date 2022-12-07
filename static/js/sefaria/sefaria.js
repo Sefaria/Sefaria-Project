@@ -1038,7 +1038,14 @@ Sefaria = extend(Sefaria, {
     const l = this._saveLinksByRef(data);
     this._links[ref] = data;
     this._cacheIndexFromLinks(data);
+    this._cacheTranslationsOfEssays(data);
     return l;
+  },
+  _cacheTranslationsOfEssays: function(links) {
+    for (let link of links) {
+      if (link.type !== "essay") { continue; }
+      Sefaria._translateTerms[link.displayedText.en] = link.displayedText;
+    }
   },
   _cacheIndexFromLinks: function(links) {
     // Cache partial index information (title, Hebrew title, categories) found in link data.
