@@ -77,6 +77,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.7.0-fix-varnish-config.1.tgz
     version: 0.7.0-fix-varnish-config.1
   - apiVersion: v2
+    appVersion: v5.18.2
+    created: "2022-12-07T13:08:35.475625671Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: f9e856a2c7395a5f277be3221ac6e7fe1b2b0f3ba8cc9cb76b5ae0f1830af9bf
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.7.0-fix-over-encoding-url.1.tgz
+    version: 0.7.0-fix-over-encoding-url.1
+  - apiVersion: v2
     appVersion: v5.17.3
     created: "2022-12-06T13:35:40.156924376Z"
     description: Chart to deploy complete Sefaria environment
@@ -1830,4 +1845,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2022-12-07T12:11:03.337394397Z"
+generated: "2022-12-07T13:08:35.471605667Z"
