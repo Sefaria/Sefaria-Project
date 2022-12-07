@@ -5801,6 +5801,7 @@ class Library(object):
                 outer_regex_str = r"[({\[].+?[)}\]]"
                 outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
                 return outer_regex.sub(lambda match: reg.sub(sub_action, match.group(0)), st)
+        return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
         """
