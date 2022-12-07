@@ -47,7 +47,7 @@ data:
             || req.url ~"^/api/links/bare"
             || req.url ~"^/api/links"
             || (req.url ~"^/api/related" && req.url !~"private=1")
-            || req.url ~"^/api/preview" 
+            || req.url ~"^/api/preview"
             || req.url ~"^/api/counts/links/"
             || (req.url ~"^/api/counts" && req.url !~"^/api/counts/words")
             || req.url ~"^/api/index/.+"
