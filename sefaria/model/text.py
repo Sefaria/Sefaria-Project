@@ -1004,7 +1004,8 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+    ALLOWED_TAGS = ("i", "b", "br", "u", "strong", "h1", "h2", "h3", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a",
+    "table", "td", "th", "tr", "tbody", "thead", "ul", "li")
     ALLOWED_ATTRS   = {
         'sup': ['class'],
         'span':['class', 'dir'],
@@ -5507,8 +5508,11 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
+        from .linker.ref_resolver import RefResolver, TermMatcher
+        from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
+
 
         logger.info("Loading Spacy Model")
 
@@ -6102,7 +6106,7 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {
