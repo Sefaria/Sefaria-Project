@@ -334,7 +334,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 c = obj.serialize()
                 del c["titles"]
                 d["alt_structs"][name] = c
-        print(d)
         return d
 
     def versions_are_sparse(self):
@@ -660,23 +659,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.key = t
                     self.nodes.add_title(t, "en", True, True)
                     break
-
-            #change alt_structs titles
-            old_title = self.pkeys_orig_values["title"]
-            new_title = self.nodes.primary_title("en")
-            def change_alt_node_refs(node):
-                if 'wholeRef' in node:
-                    node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
-                if 'refs' in node:
-                    node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
-                if 'nodes' in node:
-                    for n in node['nodes']:
-                        change_alt_node_refs(n)
-            alts = getattr(self, 'alt_structs', None)
-            if alts and old_title != new_title:
-                for alt in alts.values():
-                    change_alt_node_refs(alt)
-                self._set_struct_objs()
+            self._update_alt_structs_on_title_change()
 
         """
         Make sure these fields do not appear:
@@ -699,6 +682,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         except ValueError:
             logger.warning("Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
             delattr(self, "errorMargin")
+
+    def _update_alt_structs_on_title_change(self):
+            old_title = self.pkeys_orig_values["title"]
+            new_title = self.nodes.primary_title("en")
+            def change_alt_node_refs(node):
+                if 'wholeRef' in node:
+                    node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
+                if 'refs' in node:
+                    node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
+                if 'nodes' in node:
+                    for n in node['nodes']:
+                        change_alt_node_refs(n)
+            alts = getattr(self, 'alt_structs', None)
+            if alts and old_title != new_title:
+                for alt in alts.values():
+                    change_alt_node_refs(alt)
+                self._set_struct_objs()
 
     def _validate(self):
         assert super(Index, self)._validate()
