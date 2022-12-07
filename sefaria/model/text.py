@@ -684,21 +684,21 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             delattr(self, "errorMargin")
 
     def _update_alt_structs_on_title_change(self):
-            old_title = self.pkeys_orig_values["title"]
-            new_title = self.nodes.primary_title("en")
-            def change_alt_node_refs(node):
-                if 'wholeRef' in node:
-                    node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
-                if 'refs' in node:
-                    node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
-                if 'nodes' in node:
-                    for n in node['nodes']:
-                        change_alt_node_refs(n)
-            alts = getattr(self, 'alt_structs', None)
-            if alts and old_title != new_title:
-                for alt in alts.values():
-                    change_alt_node_refs(alt)
-                self._set_struct_objs()
+        old_title = self.pkeys_orig_values["title"]
+        new_title = self.nodes.primary_title("en")
+        def change_alt_node_refs(node):
+            if 'wholeRef' in node:
+                node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
+            if 'refs' in node:
+                node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
+            if 'nodes' in node:
+                for n in node['nodes']:
+                    change_alt_node_refs(n)
+        alts = getattr(self, 'alt_structs', None)
+        if alts and old_title != new_title:
+            for alt in alts.values():
+                change_alt_node_refs(alt)
+            self._set_struct_objs()
 
     def _validate(self):
         assert super(Index, self)._validate()
