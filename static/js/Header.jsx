@@ -51,7 +51,7 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           { Sefaria._siteSettings.SITE_NAME.en == "ContextUS" ?
-            <a href="/topics/category/authors1" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
+            <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
             <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
