@@ -6,13 +6,6 @@ from sefaria.model import schema
 
 
 class ReferenceableBookNode:
-    """
-    Represents tree of referenceable nodes. In general, this tree is based on the tree in an Index's schema, but with
-    some notable differences
-    - alt struct nodes are part of the tree, represented as NamedReferenceableBookNodes
-    - JaggedArrayNodes get split into N NumberedReferenceableNodes, where N is the depth of the JaggedArrayNode
-    - The leave node of a JaggedArrayNode with `isSegmentLevelDiburHamatchil == True` is a DiburHamatchilNodeSet
-    """
 
     def get_children(self, *args, **kwargs) -> List['ReferenceableBookNode']:
         return []
@@ -99,23 +92,10 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         """
         return self.address_class.get_all_possible_sections_from_string(*args, **kwargs)
 
-    def _get_next_referenceable_depth(self):
-        if self.is_default():
-            return 0
-        next_refereceable_depth = 1
-        # if `referenceableSections` is not define, assume they're all referenceable
-        referenceable_sections = getattr(self._ja_node, 'referenceableSections', [])
-        if len(referenceable_sections) > 0:
-            while next_refereceable_depth < len(referenceable_sections) and not referenceable_sections[next_refereceable_depth]:
-                next_refereceable_depth += 1
-        return next_refereceable_depth
-
     def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
         serial = self._ja_node.serialize()
-        next_referenceable_depth = self._get_next_referenceable_depth()
+        next_referenceable_depth = self._ja_node.get_next_referenceable_depth()
         serial['depth'] -= next_referenceable_depth
-        if serial['depth'] < 0:
-            return []
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
         if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
             return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
