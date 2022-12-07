@@ -26,7 +26,6 @@ from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.collection import Collection, CollectionSet
-from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.utils.hebrew import is_hebrew
@@ -524,11 +523,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				search.delete_sheet(es_index_name, sheet['id'])
 
 			delete_sheet_publication(sheet["id"], user_id)  # remove history
-			UserStorySet({"storyForm": "publishSheet",
-								"uid": user_id,
-								"data.publisher": user_id,
-								"data.sheet_id": sheet["id"]
-							}).delete()
+
 			NotificationSet({"type": "sheet publish",
 								"uid": user_id,
 								"content.publisher_id": user_id,
@@ -1115,7 +1110,6 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n = Notification({"uid": follower})
 		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
 		n.save()
-		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):

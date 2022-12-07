@@ -166,6 +166,7 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_GTAG = os.getenv("GOOGLE_GTAG")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
