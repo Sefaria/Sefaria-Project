@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.deployEnv }}-varnish-config-{{ $v }}
+  name: {{ $.Values.deployEnv }}-varnish-config-{{ $v }}
   labels:
     deployEnv: "{{ $.Values.deployEnv }}"
     releaseRevision: "{{ $v }}"
