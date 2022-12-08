@@ -776,9 +776,6 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  _hackyAreUrlsEqual(encodedUrl, possiblyEncodeUrl) {
-    return encodedUrl === possiblyEncodeUrl || encodedUrl === encodeURI(possiblyEncodeUrl);
-  }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -793,10 +790,10 @@ class ReaderApp extends Component {
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
-      if (!this._hackyAreUrlsEqual(currentUrl, hist.url)) { this.checkScrollIntentAndTrack(); }
+      if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
-      if (this._hackyAreUrlsEqual(currentUrl, hist.url)) { return; } // Never push history with the same URL
+      if (currentUrl === hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       // console.log("Push History - " + hist.url);
       this.trackPageview();
