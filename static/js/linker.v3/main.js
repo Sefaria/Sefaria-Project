@@ -387,18 +387,25 @@ import {LinkExcluder} from "./excluder";
         sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
         mode = "popup-click",
         whitelistSelector = null,
-        selector = "body",           // CSS Selector
         excludeFromLinking = null,    // CSS Selector
-        excludeFromTracking = null,   // CSS Selector
         popupStyles = {},
         interfaceLang = "english",
         contentLang = "bilingual",
-        parenthesesOnly = false,
-        quotationOnly = false,
         dynamic = false,
         hidePopupsOnMobile = true,
         debug = false,
+
+        // Deprecated options
+        selector = null,           // CSS Selector
+        excludeFromTracking = null,   // CSS Selector
+        parenthesesOnly = false,
+        quotationOnly = false,
     }) {
+        if (selector || excludeFromTracking || parenthesesOnly || quotationOnly) {
+            console.warn("Deprecation warning: you are currently using at least one of the following deprecated options:" +
+                " `selector`, `excludeFromTracking`, `parenthesesOnly`, `quotationOnly`. These options no longer are" +
+                " used and you can safely remove them. See here for documentation: https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-Auto-Linker-v3")
+        }
         ns.sefariaUrl = sefariaUrl;
         ns.excludeFromLinking = excludeFromLinking;
         ns.dynamic = dynamic;
@@ -412,7 +419,7 @@ import {LinkExcluder} from "./excluder";
         ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
         ns.popupManager.setupPopup();
 
-        getFullWhitelistSelectors()
+        getFullWhitelistSelectors(whitelistSelector)
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }

@@ -42,9 +42,11 @@ crrd = create_raw_ref_data
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
+    [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#עמוד ב', '@במכות']), ("Makkot 2",)],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
+    [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
@@ -104,9 +106,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברכות', '#דף ב'], prev_trefs=['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
     [crrd(['#שבפרק ד'], prev_trefs=["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
     [crrd(['@שמות', '#י"ב', '#א'], prev_trefs=['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
-    # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(['@רמב"ן', '#ט"ז', '#ד'], prev_trefs=["Exodus 16:32"]), ["Ramban on Exodus 16:4"]],
     [crrd(['#פרק ז'], prev_trefs=["II Kings 17:31"]), ["II Kings 7"]],
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
+    [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH

@@ -175,6 +175,7 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 # DafRoulette server
 RTC_SERVER = '' # Root URL/IP of the server
 
+GOOGLE_GTAG = ''
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 HOTJAR_ID = None
