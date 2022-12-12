@@ -113,7 +113,6 @@ class ReusableTermManager:
             'he'
             'alt_en'
             'alt_he'
-            'ref_part_role'
             'context'
         @return:
         """
@@ -127,18 +126,16 @@ class ReusableTermManager:
                 term.title_group.add_title(kwargs.get(lang), lang, primary=True)
             for title in kwargs.get(f"alt_{lang}", []):
                 term.title_group.add_title(title, lang)
-        term.ref_part_role = kwargs['ref_part_role']
         term.save()
         self.context_and_primary_title_to_term[(kwargs.get('context'), term.get_primary_title('en'))] = term
         return term
 
-    def create_term_from_titled_obj(self, obj, ref_part_role, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
+    def create_term_from_titled_obj(self, obj, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
         """
         Create a NonUniqueTerm from 'titled object' (see explanation of `obj` param)
         Accepts params to modify or add new alt titles
         @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` or `SchemaNode` has this field)
         @param context: Optional string (or any hashable object) to distinguish terms with the same primary title. For use with `get_term_by_primary_title()`
-        @param ref_part_role: See docs for attribute `ref_part_role` on NonUniqueTerm class
         @param new_alt_titles: list[str]. optional list of alt titles to add. will auto-detect language of title.
         @param title_modifier: function(lang, str) -> str. given lang and current alt title, replaces alt title with return value. Useful for removing common prefixes such as "Parshat" or "Mesechet"
         @param title_adder: function(lang, str) -> str. given lang and current alt title, returns new alt title. If returns None, no alt title is added for given title. Useful for creating variations on existing alt titles.
@@ -196,7 +193,7 @@ class ReusableTermManager:
         # make unique
         alt_en_titles = list(set(alt_en_titles))
         alt_he_titles = list(set(alt_he_titles))
-        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles, ref_part_role=ref_part_role)
+        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles)
         if isinstance(obj, Term):
             self.old_term_map[obj.name] = term
         return term
@@ -227,39 +224,39 @@ class ReusableTermManager:
                     'פ"ק',
                 ]
             primary_he = ordinals[i-1] if i < len(ordinals) else cardinals[i-1]
-            term = self.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en, ref_part_role='structural')
+            term = self.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en)
             self.num_to_perek_term_map[i] = term
-        self.num_to_perek_term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא', ref_part_role='structural')
+        self.num_to_perek_term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא')
 
     def create_base_non_unique_terms(self):
-        self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'], ref_part_role='structural')
-        self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"], ref_part_role='structural')
-        self.create_term(context="base", en="Talmud", he="תלמוד", ref_part_role='structural')
-        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"], ref_part_role='alt_title')
-        self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'], ref_part_role='structural')
-        self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'], ref_part_role='structural')
-        self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'], ref_part_role='structural')
-        self.create_term(context="base", en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'], ref_part_role='structural')
-        self.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'], ref_part_role='structural')
-        self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס', ref_part_role='structural')
-        self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'], ref_part_role='structural')  # TODO no good way to compose titles for midrash rabbah...
-        self.create_term(context="base", en='Midrash', he='מדרש', ref_part_role='structural')
-        self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'], ref_part_role='structural')
-        self.create_term(context="base", en='Ran', he='ר"ן', ref_part_role='structural')
-        self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'], ref_part_role='alt_title')
-        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parshah', 'Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'], ref_part_role='alt_title')
-        self.create_term(context="base", en='Sefer', he='ספר', ref_part_role='alt_title')
-        self.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'], ref_part_role='context_swap')
-        self.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"], ref_part_role='structural')
-        self.create_term(context="base", en='Rambam', he='רמב"ם', ref_part_role='structural')
-        self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'], ref_part_role='structural')
-        self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"], ref_part_role='alt_title')
-        self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'], ref_part_role='structural')
-        self.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'], ref_part_role='structural')
+        self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'])
+        self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"])
+        self.create_term(context="base", en="Talmud", he="תלמוד")
+        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"])
+        self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'])
+        self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'])
+        self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'])
+        self.create_term(context="base", en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'])
+        self.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'])
+        self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס')
+        self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'])  # TODO no good way to compose titles for midrash rabbah...
+        self.create_term(context="base", en='Midrash', he='מדרש')
+        self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'])
+        self.create_term(context="base", en='Ran', he='ר"ן')
+        self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'])
+        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parshah', 'Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'])
+        self.create_term(context="base", en='Sefer', he='ספר')
+        self.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'])
+        self.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"])
+        self.create_term(context="base", en='Rambam', he='רמב"ם')
+        self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'])
+        self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"])
+        self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'])
+        self.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'])
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
             existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
             if existing_term is None:
-                new_term = self.create_term_from_titled_obj(old_term, context="base", ref_part_role='structural')
+                new_term = self.create_term_from_titled_obj(old_term, context="base")
             else:
                 new_term = existing_term
             self.old_term_map[old_term.name] = new_term
@@ -270,7 +267,7 @@ class ReusableTermManager:
             "Tiferet Yisrael"
         ]
         for name in missing_old_term_names:
-            new_term = self.create_term_from_titled_obj(Term().load({"name": name}), context="base", ref_part_role='structural')
+            new_term = self.create_term_from_titled_obj(Term().load({"name": name}), context="base")
             self.old_term_map[name] = new_term
 
     def create_shas_terms(self):
@@ -343,7 +340,7 @@ class ReusableTermManager:
             alt_titles |= set(hard_coded_title_map.get(generic_title_en, []))
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            term = self.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he, ref_part_role='structural')
+            term = self.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
             title_term_map[generic_title_en] = term
         return title_term_map
 
@@ -1173,7 +1170,7 @@ class SpecificConverterManager:
                 if title == 'Haman':
                     title = 'Beshalach' #I didn't find direct references to parashat haman in the literature
                 if title == 'HaIdra Zuta Kadisha':
-                    title_slug = RTM.create_term(en='Idra Zuta', alt_en=['HaIdra zuta'], he='אדרא זוטא', alt_he=['אידרא זוטא', 'אד"ז'], ref_part_role='structural').slug
+                    title_slug = RTM.create_term(en='Idra Zuta', alt_en=['HaIdra zuta'], he='אדרא זוטא', alt_he=['אידרא זוטא', 'אד"ז']).slug
                     haazinue_slug = RTM.get_term_by_primary_title('tanakh', "Ha'Azinu").slug
                     return {
                         MatchTemplate([haazinue_slug]),
@@ -1243,16 +1240,16 @@ class SpecificConverterManager:
     def convert_tikkunei_zohar(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context="base",
                                                          new_alt_titles=['תקונים', 'תיקונים', 'ת"ז']).slug
             elif node.get_primary_title('en') == 'Introduction to Tikkunei HaZohar':
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context="base",
                                                          new_alt_titles=['הקדמה', 'הקדמה', 'Introduction']).slug
             elif node.get_primary_title('en') == 'Second Introduction to Tikkunei HaZohar':
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context="base",
                                                          new_alt_titles=['הקדמה שנייה', 'הקדמה אחרת', 'Second Introduction']).slug
             elif node.get_primary_title('en') == 'Additional Tikkunim':
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base").slug
             else:
                 return
             return [MatchTemplate([title_slug])]
@@ -1283,10 +1280,10 @@ class SpecificConverterManager:
                 return #masechet semachot has intro which I think we can skip
             elif 'Section on Peace' in title:
                 title_slug = RTM.create_term(en='Section on Peace', alt_en=['Perek HaShalom', 'Perek ha-Shalom'], he='פרק השלום',
-                                             alt_he=["פר' השלום", "פ' השלום"], ref_part_role='structural').slug
+                                             alt_he=["פר' השלום", "פ' השלום"]).slug
                 return [MatchTemplate([title_slug], scope='any')]
             alt = alts[title] if title in alts else None
-            title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural', new_alt_titles=alt,
+            title_slug = RTM.create_term_from_titled_obj(node, context='base', new_alt_titles=alt,
                                                          title_modifier=lambda _, x: re.sub('(?:Treat\.|Tractate|Masechet|מסכת) ', '', x)).slug
             tractate_slug = RTM.get_term_by_primary_title('base', 'Tractate').slug
             return [
@@ -1301,7 +1298,7 @@ class SpecificConverterManager:
         #chinukh has two different mitzvot order. I think ours is the common
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context='base', ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context='base',
                                                                title_modifier=lambda _, x: re.sub('(?:Sefer|ספר) ', '', x)).slug
                 return [
                 MatchTemplate([title_slug]),
@@ -1332,14 +1329,14 @@ class SpecificConverterManager:
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if not is_alt_node:
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context="base",
                                                              new_alt_titles=["מכילתא דר' ישמעאל", 'מכדר"י', 'מדר"י', 'Mekhilta of Rabbi Ishmael', 'Mekhilta de-Rabbi Ishmael', 'MRI']).slug
                 return [
                     MatchTemplate([title_slug]),
                     MatchTemplate([title_slug, RTM.get_term_by_primary_title('tanakh', 'Exodus').slug])
                 ]
             else:
-                title_slug = RTM.create_term_from_titled_obj(node, ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node).slug
                 return [
                 MatchTemplate([title_slug])
                 ]
@@ -1358,7 +1355,7 @@ class SpecificConverterManager:
     def convert_mechilta_drshbi(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=["מכילתא דר' שמעון", "מגילתא דר' שמעון בן יוחאי", "מכילתא דר' שמעון בר יוחאי", 'Mekhilta of Rabbi Shimon Ben Yochai', "Mekhilta de-Rabbi Shim'on ben Yoḥai"]).slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=["מכילתא דר' שמעון", "מגילתא דר' שמעון בן יוחאי", "מכילתא דר' שמעון בר יוחאי", 'Mekhilta of Rabbi Shimon Ben Yochai', "Mekhilta de-Rabbi Shim'on ben Yoḥai"]).slug
                 return [
                     MatchTemplate([title_slug])
                 ]
@@ -1376,7 +1373,7 @@ class SpecificConverterManager:
     def convert_sifrei(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base").slug
                 return [
                     MatchTemplate([title_slug])
                 ]
@@ -1405,7 +1402,7 @@ class SpecificConverterManager:
     def convert_pesikta(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base").slug
                 return [
                     MatchTemplate([title_slug])
                 ]
@@ -1423,7 +1420,7 @@ class SpecificConverterManager:
                     new = ['תנא דבי אליהו', 'סדר אליהו', 'סדר אליהו רבה', 'סדר אליהו רבא']
                 elif node.get_primary_title('en') == 'Tanna debei Eliyahu Zuta':
                     new = ['סדר אליהו זוטא', 'תנדב"א זוטא' , 'תנד"א זוטא']
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=new).slug
                 return [
                     MatchTemplate([title_slug])
                 ]
@@ -1447,7 +1444,7 @@ class SpecificConverterManager:
     def convert_yalkut(self): #in the middle of work
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural',
+                title_slug = RTM.create_term_from_titled_obj(node, context="base",
                                                          new_alt_titles=['Yalkut Shimoni', 'Yalkut', 'ילקוט שמעוני', 'יל״ש', 'יל״ש', 'ילקוט']).slug
                 return [MatchTemplate([title_slug])]
             elif node.depth == 0 or 'Nach' in node.wholeRef:
@@ -1474,7 +1471,7 @@ class SpecificConverterManager:
 
     def convert_midrash_tehilim_and_mishlei(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+            title_slug = RTM.create_term_from_titled_obj(node, context="base").slug
             return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1490,7 +1487,7 @@ class SpecificConverterManager:
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
                 new = ['ילמדנו'] if node.key == 'Midrash Tanchuma' else []
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=new).slug
                 return [MatchTemplate([title_slug])]
             title = node.get_primary_title('en')
             parashah_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
@@ -1517,7 +1514,7 @@ class SpecificConverterManager:
     def convert_seder_olam(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=['ס"ע']).slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=['ס"ע']).slug
                 return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1537,7 +1534,7 @@ class SpecificConverterManager:
             for en in ['Maccabees', 'Hashmonaem', 'Macc.']:
                 for n in [e, len(e)]:
                     eng += [f'{n} {en}', f'{en} {e}']
-            title_slug = RTM.create_term(en='I Maccabees', alt_en=eng, he='מקבים א', alt_he=heb, ref_part_role='structural').slug
+            title_slug = RTM.create_term(en='I Maccabees', alt_en=eng, he='מקבים א', alt_he=heb).slug
             return [
                 MatchTemplate([title_slug]),
                 MatchTemplate([RTM.get_term_by_primary_title('base', 'Sefer').slug, title_slug])
@@ -1588,7 +1585,7 @@ class SpecificConverterManager:
                 if node.get_primary_title('en') == "Introduction":
                     title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
                 else:
-                    title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=new).slug
+                    title_slug = RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=new).slug
                 return [MatchTemplate([title_slug])]
 
         def get_other_fields(node, depth, isibling, num_siblings, is_alt_node):
@@ -1602,9 +1599,9 @@ class SpecificConverterManager:
     def convert_yeztirah(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             book_slug = RTM.get_term_by_primary_title('base', 'Sefer').slug
-            title_slug = RTM.create_term(en='Yetzirah', alt_en=['Formation', "Y’tsirah"], he='יצירה', ref_part_role='structural').slug
+            title_slug = RTM.create_term(en='Yetzirah', alt_en=['Formation', "Y’tsirah"], he='יצירה').slug
             if 'Gra' in node.get_primary_title('en'):
-                gra_slug = RTM.create_term(en='Gra', alt_en=['Vilna Gaon'], he='גר"א', ref_part_role='structural').slug
+                gra_slug = RTM.create_term(en='Gra', alt_en=['Vilna Gaon'], he='גר"א').slug
                 return [MatchTemplate([title_slug, gra_slug]),
                         MatchTemplate([book_slug, title_slug, gra_slug])]
             else:
@@ -1617,7 +1614,7 @@ class SpecificConverterManager:
     def convert_likutei_halakhot(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
-                return [MatchTemplate([RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural', new_alt_titles=['לקוטי הלכות']).slug])]
+                return [MatchTemplate([RTM.create_term_from_titled_obj(node, context="base", new_alt_titles=['לקוטי הלכות']).slug])]
             if node.has_children():
                 sa_title_swaps = {
                     "Orach Chaim": "Orach Chayim",
@@ -1630,7 +1627,7 @@ class SpecificConverterManager:
                 return [MatchTemplate([RTM.get_term_by_primary_title('base', 'Introduction').slug])]
             else:
                 index_slug = RTM.get_term_by_primary_title('base', 'Likutei Halakhot').slug
-                title_slug = RTM.create_term_from_titled_obj(node, context="base", ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="base").slug
                 return [
                     MatchTemplate([index_slug, title_slug], scope='alone'),
                     MatchTemplate([title_slug]),
@@ -1660,7 +1657,7 @@ class SpecificConverterManager:
         converter.convert()
 
     def convert_aramaic_targum(self):
-        aramaic_targum_slug = RTM.create_term(en='Aramaic Targum', he='תרגום', context="base", ref_part_role='structural').slug
+        aramaic_targum_slug = RTM.create_term(en='Aramaic Targum', he='תרגום', context="base").slug
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if node.is_root():
@@ -1673,7 +1670,7 @@ class SpecificConverterManager:
 
     def convert_pesach_haggadah(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            title_slug = RTM.create_term_from_titled_obj(node, context="haggadah", ref_part_role='structural').slug
+            title_slug = RTM.create_term_from_titled_obj(node, context="haggadah").slug
             return [MatchTemplate([title_slug])]
 
         converter = LinkerIndexConverter('Pesach Haggadah', get_match_templates=get_match_templates)
@@ -1685,14 +1682,14 @@ class SpecificConverterManager:
             if node.get_primary_title('en') == "Introduction":
                 title_slug = RTM.get_term_by_primary_title('base', 'Introduction').slug
             else:
-                title_slug = RTM.create_term_from_titled_obj(node, context="mesilat yesharim", ref_part_role='structural').slug
+                title_slug = RTM.create_term_from_titled_obj(node, context="mesilat yesharim").slug
             return [MatchTemplate([title_slug])]
 
         converter = LinkerIndexConverter('Mesilat Yesharim', get_match_templates=get_match_templates)
         converter.convert()
 
     def convert_kaf_hachayim(self):
-        # kaf_slug = RTM.create_term(en="Kaf HaChayim", he="כף החיים", alt_en=["Kaf Hachayim", "Kaf Hachaim", "Kaf HaChaim"], alt_he=["כה\"ח", "כה״ח", "כה”ח"], ref_part_role='structural', context="base").slug
+        # kaf_slug = RTM.create_term(en="Kaf HaChayim", he="כף החיים", alt_en=["Kaf Hachayim", "Kaf Hachaim", "Kaf HaChaim"], alt_he=["כה\"ח", "כה״ח", "כה”ח"], context="base").slug
         kaf_slug = RTM.get_term_by_primary_title("base", "Kaf HaChayim").slug
 
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
