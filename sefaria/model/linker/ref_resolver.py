@@ -10,7 +10,7 @@ from sefaria.model import text
 from sefaria.model import schema
 from .ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, RangedRawRefParts, ContextPart, TermContext
 from .referenceable_book_node import NamedReferenceableBookNode, DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from .match_template import MatchTemplateTrie, MatchTemplateGraph, LEAF_TRIE_ENTRY
+from .match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 import structlog
 logger = structlog.get_logger(__name__)
 try:
@@ -396,14 +396,13 @@ class IbidHistory:
 class RefResolver:
 
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
-                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
+                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie],
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
         from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
 
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
-        self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
         self._thoroughness = ResolutionThoroughness.NORMAL
