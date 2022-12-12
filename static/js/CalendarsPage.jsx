@@ -176,8 +176,8 @@ const calendarDescriptions = {
     he: "תכנית לימוד ארבע-שנתית של הלכות מעשיות מתוך ספר ערוך השלחן, חיבורו ההלכתי של הרב יחיאל מיכל עפשטיין.",
   },
   "Tanya Yomi": {
-    "en": "Tanya Yomi",
-    "he": "Tanya Yomi"
+    "en": "A daily learning cycle for completing Tanya annually, starting at the 19th of Kislev, “Rosh Hashanah of Chasidut.”",
+    "he": "סדר לימוד המשלים את ספר התניא אחת לשנה, החל מיום י\"ט בכסליו \"ראש השנה לחסידות\"."
   },
   "Tanakh Yomi": {
     en: "A daily learning cycle for completing Tanakh annually. On Shabbat, each Torah portion is recited. On weekdays, Prophets and Writings are recited according to the ancient Masoretic division of sedarim.",
