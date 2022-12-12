@@ -324,13 +324,6 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         "slug",
         "titles"
     ]
-    optional_attrs = [
-        # currently either "structural", "context_swap" or "alt_title". structural should be used for terms that used to
-        # define a logical relationship between ref parts (e.g. 'yerushalmi'). "alt_title" is for parts that are only
-        # included to generate more alt_titles (e.g. 'sefer'). "context_swap" is for parts that are meant to be swapped
-        # via SchemaNode.ref_resolver_context_swaps
-        "ref_part_role",
-    ]
     slug_fields = ['slug']
     title_group = None
 
