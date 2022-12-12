@@ -9,7 +9,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.model.linker import MatchTemplate
+from sefaria.model.linker.match_template import MatchTemplate
 from sefaria.model.schema import TitleGroup
 from sefaria.utils.hebrew import encode_hebrew_numeral
 from sefaria.utils.hebrew import strip_cantillation
