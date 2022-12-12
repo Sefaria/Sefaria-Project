@@ -3,79 +3,14 @@ django.setup()
 
 import re
 from tqdm import tqdm
-from functools import partial
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.system.database import db
 from collections import defaultdict
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.model.linker.match_template import MatchTemplate
 from sefaria.model.schema import TitleGroup
 from sefaria.utils.hebrew import encode_hebrew_numeral
-from sefaria.utils.hebrew import strip_cantillation
-import unicodedata
-from pymongo import InsertOne
-
-"""
-Documentation of new fields which can be added to SchemaNodes
-    - match_templates: List[MatchTemplate]
-        List of serialized MatchTemplate objects. See ref_part.MatchTemplate.serialize()
-        Each inner array is similar to an alt-title. The difference is each NonUniqueTerm can have its own independent alt-titles so it is more flexible.
-        Example:
-            Some match_templates for "Berakhot" might be
-            "match_templates" : [
-                { "term_slugs" : ["bavli", "berakhot"] }, 
-                { "term_slugs" : ["gemara", "berakhot"]}, 
-                { "term_slugs" : ["bavli", "tractate", "berakhot"] }
-            ]
-            
-        Match templates can include a key "scope". If not included, the default is "combined"
-        Values for "scope":
-            "combined": need to match at least one match template for every node above this node + one match template for this node
-            "alone": only need to match one match template from this node. This is helpful when certain nodes can be referenced independent of the book's title (e.g. perek of Rashi)
-            "any": both "combined" and "alone"
-        Example:
-            Some match templates for the first perek of "Rashi on Berkahot" might be:
-            (Note, the "alone" templates don't need to match the match_templates of the root node (i.e. ["rashi", "berakhot"])
-            "match_templates" : [
-                {
-                    "term_slugs" : ["rashi", "perek", "מאימתי"], 
-                    "scope" : "alone"
-                }, 
-                {
-                    "term_slugs" : ["perek", "מאימתי"]
-                }, 
-                {
-                    "term_slugs" : ["perek", "first"]
-                }
-            ]
-    - isSegmentLevelDiburHamatchil
-        Only used for JaggedArrayNodes.
-        bool.
-        True means the segment level should be referenced by DH and not by number.
-        E.g. No one references Rashi on Genesis 2:1:1. They reference Rashi on Genesis 2:1 DH ויכל
-    - referenceableSections
-        Only used for JaggedArrayNodes.
-        List of bool. Should be same length as `depth`
-        If a section is False in this list, it will not be referenceable.
-        If field isn't defined, assumed to be True for every section.
-        E.g. The section level of Rashi on Berakhot is not referenced since it corresponds to paragraph number in our break-up of Talmud
-        So for Rashi on Berakhot, referenceableSections = [True, False, True].
-        This effectively means this text can be referenced as depth 2.
-    - diburHamatchilRegexes
-        Only used for JaggedArrayNodes.
-        List[str]
-        Each string represents a regex.
-        Each regex will be run sequentially and final output will be the Dibur Hamatchil for that segment
-        Each regex should either not match OR return match with result in group 1
-        Example
-            For Rashi on Berakhot, diburHamatchilRegexes = ['^(.+?)[\-–]', '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"]
-    - numeric_equivalent
-        int
-        Used for SchemaNodes that should be referenceable by number as well
-        E.g. Sifra has many nodes like "Chapter 1" that are SchemaNodes but should be referenceable by gematria        
-
-"""
+from sefaria.helper.linker_index_converter import DiburHamatchilAdder, LinkerCategoryConverter, LinkerIndexConverter, ReusableTermManager
 
 
 def get_ref_by_book_oref_and_sections(book_oref, sections, toSections=None):
@@ -89,114 +24,13 @@ def get_ref_by_book_oref_and_sections(book_oref, sections, toSections=None):
     })
 
 
-class ReusableTermManager:
+class ReusableTermCreator():
 
-    def __init__(self):
-        self.context_and_primary_title_to_term = {}
-        self.num_to_perek_term_map = {}
-        self.old_term_map = {}
+    def __init__(self, reusable_term_manager: ReusableTermManager):
+        self.RTM = reusable_term_manager
 
-    def get_term_by_primary_title(self, context, title):
-        return self.context_and_primary_title_to_term.get((context, title))
-
-    def get_term_by_old_term_name(self, old_term_name):
-        return self.old_term_map.get(old_term_name)
-
-    def get_perek_term_by_num(self, perek_num):
-        return self.num_to_perek_term_map.get(perek_num)
-
-    def create_term(self, **kwargs):
-        """
-
-        @param kwargs:
-            'en'
-            'he'
-            'alt_en'
-            'alt_he'
-            'context'
-        @return:
-        """
-        slug = kwargs.get('en', kwargs.get('he'))
-        term = NonUniqueTerm({
-            "slug": slug,
-            "titles": []
-        })
-        for lang in ('en', 'he'):
-            if kwargs.get(lang, False):
-                term.title_group.add_title(kwargs.get(lang), lang, primary=True)
-            for title in kwargs.get(f"alt_{lang}", []):
-                term.title_group.add_title(title, lang)
-        term.save()
-        self.context_and_primary_title_to_term[(kwargs.get('context'), term.get_primary_title('en'))] = term
-        return term
-
-    def create_term_from_titled_obj(self, obj, context=None, new_alt_titles=None, title_modifier=None, title_adder=None):
-        """
-        Create a NonUniqueTerm from 'titled object' (see explanation of `obj` param)
-        Accepts params to modify or add new alt titles
-        @param obj: either of instance `TitleGroup` or has an attribute `title_group` (e.g. a `Term` or `SchemaNode` has this field)
-        @param context: Optional string (or any hashable object) to distinguish terms with the same primary title. For use with `get_term_by_primary_title()`
-        @param new_alt_titles: list[str]. optional list of alt titles to add. will auto-detect language of title.
-        @param title_modifier: function(lang, str) -> str. given lang and current alt title, replaces alt title with return value. Useful for removing common prefixes such as "Parshat" or "Mesechet"
-        @param title_adder: function(lang, str) -> str. given lang and current alt title, returns new alt title. If returns None, no alt title is added for given title. Useful for creating variations on existing alt titles.
-        @return: new NonUniqueTerm
-
-        Example:
-
-        .. highlight:: python
-        .. code-block:: python
-
-            # make NonUniqueTerm based on index node of "Genesis"
-            # remove leading "Sefer " from all alt titles
-            # add new titles that replace "sh" with "š"
-
-            def title_modifier(lang, title):
-                if lang == "en":
-                    return re.sub(r"^Sefer ", "", title)
-                return title
-
-            def title_adder(lang, title):
-                if "sh" in title:
-                    return title.repalce("sh", "š")
-
-            index = library.get_index("Genesis")
-            gen_term = ReusableTermManager.create_term_from_titled_obj(
-                index.nodes, "structural", ["Bˋershis", "Breišis"],
-                title_modifier, title_adder
-            )
-
-        ...
-
-        """
-        new_alt_titles = new_alt_titles or []
-        title_group = obj if isinstance(obj, TitleGroup) else obj.title_group
-        en_title = title_group.primary_title('en')
-        he_title = title_group.primary_title('he')
-        if not (en_title and he_title):
-            raise InputError("title group has no primary titles. can't create term.")
-        alt_en_titles = [title for title in title_group.all_titles('en') if title != en_title]
-        alt_he_titles = [title for title in title_group.all_titles('he') if title != he_title]
-        if title_modifier:
-            en_title = title_modifier('en', en_title)
-            he_title = title_modifier('he', he_title)
-        for new_alt in new_alt_titles:
-            if is_hebrew(new_alt):
-                alt_he_titles += [new_alt]
-            else:
-                alt_en_titles += [new_alt]
-        for alt_title_list, lang in zip((alt_en_titles + [en_title], alt_he_titles + [he_title]), ('en', 'he')):
-            if title_adder:
-                new_alt_titles = [title_adder(lang, alt_title) for alt_title in alt_title_list]
-                alt_title_list += list(filter(None, new_alt_titles))
-            if title_modifier:
-                alt_title_list[:] = [title_modifier(lang, t) for t in alt_title_list]
-        # make unique
-        alt_en_titles = list(set(alt_en_titles))
-        alt_he_titles = list(set(alt_he_titles))
-        term = self.create_term(en=en_title, he=he_title, context=context, alt_en=alt_en_titles, alt_he=alt_he_titles)
-        if isinstance(obj, Term):
-            self.old_term_map[obj.name] = term
-        return term
+    def simple_get_commentary_term(self, collective_title):
+        return self.RTM.get_term_by_old_term_name(collective_title)
 
     def create_numeric_perek_terms(self):
         ord_en = ['First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth', 'Eleventh', 'Twelfth', 'Thirteenth', 'Fourteenth', 'Fifteenth', 'Sixteenth', 'Seventeenth', 'Eighteenth', 'Nineteenth', 'Twentieth', 'Twenty First', 'Twenty Second', 'Twenty Third', 'Twenty Fourth', 'Twenty Fifth', 'Twenty Sixth', 'Twenty Seventh', 'Twenty Eighth', 'Twenty Ninth', 'Thirtieth']
@@ -224,42 +58,42 @@ class ReusableTermManager:
                     'פ"ק',
                 ]
             primary_he = ordinals[i-1] if i < len(ordinals) else cardinals[i-1]
-            term = self.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en)
-            self.num_to_perek_term_map[i] = term
-        self.num_to_perek_term_map['last'] = self.create_term(context="numeric perek", en='last', he='בתרא')
+            term = self.RTM.create_term(context="numeric perek", en=ord_en[i - 1], he=primary_he, alt_he=alt_he, alt_en=alt_en)
+            self.RTM.num_to_perek_term_map[i] = term
+        self.RTM.num_to_perek_term_map['last'] = self.RTM.create_term(context="numeric perek", en='last', he='בתרא')
 
     def create_base_non_unique_terms(self):
-        self.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'])
-        self.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"])
-        self.create_term(context="base", en="Talmud", he="תלמוד")
-        self.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"])
-        self.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'])
-        self.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'])
-        self.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'])
-        self.create_term(context="base", en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'])
-        self.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'])
-        self.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס')
-        self.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'])  # TODO no good way to compose titles for midrash rabbah...
-        self.create_term(context="base", en='Midrash', he='מדרש')
-        self.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'])
-        self.create_term(context="base", en='Ran', he='ר"ן')
-        self.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'])
-        self.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parshah', 'Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'])
-        self.create_term(context="base", en='Sefer', he='ספר')
-        self.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'])
-        self.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"])
-        self.create_term(context="base", en='Rambam', he='רמב"ם')
-        self.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'])
-        self.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"])
-        self.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'])
-        self.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'])
+        self.RTM.create_term(context="base", en='Bavli', he='בבלי', alt_en=['Babylonian Talmud', 'B.T.', 'BT', 'Babli'])
+        self.RTM.create_term(context="base", en="Gemara", he="גמרא", alt_he=["גמ'"])
+        self.RTM.create_term(context="base", en="Talmud", he="תלמוד")
+        self.RTM.create_term(context="base", en="Tractate", he="מסכת", alt_en=['Masekhet', 'Masechet', 'Masekhes', 'Maseches'], alt_he=["מס'", "מס׳"])
+        self.RTM.create_term(context="base", en='Rashi', he='רש"י', alt_he=['פירש"י'])
+        self.RTM.create_term(context="base", en='Mishnah', he='משנה', alt_en=['M.', 'M', 'Mishna', 'Mishnah', 'Mishnaiot'])
+        self.RTM.create_term(context="base", en='Tosefta', he='תוספתא', alt_en=['Tosephta', 'T.', 'Tosef.', 'Tos.'])
+        self.RTM.create_term(context="base", en='Yerushalmi', he='ירושלמי', alt_en=['Jerusalem Talmud', 'J.T.', 'JT'])
+        self.RTM.create_term(context="base", en='Tosafot', he='תוספות', alt_he=["תוס'", 'תוד"ה', 'תד"ה', "תו'"], alt_en=['Tosaphot'])
+        self.RTM.create_term(context="base", en='Gilyon HaShas', he='גליון הש"ס')
+        self.RTM.create_term(context="base", en='Midrash Rabbah', he='מדרש רבה', alt_en=['Midrash Rabba', 'Midrash Rabah'], alt_he=['מדרש רבא'])  # TODO no good way to compose titles for midrash rabbah...
+        self.RTM.create_term(context="base", en='Midrash', he='מדרש')
+        self.RTM.create_term(context="base", en='Rabbah', he='רבה', alt_en=['Rabba', 'Rabah', 'Rab.', 'R.', 'Rab .', 'R .', 'rabba', 'r.', 'r .', 'rabbati'], alt_he=['רבא'])
+        self.RTM.create_term(context="base", en='Ran', he='ר"ן')
+        self.RTM.create_term(context="base", en='Perek', he='פרק', alt_en=["Pereq", 'Chapter'], alt_he=['ס"פ', 'ר"פ'])
+        self.RTM.create_term(context="base", en='Parasha', he='פרשה', alt_he=["פרשת"], alt_en=['Parshah', 'Parashah', 'Parašah', 'Parsha', 'Paraša', 'Paršetah', 'Paršeta', 'Parsheta', 'Parshetah', 'Parashat', 'Parshat'])
+        self.RTM.create_term(context="base", en='Sefer', he='ספר')
+        self.RTM.create_term(context="base", en='Halakha', he='הלכה', alt_en=['Halakhah', 'Halacha', 'Halachah', 'Halakhot'])
+        self.RTM.create_term(context="base", en='Mishneh Torah', he='משנה תורה', alt_en=["Mishnah Torah"])
+        self.RTM.create_term(context="base", en='Rambam', he='רמב"ם')
+        self.RTM.create_term(context="base", en='Shulchan Arukh', he='שולחן ערוך', alt_en=['shulchan aruch', 'Shulchan Aruch', 'Shulḥan Arukh', 'Shulhan Arukh', 'S.A.', 'SA', 'Shulḥan Arukh'], alt_he=['שו"ע', 'שלחן ערוך'])
+        self.RTM.create_term(context="base", en='Hilchot', he='הלכות', alt_en=['Laws of', 'Laws', 'Hilkhot', 'Hilhot'], alt_he=["הל'"])
+        self.RTM.create_term(context='base', en='Zohar', he='זהר', alt_he=['זוהר', 'זוה"ק', 'זה"ק'])
+        self.RTM.create_term(context='base', en='Introduction', he='הקדמה', alt_he=['מבוא'])
         for old_term in TermSet({"scheme": {"$in": ["toc_categories", "commentary_works"]}}):
-            existing_term = self.get_term_by_primary_title('base', old_term.get_primary_title('en'))
+            existing_term = self.RTM.get_term_by_primary_title('base', old_term.get_primary_title('en'))
             if existing_term is None:
-                new_term = self.create_term_from_titled_obj(old_term, context="base")
+                new_term = self.RTM.create_term_from_titled_obj(old_term, context="base")
             else:
                 new_term = existing_term
-            self.old_term_map[old_term.name] = new_term
+            self.RTM.old_term_map[old_term.name] = new_term
         missing_old_term_names = [
             "Lechem Mishneh", "Mishneh LaMelech", "Melekhet Shelomoh", "Targum Jonathan", "Onkelos", "Targum Neofiti",
             "Targum Jerusalem", "Tafsir Rasag", "Kitzur Baal HaTurim", "Rav Hirsch", "Pitchei Teshuva",
@@ -267,8 +101,8 @@ class ReusableTermManager:
             "Tiferet Yisrael"
         ]
         for name in missing_old_term_names:
-            new_term = self.create_term_from_titled_obj(Term().load({"name": name}), context="base")
-            self.old_term_map[name] = new_term
+            new_term = self.RTM.create_term_from_titled_obj(Term().load({"name": name}), context="base")
+            self.RTM.old_term_map[name] = new_term
 
     def create_shas_terms(self):
         """
@@ -340,7 +174,7 @@ class ReusableTermManager:
             alt_titles |= set(hard_coded_title_map.get(generic_title_en, []))
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
-            term = self.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
+            term = self.RTM.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
             title_term_map[generic_title_en] = term
         return title_term_map
 
@@ -390,11 +224,11 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_corpus("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             hard_coded_alt_titles = hard_coded_tanakh_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, "structural", "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder)
+            self.RTM.create_term_from_titled_obj(index.nodes, "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder)
 
         for term in TermSet({"scheme": "Parasha"}):
             hard_coded_alt_titles = hard_coded_parsha_map.get(term.name)
-            self.create_term_from_titled_obj(term, "structural", "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
+            self.RTM.create_term_from_titled_obj(term, "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder, title_modifier=parsha_title_modifier)
 
     def create_mt_terms(self):
         hard_coded_title_map = {}
@@ -412,7 +246,8 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_category("Mishneh Torah", full_records=True)
         for index in indexes:
             temp_alt_titles = hard_coded_title_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, 'structural', "mishneh torah", temp_alt_titles, title_modifier=title_modifier)
+            self.RTM.create_term_from_titled_obj(index.nodes, "mishneh torah", temp_alt_titles, title_modifier=title_modifier)
+
 
     def create_sa_terms(self):
         hard_coded_title_map = {
@@ -431,291 +266,21 @@ class ReusableTermManager:
         indexes = library.get_indexes_in_category("Shulchan Arukh", full_records=True)
         for index in indexes:
             temp_alt_titles = hard_coded_title_map.get(index.title)
-            self.create_term_from_titled_obj(index.nodes, 'structural', "shulchan arukh", temp_alt_titles, title_modifier=title_modifier)
+            self.RTM.create_term_from_titled_obj(index.nodes, "shulchan arukh", temp_alt_titles, title_modifier=title_modifier)
+
+    def create_all_terms(self):
+        NonUniqueTermSet().delete()  # reset non unique terms collection
+        self.create_base_non_unique_terms()
+        self.create_numeric_perek_terms()
+        self.create_tanakh_terms()
+        self.create_shas_terms()
+        self.create_mt_terms()
+        self.create_sa_terms()
 
 
-def get_reusable_components() -> ReusableTermManager:
-    """
-    Static method to build up datastructures that are necessary for every run of LinkerIndexConverter
-    @return:
-    """
-    NonUniqueTermSet().delete()  # reset non unique terms collection
-    reusable_term_manager = ReusableTermManager()
-    reusable_term_manager.create_base_non_unique_terms()
-    reusable_term_manager.create_numeric_perek_terms()
-    reusable_term_manager.create_tanakh_terms()
-    reusable_term_manager.create_shas_terms()
-    reusable_term_manager.create_mt_terms()
-    reusable_term_manager.create_sa_terms()
-    return reusable_term_manager
-
-
-class LinkerCategoryConverter:
-    """
-    Manager which handles converting all indexes in a category or corpus.
-    """
-
-    def __init__(self, title, is_corpus=False, is_index=False, include_dependant=False, **linker_index_converter_kwargs):
-        index_getter = library.get_indexes_in_corpus if is_corpus else library.get_indexes_in_category
-        self.titles = [title] if is_index else index_getter(title, include_dependant=include_dependant)
-        self.linker_index_converter_kwargs = linker_index_converter_kwargs
-
-    def convert(self):
-        for title in self.titles:
-            index_converter = LinkerIndexConverter(title, **self.linker_index_converter_kwargs)
-            index_converter.convert()
-
-
-class LinkerCommentaryConverter:
-    
-    def __init__(self, base_text_title, get_match_template_suffixes, **linker_index_converter_kwargs):
-        self.titles = [index.title for index in IndexSet({"base_text_titles": base_text_title})]
-        self.linker_index_converter_kwargs = linker_index_converter_kwargs
-        self.get_match_template_suffixes = get_match_template_suffixes
-        self.get_match_templates_inner = linker_index_converter_kwargs['get_match_templates']
-        base_index = library.get_index(base_text_title)
-        linker_index_converter_kwargs['get_match_templates'] = partial(self.get_match_templates_wrapper, base_index)
-
-    def get_match_templates_wrapper(self, base_index, node, depth, isibling, num_siblings, is_alt_node):
-        if self.get_match_templates_inner:
-            match_templates = self.get_match_templates_inner(base_index, node, depth, isibling, num_siblings, is_alt_node)
-            if match_templates is not None:
-                return match_templates
-
-        # otherwise, use default implementation
-        if is_alt_node or not node.is_root(): return "NO-OP"
-        try: comm_term = RTM.get_term_by_old_term_name(node.index.collective_title)
-        except: return "NO-OP"
-        if comm_term is None: return "NO-OP"
-        if self.get_match_template_suffixes is None: return "NO-OP"
-
-        match_templates = [template.clone() for template in self.get_match_template_suffixes(base_index)]
-        for template in match_templates:
-            template.term_slugs = [comm_term.slug] + template.term_slugs
-        return match_templates
-
-    def convert(self):
-        for title in self.titles:
-            index_converter = LinkerIndexConverter(title, **self.linker_index_converter_kwargs)
-            index_converter.convert()
-
-
-class DiburHamatchilAdder:
-    BOLD_REG = "^<b>(.+?)</b>"
-    DASH_REG = '^(.+?)[\-–]'
-
-    def __init__(self):
-        self.indexes_with_dibur_hamatchils = []
-        self.dh_reg_map = {
-            "Rashi|Bavli": [self.DASH_REG, '\.(.+?)$', "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Ran|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-            "Tosafot|Bavli": [self.DASH_REG, "^(?:(?:מתני'|גמ')\s?)?(.+)$"],
-        }
-        self._dhs_to_insert = []
-
-    def get_dh_regexes(self, collective_title, context=None, use_default_reg=True):
-        if collective_title is None:
-            return
-        key = collective_title + ("" if context is None else f"|{context}")
-        dh_reg = self.dh_reg_map.get(key)
-        if not dh_reg and use_default_reg:
-            return [self.BOLD_REG, self.DASH_REG]
-        return dh_reg
-
-    def add_index(self, index):
-        self.indexes_with_dibur_hamatchils += [index]
-
-    @staticmethod
-    def get_dh(s, regexes, oref):
-        matched_reg = False
-        s = s.strip()
-        for reg in regexes:
-            match = re.search(reg, s)
-            if not match: continue
-            matched_reg = True
-            s = match.group(1)
-        if not matched_reg: return
-        s = s.strip()
-        s = unicodedata.normalize('NFKD', s)
-        s = strip_cantillation(s, strip_vowels=True)
-        s = re.sub(r"[.,:;\-–]", "", s)
-        words = s.split()
-        return " ".join(words[:5])  # DH is unlikely to give more info if longer than 5 words
-
-    def add_dibur_hamatchil_to_index(self, index):
-        def add_dh_for_seg(segment_text, en_tref, he_tref, version):
-            nonlocal perek_refs, self
-            try:
-                oref = Ref(en_tref)
-            except:
-                print("not a valid ref", en_tref)
-                return
-            if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
-            dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
-            if not dh: return
-            container_refs = [oref.top_section_ref().normal(), index.title]
-            perek_ref = None
-            for temp_perek_ref in perek_refs:
-                assert isinstance(temp_perek_ref, Ref)
-                if temp_perek_ref.contains(oref):
-                    perek_ref = temp_perek_ref
-                    break
-            if perek_ref:
-                container_refs += [perek_ref.normal()]
-            self._dhs_to_insert += [
-                {
-                    "dibur_hamatchil": dh,
-                    "container_refs": container_refs,
-                    "ref": en_tref
-                }
-            ]
-
-        index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
-        perek_refs = []
-        for perek_node in index.get_alt_struct_nodes():
-            perek_ref = Ref(perek_node.wholeRef)
-            perek_refs += [perek_ref]
-
-        versions = VersionSet({"title": index.title, "language": "he"}).array()
-        if len(versions) == 0:
-            print("No versions for", index.title, ". Can't search for DHs.")
-            return
-        primary_version = versions[0]
-        primary_version.walk_thru_contents(add_dh_for_seg)
-
-    def add_all_dibur_hamatchils(self):
-        db.dibur_hamatchils.delete_many({})
-        for index in tqdm(self.indexes_with_dibur_hamatchils, desc='add dibur hamatchils'):
-            self.add_dibur_hamatchil_to_index(index)
-        db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
-
-
-class LinkerIndexConverter:
-
-    def __init__(self, title, get_other_fields=None, get_match_templates=None, get_alt_structs=None,
-                 fast_unsafe_saving=True, get_commentary_match_templates=None, get_commentary_other_fields=None,
-                 get_commentary_match_template_suffixes=None, get_commentary_alt_structs=None):
-        """
-
-        @param title: title of index to convert
-        @param get_other_fields: function of form
-            (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> dict.
-            Returns a dict where keys are other fields to modify. These can be any valid key on `node`
-            Some common examples are below. Many of them are documented at the top of this file.
-                - isSegmentLevelDiburHamatchil
-                - referenceableSections
-                - diburHamatchilRegexes
-                - numeric_equivalent
-                - ref_resolver_context_swaps
-            Can return None for any of these
-            See top of file for documentation for these fields
-        @param get_match_templates:
-            function of form
-                (node: SchemaNode, depth: int, isibling: int, num_siblings: int, is_alt_node: bool) -> List[MatchTemplate].
-            Callback that is run on every node in index including alt struct nodes. Receives callback params as specified above.
-            Needs to return a list of MatchTemplate objects corresponding to that node.
-        @param get_alt_structs:
-            function of form
-                (index: Index) -> Dict[String, TitledTreeNode]
-            Returns a dict with keys being names of new alt struct and values being alt struct root nodes
-        @param get_commentary_match_templates:
-            function of form
-                (index: Index) -> List[MatchTemplate]
-            Callback that is run on every commentary index of this base text.
-            Return value is equivalent to that of `get_match_templates()`
-        @param get_commentary_other_fields:
-            function of form
-                (index: Index) -> dict
-            Callback that is run on every commentary index of this base text.
-            Return value is equivalent to that of `get_other_fields()`
-        @param fast_unsafe_saving: If true, skip Python dependency checks and save directly to Mongo (much faster but potentially unsafe)
-        """
-        self.index = library.get_index(title)
-        self.get_other_fields = get_other_fields
-        self.get_match_templates = get_match_templates
-        self.get_alt_structs = get_alt_structs
-        self.get_commentary_match_templates = get_commentary_match_templates
-        self.get_commentary_other_fields = get_commentary_other_fields
-        self.get_commentary_match_template_suffixes = get_commentary_match_template_suffixes
-        self.get_commentary_alt_structs = get_commentary_alt_structs
-        self.fast_unsafe_saving = fast_unsafe_saving
-
-    @staticmethod
-    def _traverse_nodes(node, callback, depth=0, isibling=0, num_siblings=0, is_alt_node=False, **kwargs):
-        callback(node, depth, isibling, num_siblings, is_alt_node, **kwargs)
-        [LinkerIndexConverter._traverse_nodes(child, callback, depth + 1, jsibling, len(node.children), is_alt_node, **kwargs) for (jsibling, child) in enumerate(node.children)]
-
-    def _update_lengths(self):
-        if self.index.is_complex(): return
-        sn = StateNode(self.index.title)
-        ac = sn.get_available_counts("he")
-        # really only outer shape is checked. including rest of shape even though it's technically only a count of what's available and skips empty sections
-        shape = sn.var('all', 'shape')
-        outer_shape = shape if isinstance(shape, int) else len(shape)
-        if getattr(self.index, 'dependence', None) == 'Commentary' and getattr(self.index, 'base_text_titles', None):
-            if self.index.base_text_titles[0] == 'Shulchan Arukh, Even HaEzer':
-                outer_shape = 178
-            else:
-                sn = StateNode(self.index.base_text_titles[0])
-                shape = sn.var('all', 'shape')
-                base_outer_shape = shape if isinstance(shape, int) else len(shape)
-                if base_outer_shape > outer_shape:
-                    outer_shape = base_outer_shape
-        self.index.nodes.lengths = [outer_shape] + ac[1:]
-
-    def convert(self):
-        if self.get_alt_structs:
-            alt_struct_dict = self.get_alt_structs(self.index)
-            if alt_struct_dict:
-                for name, root in alt_struct_dict.items():
-                    self.index.set_alt_structure(name, root)
-        self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
-        alt_nodes = self.index.get_alt_struct_nodes()
-        for inode, node in enumerate(alt_nodes):
-            self.node_visitor(node, 1, inode, len(alt_nodes), True)
-        self._update_lengths()  # update lengths for good measure
-        if self.get_commentary_match_templates or self.get_commentary_match_template_suffixes or self.get_commentary_other_fields:
-            temp_get_comm_fields = partial(self.get_commentary_other_fields, self.index)\
-                if self.get_commentary_other_fields else None
-            temp_get_alt_structs = partial(self.get_commentary_alt_structs, self.index)\
-                if self.get_commentary_alt_structs else None
-            comm_converter = LinkerCommentaryConverter(self.index.title, self.get_commentary_match_template_suffixes,
-                                                       get_match_templates=self.get_commentary_match_templates,
-                                                       get_other_fields=temp_get_comm_fields,
-                                                       get_alt_structs=temp_get_alt_structs)
-            comm_converter.convert()
-        self.save_index()
-
-    def save_index(self):
-        if self.fast_unsafe_saving:
-            props = self.index._saveable_attrs()
-            db.index.replace_one({"_id": self.index._id}, props, upsert=True)
-        else:
-            self.index.save()
-
-    def node_visitor(self, node, depth, isibling, num_siblings, is_alt_node):
-        if self.get_match_templates:
-            templates = self.get_match_templates(node, depth, isibling, num_siblings, is_alt_node)
-            if templates == "NO-OP":
-                pass
-            elif templates is not None:
-                node.match_templates = [template.serialize() for template in templates]
-            else:
-                # None
-                try:
-                    delattr(node, 'match_templates')
-                except:
-                    pass
-
-        if self.get_other_fields:
-            other_fields_dict = self.get_other_fields(node, depth, isibling, num_siblings, is_alt_node)
-            if other_fields_dict is not None:
-                for key, val in other_fields_dict.items():
-                    if val is None: continue
-                    setattr(node, key, val)
-
-
-RTM = get_reusable_components()
+RTM = ReusableTermManager()
+reusable_term_creator = ReusableTermCreator(RTM)
+reusable_term_creator.create_all_terms()
 
 
 class SpecificConverterManager:
@@ -772,6 +337,7 @@ class SpecificConverterManager:
 
         converter = LinkerCategoryConverter("Tanakh", is_corpus=True, get_match_templates=get_match_templates,
                                             get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_term=reusable_term_creator.simple_get_commentary_term,
                                             get_commentary_other_fields=get_commentary_other_fields)
         converter.convert()
 
@@ -780,7 +346,7 @@ class SpecificConverterManager:
 
             if is_alt_node:
                 perek_slug = RTM.get_term_by_primary_title('base', 'Perek').slug  # TODO english titles are 'Chapter N'. Is that an issue?
-                perek_term = RTM.create_term_from_titled_obj(node, 'structural', 'shas perek')
+                perek_term = RTM.create_term_from_titled_obj(node, 'shas perek')
                 is_last = isibling == num_siblings-1
                 numeric_equivalent = min(isibling+1, 30)
                 perek_num_term = RTM.get_perek_term_by_num(numeric_equivalent)
@@ -894,6 +460,7 @@ class SpecificConverterManager:
         converter = LinkerCategoryConverter("Bavli", is_corpus=True, get_match_templates=get_match_templates,
                                             get_other_fields=get_other_fields,
                                             get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_term=reusable_term_creator.simple_get_commentary_term,
                                             get_commentary_other_fields=get_commentary_other_fields,
                                             get_commentary_alt_structs=get_commentary_alt_structs)
         converter.convert()
@@ -985,7 +552,7 @@ class SpecificConverterManager:
                 return [MatchTemplate([parsha_term.slug])]
             elif title in other_node_map:
                 alt_titles = other_node_map[title]
-                term = RTM.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                term = RTM.create_term_from_titled_obj(node, new_alt_titles=alt_titles)
                 return [MatchTemplate([term.slug])]
             else:
                 # second level node
@@ -996,7 +563,7 @@ class SpecificConverterManager:
                     named_term_slug = RTM.get_term_by_primary_title('base', 'Parasha').slug
                 if named_term_slug is None:
                     alt_titles = other_perek_node_map[re.search(r'^(.+) \d+$', title).group(1)]
-                    named_term = RTM.create_term_from_titled_obj(node, 'structural', new_alt_titles=alt_titles)
+                    named_term = RTM.create_term_from_titled_obj(node, new_alt_titles=alt_titles)
                     named_term_slug = named_term.slug
                 num_match = re.search(' (\d+)$', title)
                 if num_match is None:
@@ -1051,7 +618,7 @@ class SpecificConverterManager:
                 term = RTM.get_term_by_primary_title('midrash rabbah', title)
                 if not term:
                     # create it
-                    term = RTM.create_term_from_titled_obj(node, 'structural', context='midrash rabbah')
+                    term = RTM.create_term_from_titled_obj(node, context='midrash rabbah')
                 return [MatchTemplate([term.slug])]
             return [
                 MatchTemplate([tanakh_slug, rabbah_slug]),
@@ -1091,13 +658,14 @@ class SpecificConverterManager:
                 MatchTemplate([title_slug]),
             ]
         converter = LinkerCategoryConverter("Mishneh Torah", get_match_templates=get_match_templates,
-                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
+                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_term=reusable_term_creator.simple_get_commentary_term)
         converter.convert()
 
     def convert_tur(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'shulchan arukh').slug
                 return [MatchTemplate([title_slug])]
             sa_title_swaps = {
                 "Orach Chaim": "Orach Chayim",
@@ -1105,7 +673,7 @@ class SpecificConverterManager:
             }
             title = node.get_primary_title('en')
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'tur').slug
             elif not node.is_default():
                 title = sa_title_swaps.get(title, title)
                 if title == "Introduction":
@@ -1113,7 +681,7 @@ class SpecificConverterManager:
                 else:
                     title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
-                    title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'tur').slug
+                    title_slug = RTM.create_term_from_titled_obj(node, 'tur').slug
                 else:
                     title_slug = title_term.slug
             else:
@@ -1132,7 +700,7 @@ class SpecificConverterManager:
             try:
                 title_slug = RTM.get_term_by_primary_title('shulchan arukh', term_key).slug
             except:
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'shulchan arukh').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'shulchan arukh').slug
                 return [MatchTemplate([title_slug])]
             return [
                 MatchTemplate([sa_slug, title_slug]),
@@ -1155,7 +723,9 @@ class SpecificConverterManager:
                 MatchTemplate([title_slug]),
             ]
         converter = LinkerCategoryConverter('Shulchan Arukh', get_match_templates=get_match_templates,
-                                            get_other_fields=get_other_fields, get_commentary_match_template_suffixes=get_commentary_match_template_suffixes)
+                                            get_other_fields=get_other_fields,
+                                            get_commentary_match_template_suffixes=get_commentary_match_template_suffixes,
+                                            get_commentary_term=reusable_term_creator.simple_get_commentary_term)
         converter.convert()
 
     def convert_zohar(self):
@@ -1205,7 +775,7 @@ class SpecificConverterManager:
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             title = node.get_primary_title('en')
             if title == 'Zohar Chadash':
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'zohar chadash').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'zohar chadash').slug
                 return [MatchTemplate([title_slug])]
             try:
                 title_slug = RTM.get_term_by_primary_title('tanakh', title).slug
@@ -1551,7 +1121,7 @@ class SpecificConverterManager:
     def convert_arukh_hashulchan(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
             if is_alt_node:
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'arukh hashulchan').slug
                 return [MatchTemplate([title_slug])]
             sa_title_swaps = {
                 "Orach Chaim": "Orach Chayim",
@@ -1559,7 +1129,7 @@ class SpecificConverterManager:
             }
             title = node.get_primary_title('en')
             if node.is_root():
-                title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+                title_slug = RTM.create_term_from_titled_obj(node, 'arukh hashulchan').slug
             elif not node.is_default():
                 if title == "Introduction":
                     title_term = RTM.get_term_by_primary_title('base', title)
@@ -1567,7 +1137,7 @@ class SpecificConverterManager:
                     title = sa_title_swaps.get(title, title)
                     title_term = RTM.get_term_by_primary_title('shulchan arukh', title)
                 if title_term is None:
-                    title_slug = RTM.create_term_from_titled_obj(node, 'structural', 'arukh hashulchan').slug
+                    title_slug = RTM.create_term_from_titled_obj(node, 'arukh hashulchan').slug
                 else:
                     title_slug = title_term.slug
             else:
@@ -1710,7 +1280,7 @@ class SpecificConverterManager:
 
     def convert_megilat_taanit(self):
         def get_match_templates(node, depth, isibling, num_siblings, is_alt_node):
-            return [MatchTemplate([RTM.create_term_from_titled_obj(node, 'structural', 'base').slug])]
+            return [MatchTemplate([RTM.create_term_from_titled_obj(node, 'base').slug])]
         converter = LinkerIndexConverter("Megillat Taanit", get_match_templates=get_match_templates)
         converter.convert()
 
