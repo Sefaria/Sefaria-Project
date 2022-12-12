@@ -10,8 +10,15 @@ from sefaria.model.version_state import StateNode
 from sefaria.system.database import db
 from sefaria.utils.hebrew import strip_cantillation, is_hebrew
 
+"""
+Utility classes for converting Indexes so they are discoverable by Linker.v3
+"""
+
 
 class ReusableTermManager:
+    """
+    Handles creation of NonUniqueTerms and stores them for reuse
+    """
 
     def __init__(self):
         self.context_and_primary_title_to_term = {}
@@ -138,6 +145,9 @@ class LinkerCategoryConverter:
 
 
 class LinkerCommentaryConverter:
+    """
+    Handles conversion of all commentaries on a base text
+    """
 
     def __init__(self, base_text_title, get_match_template_suffixes, get_commentary_term, **linker_index_converter_kwargs):
         self.titles = [index.title for index in IndexSet({"base_text_titles": base_text_title})]
@@ -173,6 +183,10 @@ class LinkerCommentaryConverter:
 
 
 class DiburHamatchilAdder:
+    """
+    Handles extraction of dibur hamatchils from indexes and saves them to dibur_hamatchils collection
+    """
+
     BOLD_REG = "^<b>(.+?)</b>"
     DASH_REG = '^(.+?)[\-–]'
 
@@ -263,6 +277,9 @@ class DiburHamatchilAdder:
 
 
 class LinkerIndexConverter:
+    """
+    Handles conversion of single Index to Linker.v3 format
+    """
 
     def __init__(self, title, get_other_fields=None, get_match_templates=None, get_alt_structs=None,
                  fast_unsafe_saving=True, get_commentary_match_templates=None, get_commentary_other_fields=None,
