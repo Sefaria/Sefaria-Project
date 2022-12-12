@@ -579,7 +579,7 @@ class RefResolver:
                 if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
-                    [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
+                    curr_parts = [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
                     split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
