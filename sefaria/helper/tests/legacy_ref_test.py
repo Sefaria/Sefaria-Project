@@ -54,5 +54,14 @@ class TestLegacyRefs:
             assert "legacy_converted" in convertedRef
             assert convertedRef.normal() === "Zohar, Bereshit.1.1-2"
 
+    def test_random_partial_ref_legacy_parsing(self, test_ref):
+        tref = "Genesis, Vayelech 3"
+        try:
+            Ref(tref)
+        except PartialRefInputError as err:
+            parser = legacy_ref_parsers[Ref(err.matched_part).book]
+            assert parser is None
+           
+
 
 
