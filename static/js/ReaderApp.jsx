@@ -1859,6 +1859,29 @@ class ReaderApp extends Component {
       html = container.innerHTML;
     }
 
+
+    if (this.state.panels.length > 0) {
+      const activePanelIndex = e.target.closest('.readerPanel').id.split("-")[1]
+      const activePanel = this.state.panels[activePanelIndex]
+
+
+      const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
+      const category = book ? Sefaria.index(book)["primary_category"] : null
+
+
+
+
+      let params = {
+        "length": textOnly.length,
+        "panelType": activePanel["menuOpen"] ? activePanel["menuOpen"] : activePanel["mode"],
+        "book": book,
+        "category": category,
+        "ref": activePanel['currentlyVisibleRef']
+      }
+
+      Sefaria.ga4track.event("Copy Text", params)
+    }
+
     const clipdata = e.clipboardData || window.clipboardData;
     clipdata.setData('text/plain', textOnly);
     clipdata.setData('text/html', html);
