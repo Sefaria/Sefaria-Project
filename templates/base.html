@@ -156,7 +156,7 @@
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '{{ GOOGLE_GTAG }}');
+          gtag('config', '{{ GOOGLE_GTAG }}', { 'debug_mode':true });
         </script>
     <!-- End Google tag -->
     {% endif %}
