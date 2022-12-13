@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List, Optional, Iterable
+from typing import List, Literal, Iterable
 from functools import reduce
 from sefaria.model import abstract as abst
 from sefaria.model import schema
@@ -11,7 +11,7 @@ class MatchTemplate(abst.Cloneable):
     """
     Template for matching a SchemaNode to a RawRef
     """
-    def __init__(self, term_slugs, scope='combined'):
+    def __init__(self, term_slugs, scope: Literal['combined', 'alone', 'any'] = 'combined'):
         self.term_slugs = term_slugs
         self.scope = scope
 
