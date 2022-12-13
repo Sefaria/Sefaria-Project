@@ -439,6 +439,9 @@ class SpecificConverterManager:
                 alone_templates = []
                 combined_templates = []
                 for template in perek_node.match_templates:
+                    # commentary alt struct nodes need to include commentary name and therefore need to be limited to "alone"
+                    if template.get('scope') != 'any':
+                        continue
                     temp_template = template.copy()
                     temp_template['term_slugs'] = [collective_slug] + template['term_slugs']
                     temp_template['scope'] = 'alone'
