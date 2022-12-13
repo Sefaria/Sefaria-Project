@@ -61,6 +61,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
+from sefaria.helper.legacy_ref import legacy_ref_parsers
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
@@ -294,7 +295,10 @@ def catchall(request, tref, sheet=None):
         except PartialRefInputError as e:
             logger.warning('{}'.format(e))
             matched_ref = Ref(e.matched_part)
-            return reader_redirect(matched_ref.url())
+            legacy_parser = legacy_ref_parsers[matched_ref.book]
+            if legacy_parser:
+                convertedRef = legacy_parser.parseLegacyRef(tref)
+            return reader_redirect(convertedRef.url() if convertedRef else matched_ref.url()) #should we davka 404 if legacy ref parsing failed? 
         except InputError:
             raise Http404
 
