@@ -11,9 +11,6 @@ try:
     from spacy.language import Language
 except ImportError:
     spacy = Doc = Span = Token = Language = None
-    logger.warning("Failed to load spaCy. spaCy is not part of general requirements in requirements.txt since it is "
-                   "only used for machine learning tasks currently and not required for general server functionality. "
-                   "To install, follow instructions here: https://spacy.io/usage.")
 
 
 # keys correspond named entity labels in spacy models

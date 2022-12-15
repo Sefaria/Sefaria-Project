@@ -228,33 +228,48 @@ class DiburHamatchilAdder:
         words = s.split()
         return " ".join(words[:5])  # DH is unlikely to give more info if longer than 5 words
 
+    def get_container_refs(self, title, segment_ref, perek_refs):
+        curr_ref = segment_ref.top_section_ref()
+        container_refs = [title]
+        is_first = True
+        for section, is_referenceable in zip(segment_ref.sections[:-1], getattr(segment_ref.index_node, "referenceableSections", [True]*len(segment_ref.sections))[:-1]):
+            if is_first:
+                # avoid issues with default nodes. start at top_section_ref()
+                is_first = False
+            else:
+                curr_ref = curr_ref.subref(section)
+            if is_referenceable:
+                container_refs += [curr_ref.normal()]
+        perek_ref = None
+        for temp_perek_ref in perek_refs:
+            assert isinstance(temp_perek_ref, Ref)
+            if temp_perek_ref.contains(segment_ref):
+                perek_ref = temp_perek_ref
+                break
+        if perek_ref:
+            container_refs += [perek_ref.normal()]
+
+        return container_refs
+
+    def add_dh_for_seg(self, perek_refs, title, segment_text, en_tref, he_tref, version):
+        try:
+            oref = Ref(en_tref)
+        except:
+            print("not a valid ref", en_tref)
+            return
+        if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
+        dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
+        if not dh: return
+        container_refs = self.get_container_refs(title, oref, perek_refs)
+        self._dhs_to_insert += [
+            {
+                "dibur_hamatchil": dh,
+                "container_refs": container_refs,
+                "ref": en_tref
+            }
+        ]
+
     def add_dibur_hamatchil_to_index(self, index):
-        def add_dh_for_seg(segment_text, en_tref, he_tref, version):
-            nonlocal perek_refs, self
-            try:
-                oref = Ref(en_tref)
-            except:
-                print("not a valid ref", en_tref)
-                return
-            if not getattr(oref.index_node, "diburHamatchilRegexes", None): return
-            dh = self.get_dh(segment_text, oref.index_node.diburHamatchilRegexes, oref)
-            if not dh: return
-            container_refs = [oref.top_section_ref().normal(), index.title]
-            perek_ref = None
-            for temp_perek_ref in perek_refs:
-                assert isinstance(temp_perek_ref, Ref)
-                if temp_perek_ref.contains(oref):
-                    perek_ref = temp_perek_ref
-                    break
-            if perek_ref:
-                container_refs += [perek_ref.normal()]
-            self._dhs_to_insert += [
-                {
-                    "dibur_hamatchil": dh,
-                    "container_refs": container_refs,
-                    "ref": en_tref
-                }
-            ]
 
         index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
         perek_refs = []
@@ -267,7 +282,8 @@ class DiburHamatchilAdder:
             print("No versions for", index.title, ". Can't search for DHs.")
             return
         primary_version = versions[0]
-        primary_version.walk_thru_contents(add_dh_for_seg)
+        action = partial(self.add_dh_for_seg, perek_refs, index.title)
+        primary_version.walk_thru_contents(action)
 
     def add_all_dibur_hamatchils(self):
         db.dibur_hamatchils.delete_many({})
