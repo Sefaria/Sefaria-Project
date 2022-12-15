@@ -56,7 +56,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
-from sefaria.helper.search import get_query_obj
+from sefaria.helper.search import get_query_obj, get_es_server_url
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
@@ -4426,7 +4426,7 @@ def search_wrapper_api(request):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = Elasticsearch(get_es_server_url(admin=True)) #Elasticsearch(SEARCH_ADMIN)
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
         response = search_obj.execute()
