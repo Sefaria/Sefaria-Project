@@ -41,8 +41,8 @@ class Header extends Component {
     }
     const altText = `${Sefaria._siteSettings["SITE_NAME"]["en"]} Logo`;
     const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src={`/static/${Sefaria._siteSettings.HE_LOGO}`} alt={altText}/> :
-      <img src={`/static/${Sefaria._siteSettings.LOGO}`} alt={altText}/>;
+      <img src={`/static${Sefaria._siteSettings.HE_LOGO}`} alt={altText}/> :
+      <img src={`/static${Sefaria._siteSettings.LOGO}`} alt={altText}/>;
 
     const headerContent = (
       <>
