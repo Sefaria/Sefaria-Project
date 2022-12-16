@@ -1868,18 +1868,14 @@ class ReaderApp extends Component {
       const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
       const category = book ? Sefaria.index(book)["primary_category"] : null
 
-
-
-
       let params = {
         "length": textOnly.length,
-        "panelType": activePanel["menuOpen"] ? activePanel["menuOpen"] : activePanel["mode"],
+        "panelType": activePanel["menuOpen"] || activePanel["mode"],
         "book": book,
         "category": category,
-        "ref": activePanel['currentlyVisibleRef']
       }
 
-      Sefaria.ga4track.event("Copy Text", params)
+      gtag("event", "copy_text", params);
     }
 
     const clipdata = e.clipboardData || window.clipboardData;

@@ -149,17 +149,9 @@
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
-
-    <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_GTAG }}"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '{{ GOOGLE_GTAG }}', { 'debug_mode':true });
-        </script>
-    <!-- End Google tag -->
     {% endif %}
+
+
 
     {% autoescape off %}
     {% if html %}
@@ -226,6 +218,22 @@
 
       {% endautoescape %}
     </script>
+
+    {% if GOOGLE_GTAG %}
+      <!-- Google tag (gtag.js) -->
+          <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_GTAG }}"></script>
+          <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '{{ GOOGLE_GTAG }}', {
+              'debug_mode':true,
+              'user_id': DJANGO_VARS.props._uid
+            });
+          </script>
+      <!-- End Google tag -->
+    {% endif %}
+
 
     <script>
       {% autoescape off %}
