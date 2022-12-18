@@ -141,12 +141,9 @@ const LoadingRing = () => (
 );
 
 const DonateLink = ({children, classes, source, link}) => {
-  let url = "";
-  if (Sefaria._siteSettings.SITE_NAME.en === "Contextus")
+  let url = Sefaria._siteSettings?.DONATION_URL;
+  if (!url)
   {
-    url = "https://jackmillercenter.org/support-us/";
-  }
-  else {
     link = link || "default";
     const linkOptions = {
       default: {
