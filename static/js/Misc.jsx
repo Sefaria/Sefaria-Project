@@ -141,22 +141,30 @@ const LoadingRing = () => (
 );
 
 const DonateLink = ({children, classes, source, link}) => {
-  link = link || "default";
-  const linkOptions = {
-    default: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
-    },
-    header: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
-    },
-    sponsor: {
-      en: "https://sefaria.nationbuilder.com/sponsor",
-      he: "https://sefaria.nationbuilder.com/sponsor",
-    }
-  };
-  const url = Sefaria._v(linkOptions[link]);
+  let url = "";
+  if (Sefaria._siteSettings.SITE_NAME.en === "Contextus")
+  {
+    url = "https://jackmillercenter.org/support-us/";
+  }
+  else {
+    link = link || "default";
+    const linkOptions = {
+      default: {
+        en: "https://sefaria.nationbuilder.com/supportsefaria",
+        he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+      },
+      header: {
+        en: "https://sefaria.nationbuilder.com/supportsefaria_w",
+        he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+      },
+      sponsor: {
+        en: "https://sefaria.nationbuilder.com/sponsor",
+        he: "https://sefaria.nationbuilder.com/sponsor",
+      }
+    };
+    url = Sefaria._v(linkOptions[link]);
+  }
+
   const trackClick = () => {
     Sefaria.track.event("Donations", "Donation Click", source);
   };

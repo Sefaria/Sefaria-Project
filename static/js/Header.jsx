@@ -54,8 +54,7 @@ class Header extends Component {
             <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
             <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-            <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
+          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
           {/*{ !Sefaria._siteSettings.TORAH_SPECIFIC ?*/}
           {/*  <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}*/}
         </div>
