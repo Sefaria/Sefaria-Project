@@ -2858,7 +2858,8 @@ class Ref(object, metaclass=RefCacheType):
                             return
 
         if not self.sections:
-            raise InputError("Failed to parse sections for ref {}".format(self.orig_tref))
+            msg = f"Failed to parse sections for ref {self.orig_tref}"
+            raise PartialRefInputError(msg, title, None)
 
         self.toSections = self.sections[:]
 
