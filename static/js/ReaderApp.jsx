@@ -368,7 +368,7 @@ class ReaderApp extends Component {
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Translation Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
-          (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
+          (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
@@ -780,6 +780,7 @@ class ReaderApp extends Component {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
+    console.log("updateHistoryState");
     let currentUrl = (window.location.pathname + window.location.search);
     let hist       = this.makeHistoryState();
     if(window.location.hash.length){
