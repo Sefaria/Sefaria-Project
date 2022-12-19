@@ -3068,6 +3068,7 @@ def add_new_topic_api(request):
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
+        t.description_published = True
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
@@ -3155,6 +3156,7 @@ def topics_api(request, topic, v2=False):
             topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+            topic_obj.description_published = True
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
             needs_save = True
 

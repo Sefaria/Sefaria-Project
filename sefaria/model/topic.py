@@ -112,8 +112,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :return:
         """
 
-        #TODO: The assumption on the next line should not be made here.  It's the concern of the topic editor, and should be handled there.  It can be made an argument to this method, or it can be handled separately.
-        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
             self.categoryDescription = cat_desc
