@@ -7,7 +7,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module", autouse=True)
 def test_zohar_index():
     """
     Creates depth 2 Zohar index which will not be able to parse depth 3 refs
