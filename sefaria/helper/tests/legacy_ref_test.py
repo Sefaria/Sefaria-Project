@@ -6,17 +6,56 @@ from sefaria.helper.legacy_ref import legacy_ref_parser_handler, ZoharLegacyRefP
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
-@pytest.fixture(scope="module")
-def test_ref():
-    return "Zohar.1.15a.1"
 
 @pytest.fixture(scope="module")
-def test_ranged_ref():
-    return "Zohar.1.15a.1-6"
+def test_zohar_index():
+    """
+    Creates depth 2 Zohar index which will not be able to parse depth 3 refs
+    @return:
+    """
+    en_title = "TestZohar"
+    schema = {
+        "key": en_title,
+        "titles": [
+            {
+                "lang": "en",
+                "text": en_title,
+                "primary": True
+            },
+            {
+                "lang": "he",
+                "text": 'זהר לא אמיתי',
+                "primary": True
+            }
+        ],
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": ["Integer", "Integer"],
+        "sectionNames": ["Chapter","Verse"]
+    }
+    index_dict = {
+        "schema": schema,
+        "title": en_title,
+        "categories": ["Kabbalah"],
+    }
+    i = Index(index_dict)
+    i.save()
+
+    yield i
+
+    i.delete()
 
 
+@pytest.fixture(scope="module")
+def test_ref(test_zohar_index):
+    return "TestZohar.1.15a.1"
 
-@pytest.xfail(reason="Not implemeted yet")
+
+@pytest.fixture(scope="module")
+def test_ranged_ref(test_zohar_index):
+    return "TestZohar.1.15a.1-6"
+
+
 class TestLegacyRefs:
     """
     At the time of writing, these tests should all fail, as there is still no Zohar refactor and no zohar mapping
