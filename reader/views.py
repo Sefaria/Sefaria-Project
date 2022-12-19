@@ -297,7 +297,7 @@ def catchall(request, tref, sheet=None):
             matched_ref = Ref(e.matched_part)
             legacy_parser = legacy_ref_parsers[matched_ref.book]
             if legacy_parser:
-                converted_ref = legacy_parser.parseLegacyRef(tref)
+                converted_ref = legacy_parser.parse_legacy_ref(tref)
                 return reader_redirect(converted_ref.url() if converted_ref else matched_ref.url())
             return reader_redirect(matched_ref.url())
         except InputError:

@@ -49,7 +49,7 @@ class TestLegacyRefs:
             Ref(test_ref)
         except PartialRefInputError as err:
             parser = legacy_ref_parsers[Ref(err.matched_part).book]
-            convertedRef = parser.parseLegacyRef(test_ref)
+            convertedRef = parser.parse_legacy_ref(test_ref)
             assert "orig_ref" in convertedRef # or hasattr?
             assert "legacy_converted" in convertedRef
             assert convertedRef.normal() === "Zohar, Bereshit.1.1-2"

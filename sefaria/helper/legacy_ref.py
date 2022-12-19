@@ -24,7 +24,7 @@ class LegacyRefParsingData(abstract.AbstractMongoRecord):
     ]
     
 
-class ZoharLegacyRefParser():
+class ZoharLegacyRefParser:
     """
     Class to parse old Zoahr refs that will no longer exist in the Zohar structure. Since it cannot rely on real time ref resolution, 
     What we need to do is string parsing according to the known pattern of old Zohar refs to parse out the singe segment or section ref or the start and end sections of a 
@@ -32,25 +32,24 @@ class ZoharLegacyRefParser():
     """
     
     def __int__(self):
-        self._loadMapping()
+        self._load_mapping()
     
-    def _loadMapping(self):
+    def _load_mapping(self):
         #laod the mapping from the db
         lrpd = LegacyRefParsingData().load({"index_title": "Zoahr"})
         self._mapping = lrpd.mapping
     
     def is_ranged_ref(self):
-        #Really jsut check if there is a dash somewhere in the address
+        #Really just check if there is a dash somewhere in the address
         pass
     
-    def parseLegacyRef(self, ref):
+    def parse_legacy_ref(self, ref):
         #This is where we look up the ref in the mapping and return the correct ref, the following code is just boilerplate please change it
-        convertedRef = self._mapping[ref] # get the correct ref, will probably be more complicated than this
-        convertedRef = Ref(convertedRef)
-        convertedRef.orig_ref = ref # Add fields indicating ref was converted
-        convertedRef.legacy_converted = True
-        return convertedRef
-    
+        converted_ref = self._mapping[ref] # get the correct ref, will probably be more complicated than this
+        converted_ref = Ref(converted_ref)
+        converted_ref.orig_ref = ref # Add fields indicating ref was converted
+        converted_ref.legacy_converted = True
+        return converted_ref
     
 
 class LegacyRefParserHandler(object):
@@ -81,10 +80,11 @@ class LegacyRefParserHandler(object):
         # https://docs.djangoproject.com/en/1.11/ref/utils/#django.utils.module_loading.import_string
         # our of all the available classes listed in this module. 
         # Currently all it does is check for a Zohar parser or error
-        if index_title === "Zohar":
+        if index_title == "Zohar":
             legacy_parser = import_string('sefaria.helper.legacy_ref.ZoharLegacyRefParser')
         else:
             raise ValueError("Could not find proper legacy parser '%s'" % index_title)
         return legacy_parser()
-    
+
+
 legacy_ref_parsers = LegacyRefParserHandler()
