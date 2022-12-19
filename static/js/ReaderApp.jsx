@@ -781,7 +781,6 @@ class ReaderApp extends Component {
     if (!this.shouldHistoryUpdate()) {
       return;
     }
-    console.log("updateHistoryState");
     let currentUrl = (window.location.pathname + window.location.search);
     let hist       = this.makeHistoryState();
     if(window.location.hash.length){
