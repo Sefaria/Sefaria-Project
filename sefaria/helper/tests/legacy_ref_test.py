@@ -2,7 +2,7 @@
 
 import pytest
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parsers, ZoharLegacyRefParser
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, ZoharLegacyRefParser
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
@@ -48,11 +48,11 @@ class TestLegacyRefs:
         try:
             Ref(test_ref)
         except PartialRefInputError as err:
-            parser = legacy_ref_parsers[Ref(err.matched_part).book]
-            convertedRef = parser.parse_legacy_ref(test_ref)
+            parser = legacy_ref_parser_handler[Ref(err.matched_part).book]
+            convertedRef = parser.parse(test_ref)
             assert "orig_ref" in convertedRef # or hasattr?
             assert "legacy_converted" in convertedRef
-            assert convertedRef.normal() === "Zohar, Bereshit.1.1-2"
+            assert convertedRef.normal() == "Zohar, Bereshit.1.1-2"
 
     def test_random_partial_ref_legacy_parsing(self, test_ref):
         tref = "Genesis, Vayelech 3"

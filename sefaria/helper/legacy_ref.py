@@ -49,7 +49,7 @@ class ZoharLegacyRefParser:
         #Really just check if there is a dash somewhere in the address
         pass
     
-    def parse_legacy_ref(self, ref):
+    def parse(self, ref):
         #This is where we look up the ref in the mapping and return the correct ref, the following code is just boilerplate please change it
         converted_ref = self._mapping[ref] # get the correct ref, will probably be more complicated than this
         converted_ref = Ref(converted_ref)
@@ -57,6 +57,17 @@ class ZoharLegacyRefParser:
         converted_ref.orig_ref = ref
         converted_ref.legacy_converted = True
         return converted_ref
+
+
+class NoLegacyRefParserError(Exception):
+    pass
+
+
+class NonExistantLegacyRefParser:
+    pass
+
+
+NON_EXISTANT_LEGACY_REF_PARSER = NonExistantLegacyRefParser()
     
 
 class LegacyRefParserHandler(object):
@@ -68,18 +79,26 @@ class LegacyRefParserHandler(object):
         self._parsers = {}
 
     def __getitem__(self, alias):
+        parser = self._get_parser_by_alias(alias)
+        if isinstance(parser, NonExistantLegacyRefParser):
+            raise NoLegacyRefParserError(f"Could not find proper legacy parser matching alias '{alias}'")
+        return parser
+
+    def _get_parser_by_alias(self, alias):
         try:
             return self._parsers[alias]
-        except AttributeError:
-            self._parsers = {}
         except KeyError:
             pass
         try:
             parser = self._create_legacy_parser(alias)
-        except ValueError as e:
-            parser = None
+        except NoLegacyRefParserError as e:
+            parser = NON_EXISTANT_LEGACY_REF_PARSER
         self._parsers[alias] = parser
         return parser
+
+    def parse(self, book, tref):
+        parser = self[book]
+        return parser.parse(tref)
 
     @staticmethod
     def _create_legacy_parser(index_title, **kwargs):
@@ -91,8 +110,8 @@ class LegacyRefParserHandler(object):
         if index_title == "Zohar":
             legacy_parser = import_string('sefaria.helper.legacy_ref.ZoharLegacyRefParser')
         else:
-            raise ValueError("Could not find proper legacy parser '%s'" % index_title)
+            raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return legacy_parser()
 
 
-legacy_ref_parsers = LegacyRefParserHandler()
+legacy_ref_parser_handler = LegacyRefParserHandler()
