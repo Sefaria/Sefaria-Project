@@ -297,8 +297,8 @@ def catchall(request, tref, sheet=None):
             matched_ref = Ref(e.matched_part)
             legacy_parser = legacy_ref_parsers[matched_ref.book]
             if legacy_parser:
-                convertedRef = legacy_parser.parseLegacyRef(tref)
-            return reader_redirect(convertedRef.url() if convertedRef else matched_ref.url()) #should we davka 404 if legacy ref parsing failed? 
+                converted_ref = legacy_parser.parseLegacyRef(tref)
+            return reader_redirect(converted_ref.url() if converted_ref else matched_ref.url()) #should we davka 404 if legacy ref parsing failed?
         except InputError:
             raise Http404
 
