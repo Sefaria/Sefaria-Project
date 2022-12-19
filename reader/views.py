@@ -377,6 +377,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             panel["connectionsMode"], delete_filter = get_connections_mode(filter)
             if panel["connectionsMode"] == "ConnectionsList":
                 panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                if len(panel['filter']) == 1:
+                    panel['connectionsCategory'] = panel['filter'][0]
             if panel['connectionsMode'] == "WebPagesList":
                 panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
             if delete_filter:
