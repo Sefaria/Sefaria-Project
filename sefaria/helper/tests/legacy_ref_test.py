@@ -2,7 +2,7 @@
 
 import pytest
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, ZoharLegacyRefParser
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, ZoharLegacyRefParser, NoLegacyRefParserError
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
@@ -56,6 +56,25 @@ def test_ranged_ref(test_zohar_index):
     return "TestZohar.1.15a.1-6"
 
 
+@pytest.fixture(scope="module")
+def test_ref_no_legacy_parser():
+    return "Genesis, Vayelech 3"
+
+
+def get_book(tref):
+    book = Ref(tref).book
+    if book == "TestZohar":
+        return "Zohar"
+    return book
+
+
+def get_partial_ref_error(tref):
+    try:
+        Ref(tref)
+    except PartialRefInputError as err:
+        return err
+
+
 class TestLegacyRefs:
     """
     At the time of writing, these tests should all fail, as there is still no Zohar refactor and no zohar mapping
@@ -72,35 +91,25 @@ class TestLegacyRefs:
 
     def test_old_zohar_partial_ref(self, test_ref):
         # tests that once a ranged ref fails that its partial ref exception contains the appropriate data
-        try:
-            Ref(test_ref)
-        except PartialRefInputError as err:
-            assert Ref(err.matched_part).book == "Zohar"
+        err = get_partial_ref_error(test_ref)
+        book = get_book(err.matched_part)
+        assert book == "Zohar"
 
     def test_old_zohar_partial_ref_legacy_loader(self, test_ref):
-        try:
-            Ref(test_ref)
-        except PartialRefInputError as err:
-            assert type(legacy_ref_parsers[Ref(err.matched_part).book] == ZoharLegacyRefParser)
+        err = get_partial_ref_error(test_ref)
+        book = get_book(err.matched_part)
+        assert type(legacy_ref_parser_handler[book] == ZoharLegacyRefParser)
             
     def test_old_zohar_partial_ref_legacy_parsing(self, test_ref):
-        try:
-            Ref(test_ref)
-        except PartialRefInputError as err:
-            parser = legacy_ref_parser_handler[Ref(err.matched_part).book]
-            convertedRef = parser.parse(test_ref)
-            assert "orig_ref" in convertedRef # or hasattr?
-            assert "legacy_converted" in convertedRef
-            assert convertedRef.normal() == "Zohar, Bereshit.1.1-2"
+        err = get_partial_ref_error(test_ref)
+        book = get_book(err.matched_part)
+        parser = legacy_ref_parser_handler[book]
+        convertedRef = parser.parse(test_ref)
+        assert "orig_ref" in convertedRef # or hasattr?
+        assert "legacy_converted" in convertedRef
+        assert convertedRef.normal() == "Zohar, Bereshit.1.1-2"
 
-    def test_random_partial_ref_legacy_parsing(self, test_ref):
-        tref = "Genesis, Vayelech 3"
-        try:
-            Ref(tref)
-        except PartialRefInputError as err:
-            parser = legacy_ref_parsers[Ref(err.matched_part).book]
-            assert parser is None
-           
-
-
-
+    def test_random_partial_ref_legacy_parsing(self, test_ref_no_legacy_parser):
+        err = get_partial_ref_error(test_ref_no_legacy_parser)
+        with pytest.raises(NoLegacyRefParserError):
+            legacy_ref_parser_handler[Ref(err.matched_part).book]
