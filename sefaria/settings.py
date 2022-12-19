@@ -299,10 +299,10 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-12-14-end-of-year-msg02-banner",
+    "name": "2022-12-18-end-of-year-msg03-banner",
     "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": True,
+    "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
