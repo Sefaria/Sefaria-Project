@@ -55,6 +55,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCatego
         let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
         if (isNewTopic) {
           url = "/api/topic/new";
+          // TODO: The code below is repeated in both branches. Perhaps pull it up out of the branch, so it only needs to be written once?
           if (isCategory) {
             data["catDescription"] = {"en": catDescription, "he": catDescription};
           }

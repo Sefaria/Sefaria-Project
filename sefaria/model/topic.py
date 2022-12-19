@@ -40,7 +40,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
-
     ]
 
     def load(self, query, proj=None):
@@ -107,7 +106,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def change_description(self, desc, cat_desc):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
+
+        :param desc: Dictionary of descriptions, with keys being two letter language codes
+        :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
+        :return:
         """
+
+        #TODO: The assumption on the next line should not be made here.  It's the concern of the topic editor, and should be handled there.  It can be made an argument to this method, or it can be handled separately.
         self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
