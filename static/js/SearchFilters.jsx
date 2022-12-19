@@ -174,6 +174,11 @@ const SearchFilterGroup = ({name, filters, updateSelected, expandable, paged, se
       key={filter.aggKey}/>
   ));
 
+  if (name === 'Collections') {content.sort((a,b) => {
+    const title = Sefaria.interfaceLang==='english' ? 'title' : 'heTitle';
+    return !a.props.filter[title] - !b.props.filter[title]; //first the collections with title in the interface's language
+  })}
+
   if (paged) {
     content = <PagedList items={content} />
   }
@@ -372,8 +377,8 @@ SearchFilter.propTypes = {
 
 class SheetSearchFilters extends Component {
   render() {
-    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && filter.title);
-    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/) && filter.title);
+    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && (filter.title || filter.heTitle));
+    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/) && (filter.title || filter.heTitle));
 
     return (
       <div className="searchFilterBoxes" role="dialog">
@@ -407,7 +412,7 @@ const PagedList = ({items, initial=8, pageSize=20}) => {
       {items.slice(0, cutoff)}
       {items.length > cutoff ?
       <button className="showMore sans-serif" onClick={() => {setCutoff(cutoff + pageSize);}}>
-        <InterfaceText>See More</InterfaceText>
+        <InterfaceText context="SearchFilters">See More</InterfaceText>
       </button>
       : null}
     </>

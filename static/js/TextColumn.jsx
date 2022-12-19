@@ -23,7 +23,6 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
-    return;
   }
   componentDidMount() {
     this._isMounted          = true;
@@ -57,18 +56,13 @@ class TextColumn extends Component {
       // console.log("scrolling for ScrollPlaceholders first render")
       this.setInitialScrollPosition();
 
-    } else if (this.props.srefs.length == 1 &&
-        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1 &&
+    } else if (this.props.srefs.length === 1 &&
+        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) === -1 &&
         !prevProps.srefs.some(r => Sefaria.refContains(this.props.srefs[0], r))) {
       // If we are switching to a single ref not in the current TextColumn,
       // treat it as a fresh open.
       // console.log("setting initialScroll for brand new ref")
       this.setInitialScrollPosition();
-
-    } else if (layoutWidthChanged) {
-      // When the width of the text column changes, keep highlighted text in place
-      // console.log("restore scroll by percentage for layout Width Change")
-      this.restoreScrollPositionByPercentage();
 
     } else if (prevProps.srefs.length === this.props.srefs.length &&
       !prevProps.srefs.compare(this.props.srefs)) {
@@ -82,6 +76,10 @@ class TextColumn extends Component {
       // When the content the changes but we are anchored on a line, scroll to it
       // console.log("scroll to highlighted on text content change")
       this.scrollToHighlighted();
+    } else if (layoutWidthChanged) {
+      // When the width of the text column changes, keep highlighted text in place
+      // console.log("restore scroll by percentage for layout Width Change")
+      this.restoreScrollPositionByPercentage();
     }
   }
   handleScroll(event) {
@@ -109,7 +107,7 @@ class TextColumn extends Component {
     if (event.detail > 1) {
     const pos = this.calculatePositionWithinElement(event)
       // might be problematic if there is a slight move in the double-click shaky hands. can be fixed with an error of a few px on both axes.
-      if (this.state.lastClickXY[0] != pos[0] || this.state.lastClickXY[1] != pos[1]){
+      if (this.state.lastClickXY[0] !== pos[0] || this.state.lastClickXY[1] !== pos[1]){
         event.preventDefault();
       }
     }
@@ -128,8 +126,8 @@ class TextColumn extends Component {
       let start     = $segments.index($start);
       let end       = $segments.index($end);
       //if one of the endpoints isn't actually in a segment node (for example its in a title), adjust selection endpoints
-      start = start == -1 ? end : start;
-      end = end == -1 ? start : end;
+      start = start === -1 ? end : start;
+      end = end === -1 ? start : end;
       $segments = $segments.slice(start, end+1);
 
       $segments.each(function() {

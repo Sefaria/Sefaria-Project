@@ -299,8 +299,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-8-10-modal-newsletter-A",
-    "style":      "modal",  # "modal" or "banner"
+    "name": "2022-12-18-end-of-year-msg03-banner",
+    "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
     "condition":  {
@@ -310,6 +310,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
+
 
 # GLOBAL_INTERRUPTING_MESSAGE = None
 
@@ -338,6 +339,13 @@ WEBPACK_LOADER = {
     'SEFARIA_JS': {
         'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
         'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
+    'LINKER': {
+        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,

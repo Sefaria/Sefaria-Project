@@ -10,22 +10,28 @@ data:
   upload-dumps.sh: |-
     #!/usr/bin/env bash
     set -x
+    set -e
     {{- if .Values.backup.postgres.serviceAccount }}
-    gloud auth activate
+
     {{- else }}
+
     gcloud auth activate-service-account --key-file ${GOOGLE_APPLICATION_CREDENTIALS}
     {{- end }}
+
     cd "/pgdumps/shared_volume"
     today="$(date +'%d.%m.%y')"
     last_month="$(date --date='28 day ago' +'%d.%m.%y')"
+    set +e
 
     gsutil rm "gs://${BUCKET}/${PREFIX}postgres_${last_month}.dump"
 
+    set -e
     if [ -f "pg.dump" ]; then
         echo "uploading private dump"
         gsutil cp pg.dump "gs://${BUCKET}/${PREFIX}postgres_${today}.dump"
     else
         echo "Private dump missing"
+        exit 1
     fi
 
     curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The production Postgres Database was routinely dumped to cloud storage: '"$(date)"'", "icon_emoji": ":cloud:"}' ${SLACK_URL}
