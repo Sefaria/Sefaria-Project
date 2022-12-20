@@ -2483,15 +2483,15 @@ const TitleVariants = function({titles, update, options}) {
   the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
   const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
+    const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
+    const newTitles = [].concat(titles, title);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
-    let validTitle = titles.every((item) => item.name !== title.name);
+    const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
       alert(title.name+" already exists.");
     }
