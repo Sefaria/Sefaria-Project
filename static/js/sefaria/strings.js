@@ -57,7 +57,11 @@ const Strings = {
     "Daily Study": "לימוד יומי",
 
     // Topics
-    "Short Description for Topic Table of Contents": "תיאור קצר עבור מפתח תוכן נושאים",
+    "English Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים אנגלית",
+    "Hebrew Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים עברית",
+    "Choose a Category": "בחר קטגוריה",
+    "Saving topic information.": "מעדכן נתוני נושא",
+    "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
     "Add a short description.": "הוסף תיאור קצר",
     "Add a description.": "הוסף תיאור",
     "Add a title.": "הוסף שם כותר",
@@ -71,6 +75,11 @@ const Strings = {
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
+    "English Topic Title": "כותרת נושא אנגלית",
+    "Hebrew Topic Title": "כותרת נושא עברית",
+    "English Topic Description": "תיאור נושא אנגלית",
+    "Hebrew Topic Description": "תיאור נושא עברית",
+    "Delete Topic": "מחק נושא",
 
     // Topics Tool
     "Search for a Topic.": "חפש נושא",
