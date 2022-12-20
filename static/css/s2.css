@@ -5699,14 +5699,13 @@ But not to use a display block directive that might break continuous mode for ot
   color: #666666;
 }
 .connectionsPanel .toolsButton.seeLess{
-  margin-inline-start: 60px;
+  margin-inline-start: 33px;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
   color: #999999;
   align-items: center;
-  margin-top: 15px;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
   height: 10px;

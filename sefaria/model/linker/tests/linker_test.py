@@ -1,6 +1,6 @@
-from sefaria.model.linker import ResolvedRef, RawRef, ResolutionThoroughness, RangedRawRefParts, RefResolver, SectionContext, IbidHistory, span_inds
-from sefaria.model.tests.linker_test.linker_test_utils import *
-from sefaria.model.schema import DiburHamatchilNodeSet
+from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, span_inds
+from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory, DiburHamatchilNodeSet, NumberedReferenceableBookNode
+from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER
 
@@ -13,7 +13,8 @@ ref_resolver = library.get_ref_resolver()
 def test_referenceable_child():
     i = library.get_index("Rashi on Berakhot")
     assert i.nodes.depth == 3
-    child = i.nodes.get_referenceable_child(Ref("Rashi on Berakhot 2a"))
+    ref_node = NumberedReferenceableBookNode(i.nodes)
+    child = ref_node.get_children(Ref("Rashi on Berakhot 2a"))[0]
     assert isinstance(child, DiburHamatchilNodeSet)
 
 
@@ -37,6 +38,15 @@ crrd = create_raw_ref_data
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א']), ("Genesis 13:1",)],
     [crrd(['@ספר בראשית', '#פסוק א', '#פרק יג']), ("Genesis 13:1",)],  # sections out of order
     [crrd(['@שמות', '#א', '#ב']), ("Exodus 1:2",)],  # used to also match Exodus 2:1 b/c would allow mixing integer parts
+
+    # Amud split into two parts
+    [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
+    [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
+    [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
+    [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
+    [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#עמוד ב', '@במכות']), ("Makkot 2",)],
+    [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
+    [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
@@ -66,6 +76,7 @@ crrd = create_raw_ref_data
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה אלא ביבנה"]), ("Rashi on Rosh Hashanah 29b:5:3",)],
     [crrd(['@שבועות', '#דף כה ע"א', '@תוד"ה', '*חומר']), ("Tosafot on Shevuot 25a:11:1",)],
     [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
+    [crrd(["@רש\"י", "@בראשית", "#פרק א", "#פסוק א", "*ד\"ה בראשית"]), ("Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2")],
 
     # Ranged refs
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א', '^עד', '#פרק יד', '#פסוק ד']), ("Genesis 13:1-14:4",)],
@@ -96,9 +107,10 @@ crrd = create_raw_ref_data
     [crrd(['@ברכות', '#דף ב'], prev_trefs=['Rashi on Berakhot 3a']), ('Berakhot 2',)],  # dont use context when not needed
     [crrd(['#שבפרק ד'], prev_trefs=["Genesis 1"]), ("Genesis 4",)],  # prefix in front of section
     [crrd(['@שמות', '#י"ב', '#א'], prev_trefs=['Exodus 10:1-13:16']), ['Exodus 12:1']],  # broke with merging logic in final pruning
-    # [crrd(None, 'he', '''רמב"ן ט"ז ד''', [slice(0, 3), slice(3, 6), 6], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED], ['Exodus 16:32']), ['Ramban on Exodus 16:4']],
+    [crrd(['@רמב"ן', '#ט"ז', '#ד'], prev_trefs=["Exodus 16:32"]), ["Ramban on Exodus 16:4"]],
     [crrd(['#פרק ז'], prev_trefs=["II Kings 17:31"]), ["II Kings 7"]],
     [crrd(['@ערוך השולחן', '#תצג'], prev_trefs=["Arukh HaShulchan, Orach Chaim 400"]), ["Arukh HaShulchan, Orach Chaim 493"]],  # ibid named part that's not root
+    [crrd(['@רש"י', '&שם'], prev_trefs=["Genesis 25:9", "Rashi on Genesis 21:20"]), ["Rashi on Genesis 21:20", "Rashi on Genesis 25:9"]],  # ambiguous ibid
 
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
@@ -130,32 +142,31 @@ crrd = create_raw_ref_data
 
     # specific books
     # TODO still need to convert the following tests to new `crrd` syntax
-    # [crrd(None, 'he', 'טור אורח חיים סימן א', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Tur, Orach Chaim 1", )],
-    # [crrd(None, 'he', 'ספרא בהר ב:ד', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
-    # [crrd(None, 'he', 'רמב"ן דברים יד כא', [slice(0, 3), 3, 4, 5], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Ramban on Deuteronomy 14:21",)],
-    # [crrd(None, 'he', 'הרמב"ם תרומות פ"א ה"ח', [slice(0, 3), 3, slice(4, 7), slice(7, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 1:8",)],
-    # [crrd(None, 'he', 'בירושלמי שביעית פ"ו ה"א', [0, 1, slice(2, 5), slice(5, 8)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Jerusalem Talmud Sheviit 6:1",)],
-    # [crrd(None, 'he', 'בגמרא במסכת בסנהדרין צז:', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
-    # [crrd(None, 'he', 'לפרשת וילך', [slice(0, 2)], [RPT.NAMED]), ("Deuteronomy 31:1-30",)],  # lamed prefix
-    # [crrd(None, 'he', '''ברמב"ם פ"ח מהל' תרומות הי"א''', [slice(0, 3), slice(3, 6), slice(6, 9), slice(9, 12)], [RPT.NAMED, RPT.NUMBERED, RPT.NAMED, RPT.NUMBERED]), ("Mishneh Torah, Heave Offerings 8:11",)],
-    # [crrd(None, 'he', "באה\"ע סימן קנ\"ה סי\"ד", [slice(0, 3), slice(3, 7), slice(7, 10)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Shulchan Arukh, Even HaEzer 155:14",)],
-    # [crrd(None, 'he', '''פירש"י בקידושין דף פ' ע"א''', [slice(0, 3), 3, slice(4, 10)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ("Rashi on Kiddushin 80a",)],
+    [crrd(['@טור', '@אורח חיים', '#סימן א']), ("Tur, Orach Chaim 1",)],
+    [crrd(['@ספרא', '@בהר', '#ב', '#ד']), ("Sifra, Behar, Chapter 2:4", "Sifra, Behar, Section 2:4")],
+    [crrd(['@רמב"ן', '@דברים', '#יד', '#כא']), ("Ramban on Deuteronomy 14:21",)],
+    [crrd(['@הרמב"ם', '@תרומות', '#פ"א', '#ה"ח']), ("Mishneh Torah, Heave Offerings 1:8",)],
+    [crrd(['@בירושלמי', '@שביעית', '#פ"ו', '#ה"א']), ("Jerusalem Talmud Sheviit 6:1",)],
+    [crrd(['@בגמרא במסכת בסנהדרין', '#צז:']), ("Sanhedrin 97b",)],  # one big ref part that actually matches two separate terms + each part has prefix
+    [crrd(['@לפרשת וילך']), ("Deuteronomy 31:1-30",)],  # lamed prefix
+    [crrd(['@ברמב"ם', '#פ"ח', '@מהל\' תרומות', '#הי"א']), ("Mishneh Torah, Heave Offerings 8:11",)],
+    [crrd(["@באה\"ע", "#סימן קנ\"ה", "#סי\"ד"]), ("Shulchan Arukh, Even HaEzer 155:14",)],
+    [crrd(['@פירש"י', '@בקידושין', '#דף פ\' ע"א']), ("Rashi on Kiddushin 80a",)],
     # pytest.param(crrd("Gilyon HaShas on Berakhot 48b:1", 'he', '''תשב"ץ ח"ב (ענין קסא''', [0, 1, slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ("Sefer HaTashbetz, Part II 161",), marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # complex text
-    # [crrd(None, 'he', '''יבמות לט ע״ב''', [0, slice(1, 5)], [RPT.NAMED, RPT.NUMBERED]), ["Yevamot 39b"]],
-    # [crrd(None, 'he', '''נדרים דף כג עמוד ב''', [0, slice(1, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Nedarim 23b"]],
-    # [crrd(None, 'he', 'פרשת שלח לך', [slice(0, 3)], [RPT.NAMED]), ['Parashat Shelach']],
-    # [crrd(None, 'he', 'טור יורה דעה סימן א', [slice(0, 3), slice(3, 5)], [RPT.NAMED, RPT.NUMBERED]), ['Tur, Yoreh Deah 1']],
-    # [crrd(None, 'he', 'תוספתא ברכות א:א', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
-    # [crrd(None, 'he', 'תוספתא ברכות א:טז', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
-    # [crrd(None, 'he', 'זוה"ק ח"א דף פג:', [slice(0, 3), slice(5,6), slice(7,9)], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Zohar 1:83b']],
+    [crrd(['@יבמות', '#לט ע״ב']), ["Yevamot 39b"]],
+    [crrd(['@פרשת שלח לך']), ['Parashat Shelach']],
+    [crrd(['@טור יורה דעה', '#סימן א']), ['Tur, Yoreh Deah 1']],
+    [crrd(['@תוספתא', '@ברכות', '#א', '#א']), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
+    [crrd(['@תוספתא', '@ברכות', '#א', '#טז']), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
+    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar 1:83b']],
     # pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
-    # [crrd(None, 'he', 'זהר חדש בראשית', [slice(0, 2), 2], [RPT.NAMED, RPT.NAMED]), ['Zohar Chadash, Bereshit']],
-    # [crrd(None, 'he', 'מסכת סופרים ב, ג', [0, 1, 2, 4], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ['Tractate Soferim 2:3']],
-    # [crrd(None, 'he', 'אדר"נ ב, ג', [slice(0, 3), 3, 5], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Avot D'Rabbi Natan 2:3"]],
-    # [crrd(None, 'he', 'פרק השלום ג', [slice(0, 2), 2], [RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    # [crrd(None, 'he', 'ד"א זוטא פרק השלום ג', [slice(0, 4), slice(4, 6), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
-    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), slice(3, 5), 6], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
-    # [crrd(None, 'he', 'ספר החינוך, לך לך, ב', [slice(0, 2), 6], [RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 2']],
+    [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
+    [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
+    [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot D'Rabbi Natan 2:3"]],
+    [crrd(['@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
+    [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
+    [crrd(['@ספר החינוך', '#ב']), ['Sefer HaChinukh 2']],
     # pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
     # [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
     # [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],
@@ -331,7 +342,7 @@ def test_get_section_contexts(context_tref, match_title, common_title, expected_
 def test_address_matches_section_context():
     r = Ref("Berakhot")
     sec_con = SectionContext(schema.AddressType.to_class_by_address_type('Talmud'), 'Daf', 34)
-    assert r.index_node.address_matches_section_context(0, sec_con)
+    assert NumberedReferenceableBookNode(r.index_node).matches_section_context(sec_con)
 
 
 @pytest.mark.parametrize(('last_n_to_store', 'trefs', 'expected_title_len'), [

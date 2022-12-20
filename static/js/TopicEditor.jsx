@@ -56,21 +56,20 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": {"en": description, "he": heDescription}, "title": enTitle, "heTitle": heTitle,
-                    "category": catSlug};
+        let data = {"description": {"en": description, "he": heDescription}, "title": enTitle, "heTitle": heTitle, "category": catSlug};
+        if (isCategory) {
+            data["catDescription"] = {"en": catDescription, "he": heCatDescription};
+        }
+
         if (isNewTopic) {
           url = "/api/topic/new";
-          if (isCategory) {
-            data.catDescription = {"en": catDescription, "he": heCategoryDescription};
-          }
         }
         else {
           url = `/api/topics/${origSlug}`;
           data = {...data, origCategory: origCategorySlug, origDescription: origDesc,
                     origTitle: origEn,origHeTitle: origHe,origSlug: origSlug}
           if (isCategory) {
-            data.catDescription = {"en": catDescription, "he": heCategoryDescription}
-            data.origCatDescription = origCategoryDesc
+            data["origCatDescription"] = origCategoryDesc;
           }
         }
 

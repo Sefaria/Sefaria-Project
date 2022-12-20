@@ -326,6 +326,10 @@ def get_connections_mode(filter):
     sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
+    elif filter[0].endswith(" ConnectionsList"):
+        return "ConnectionsList", False
+    elif filter[0].startswith("WebPage:"):
+        return "WebPagesList", False
     else:
         return "TextList", False
 
@@ -376,10 +380,15 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
-            if deleteFilter == True:
+            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
+            if panel["connectionsMode"] == "ConnectionsList":
+                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                if len(panel['filter']) == 1:
+                    panel['connectionsCategory'] = panel['filter'][0]
+            if panel['connectionsMode'] == "WebPagesList":
+                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+            if delete_filter:
                 del panel['filter']
-
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
@@ -1059,12 +1068,6 @@ def updates(request):
     title = _("New Additions to the Sefaria Library")
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
     return menu_page(request, page="updates", title=title, desc=desc)
-
-
-@staff_member_required
-def story_editor(request):
-    title = _("Story Editor")
-    return menu_page(request, page="story_editor", title=title)
 
 
 @login_required
@@ -2724,134 +2727,6 @@ def dictionary_api(request, word):
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
-@catch_error_as_json
-def stories_api(request, gid=None):
-    """
-    API for retrieving stories.
-    """
-
-    # if not request.user.is_authenticated:
-    #     return jsonResponse({"error": "You must be logged in to access your notifications."})
-
-    if request.method == "GET":
-
-        page      = int(request.GET.get("page", 0))
-        page_size = int(request.GET.get("page_size", 10))
-        shared_only = bool(request.GET.get("shared_only", False))
-        admin_feed = bool(request.GET.get("admin_feed", False))
-
-        if not request.user.is_authenticated:
-            shared_only = True
-            user = None
-            traits = get_session_traits(request)
-        else:
-            user = UserProfile(id=request.user.id)
-            traits = get_session_traits(request, request.user.id)
-
-        if admin_feed:
-            if not request.user.is_staff:
-                return {"error": "Permission Denied"}
-            stories = SharedStorySet({}, limit=page_size, page=page).contents()
-            count = len(stories)
-        elif shared_only or not user:
-            stories = SharedStorySet.for_traits(traits, limit=page_size, page=page).contents()
-            count = len(stories)
-        else:
-            stories = UserStorySet.recent_for_user(request.user.id, traits, limit=page_size, page=page).contents()
-            count = len(stories)
-            stories = addDynamicStories(stories, user, page)
-
-        return jsonResponse({
-                                "stories": stories,
-                                "page": page,
-                                "page_size": page_size,
-                                "count": count
-                            })
-
-    elif request.method == "POST":
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
-
-            payload = json.loads(request.POST.get("json"))
-            try:
-                s = SharedStory(payload).save()
-                return jsonResponse({"status": "ok", "story": s.contents()})
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-
-        elif request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                payload = json.loads(request.POST.get("json"))
-                try:
-                    s = SharedStory(payload).save()
-                    return jsonResponse({"status": "ok", "story": s.contents()})
-                except AssertionError as e:
-                    return jsonResponse({"error": str(e)})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
-
-    elif request.method == "DELETE":
-        if not gid:
-            return jsonResponse({"error": "No post id given for deletion."})
-        if request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                SharedStory().load_by_id(gid).delete()
-                return jsonResponse({"status": "ok"})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
-
-def addDynamicStories(stories, user, page):
-    """
-
-    :param stories: Array of Story.contents() dicts
-    :param user: UserProfile object
-    :param page: Which page of stories are we rendering - 0 based
-    :return: Array of Story.contents() dicts.
-    """
-    if page == 0:
-        # Disable most recent story
-        return stories
-
-        # Keep Reading Most recent
-        most_recent = user.get_history(last_place=True, secondary=False, limit=1)[0]
-        if most_recent:
-            if getattr(most_recent, "is_sheet", None):
-                stry = SheetListFactory().generate_story(
-                    sheet_ids=[most_recent.sheet_id],
-                    title={"en": "Keep Reading", "he": "המשך לקרוא"},
-                    lead={"en": "Sheets", "he": "דפים"}
-                )
-            else:
-                stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
-                    lead={"en": "Keep Reading", "he": "המשך לקרוא"})
-            stories = [stry.contents()] + stories
-
-    if page == 1:
-        # Show an old saved story
-        saved = user.get_history(saved=True, secondary=False, sheets=False)
-        if len(saved) > 2:
-            saved_item = choice(saved)
-            stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
-                    lead={"en": "Take Another Look", "he": "קרא עוד"})
-            stories = [stry.contents()] + stories
-
-    return stories
-
-
 @login_required
 def user_stats_api(request, uid):
 
@@ -2868,43 +2743,6 @@ def user_stats_api(request, uid):
 def site_stats_api(request):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(site_stats_data())
-
-
-@staff_member_required
-def story_reflector(request):
-    """
-    Show what a story will look like.
-    :param request:
-    :return:
-    """
-    assert request.user.is_authenticated and request.user.is_staff and request.method == "POST"
-
-    @csrf_protect
-    def protected_post(request):
-        payload = json.loads(request.POST.get("json"))
-
-        factory_name = payload.get("factory")
-        method_name = payload.get("method")
-        if factory_name and method_name:
-            try:
-                del payload["factory"]
-                del payload["method"]
-                factory = getattr(sefaria_story, factory_name)
-                method = getattr(factory, method_name)
-                sefaria_story = method(**payload)
-                return jsonResponse(sefaria_story.contents())
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-        else:
-            #Treat payload as attrs to story object
-            try:
-                sefaria_story = SharedStory(payload)
-                return jsonResponse(sefaria_story.contents())
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-
-    return protected_post(request)
-
 
 
 @catch_error_as_json
@@ -2939,8 +2777,7 @@ def updates_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                gn = GlobalNotification(payload).save()
-                SharedStory.from_global_notification(gn).save()
+                GlobalNotification(payload).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
@@ -2950,8 +2787,7 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    gn = GlobalNotification(payload).save()
-                    SharedStory.from_global_notification(gn).save()
+                    GlobalNotification(payload).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": str(e)})
@@ -3208,7 +3044,7 @@ def topic_page(request, topic):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_data(topic),
+        "topicData": _topic_page_data(topic),
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
@@ -3249,6 +3085,7 @@ def add_new_topic_api(request):
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
+        t.description_published = True
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
@@ -3289,7 +3126,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        response = get_topic(v2, topic, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3349,6 +3186,7 @@ def topics_api(request, topic, v2=False):
             topic_needs_save = True
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+            topic_obj.description_published = True
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
             topic_needs_save = True
 
@@ -3430,10 +3268,16 @@ def topic_ref_api(request, tref):
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
-def _topic_data(topic):
+
+def _topic_page_data(topic):
+    _topic_data(topic=topic, annotate_time_period=True)
+
+
+def _topic_data(**kwargs):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
+
+    response = get_topic(True, ref_link_type_filters=ref_link_type_filters, **kwargs)
     return response
 
 
@@ -4411,7 +4255,7 @@ def search_wrapper_api(request):
         j = json.loads(j)
         es_client = Elasticsearch(SEARCH_ADMIN)
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
-        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
+        search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
             return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
