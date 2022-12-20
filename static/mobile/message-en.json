@@ -1,10 +1,10 @@
 {
 	"title": "",
 	"text": [
-		"Happy Chanukkah! We hope you enjoy this short video from Sefaria's co-Founder, Joshua Foer. Thank you for bringing your light and learning to Sefaria's library this year."
-	],
-	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria?video=true",
-	"buttonText": "Watch Now",
-	"name": "2022-12-18-end-of-year-msg03-banner",
+"Sefaria is a 501(c)(3) non-profit organization. If you haven't yet, make your tax-deductible donation before the end of the year so that we can add new texts to the library and make Torah more accessible in 2023."
+],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Donate Now",
+	"name": "2022-12-22-end-of-year-msg04-banner",
 	"schemaVersion": 1
 }
