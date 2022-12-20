@@ -39,9 +39,7 @@ class TextColumn extends Component {
          item_id: this.props.bookTitle
        }
       console.log(params)
-    //   gtag("event", "select_content", params)
-
-
+      gtag("event", "select_content", params)
 
     this.node.addEventListener("scroll", this.handleScroll);
   }
