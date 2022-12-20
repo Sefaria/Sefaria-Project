@@ -58,7 +58,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
         let url = "";
         let data = {"description": {"en": description, "he": heDescription}, "title": enTitle, "heTitle": heTitle, "category": catSlug};
         if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": heCatDescription};
+            data["catDescription"] = {"en": catDescription, "he": heCategoryDescription};
         }
 
         if (isNewTopic) {
