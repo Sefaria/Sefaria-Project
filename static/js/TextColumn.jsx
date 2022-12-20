@@ -34,6 +34,15 @@ class TextColumn extends Component {
     // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
     this.setState({showScrollPlaceholders: true});
 
+       const params = {
+         content_type: Sefaria.index(this.props.bookTitle).primary_category,
+         item_id: this.props.bookTitle
+       }
+      console.log(params)
+    //   gtag("event", "select_content", params)
+
+
+
     this.node.addEventListener("scroll", this.handleScroll);
   }
   componentWillUnmount() {
@@ -114,7 +123,7 @@ class TextColumn extends Component {
   }
 
   handleTextSelection() {
-    //Please note that because this function is triggered by an event listener on the document object, that will always be the event target 
+    //Please note that because this function is triggered by an event listener on the document object, that will always be the event target
     // (should someone choose to add reference to the event itself in the future in this function) and not a more specific element.
     const selection = window.getSelection();
     let refs = [];

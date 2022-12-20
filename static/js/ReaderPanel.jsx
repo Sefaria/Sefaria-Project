@@ -1258,17 +1258,8 @@ class ReaderControls extends Component {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
-      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
     this.loadTranslations();
-    if (this.props.currentMode() === "Text") {
-       const params = {
-         content_type: this.props.currentCategory(),
-         item_id: this.props.currentBook()
-       }
-       console.log(params)
-       gtag("event", "select_content", params);
-    }
   }
   componentDidUpdate(prevProps, prevState) {
     if (
