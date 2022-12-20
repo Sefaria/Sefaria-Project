@@ -1168,11 +1168,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
-  const [authors, setAuthors] = useState(index.current.authors);
-  let authorTitleVariants = authorsToTitleVariants();
-  const authorsToTitleVariants = () => {
-    return authors.map((item, i) => {return {name: item.en, id: i}});
-  }
+  const [authors, setAuthors] = useState(index.current.authors.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})));
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
@@ -1215,10 +1211,11 @@ const EditTextInfo = function({initTitle, close}) {
     return true;
   }
   const save = function() {
-    const enTitleVariantNames = titleVariants.map(i => i["name"]);
-    const heTitleVariantNames = heTitleVariants.map(i => i["name"]);
-    let postIndex = {title: enTitle, heTitle, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-                    categories, enDesc, enShortDesc, heDesc, heShortDesc, authors}
+    const enTitleVariantNames = titleVariants.map(i => i.name);
+    const heTitleVariantNames = heTitleVariants.map(i => i.name);
+    const authorSlugs = authors.map(i => i.slug);
+    let postIndex = {title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
+                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc}
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
@@ -1250,21 +1247,24 @@ const EditTextInfo = function({initTitle, close}) {
       save();
     }
   }
-  const updateAuthors = function (currentAuthors) {
-    const newTitle = currentAuthors[currentAuthors.length-1].name;
-    for (let topic of Sefaria.topic_toc) {
-      if (topic.slug === "authors") {
-        for (let author of topic.children) {
-          if (author["en"] === newTitle || author["he"] === newTitle) {
-            setAuthors([].concat(authors, author));
-            return true;
-          }
-        }
-        break;
+  const addAuthor = function (newAuthor) {
+    const lowerCaseName = newAuthor.name.toLowerCase();
+    Sefaria.getName(newAuthor.name, false, 10).then(d => {
+      const matches = d.completion_objects.filter((t) => t.type === 'AuthorTopic');
+      const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
+      if (!exactMatch) {
+        const closestMatches = matches.map((t) => t.title);
+        const closestMatchMsg = matches.length > 0 ? `The closest match(es) found were: ${closestMatches.join(', ')}` : "";
+        alert(`Invalid author.  Make sure it is listed under the 'Authors' category in the Topic Table of Contents. ${closestMatchMsg}`);
+      } else {
+        const newAuthor = [{"id": authors.length, "name": exactMatch.title, "slug": exactMatch.key}];
+        setAuthors([].concat(authors, newAuthor));
       }
-    }
-    alert("Invalid author.  Make sure it is listed under the 'Authors' category in the Topic Table of Contents.");
-    return false;
+    });
+  }
+  const removeAuthor = function (authorIDtoRemove) {
+    let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
+    setAuthors(newAuthors);
   }
   return (
       <div className="editTextInfo">
@@ -1314,7 +1314,7 @@ const EditTextInfo = function({initTitle, close}) {
 
             <div className="section">
               <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-              <TitleVariants update={() => {}} titles={authors.map((a) => a.en)} additionalValidation={updateAuthors}/>
+              <TitleVariants titles={authors} options={{'onTitleAddition': addAuthor, 'onTitleDelete': removeAuthor}}/>
             </div>
             <div className="section">
               <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>

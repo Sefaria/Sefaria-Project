@@ -2476,10 +2476,11 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TitleVariants = function({titles, update, additionalValidation=(title) => true}) {
+const TitleVariants = function({titles, update, options}) {
   /*
   Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
-  and `update` is method to call after deleting or adding to titles
+  and `update` is method to call after deleting or adding to titles. `options` is an object that can have
+  the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
   const onTitleDelete = function(i) {
     let newTitles = titles.filter(t => t !== titles[i]);
@@ -2490,24 +2491,22 @@ const TitleVariants = function({titles, update, additionalValidation=(title) => 
     update(newTitles);
   }
   const onTitleValidate = function (title) {
-    const validTitle = titles.every((item) => item.name !== title.name);
+    let validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
       alert(title.name+" already exists.");
     }
-    if (additionalValidation(title)) {
-      return validTitle;
-    }
+    return validTitle;
   }
 
   return <div className="publishBox">
                 <ReactTags
                     allowNew={true}
                     tags={titles}
-                    onDelete={onTitleDelete}
+                    onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
                     placeholderText={Sefaria._("Add a title...")}
                     delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
+                    onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
+                    onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />
          </div>
 }
