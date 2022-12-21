@@ -56,8 +56,7 @@ class MappingLegacyRefParser:
         converted_ref = self._mapping[ref] # get the correct ref, will probably be more complicated than this
         converted_ref = Ref(converted_ref)
         # TODO add fields indicating ref was converted
-        converted_ref.orig_ref = ref
-        converted_ref.legacy_converted = True
+        converted_ref.legacy_tref = ref
         return converted_ref
 
 

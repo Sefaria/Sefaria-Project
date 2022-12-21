@@ -2595,7 +2595,7 @@ class Ref(object, metaclass=RefCacheType):
         'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
         '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
         '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
-        '_range_depth', '_range_index',
+        '_range_depth', '_range_index', 'legacy_tref',
     )
 
     def __init__(self, tref=None, _obj=None):

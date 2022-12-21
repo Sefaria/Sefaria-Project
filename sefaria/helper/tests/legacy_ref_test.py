@@ -117,14 +117,13 @@ class TestLegacyRefs:
         book = get_book(err.matched_part)
         assert type(legacy_ref_parser_handler[book] == MappingLegacyRefParser)
             
-    def test_old_zohar_partial_ref_legacy_parsing(self, segment_level_zohar_tref):
+    def test_old_zohar_partial_ref_legacy_parsing(self, segment_level_zohar_tref, mapped_segment_level_zohar_tref):
         err = get_partial_ref_error(segment_level_zohar_tref)
         book = get_book(err.matched_part)
         parser = legacy_ref_parser_handler[book]
-        convertedRef = parser.parse(segment_level_zohar_tref)
-        assert "orig_ref" in convertedRef # or hasattr?
-        assert "legacy_converted" in convertedRef
-        assert convertedRef.normal() == "Zohar, Bereshit.1.1-2"
+        converted_ref = parser.parse(segment_level_zohar_tref)
+        assert converted_ref.legacy_tref == segment_level_zohar_tref
+        assert converted_ref.normal() == Ref(mapped_segment_level_zohar_tref).normal()
 
     def test_random_partial_ref_legacy_parsing(self, tref_no_legacy_parser):
         err = get_partial_ref_error(tref_no_legacy_parser)
