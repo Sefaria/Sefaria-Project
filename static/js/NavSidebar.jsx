@@ -491,6 +491,7 @@ const AboutTopics = ({hideTitle}) => (
     {hideTitle ? null :
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects.</InterfaceText>
+
   </Module>
 );
 

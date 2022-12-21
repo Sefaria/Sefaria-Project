@@ -7,7 +7,7 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
+data:
     {{ .Values.nodejs.localsettings | toYaml | nindent 2 }}
 {{- end }}
 {{- end }}

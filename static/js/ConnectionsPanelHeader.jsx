@@ -30,7 +30,7 @@ class ConnectionsPanelHeader extends Component {
     // compared to the header. This functions sets appropriate margin to compensate.
     const width      = Sefaria.util.getScrollbarWidth();
     const $container = $(ReactDOM.findDOMNode(this));
-    if (this.props.interfaceLang == "hebrew") {
+    if (this.props.interfaceLang === "hebrew") {
       $container.css({marginRight: 0, marginLeft: width});
     } else {
       $container.css({marginRight: width, marginLeft: 0});
@@ -49,13 +49,13 @@ class ConnectionsPanelHeader extends Component {
       /** TODO: fix for interfacetext */
     const previousMode = this.getPreviousMode();
     let title;
-    if (this.props.connectionsMode == "Resources") {
+    if (this.props.connectionsMode === "Resources") {
       // Top Level Menu
       title = <div className="connectionsHeaderTitle sans-serif">
                     <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
-    } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
+    } else if ((this.props.previousCategory && this.props.connectionsMode === "TextList") || previousMode) {
       // In a text list, back to Previous Category
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
@@ -93,7 +93,7 @@ class ConnectionsPanelHeader extends Component {
                   </a>;
     }
     if (this.props.multiPanel) {
-      const toggleLang = Sefaria.util.getUrlVars()["lang2"] == "en" ? "he" : "en";
+      const toggleLang = Sefaria.util.getUrlVars()["lang2"] === "en" ? "he" : "en";
       const langUrl = Sefaria.util.replaceUrlParam("lang2", toggleLang);
       const closeUrl = Sefaria.util.removeUrlParam("with");
       return (<div className="connectionsPanelHeader">
@@ -106,8 +106,8 @@ class ConnectionsPanelHeader extends Component {
                 </div>
               </div>);
     } else {
-      const style = !this.props.multiPanel && this.props.connectionsMode == "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
-      const cStyle = !this.props.multiPanel && this.props.connectionsMode == "Resources" ? {"justifyContent": "center"} : style;
+      const style = !this.props.multiPanel && this.props.connectionsMode === "TextList" ? {"borderTopColor": Sefaria.palette.categoryColor(this.props.previousCategory)} : {}
+      const cStyle = !this.props.multiPanel && this.props.connectionsMode === "Resources" ? {"justifyContent": "center"} : style;
       // Modeling the class structure when ConnectionsPanelHeader is created inside ReaderControls in the multiPanel case
       let classes = classNames({readerControls: 1, connectionsHeader: 1, fullPanel: this.props.multiPanel});
       return (<div className={classes} style={style}>
@@ -115,7 +115,7 @@ class ConnectionsPanelHeader extends Component {
                   <div className="readerTextToc">
                     <div className="connectionsPanelHeader" style={cStyle}>
                       {title}
-                      {!this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode == "TextList" ?
+                      {!this.props.multiPanel && this.props.previousCategory && this.props.connectionsMode === "TextList" ?
                       <RecentFilterSet
                         srefs={this.props.baseRefs}
                         asHeader={true}
