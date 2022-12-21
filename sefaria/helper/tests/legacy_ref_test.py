@@ -2,7 +2,7 @@
 
 import pytest
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, ZoharLegacyRefParser, NoLegacyRefParserError
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
@@ -98,7 +98,7 @@ class TestLegacyRefs:
     def test_old_zohar_partial_ref_legacy_loader(self, segment_level_zohar_tref):
         err = get_partial_ref_error(segment_level_zohar_tref)
         book = get_book(err.matched_part)
-        assert type(legacy_ref_parser_handler[book] == ZoharLegacyRefParser)
+        assert type(legacy_ref_parser_handler[book] == MappingLegacyRefParser)
             
     def test_old_zohar_partial_ref_legacy_parsing(self, segment_level_zohar_tref):
         err = get_partial_ref_error(segment_level_zohar_tref)

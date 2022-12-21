@@ -27,22 +27,22 @@ class LegacyRefParsingData(AbstractMongoRecord):
     # TODO validate structure of `index_title` field
     
 
-class ZoharLegacyRefParser:
+class MappingLegacyRefParser:
     """
     Class to parse old Zohar refs that will no longer exist in the Zohar structure. Since it cannot rely on real time ref resolution,
     What we need to do is string parsing according to the known pattern of old Zohar refs to parse out the single segment or section ref or the start and end sections of a
     ranged ref, to be able to look them up in the mapping and return the best approximate ref in the current Zohar schema
     """
     
-    def __int__(self):
-        self._load_mapping()
+    def __init__(self, index_title: str):
+        self._load_mapping(index_title)
     
-    def _load_mapping(self):
+    def _load_mapping(self, index_title):
         """
         Load mapping from the DB
         @return:
         """
-        lrpd = LegacyRefParsingData().load({"index_title": "Zohar"})
+        lrpd = LegacyRefParsingData().load({"index_title": index_title})
         self._mapping = lrpd.mapping  # TODO this field doesn't exist...
     
     def is_ranged_ref(self):
@@ -78,26 +78,26 @@ class LegacyRefParserHandler(object):
     def __init__(self):
         self._parsers = {}
 
-    def __getitem__(self, alias):
-        parser = self._get_parser_by_alias(alias)
+    def __getitem__(self, index_title: str):
+        parser = self._get_parser(index_title)
         if isinstance(parser, NonExistantLegacyRefParser):
-            raise NoLegacyRefParserError(f"Could not find proper legacy parser matching alias '{alias}'")
+            raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return parser
 
-    def _get_parser_by_alias(self, alias):
+    def _get_parser(self, index_title: str):
         try:
-            return self._parsers[alias]
+            return self._parsers[index_title]
         except KeyError:
             pass
         try:
-            parser = self._create_legacy_parser(alias)
+            parser = self._create_legacy_parser(index_title)
         except NoLegacyRefParserError as e:
             parser = NON_EXISTANT_LEGACY_REF_PARSER
-        self._parsers[alias] = parser
+        self._parsers[index_title] = parser
         return parser
 
-    def parse(self, book, tref):
-        parser = self[book]
+    def parse(self, index_title: str, tref: str):
+        parser = self[index_title]
         return parser.parse(tref)
 
     @staticmethod
@@ -108,10 +108,10 @@ class LegacyRefParserHandler(object):
         # our of all the available classes listed in this module. 
         # Currently all it does is check for a Zohar parser or error
         if index_title == "Zohar":
-            legacy_parser = import_string('sefaria.helper.legacy_ref.ZoharLegacyRefParser')
+            legacy_parser = import_string('sefaria.helper.legacy_ref.MappingLegacyRefParser')
         else:
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
-        return legacy_parser()
+        return legacy_parser(index_title)
 
 
 legacy_ref_parser_handler = LegacyRefParserHandler()
