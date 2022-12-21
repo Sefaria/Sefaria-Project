@@ -11,8 +11,9 @@ class LegacyRefParsingData(AbstractMongoRecord):
     It can contain ref mapping or any other data we think of down the line to help in future cases.
     Imagine a structure for e.g. 
     ```
-    "index_title" : {
-     "mapping": { "old_ref 1" : "mapped_ref 1" ...}
+    {
+        "index_title" : "Zohar",
+        "mapping": { "old_ref 1" : "mapped_ref 1" ...}
     }
     ```
     To be used with LegacyRefParser classes in this module.
@@ -22,10 +23,9 @@ class LegacyRefParsingData(AbstractMongoRecord):
     pkeys = ["index_title"]
     required_attrs = [
         "index_title",
+        "mapping",
     ]
 
-    # TODO validate structure of `index_title` field
-    
 
 class MappingLegacyRefParser:
     """
@@ -43,6 +43,8 @@ class MappingLegacyRefParser:
         @return:
         """
         lrpd = LegacyRefParsingData().load({"index_title": index_title})
+        if lrpd is None:
+            raise NoLegacyRefParserError(f"No MappingLegacyRefParser for index title '{index_title}'")
         self._mapping = lrpd.mapping  # TODO this field doesn't exist...
     
     def is_ranged_ref(self):
