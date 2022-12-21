@@ -62,10 +62,7 @@ def tref_no_legacy_parser():
 
 
 def get_book(tref):
-    book = Ref(tref).book
-    if book == "TestZohar":
-        return "Zohar"
-    return book
+    return Ref(tref).index.title
 
 
 def get_partial_ref_error(tref):
