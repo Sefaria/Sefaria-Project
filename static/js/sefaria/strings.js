@@ -60,6 +60,7 @@ const Strings = {
     "English Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים אנגלית",
     "Hebrew Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים עברית",
     "Choose a Category": "בחר קטגוריה",
+    "Main Menu": "תפריט ראשי",
     "Saving topic information.": "מעדכן נתוני נושא",
     "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
     "Add a short description.": "הוסף תיאור קצר",
@@ -80,6 +81,13 @@ const Strings = {
     "English Topic Description": "תיאור נושא אנגלית",
     "Hebrew Topic Description": "תיאור נושא עברית",
     "Delete Topic": "מחק נושא",
+    "Topic Deleted": "הנושא נמחק",
+    "Topic Editor": "עריכת נושאים",
+    "Please choose a category.": "אנא בחרו קטגוריה",
+    "Title must be provided": "יש לספק כותרת",
+    "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
+    "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+
 
     // Topics Tool
     "Search for a Topic.": "חפש נושא",

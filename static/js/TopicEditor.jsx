@@ -36,19 +36,23 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const isNewTopic = origSlug === "";
     const [isCategory, setIsCategory] = useState(!!origCategoryDesc);
 
-    const slugsToTitles = Sefaria.slugsToTitles();
+    let slugsToTitles = Sefaria.slugsToTitles();
+    let specialCases = {"": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+                        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}};
+    slugsToTitles = Object.assign(specialCases, slugsToTitles);
+
     let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
-      const tempTitle = slugsToTitles[tempSlug];
+      const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
       return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
     });
 
     const validate = function () {
         if (catSlug === "") {
-          alert("Please choose a category.");
+          alert(Sefaria._("Please choose a category."));
           return false;
         }
         if (enTitle.length === 0) {
-          alert("Title must be provided.");
+          alert(Sefaria._("Title must be provided."));
           return false;
         }
         save();
@@ -97,17 +101,17 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
           if ("error" in data) {
             alert(data.error);
           } else {
-            alert("Topic Deleted.");
+            alert(Sefaria._("Topic Deleted."));
             window.location = "/topics";
           }
         }
       }).fail(function() {
-        alert("Something went wrong. Sorry!");
+        alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
     const handleCatChange = function(e) {
       setCatSlug(e.target.value);
-      const newIsCategory = isCategory || e.target.value === "Main Menu";
+      const newIsCategory = isCategory || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
     }
     const setValues = function(e) {

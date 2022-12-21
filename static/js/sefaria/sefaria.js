@@ -2276,15 +2276,11 @@ _media: {},
     return this._topics[topic];
   },
   _topicSlugsToTitles: null,
-  _initTopicSlugsToTitles: function() {
-    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});
-  },
   slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
     //proper use of the Topic Editor tool
-    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
-    let specialCases = {"": "Choose a Category", "Main Menu": "Main Menu"};
-    return Object.assign(specialCases, Sefaria._topicSlugsToTitles);
+    if (!Sefaria._topicSlugsToTitles) { this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});}
+    return Sefaria._topicSlugsToTitles;
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {
@@ -2301,7 +2297,7 @@ _media: {},
   },
   _initTopicTocSlugToTitleReducer: function(a,c) {
     if (!c.children) { return a; }
-    a[c.slug] = c.en;
+    a[c.slug] = {"en": c.en, "he": c.he};
     for (let sub_c of c.children) {
       Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }
