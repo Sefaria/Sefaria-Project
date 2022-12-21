@@ -104,16 +104,12 @@ class LegacyRefParserHandler(object):
 
     @staticmethod
     def _create_legacy_parser(index_title, **kwargs):
-        # This is an extremely simplified version of django.core.cache._create_cache().
-        # When there are more legacy parsers, what it should be doing is dynamically concatenating the index title to try and do import_string(index_title+"LegacyParser")
-        # https://docs.djangoproject.com/en/1.11/ref/utils/#django.utils.module_loading.import_string
-        # our of all the available classes listed in this module. 
-        # Currently all it does is check for a Zohar parser or error
-        if index_title == "Zohar":
-            legacy_parser = import_string('sefaria.helper.legacy_ref.MappingLegacyRefParser')
-        else:
-            raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
-        return legacy_parser(index_title)
+        """
+        Currently, only returns one type of LegacyRefParser but in the future can load the ref parsing data and
+        determine the type from the data
+        """
+
+        return MappingLegacyRefParser(index_title)
 
 
 legacy_ref_parser_handler = LegacyRefParserHandler()

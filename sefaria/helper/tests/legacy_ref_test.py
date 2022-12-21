@@ -2,7 +2,7 @@
 
 import pytest
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
@@ -46,9 +46,29 @@ def test_zohar_index():
     i.delete()
 
 
+@pytest.fixture(scope="module", autouse=True)
+def test_zohar_mapping_data(segment_level_zohar_tref, mapped_segment_level_zohar_tref):
+    lrpd = LegacyRefParsingData({
+        "index_title": "TestZohar",
+        "mapping": {
+            segment_level_zohar_tref: mapped_segment_level_zohar_tref,
+        }
+    })
+    lrpd.save()
+
+    yield lrpd
+
+    lrpd.delete()
+
+
 @pytest.fixture(scope="module")
 def segment_level_zohar_tref(test_zohar_index):
     return "TestZohar.1.15a.1"
+
+
+@pytest.fixture(scope="module")
+def mapped_segment_level_zohar_tref(test_zohar_index):
+    return "TestZohar.1.42"
 
 
 @pytest.fixture(scope="module")
@@ -90,7 +110,7 @@ class TestLegacyRefs:
         # tests that once a ranged ref fails that its partial ref exception contains the appropriate data
         err = get_partial_ref_error(segment_level_zohar_tref)
         book = get_book(err.matched_part)
-        assert book == "Zohar"
+        assert book == "TestZohar"
 
     def test_old_zohar_partial_ref_legacy_loader(self, segment_level_zohar_tref):
         err = get_partial_ref_error(segment_level_zohar_tref)
