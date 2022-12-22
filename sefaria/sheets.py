@@ -36,6 +36,7 @@ from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
 from sefaria.google_storage_manager import GoogleStorageManager
 import re
+from django.http import Http404
 
 logger = structlog.get_logger(__name__)
 
@@ -112,6 +113,8 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
+	if "spam_sheet_quarantine" in sheet and sheet["spam_sheet_quarantine"]:
+		raise Http404
 	if "error" in sheet and sheet["error"] != "Sheet updated.":
 		return sheet
 	if "assigner_id" in sheet:
