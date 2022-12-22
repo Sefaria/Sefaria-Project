@@ -53,6 +53,8 @@ def test_zohar_mapping_data(test_index_title, segment_level_zohar_tref, mapped_s
         "data": {
             "mapping": {
                 segment_level_zohar_tref: mapped_segment_level_zohar_tref,
+                f"{test_index_title} 1:15a:2": f"{test_index_title}:1:42",
+                f"{test_index_title} 1:15a:3": f"{test_index_title}:1:43",
             },
         },
     })
@@ -70,22 +72,32 @@ def test_index_title():
 
 @pytest.fixture(scope="module")
 def segment_level_zohar_tref(test_zohar_index):
-    return f"{test_zohar_index.title}.1.15a.1"
+    return f"{test_zohar_index.title} 1:15a:1"
 
 
 @pytest.fixture(scope="module")
 def mapped_segment_level_zohar_tref(test_zohar_index):
-    return f"{test_zohar_index.title}.1.42"
+    return f"{test_zohar_index.title}:1:42"
 
 
 @pytest.fixture(scope="module")
 def ranged_zohar_tref(test_zohar_index):
-    return f"{test_zohar_index.title}.1.15a.1-6"
+    return f"{test_zohar_index.title} 1:15a:1-3"
+
+@pytest.fixture(scope="module")
+def mapped_ranged_zohar_tref(test_zohar_index):
+    return f"{test_zohar_index.title} 1:42-3"
 
 
 @pytest.fixture(scope="module")
 def tref_no_legacy_parser():
     return "Genesis, Vayelech 3"
+
+
+@pytest.fixture(scope="module")
+def old_and_new_trefs(request, test_index_title):
+    old_ref, new_ref = request.param
+    return f"{test_index_title} {old_ref}", f"{test_index_title} {new_ref}"
 
 
 def get_book(tref):
@@ -123,14 +135,20 @@ class TestLegacyRefs:
         err = get_partial_ref_error(segment_level_zohar_tref)
         book = get_book(err.matched_part)
         assert type(legacy_ref_parser_handler[book] == MappingLegacyRefParser)
-            
-    def test_old_zohar_partial_ref_legacy_parsing(self, segment_level_zohar_tref, mapped_segment_level_zohar_tref):
-        err = get_partial_ref_error(segment_level_zohar_tref)
+
+    @pytest.mark.parametrize("old_and_new_trefs", [
+        ["1:15a:1", "1:42"],
+        ["1:15a:2", "1:42"],
+        ["1:15a:3", "1:43"],
+    ], indirect=True)
+    def test_old_zohar_partial_ref_legacy_parsing(self, old_and_new_trefs):
+        old_ref, new_ref = old_and_new_trefs
+        err = get_partial_ref_error(old_ref)
         book = get_book(err.matched_part)
         parser = legacy_ref_parser_handler[book]
-        converted_ref = parser.parse(segment_level_zohar_tref)
-        assert converted_ref.legacy_tref == segment_level_zohar_tref
-        assert converted_ref.normal() == Ref(mapped_segment_level_zohar_tref).normal()
+        converted_ref = parser.parse(old_ref)
+        assert converted_ref.legacy_tref == old_ref
+        assert converted_ref.normal() == Ref(new_ref).normal()
 
     def test_random_partial_ref_legacy_parsing(self, tref_no_legacy_parser):
         err = get_partial_ref_error(tref_no_legacy_parser)
