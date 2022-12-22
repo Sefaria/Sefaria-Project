@@ -1190,6 +1190,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"likes",
 		"group",
 		"displayedCollection",
+		"spam_sheet_quarantine",
 		"generatedBy",
 		"zoom",
 		"visualNodes",
