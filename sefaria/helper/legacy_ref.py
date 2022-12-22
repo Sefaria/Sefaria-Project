@@ -54,7 +54,7 @@ class MappingLegacyRefParser:
 
         range_list = []
         for segment_num in range(start_segment, end_segment+1):
-            range_list += [f"{base_tref}:{segment_num}"]
+            range_list += [f"{base_tref}{segment_num}"]
 
         return range_list
 
@@ -65,9 +65,7 @@ class MappingLegacyRefParser:
         @return:
         """
         if self.is_ranged_ref(legacy_tref):
-            parsed_range_list = [self._parse_segment_ref(temp_tref) for temp_tref in self.range_list(legacy_tref)]
-            parsed_range_list.sort(key=lambda x: x.order_id())  # not assuming mapping is in order
-            return parsed_range_list[0].to(parsed_range_list[-1])
+            return self._parse_ranged_ref(legacy_tref)
         return self._parse_segment_ref(legacy_tref)
 
     def _parse_segment_ref(self, legacy_tref: str) -> Ref:
@@ -75,6 +73,13 @@ class MappingLegacyRefParser:
         converted_ref = Ref(converted_ref)
         converted_ref.legacy_tref = legacy_tref
         return converted_ref
+
+    def _parse_ranged_ref(self, legacy_tref: str) -> Ref:
+        parsed_range_list = [self._parse_segment_ref(temp_tref) for temp_tref in self.range_list(legacy_tref)]
+        parsed_range_list.sort(key=lambda x: x.order_id())  # not assuming mapping is in order
+        ranged_oref = parsed_range_list[0].to(parsed_range_list[-1])
+        ranged_oref.legacy_tref = legacy_tref
+        return ranged_oref
 
 
 class NoLegacyRefParserError(Exception):

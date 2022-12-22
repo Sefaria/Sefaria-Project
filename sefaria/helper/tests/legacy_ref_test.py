@@ -140,6 +140,8 @@ class TestLegacyRefs:
         ["1:15a:1", "1:42"],
         ["1:15a:2", "1:42"],
         ["1:15a:3", "1:43"],
+        ["1:15a:1-2", "1:42"],
+        ["1:15a:1-3", "1:42-43"],
     ], indirect=True)
     def test_old_zohar_partial_ref_legacy_parsing(self, old_and_new_trefs):
         old_ref, new_ref = old_and_new_trefs
