@@ -13,7 +13,9 @@ class LegacyRefParsingData(AbstractMongoRecord):
     ```
     {
         "index_title" : "Zohar",
-        "mapping": { "old_ref 1" : "mapped_ref 1" ...}
+        "data": {
+            "mapping": { "old_ref 1" : "mapped_ref 1" ...}
+        }
     }
     ```
     To be used with LegacyRefParser classes in this module.
@@ -23,15 +25,13 @@ class LegacyRefParsingData(AbstractMongoRecord):
     pkeys = ["index_title"]
     required_attrs = [
         "index_title",
-        "mapping",
+        "data",
     ]
 
 
 class MappingLegacyRefParser:
     """
-    Class to parse old Zohar refs that will no longer exist in the Zohar structure. Since it cannot rely on real time ref resolution,
-    What we need to do is string parsing according to the known pattern of old Zohar refs to parse out the single segment or section ref or the start and end sections of a
-    ranged ref, to be able to look them up in the mapping and return the best approximate ref in the current Zohar schema
+    Parses legacy refs using a mapping from old ref -> new ref
     """
     
     def __init__(self, index_title: str):
@@ -45,17 +45,14 @@ class MappingLegacyRefParser:
         lrpd = LegacyRefParsingData().load({"index_title": index_title})
         if lrpd is None:
             raise NoLegacyRefParserError(f"No MappingLegacyRefParser for index title '{index_title}'")
-        self._mapping = lrpd.mapping  # TODO this field doesn't exist...
+        self._mapping = lrpd.data['mapping']
     
     def is_ranged_ref(self):
-        #Really just check if there is a dash somewhere in the address
         pass
     
     def parse(self, ref):
-        #This is where we look up the ref in the mapping and return the correct ref, the following code is just boilerplate please change it
-        converted_ref = self._mapping[ref] # get the correct ref, will probably be more complicated than this
+        converted_ref = self._mapping[ref]
         converted_ref = Ref(converted_ref)
-        # TODO add fields indicating ref was converted
         converted_ref.legacy_tref = ref
         return converted_ref
 

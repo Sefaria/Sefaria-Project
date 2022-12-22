@@ -50,9 +50,11 @@ def test_zohar_index(test_index_title):
 def test_zohar_mapping_data(test_index_title, segment_level_zohar_tref, mapped_segment_level_zohar_tref):
     lrpd = LegacyRefParsingData({
         "index_title": test_index_title,
-        "mapping": {
-            segment_level_zohar_tref: mapped_segment_level_zohar_tref,
-        }
+        "data": {
+            "mapping": {
+                segment_level_zohar_tref: mapped_segment_level_zohar_tref,
+            },
+        },
     })
     lrpd.save()
 
