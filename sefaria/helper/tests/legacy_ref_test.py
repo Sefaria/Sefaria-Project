@@ -2,7 +2,7 @@
 
 import pytest
 from sefaria.model import *
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData, LegacyRefParserMappingKeyError
 from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
@@ -97,7 +97,9 @@ def tref_no_legacy_parser():
 @pytest.fixture(scope="module")
 def old_and_new_trefs(request, test_index_title):
     old_ref, new_ref = request.param
-    return f"{test_index_title} {old_ref}", f"{test_index_title} {new_ref}"
+    # if new_ref is None, means mapping doesn't exist
+    new_ref = new_ref and f"{test_index_title} {new_ref}"
+    return f"{test_index_title} {old_ref}", new_ref
 
 
 def get_book(tref):
@@ -142,15 +144,22 @@ class TestLegacyRefs:
         ["1:15a:3", "1:43"],
         ["1:15a:1-2", "1:42"],
         ["1:15a:1-3", "1:42-43"],
+        ["123:456:789", None],
+        ["1:15a:1-4", None],
     ], indirect=True)
     def test_old_zohar_partial_ref_legacy_parsing(self, old_and_new_trefs):
         old_ref, new_ref = old_and_new_trefs
         err = get_partial_ref_error(old_ref)
         book = get_book(err.matched_part)
         parser = legacy_ref_parser_handler[book]
-        converted_ref = parser.parse(old_ref)
-        assert converted_ref.legacy_tref == old_ref
-        assert converted_ref.normal() == Ref(new_ref).normal()
+
+        if new_ref is None:
+            with pytest.raises(LegacyRefParserMappingKeyError):
+                parser.parse(old_ref)
+        else:
+            converted_ref = parser.parse(old_ref)
+            assert converted_ref.legacy_tref == old_ref
+            assert converted_ref.normal() == Ref(new_ref).normal()
 
     def test_random_partial_ref_legacy_parsing(self, tref_no_legacy_parser):
         err = get_partial_ref_error(tref_no_legacy_parser)

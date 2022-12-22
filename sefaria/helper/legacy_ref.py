@@ -37,7 +37,7 @@ class MappingLegacyRefParser:
     """
     
     def __init__(self, data: LegacyRefParsingData):
-        self._mapping = data.data['mapping']
+        self._mapping: Dict[str, str] = data.data['mapping']
 
     @staticmethod
     def is_ranged_ref(tref: str) -> bool:
@@ -68,9 +68,15 @@ class MappingLegacyRefParser:
             return self._parse_ranged_ref(legacy_tref)
         return self._parse_segment_ref(legacy_tref)
 
+    def _get_mapped_tref(self, legacy_tref: str) -> str:
+        try:
+            return self._mapping[legacy_tref]
+        except KeyError as err:
+            raise LegacyRefParserMappingKeyError(*err.args)
+
     def _parse_segment_ref(self, legacy_tref: str) -> Ref:
-        converted_ref = self._mapping[legacy_tref]
-        converted_ref = Ref(converted_ref)
+        converted_tref = self._get_mapped_tref(legacy_tref)
+        converted_ref = Ref(converted_tref)
         converted_ref.legacy_tref = legacy_tref
         return converted_ref
 
@@ -83,6 +89,10 @@ class MappingLegacyRefParser:
 
 
 class NoLegacyRefParserError(Exception):
+    pass
+
+
+class LegacyRefParserMappingKeyError(KeyError):
     pass
 
 
