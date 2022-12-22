@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union, Dict
 import re
 
 from sefaria.model.abstract import AbstractMongoRecord
@@ -91,7 +91,10 @@ class NonExistantLegacyRefParser:
 
 
 NON_EXISTANT_LEGACY_REF_PARSER = NonExistantLegacyRefParser()
-    
+
+
+PossiblyNonExistantLegacyRefParser = Union[MappingLegacyRefParser, NonExistantLegacyRefParser]
+
 
 class LegacyRefParserHandler(object):
     """
@@ -99,15 +102,15 @@ class LegacyRefParserHandler(object):
     This just makes sure to load the correct legacy ref parser class given an index title
     """
     def __init__(self):
-        self._parsers = {}
+        self._parsers: Dict[str, PossiblyNonExistantLegacyRefParser] = {}
 
-    def __getitem__(self, index_title: str):
+    def __getitem__(self, index_title: str) -> MappingLegacyRefParser:
         parser = self._get_parser(index_title)
         if isinstance(parser, NonExistantLegacyRefParser):
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return parser
 
-    def _get_parser(self, index_title: str):
+    def _get_parser(self, index_title: str) -> PossiblyNonExistantLegacyRefParser:
         try:
             return self._parsers[index_title]
         except KeyError:
@@ -119,7 +122,7 @@ class LegacyRefParserHandler(object):
         self._parsers[index_title] = parser
         return parser
 
-    def parse(self, index_title: str, tref: str):
+    def parse(self, index_title: str, tref: str) -> Ref:
         parser = self[index_title]
         return parser.parse(tref)
 
@@ -135,7 +138,7 @@ class LegacyRefParserHandler(object):
         return lrpd
 
     @staticmethod
-    def _create_legacy_parser(index_title, **kwargs):
+    def _create_legacy_parser(index_title: str, **kwargs) -> MappingLegacyRefParser:
         """
         Currently, only returns one type of LegacyRefParser but in the future can determine type from the data
         determine the type from the data
