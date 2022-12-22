@@ -6,6 +6,7 @@ import csv
 import json
 import sys
 from sefaria.system.database import db
+from sefaria.views import purge_spammer_account_data
 from django.contrib.auth.models import User
 from datetime import datetime
 
@@ -13,29 +14,6 @@ from datetime import datetime
 usage: python delete_spam_usrs.py path/to/file
 --dry-run: produce outfile without actually deleting
 """
-
-
-def purge_spammer_account_data(spammer_id):
-    sheets = db.sheets.find({"owner": spammer_id})
-    for sheet in sheets:
-        sheet["spam_sheet_quarantine"] = datetime.now()
-        sheet["datePublished"] = None
-        sheet["displayedCollection"] = None
-        db.sheets.save(sheet)
-    # Delete Notes
-    db.notes.delete_many({"owner": spammer_id})
-    # Delete Notifcations
-    db.notifications.delete_many({"uid": spammer_id})
-    # Delete Following Relationships
-    db.following.delete_many({"follower": spammer_id})
-    db.following.delete_many({"followee": spammer_id})
-    # Delete Profile
-    db.profiles.delete_one({"id": spammer_id})
-    # Set account inactive
-    spammer_account = User.objects.get(id=spammer_id)
-    spammer_account.is_active = False
-    spammer_account.save()
-
 
 def get_outf_name(filename):
     filename_index = filename.rfind('/')
@@ -98,7 +76,7 @@ def main():
                                      deleted_status=status, dry_run=dry_run))
             if not dry_run:
                 if profile.id and mongo_profile:
-                    purge_spammer_account_data(profile.id)
+                    purge_spammer_account_data(profile.id, False)
 
 
 if __name__ == '__main__':
