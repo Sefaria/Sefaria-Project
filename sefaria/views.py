@@ -951,6 +951,7 @@ def purge_spammer_account_data(spammer_id, delete_from_nationbuilder=True):
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
+        sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.save(sheet)
     # Delete Notes
