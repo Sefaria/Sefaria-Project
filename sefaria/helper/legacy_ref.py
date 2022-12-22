@@ -1,8 +1,8 @@
-# encoding=utf-8
+from typing import List
+import re
 
 from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.text import Ref
-from django.utils.module_loading import import_string
 
 
 class LegacyRefParsingData(AbstractMongoRecord):
@@ -39,13 +39,41 @@ class MappingLegacyRefParser:
     def __init__(self, data: LegacyRefParsingData):
         self._mapping = data.data['mapping']
 
-    def is_ranged_ref(self):
-        pass
-    
-    def parse(self, ref):
-        converted_ref = self._mapping[ref]
+    @staticmethod
+    def is_ranged_ref(tref: str) -> bool:
+        return "-" in tref
+
+    @staticmethod
+    def range_list(ranged_tref: str) -> List[str]:
+        segment_range_match = re.search(r'(\d+)-(\d+)$', ranged_tref)
+        if segment_range_match is None:
+            return [ranged_tref]
+        start_segment = int(segment_range_match.group(1))
+        end_segment = int(segment_range_match.group(2))
+        base_tref = ranged_tref[:segment_range_match.start(0)]
+
+        range_list = []
+        for segment_num in range(start_segment, end_segment+1):
+            range_list += [f"{base_tref}:{segment_num}"]
+
+        return range_list
+
+    def parse(self, legacy_tref: str) -> Ref:
+        """
+
+        @param legacy_tref: Assumption for now is this is segment level or ranged segment level and not a spanning ref
+        @return:
+        """
+        if self.is_ranged_ref(legacy_tref):
+            parsed_range_list = [self._parse_segment_ref(temp_tref) for temp_tref in self.range_list(legacy_tref)]
+            parsed_range_list.sort(key=lambda x: x.order_id())  # not assuming mapping is in order
+            return parsed_range_list[0].to(parsed_range_list[-1])
+        return self._parse_segment_ref(legacy_tref)
+
+    def _parse_segment_ref(self, legacy_tref: str) -> Ref:
+        converted_ref = self._mapping[legacy_tref]
         converted_ref = Ref(converted_ref)
-        converted_ref.legacy_tref = ref
+        converted_ref.legacy_tref = legacy_tref
         return converted_ref
 
 
