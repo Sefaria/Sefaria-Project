@@ -28,25 +28,17 @@ class LegacyRefParsingData(AbstractMongoRecord):
         "data",
     ]
 
+    __slots__ = ['index_title', 'data']
+
 
 class MappingLegacyRefParser:
     """
     Parses legacy refs using a mapping from old ref -> new ref
     """
     
-    def __init__(self, index_title: str):
-        self._load_mapping(index_title)
-    
-    def _load_mapping(self, index_title):
-        """
-        Load mapping from the DB
-        @return:
-        """
-        lrpd = LegacyRefParsingData().load({"index_title": index_title})
-        if lrpd is None:
-            raise NoLegacyRefParserError(f"No MappingLegacyRefParser for index title '{index_title}'")
-        self._mapping = lrpd.data['mapping']
-    
+    def __init__(self, data: LegacyRefParsingData):
+        self._mapping = data.data['mapping']
+
     def is_ranged_ref(self):
         pass
     
@@ -99,13 +91,24 @@ class LegacyRefParserHandler(object):
         return parser.parse(tref)
 
     @staticmethod
+    def _load_data(index_title: str) -> LegacyRefParsingData:
+        """
+        Load mapping from the DB
+        @return:
+        """
+        lrpd = LegacyRefParsingData().load({"index_title": index_title})
+        if lrpd is None:
+            raise NoLegacyRefParserError(f"No MappingLegacyRefParser for index title '{index_title}'")
+        return lrpd
+
+    @staticmethod
     def _create_legacy_parser(index_title, **kwargs):
         """
-        Currently, only returns one type of LegacyRefParser but in the future can load the ref parsing data and
+        Currently, only returns one type of LegacyRefParser but in the future can determine type from the data
         determine the type from the data
         """
-
-        return MappingLegacyRefParser(index_title)
+        data = LegacyRefParserHandler._load_data(index_title)
+        return MappingLegacyRefParser(data)
 
 
 legacy_ref_parser_handler = LegacyRefParserHandler()
