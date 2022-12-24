@@ -291,15 +291,8 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = Ref(tref)
-        except PartialRefInputError as e:
-            logger.warning('{}'.format(e))
-            matched_ref = Ref(e.matched_part)
-            try:
-                converted_ref = legacy_ref_parser_handler.parse(matched_ref.book, tref)
-                return reader_redirect(converted_ref.url() if converted_ref else matched_ref.url())
-            except LegacyRefParserError:
-                return reader_redirect(matched_ref.url())
+            oref = legacy_ref_parser_handler.instantiate_ref_with_legacy_parse_fallback(tref)
+            reader_redirect(oref.url())
         except InputError:
             raise Http404
 
