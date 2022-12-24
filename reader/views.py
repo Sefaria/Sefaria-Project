@@ -1365,7 +1365,8 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = Ref(tref)
+    oref = legacy_ref_parser_handler.instantiate_ref_with_legacy_parse_fallback(tref)
+    tref = oref.normal()
 
     if request.method == "GET":
         uref = oref.url()
