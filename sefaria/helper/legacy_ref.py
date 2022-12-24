@@ -5,6 +5,27 @@ from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.model.text import Ref
 
 
+class LegacyRefParserError(Exception):
+    """
+    Generic LegacyRefParser error
+    """
+
+
+class NoLegacyRefParserError(LegacyRefParserError):
+    pass
+
+
+class LegacyRefParserMappingKeyError(LegacyRefParserError, KeyError):
+    pass
+
+
+class NonExistantLegacyRefParser:
+    pass
+
+
+NON_EXISTANT_LEGACY_REF_PARSER = NonExistantLegacyRefParser()
+
+
 class LegacyRefParsingData(AbstractMongoRecord):
     """
     This class is a mongo backed data store for data to aid legacy ref parsing. 
@@ -86,21 +107,6 @@ class MappingLegacyRefParser:
         ranged_oref = parsed_range_list[0].to(parsed_range_list[-1])
         ranged_oref.legacy_tref = legacy_tref
         return ranged_oref
-
-
-class NoLegacyRefParserError(Exception):
-    pass
-
-
-class LegacyRefParserMappingKeyError(KeyError):
-    pass
-
-
-class NonExistantLegacyRefParser:
-    pass
-
-
-NON_EXISTANT_LEGACY_REF_PARSER = NonExistantLegacyRefParser()
 
 
 PossiblyNonExistantLegacyRefParser = Union[MappingLegacyRefParser, NonExistantLegacyRefParser]

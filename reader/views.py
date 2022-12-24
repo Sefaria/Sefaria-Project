@@ -61,7 +61,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, NoLegacyRefParserError
+from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
@@ -298,7 +298,7 @@ def catchall(request, tref, sheet=None):
             try:
                 converted_ref = legacy_ref_parser_handler.parse(matched_ref.book, tref)
                 return reader_redirect(converted_ref.url() if converted_ref else matched_ref.url())
-            except NoLegacyRefParserError:
+            except LegacyRefParserError:
                 return reader_redirect(matched_ref.url())
         except InputError:
             raise Http404
