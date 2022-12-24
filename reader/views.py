@@ -292,7 +292,6 @@ def catchall(request, tref, sheet=None):
     if sheet is None:
         try:
             oref = legacy_ref_parser_handler.instantiate_ref_with_legacy_parse_fallback(tref)
-            reader_redirect(oref.url())
         except InputError:
             raise Http404
 
