@@ -1770,11 +1770,11 @@ class LoginPrompt extends Component {
         </div>
         <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
-          <span className="int-he">התחבר</span>
+          <span className="int-he"> התחברו</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
-          <span className="int-he">הרשם</span>
+          <span className="int-he">הרשמו</span>
         </a>
       </div>);
   }

@@ -20,8 +20,8 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
-    "Log in": "התחבר",
-    "Sign up": "הרשם",
+    "Log in": "התחברו",
+    "Sign up": "הרשמו",
 
     // Texts Page
     "Learn More": "לקריאה נוספת",
