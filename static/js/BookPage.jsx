@@ -154,7 +154,7 @@ class BookPage extends Component {
     let catUrl;
     if (category == "Commentary") {
       const baseCategory = index.categories[0];
-      const commCategory = index.categories.find(x => x.includes(` on ${baseCategory}`)); //this finds commentary categories in Mishnah, Talmud and Tanakh such as "Rishonim on Tanakh"
+      const commCategory = index.categories.find(x => x === "Commentary" || x.includes(` on ${baseCategory}`)); //this finds commentary categories in Mishnah, Talmud and Tanakh such as "Rishonim on Tanakh"
       catUrl  = commCategory ? "/texts/" + index.categories.slice(0, index.categories.indexOf(commCategory) + 1).join("/") : "/texts/" + baseCategory;
     } else if (category == "Targum") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
