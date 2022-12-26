@@ -204,9 +204,7 @@ def load_spacy_model(path: str) -> spacy.Language:
     if path.startswith("gs://"):
         # file is located in Google Cloud
         # file is expected to be a tar.gz of the model folder
-        match = re.match(r"gs://([^/]+)/(.+)$", path)
-        bucket_name = match.group(1)
-        blob_name = match.group(2)
+        bucket_name, blob_name = GoogleStorageManager.get_bucket_and_filename_from_url(path)
         model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
         tar_buffer = tarfile.open(fileobj=model_buffer)
         with TemporaryDirectory() as tempdir:

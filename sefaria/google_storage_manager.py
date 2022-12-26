@@ -91,5 +91,18 @@ class GoogleStorageManager(object):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
 
     @classmethod
+    def get_bucket_and_filename_from_url(cls, url):
+        """
+        Assumes input is of the form "gs://<bucket>/<blob>"
+        Very similar to `get_filename_from_url`. Consider refactor.
+        @param url:
+        @return:
+        """
+        match = re.match(r"gs://([^/]+)/(.+)$", url)
+        bucket_name = match.group(1)
+        blob_name = match.group(2)
+        return bucket_name, blob_name
+
+    @classmethod
     def get_filename_from_url(cls, old_file_url):
         return re.findall(r"/([^/]+)$", old_file_url)[0] if old_file_url.startswith(cls.BASE_URL) else None
