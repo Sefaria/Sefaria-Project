@@ -7,7 +7,6 @@ django.setup()
 from sefaria.model import *
 from sefaria.helper.text import modify_text_by_function
 from sefaria.model.abstract import SluggedAbstractMongoRecord
-from sefaria.model.schema import TitleGroup
 
 UID = 28
 SOURCE_SLUG = "ashlag-glossary"
@@ -15,6 +14,12 @@ TEXTS = [
     'Peticha LeChokhmat HaKabbalah',
     'Introduction to Sulam Commentary'
 ]
+# Group 1: Openings tags
+# Group 2: Matched Word(s)
+# Group 3: Closing tags
+# FULL_REG = re.compile(r'(?:<<|&lt&lt)((?:<[^<>]*>)*)([^<>]*)((?:<[^<>]*>)*)(?:>>|&rt&rt)')
+FULL_REG = re.compile(r'(?:<<|&lt&lt)(.*?)(?:>>|&rt&rt)(?!>|&rt)')
+
 
 #####
 # UTIL
@@ -32,7 +37,7 @@ def normalize(s):
 
 
 def find_angle_quotes(s):
-    return re.findall(r'<<([^<>]*)>>', s)
+    return FULL_REG.finditer(s)
 
 
 #####
@@ -48,11 +53,35 @@ def remove_existing_topics():
     get_ashlag_topics().delete()
 
 
-def import_from_sheet():
+def set_topic_datasource():
+    tds_json = {
+        "slug": SOURCE_SLUG,
+        "displayName": {
+            "en": "Glossary of terms in the writings of Rabbi Yehuda Ashlag",
+            "he": "מילון מונחים בכתבי רבי יהודה אשלג"
+        }
+    }
+    tds = TopicDataSource().load({"slug": SOURCE_SLUG})
+    if tds is None:
+        TopicDataSource(tds_json).save()
+
+
+def build_all_topics():
     remove_existing_topics()
+    set_topic_datasource()
+
+    # add category
+    category_topic = Topic()
+    category_topic.add_primary_titles("Kabbalah Concept", "מושג מהקבלה")
+    category_topic.slug = "Kabbalah Concept"
+    category_topic.properties = {"source": SOURCE_SLUG}
+    category_topic.save()
+
+    # import from sheet
     for d in load_raw_from_sheet():
         t = build_topic_from_record(d)
         t.save()
+        set_is_a(t, category_topic, SOURCE_SLUG)
 
 
 def get_slug_from_record(d):
@@ -60,6 +89,23 @@ def get_slug_from_record(d):
     if slug_base is None:
         print(f"No slug for {d}")
     return SluggedAbstractMongoRecord.normalize_slug(slug_base)
+
+
+def set_is_a(from_topic, to_topic, data_source_slug):
+    link_json = {
+        "class": "intraTopic",
+        "fromTopic": from_topic.slug,
+        "toTopic": to_topic.slug,
+        "linkType": "is-a",
+        "dataSource": data_source_slug
+    }
+
+    link_json['generatedBy'] = "Import Ashlag Topics"
+    itl = IntraTopicLink().load(link_json)
+    if itl is not None:
+        itl.delete()
+    itl = IntraTopicLink(link_json)
+    itl.save()
 
 
 def build_topic_from_record(d):
@@ -85,6 +131,12 @@ def build_topic_from_record(d):
         for s in d.get("term alternate").split(","):
             t.add_title(s, "he")
 
+    for title in t.get_titles_object():
+        if title['lang'] == "en":
+            title['disambiguation'] = "Kabbalah"
+        if title['lang'] == "he":
+            title['disambiguation'] = "קבלה"
+
     t.change_description({
         "en": d.get('english description'),
         "he": d.get('hebrew description'),
@@ -109,9 +161,43 @@ def get_normal_mapping():
             mapping[normalize(t)] = topic
     return mapping
 
+def create_ref_topic_link(ref, topic, version, match):
+    link = {
+        "toTopic": topic.slug,
+        "linkType": "mention",
+        "dataSource": "sefaria",
+        "class": "refTopic",
+        "is_sheet": False,
+        "ref": ref.normal(),
+        "expandedRefs": [ref.normal()],
+        "charLevelData": {
+            "startChar": ne["start"],
+            "endChar": ne["end"],
+            "versionTitle": version.versionTitle,
+            "language": version.language,
+            "text": ne["mention"]
+        }
+    }
+
 
 def wrap_all():
     mapping = get_normal_mapping()
+
+
+    # 1 Find all cases of << >>
+    # 2 Pull contiguous phrases from overall match
+    # 3 If anything in there matches a term - success
+    # 4 Get
+    #   the location of the thing within the match object
+    #   the location of the match object within the overall string
+    #   correct for << >> removed up until now
+
+    # or
+    # 4 record success, and remove << >>
+    # 5 make a second pass finding final location of successes
+
+
+
     for t in TEXTS:
         wrap_text(t, mapping)
 
@@ -129,7 +215,7 @@ def wrap_text(text_name, mapping):
             :param m: MatchObject
             :return:
             """
-            matched_term = m.group(1)
+            matched_term = m.group(2)
             if not matched_term:
                 print("No matched term")
 
@@ -137,33 +223,19 @@ def wrap_text(text_name, mapping):
             topic = mapping.get(normal_term)
             if not topic:
                 print(f"No topic match for {matched_term} / {normal_term}")
-                return matched_term
+                return f'{m.group(1)}{matched_term}{m.group(3)}'
 
             slug = topic.slug
             url = f"/topics/{slug}"
-            return f'<a href="{url}" class="namedEntityLink" data-slug="{slug}">{matched_term}</a>'
+            return f'{m.group(1)}<a href="{url}" class="namedEntityLink" data-slug="{slug}">{matched_term}</a>{m.group(3)}'
 
-        return re.sub(r'<<([^<>]*)>>', sub_term, s)
+        return FULL_REG.sub(sub_term, s)
 
     print(text_name)
     vs = VersionSet({'title': text_name, 'language': 'en'})
     for v in vs:
         print(v.versionTitle)
-        modify_text_by_function(text_name, v.versionTitle, 'en', wrap_terms, 28)
-
-
-def set_topic_datasource():
-
-    tds_json = {
-        "slug": SOURCE_SLUG,
-        "displayName": {
-            "en": "Glossary of terms in the writings of Rabbi Yehuda Ashlag",
-            "he": "מילון מונחים בכתבי רבי יהודה אשלג"
-        }
-    }
-    tds = TopicDataSource().load({"slug": tds_json['slug']})
-    if tds is None:
-        TopicDataSource(tds_json).save()
+        modify_text_by_function(text_name, v.versionTitle, 'en', wrap_terms, 28, skip_links=True)
 
 
 def test_coverage():
@@ -181,7 +253,7 @@ def test_coverage():
             print("No desc in " + d["term english"])
         else:
             for s in find_angle_quotes(d["english description"]):
-                all_dict_words.add(normalize(s))
+                all_dict_words.add(normalize(s.group(2)))
 
     dict_unhandled = all_dict_words - ets - tts - tas
     print("Words unhandled in dictionary itself:")
@@ -192,7 +264,7 @@ def test_coverage():
     all_plh_words = set()
     for line in r.text("en").ja().flatten_to_array():
         for s in find_angle_quotes(line):
-            all_plh_words.add(normalize(s))
+            all_plh_words.add(normalize(s.group(2)))
 
     plh_unhandled = all_plh_words - ets - tts - tas
     print()
@@ -204,7 +276,7 @@ def test_coverage():
     all_isc_words = set()
     for line in r.text("en").ja().flatten_to_array():
         for s in find_angle_quotes(line):
-            all_isc_words.add(normalize(s))
+            all_isc_words.add(normalize(s.group(2)))
 
     isc_unhandled = all_isc_words - ets - tts - tas
     print()
@@ -215,6 +287,28 @@ def test_coverage():
     print("All Unhandled Words:")
     print(dict_unhandled | isc_unhandled | plh_unhandled)
 
+
+def dump_all():
+
+    for t in TEXTS:
+        for seg in Ref(t).all_segment_refs():
+            for s in find_angle_quotes(seg.text("en").text):
+                print()
+                print(s.group(1))
+                # Find malformed lines
+                # if "<<" in s.group(1):
+                #    print()
+                #    print(seg.normal())
+                #    print(s.group(1))
+
+    background_list = load_raw_from_sheet()
+    for d in background_list:
+        for s in find_angle_quotes(d["english description"]):
+            print()
+            print(s.group(1))
+
+
 # test_coverage()
-# import_from_sheet()
-wrap_all()
+# build_all_topics()
+# wrap_all()
+# dump_all()
