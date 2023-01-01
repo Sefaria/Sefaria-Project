@@ -150,7 +150,7 @@ class LegacyRefParserHandler(object):
         - If ref has partial match, return partially matched ref
         Can raise an `InputError`
         @param tref: textual ref to parse
-        @return: best `Ref` according to rules aboves
+        @return: best `Ref` according to rules above
         """
         from sefaria.system.exceptions import PartialRefInputError
 
