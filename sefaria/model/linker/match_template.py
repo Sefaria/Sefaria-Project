@@ -77,13 +77,16 @@ class MatchTemplateTrie:
                     for _ in range(len_curr_dict_queue):
                         curr_dict = curr_dict_queue.pop(0)
                         curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
-                # add nodes to leaves
-                for curr_dict in curr_dict_queue:
-                    leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
-                    if LEAF_TRIE_ENTRY in curr_dict:
-                        curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
-                    else:
-                        curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
+                self.__add_nodes_to_leaves(node, curr_dict_queue)
+
+    @staticmethod
+    def __add_nodes_to_leaves(node, curr_dict_queue):
+        for curr_dict in curr_dict_queue:
+            leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
+            if LEAF_TRIE_ENTRY in curr_dict:
+                curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
+            else:
+                curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
 
     @staticmethod
     def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:
