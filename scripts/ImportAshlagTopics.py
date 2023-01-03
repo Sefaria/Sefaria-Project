@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import csv, re, django
+from collections import OrderedDict
 from tqdm import tqdm
 
 django.setup()
 from sefaria.model import *
-from sefaria.helper.text import modify_text_by_function
 from sefaria.model.abstract import SluggedAbstractMongoRecord
+from sefaria.system.exceptions import DuplicateRecordError
 
 UID = 28
 SOURCE_SLUG = "ashlag-glossary"
@@ -19,7 +20,7 @@ TEXTS = [
 # Group 3: Closing tags
 # FULL_REG = re.compile(r'(?:<<|&lt&lt)((?:<[^<>]*>)*)([^<>]*)((?:<[^<>]*>)*)(?:>>|&rt&rt)')
 FULL_REG = re.compile(r'(?:<<|&lt&lt)(.*?)(?:>>|&rt&rt)(?!>|&rt)')
-
+PHRASE_REG = re.compile(r'[^()<>,. ][^()<>,.]+[^()<>,. ]')
 
 #####
 # UTIL
@@ -53,6 +54,14 @@ def remove_existing_topics():
     get_ashlag_topics().delete()
 
 
+def remove_ref_topic_links():
+    RefTopicLinkSet({"dataSource": SOURCE_SLUG}).delete()
+
+
+def remove_intra_topic_links():
+    IntraTopicLinkSet({"dataSource": SOURCE_SLUG}).delete()
+
+
 def set_topic_datasource():
     tds_json = {
         "slug": SOURCE_SLUG,
@@ -68,6 +77,8 @@ def set_topic_datasource():
 
 def build_all_topics():
     remove_existing_topics()
+    remove_ref_topic_links()
+    remove_intra_topic_links()
     set_topic_datasource()
 
     # add category
@@ -149,6 +160,41 @@ def build_topic_from_record(d):
 #####
 # WRAP
 #####
+class TextMatches:
+    def __init__(self):
+        self.matches = OrderedDict()
+
+    def add_match(self, oref, phrase, topic):
+        """
+
+        :param ref: Ref object
+        :param phrase: string
+        :param topic: Topic object
+        :return:
+        """
+        ref = oref.normal()
+        if not self.matches.get(ref):
+            self.matches[ref] = []
+        self.matches[ref] += [{"phrase": phrase, "topic": topic}]
+
+    def all_matches(self):
+        return self.matches.items()
+
+    def all_refs(self):
+        return self.matches.keys()
+
+    def for_ref(self, ref):
+        for d in self.matches.get(ref):
+            yield d["phrase"], d["topic"]
+
+    def unique_for_ref(self, ref):
+        done = set()
+        for d in self.matches.get(ref):
+            if d["phrase"] in done:
+                continue
+            else:
+                yield d["phrase"], d["topic"]
+                done.add(d["phrase"])
 
 
 def get_normal_mapping():
@@ -157,85 +203,91 @@ def get_normal_mapping():
     mapping = {}
     for topic in get_ashlag_topics():
         assert isinstance(topic, Topic)
-        for t in topic.get_titles("en"):
+        for t in topic.get_titles("en", with_disambiguation=False):
             mapping[normalize(t)] = topic
     return mapping
 
-def create_ref_topic_link(ref, topic, version, match):
+
+def create_ref_topic_link(ref: text.Ref, topix: topic.Topic, version: text.Version, match: re.Match):
+    """
+
+    :param ref:
+    :param topix:
+    :param version:
+    :param match: re.Match
+    :return:
+    """
     link = {
-        "toTopic": topic.slug,
+        "toTopic": topix.slug,
         "linkType": "mention",
-        "dataSource": "sefaria",
+        "dataSource": SOURCE_SLUG,
         "class": "refTopic",
         "is_sheet": False,
         "ref": ref.normal(),
         "expandedRefs": [ref.normal()],
         "charLevelData": {
-            "startChar": ne["start"],
-            "endChar": ne["end"],
+            "startChar": match.start(),
+            "endChar": match.end(),
             "versionTitle": version.versionTitle,
             "language": version.language,
-            "text": ne["mention"]
+            "text": match.group()
         }
     }
-
+    try:
+        RefTopicLink(link).save()
+    except DuplicateRecordError as e:
+        print(e)
 
 def wrap_all():
+    remove_ref_topic_links()
     mapping = get_normal_mapping()
+    for t in TEXTS:
+        create_topic_links_for_text(t, mapping)
 
+
+def create_topic_links_for_text(text_name, mapping):
 
     # 1 Find all cases of << >>
     # 2 Pull contiguous phrases from overall match
     # 3 If anything in there matches a term - success
-    # 4 Get
-    #   the location of the thing within the match object
-    #   the location of the match object within the overall string
-    #   correct for << >> removed up until now
-
-    # or
     # 4 record success, and remove << >>
-    # 5 make a second pass finding final location of successes
+    # 5 make a second pass finding final location of successes and creating links
 
+    matches = TextMatches()
 
-
-    for t in TEXTS:
-        wrap_text(t, mapping)
-
-
-def wrap_text(text_name, mapping):
-    def wrap_terms(s, _):
-        # Find bracketed terms
-        # For each term
-        # Normalize - find associated topic
-        # If no topic - unwrap brackets and carp
-        # If topic found - wrap term
-
-        def sub_term(m):
-            """
-            :param m: MatchObject
-            :return:
-            """
-            matched_term = m.group(2)
-            if not matched_term:
-                print("No matched term")
-
-            normal_term = normalize(matched_term)
-            topic = mapping.get(normal_term)
-            if not topic:
-                print(f"No topic match for {matched_term} / {normal_term}")
-                return f'{m.group(1)}{matched_term}{m.group(3)}'
-
-            slug = topic.slug
-            url = f"/topics/{slug}"
-            return f'{m.group(1)}<a href="{url}" class="namedEntityLink" data-slug="{slug}">{matched_term}</a>{m.group(3)}'
-
-        return FULL_REG.sub(sub_term, s)
-
-    print(text_name)
     vs = VersionSet({'title': text_name, 'language': 'en'})
     for v in vs:
+        print(text_name)
         print(v.versionTitle)
-        modify_text_by_function(text_name, v.versionTitle, 'en', wrap_terms, 28, skip_links=True)
+
+        for ref in Ref(text_name).all_segment_refs():
+            tc = ref.text("en", v.versionTitle)
+
+            # Find and record all matching terms
+            referrals = FULL_REG.findall(tc.text)
+            if not referrals:
+                continue
+            for referral in referrals:
+                for phrase in PHRASE_REG.findall(referral):
+                    normal_term = normalize(phrase)
+                    topic = mapping.get(normal_term)
+
+                    # TODO: organize this by ref
+                    if topic:
+                        matches.add_match(ref, phrase, topic)
+                    else:
+                        print(f"No topic match for {referral} / {phrase}")
+
+            # Remove the << >>
+            tc.text = FULL_REG.sub(r"\1", tc.text)
+            tc.save()
+
+        for ref in matches.all_refs():
+            oref = Ref(ref)
+            tc = oref.text("en", v.versionTitle)
+            for phrase, topic in matches.unique_for_ref(ref):
+                for m in re.finditer(phrase, tc.text):
+                    create_ref_topic_link(oref, topic, v, m)
 
 
 def test_coverage():
@@ -270,7 +322,6 @@ def test_coverage():
     print()
     print("Words unhandled in PLH:")
     print(plh_unhandled)
-
 
     r = Ref('Introduction to Sulam Commentary')
     all_isc_words = set()
@@ -310,5 +361,6 @@ def dump_all():
 
 # test_coverage()
 # build_all_topics()
-# wrap_all()
+wrap_all()
 # dump_all()
+# print(get_normal_mapping())
