@@ -61,9 +61,8 @@ class MatchTemplateTrie:
     def __init_with_nodes(self, nodes):
         self._trie = {}
         for node in nodes:
-            is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
-                if not is_index_level and not match_template.matches_scope(self.scope):
+                if not node.is_root() and not match_template.matches_scope(self.scope):
                     continue
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
@@ -80,7 +79,7 @@ class MatchTemplateTrie:
                         curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
                 # add nodes to leaves
                 for curr_dict in curr_dict_queue:
-                    leaf_node = NamedReferenceableBookNode(node.index if is_index_level else node)
+                    leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
                     if LEAF_TRIE_ENTRY in curr_dict:
                         curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
                     else:
