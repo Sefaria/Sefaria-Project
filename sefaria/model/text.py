@@ -5495,7 +5495,7 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
+        from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
@@ -5505,7 +5505,6 @@ class Library(object):
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
             {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
             {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
@@ -5513,7 +5512,6 @@ class Library(object):
                 "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
             },
-            ref_part_title_graph,
             {
                 "en": TermMatcher('en', non_unique_terms),
                 "he": TermMatcher('he', non_unique_terms),

@@ -1,11 +1,10 @@
 {
-	"title": "Friend,",
+	"title": "",
 	"text": [
-		"Sefaria is your library, here to support all your learning needs. As a nonprofit, we rely on the generosity of learners like you to keep our website and app growing. And thanks to your support, we are on track to raise the final $200,000 we need to meet Sefaria's budgeted expenses for the year.",
-		"If you’ve benefited from our texts, translations, or learning opportunities in 2022, please make an investment in the future of the library today, and help us meet our goal. Thank you."
-	],
+"There is only one week left to give this year — please join us in supporting new texts, translations, and tech features in 2023 by making a donation today!"
+],
 	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
-	"buttonText": "DONATE TODAY",
-	"name": "2022-12-08-end-of-year-msg01",
+	"buttonText": "Donate Now",
+	"name": "2022-12-26-end-of-year-msg05-banner",
 	"schemaVersion": 1
 }
