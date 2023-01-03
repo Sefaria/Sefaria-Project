@@ -171,6 +171,7 @@ def tanakh_yomi(datetime_obj):
     })
     return tanakh_items
 
+
 @graceful_exception(logger=logger, return_value=[])
 def tikkunei_yomi(datetime_obj):
     tikkunei_items = []
@@ -378,6 +379,28 @@ def hok_leyisrael(datetime_obj, diaspora=True):
         "category": 'Tanakh'
     }]
 
+
+@graceful_exception(logger=logger, return_value=[])
+def tanya_yomi(datetime_obj):
+    tanya_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.tanya_yomi.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tanya_items.append({
+        "title": {"en": "Tanya Yomi", "he": 'תניא יומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 15,
+        "category": rf.index.get_primary_category()
+    })
+    return tanya_items
+
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
@@ -394,6 +417,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += tanakh_yomi(datetime_obj)
     cal_items += tikkunei_yomi(datetime_obj)
     cal_items += hok_leyisrael(datetime_obj, diaspora=diaspora)
+    cal_items += tanya_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 

@@ -76,6 +76,7 @@ crrd = create_raw_ref_data
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה אלא ביבנה"]), ("Rashi on Rosh Hashanah 29b:5:3",)],
     [crrd(['@שבועות', '#דף כה ע"א', '@תוד"ה', '*חומר']), ("Tosafot on Shevuot 25a:11:1",)],
     [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
+    [crrd(["@רש\"י", "@בראשית", "#פרק א", "#פסוק א", "*ד\"ה בראשית"]), ("Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2")],
 
     # Ranged refs
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א', '^עד', '#פרק יד', '#פסוק ד']), ("Genesis 13:1-14:4",)],

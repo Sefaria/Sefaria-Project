@@ -127,6 +127,7 @@ class ReaderApp extends Component {
       filter:                  state.filter                  || [],
       versionFilter:           state.versionFilter           || [],
       connectionsMode:         state.connectionsMode         || "Resources",
+      connectionsCategory:     state.connectionsCategory     || null,
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
       highlightedNode:         state.highlightedNode         || null,
@@ -368,7 +369,7 @@ class ReaderApp extends Component {
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
           (next.mode === "Translation Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
-          (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
+          (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
@@ -776,9 +777,6 @@ class ReaderApp extends Component {
 
     return hist;
   }
-  _hackyAreUrlsEqual(encodedUrl, possiblyEncodeUrl) {
-    return encodedUrl === possiblyEncodeUrl || encodedUrl === encodeURI(possiblyEncodeUrl);
-  }
   updateHistoryState(replace) {
     if (!this.shouldHistoryUpdate()) {
       return;
@@ -793,10 +791,10 @@ class ReaderApp extends Component {
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
       // console.log("Replace History - " + hist.url + " | " + currentUrl);
-      if (!this._hackyAreUrlsEqual(currentUrl, hist.url)) { this.checkScrollIntentAndTrack(); }
+      if (currentUrl !== hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
-      if (this._hackyAreUrlsEqual(currentUrl, hist.url)) { return; } // Never push history with the same URL
+      if (currentUrl === hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
       // console.log("Push History - " + hist.url);
       this.trackPageview();

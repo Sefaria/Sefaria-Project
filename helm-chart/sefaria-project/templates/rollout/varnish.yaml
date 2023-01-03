@@ -6,7 +6,7 @@ metadata:
   name: {{ .Values.deployEnv }}-varnish
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
-  annotations: 
+  annotations:
     rollout.argoproj.io/revision: "{{ .Release.Revision }}"
 spec:
   strategy:
@@ -57,7 +57,7 @@ spec:
         imagePullPolicy: Always
         args:
           - -F
-          - -f 
+          - -f
           - /etc/varnish/sefaria.vcl
           - -S
           - /etc/varnish-secret/varnish-secret

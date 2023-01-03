@@ -163,7 +163,7 @@ spec:
                 path: local_settings.py
         - name: elastic-cert
           secret:
-            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} 
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
             optional: true
         - name: client-secret
           secret:
