@@ -27,6 +27,14 @@ class MatchTemplate(abst.Cloneable):
             serial['scope'] = self.scope
         return serial
 
+    def matches_scope(self, other_scope: str) -> bool:
+        """
+        Does `self`s scope match `other_scope`?
+        @param other_scope:
+        @return: True if scope matches
+        """
+        return other_scope == 'any' or self.scope == 'any' or other_scope == self.scope
+
     terms = property(get_terms)
 
 
@@ -55,7 +63,8 @@ class MatchTemplateTrie:
         for node in nodes:
             is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
-                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
+                if not is_index_level and not match_template.matches_scope(self.scope):
+                    continue
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
                     if term is None:
