@@ -8,7 +8,7 @@
 <head>
     <title>{% block title %}{{ title|striptags }}{% endblock %}</title>
     <meta charset="utf-8"/>
-    <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
+    <meta name="description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
     {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
@@ -30,7 +30,8 @@
     {% endblock %}
 
     {% block ogimage %}
-        <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=facebook&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+        <meta property="og:description" content="{% block fb_description %}{{ desc|striptags }}{% endblock %}"/>
+        <meta property="og:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=facebook&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -43,7 +44,7 @@
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
-    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
+    <meta name="twitter:image" content="https://{{ request.get_host }}/api/img-gen{{ request.path }}?lang={{request.GET.lang}}&platform=twitter&ven={{request.GET.ven}}&vhe={{request.GET.vhe}}" />
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -150,12 +151,12 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-LNP9R1SLL3"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_GTAG }}"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-LNP9R1SLL3', {'debug_mode':true});
+          gtag('config', '{{ GOOGLE_GTAG }}');
         </script>
     <!-- End Google tag -->
     {% endif %}

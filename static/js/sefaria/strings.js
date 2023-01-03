@@ -60,12 +60,13 @@ const Strings = {
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
-    "Topic pages bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.",
     "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
     "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
+    "Create a Topic": "ליצירת נושא חדש",
+    "Edit Topic": "עריכת נושא",
 
     // All Topics
     "All Topics": "כל הנושאים",
@@ -582,6 +583,7 @@ const Strings = {
       "Texts": "מקורות",
       "Topics": "נושאים",
       "Collections": "באסופות",
+      "See More": "עוד",
     },
     "CalendarListing": {
       "Tanakh": "",
