@@ -1858,8 +1858,8 @@ class InterruptingMessage extends Component {
     }
   }
   shouldShow() {
-    const exlcudedPaths = ["/donate", "/mobile", "/app"];
-    return exlcudedPaths.indexOf(window.location.pathname) === -1;
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
   }
   delayedShow() {
     setTimeout(function() {

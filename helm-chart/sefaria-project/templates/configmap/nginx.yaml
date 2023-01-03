@@ -5,8 +5,8 @@ metadata:
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
-  nginx.template.conf: |- 
+data:
+  nginx.template.conf: |-
     user www-data;
     worker_processes 8;
     error_log  /var/log/nginx/error.log warn;
@@ -68,7 +68,7 @@ data:
         if ($http_x_forwarded_proto = "http") {
             return 301 https://$host$request_uri;
         }
-        
+
         # protect all non-allowed elasticsearch paths
         location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
           return 403;
@@ -106,7 +106,7 @@ data:
           default_type application/json;
           return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
         }
-        
+
         location / {
             proxy_send_timeout  300;
             proxy_read_timeout  300;

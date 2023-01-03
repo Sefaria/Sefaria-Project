@@ -10,7 +10,7 @@ from sefaria.model import text
 from sefaria.model import schema
 from .ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, RangedRawRefParts, ContextPart, TermContext
 from .referenceable_book_node import NamedReferenceableBookNode, DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from .match_template import MatchTemplateTrie, MatchTemplateGraph, LEAF_TRIE_ENTRY
+from .match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 import structlog
 logger = structlog.get_logger(__name__)
 try:
@@ -19,9 +19,6 @@ try:
     from spacy.language import Language
 except ImportError:
     spacy = Doc = Span = Token = Language = None
-    logger.warning("Failed to load spaCy. spaCy is not part of general requirements in requirements.txt since it is "
-                   "only used for machine learning tasks currently and not required for general server functionality. "
-                   "To install, follow instructions here: https://spacy.io/usage.")
 
 
 def subref(ref: text.Ref, section: int):
@@ -396,14 +393,13 @@ class IbidHistory:
 class RefResolver:
 
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
-                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
+                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie],
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
         from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
 
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
-        self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
         self._thoroughness = ResolutionThoroughness.NORMAL
@@ -580,7 +576,7 @@ class RefResolver:
                 if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
-                    [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
+                    curr_parts = [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
                     split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass

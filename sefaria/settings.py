@@ -297,11 +297,11 @@ CACHES = {
 }
 
 
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-11-27-giving-tuesday",
+    "name": "2022-12-26-end-of-year-msg05-banner",
     "style":      "modal",  # "modal" or "banner"
-    "repetition": 1,
+    "repetition": 2,
     "is_fundraising": False,
     "condition":  {
         "returning_only": False,
@@ -310,9 +310,9 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-"""
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 

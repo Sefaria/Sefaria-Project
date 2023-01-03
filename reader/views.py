@@ -374,12 +374,14 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
+            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
             if panel["connectionsMode"] == "ConnectionsList":
                 panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                if len(panel['filter']) == 1:
+                    panel['connectionsCategory'] = panel['filter'][0]
             if panel['connectionsMode'] == "WebPagesList":
                 panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
-            if deleteFilter:
+            if delete_filter:
                 del panel['filter']
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
@@ -3068,6 +3070,7 @@ def add_new_topic_api(request):
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
+        t.description_published = True
         t.change_description(data["description"], data.get("catDescription", ""))
         t.save()
 
@@ -3155,6 +3158,7 @@ def topics_api(request, topic, v2=False):
             topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
         if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+            topic_obj.description_published = True
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
             needs_save = True
 
