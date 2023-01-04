@@ -3,7 +3,6 @@
 import pytest
 from sefaria.model import *
 from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData, LegacyRefParserMappingKeyError
-from sefaria.system.database import db
 from sefaria.system.exceptions import PartialRefInputError
 
 
@@ -143,6 +142,22 @@ class TestLegacyRefsTestIndex:
             converted_ref = parser.parse(old_ref)
             assert converted_ref.legacy_tref == old_ref
             assert converted_ref.normal() == Ref(new_ref).normal()
+
+    def test_instantiate_ref_with_legacy_parse_fallback(self, test_index_title, old_and_new_trefs):
+        old_tref, new_tref = old_and_new_trefs
+
+        oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
+        if new_tref is None:
+            assert oref.normal() == test_index_title
+            assert getattr(oref, 'legacy_tref', None) is None
+        else:
+            assert oref.normal() == new_tref
+            assert oref.legacy_tref == old_tref
+
+        if new_tref is not None:
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
+            assert oref.normal() == new_tref
+            assert getattr(oref, 'legacy_tref', None) is None
 
 
 class TestLegacyRefsRandomIndex:
