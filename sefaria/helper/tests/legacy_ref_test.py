@@ -51,9 +51,9 @@ def test_zohar_mapping_data(test_index_title):
         "index_title": test_index_title,
         "data": {
             "mapping": {
-                f"{test_index_title} 1:15a:1": f"{test_index_title} 1:42",
-                f"{test_index_title} 1:15a:2": f"{test_index_title} 1:42",
-                f"{test_index_title} 1:15a:3": f"{test_index_title} 1:43",
+                f"{test_index_title}.1.15a.1": f"{test_index_title}.1.42",
+                f"{test_index_title}.1.15a.2": f"{test_index_title}.1.42",
+                f"{test_index_title}.1.15a.3": f"{test_index_title}.1.43",
             },
         },
     })
@@ -89,13 +89,13 @@ def get_partial_ref_error(tref):
 
 
 @pytest.mark.parametrize("old_and_new_trefs", [
-    ["1:15a:1", "1:42"],
-    ["1:15a:2", "1:42"],
-    ["1:15a:3", "1:43"],
-    ["1:15a:1-2", "1:42"],
-    ["1:15a:1-3", "1:42-43"],
-    ["123:456:789", None],
-    ["1:15a:1-4", None],
+    ["1.15a.1", "1.42"],
+    ["1.15a.2", "1.42"],
+    ["1.15a.3", "1.43"],
+    ["1.15a.1-2", "1.42"],
+    ["1.15a.1-3", "1.42-43"],
+    ["123.456.789", None],
+    ["1.15a.1-4", None],
 ], indirect=True)
 class TestLegacyRefsTestIndex:
 
@@ -152,7 +152,7 @@ class TestLegacyRefsTestIndex:
             assert getattr(oref, 'legacy_tref', None) is None
         else:
             assert oref.normal() == new_tref
-            assert oref.legacy_tref == old_tref
+            assert oref.legacy_tref == old_tref.replace(':', '.')
 
         if new_tref is not None:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
