@@ -68,11 +68,7 @@ class MatchTemplateTrie:
                 if not node.is_root() and not match_template.matches_scope(self.scope):
                     continue
                 curr_dict_queue = [self._trie]
-                for term in match_template.terms:
-                    if term is None:
-                        self.__log_non_existent_term_warning(node)
-                        continue
-                    self.__add_term_titles_to_trie(term, curr_dict_queue)
+                self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
                 self.__add_nodes_to_leaves(node, curr_dict_queue)
 
     @staticmethod
@@ -83,6 +79,13 @@ class MatchTemplateTrie:
             node_ref = node.get_primary_title('en')
         logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
                        f"Check match_templates and fix.")
+
+    def __add_all_term_titles_to_trie(self, term_list, node, curr_dict_queue):
+        for term in term_list:
+            if term is None:
+                self.__log_non_existent_term_warning(node)
+                continue
+            self.__add_term_titles_to_trie(term, curr_dict_queue)
 
     def __add_term_titles_to_trie(self, term, curr_dict_queue):
         len_curr_dict_queue = len(curr_dict_queue)
