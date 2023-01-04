@@ -4718,7 +4718,13 @@ class Ref(object, metaclass=RefCacheType):
         from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
 
         try:
-            return Ref(tref)
+            oref = Ref(tref)
+            try:
+                # this field can be set if a legacy parsed ref is pulled from cache
+                delattr(oref, 'legacy_tref')
+            except AttributeError:
+                pass
+            return oref
         except PartialRefInputError as e:
             matched_ref = Ref(e.matched_part)
             try:
