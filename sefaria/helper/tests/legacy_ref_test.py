@@ -73,8 +73,8 @@ def test_index_title():
 def old_and_new_trefs(request, test_index_title):
     old_ref, new_ref = request.param
     # if new_ref is None, means mapping doesn't exist
-    new_ref = new_ref and f"{test_index_title} {new_ref}"
-    return f"{test_index_title} {old_ref}", new_ref
+    new_ref = new_ref and f"{test_index_title}.{new_ref}"
+    return f"{test_index_title}.{old_ref}", new_ref
 
 
 def get_book(tref):
@@ -148,15 +148,15 @@ class TestLegacyRefsTestIndex:
 
         oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
         if new_tref is None:
-            assert oref.normal() == test_index_title
+            assert oref.url() == test_index_title
             assert getattr(oref, 'legacy_tref', None) is None
         else:
-            assert oref.normal() == new_tref
+            assert oref.url() == new_tref
             assert oref.legacy_tref == old_tref.replace(':', '.')
 
         if new_tref is not None:
             oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
-            assert oref.normal() == new_tref
+            assert oref.url() == new_tref
             assert getattr(oref, 'legacy_tref', None) is None
 
 
