@@ -5,6 +5,9 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class MatchTemplate(abst.Cloneable):
@@ -67,17 +70,25 @@ class MatchTemplateTrie:
                 curr_dict_queue = [self._trie]
                 for term in match_template.terms:
                     if term is None:
-                        try:
-                            node_ref = node.ref()
-                        except:
-                            node_ref = node.get_primary_title('en')
-                        print(f"{node_ref} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
+                        self.__log_non_existent_term_warning(node)
                         continue
-                    len_curr_dict_queue = len(curr_dict_queue)
-                    for _ in range(len_curr_dict_queue):
-                        curr_dict = curr_dict_queue.pop(0)
-                        curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
+                    self.__add_term_titles_to_trie(term, curr_dict_queue)
                 self.__add_nodes_to_leaves(node, curr_dict_queue)
+
+    @staticmethod
+    def __log_non_existent_term_warning(node):
+        try:
+            node_ref = node.ref()
+        except:
+            node_ref = node.get_primary_title('en')
+        logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
+                       f"Check match_templates and fix.")
+
+    def __add_term_titles_to_trie(self, term, curr_dict_queue):
+        len_curr_dict_queue = len(curr_dict_queue)
+        for _ in range(len_curr_dict_queue):
+            curr_dict = curr_dict_queue.pop(0)
+            curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
 
     @staticmethod
     def __add_nodes_to_leaves(node, curr_dict_queue):
