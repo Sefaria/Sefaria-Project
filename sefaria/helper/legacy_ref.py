@@ -62,6 +62,9 @@ class LegacyRefParser:
 class MappingLegacyRefParser(LegacyRefParser):
     """
     Parses legacy refs using a mapping from old ref -> new ref
+    Assumption for now is this class can only map refs that are either
+    - segment level
+    - ranged segment level but not spanning sections
     """
     
     def __init__(self, data: LegacyRefParsingData):
@@ -89,7 +92,7 @@ class MappingLegacyRefParser(LegacyRefParser):
     def parse(self, legacy_tref: str) -> Ref:
         """
 
-        @param legacy_tref: Assumption for now is this is segment level or ranged segment level and not a spanning ref
+        @param legacy_tref:
         @return:
         """
         if self.__is_ranged_ref(legacy_tref):
