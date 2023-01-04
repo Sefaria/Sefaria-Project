@@ -1366,7 +1366,7 @@ def modify_bulk_text_api(request, title):
 @csrf_exempt
 def texts_api(request, tref):
     oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
-    tref = oref.normal()
+    tref = oref.url()
 
     if request.method == "GET":
         uref = oref.url()
