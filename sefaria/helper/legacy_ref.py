@@ -68,11 +68,11 @@ class MappingLegacyRefParser(LegacyRefParser):
         self._mapping: Dict[str, str] = data.data['mapping']
 
     @staticmethod
-    def is_ranged_ref(tref: str) -> bool:
+    def __is_ranged_ref(tref: str) -> bool:
         return "-" in tref
 
     @staticmethod
-    def range_list(ranged_tref: str) -> List[str]:
+    def __range_list(ranged_tref: str) -> List[str]:
         segment_range_match = re.search(r'(\d+)-(\d+)$', ranged_tref)
         if segment_range_match is None:
             return [ranged_tref]
@@ -92,24 +92,24 @@ class MappingLegacyRefParser(LegacyRefParser):
         @param legacy_tref: Assumption for now is this is segment level or ranged segment level and not a spanning ref
         @return:
         """
-        if self.is_ranged_ref(legacy_tref):
-            return self._parse_ranged_ref(legacy_tref)
-        return self._parse_segment_ref(legacy_tref)
+        if self.__is_ranged_ref(legacy_tref):
+            return self.__parse_ranged_ref(legacy_tref)
+        return self.__parse_segment_ref(legacy_tref)
 
-    def _get_mapped_tref(self, legacy_tref: str) -> str:
+    def __get_mapped_tref(self, legacy_tref: str) -> str:
         try:
             return self._mapping[legacy_tref]
         except KeyError as err:
             raise LegacyRefParserMappingKeyError(*err.args)
 
-    def _parse_segment_ref(self, legacy_tref: str) -> Ref:
-        converted_tref = self._get_mapped_tref(legacy_tref)
+    def __parse_segment_ref(self, legacy_tref: str) -> Ref:
+        converted_tref = self.__get_mapped_tref(legacy_tref)
         converted_ref = Ref(converted_tref)
         converted_ref.legacy_tref = legacy_tref
         return converted_ref
 
-    def _parse_ranged_ref(self, legacy_tref: str) -> Ref:
-        parsed_range_list = [self._parse_segment_ref(temp_tref) for temp_tref in self.range_list(legacy_tref)]
+    def __parse_ranged_ref(self, legacy_tref: str) -> Ref:
+        parsed_range_list = [self.__parse_segment_ref(temp_tref) for temp_tref in self.__range_list(legacy_tref)]
         parsed_range_list.sort(key=lambda x: x.order_id())  # not assuming mapping is in order
         ranged_oref = parsed_range_list[0].to(parsed_range_list[-1])
         ranged_oref.legacy_tref = legacy_tref
@@ -128,18 +128,18 @@ class LegacyRefParserHandler:
         self._parsers: Dict[str, PossiblyNonExistantLegacyRefParser] = {}
 
     def __getitem__(self, index_title: str) -> LegacyRefParser:
-        parser = self._get_parser(index_title)
+        parser = self.__get_parser(index_title)
         if isinstance(parser, NonExistantLegacyRefParser):
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return parser
 
-    def _get_parser(self, index_title: str) -> PossiblyNonExistantLegacyRefParser:
+    def __get_parser(self, index_title: str) -> PossiblyNonExistantLegacyRefParser:
         try:
             return self._parsers[index_title]
         except KeyError:
             pass
         try:
-            parser = self._create_legacy_parser(index_title)
+            parser = self.__create_legacy_parser(index_title)
         except NoLegacyRefParserError as e:
             parser = NON_EXISTANT_LEGACY_REF_PARSER
         self._parsers[index_title] = parser
@@ -171,7 +171,7 @@ class LegacyRefParserHandler:
                 return matched_ref
 
     @staticmethod
-    def _load_data(index_title: str) -> LegacyRefParsingData:
+    def __load_data(index_title: str) -> LegacyRefParsingData:
         """
         Load mapping from the DB
         @return:
@@ -182,12 +182,12 @@ class LegacyRefParserHandler:
         return lrpd
 
     @staticmethod
-    def _create_legacy_parser(index_title: str, **kwargs) -> LegacyRefParser:
+    def __create_legacy_parser(index_title: str, **kwargs) -> LegacyRefParser:
         """
         Currently, only returns one type of LegacyRefParser but in the future can determine type from the data
         determine the type from the data
         """
-        data = LegacyRefParserHandler._load_data(index_title)
+        data = LegacyRefParserHandler.__load_data(index_title)
         return MappingLegacyRefParser(data)
 
 
