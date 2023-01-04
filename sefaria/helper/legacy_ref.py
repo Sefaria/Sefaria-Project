@@ -52,7 +52,14 @@ class LegacyRefParsingData(AbstractMongoRecord):
     __slots__ = ['index_title', 'data']
 
 
-class MappingLegacyRefParser:
+class LegacyRefParser:
+    """
+    Currently empty super class used for type hints and to make the code more flexible in the future
+    """
+    pass
+
+
+class MappingLegacyRefParser(LegacyRefParser):
     """
     Parses legacy refs using a mapping from old ref -> new ref
     """
@@ -109,7 +116,7 @@ class MappingLegacyRefParser:
         return ranged_oref
 
 
-PossiblyNonExistantLegacyRefParser = Union[MappingLegacyRefParser, NonExistantLegacyRefParser]
+PossiblyNonExistantLegacyRefParser = Union[LegacyRefParser, NonExistantLegacyRefParser]
 
 
 class LegacyRefParserHandler(object):
@@ -120,7 +127,7 @@ class LegacyRefParserHandler(object):
     def __init__(self):
         self._parsers: Dict[str, PossiblyNonExistantLegacyRefParser] = {}
 
-    def __getitem__(self, index_title: str) -> MappingLegacyRefParser:
+    def __getitem__(self, index_title: str) -> LegacyRefParser:
         parser = self._get_parser(index_title)
         if isinstance(parser, NonExistantLegacyRefParser):
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
@@ -171,11 +178,11 @@ class LegacyRefParserHandler(object):
         """
         lrpd = LegacyRefParsingData().load({"index_title": index_title})
         if lrpd is None:
-            raise NoLegacyRefParserError(f"No MappingLegacyRefParser for index title '{index_title}'")
+            raise NoLegacyRefParserError(f"No LegacyRefParser for index title '{index_title}'")
         return lrpd
 
     @staticmethod
-    def _create_legacy_parser(index_title: str, **kwargs) -> MappingLegacyRefParser:
+    def _create_legacy_parser(index_title: str, **kwargs) -> LegacyRefParser:
         """
         Currently, only returns one type of LegacyRefParser but in the future can determine type from the data
         determine the type from the data
