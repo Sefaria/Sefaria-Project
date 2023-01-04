@@ -49,7 +49,9 @@ class LegacyRefParser:
     """
     Currently empty super class used for type hints and to make the code more flexible in the future
     """
-    pass
+
+    def parse(self, legacy_tref: str) -> Ref:
+        pass
 
 
 class NonExistentLegacyRefParser:
