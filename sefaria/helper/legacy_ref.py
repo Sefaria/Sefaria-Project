@@ -109,6 +109,8 @@ class MappingLegacyRefParser(LegacyRefParser):
         return range_list
 
     def __get_mapped_tref(self, legacy_tref: str) -> str:
+        # replace last space before sections with a period to conform with normal form
+        legacy_tref = re.sub(r" (?=[\d.:ab]+$)", ".", legacy_tref)
         try:
             return self._mapping[legacy_tref]
         except KeyError as err:
