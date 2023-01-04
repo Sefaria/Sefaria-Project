@@ -19,8 +19,6 @@ class LegacyRefParserMappingKeyError(LegacyRefParserError, KeyError):
     pass
 
 
-
-
 class LegacyRefParsingData(AbstractMongoRecord):
     """
     This class is a mongo backed data store for data to aid legacy ref parsing. 
