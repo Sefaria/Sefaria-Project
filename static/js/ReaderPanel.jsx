@@ -1258,6 +1258,7 @@ class ReaderControls extends Component {
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
+      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
     this.loadTranslations();
   }
