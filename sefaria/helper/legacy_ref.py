@@ -77,6 +77,16 @@ class MappingLegacyRefParser(LegacyRefParser):
     def __init__(self, data: LegacyRefParsingData):
         self._mapping: Dict[str, str] = data.data['mapping']
 
+    def parse(self, legacy_tref: str) -> Ref:
+        """
+
+        @param legacy_tref:
+        @return:
+        """
+        if self.__is_ranged_ref(legacy_tref):
+            return self.__parse_ranged_ref(legacy_tref)
+        return self.__parse_segment_ref(legacy_tref)
+
     @staticmethod
     def __is_ranged_ref(tref: str) -> bool:
         return "-" in tref
@@ -95,16 +105,6 @@ class MappingLegacyRefParser(LegacyRefParser):
             range_list += [f"{base_tref}{segment_num}"]
 
         return range_list
-
-    def parse(self, legacy_tref: str) -> Ref:
-        """
-
-        @param legacy_tref:
-        @return:
-        """
-        if self.__is_ranged_ref(legacy_tref):
-            return self.__parse_ranged_ref(legacy_tref)
-        return self.__parse_segment_ref(legacy_tref)
 
     def __get_mapped_tref(self, legacy_tref: str) -> str:
         try:
