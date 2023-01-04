@@ -71,7 +71,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return [self._transform_schema_node_to_referenceable(x) for x in self._get_schema_children()]
 
     def ref_part_title_trie(self, *args, **kwargs):
-        return self._titled_tree_node.ref_part_title_trie(*args, **kwargs)
+        return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
 
 
 class NumberedReferenceableBookNode(ReferenceableBookNode):

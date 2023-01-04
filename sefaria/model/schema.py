@@ -831,7 +831,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_title_trie(self, lang: str):
+    def get_match_template_trie(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
