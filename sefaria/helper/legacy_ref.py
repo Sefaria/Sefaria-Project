@@ -54,13 +54,15 @@ class LegacyRefParser:
         pass
 
 
-class NonExistentLegacyRefParser:
+class NonExistentLegacyRefParser(LegacyRefParser):
     """
     This class acts as a semantic indication of a lack of LegacyRefParser
     Currently used in `LegacyRefParserHandler` as return value when no parser is found
     Doesn't inherit from `LegacyRefParser` since it doesn't define the same contract (or any contract)
     """
-    pass
+
+    def parse(self, legacy_tref: str) -> Ref:
+        raise Exception("Not implemented")
 
 
 NON_EXISTENT_LEGACY_REF_PARSER = NonExistentLegacyRefParser()
