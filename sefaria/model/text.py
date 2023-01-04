@@ -2663,9 +2663,9 @@ class Ref(object, metaclass=RefCacheType):
         self.__init_ref_pointer_vars()
 
         if tref:
-            self.orig_tref = self.tref = tref
+            self.orig_tref = tref
             self._lang = "he" if is_hebrew(tref, heb_only=True) else "en"
-            self.__clean_tref()
+            self.tref = self.__clean_tref(tref, self._lang)
             self.__init_tref()
             self._validate()
         elif _obj:
@@ -2713,23 +2713,27 @@ class Ref(object, metaclass=RefCacheType):
             if self.toSections[i] < self.sections[i]:
                 raise InputError("{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
-    def __clean_tref(self):
-        self.tref = self.tref.strip().replace("–", "-").replace("\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
-        if self._lang == "he":
+    @staticmethod
+    def __clean_tref(tref, lang):
+        tref = tref.strip().replace("–", "-").replace("\u2011", "-").replace("_", " ")
+
+        # don't replace : in Hebrew, where it can indicate amud
+        if lang == "he":
             return
 
-        self.tref = self.tref.replace(":", ".")
+        tref = tref.replace(":", ".")
 
         try:
             # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-            self.tref = self.tref[0].upper() + self.tref[1:]
+            tref = tref[0].upper() + tref[1:]
         except IndexError:
             pass
 
+        return tref
+
     def __reinit_tref(self, new_tref):
         logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
-        self.tref = new_tref
-        self.__clean_tref()
+        self.tref = self.__clean_tref(new_tref, self._lang)
         self._lang = "en"
         self.__init_tref()
 
