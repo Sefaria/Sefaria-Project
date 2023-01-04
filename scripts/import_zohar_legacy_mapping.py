@@ -1,4 +1,5 @@
 import django
+import re
 django.setup()
 from sefaria.model import *
 import json
@@ -10,12 +11,20 @@ def get_raw_mapping():
         return json.load(fin)
 
 
+def normalize_tref(tref):
+    tref = tref.replace(" TNNG", "")
+    tref = tref.replace(":", ".")
+    tref = re.sub(r" (?=[\d.:ab]+$)", ".", tref)
+    tref = tref.replace(" ", "_")
+    return tref
+
+
 def transform_raw_mapping(raw_mapping):
     return {
         "index_title": "Zohar",
         "data": {
            "mapping": {
-                old_ref: new_ref.replace(" TNNG", "") for old_ref, new_ref in raw_mapping.items() if new_ref is not None
+                normalize_tref(old_ref): normalize_tref(new_ref) for old_ref, new_ref in raw_mapping.items() if new_ref is not None
            }
         }
     }
