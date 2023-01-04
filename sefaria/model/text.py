@@ -4704,6 +4704,29 @@ class Ref(object, metaclass=RefCacheType):
                 continue
         return list(expanded_set)
 
+    @staticmethod
+    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> 'Ref':
+        """
+        Tries the following in order and returns the first that works
+        - Instantiate `tref` as is
+        - Use `self.parse()` to try to parse the ref with appropriate `LegacyRefParser`
+        - If ref has partial match, return partially matched ref
+        Can raise an `InputError`
+        @param tref: textual ref to parse
+        @return: best `Ref` according to rules above
+        """
+        from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
+
+        try:
+            return Ref(tref)
+        except PartialRefInputError as e:
+            matched_ref = Ref(e.matched_part)
+            try:
+                legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
+                return legacy_ref_parser.parse(tref)
+            except LegacyRefParserError:
+                return matched_ref
+
 
 class Library(object):
     """

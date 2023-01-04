@@ -154,4 +154,4 @@ class TestLegacyRefsRandomIndex:
     def test_random_partial_ref_legacy_parsing(self, tref_no_legacy_parser):
         err = get_partial_ref_error(tref_no_legacy_parser)
         with pytest.raises(NoLegacyRefParserError):
-            legacy_ref_parser_handler[Ref(err.matched_part).book]
+            legacy_ref_parser_handler[Ref(err.matched_part).index.title]

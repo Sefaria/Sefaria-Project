@@ -61,7 +61,6 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
-from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
@@ -291,7 +290,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = legacy_ref_parser_handler.instantiate_ref_with_legacy_parse_fallback(tref)
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
@@ -1366,7 +1365,7 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = legacy_ref_parser_handler.instantiate_ref_with_legacy_parse_fallback(tref)
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     tref = oref.normal()
 
     if request.method == "GET":
