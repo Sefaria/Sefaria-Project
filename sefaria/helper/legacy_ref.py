@@ -124,7 +124,8 @@ class MappingLegacyRefParser(LegacyRefParser):
         return ranged_oref
 
 
-PossiblyNonExistantLegacyRefParser = Union[LegacyRefParser, NonExistentLegacyRefParser]
+# Python type hint which is either a valid `LegacyRefParser` or a lack of one
+PossiblyNonExistentLegacyRefParser = Union[LegacyRefParser, NonExistentLegacyRefParser]
 
 
 class LegacyRefParserHandler:
@@ -133,7 +134,7 @@ class LegacyRefParserHandler:
     This just makes sure to load the correct legacy ref parser class given an index title
     """
     def __init__(self):
-        self._parsers: Dict[str, PossiblyNonExistantLegacyRefParser] = {}
+        self._parsers: Dict[str, PossiblyNonExistentLegacyRefParser] = {}
 
     def __getitem__(self, index_title: str) -> LegacyRefParser:
         parser = self.__get_parser(index_title)
@@ -141,7 +142,7 @@ class LegacyRefParserHandler:
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return parser
 
-    def __get_parser(self, index_title: str) -> PossiblyNonExistantLegacyRefParser:
+    def __get_parser(self, index_title: str) -> PossiblyNonExistentLegacyRefParser:
         try:
             return self._parsers[index_title]
         except KeyError:
