@@ -47,7 +47,7 @@ class MatchTemplateTrie:
     E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
     then an entry in the trie would be {"Term 1": {"Term 2": ...}}
     """
-    def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
+    def __init__(self, lang: str, nodes: List[schema.TitledTreeNode] = None, sub_trie: dict = None, scope: str = None):
         """
         :param lang:
         :param nodes:
@@ -58,12 +58,12 @@ class MatchTemplateTrie:
         self.scope = scope
         self._trie = self.__init_trie(nodes, sub_trie)
 
-    def __init_trie(self, nodes, sub_trie):
+    def __init_trie(self, nodes: List[schema.TitledTreeNode], sub_trie: dict):
         if nodes is None:
             return sub_trie
         return self.__init_trie_with_nodes(nodes)
 
-    def __init_trie_with_nodes(self, nodes):
+    def __init_trie_with_nodes(self, nodes: List[schema.TitledTreeNode]):
         trie = {}
         for node in nodes:
             for match_template in node.get_match_templates():
@@ -75,7 +75,7 @@ class MatchTemplateTrie:
         return trie
 
     @staticmethod
-    def __log_non_existent_term_warning(node):
+    def __log_non_existent_term_warning(node: schema.TitledTreeNode):
         try:
             node_ref = node.ref()
         except:
@@ -83,21 +83,21 @@ class MatchTemplateTrie:
         logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
                        f"Check match_templates and fix.")
 
-    def __add_all_term_titles_to_trie(self, term_list, node, curr_dict_queue):
+    def __add_all_term_titles_to_trie(self, term_list: List[schema.NonUniqueTerm], node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
         for term in term_list:
             if term is None:
                 self.__log_non_existent_term_warning(node)
                 continue
             self.__add_term_titles_to_trie(term, curr_dict_queue)
 
-    def __add_term_titles_to_trie(self, term, curr_dict_queue):
+    def __add_term_titles_to_trie(self, term, curr_dict_queue: List[dict]):
         len_curr_dict_queue = len(curr_dict_queue)
         for _ in range(len_curr_dict_queue):
             curr_dict = curr_dict_queue.pop(0)
             curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
 
     @staticmethod
-    def __add_nodes_to_leaves(node, curr_dict_queue):
+    def __add_nodes_to_leaves(node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
         for curr_dict in curr_dict_queue:
             leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
             if LEAF_TRIE_ENTRY in curr_dict:
