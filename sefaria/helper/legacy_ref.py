@@ -119,7 +119,7 @@ class MappingLegacyRefParser(LegacyRefParser):
 PossiblyNonExistantLegacyRefParser = Union[LegacyRefParser, NonExistantLegacyRefParser]
 
 
-class LegacyRefParserHandler(object):
+class LegacyRefParserHandler:
     """
     pattern copied from django.core.cache.CacheHandler
     This just makes sure to load the correct legacy ref parser class given an index title
