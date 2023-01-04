@@ -4789,6 +4789,7 @@ class Ref(object, metaclass=RefCacheType):
         except PartialRefInputError as e:
             matched_ref = Ref(e.matched_part)
             try:
+                tref = Ref.__clean_tref(tref, matched_ref._lang)
                 legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
                 return legacy_ref_parser.parse(tref)
             except LegacyRefParserError:
