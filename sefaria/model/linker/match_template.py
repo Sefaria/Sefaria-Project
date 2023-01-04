@@ -56,20 +56,23 @@ class MatchTemplateTrie:
         """
         self.lang = lang
         self.scope = scope
-        if nodes is not None:
-            self.__init_with_nodes(nodes)
-        else:
-            self._trie = sub_trie
+        self._trie = self.__init_trie(nodes, sub_trie)
 
-    def __init_with_nodes(self, nodes):
-        self._trie = {}
+    def __init_trie(self, nodes, sub_trie):
+        if nodes is None:
+            return sub_trie
+        return self.__init_trie_with_nodes(nodes)
+
+    def __init_trie_with_nodes(self, nodes):
+        trie = {}
         for node in nodes:
             for match_template in node.get_match_templates():
                 if not node.is_root() and not match_template.matches_scope(self.scope):
                     continue
-                curr_dict_queue = [self._trie]
+                curr_dict_queue = [trie]
                 self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
                 self.__add_nodes_to_leaves(node, curr_dict_queue)
+        return trie
 
     @staticmethod
     def __log_non_existent_term_warning(node):
