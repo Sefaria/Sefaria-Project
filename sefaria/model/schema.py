@@ -313,6 +313,47 @@ class TermSchemeSet(abst.AbstractMongoSet):
     recordClass = TermScheme
 
 
+class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
+    """
+    The successor of the old `Term` class
+    Doesn't require titles to be globally unique
+    """
+    cacheable = True
+    collection = "non_unique_terms"
+    required_attrs = [
+        "slug",
+        "titles"
+    ]
+    slug_fields = ['slug']
+    title_group = None
+
+    def _normalize(self):
+        super()._normalize()
+        self.titles = self.title_group.titles
+
+    def set_titles(self, titles):
+        self.title_group = TitleGroup(titles)
+
+    def _set_derived_attributes(self):
+        self.set_titles(getattr(self, "titles", None))
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}.init("{self.slug}")'
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        return hash(self.slug)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
+class NonUniqueTermSet(abst.AbstractMongoSet):
+    recordClass = NonUniqueTerm
+
+
 """
                 ---------------------------------
                  Index Schema Trees - Core Nodes
@@ -795,8 +836,8 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_title_trie(self, lang: str):
-        from .linker import MatchTemplateTrie
+    def get_match_template_trie(self, lang: str):
+        from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
     def validate(self):
@@ -852,7 +893,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return d
 
     def get_match_templates(self):
-        from .linker import MatchTemplate
+        from .linker.match_template import MatchTemplate
         for raw_match_template in getattr(self, 'match_templates', []):
             yield MatchTemplate(**raw_match_template)
 
@@ -1078,105 +1119,8 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 d["heSectionNames"] = list(map(hebrew_term, self.sectionNames))
         return d
 
-    def get_referenceable_child(self, context_ref=None, **kwargs) -> 'NumberedTitledTreeNode':
-        # TODO this function is confusing. It modifies and detaches JAN from tree to create an artificial child.
-        # JANs are a special case since they act as two nodes at once; a SchemaNode and the first level of a JaggedArray
-        if self.parent is None or not isinstance(self, JaggedArrayNode):
-            next_refereceable_depth = 1
-            # if `referenceableSections` is not define, assume they're all referenceable
-            if getattr(self, 'referenceableSections', False):
-                while next_refereceable_depth < len(self.referenceableSections) and not self.referenceableSections[next_refereceable_depth]:
-                    next_refereceable_depth += 1
-            serial = self.serialize()
-            serial['depth'] -= next_refereceable_depth
-            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-                # truncate every list attribute by `next_referenceable_depth`
-                if list_attr not in serial: continue
-                serial[list_attr] = serial[list_attr][next_refereceable_depth:]
-            if serial['depth'] <= 1 and getattr(self, 'isSegmentLevelDiburHamatchil', False):
-                return DiburHamatchilNodeSet({"container_refs": context_ref.normal()}, hint="container_refs_1")
-            if self.depth <= 1: return
-        else:
-            # If parent exists, this JAN is still attached to its original tree. Need to return the same node but detached to indicate this should be only interpreted as a JA and not a SchemaNode
-            serial = self.serialize()
-        return self.__class__(serial=serial, index=getattr(self, 'index', None), **kwargs)
-
-    def address_matches_section_context(self, section_index, section_context) -> bool:
-        """
-        Does the address at index `section_index` match the address in `section_context`?
-        """
-        from .linker import SectionContext
-        assert isinstance(section_context, SectionContext)
-        if self.depth == 0: return False
-        addr_type = AddressType.to_class_by_address_type(self.addressTypes[section_index])
-        if addr_type.__class__ != section_context.addr_type.__class__: return False
-        if self.sectionNames[section_index] != section_context.section_name: return False
-        return True
-
-
-@dataclasses.dataclass
-class DiburHamatchilMatch:
-    score: float
-    dh: Optional[str]
-    potential_dh_token_idx: int
-    dh_node: 'DiburHamatchilNode' = None
-
-    def order_key(self):
-        dh_len = len(self.dh) if self.dh else 0
-        return self.score, dh_len
-
-    def __gt__(self, other: 'DiburHamatchilMatch'):
-        return self.order_key() > other.order_key()
-
-    def __ge__(self, other: 'DiburHamatchilMatch'):
-        return self.order_key() >= other.order_key()
-
-    def __lt__(self, other: 'DiburHamatchilMatch'):
-        return self.order_key() < other.order_key()
-
-    def __le__(self, other: 'DiburHamatchilMatch'):
-        return self.order_key() <= other.order_key()
-
-
-class DiburHamatchilNode(abst.AbstractMongoRecord):
-    """
-    Very likely possible to use VirtualNode and add these nodes as children of JANs and ArrayMapNodes. But that can be a little complicated
-    """
-    collection = "dibur_hamatchils"
-    required_attrs = [
-        "dibur_hamatchil",
-        "container_refs",
-        "ref",
-    ]
-
-    def fuzzy_match_score(self, lang, raw_ref_part) -> DiburHamatchilMatch:
-        from sefaria.utils.hebrew import hebrew_starts_with
-        for dh, dh_index in raw_ref_part.get_dh_text_to_match(lang):
-            if hebrew_starts_with(self.dibur_hamatchil, dh):
-                return DiburHamatchilMatch(1.0, dh, dh_index)
-        return DiburHamatchilMatch(0.0, None, dh_index)
-
-
-class DiburHamatchilNodeSet(abst.AbstractMongoSet):
-    recordClass = DiburHamatchilNode
-
-    def best_fuzzy_matches(self, lang, raw_ref_part, score_leeway=0.01, threshold=0.9) -> List[DiburHamatchilMatch]:
-        """
-        :param lang: either 'he' or 'en'
-        :param raw_ref_part: of type "DH" to match
-        :param score_leeway: all scores within `score_leeway` of the highest score are returned
-        :param threshold: scores below `threshold` aren't returned
-        """
-        best_list = [DiburHamatchilMatch(0.0, '', 0)]
-        for node in self:
-            dh_match = node.fuzzy_match_score(lang, raw_ref_part)
-            if dh_match.dh is None: continue
-            if dh_match >= best_list[-1]:
-                dh_match.dh_node = node
-                best_list += [dh_match]
-        best_match = best_list[-1]
-        return [best for best in best_list if best.score > threshold and best.score + score_leeway >= best_match.score
-                and len(best.dh) == len(best_match.dh)]
+    def is_segment_level_dibur_hamatchil(self) -> bool:
+        return getattr(self, 'isSegmentLevelDiburHamatchil', False)
 
 
 class ArrayMapNode(NumberedTitledTreeNode):
@@ -2131,6 +2075,15 @@ class AddressType(object):
             return self.special_cases[s]
         return [self.toNumber(lang, s)]
 
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        """
+        Can `s` match out of order when parsing sections?
+        @param s:
+        @return:
+        """
+        return True
+
     def toIndex(self, lang, s):
         return self.toNumber(lang, s) - 1
 
@@ -2163,7 +2116,7 @@ class AddressType(object):
                 if addr.is_special_case(curr_s):
                     section_str = curr_s
                 else:
-                    strict = SuperClass != AddressTalmud  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
+                    strict = SuperClass not in {AddressAmud, AddressTalmud}  # HACK: AddressTalmud doesn't inherit from AddressInteger so it relies on flexibility of not matching "Daf"
                     regex_str = addr.regex(lang, strict=strict, group_id='section') + "$"  # must match entire string
                     if regex_str is None: continue
                     reg = regex.compile(regex_str, regex.VERBOSE)
@@ -2244,6 +2197,34 @@ class AddressDictionary(AddressType):
         pass
 
 
+class AddressAmud(AddressType):
+    section_patterns = {
+        "en": r"""(?:[Aa]mud(?:im)?\s+)""",
+        "he": f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s+))''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+    }
+
+    section_num_patterns = {
+        "en": "[aAbB]",
+        "he": "(?P<amud_letter>[\u05d0\u05d1])['\u05f3\u2018\u2019]?",
+    }
+
+    def _core_regex(self, lang, group_id=None, **kwargs):
+        if group_id:
+            reg = r"(?P<" + group_id + r">"
+        else:
+            reg = r"("
+
+        reg += self.section_num_patterns[lang] + r")"
+
+        return reg
+
+    def toNumber(self, lang, s, **kwargs):
+        if lang == "en":
+            return 1 if s in {'a', 'A'} else 2
+        elif lang == "he":
+            return decode_hebrew_numeral(s)
+
+
 class AddressTalmud(AddressType):
     """
     :class:`AddressType` for Talmud style Daf + Amud addresses
@@ -2252,10 +2233,11 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": "((\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\\s+)|(?:\u05e1|\u05e8)?\u05d3\"?)"			# (Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote) OR daled prefix
     }
-    he_pattern = f'''(?:{AddressType.reish_samekh_reg}\u05e2(?:"|\u05f4|”|''|\u05de\u05d5\u05d3\\s))?([\u05d0\u05d1])['\u05f3\u2018\u2019]?''' #+ (optional: (optional: samekh or reish for sof/reish) Ayin for amud) + [alef or bet] + (optional: single quote of any type (really only makes sense if there's no Ayin beforehand))
+    _can_match_out_of_order_patterns = None
+    he_amud_pattern = AddressAmud(0).regex('he')
     amud_patterns = {
         "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\\s]+{})'''.format(he_pattern)  # Either (1) period / colon (2) some separator + he_pattern
+        "he": '''([.:]|[,\\s]+{})'''.format(he_amud_pattern)  # Either (1) period / colon (2) some separator + AddressAmud.section_patterns["he"]
     }
     special_cases = {
         "B": [None],
@@ -2314,7 +2296,7 @@ class AddressTalmud(AddressType):
         elif len(parts) == 2:
             range_parts = parts[1].split(".")  # this was converting space to '.', for some reason.
 
-            he_bet_reg_ex = "^"+cls.he_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
+            he_bet_reg_ex = "^"+cls.he_amud_pattern.replace('[\u05d0\u05d1]', '\u05d1')  # don't want to look for Aleph
 
             if re.search(he_bet_reg_ex, range_parts[-1]):
                 # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
@@ -2330,16 +2312,6 @@ class AddressTalmud(AddressType):
             end = ref.index_node.lengths[len(ref.sections)-1]
             while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
                 ref.toSections[-1] -= 1
-
-
-
-
-
-
-
-
-
-
 
     def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id and kwargs.get("for_js", False) == False:
@@ -2387,12 +2359,11 @@ class AddressTalmud(AddressType):
             num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             amud_match = re.search(self.amud_patterns["he"] + "$", s)
-            if s[-1] == ':' or (amud_match is not None and amud_match.group(2) == 'ב'):
+            if s[-1] == ':' or (amud_match is not None and amud_match.group("amud_letter") == 'ב'):
                 return daf  # amud B
             return daf - 1
 
             # if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2456,6 +2427,21 @@ class AddressTalmud(AddressType):
         else:
             possibilities = [addr_num]
         return possibilities
+
+    @staticmethod
+    def _get_can_match_out_of_order_pattern(lang):
+        regex_str = AddressInteger(0).regex(lang, strict=True, group_id='section') + "$"
+        return regex.compile(regex_str, regex.VERBOSE)
+
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        if not cls._can_match_out_of_order_patterns:
+            cls._can_match_out_of_order_patterns = {
+                "en": cls._get_can_match_out_of_order_pattern("en"),
+                "he": cls._get_can_match_out_of_order_pattern("he"),
+            }
+        reg = cls._can_match_out_of_order_patterns[lang]
+        return reg.match(s) is None
 
 
 class AddressFolio(AddressType):
@@ -2596,6 +2582,15 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
+    @classmethod
+    def can_match_out_of_order(cls, lang, s):
+        """
+        By default, this method should only apply to AddressInteger and no subclasses
+        Can still be overriden for a specific class that needs to
+        """
+        return cls != AddressInteger
+
+
 ''' Never used
 class AddressYear(AddressInteger):
     """
@@ -2650,9 +2645,10 @@ class AddressPerek(AddressInteger):
 class AddressPasuk(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:([Vv](erses?|[vs]?\.)|[Pp]ass?u[kq]))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1?                                        # optional ב in front
-            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)    #pasuk spelled out, with a space after
-        )"""
+        "he": r"""(?:\u05d1?(?:                                        # optional ב in front
+            (?:\u05e4\u05b8?\u05bc?\u05e1\u05d5\u05bc?\u05e7(?:\u05d9\u05dd)?\s*)|    #pasuk spelled out, with a space after
+            (?:\u05e4\u05e1(?:['\u2018\u2019\u05f3])\s+)
+        ))"""
     }
 
 

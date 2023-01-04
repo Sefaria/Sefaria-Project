@@ -5,7 +5,7 @@ text.py
 
 import time
 import structlog
-from functools import reduce
+from functools import reduce, partial
 from typing import Optional, Union
 logger = structlog.get_logger(__name__)
 
@@ -1142,7 +1142,7 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
-            segment = self._strip_itags(segment)
+            segment = self.strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
             accumulator += joiner + segment
@@ -1220,6 +1220,14 @@ class AbstractTextRecord(object):
         return t
 
     @staticmethod
+    def find_all_itags(s, only_footnotes=False):
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+        if only_footnotes:
+            itag_list = list(filter(lambda itag: AbstractTextRecord._itag_is_footnote(itag), itag_list))
+        return soup, itag_list
+
+    @staticmethod
     def _itag_is_footnote(tag):
         return tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
 
@@ -1233,9 +1241,8 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s, sections=None):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
-        itag_list = soup.find_all(AbstractTextRecord._find_itags)
+    def strip_itags(s, sections=None):
+        soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
             try:
                 if AbstractTextRecord._itag_is_footnote(itag):
@@ -2340,7 +2347,7 @@ class TextFamily(object):
                         ne_by_secs[temp_secs] += [ne]
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
-                text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
@@ -2638,7 +2645,7 @@ class Ref(object, metaclass=RefCacheType):
         'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
         '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
         '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
-        '_range_depth', '_range_index',
+        '_range_depth', '_range_index', 'legacy_tref',
     )
 
     def __init__(self, tref=None, _obj=None):
@@ -2902,7 +2909,8 @@ class Ref(object, metaclass=RefCacheType):
                             return
 
         if not self.sections:
-            raise InputError("Failed to parse sections for ref {}".format(self.orig_tref))
+            msg = f"Failed to parse sections for ref {self.orig_tref}"
+            raise PartialRefInputError(msg, title, None)
 
         self.toSections = self.sections[:]
 
@@ -4753,6 +4761,35 @@ class Ref(object, metaclass=RefCacheType):
                 continue
         return list(expanded_set)
 
+    @staticmethod
+    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> 'Ref':
+        """
+        Tries the following in order and returns the first that works
+        - Instantiate `tref` as is
+        - Use appropriate `LegacyRefParser` to parse `tref`
+        - If ref has partial match, return partially matched ref
+        Can raise an `InputError`
+        @param tref: textual ref to parse
+        @return: best `Ref` according to rules above
+        """
+        from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
+
+        try:
+            oref = Ref(tref)
+            try:
+                # this field can be set if a legacy parsed ref is pulled from cache
+                delattr(oref, 'legacy_tref')
+            except AttributeError:
+                pass
+            return oref
+        except PartialRefInputError as e:
+            matched_ref = Ref(e.matched_part)
+            try:
+                legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
+                return legacy_ref_parser.parse(tref)
+            except LegacyRefParserError:
+                return matched_ref
+
 
 class Library(object):
     """
@@ -5544,7 +5581,9 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker import MatchTemplateTrie, MatchTemplateGraph, RefResolver, TermMatcher, NonUniqueTermSet
+        from .linker.match_template import MatchTemplateTrie
+        from .linker.ref_resolver import RefResolver, TermMatcher
+        from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
 
         logger.info("Loading Spacy Model")
@@ -5552,7 +5591,6 @@ class Library(object):
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
             {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
             {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
@@ -5560,7 +5598,6 @@ class Library(object):
                 "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
             },
-            ref_part_title_graph,
             {
                 "en": TermMatcher('en', non_unique_terms),
                 "he": TermMatcher('he', non_unique_terms),
@@ -5777,7 +5814,7 @@ class Library(object):
                 except AssertionError as e:
                     logger.info("Skipping Schema Node: {}".format(title))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         else:  # lang == "en"
             for match in self.all_titles_regex(lang, citing_only=citing_only).finditer(st):
@@ -5792,7 +5829,7 @@ class Library(object):
                 except InputError as e:
                     logger.info("Input Error searching for refs in string: {}".format(e))
                 except TypeError as e:
-                    logger.error("Error finding ref for {} in: {}".format(title, st))
+                    logger.info("Error finding ref for {} in: {}".format(title, st))
 
         return refs
 
@@ -5821,6 +5858,19 @@ class Library(object):
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
+        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+
+    def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
+        """
+
+        @param st:
+        @param action: function of the form `(ref, regex_match) -> Optional[str]`. return value will be used to replace regex_match in `st` if returned.
+        @param lang:
+        @param citing_only:
+        @param reg:
+        @param title_nodes:
+        @return:
+        """
         # todo: only match titles of content nodes
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
@@ -5828,12 +5878,14 @@ class Library(object):
         if reg is None or title_nodes is None:
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
 
-        from sefaria.utils.hebrew import strip_nikkud
-        # st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
-
         if reg is not None:
-            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
-
+            sub_action = partial(self._apply_action_for_ref_match, title_nodes, lang, action)
+            if lang == "en":
+                return reg.sub(sub_action, st)
+            else:
+                outer_regex_str = r"[({\[].+?[)}\]]"
+                outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+                return outer_regex.sub(lambda match: reg.sub(sub_action, match.group(0)), st)
         return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
@@ -5983,31 +6035,23 @@ class Library(object):
                 continue
         return refs
 
-    # todo: handle ranges in inline refs
-    def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
-        """
-        Returns string with all references wrapped in <a> tags
-        :param title: The title of the text to wrap ref links to
-        :param st: The string to wrap
-        :param lang:
-        :return:
-        """
-        def _wrap_ref_match(match):
-            try:
-                gs = match.groupdict()
-                assert gs.get("title") is not None
-                node = title_node_dict[gs.get("title")]
-                ref = self._get_ref_from_match(match, node, lang)
-                return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
-            except InputError as e:
-                logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
+    @staticmethod
+    def _wrap_ref_match(ref, match):
+        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+
+    def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
+        try:
+            gs = match.groupdict()
+            assert gs.get("title") is not None
+            node = title_node_dict[gs.get("title")]
+            ref = self._get_ref_from_match(match, node, lang)
+            replacement = action(ref, match)
+            if replacement is None:
                 return match.group(0)
-        if lang == "en":
-            return titles_regex.sub(_wrap_ref_match, st)
-        else:
-            outer_regex_str = r"[({\[].+?[)}\]]"
-            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
-            return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
+            return replacement
+        except InputError as e:
+            logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
+            return match.group(0)
 
     @staticmethod
     def get_wrapped_named_entities_string(links, s):

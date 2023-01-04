@@ -5,7 +5,7 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
+data:
   local_settings.py: |-
     from socket import gethostname, gethostbyname
     from datetime import timedelta
@@ -48,7 +48,7 @@ data:
     )
 
     MANAGERS = ADMINS
-    
+
     MONGO_HOST = os.getenv("MONGO_HOST")
     MONGO_PORT = 27017
     {{- if eq .Values.sandbox "true" }}
@@ -95,7 +95,7 @@ data:
                 "DATABASE": SEFARIA_DB,
                 "COLLECTION": "django_cache", # default: django_cache
             },
-            "TIMEOUT": None, 
+            "TIMEOUT": None,
         },
     }
 
@@ -166,6 +166,7 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_GTAG = os.getenv("GOOGLE_GTAG")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
