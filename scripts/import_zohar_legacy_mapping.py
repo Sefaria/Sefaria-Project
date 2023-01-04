@@ -31,6 +31,10 @@ def transform_raw_mapping(raw_mapping):
 
 
 def save_mapping_data(mapping_data):
+    existing = LegacyRefParsingData().load({"index_title": "Zohar"})
+    if existing is not None:
+        existing.delete()
+
     LegacyRefParsingData(mapping_data).save()
 
 
