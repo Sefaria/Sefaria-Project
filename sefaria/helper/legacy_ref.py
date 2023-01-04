@@ -19,11 +19,6 @@ class LegacyRefParserMappingKeyError(LegacyRefParserError, KeyError):
     pass
 
 
-class NonExistantLegacyRefParser:
-    pass
-
-
-NON_EXISTANT_LEGACY_REF_PARSER = NonExistantLegacyRefParser()
 
 
 class LegacyRefParsingData(AbstractMongoRecord):
@@ -57,6 +52,18 @@ class LegacyRefParser:
     Currently empty super class used for type hints and to make the code more flexible in the future
     """
     pass
+
+
+class NonExistentLegacyRefParser:
+    """
+    This class acts as a semantic indication of a lack of LegacyRefParser
+    Currently used in `LegacyRefParserHandler` as return value when no parser is found
+    Doesn't inherit from `LegacyRefParser` since it doesn't define the same contract (or any contract)
+    """
+    pass
+
+
+NON_EXISTENT_LEGACY_REF_PARSER = NonExistentLegacyRefParser()
 
 
 class MappingLegacyRefParser(LegacyRefParser):
@@ -119,7 +126,7 @@ class MappingLegacyRefParser(LegacyRefParser):
         return ranged_oref
 
 
-PossiblyNonExistantLegacyRefParser = Union[LegacyRefParser, NonExistantLegacyRefParser]
+PossiblyNonExistantLegacyRefParser = Union[LegacyRefParser, NonExistentLegacyRefParser]
 
 
 class LegacyRefParserHandler:
@@ -132,7 +139,7 @@ class LegacyRefParserHandler:
 
     def __getitem__(self, index_title: str) -> LegacyRefParser:
         parser = self.__get_parser(index_title)
-        if isinstance(parser, NonExistantLegacyRefParser):
+        if isinstance(parser, NonExistentLegacyRefParser):
             raise NoLegacyRefParserError(f"Could not find proper legacy parser matching index title '{index_title}'")
         return parser
 
@@ -144,7 +151,7 @@ class LegacyRefParserHandler:
         try:
             parser = self.__create_legacy_parser(index_title)
         except NoLegacyRefParserError as e:
-            parser = NON_EXISTANT_LEGACY_REF_PARSER
+            parser = NON_EXISTENT_LEGACY_REF_PARSER
         self._parsers[index_title] = parser
         return parser
 
