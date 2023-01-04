@@ -45,9 +45,8 @@ def main():
     # Open spam csv & read in
     with open(filename) as spam_emails, open(outf, 'w+') as outf:
         csv_reader = csv.DictReader(spam_emails, delimiter=',')
-        fieldnames = ["nationbuilder_id", "email_nb", "email_sefaria", "tag_list", "nationbuilder_id_in_mongo",
-                      "email_in_mongo",
-                      "deleted_status", "dry_run"]
+        fieldnames = ["id", "nationbuilder_id", "email_nb", "email_sefaria", "tag_list", "nationbuilder_id_in_mongo",
+                      "email_in_mongo", "deleted_status", "dry_run"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for index, row in enumerate(csv_reader):
