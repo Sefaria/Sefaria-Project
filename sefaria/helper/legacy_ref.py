@@ -50,7 +50,7 @@ class LegacyRefParser:
     Currently empty super class used for type hints and to make the code more flexible in the future
     """
 
-    def parse(self, legacy_tref: str, index_title: str) -> Ref:
+    def parse(self, legacy_tref: str) -> Ref:
         pass
 
 
@@ -61,7 +61,7 @@ class NonExistentLegacyRefParser(LegacyRefParser):
     Doesn't inherit from `LegacyRefParser` since it doesn't define the same contract (or any contract)
     """
 
-    def parse(self, legacy_tref: str, index_title: str) -> Ref:
+    def parse(self, legacy_tref: str) -> Ref:
         raise Exception("Not implemented")
 
 
@@ -79,11 +79,10 @@ class MappingLegacyRefParser(LegacyRefParser):
     def __init__(self, data: LegacyRefParsingData):
         self._mapping: Dict[str, str] = data.data['mapping']
 
-    def parse(self, legacy_tref: str, index_title: str) -> Ref:
+    def parse(self, legacy_tref: str) -> Ref:
         """
 
         @param legacy_tref:
-        @param index_title:
         @return:
         """
         if self.__is_ranged_ref(legacy_tref):
