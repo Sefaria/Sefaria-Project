@@ -4709,7 +4709,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         Tries the following in order and returns the first that works
         - Instantiate `tref` as is
-        - Use `self.parse()` to try to parse the ref with appropriate `LegacyRefParser`
+        - Use appropriate `LegacyRefParser` to parse `tref`
         - If ref has partial match, return partially matched ref
         Can raise an `InputError`
         @param tref: textual ref to parse
