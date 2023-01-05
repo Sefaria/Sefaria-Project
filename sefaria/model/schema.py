@@ -1524,6 +1524,13 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["depth"] = self.depth
         return res
 
+    @staticmethod
+    def get_index_offset(sections, index_offsets_by_depth):
+        current_depth = len(sections) + 1
+        if not index_offsets_by_depth or str(current_depth) not in index_offsets_by_depth:
+            return 0
+        return reduce(lambda x, y: x[y], sections, index_offsets_by_depth[str(current_depth)])
+
     def trim_index_offsets_by_sections(self, sections, toSections, depths=None):
         """
         Trims `self.index_offsets_by_depth` according to `sections` and `toSections`
