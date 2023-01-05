@@ -13,7 +13,7 @@ def get_raw_mapping():
 
 def normalize_tref(tref):
     tref = tref.replace(" TNNG", "")
-    tref = re.sub(r"Zohar, [a-zA-Z]+,", "Zohar,", tref)
+    tref = re.sub(r"Zohar, (?:Genesis|Exodus|Leviticus|Numbers|Deuteronomy),", "Zohar,", tref)
     tref = tref.replace(":", ".")
     tref = re.sub(r" (?=[\d.:ab]+$)", ".", tref)
     tref = tref.replace(" ", "_")
