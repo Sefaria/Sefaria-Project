@@ -2431,7 +2431,7 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
-        self._index_offsets_by_depth = self._inode.get_index_offsets(oref.sections, oref.toSections)
+        self._index_offsets_by_depth = self._inode.trim_index_offsets_by_sections(oref.sections, oref.toSections)
 
     def contents(self):
         """

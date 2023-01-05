@@ -1524,7 +1524,14 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["depth"] = self.depth
         return res
 
-    def get_index_offsets(self, sections, toSections, depths=None):
+    def trim_index_offsets_by_sections(self, sections, toSections, depths=None):
+        """
+        Trims `self.index_offsets_by_depth` according to `sections` and `toSections`
+        @param sections:
+        @param toSections:
+        @param depths:
+        @return:
+        """
         index_offsets_by_depth = copy.deepcopy(getattr(self, 'index_offsets_by_depth', {}))
         if index_offsets_by_depth and sections:
             if not depths:
