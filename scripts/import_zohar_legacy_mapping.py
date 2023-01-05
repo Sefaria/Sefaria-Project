@@ -12,7 +12,7 @@ def get_raw_mapping():
 
 
 def normalize_tref(tref):
-    tref = tref.replace(" TNNG", "")
+    tref = tref.replace(" TNNNG", "")
     tref = tref.replace(":", ".")
     tref = re.sub(r" (?=[\d.:ab]+$)", ".", tref)
     tref = tref.replace(" ", "_")
