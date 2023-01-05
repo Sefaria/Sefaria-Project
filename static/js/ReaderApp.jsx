@@ -1820,6 +1820,7 @@ class ReaderApp extends Component {
     const selection = document.getSelection()
     const textOnly = selection.toString();
     let html = textOnly;
+    let selectedEls;
 
     if (selection.rangeCount) {
       const container = document.createElement("div");
@@ -1865,11 +1866,12 @@ class ReaderApp extends Component {
       }
 
       html = container.innerHTML;
+      selectedEls = container;
     }
 
 
     // ga tracking
-    if (this.state.panels.length > 0) {
+    if (this.state.panels.length > 0 && e.target.closest('.readerPanel')) {
       const activePanelIndex = e.target.closest('.readerPanel').id.split("-")[1]
       const activePanel = this.state.panels[activePanelIndex]
 
@@ -1885,6 +1887,21 @@ class ReaderApp extends Component {
       }
 
       gtag("event", "copy_text", params);
+          console.log('ct', params)
+
+      // check if selection is spanning or bilingual
+      if (book) {
+        const selectedEnEls = selectedEls.querySelectorAll('.en')
+        const selectedHeEls = selectedEls.querySelectorAll('.he')
+        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
+          console.log('bct', params)
+          gtag("event", "bilingual_copy_text", params);
+        }
+        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
+          console.log('sct', params)
+          gtag("event", "spanning_copy_text", params);
+        }
+      }
     }
 
     const clipdata = e.clipboardData || window.clipboardData;
