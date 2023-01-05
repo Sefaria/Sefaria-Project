@@ -2946,13 +2946,13 @@ class Ref(object, metaclass=RefCacheType):
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def _get_offset(self, indexes, use_node=None):
+    def _get_offset(self, sections, use_node=None):
         use_node = use_node if use_node else self.index_node
         index_offsets_by_depth = getattr(use_node, 'index_offsets_by_depth', None)
-        current_depth = len(indexes) + 1
+        current_depth = len(sections) + 1
         if not index_offsets_by_depth or str(current_depth) not in index_offsets_by_depth:
             return 0
-        return reduce(lambda x, y: x[y], indexes, index_offsets_by_depth[str(current_depth)])
+        return reduce(lambda x, y: x[y], sections, index_offsets_by_depth[str(current_depth)])
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
