@@ -1450,7 +1450,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def is_copyrighted(self):
         return "Copyright" in getattr(self, "license", "")
 
-    def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
+    def walk_thru_contents(self, action, heTref=None, schema=None, terms_dict=None):
         """
         Walk through the contents of a version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
@@ -1481,6 +1481,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         The result will be all_text populated with all segments from Masekhet Berakhot.
 
         """
+        return self.__walk_thru_contents_recursive(action, heTref=heTref, schema=schema, terms_dict=terms_dict)
+
+    def __walk_thru_contents_recursive(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
 
@@ -1518,15 +1521,15 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                     for vchild in vnode.all_children():
                         vstring = " ".join(vchild.get_text())
                         vref = vchild.ref()
-                        self.walk_thru_contents(action, vstring, vref.normal(), vref.he_normal(), n, [])
+                        self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), n, [])
                 else:
-                    self.walk_thru_contents(action, item[n["key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
+                    self.__walk_thru_contents_recursive(action, item[n["key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
                     temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
                     temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
-                    self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
+                    self.__walk_thru_contents_recursive(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
                     print(str(e))
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
