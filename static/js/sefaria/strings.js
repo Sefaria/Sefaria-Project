@@ -583,6 +583,7 @@ const Strings = {
       "Texts": "מקורות",
       "Topics": "נושאים",
       "Collections": "באסופות",
+      "See More": "עוד",
     },
     "CalendarListing": {
       "Tanakh": "",

@@ -11,9 +11,6 @@ try:
     from spacy.language import Language
 except ImportError:
     spacy = Doc = Span = Token = Language = None
-    logger.warning("Failed to load spaCy. spaCy is not part of general requirements in requirements.txt since it is "
-                   "only used for machine learning tasks currently and not required for general server functionality. "
-                   "To install, follow instructions here: https://spacy.io/usage.")
 
 
 # keys correspond named entity labels in spacy models
@@ -178,7 +175,7 @@ class RawRefPart(TrieEntry, abst.Cloneable):
         old_raw_start, _ = span_inds(old_raw_ref_span)
         new_raw_start, _ = span_inds(new_raw_ref_span)
         offset = new_raw_start - old_raw_start
-        self.span = new_raw_ref_doc[part_start-offset:part_end-offset]
+        return self.clone(span=new_raw_ref_doc[part_start-offset:part_end-offset])
 
     def merge(self, other: 'RawRefPart') -> None:
         """
@@ -263,7 +260,7 @@ class RangedRawRefParts(RawRefPart):
     """
     Container for ref parts that represent the sections and toSections of a ranged ref
     """
-    def __init__(self, sections: List[RawRefPart], toSections: List[RawRefPart]):
+    def __init__(self, sections: List[RawRefPart], toSections: List[RawRefPart], **kwargs):
         super().__init__(RefPartType.RANGE, self._get_full_span(sections, toSections))
         self.sections = sections
         self.toSections = toSections

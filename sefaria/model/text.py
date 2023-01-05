@@ -5,7 +5,7 @@ text.py
 
 import time
 import structlog
-from functools import reduce
+from functools import reduce, partial
 from typing import Optional, Union
 logger = structlog.get_logger(__name__)
 
@@ -5494,7 +5494,7 @@ class Library(object):
         return resolver
 
     def build_ref_resolver(self):
-        from .linker.match_template import MatchTemplateTrie, MatchTemplateGraph
+        from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
@@ -5504,7 +5504,6 @@ class Library(object):
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ref_part_title_graph = MatchTemplateGraph(root_nodes)
         self._ref_resolver = RefResolver(
             {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
             {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
@@ -5512,7 +5511,6 @@ class Library(object):
                 "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
                 "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
             },
-            ref_part_title_graph,
             {
                 "en": TermMatcher('en', non_unique_terms),
                 "he": TermMatcher('he', non_unique_terms),
@@ -5773,6 +5771,19 @@ class Library(object):
         :param citing_only: boolean whether to use only records explicitly marked as being referenced in text
         :return: string:
         """
+        return self.apply_action_for_all_refs_in_string(st, self._wrap_ref_match, lang, citing_only, reg, title_nodes)
+
+    def apply_action_for_all_refs_in_string(self, st, action, lang=None, citing_only=None, reg=None, title_nodes=None):
+        """
+
+        @param st:
+        @param action: function of the form `(ref, regex_match) -> Optional[str]`. return value will be used to replace regex_match in `st` if returned.
+        @param lang:
+        @param citing_only:
+        @param reg:
+        @param title_nodes:
+        @return:
+        """
         # todo: only match titles of content nodes
         if lang is None:
             lang = "he" if is_hebrew(st) else "en"
@@ -5780,12 +5791,14 @@ class Library(object):
         if reg is None or title_nodes is None:
             reg, title_nodes = self.get_regex_and_titles_for_ref_wrapping(st, lang, citing_only)
 
-        from sefaria.utils.hebrew import strip_nikkud
-        # st = strip_nikkud(st) doing this causes the final result to lose vowels and cantiallation
-
         if reg is not None:
-            st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
-
+            sub_action = partial(self._apply_action_for_ref_match, title_nodes, lang, action)
+            if lang == "en":
+                return reg.sub(sub_action, st)
+            else:
+                outer_regex_str = r"[({\[].+?[)}\]]"
+                outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
+                return outer_regex.sub(lambda match: reg.sub(sub_action, match.group(0)), st)
         return st
 
     def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
@@ -5935,31 +5948,23 @@ class Library(object):
                 continue
         return refs
 
-    # todo: handle ranges in inline refs
-    def _wrap_all_refs_in_string(self, title_node_dict=None, titles_regex=None, st=None, lang="he"):
-        """
-        Returns string with all references wrapped in <a> tags
-        :param title: The title of the text to wrap ref links to
-        :param st: The string to wrap
-        :param lang:
-        :return:
-        """
-        def _wrap_ref_match(match):
-            try:
-                gs = match.groupdict()
-                assert gs.get("title") is not None
-                node = title_node_dict[gs.get("title")]
-                ref = self._get_ref_from_match(match, node, lang)
-                return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
-            except InputError as e:
-                logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
+    @staticmethod
+    def _wrap_ref_match(ref, match):
+        return '<a class ="refLink" href="/{}" data-ref="{}">{}</a>'.format(ref.url(), ref.normal(), match.group(0))
+
+    def _apply_action_for_ref_match(self, title_node_dict, lang, action, match):
+        try:
+            gs = match.groupdict()
+            assert gs.get("title") is not None
+            node = title_node_dict[gs.get("title")]
+            ref = self._get_ref_from_match(match, node, lang)
+            replacement = action(ref, match)
+            if replacement is None:
                 return match.group(0)
-        if lang == "en":
-            return titles_regex.sub(_wrap_ref_match, st)
-        else:
-            outer_regex_str = r"[({\[].+?[)}\]]"
-            outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
-            return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
+            return replacement
+        except InputError as e:
+            logger.warning("Wrap Ref Warning: Ref:({}) {}".format(match.group(0), str(e)))
+            return match.group(0)
 
     @staticmethod
     def get_wrapped_named_entities_string(links, s):
