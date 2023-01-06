@@ -1499,6 +1499,18 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
         return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
 
+    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+        item = recursive_args[0]
+        tref = recursive_args[1]
+        heTref = recursive_args[3]
+
+        if type(item) is dict:
+            self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
+        elif type(item) is list:
+            self.__walk_thru_jagged_array(action, *recursive_args)
+        elif isinstance(item, str):
+            action(item, tref, heTref, self)
+
     def __walk_thru_node_tree(self, action, item, tref, schema, heTref, *walk_thru_contents_args, terms_dict=None):
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
@@ -1540,18 +1552,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             except IndexError as e:
                 print(str(e))
                 print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
-
-    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
-        item = recursive_args[0]
-        tref = recursive_args[1]
-        heTref = recursive_args[3]
-
-        if type(item) is dict:
-            self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
-        elif type(item) is list:
-            self.__walk_thru_jagged_array(action, *recursive_args)
-        elif isinstance(item, str):
-            action(item, tref, heTref, self)
 
 
 class VersionSet(abst.AbstractMongoSet):
