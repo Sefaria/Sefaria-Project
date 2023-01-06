@@ -1481,24 +1481,21 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         The result will be all_text populated with all segments from Masekhet Berakhot.
 
         """
-        return self.__walk_thru_contents_recursive(action, None, None, schema, heTref, None, None, None, terms_dict=terms_dict)
+        args = self.__initialize_walk_thru_contents_params(schema, heTref)
+        return self.__walk_thru_contents_recursive(action, *args, terms_dict=terms_dict)
 
-    def __initialize_walk_thru_contents_params(self, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
-        if item is None:
-            item = self.chapter
-        if tref is None:
-            tref = self.title
+    def __initialize_walk_thru_contents_params(self, schema, heTref):
+        item = self.chapter
+        tref = self.title
         index = None
         if schema is None:
             index = self.get_index()
             schema = index.schema
         if heTref is None:
             heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
-        if addressTypes is None and schema is not None:
-            addressTypes = schema.get("addressTypes", None)
-        if index_offsets_by_depth is None and schema is not None:
-            index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
-        sections = sections or []
+        addressTypes = None
+        index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
+        sections = []
 
         return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
 
@@ -1531,22 +1528,28 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             else:
                 self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
 
-    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+    def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
+        if addressTypes is None and schema is not None:
+            addressTypes = schema.get("addressTypes", None)
 
-        item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections =\
-            self.__initialize_walk_thru_contents_params(*recursive_args)
+        for section, ja in enumerate(item):
+            try:
+                temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", section+1))
+                temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", section+1))
+                self.__walk_thru_contents_recursive(action, ja, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
+            except IndexError as e:
+                print(str(e))
+                print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+
+    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+        item = recursive_args[0]
+        tref = recursive_args[1]
+        heTref = recursive_args[3]
 
         if type(item) is dict:
-            self.__walk_thru_node_tree(action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections)
+            self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
         elif type(item) is list:
-            for section, ja in enumerate(item):
-                try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", section+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", section+1))
-                    self.__walk_thru_contents_recursive(action, ja, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
-                except IndexError as e:
-                    print(str(e))
-                    print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+            self.__walk_thru_jagged_array(action, *recursive_args)
         elif isinstance(item, str):
             action(item, tref, heTref, self)
 
