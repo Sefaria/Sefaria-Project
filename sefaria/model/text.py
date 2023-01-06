@@ -1502,38 +1502,42 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
         return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
 
-    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+    def __walk_thru_node_tree(self, action, item, tref, schema, heTref, *walk_thru_contents_args, terms_dict=None):
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
+
+        for node in schema["nodes"]:
+            try:
+                is_virtual_node = VirtualNode in globals()[node.get("nodeType", "")].__bases__
+            except KeyError:
+                is_virtual_node = False
+            if node.get("default", False) or is_virtual_node:
+                node_title_en = node_title_he = ""
+            elif node.get("sharedTitle", False):
+                titles = terms_dict[node["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": node["sharedTitle"]}).titles
+                node_title_en = ", " + get_primary_title("en", titles)
+                node_title_he = ", " + get_primary_title("he", titles)
+            else:
+                node_title_en = ", " + get_primary_title("en", node["titles"])
+                node_title_he = ", " + get_primary_title("he", node["titles"])
+
+            if is_virtual_node:
+                curr_ref = Ref(tref)
+                vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == node.get("nodeType", "") and x.firstWord == node["firstWord"])
+                for vchild in vnode.all_children():
+                    vstring = " ".join(vchild.get_text())
+                    vref = vchild.ref()
+                    self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), node, [])
+            else:
+                self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
+
+    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
 
         item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections =\
             self.__initialize_walk_thru_contents_params(*recursive_args)
 
         if type(item) is dict:
-            for node in schema["nodes"]:
-                try:
-                    is_virtual_node = VirtualNode in globals()[node.get("nodeType", "")].__bases__
-                except KeyError:
-                    is_virtual_node = False
-                if node.get("default", False) or is_virtual_node:
-                    node_title_en = node_title_he = ""
-                elif node.get("sharedTitle", False):
-                    titles = terms_dict[node["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": node["sharedTitle"]}).titles
-                    node_title_en = ", " + get_primary_title("en", titles)
-                    node_title_he = ", " + get_primary_title("he", titles)
-                else:
-                    node_title_en = ", " + get_primary_title("en", node["titles"])
-                    node_title_he = ", " + get_primary_title("he", node["titles"])
-
-                if is_virtual_node:
-                    curr_ref = Ref(tref)
-                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == node.get("nodeType", "") and x.firstWord == node["firstWord"])
-                    for vchild in vnode.all_children():
-                        vstring = " ".join(vchild.get_text())
-                        vref = vchild.ref()
-                        self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), node, [])
-                else:
-                    self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, addressTypes, index_offsets_by_depth, sections)
+            self.__walk_thru_node_tree(action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections)
         elif type(item) is list:
             for section, ja in enumerate(item):
                 try:
