@@ -1510,36 +1510,36 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             self.__initialize_walk_thru_contents_params(*recursive_args)
 
         if type(item) is dict:
-            for n in schema["nodes"]:
+            for node in schema["nodes"]:
                 try:
-                    is_virtual_node = VirtualNode in globals()[n.get("nodeType", "")].__bases__
+                    is_virtual_node = VirtualNode in globals()[node.get("nodeType", "")].__bases__
                 except KeyError:
                     is_virtual_node = False
-                if n.get("default", False) or is_virtual_node:
+                if node.get("default", False) or is_virtual_node:
                     node_title_en = node_title_he = ""
-                elif n.get("sharedTitle", False):
-                    titles = terms_dict[n["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": n["sharedTitle"]}).titles
+                elif node.get("sharedTitle", False):
+                    titles = terms_dict[node["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": node["sharedTitle"]}).titles
                     node_title_en = ", " + get_primary_title("en", titles)
                     node_title_he = ", " + get_primary_title("he", titles)
                 else:
-                    node_title_en = ", " + get_primary_title("en", n["titles"])
-                    node_title_he = ", " + get_primary_title("he", n["titles"])
+                    node_title_en = ", " + get_primary_title("en", node["titles"])
+                    node_title_he = ", " + get_primary_title("he", node["titles"])
 
                 if is_virtual_node:
                     curr_ref = Ref(tref)
-                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == n.get("nodeType", "") and x.firstWord == n["firstWord"])
+                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == node.get("nodeType", "") and x.firstWord == node["firstWord"])
                     for vchild in vnode.all_children():
                         vstring = " ".join(vchild.get_text())
                         vref = vchild.ref()
-                        self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), n, [])
+                        self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), node, [])
                 else:
-                    self.__walk_thru_contents_recursive(action, item[n["key"]], tref + node_title_en, n, heTref + node_title_he, addressTypes, index_offsets_by_depth, sections)
+                    self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, addressTypes, index_offsets_by_depth, sections)
         elif type(item) is list:
-            for section, i in enumerate(item):
+            for section, ja in enumerate(item):
                 try:
                     temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", section+1))
                     temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", section+1))
-                    self.__walk_thru_contents_recursive(action, i, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
+                    self.__walk_thru_contents_recursive(action, ja, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
                 except IndexError as e:
                     print(str(e))
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
