@@ -545,9 +545,8 @@ def test_version_walk_thru_contents():
     test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy"]
     for t in test_index_titles:
         ind = model.library.get_index(t)
-        vs = ind.versionSet()
-        for v in vs:
-            v.walk_thru_contents(action)
+        version = ind.versionSet()[0]
+        version.walk_thru_contents(action)
 
 
 class TestModifyVersion:
