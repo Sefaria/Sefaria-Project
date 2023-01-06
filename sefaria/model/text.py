@@ -1504,9 +1504,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         tref = recursive_args[1]
         heTref = recursive_args[3]
 
-        if type(item) is dict:
+        if isinstance(item, dict):
             self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
-        elif type(item) is list:
+        elif isinstance(item, list):
             self.__walk_thru_jagged_array(action, *recursive_args)
         elif isinstance(item, str):
             action(item, tref, heTref, self)
