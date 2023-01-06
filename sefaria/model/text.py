@@ -1494,7 +1494,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         if heTref is None:
             heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
         addressTypes = None
-        index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
+        index_offsets_by_depth = None
         sections = []
 
         return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
@@ -1541,8 +1541,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
 
     def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
-        if addressTypes is None and schema is not None:
-            addressTypes = schema.get("addressTypes", None)
+        if schema is not None:
+            if addressTypes is None:
+                addressTypes = schema.get("addressTypes", None)
+            if index_offsets_by_depth is None:
+                index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
 
         for section, ja in enumerate(item):
             try:
