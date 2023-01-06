@@ -1481,12 +1481,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         The result will be all_text populated with all segments from Masekhet Berakhot.
 
         """
-        return self.__walk_thru_contents_recursive(action, heTref=heTref, schema=schema, terms_dict=terms_dict)
+        return self.__walk_thru_contents_recursive(action, None, None, schema, heTref, None, None, None, terms_dict=terms_dict)
 
-    def __walk_thru_contents_recursive(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None, index_offsets_by_depth=None):
-        def get_primary_title(lang, titles):
-            return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
-
+    def __initialize_walk_thru_contents_params(self, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
         if item is None:
             item = self.chapter
         if tref is None:
@@ -1501,6 +1498,17 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             addressTypes = schema.get("addressTypes", None)
         if index_offsets_by_depth is None and schema is not None:
             index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
+        sections = sections or []
+
+        return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
+
+    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+        def get_primary_title(lang, titles):
+            return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
+
+        item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections =\
+            self.__initialize_walk_thru_contents_params(*recursive_args)
+
         if type(item) is dict:
             for n in schema["nodes"]:
                 try:
@@ -1525,13 +1533,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                         vref = vchild.ref()
                         self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), n, [])
                 else:
-                    self.__walk_thru_contents_recursive(action, item[n["key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes, index_offsets_by_depth=index_offsets_by_depth)
+                    self.__walk_thru_contents_recursive(action, item[n["key"]], tref + node_title_en, n, heTref + node_title_he, addressTypes, index_offsets_by_depth, sections)
         elif type(item) is list:
             for section, i in enumerate(item):
                 try:
                     temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", section+1))
                     temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", section+1))
-                    self.__walk_thru_contents_recursive(action, i, temp_tref, temp_heTref, schema={}, addressTypes=addressTypes[1:], index_offsets_by_depth=index_offsets_by_depth)
+                    self.__walk_thru_contents_recursive(action, i, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
                 except IndexError as e:
                     print(str(e))
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
