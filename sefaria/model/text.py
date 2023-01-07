@@ -1554,12 +1554,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
 
     def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
-        segment_tref = self.__make_segment_from_sections(tref, "en", addressTypes, sections)
-        segment_heTref = self.__make_segment_from_sections(heTref, "he", addressTypes, sections)
+        segment_tref = self.__add_sections_to_tref(tref, "en", addressTypes, sections)
+        segment_heTref = self.__add_sections_to_tref(heTref, "he", addressTypes, sections)
         action(segment_str, segment_tref, segment_heTref, self)
 
     @staticmethod
-    def __make_segment_from_sections(tref, lang, addressTypes, sections):
+    def __add_sections_to_tref(tref, lang, addressTypes, sections):
         for depth, section in enumerate(sections):
             section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section)
             tref += f"{' ' if depth == 0 else ':'}{section_str}"
