@@ -1501,15 +1501,13 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
     def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
         item = recursive_args[0]
-        tref = recursive_args[1]
-        heTref = recursive_args[3]
 
         if isinstance(item, dict):
             self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
         elif isinstance(item, list):
             self.__walk_thru_jagged_array(action, *recursive_args)
         elif isinstance(item, str):
-            action(item, tref, heTref, self)
+            self.__apply_action_to_segment(action, *recursive_args)
 
     def __walk_thru_node_tree(self, action, item, tref, schema, heTref, *walk_thru_contents_args, terms_dict=None):
         def get_primary_title(lang, titles):
@@ -1547,14 +1545,25 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             if index_offsets_by_depth is None:
                 index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
 
-        for section, ja in enumerate(item):
+        for section_index, ja in enumerate(item):
             try:
-                temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", section+1))
-                temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", section+1))
-                self.__walk_thru_contents_recursive(action, ja, temp_tref, {}, temp_heTref, addressTypes[1:], index_offsets_by_depth, sections)
+                next_sections = sections + [section_index+1]
+                self.__walk_thru_contents_recursive(action, ja, tref, {}, heTref, addressTypes, index_offsets_by_depth, next_sections)
             except IndexError as e:
                 print(str(e))
                 print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+
+    def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
+        segment_tref = self.__make_segment_from_sections(tref, "en", addressTypes, sections)
+        segment_heTref = self.__make_segment_from_sections(heTref, "he", addressTypes, sections)
+        action(segment_str, segment_tref, segment_heTref, self)
+
+    @staticmethod
+    def __make_segment_from_sections(tref, lang, addressTypes, sections):
+        for depth, section in enumerate(sections):
+            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section)
+            tref += f"{' ' if depth == 0 else ':'}{section_str}"
+        return tref
 
 
 class VersionSet(abst.AbstractMongoSet):
