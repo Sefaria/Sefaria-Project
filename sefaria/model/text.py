@@ -1495,9 +1495,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
         addressTypes = None
         index_offsets_by_depth = None
-        sections = []
+        section_indexes = []
 
-        return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections
+        return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes
 
     def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
         item = recursive_args[0]
@@ -1538,7 +1538,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             else:
                 self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
 
-    def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
+    def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
         if schema is not None:
             if addressTypes is None:
                 addressTypes = schema.get("addressTypes", None)
@@ -1547,21 +1547,22 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
 
         for section_index, ja in enumerate(item):
             try:
-                next_sections = sections + [section_index+1]
-                self.__walk_thru_contents_recursive(action, ja, tref, {}, heTref, addressTypes, index_offsets_by_depth, next_sections)
+                offset = JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
+                next_section_indexes = section_indexes + [section_index+offset]
+                self.__walk_thru_contents_recursive(action, ja, tref, {}, heTref, addressTypes, index_offsets_by_depth, next_section_indexes)
             except IndexError as e:
                 print(str(e))
                 print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
 
-    def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, sections):
-        segment_tref = self.__add_sections_to_tref(tref, "en", addressTypes, sections)
-        segment_heTref = self.__add_sections_to_tref(heTref, "he", addressTypes, sections)
+    def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
+        segment_tref = self.__add_sections_to_tref(tref, "en", addressTypes, section_indexes)
+        segment_heTref = self.__add_sections_to_tref(heTref, "he", addressTypes, section_indexes)
         action(segment_str, segment_tref, segment_heTref, self)
 
     @staticmethod
-    def __add_sections_to_tref(tref, lang, addressTypes, sections):
-        for depth, section in enumerate(sections):
-            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section)
+    def __add_sections_to_tref(tref, lang, addressTypes, section_indexes):
+        for depth, section_index in enumerate(section_indexes):
+            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section_index+1)
             tref += f"{' ' if depth == 0 else ':'}{section_str}"
         return tref
 
@@ -2978,10 +2979,10 @@ class Ref(object, metaclass=RefCacheType):
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
-    def _get_offset(self, sections, use_node=None):
+    def _get_offset(self, section_indexes, use_node=None):
         use_node = use_node if use_node else self.index_node
         index_offsets_by_depth = getattr(use_node, 'index_offsets_by_depth', None)
-        return JaggedArrayNode.get_index_offset(sections, index_offsets_by_depth)
+        return JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
