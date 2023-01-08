@@ -26,12 +26,12 @@ function useEditToggle() {
 const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [isTopicCategory, setIsTopicCategory] = useState(!!origData?.origCategoryDesc && toolType === "topic");  // applicable when adding/editing Topic with children
-    const [categories, setCategories] = useState(origData?.categories); // only applicable when editing/adding Categories
+    const [path, setPath] = useState(origData?.categories); // only applicable when editing/adding Categories
     const isNew = origData?.origEn === "";
     const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
                                     heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
-                                    description: origData?.origDesc?.en,
-                                    categoryDescription: origData?.origCategoryDesc?.en,
+                                    enDescription: origData?.origDesc?.en,
+                                    enCategoryDescription: origData?.origCategoryDesc?.en,
                                     heCategoryDescription: origData?.origCategoryDesc?.he});
     let catMenu = null;
     const handleCatChange = function(e) {
@@ -62,7 +62,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     } else if (toolType === "category") {
         catMenu = <div className="section">
                     <label><InterfaceText>Category</InterfaceText></label>
-                    <CategoryChooser categories={categories} update={setCategories}/>
+                    <CategoryChooser categories={path} update={setPath}/>
                 </div>;
     }
 
@@ -80,11 +80,12 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const save = function () {
         toggleInProgress();
         let url = "";
-        let postData = {...data, "description": {"en": data.description, "he": data.heDescription}, "title": data.enTitle,
-            "heTitle": data.heTitle, "category": data.catSlug};
+        let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
+            "heTitle": data.heTitle};
         if (postData.isTopicCategory) {
-            postData = {...postData, "catDescription": {"en": data.catDescription, "he": data.heCategoryDescription}};
+            postData = {...postData, "catDescription": {"en": data.enCatDescription, "he": data.heCategoryDescription}};
         }
+        postData.category = toolType === "topic" ? data.catSlug : path;  // use `path` when this editing/adding a Category
 
         if (isNew) {
           url = "/api/topic/new";
@@ -137,10 +138,10 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
             data.enTitle = e.target.value;
         }
         else if (e.target.id === "topicDesc") {
-            data.description = e.target.value;
+            data.enDescription = e.target.value;
         }
         else if (e.target.id === "topicCatDesc") {
-            data.catDescription = e.target.value;
+            data.enCatDescription = e.target.value;
         }
         else if (e.target.id === "topicHeTitle") {
             data.heTitle = e.target.value;
@@ -174,7 +175,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                         <div className="section">
                             <label><InterfaceText>English Topic Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}
-                                   defaultValue={data.description} placeholder={Sefaria._("Add a description.")}/>
+                                   defaultValue={data.enDescription} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
@@ -187,7 +188,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                                                      <textarea
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
-                                                         defaultValue={data.catDescription}
+                                                         defaultValue={data.enCatDescription}
                                                          placeholder={Sefaria._("Add a short description.")}/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
