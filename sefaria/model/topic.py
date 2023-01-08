@@ -5,6 +5,7 @@ from .text import Ref, IndexSet
 from .category import Category
 from sefaria.system.exceptions import InputError
 from sefaria.model.timeperiod import TimePeriod
+from sefaria.system.database import db
 import structlog
 import regex as re
 logger = structlog.get_logger(__name__)
@@ -68,6 +69,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for title in self.title_group.titles:
             title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
+        slug_field = self.slug_fields[0]
+        slug = getattr(self, slug_field)
+        if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
+            self.subclass = "author"
+
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -209,6 +215,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
+
 
     def merge(self, other: Union['Topic', str]) -> None:
         """
@@ -844,3 +851,10 @@ def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+
+def process_topic_delete(topic):
+    RefTopicLinkSet({"toTopic": topic.slug}).delete()
+    IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
+    for sheet in db.sheets.find({"topics.slug": topic.slug}):
+        sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
+        db.sheets.save(sheet)
