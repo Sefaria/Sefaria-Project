@@ -13,7 +13,8 @@ UID = 28
 SOURCE_SLUG = "ashlag-glossary"
 TEXTS = [
     'Peticha LeChokhmat HaKabbalah',
-    'Introduction to Sulam Commentary'
+    'Introduction to Sulam Commentary',
+    "Baal HaSulam's Preface to Zohar"
 ]
 # Group 1: Openings tags
 # Group 2: Matched Word(s)
@@ -22,13 +23,10 @@ TEXTS = [
 FULL_REG = re.compile(r'(?:<<|&lt&lt)(.*?)(?:>>|&rt&rt)(?!>|&rt)')
 PHRASE_REG = re.compile(r'[^()<>,. ][^()<>,.]+[^()<>,. ]')
 
+
 #####
 # UTIL
 #####
-def get_ashlag_topics():
-    return TopicSet({"properties.source": SOURCE_SLUG})
-
-
 def replace_dots(s):
     return s.replace("Ḥ", "H").replace("ḥ", "h")
 
@@ -39,6 +37,32 @@ def normalize(s):
 
 def find_angle_quotes(s):
     return FULL_REG.finditer(s)
+
+
+def opening_tag_count(s):
+    return len(re.findall(r"<\w+>", s))
+
+
+def closing_tag_count(s):
+    return len(re.findall(r"</\w+>", s))
+
+
+def remove_tags(s):
+    return re.sub(r"</?\w+>", "", s)
+
+
+def get_ashlag_topics():
+    return TopicSet({"properties.source": SOURCE_SLUG})
+
+
+def get_normal_mapping():
+    # Build mapping of normal forms to topics
+    mapping = {}
+    for topic in get_ashlag_topics():
+        assert isinstance(topic, Topic)
+        for t in topic.get_titles("en", with_disambiguation=False):
+            mapping[normalize(t)] = topic
+    return mapping
 
 
 #####
@@ -92,7 +116,9 @@ def build_all_topics():
     for d in load_raw_from_sheet():
         t = build_topic_from_record(d)
         t.save()
-        set_is_a(t, category_topic, SOURCE_SLUG)
+        create_intra_topic_link(t.slug, category_topic.slug, "is-a", SOURCE_SLUG)
+
+    interlink_topics()
 
 
 def get_slug_from_record(d):
@@ -102,12 +128,12 @@ def get_slug_from_record(d):
     return SluggedAbstractMongoRecord.normalize_slug(slug_base)
 
 
-def set_is_a(from_topic, to_topic, data_source_slug):
+def create_intra_topic_link(from_slug, to_slug, link_type, data_source_slug):
     link_json = {
         "class": "intraTopic",
-        "fromTopic": from_topic.slug,
-        "toTopic": to_topic.slug,
-        "linkType": "is-a",
+        "fromTopic": from_slug,
+        "toTopic": to_slug,
+        "linkType": link_type,
         "dataSource": data_source_slug
     }
 
@@ -157,6 +183,61 @@ def build_topic_from_record(d):
 
     return t
 
+
+# For each topic
+#   Get its description
+#       Record place of reference to other topics
+#       Add to list of interlinks
+# For reach topic
+#   Rewrite descriptions, wrapping references
+# Create an intratopic link for each pair
+
+
+def interlink_topics():
+    '''
+
+    :return:
+    '''
+
+    mapping = get_normal_mapping()
+    topic_pairs = set()
+
+    for topix in get_ashlag_topics():
+        from_slug = topix.slug
+
+        def do_sub(m, group=0):
+            rawmatch = m.group(group)
+            norm = normalize(remove_tags(rawmatch))
+            to_topic = mapping.get(norm)
+            if to_topic:
+                to_slug = to_topic.slug
+                if to_slug != from_slug:
+                    topic_pairs.add(frozenset([from_slug, to_slug]))
+                    return f'<a href="/topics/{to_slug}" class="namedEntityLink" data-slug="{to_slug}">{rawmatch}</a>'
+                else:
+                    print(f"Reference to {norm} in it's own description")
+            return m.group()
+
+        def full_sub(m):
+            full_result = do_sub(m, 1)
+            if full_result != m.group():
+                return full_result
+            else:
+                return PHRASE_REG.sub(do_sub, m.group())
+
+        desc = getattr(topix, "description", {}).get("en")
+        if not desc:
+            continue
+
+        new_desc = FULL_REG.sub(full_sub, desc)
+        if new_desc != desc:
+            topix.description = new_desc
+            topix.save()
+
+    for from_slug, to_slug in topic_pairs:
+        create_intra_topic_link(from_slug, to_slug, "related-to", SOURCE_SLUG)
+
+
 #####
 # WRAP
 #####
@@ -197,17 +278,6 @@ class TextMatches:
                 done.add(d["phrase"])
 
 
-def get_normal_mapping():
-    # Build mapping of normal forms to topics
-
-    mapping = {}
-    for topic in get_ashlag_topics():
-        assert isinstance(topic, Topic)
-        for t in topic.get_titles("en", with_disambiguation=False):
-            mapping[normalize(t)] = topic
-    return mapping
-
-
 def create_ref_topic_link(ref: text.Ref, topix: topic.Topic, version: text.Version, match: re.Match):
     """
 
@@ -238,6 +308,7 @@ def create_ref_topic_link(ref: text.Ref, topix: topic.Topic, version: text.Versi
     except DuplicateRecordError as e:
         print(e)
 
+
 def wrap_all():
     remove_ref_topic_links()
     mapping = get_normal_mapping()
@@ -264,19 +335,18 @@ def create_topic_links_for_text(text_name, mapping):
             tc = ref.text("en", v.versionTitle)
 
             # Find and record all matching terms
-            referrals = FULL_REG.findall(tc.text)
-            if not referrals:
-                continue
-            for referral in referrals:
-                for phrase in PHRASE_REG.findall(referral):
-                    normal_term = normalize(phrase)
-                    topic = mapping.get(normal_term)
+            for referral in FULL_REG.findall(tc.text):
+                norm = normalize(remove_tags(referral))
+                topix = mapping.get(norm)
+                if topix:
+                    matches.add_match(ref, norm, topix)
+                    continue
 
-                    # TODO: organize this by ref
-                    if topic:
-                        matches.add_match(ref, phrase, topic)
-                    else:
-                        print(f"No topic match for {referral} / {phrase}")
+                for sub in PHRASE_REG.findall(referral):
+                    normal_sub = normalize(sub)
+                    topix = mapping.get(normal_sub)
+                    if topix:
+                        matches.add_match(ref, sub, topix)
 
             # Remove the << >>
             tc.text = FULL_REG.sub(r"\1", tc.text)
@@ -292,51 +362,54 @@ def create_topic_links_for_text(text_name, mapping):
 
 def test_coverage():
     background_list = load_raw_from_sheet()
-    english_terms = {normalize(d["term english"]):d for d in background_list}
-    term_translations = {normalize(d['term translation']):d for d in background_list}
-    term_alternates = {normalize(e.strip()):d for d in background_list for e in d['term alternate'].split(",")}
-    ets = set(english_terms.keys())
-    tts = set(term_translations.keys())
-    tas = set(term_alternates.keys())
+    english_terms = {normalize(d["term english"]) for d in background_list}
+    term_translations = {normalize(d['term translation']) for d in background_list}
+    term_alternates = {normalize(e.strip()) for d in background_list for e in d['term alternate'].split(",")}
+    all_entries = english_terms | term_translations | term_alternates
 
-    all_dict_words = set()
+    misses = set()
     for d in background_list:
-        if not d.get("english description"):
+        desc = d.get("english description")
+        if not desc:
             print("No desc in " + d["term english"])
         else:
-            for s in find_angle_quotes(d["english description"]):
-                all_dict_words.add(normalize(s.group(2)))
+            for referral in FULL_REG.findall(desc):
+                hit = False
+                if normalize(remove_tags(referral)) in all_entries:
+                    continue
+                for phrase in PHRASE_REG.findall(referral):
+                    if normalize(phrase) in all_entries:
+                        hit = True
+                if not hit:
+                    misses.add(remove_tags(referral))
 
-    dict_unhandled = all_dict_words - ets - tts - tas
     print("Words unhandled in dictionary itself:")
-    print(dict_unhandled)
+    print(misses)
 
+    all_unhandled = misses
 
-    r = Ref('Peticha LeChokhmat HaKabbalah')
-    all_plh_words = set()
-    for line in r.text("en").ja().flatten_to_array():
-        for s in find_angle_quotes(line):
-            all_plh_words.add(normalize(s.group(2)))
+    for t in TEXTS:
+        r = Ref(t)
+        misses = set()
+        for line in r.text("en").ja().flatten_to_array():
+            for referral in FULL_REG.findall(line):
+                hit = False
+                if normalize(remove_tags(referral)) in all_entries:
+                    continue
+                for phrase in PHRASE_REG.findall(referral):
+                    if normalize(phrase) in all_entries:
+                        hit = True
+                if not hit:
+                    misses.add(remove_tags(referral))
 
-    plh_unhandled = all_plh_words - ets - tts - tas
-    print()
-    print("Words unhandled in PLH:")
-    print(plh_unhandled)
-
-    r = Ref('Introduction to Sulam Commentary')
-    all_isc_words = set()
-    for line in r.text("en").ja().flatten_to_array():
-        for s in find_angle_quotes(line):
-            all_isc_words.add(normalize(s.group(2)))
-
-    isc_unhandled = all_isc_words - ets - tts - tas
-    print()
-    print("Words unhandled in ISC:")
-    print(isc_unhandled)
+        print()
+        print(f"Words unhandled in {t}:")
+        print(misses)
+        all_unhandled |= misses
 
     print()
     print("All Unhandled Words:")
-    print(dict_unhandled | isc_unhandled | plh_unhandled)
+    print(all_unhandled)
 
 
 def dump_all():
@@ -360,7 +433,6 @@ def dump_all():
 
 
 # test_coverage()
-# build_all_topics()
-wrap_all()
+build_all_topics()
+# wrap_all()
 # dump_all()
-# print(get_normal_mapping())
