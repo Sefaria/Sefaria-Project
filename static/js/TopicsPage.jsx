@@ -4,7 +4,7 @@ import {
     ResponsiveNBox, AdminToolHeader,
     CategoryChooser
 } from './Misc';
-import {TopicEditor, TopicEditorButton, useEditToggle} from './TopicEditor';
+import {AdminEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -59,10 +59,11 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   ];
   let topicStatus = null;
   if (Sefaria.is_moderator && addingTopics) {
-      topicStatus = <TopicEditor close={toggleAddingTopics} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      const origData = {origEn: ""};
+      topicStatus = <AdminEditor close={toggleAddingTopics} toolType="topic" origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
   }
   else if (Sefaria.is_moderator) {
-      topicStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
+      topicStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
   }
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">

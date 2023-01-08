@@ -5,7 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import {useEditToggle, TopicEditorButton, TopicEditor} from "./TopicEditor";
+import {useEditToggle, AdminEditorButton, AdminEditor} from "./AdminEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -49,10 +49,11 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   }
   let editStatus = null;
   if (Sefaria.is_moderator && editCategory) {
-      editStatus = <TopicEditor close={toggleEditCategory} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      const origData = {origEn: ""};
+      editStatus = <AdminEditor origData={origData} close={toggleEditCategory} toolType="topic" onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
   }
   else if (Sefaria.is_moderator) {
-      editStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
+      editStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleEditCategory}/>;
   }
   const tocObject = Sefaria.tocObjectByCategories(cats);
 

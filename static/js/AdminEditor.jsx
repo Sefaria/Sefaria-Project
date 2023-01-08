@@ -1,9 +1,9 @@
 import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
-import {AdminToolHeader, InterfaceText} from "./Misc";
+import {AdminToolHeader, CategoryChooser, InterfaceText} from "./Misc";
 
-const TopicEditorButton = ({toggleAddingTopics, text}) => {
+const AdminEditorButton = ({toggleAddingTopics, text}) => {
     return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
         <InterfaceText>{text}</InterfaceText>
     </div>;
@@ -22,41 +22,56 @@ function useEditToggle() {
   return [editingBool, toggleAddingTopics];
 }
 
-const CategoryEditor = ({}) => {
 
-}
-
-
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
-                      origCategoryDesc={}, origCategorySlug="",
-                      onCreateSuccess, close}) => {
+const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const [catSlug, setCatSlug] = useState(origCategorySlug);
-    const [description, setDescription] = useState(origDesc?.en);
-    const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
-    const [enTitle, setEnTitle] = useState(origEn);
-    const [heTitle, setHeTitle] = useState(origHe);
-    const [heDescription, setHeDescription] = useState(origDesc?.he);
-    const [heCategoryDescription, setHeCategoryDescription] = useState(origCategoryDesc?.he);
-    const isNewTopic = origSlug === "";
-    const [isCategory, setIsCategory] = useState(!!origCategoryDesc);
+    const [isTopicCategory, setIsTopicCategory] = useState(!!origData?.origCategoryDesc && toolType === "topic");  // applicable when adding/editing Topic with children
+    const [categories, setCategories] = useState(origData?.categories); // only applicable when editing/adding Categories
+    const isNew = origData?.origEn === "";
+    const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
+                                    heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
+                                    description: origData?.origDesc?.en,
+                                    categoryDescription: origData?.origCategoryDesc?.en,
+                                    heCategoryDescription: origData?.origCategoryDesc?.he});
+    let catMenu = null;
+    const handleCatChange = function(e) {
+      data.catSlug = e.target.value;
+      const newIsTopicCategory = isTopicCategory || e.target.value === Sefaria._("Main Menu");
+      setIsTopicCategory(newIsTopicCategory);
+      setData(data);
+    }
 
-    let slugsToTitles = Sefaria.slugsToTitles();
-    let specialCases = {"": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
-                        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}};
-    slugsToTitles = Object.assign(specialCases, slugsToTitles);
-
-    let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
-      const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
-      return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
-    });
+    if (toolType === "topic") {
+        let slugsToTitles = Sefaria.slugsToTitles();
+        let specialCases = {
+            "": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+            "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
+        };
+        slugsToTitles = Object.assign(specialCases, slugsToTitles);
+        catMenu = <div className="section">
+                        <label><InterfaceText>Category</InterfaceText></label>
+                        <div id="categoryChooserMenu">
+                            <select key="topicCats" id="topicCats" onChange={handleCatChange}>
+                                {Object.keys(slugsToTitles).map(function (tempSlug, i) {
+                                    const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
+                                    return <option key={i} value={tempSlug} selected={data.catSlug === tempSlug}>{tempTitle}</option>;
+                                })}
+                            </select>
+                        </div>
+                </div>;
+    } else if (toolType === "category") {
+        catMenu = <div className="section">
+                    <label><InterfaceText>Category</InterfaceText></label>
+                    <CategoryChooser categories={categories} update={setCategories}/>
+                </div>;
+    }
 
     const validate = function () {
-        if (catSlug === "") {
+        if (data.catSlug === "") {
           alert(Sefaria._("Please choose a category."));
           return false;
         }
-        if (enTitle.length === 0) {
+        if (data.enTitle.length === 0) {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
@@ -65,30 +80,31 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const save = function () {
         toggleInProgress();
         let url = "";
-        let data = {"description": {"en": description, "he": heDescription}, "title": enTitle, "heTitle": heTitle, "category": catSlug};
-        if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": heCategoryDescription};
+        let postData = {...data, "description": {"en": data.description, "he": data.heDescription}, "title": data.enTitle,
+            "heTitle": data.heTitle, "category": data.catSlug};
+        if (postData.isTopicCategory) {
+            postData = {...postData, "catDescription": {"en": data.catDescription, "he": data.heCategoryDescription}};
         }
 
-        if (isNewTopic) {
+        if (isNew) {
           url = "/api/topic/new";
         }
         else {
-          url = `/api/topics/${origSlug}`;
-          data = {...data, origCategory: origCategorySlug, origDescription: origDesc,
-                    origTitle: origEn,origHeTitle: origHe,origSlug: origSlug}
-          if (isCategory) {
-            data["origCatDescription"] = origCategoryDesc;
+          url = `/api/topics/${data.origSlug}`;
+          postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
+                    origTitle: data.origEn, origHeTitle: data.origHe, origSlug: data.origSlug};
+          if (isTopicCategory) {
+            postData.origCatDescription = data.origCategoryDesc;
           }
         }
 
-        const postJSON = JSON.stringify(data);
-        $.post(url,  {"json": postJSON}, function(data) {
-          if (data.error) {
+        const postJSON = JSON.stringify(postData);
+        $.post(url,  {"json": postJSON}, function(result) {
+          if (result.error) {
             toggleInProgress();
-            alert(data.error);
+            alert(result.error);
           } else {
-            const newSlug = data["slug"];
+            const newSlug = result.slug;
             onCreateSuccess(newSlug);
           }
           }).fail( function(xhr, status, errorThrown) {
@@ -102,9 +118,9 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
       $.ajax({
         url: "/api/topic/delete/"+origSlug,
         type: "DELETE",
-        success: function(data) {
-          if ("error" in data) {
-            alert(data.error);
+        success: function(result) {
+          if ("error" in result) {
+            alert(result.error);
           } else {
             alert(Sefaria._("Topic Deleted."));
             window.location = "/topics";
@@ -114,30 +130,28 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
         alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
-    const handleCatChange = function(e) {
-      setCatSlug(e.target.value);
-      const newIsCategory = isCategory || e.target.value === Sefaria._("Main Menu");
-      setIsCategory(newIsCategory);
-    }
+
+
     const setValues = function(e) {
         if (e.target.id === "topicTitle") {
-            setEnTitle(e.target.value);
+            data.enTitle = e.target.value;
         }
         else if (e.target.id === "topicDesc") {
-            setDescription(e.target.value);
+            data.description = e.target.value;
         }
         else if (e.target.id === "topicCatDesc") {
-            setCatDescription(e.target.value);
+            data.catDescription = e.target.value;
         }
         else if (e.target.id === "topicHeTitle") {
-            setHeTitle(e.target.value);
+            data.heTitle = e.target.value;
         }
         else if (e.target.id === "topicHeDesc") {
-            setHeDescription(e.target.value);
+            data.heDescription = e.target.value;
         }
         else if (e.target.id === "topicHeCatDesc") {
-            setHeCategoryDescription(e.target.value);
+            data.heCategoryDescription = e.target.value;
         }
+        setData(data);
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -149,38 +163,31 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                         <AdminToolHeader title="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
                             <label><InterfaceText>English Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder={Sefaria._("Add a title.")}/>
+                            <input id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Title</InterfaceText></label>
-                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria._("Add a title.")}/>
+                                <input id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
-                        <div className="section">
-                          <label><InterfaceText>Category</InterfaceText></label>
-                          <div id="categoryChooserMenu">
-                              <select key="topicCats" id="topicCats" onChange={handleCatChange}>
-                                {catMenu}
-                              </select>
-                          </div>
-                        </div>
+                        {catMenu}
                         <div className="section">
                             <label><InterfaceText>English Topic Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}
-                                   defaultValue={description} placeholder={Sefaria._("Add a description.")}/>
+                                   defaultValue={data.description} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Description</InterfaceText></label>
                                 <textarea id="topicHeDesc" onBlur={setValues}
-                                       defaultValue={heDescription} placeholder={Sefaria._("Add a description.")}/>
+                                       defaultValue={data.heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
-                       {isCategory ?  <div> <div className="section">
+                       {isTopicCategory ?  <div> <div className="section">
                                                      <label><InterfaceText>English Short Description for Topic Table of Contents</InterfaceText></label>
                                                      <textarea
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
-                                                         defaultValue={catDescription}
+                                                         defaultValue={data.catDescription}
                                                          placeholder={Sefaria._("Add a short description.")}/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
@@ -188,12 +195,12 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                                                     <textarea
                                                         id="topicHeCatDesc"
                                                         onBlur={setValues}
-                                                        defaultValue={heCategoryDescription}
+                                                        defaultValue={data.heCategoryDescription}
                                                         placeholder={Sefaria._("Add a short description.")}/>
                                             </div> : null}
                                       </div> :
                        null}
-                      {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                      {!isNew ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete Topic</InterfaceText>
                                     </div> : null}
                     </div>
@@ -202,4 +209,4 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
      </div>
 }
 
-export {TopicEditor, TopicEditorButton, useEditToggle};
+export {AdminEditor, AdminEditorButton, useEditToggle};
