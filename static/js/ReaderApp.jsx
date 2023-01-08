@@ -1812,6 +1812,36 @@ class ReaderApp extends Component {
       gtag("event", "print");
   }
 
+  handleGACopyEvents(e, selectedEls, textOnly) {
+      const activePanelIndex = e.target.closest('.readerPanel').id.split("-")[1]
+      const activePanel = this.state.panels[activePanelIndex]
+
+
+      const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
+      const category = book ? Sefaria.index(book)["primary_category"] : null
+
+      let params = {
+        "length": textOnly.length,
+        "panelType": activePanel["menuOpen"] || activePanel["mode"],
+        "book": book,
+        "category": category,
+      }
+
+      gtag("event", "copy_text", params);
+
+      // check if selection is spanning or bilingual
+      if (book) {
+        const selectedEnEls = selectedEls.querySelectorAll('.en')
+        const selectedHeEls = selectedEls.querySelectorAll('.he')
+        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
+          gtag("event", "bilingual_copy_text", params);
+        }
+        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
+          gtag("event", "spanning_copy_text", params);
+        }
+      }
+  }
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     // - Ensure we don't copy hidden English or Hebrew text
@@ -1872,36 +1902,7 @@ class ReaderApp extends Component {
 
     // ga tracking
     if (this.state.panels.length > 0 && e.target.closest('.readerPanel')) {
-      const activePanelIndex = e.target.closest('.readerPanel').id.split("-")[1]
-      const activePanel = this.state.panels[activePanelIndex]
-
-
-      const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
-      const category = book ? Sefaria.index(book)["primary_category"] : null
-
-      let params = {
-        "length": textOnly.length,
-        "panelType": activePanel["menuOpen"] || activePanel["mode"],
-        "book": book,
-        "category": category,
-      }
-
-      gtag("event", "copy_text", params);
-          console.log('ct', params)
-
-      // check if selection is spanning or bilingual
-      if (book) {
-        const selectedEnEls = selectedEls.querySelectorAll('.en')
-        const selectedHeEls = selectedEls.querySelectorAll('.he')
-        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
-          console.log('bct', params)
-          gtag("event", "bilingual_copy_text", params);
-        }
-        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
-          console.log('sct', params)
-          gtag("event", "spanning_copy_text", params);
-        }
-      }
+      this.handleGACopyEvents(e, selectedEls, textOnly)
     }
 
     const clipdata = e.clipboardData || window.clipboardData;

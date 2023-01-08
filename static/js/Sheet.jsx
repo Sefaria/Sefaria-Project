@@ -30,9 +30,7 @@ class Sheet extends Component {
        content_type: "Sheet",
        item_id: this.props.id
      }
-    console.log(params)
     gtag("event", "select_content", params)
-
 
   }
   getSheetFromCache() {
