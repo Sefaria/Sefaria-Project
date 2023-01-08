@@ -6,7 +6,7 @@ import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
-import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
+import {TopicEditor, TopicEditorButton, useEditToggle} from './TopicEditor';
 import {
   SheetBlock,
   TextPassage,
@@ -191,7 +191,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-    const [addingTopics, toggleAddingTopics] = useTopicToggle();
+    const [addingTopics, toggleAddingTopics] = useEditToggle();
     let topicEditorStatus = null;
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
@@ -339,7 +339,7 @@ const TopicSponsorship = ({topic_slug}) => {
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const [addingTopics, toggleAddingTopics] = useTopicToggle();
+  const [addingTopics, toggleAddingTopics] = useEditToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   if (Sefaria.is_moderator && addingTopics && !!topicData) {

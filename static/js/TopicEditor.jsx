@@ -9,18 +9,23 @@ const TopicEditorButton = ({toggleAddingTopics, text}) => {
     </div>;
 }
 
-function useTopicToggle() {
-  const [addingTopics, setAddingTopics] = useState(false);
+function useEditToggle() {
+  const [editingBool, toggleEditingBool] = useState(false);
   const toggleAddingTopics = function(e) {
       if (e.currentTarget.id === "editTopic") {
-        setAddingTopics(true);
+        toggleEditingBool(true);
       }
       else if(e.currentTarget.id === "cancel") {
-        setAddingTopics(false);
+        toggleEditingBool(false);
      }
   }
-  return [addingTopics, toggleAddingTopics];
+  return [editingBool, toggleAddingTopics];
 }
+
+const CategoryEditor = ({}) => {
+
+}
+
 
 const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                       origCategoryDesc={}, origCategorySlug="",
@@ -197,4 +202,4 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
      </div>
 }
 
-export {TopicEditor, TopicEditorButton, useTopicToggle};
+export {TopicEditor, TopicEditorButton, useEditToggle};

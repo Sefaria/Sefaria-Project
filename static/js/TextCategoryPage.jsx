@@ -5,6 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
+import {useEditToggle, TopicEditorButton, TopicEditor} from "./TopicEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -19,6 +20,7 @@ import {
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
+  const [editCategory, toggleEditCategory] = useEditToggle();
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -45,7 +47,13 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       heCatTitle = Sefaria.hebrewTerm(category);
     }
   }
-
+  let editStatus = null;
+  if (Sefaria.is_moderator && editCategory) {
+      editStatus = <TopicEditor close={toggleEditCategory} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+  }
+  else if (Sefaria.is_moderator) {
+      editStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
+  }
   const tocObject = Sefaria.tocObjectByCategories(cats);
 
   const catContents = Sefaria.tocItemsByCategories(cats);
@@ -63,6 +71,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       <h1>
         <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
       </h1>
+      {editStatus}
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
