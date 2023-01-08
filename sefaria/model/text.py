@@ -2752,7 +2752,7 @@ class Ref(object, metaclass=RefCacheType):
 
         # don't replace : in Hebrew, where it can indicate amud
         if lang == "he":
-            return
+            return tref
 
         tref = tref.replace(":", ".")
 
