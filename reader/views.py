@@ -3185,7 +3185,7 @@ def topics_api(request, topic, v2=False):
             topic_obj.add_title(topic_data["heTitle"], 'he', True, True)
             topic_needs_save = True
 
-        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", {}) != topic_data.get("catDescription", {}):
             topic_obj.description_published = True
             topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", {}))
             topic_needs_save = True
