@@ -193,6 +193,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
     const [addingTopics, toggleAddingTopics] = useTopicToggle();
     let topicEditorStatus = null;
+
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
             topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
@@ -342,6 +343,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const [addingTopics, toggleAddingTopics] = useTopicToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
       return <TopicEditor origEn={en}
@@ -355,6 +357,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+
   return (
     <div>
         <div className="navTitle tight">
