@@ -999,6 +999,7 @@ Sefaria = extend(Sefaria, {
           }.bind(this)
       });
   },
+  _topicCompletions: {},
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
     // Returns Promise which resolve to a list of lexicon entries for the given words
