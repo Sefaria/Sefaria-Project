@@ -975,7 +975,7 @@ def translations_page(request, slug):
     Main page for translations
     """
     title_dictionary = {
-        #"ar": {"name": "Arabic", "nativeName": "عربى"},
+        "ar": {"name": "Arabic", "nativeName": "عربى", "title": "نصوص يهودية بالعربية", "desc": "أكبر مكتبة مجانية للنصوص اليهودية المتاحة للقراءة عبر الإنترنت باللغات العبرية والعربية والإنجليزية بما في ذلك التوراة والتناخ والتلمود والميشناه والمدراش والتعليقات والمزيد."},
         "de": {"name": "German", "nativeName": "Deutsch", "title": "Jüdische Texte in Deutscher Sprache", "desc": "Die größte kostenlose Bibliothek jüdischer Texte, die online auf Hebräisch, Deutsch und Englisch gelesen werden kann, einschließlich Tora, Tanach, Talmud, Mischna, Midrasch, Kommentare und mehr."},
         "en": {"name": "English", "nativeName": "English", "title": "Jewish Texts in English", "desc": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."},
         "eo": {"name": "Esperanto", "nativeName": "Esperanto", "title": "Judaj Tekstoj en Esperanto", "desc": "La plej granda senpaga biblioteko de judaj tekstoj legebla interrete en la hebrea, Esperanto kaj la angla inkluzive de Torao, Tanaĥo, Talmudo, Miŝnao, Midraŝo, komentaĵoj kaj pli."},
