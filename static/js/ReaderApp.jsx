@@ -381,23 +381,14 @@ class ReaderApp extends Component {
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
-          (prev.settings.aliyotTorah != next.settings.aliyotTorah))
-      {
-         return true;
-
+          (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah)) {
+        return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
         if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
-          return true; // both are set, compare arrays
-        }
-
-      } else if (prev.navigationTopicCategory !== next.navigationTopicCategory) {
-        // Handle array comparison, !== could mean one is null or both are arrays
-        if (!prev.navigationTopicCategory || !next.navigationTopicCategory) {
-          return true; // They are not equal and one is null
-        } else if (!prev.navigationTopicCategory.compare(next.navigationTopicCategory)) {
           return true; // both are set, compare arrays
         }
       }
