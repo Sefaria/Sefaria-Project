@@ -34,21 +34,25 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const [heDescription, setHeDescription] = useState(origDesc?.he);
     const [heCategoryDescription, setHeCategoryDescription] = useState(origCategoryDesc?.he);
     const isNewTopic = origSlug === "";
-    const [isCategory, setIsCategory] = useState(!!origCategoryDesc);
+    const [isCategory, setIsCategory] = useState(Object.keys(origCategoryDesc).length > 0);
 
-    const slugsToTitles = Sefaria.slugsToTitles();
+    let slugsToTitles = Sefaria.slugsToTitles();
+    let specialCases = {"": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+                        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}};
+    slugsToTitles = Object.assign(specialCases, slugsToTitles);
+
     let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
-      const tempTitle = slugsToTitles[tempSlug];
+      const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
       return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
     });
 
     const validate = function () {
         if (catSlug === "") {
-          alert("Please choose a category.");
+          alert(Sefaria._("Please choose a category."));
           return false;
         }
         if (enTitle.length === 0) {
-          alert("Title must be provided.");
+          alert(Sefaria._("Title must be provided."));
           return false;
         }
         save();
@@ -97,17 +101,18 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
           if ("error" in data) {
             alert(data.error);
           } else {
-            alert("Topic Deleted.");
+            alert(Sefaria._("Topic Deleted."));
             window.location = "/topics";
           }
         }
       }).fail(function() {
-        alert("Something went wrong. Sorry!");
+        alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
     const handleCatChange = function(e) {
       setCatSlug(e.target.value);
-      const newIsCategory = isCategory || e.target.value === "Main Menu";
+      //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      const newIsCategory = Object.keys(origCategoryDesc).length > 0 || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
     }
     const setValues = function(e) {
@@ -134,18 +139,18 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
             <div className="static">
                 <div className="inner">
                     {savingStatus ?
-                        <div className="collectionsWidget">Saving topic information...<br/><br/>(processing title changes
-                            may take some time)</div> : null}
+                        <div className="collectionsWidget">{Sefaria._("Saving topic information.")}
+                        <br/><br/>{Sefaria._("Processing title changes may take some time.")})</div> : null}
                     <div id="newIndex">
-                        <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
+                        <AdminToolHeader title="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
-                            <label><InterfaceText>Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder="Add a title."/>
+                            <label><InterfaceText>English Topic Title</InterfaceText></label>
+                            <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder={Sefaria._("Add a title.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Title</InterfaceText></label>
-                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria.translation('he',"Add a title.")}/>
+                                <input id="topicHeTitle" onBlur={setValues} defaultValue={heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
                         <div className="section">
                           <label><InterfaceText>Category</InterfaceText></label>
@@ -156,23 +161,23 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                           </div>
                         </div>
                         <div className="section">
-                            <label><InterfaceText>Topic Description</InterfaceText></label>
+                            <label><InterfaceText>English Topic Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}
-                                   defaultValue={description} placeholder="Add a description."/>
+                                   defaultValue={description} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Description</InterfaceText></label>
                                 <textarea id="topicHeDesc" onBlur={setValues}
-                                       defaultValue={heDescription} placeholder={Sefaria.translation('he', "Add a description.")}/>
+                                       defaultValue={heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
                        {isCategory ?  <div> <div className="section">
-                                                     <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
+                                                     <label><InterfaceText>English Short Description for Topic Table of Contents</InterfaceText></label>
                                                      <textarea
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
                                                          defaultValue={catDescription}
-                                                         placeholder="Add a short description."/>
+                                                         placeholder={Sefaria._("Add a short description.")}/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
                                                     <label><InterfaceText>Hebrew Short Description for Topic Table of Contents</InterfaceText></label>
@@ -180,7 +185,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                                                         id="topicHeCatDesc"
                                                         onBlur={setValues}
                                                         defaultValue={heCategoryDescription}
-                                                        placeholder={Sefaria.translation('he', "Add a short description.")}/>
+                                                        placeholder={Sefaria._("Add a short description.")}/>
                                             </div> : null}
                                       </div> :
                        null}

@@ -2390,14 +2390,13 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
-const AdminToolHeader = function({en, he, validate, close}) {
+const AdminToolHeader = function({title, validate, close}) {
   /*
-  Save and Cancel buttons with a header using the 'en'/'he' text.  Save button calls 'validate' and cancel button calls 'close'.
+  Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
-                <span className="int-en">{en}</span>
-                <span className="int-he">{he}</span>
+                <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
