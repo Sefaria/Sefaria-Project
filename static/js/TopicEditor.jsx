@@ -34,7 +34,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const [heDescription, setHeDescription] = useState(origDesc?.he);
     const [heCategoryDescription, setHeCategoryDescription] = useState(origCategoryDesc?.he);
     const isNewTopic = origSlug === "";
-    const [isCategory, setIsCategory] = useState(!!origCategoryDesc);
+    const [isCategory, setIsCategory] = useState(Object.keys(origCategoryDesc).length > 0);
 
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {"": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
@@ -111,7 +111,8 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     }
     const handleCatChange = function(e) {
       setCatSlug(e.target.value);
-      const newIsCategory = isCategory || e.target.value === Sefaria._("Main Menu");
+      //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      const newIsCategory = Object.keys(origCategoryDesc).length > 0 || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
     }
     const setValues = function(e) {
