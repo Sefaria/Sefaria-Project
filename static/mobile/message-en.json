@@ -1,1 +1,11 @@
-null
+{
+    "title": "",
+    "text": [
+      "Your opinion matters!",
+      "We invite you to participate in a quick survey to help us better understand you and your experiences. It will take approximately 5 minutes to complete."
+    ],
+    "buttonLink": "https://qualtricsxmd6qzd2jyv.qualtrics.com/jfe/form/SV_6KcZChAjIHptfSu?source=app",
+    "buttonText": "Take the Survey",
+    "name": "2023-01-09-modal-survey",
+    "schemaVersion": 1
+}
