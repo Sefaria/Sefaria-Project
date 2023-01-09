@@ -1534,7 +1534,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 for vchild in vnode.all_children():
                     vstring = " ".join(vchild.get_text())
                     vref = vchild.ref()
-                    self.__walk_thru_contents_recursive(action, vstring, vref.normal(), vref.he_normal(), node, [])
+                    self.__walk_thru_contents_recursive(action, vstring, vref.normal(), node, vref.he_normal(), *walk_thru_contents_args)
             else:
                 self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
 
