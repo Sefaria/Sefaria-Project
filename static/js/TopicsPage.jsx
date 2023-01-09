@@ -58,6 +58,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     {type: "SupportSefaria"},
   ];
   let topicStatus = null;
+
   if (Sefaria.is_moderator && addingTopics) {
       const origData = {origEn: ""};
       topicStatus = <AdminEditor close={toggleAddingTopics} toolType="topic" origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
@@ -65,6 +66,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   else if (Sefaria.is_moderator) {
       topicStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
   }
+
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">
       <div className="content">

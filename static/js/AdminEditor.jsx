@@ -25,7 +25,7 @@ function useEditToggle() {
 
 const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const [isTopicCategory, setIsTopicCategory] = useState(!!origData?.origCategoryDesc && toolType === "topic");  // applicable when adding/editing Topic with children
+    const [isTopicCategory, setIsTopicCategory] = useState(Object.keys(origData?.origCategoryDesc).length > 0 && toolType === "topic");  // applicable when adding/editing Topic with children
     const [path, setPath] = useState(origData?.categories); // only applicable when editing/adding Categories
     const isNew = origData?.origEn === "";
     const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
@@ -36,11 +36,11 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     let catMenu = null;
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
-      const newIsTopicCategory = isTopicCategory || e.target.value === Sefaria._("Main Menu");
+      //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      const newIsTopicCategory = Object.keys(origData?.origCategoryDesc).length > 0 || e.target.value === Sefaria._("Main Menu");
       setIsTopicCategory(newIsTopicCategory);
       setData(data);
     }
-
     if (toolType === "topic") {
         let slugsToTitles = Sefaria.slugsToTitles();
         let specialCases = {

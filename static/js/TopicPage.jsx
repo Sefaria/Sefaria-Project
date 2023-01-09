@@ -193,6 +193,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
     const [addingTopics, toggleAddingTopics] = useEditToggle();
     let topicEditorStatus = null;
+
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
             topicEditorStatus = <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
@@ -350,11 +351,13 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
                  origCategoryDesc: topicData?.categoryDescription};
       return <AdminEditor origData={origData}
                           toolType="topic"
+
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                           close={toggleAddingTopics}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+
   return (
     <div>
         <div className="navTitle tight">
