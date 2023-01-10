@@ -290,11 +290,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = Ref(tref)
-        except PartialRefInputError as e:
-            logger.warning('{}'.format(e))
-            matched_ref = Ref(e.matched_part)
-            return reader_redirect(matched_ref.url())
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
@@ -1369,7 +1365,8 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = Ref(tref)
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    tref = oref.url()
 
     if request.method == "GET":
         uref = oref.url()

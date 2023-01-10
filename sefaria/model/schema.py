@@ -836,7 +836,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_title_trie(self, lang: str):
+    def get_match_template_trie(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
@@ -1524,7 +1524,21 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["depth"] = self.depth
         return res
 
-    def get_index_offsets(self, sections, toSections, depths=None):
+    @staticmethod
+    def get_index_offset(section_indexes, index_offsets_by_depth):
+        current_depth = len(section_indexes) + 1
+        if not index_offsets_by_depth or str(current_depth) not in index_offsets_by_depth:
+            return 0
+        return reduce(lambda x, y: x[y], section_indexes, index_offsets_by_depth[str(current_depth)])
+
+    def trim_index_offsets_by_sections(self, sections, toSections, depths=None):
+        """
+        Trims `self.index_offsets_by_depth` according to `sections` and `toSections`
+        @param sections:
+        @param toSections:
+        @param depths:
+        @return:
+        """
         index_offsets_by_depth = copy.deepcopy(getattr(self, 'index_offsets_by_depth', {}))
         if index_offsets_by_depth and sections:
             if not depths:

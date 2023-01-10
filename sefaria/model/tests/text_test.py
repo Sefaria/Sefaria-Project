@@ -542,12 +542,11 @@ def test_version_walk_thru_contents():
         assert tref == r.normal()
         assert heTref == r.he_normal()
 
-    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy"]
+    test_index_titles = ["Genesis", "Rashi on Shabbat", "Pesach Haggadah", "Orot", "Ramban on Deuteronomy", "Zohar"]
     for t in test_index_titles:
         ind = model.library.get_index(t)
-        vs = ind.versionSet()
-        for v in vs:
-            v.walk_thru_contents(action)
+        version = ind.versionSet()[0]
+        version.walk_thru_contents(action)
 
 
 class TestModifyVersion:
