@@ -3,7 +3,7 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet
 from .category import Category
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog
@@ -240,7 +240,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 continue
             try:
                 link.save()
-            except InputError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
