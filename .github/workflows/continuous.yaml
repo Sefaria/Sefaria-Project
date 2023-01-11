@@ -219,15 +219,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # Set Up Connection to Dev Mongo
-      # 1. Auth to cluster
-      # 2. Open encrypted connection
-      - uses: google-github-actions/setup-gcloud@v0
+      - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
           project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
@@ -284,18 +290,24 @@ jobs:
     steps: 
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: google-github-actions/setup-gcloud@v0
+      - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
           project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: setup helm
-        uses: azure/setup-helm@v1
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-      - name: check helm
         id: get-helm
         run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
         env:
