@@ -10862,59 +10862,6 @@ body .homeFeedWrapper {
 body .homeFeedWrapper .content {
   padding: 0;
 }
-.homeFeedWrapper #homeCover {
-  height: 240px;
-  padding: 50px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-  left: -20px;
-  width: calc(100% + 20px);
-}
-.interface-hebrew .homeFeedWrapper #homeCover {
-  left: auto;
-}
-.homeFeedWrapper #homeVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  width: 100%;
-  min-width: 1200px;
-  z-index: 0;
-}
-.homeFeedWrapper #homeCover h1.featureTitle {
-  color: white;
-  margin-bottom: 20px;
-  position: relative;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en,
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  color: white;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en {
-  font-size: 36px;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  font-size: 44px;
-}
-.homeFeedWrapper #homeCover .sub {
-  color: white;
-  font-size: 16px;
-  margin: 0;
-  position: relative;
-}
-.homeFeedWrapper #homeCover .sub a {
-  font-size: 16px;
-}
-.homeFeedWrapper #homeCover .sub .int-en {
-}
-.homeFeedWrapper #homeCover a {
-  color: white;
-  font-style: normal;
-  position: relative;
-}
 .columnLayout {
   display: flex;
   flex-direction: row;
@@ -10980,32 +10927,14 @@ body .homeFeedWrapper .content {
 .sideColumn .inlineButtonBox a .button {
   width: 100%;
 }
-.sideColumn #homeLearn .refLink {
-  display: block;
-  height: 56px;
-  line-height: 56px;
-  border-top: 4px solid;
-  color: #000;
-  font-size: 20px;
-}
-.sideColumn #homeLearn .refLink .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  text-transform: uppercase;
-}
+
 .sideColumn .button {
   letter-spacing: 0;
 }
 .sideColumn h2 {
   font-weight: 400;
 }
-.sideColumn .sideCatLink .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 22px;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #333;
-}
+
 .sideColumn .newsletterInput {
   height: 53px;
 }
@@ -11036,39 +10965,7 @@ body .homeFeedWrapper .content {
 .interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
-.sideColumn #homeSocialButtons {
-  margin-top: 15px;
-}
-.sideColumn #homeSocialButtons .fa {
-  font-size: 18px;
-  color: white;
-  background-color: #aaa;
-  display: inline-block;
-  height: 30px;
-  width: 30px;
-  line-height: 30px;
-  text-align: center;
-  border-radius: 15px;
-  margin-right: 5px;
-}
-.interface-hebrew .sideColumn #homeSocialButtons .fa {
-  margin: 0 0 0 5px;
-}
-.sideColumn #homeSocialButtons .fa:hover {
-  text-decoration: none;
-  background-color: #999;
-}
-.sideColumn #homeFeedback {
-  background-color: #EDEDED;
-  margin: 0 -50px;
-  padding: 30px 50px;
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0;
-}
-.sideColumn #homeFeedback .button {
-  margin-bottom: 10px;
-}
+
 .sideColumn .feedbackBoxOverlay.open {
   position: fixed;
   width: 100%;
@@ -11145,46 +11042,14 @@ body .homeFeedWrapper .content {
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 13px;
 }
-.story.publishSheetStory .storyTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle .int-en,
-.mainColumn .story .storySubTitle .int-he {
-  color: #666;
-}
-img.smallProfileImage {
-  height: 40px;
-  width: 40px;
-  margin: 0;
-  border-radius: 20px;
-}
-.mainColumn .story img.mediumProfileImage {
-  height: 64px;
-  width: 64px;
-  margin: 0;
-  border-radius: 32px;
-}
+
 .interface-english .mainColumn .story .storyTypeBlock {
   float: left;
 }
 .interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
-.interface-english .mainColumn .story .topTailBlock {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .topTailBlock {
-  float: left;
-}
-.interface-english .mainColumn .story .mediumProfileImage {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .mediumProfileImage {
-  float: left;
-}
+
 .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -11235,13 +11100,6 @@ img.smallProfileImage {
 .story .citationLine.contentText .int-he {
   color: #999;
 }
-.story .authorText {
-  display: inline-block;
-  padding: 0 10px;
-  line-height: 22px;
-  width: 100%;
-  letter-spacing: 2px;
-}
 .authorByLine {
   display: flex;
 }
@@ -11277,20 +11135,6 @@ img.smallProfileImage {
 .storyBody a {
   text-decoration: underline;
 }
-.storyEditBar {
-  padding-bottom: 30px;
-}
-.storyEditorTag {
-  display: inline-block;
-  float: right;
-}
-.storyEditorTag.mustHave {
-  color: #66aa66;
-  padding: 0 10px;
-}
-.storyEditorTag.cantHave {
-  color: #aa6666;
-}
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
@@ -11304,7 +11148,6 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
-
 .editTextInfo {
   top: 0px;
   right: 0px;
@@ -11317,8 +11160,6 @@ body .homeFeedWrapper.userStats {
   background-color:  var(--lighter-grey);
 
 }
-
-
 .editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
