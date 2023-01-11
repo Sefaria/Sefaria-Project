@@ -14,7 +14,6 @@ data:
   restore-mongo.sh: |-
     #!/bin/bash
     set -e
-    set -x
 
     tar xzvf /storage/dump.tar.gz -C /storage 
     if [[ -z "$MONGO_HOST" ]]; then
