@@ -176,7 +176,7 @@ jobs:
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
       - name: setup helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
