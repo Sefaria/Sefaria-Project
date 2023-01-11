@@ -27,8 +27,10 @@ def get_everyone():
 def create_person():
     return "/api/v1/people"
 
+
 def get_person_by_email(email):
     return f"/api/v1/people/match?email={email}"
+
 
 def get_nationbuilder_connection():
     access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG

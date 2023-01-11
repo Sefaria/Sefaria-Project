@@ -187,6 +187,12 @@ NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
 
+# Integration with Salesforce
+SALESFORCE_BASE_URL = ""
+SALESFORCE_CLIENT_ID = ""
+SALESFORCE_CLIENT_SECRET = ""
+SALESFORCE_GRANT_TYPE = ""  # "client_credentials"
+
 # Issue bans to Varnish on update.
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
