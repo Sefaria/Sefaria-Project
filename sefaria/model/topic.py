@@ -240,7 +240,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 continue
             try:
                 link.save()
-            except InputError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
