@@ -273,7 +273,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  /* font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; */
   font-size: 16px;
   font-weight: normal;
   color: #000;
@@ -2138,7 +2140,8 @@ div.interfaceLinks-row a {
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
 }
-.topicPanel .topicDescription span {
+.topicPanel .topicDescription a {
+  color: var(--commentary-blue);
 }
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
@@ -11265,9 +11268,9 @@ img.smallProfileImage {
   font-size: 14px;
   width: max-content;
 }
-.mainColumn a:not(.button) {
+/* .mainColumn a:not(.button) {
   color: #000;
-}
+} */
 .storyBody a {
   text-decoration: underline;
 }

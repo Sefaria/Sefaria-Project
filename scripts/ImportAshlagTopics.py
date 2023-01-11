@@ -28,7 +28,7 @@ PHRASE_REG = re.compile(r'[^()<>,. ][^()<>,.]+[^()<>,. ]')
 # UTIL
 #####
 def replace_dots(s):
-    return s.replace("Ḥ", "H").replace("ḥ", "h")
+    return s.replace("Ḥ", "H").replace("ḥ", "h").replace("’", "'")
 
 
 def normalize(s):
@@ -223,7 +223,7 @@ def interlink_topics():
             if full_result != m.group():
                 return full_result
             else:
-                return PHRASE_REG.sub(do_sub, m.group())
+                return PHRASE_REG.sub(do_sub, m.group(1))
 
         desc = getattr(topix, "description", {}).get("en")
         if not desc:
@@ -231,7 +231,7 @@ def interlink_topics():
 
         new_desc = FULL_REG.sub(full_sub, desc)
         if new_desc != desc:
-            topix.description = new_desc
+            topix.description["en"] = new_desc
             topix.save()
 
     for from_slug, to_slug in topic_pairs:
@@ -432,7 +432,7 @@ def dump_all():
             print(s.group(1))
 
 
-# test_coverage()
+test_coverage()
 build_all_topics()
-# wrap_all()
+wrap_all()
 # dump_all()

@@ -1,7 +1,7 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet
+from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
@@ -42,6 +42,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
     ]
+    # The below is to support HTML markup in the description
+    ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
+    ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:

@@ -380,8 +380,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <span className="int-en">{topicData.description.en}</span>
-              <span className="int-he">{topicData.description.he}</span>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: topicData.description.en} } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: topicData.description.he} } />
             </div>
        : null}
        {topicData && topicData.ref ?

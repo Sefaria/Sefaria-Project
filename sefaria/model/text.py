@@ -1255,6 +1255,7 @@ class AbstractTextRecord(object):
     def has_manually_wrapped_refs(self):
         return True
 
+
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
