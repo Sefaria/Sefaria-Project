@@ -308,6 +308,7 @@ jobs:
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: check helm
         id: get-helm
         run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
         env:
