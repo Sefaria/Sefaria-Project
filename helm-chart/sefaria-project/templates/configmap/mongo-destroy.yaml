@@ -29,14 +29,8 @@ data:
           URI="${URI}:${SEFARIA_DB_PASSWORD}"
       fi
       URI="${URI}@"
+
     fi
-
-    URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
-
-    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
-    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
-    fi
-
     {{- if eq .Values.sandbox "true" }}
     DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
     {{- else }}
@@ -44,7 +38,13 @@ data:
     {{- end }}
 
 
-    mongo "$URI" $DATABASE <<EOF
+    URI="${URI}${MONGO_HOST}/${DATABASE}?ssl=false&authSource=admin"
+
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    mongo "$URI" <<EOF
     db.dropDatabase();
     EOF
 {{- end }}
