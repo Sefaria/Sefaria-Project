@@ -23,9 +23,9 @@ jobs:
       - id: check
         run: |
           if [[ "${{ inputs.version }}" == "" ]]; then
-            echo "::set-output name=ref::${{ github.ref_name }}" 
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT 
           else
-            echo "::set-output name=ref::v${{ inputs.version }}" 
+            echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
           fi
   build-generic:
     needs: workflow-check
@@ -49,7 +49,7 @@ jobs:
           password: ${{ secrets.PROD_GKE_SA_KEY }}
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -98,7 +98,7 @@ jobs:
           password: ${{ secrets.PROD_GKE_SA_KEY }}
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -136,18 +136,22 @@ jobs:
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
       - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.PROD_GKE_SA_KEY }}
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ secrets.PROD_GKE_SA_KEY }}
           project_id: ${{ secrets.PROD_GKE_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.PROD_GKE_CLUSTER}}
+          location: ${{secrets.PROD_GKE_REGION}}
+          project_id: ${{secrets.PROD_GKE_PROJECT}}
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-      - name: setup helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.9.0
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GKE_PROJECT}}
       - name: Deploy Production
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
