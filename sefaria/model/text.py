@@ -924,7 +924,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(default_struct_children) == 0:
             # simple text. Use root as only child.
             default_struct_children = [self.nodes]
-        return default_struct_children + self.get_alt_struct_leaves()
+        return default_struct_children + self.get_alt_struct_roots()
 
     def get_referenceable_alone_nodes(self):
         """
