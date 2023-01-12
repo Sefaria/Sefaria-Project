@@ -908,9 +908,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return corpora[0]
 
     def referenceable_children(self):
-        # parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+        """
+        parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+
+        @return:
+        """
         default_children = self.nodes.children
         if len(default_children) == 0:
+            # simple text. Use root as only child.
             default_children = [self.nodes]
         return default_children + self.get_alt_struct_nodes()
 
