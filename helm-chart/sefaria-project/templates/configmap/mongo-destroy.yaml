@@ -44,11 +44,11 @@ data:
     {{- end }}
 
 
-    mongo --uri "$URI" $DATABASE <<EOF
+    mongo "$URI" $DATABASE <<EOF
     db.dropDatabase();
     EOF
     
-    mongo --uri "$URI" apscheduler-{{ .Values.deployEnv }} <<EOF
+    mongo "$URI" apscheduler-{{ .Values.deployEnv }} <<EOF
     db.dropDatabase();
     EOF
 {{- end }}
