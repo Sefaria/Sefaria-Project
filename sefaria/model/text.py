@@ -396,7 +396,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
-    def get_alt_struct_nodes(self):
+    def get_alt_struct_leaves(self):
 
         def alt_struct_nodes_helper(node, nodes):
             if node.is_leaf():
@@ -917,7 +917,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if len(default_struct_children) == 0:
             # simple text. Use root as only child.
             default_struct_children = [self.nodes]
-        return default_struct_children + self.get_alt_struct_nodes()
+        return default_struct_children + self.get_alt_struct_leaves()
 
     def get_referenceable_alone_nodes(self):
         """
