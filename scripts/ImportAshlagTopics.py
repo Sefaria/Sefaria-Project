@@ -158,10 +158,10 @@ def build_topic_from_record(d):
     if d.get("term translation"):
         t.add_title(d.get("term translation"), "en")
     # Make a primary en title
-    t.add_title(d.get("term english", d.get("term translation")), "en", True, True)
+    t.add_title(d.get("term english") or d.get("term translation"), "en", True, True)
     if d.get("term alternate"):
-       for s in d.get("term alternate").split(","):
-           t.add_title(s, "en")
+        for s in d.get("term alternate").split(","):
+            t.add_title(s.strip(), "en")
     if d.get("term hebrew"):
         t.add_title(d.get("term hebrew"), "he", True)
     if d.get("term hebrew alternate"):
@@ -426,6 +426,8 @@ def dump_all():
                 #    print(s.group(1))
 
     background_list = load_raw_from_sheet()
+    print(background_list)
+
     for d in background_list:
         for s in find_angle_quotes(d["english description"]):
             print()
