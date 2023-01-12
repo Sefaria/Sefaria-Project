@@ -396,6 +396,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
+    def get_alt_struct_roots(self):
+        """
+        Return list of the highest alt struct nodes that have real content. Currently, the highest level alt struct node
+        has no useful information.
+        @return:
+        """
+        return reduce(lambda a, b: a + b.children, self.get_alt_structures().values(), [])
+
     def get_alt_struct_leaves(self):
 
         def alt_struct_nodes_helper(node, nodes):
@@ -406,9 +414,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     alt_struct_nodes_helper(child, nodes)
 
         nodes = []
-        for tree in list(self.get_alt_structures().values()):
-            for node in tree.children:
-                alt_struct_nodes_helper(node, nodes)
+        for node in self.get_alt_struct_roots():
+            alt_struct_nodes_helper(node, nodes)
         return nodes
 
 
