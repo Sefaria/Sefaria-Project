@@ -122,7 +122,7 @@ def move_category_into(cat, parent):
         ind.save(override_dependencies=True)
 
 
-def create_category(path, en=None, he=None, searchRoot=None):
+def create_category(path, en=None, he=None, searchRoot=None, order=None):
     """
     Will create a new category at the location in the TOC indicated by `path`.
     If there is a term for `path[-1]`, then that term will be used for this category.
@@ -149,6 +149,8 @@ def create_category(path, en=None, he=None, searchRoot=None):
     c.lastPath = path[-1]
     if searchRoot is not None:
         c.searchRoot = searchRoot
+    if order is not None:
+        c.order = order
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
     return c

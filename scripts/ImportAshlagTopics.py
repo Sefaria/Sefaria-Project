@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import csv, re, django
+import csv, re, django, os
 from collections import OrderedDict
-from tqdm import tqdm
 
 django.setup()
 from sefaria.model import *
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.helper.category import move_index_into, create_category
 
 UID = 28
 SOURCE_SLUG = "ashlag-glossary"
@@ -69,7 +69,8 @@ def get_normal_mapping():
 # IMPORT
 #####
 def load_raw_from_sheet():
-    with open('/Users/levisrael/Downloads/Background entries DATABASE - live - Background entries DATABASE - live.csv', 'r') as csvfile:
+    f = os.getenv("KBDB")  # export KBDB='/Users/levisrael/Downloads/Background entries DATABASE - live - Background entries DATABASE - live.csv'
+    with open(f, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         return list(reader)
 
@@ -360,6 +361,15 @@ def create_topic_links_for_text(text_name, mapping):
                     create_ref_topic_link(oref, topic, v, m)
 
 
+#####
+# Create Cat / Move Indexes
+#####
+def categorize():
+    c = create_category(["Kabbalah", "Baal HaSulam"], "Baal HaSulam", "בעל הסולם", order=40)
+    for t in TEXTS + ["Baal HaSulam's Introduction to Zohar"]:
+        i = library.get_index(t)
+        move_index_into(i, c)
+
 def test_coverage():
     background_list = load_raw_from_sheet()
     english_terms = {normalize(d["term english"]) for d in background_list}
@@ -437,4 +447,5 @@ def dump_all():
 test_coverage()
 build_all_topics()
 wrap_all()
+categorize()
 # dump_all()
