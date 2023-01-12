@@ -47,8 +47,4 @@ data:
     mongo "$URI" $DATABASE <<EOF
     db.dropDatabase();
     EOF
-    
-    mongo "$URI" apscheduler-{{ .Values.deployEnv }} <<EOF
-    db.dropDatabase();
-    EOF
 {{- end }}
