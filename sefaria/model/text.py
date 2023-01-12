@@ -913,11 +913,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         @return:
         """
-        default_children = self.nodes.children
-        if len(default_children) == 0:
+        default_struct_children = self.nodes.children
+        if len(default_struct_children) == 0:
             # simple text. Use root as only child.
-            default_children = [self.nodes]
-        return default_children + self.get_alt_struct_nodes()
+            default_struct_children = [self.nodes]
+        return default_struct_children + self.get_alt_struct_nodes()
 
     def get_referenceable_alone_nodes(self):
         """
