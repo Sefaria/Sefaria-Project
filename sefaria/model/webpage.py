@@ -351,7 +351,7 @@ def dedupe_webpages(test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = get_webpage_set()
+    webpages = WebPageSet()
     for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
@@ -499,7 +499,7 @@ def webpages_stats():
 
 def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
-    webpages = get_webpage_set()
+    webpages = WebPageSet()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
 
@@ -529,7 +529,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
         if site not in new_active_sites.keys():  # if True, site has not been updated recently
             print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
             for webpage in unactive_unacknowledged_sites[site]:
-                if test:
+                if not test:
                     webpage.delete()
 
     return sites_added
@@ -643,7 +643,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
+                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
@@ -651,6 +651,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                 if keep:
                     assert domain not in sites_to_delete
                     sites_to_keep[domain] = True
+
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete
