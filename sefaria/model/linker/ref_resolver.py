@@ -239,7 +239,6 @@ class ResolvedRef(abst.Cloneable):
         if node.is_default():
             # default node automatically matches but doesnt append any new ref part to match
             matches += [self.clone(resolved_parts=self.resolved_parts, node=node, ref=node.ref())]
-        # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
         elif part.type == RefPartType.NUMBERED and isinstance(node, NumberedReferenceableBookNode):
             if isinstance(part, SectionContext):
                 matches += self._get_refined_refs_for_numbered_context_part(part, refined_ref_parts, node)
