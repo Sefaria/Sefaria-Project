@@ -906,7 +906,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             else:
                 nodes += node.get_referenceable_nodes()
         return nodes
-        self._titled_tree_node
+
     def get_referenceable_alone_nodes(self):
         """
         Currently almost exact copy of function with same name in Index
