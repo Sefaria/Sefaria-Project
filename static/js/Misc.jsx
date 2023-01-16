@@ -129,9 +129,9 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
-          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
           :
-          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
   );
 };
 

@@ -1809,7 +1809,7 @@ class ReaderApp extends Component {
 
 
       const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
-      const category = book ? Sefaria.index(book)["primary_category"] : null
+      const category = book && Sefaria.index(book) ? Sefaria.index(book)["primary_category"] : null
 
       let params = {
         "length": textOnly.length,
@@ -1833,13 +1833,34 @@ class ReaderApp extends Component {
       }
   }
 
+  htmlToText(html){
+    //remove code brakes and tabs
+    html = html.replace(/\n/g, "");
+    html = html.replace(/\t/g, "");
+
+    //keep html brakes and tabs
+    html = html.replace(/<\/td>/g, "\t");
+    html = html.replace(/<\/table>/g, "\n");
+    html = html.replace(/<\/tr>/g, "\n");
+    html = html.replace(/<\/p>/g, "\n");
+    html = html.replace(/<\/div>/g, "\n");
+    html = html.replace(/<br>/g, "\n");
+    html = html.replace(/<br( )*\/>/g, "\n");
+
+
+    //parse html into text
+    const dom = (new DOMParser()).parseFromString('<!doctype html><body>' + html, 'text/html');
+    //remove duplicate line breaks
+    const text = dom.body.textContent.replace(/\n\s*\n/g, "\n");
+
+    return text
+  }
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    // - Ensure we don't copy hidden English or Hebrew text
-    // - Remove elements like link dots
-    // - Strip links inline in the text
     const selection = document.getSelection()
-    const textOnly = selection.toString();
+    const closestReaderPanel = this.state.panels.length > 0 && e.target.closest('.readerPanel') || null
+    let textOnly = selection.toString();
     let html = textOnly;
     let selectedEls;
 
@@ -1849,8 +1870,35 @@ class ReaderApp extends Component {
         container.appendChild(selection.getRangeAt(i).cloneContents());
       }
 
+
+      // Set content direction & add line breaks for each contentSpan
+      let contentSpans = container.querySelectorAll(".contentSpan");
+      if (closestReaderPanel && !closestReaderPanel.classList.contains('continuous')) {
+        contentSpans.forEach(el => {
+            el.outerHTML = `<div dir="${Sefaria.hebrew.isHebrew(el.innerText) ? 'rtl' : 'ltr'}">${el.innerHTML}</div>`;
+        })
+      }
+
+      if (closestReaderPanel && closestReaderPanel.classList.contains('hebrew')) {
+        container.setAttribute('dir', 'rtl');
+      }
+
+
+      // Remove extra breaks for continuous mode
+      if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
+        console.log('aroo?')
+        let elsToRemove = container.querySelectorAll("br");
+        elsToRemove.forEach(el => el.remove())
+
+        console.log('arood?')
+        let segments = container.querySelectorAll(".segment, .rangeSpan, .segmentText, .contentSpan")
+        console.log(segments)
+        segments.forEach(el => {el.outerHTML = el.innerHTML});
+      }
+
+
       // Elements to Remove
-      const classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
+      const classesToRemove = ["segmentNumber", "linkCount", "clearFix", "footnote-marker"];
       classesToRemove.map(cls => {
         let elsToRemove = container.getElementsByClassName(cls);
         while(elsToRemove.length > 0){
@@ -1858,41 +1906,31 @@ class ReaderApp extends Component {
         }
       });
 
+      // Remove hidden footnotes
+      let hiddenFootnotes = container.querySelectorAll(".footnote:not([style*='display: inline'])");
+      for(let footnote of hiddenFootnotes){
+        footnote.parentNode.removeChild(footnote);
+      }
+
+
+      // Add footnote marker and appropriate space for open footnotes
+      let footnotes = container.querySelectorAll(".footnote");
+      footnotes.forEach(el => el.prepend(" *"))
+
       // Links to Strip
-      const linksToStrip = ".segment a.namedEntityLink, .segment a.refLink";
+      const linksToStrip = "a.namedEntityLink, a.refLink";
       let elsToStrip = container.querySelectorAll(linksToStrip);
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
-
-      // Remove invisible languages based on the class of the readerPanel you're
-      // copying from.
-      const selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
-      if (selectionAncestor.nodeType == 1) {
-
-        const curReaderPanel = selectionAncestor.closest('.readerPanel');
-
-        if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-          let elsToRemove = container.getElementsByClassName('en')
-          while(elsToRemove.length > 0){
-            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-          }
-        }
-
-        else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-          let elsToRemove = container.getElementsByClassName('he')
-          while(elsToRemove.length > 0){
-            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-          }
-        }
-      }
-
-      html = container.innerHTML;
+      html = container.outerHTML;
+      console.log(html)
+      textOnly = this.htmlToText(html);
       selectedEls = container;
     }
 
 
     // ga tracking
-    if (this.state.panels.length > 0 && e.target.closest('.readerPanel')) {
+    if (closestReaderPanel) {
       this.handleGACopyEvents(e, selectedEls, textOnly)
     }
 
