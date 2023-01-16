@@ -25,8 +25,9 @@ function useEditToggle() {
 
 const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const [savingStatus, setSavingStatus] = useState(false);
-    const [isTopicCategory, setIsTopicCategory] = useState(Object.keys(origData?.origCategoryDesc).length > 0 && toolType === "topic");  // applicable when adding/editing Topic with children
-    const [path, setPath] = useState(origData?.categories); // only applicable when editing/adding Categories
+    const [origCategoryDescBool, setOrigCategoryDescBool] = useState(Object.keys(origData.origCategoryDesc || {}).length > 0);
+    const [isTopicCategory, setIsTopicCategory] = useState(origCategoryDescBool && toolType === "topic");  // applicable when adding/editing Topic with children
+    const [path, setPath] = useState(origData.categories || []); // only applicable when editing/adding Categories
     const isNew = origData?.origEn === "";
     const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
                                     heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
@@ -37,7 +38,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
       //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
-      const newIsTopicCategory = Object.keys(origData?.origCategoryDesc).length > 0 || e.target.value === Sefaria._("Main Menu");
+      const newIsTopicCategory = origCategoryDescBool || e.target.value === Sefaria._("Main Menu");
       setIsTopicCategory(newIsTopicCategory);
       setData(data);
     }
@@ -88,10 +89,10 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
         postData.category = toolType === "topic" ? data.catSlug : path;  // use `path` when this editing/adding a Category
 
         if (isNew) {
-          url = "/api/topic/new";
+          url = toolType === "topic" ? "/api/topic/new" : `/api/category/${path}`;
         }
         else {
-          url = `/api/topics/${data.origSlug}`;
+          url = toolType === "topic" ? `/api/topics/${data.origSlug}` : `/api/category/${path}`;
           postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
                     origTitle: data.origEn, origHeTitle: data.origHe, origSlug: data.origSlug};
           if (isTopicCategory) {
@@ -163,23 +164,23 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                     <div id="newIndex">
                         <AdminToolHeader title="Topic Editor" close={close} validate={validate}/>
                         <div className="section">
-                            <label><InterfaceText>English Topic Title</InterfaceText></label>
+                            <label><InterfaceText>English Title</InterfaceText></label>
                             <input id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
-                                <label><InterfaceText>Hebrew Topic Title</InterfaceText></label>
+                                <label><InterfaceText>Hebrew Title</InterfaceText></label>
                                 <input id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
                         {catMenu}
                         <div className="section">
-                            <label><InterfaceText>English Topic Description</InterfaceText></label>
+                            <label><InterfaceText>English Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}
                                    defaultValue={data.enDescription} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
-                                <label><InterfaceText>Hebrew Topic Description</InterfaceText></label>
+                                <label><InterfaceText>Hebrew Description</InterfaceText></label>
                                 <textarea id="topicHeDesc" onBlur={setValues}
                                        defaultValue={data.heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
@@ -202,7 +203,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                                       </div> :
                        null}
                       {!isNew ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                                      <InterfaceText>Delete Topic</InterfaceText>
+                                      <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
                     </div>
                 </div>

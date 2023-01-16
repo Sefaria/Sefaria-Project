@@ -50,10 +50,10 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   let editStatus = null;
   if (Sefaria.is_moderator && editCategory) {
       const origData = {origEn: ""};
-      editStatus = <AdminEditor origData={origData} close={toggleEditCategory} toolType="topic" onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      editStatus = <AdminEditor origData={origData} close={toggleEditCategory} toolType="category" onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
   }
   else if (Sefaria.is_moderator) {
-      editStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleEditCategory}/>;
+      editStatus = <AdminEditorButton text="Create a Category" toggleAddingTopics={toggleEditCategory}/>;
   }
   const tocObject = Sefaria.tocObjectByCategories(cats);
 
