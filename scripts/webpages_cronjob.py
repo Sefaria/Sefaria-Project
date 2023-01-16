@@ -22,7 +22,6 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	orig_total_pages = orig_total_links = year_data = total_pages = total_links = 0
 	orig_total_pages, orig_total_links, year_data = webpages_stats()
 
 	print("Cleaning webpages...")
@@ -31,6 +30,8 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	total_pages, total_links, year_data = webpages_stats()
 
 	post_object = {
+		"username": "Webpage Cronjob",
+		"channel": "#engineering-signal",
 		"blocks": [
 			{
 				"type": "header",
@@ -98,15 +99,6 @@ def run_job(test=True, board_id="", idList_mapping={}):
 				if not already_on_trello:
 					card = board.create_card(site_name_in_DB, idList_mapping[kind])
 					board.add_comment(card, comment)
-
-
-def profile_job():
-	profiler = cProfile.Profile()
-	profiler.enable()
-	get_webpage_set(stop=3000)
-	profiler.disable()
-	stats = pstats.Stats(profiler).sort_stats('cumtime')
-	stats.print_stats()
 
 
 class TrelloBoard:
