@@ -1886,13 +1886,10 @@ class ReaderApp extends Component {
 
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
-        console.log('aroo?')
         let elsToRemove = container.querySelectorAll("br");
         elsToRemove.forEach(el => el.remove())
 
-        console.log('arood?')
         let segments = container.querySelectorAll(".segment, .rangeSpan, .segmentText, .contentSpan")
-        console.log(segments)
         segments.forEach(el => {el.outerHTML = el.innerHTML});
       }
 
@@ -1923,7 +1920,7 @@ class ReaderApp extends Component {
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
       html = container.outerHTML;
-      console.log(html)
+      // console.log(html)
       textOnly = this.htmlToText(html);
       selectedEls = container;
     }
