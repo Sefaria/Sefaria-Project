@@ -396,7 +396,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             lang = "he" if is_hebrew(title) else "en"
         return self.alt_titles_dict(lang).get(title)
 
-    def get_alt_struct_nodes(self):
+    def get_alt_struct_roots(self):
+        """
+        Return list of the highest alt struct nodes that have real content. Currently, the highest level alt struct node
+        has no useful information.
+        @return:
+        """
+        return reduce(lambda a, b: a + b.children, self.get_alt_structures().values(), [])
+
+    def get_alt_struct_leaves(self):
 
         def alt_struct_nodes_helper(node, nodes):
             if node.is_leaf():
@@ -406,9 +414,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     alt_struct_nodes_helper(child, nodes)
 
         nodes = []
-        for tree in list(self.get_alt_structures().values()):
-            for node in tree.children:
-                alt_struct_nodes_helper(node, nodes)
+        for node in self.get_alt_struct_roots():
+            alt_struct_nodes_helper(node, nodes)
         return nodes
 
 
@@ -908,11 +915,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             return corpora[0]
 
     def referenceable_children(self):
-        # parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
-        default_children = self.nodes.children
-        if len(default_children) == 0:
-            default_children = [self.nodes]
-        return default_children + self.get_alt_struct_nodes()
+        """
+        parallel to TreeNodes's `children`. Allows full traversal of an index's nodes
+
+        @return:
+        """
+        default_struct_children = self.nodes.children
+        if len(default_struct_children) == 0:
+            # simple text. Use root as only child.
+            default_struct_children = [self.nodes]
+        return default_struct_children + self.get_alt_struct_roots()
 
     def get_referenceable_alone_nodes(self):
         """
