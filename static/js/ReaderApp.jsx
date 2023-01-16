@@ -1883,16 +1883,20 @@ class ReaderApp extends Component {
         container.setAttribute('dir', 'rtl');
       }
 
-
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
         let elsToRemove = container.querySelectorAll("br");
         elsToRemove.forEach(el => el.remove())
 
-        let segments = container.querySelectorAll(".segment, .rangeSpan, .segmentText, .contentSpan")
-        segments.forEach(el => {el.outerHTML = el.innerHTML});
-      }
 
+        const classesToCollapse = ["segment", "rangeSpan", "segmentText", "contentSpan"];
+        classesToCollapse.map(cls => {
+          let elsToCollapse = container.getElementsByClassName(cls);
+          while(elsToCollapse.length > 0){
+            elsToCollapse[0].outerHTML = elsToCollapse[0].innerHTML;
+          }
+        });
+      }
 
       // Elements to Remove
       const classesToRemove = ["segmentNumber", "linkCount", "clearFix", "footnote-marker"];
@@ -1908,7 +1912,6 @@ class ReaderApp extends Component {
       for(let footnote of hiddenFootnotes){
         footnote.parentNode.removeChild(footnote);
       }
-
 
       // Add footnote marker and appropriate space for open footnotes
       let footnotes = container.querySelectorAll(".footnote");
