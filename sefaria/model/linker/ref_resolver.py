@@ -257,7 +257,6 @@ class ResolvedRef(abst.Cloneable):
                 node = None if len(node_children) == 0 else node_children[0]
             if isinstance(node, DiburHamatchilNodeSet):
                 matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
-        # TODO sham and directional cases
         return matches
 
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
