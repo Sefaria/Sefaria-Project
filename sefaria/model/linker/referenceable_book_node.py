@@ -44,7 +44,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             return thingy.referenceable_children()
         else:
             # Any other type of TitledTreeNode
-            return self._titled_tree_node.get_referenceable_nodes()
+            return self._titled_tree_node.get_next_referenceable_descendants()
 
     def _get_pure_referenceable_children(self) -> List[ReferenceableBookNode]:
         """

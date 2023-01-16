@@ -898,7 +898,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
 
-    def get_referenceable_nodes(self):
+    def get_next_referenceable_descendants(self):
         nodes = []
         for node in self.children:
             if getattr(node, 'referenceable', True):
