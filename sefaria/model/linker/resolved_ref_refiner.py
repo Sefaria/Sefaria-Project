@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from itertools import product
 from typing import List
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, DiburHamatchilNodeSet
-from sefaria.model.linker.ref_part import RawRefPart, SectionContext
+from sefaria.model.schema import AddressInteger
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NumberedReferenceableBookNode, NamedReferenceableBookNode, DiburHamatchilNodeSet
+from sefaria.model.linker.ref_part import RawRefPart, SectionContext, RefPartType
 from sefaria.system.exceptions import InputError
 from sefaria.model.text import Ref
 
@@ -29,6 +30,32 @@ class ResolvedRefRefiner(ABC):
 
     def _clone_resolved_ref(self, **kwargs) -> 'ResolvedRef':
         return self.resolved_ref.clone(**kwargs)
+
+    def _has_prev_unused_numbered_ref_part(self) -> bool:
+        """
+        Helper function to avoid matching AddressInteger sections out of order
+        Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
+        """
+        prev_part = self.resolved_ref.raw_ref.prev_num_parts_map.get(self.part_to_match, None)
+        if prev_part is None: return False
+        return prev_part not in set(self.resolved_ref.resolved_parts)
+
+    def _has_prev_unused_numbered_ref_part_for_node(self, lang: str) -> bool:
+        """
+        For SchemaNodes or ArrayMapNodes that have numeric equivalents (e.g. an alt struct for perek)
+        make sure we are not matching AddressIntegers out of order. See self.has_prev_unused_numbered_ref_part()
+        """
+        if self.part_to_match.type != RefPartType.NUMBERED or \
+                not self.node.get_numeric_equivalent() or \
+                not self._has_prev_unused_numbered_ref_part():
+            return False
+        try:
+            possible_sections, possible_to_sections, addr_classes = AddressInteger(0).get_all_possible_sections_from_string(lang, self.part_to_match.text, strip_prefixes=True)
+            for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
+                if sec != self.node.get_numeric_equivalent(): continue
+                if addr_class == AddressInteger: return True
+        except KeyError:
+            return False
 
     @abstractmethod
     def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
@@ -68,7 +95,7 @@ class ResolvedRefRefinerForNumberedPart(ResolvedRefRefiner):
         refined_refs = []
         addr_classes_used = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-            if self.resolved_ref.has_prev_unused_numbered_ref_part(self.part_to_match) and not addr_class.can_match_out_of_order(lang, self.part_to_match.text):
+            if self._has_prev_unused_numbered_ref_part() and not addr_class.can_match_out_of_order(lang, self.part_to_match.text):
                 """
                 If raw_ref has NUMBERED parts [a, b]
                 and part b matches before part a
@@ -129,7 +156,7 @@ class ResolvedRefRefinerForNamedNode(ResolvedRefRefiner):
 
     def refine(self, lang: str, **kwargs) -> List['ResolvedRef']:
         if self.node.ref_part_title_trie(lang).has_continuations(self.part_to_match.key(), key_is_id=self.part_to_match.key_is_id) \
-                and not self.resolved_ref.has_prev_unused_numbered_ref_part_for_node(self.part_to_match, lang, self.node):
+                and not self._has_prev_unused_numbered_ref_part_for_node(lang):
 
             return [self._clone_resolved_ref(resolved_parts=self._get_resolved_parts(), node=self.node, ref=self.node.ref())]
         return []

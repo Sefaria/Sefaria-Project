@@ -110,32 +110,6 @@ class ResolvedRef(abst.Cloneable):
             else:
                 self.resolved_parts += [part]
 
-    def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
-        """
-        Helper function to avoid matching AddressInteger sections out of order
-        Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
-        """
-        prev_part = self.raw_ref.prev_num_parts_map.get(part, None)
-        if prev_part is None: return False
-        return prev_part not in set(self.resolved_parts)
-
-    def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: NamedReferenceableBookNode) -> bool:
-        """
-        For SchemaNodes or ArrayMapNodes that have numeric equivalents (e.g. an alt struct for perek)
-        make sure we are not matching AddressIntegers out of order. See self.has_prev_unused_numbered_ref_part()
-        """
-        if part.type != RefPartType.NUMBERED or \
-                not node.get_numeric_equivalent() or \
-                not self.has_prev_unused_numbered_ref_part(part):
-            return False
-        try:
-            possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-                if sec != node.get_numeric_equivalent(): continue
-                if addr_class == schema.AddressInteger: return True
-        except KeyError:
-            return False
-
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
         Returns list of resolved_parts according to criteria `include` and `exclude`
