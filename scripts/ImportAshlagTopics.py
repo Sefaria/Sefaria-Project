@@ -290,7 +290,7 @@ def create_ref_topic_link(ref: text.Ref, topix: topic.Topic, version: text.Versi
     """
     link = {
         "toTopic": topix.slug,
-        "linkType": "mention",
+        "linkType": "about",
         "dataSource": SOURCE_SLUG,
         "class": "refTopic",
         "is_sheet": False,
@@ -340,7 +340,7 @@ def create_topic_links_for_text(text_name, mapping):
                 norm = normalize(remove_tags(referral))
                 topix = mapping.get(norm)
                 if topix:
-                    matches.add_match(ref, norm, topix)
+                    matches.add_match(ref, referral, topix)
                     continue
 
                 for sub in PHRASE_REG.findall(referral):
@@ -366,7 +366,7 @@ def create_topic_links_for_text(text_name, mapping):
 #####
 def categorize():
     c = create_category(["Kabbalah", "Baal HaSulam"], "Baal HaSulam", "בעל הסולם", order=40)
-    for t in TEXTS + ["Baal HaSulam's Introduction to Zohar"]:
+    for t in TEXTS + ["Baal HaSulam's Introduction to Zohar", "Sulam on Zohar", "Kuntres Matan Torah"]:
         i = library.get_index(t)
         move_index_into(i, c)
 
