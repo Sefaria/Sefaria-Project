@@ -27,9 +27,9 @@ else:
             # and also escape user/pass
             username = urllib.parse.quote_plus(SEFARIA_DB_USER)
             password = urllib.parse.quote_plus(SEFARIA_DB_PASSWORD)
-            connection_uri = 'mongodb://{0}:{1}@{2}/?ssl=false&readPreference="secondaryPreferred"&replicaSet={3}'.format(username, password, MONGO_HOST, MONGO_REPLICASET_NAME)
+            connection_uri = 'mongodb://{}:{}@{}/?ssl=false&readPreference="secondaryPreferred"&replicaSet={}'.format(username, password, MONGO_HOST, MONGO_REPLICASET_NAME)
         else:
-            connection_uri = 'mongodb://{0}/?ssl=false&readPreference="secondaryPreferred"&replicaSet={1}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
+            connection_uri = 'mongodb://{}/?ssl=false&readPreference="secondaryPreferred"&replicaSet={}'.format(MONGO_HOST, MONGO_REPLICASET_NAME)
         # Now connect to the mongo server
         client = pymongo.MongoClient(connection_uri)
 
