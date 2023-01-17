@@ -2223,16 +2223,21 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
-  getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+  // getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+  getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.topicTocCategory(slug);
+    let ref_link_type_filters = ['about', 'popular-writing-of']
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
     if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
       ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
     }
-    const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    const a = 0 + annotated;
+    const url = `${this.apiHost}/api/v2/topics/${slug}?annotate_time_period=1&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_html=${0 + with_html}&with_links=${a}&annotate_links=${a}&with_refs=${a}&group_related=${a}&with_indexes=${a}`;
+    const key = slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
+
     return this._cachedApiPromise({
       url,
-      key: slug,
+      key: key,
       store: this._topics,
       processor: this.processTopicsData,
     });

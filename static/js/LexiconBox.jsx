@@ -71,14 +71,7 @@ class LexiconBox extends Component {
   }
 
   getNamedEntity(slug) {
-    Sefaria.getTopic(slug, {
-      with_links: false,
-      annotate_links: false,
-      with_refs: false,
-      group_related: false,
-      annotate_time_period: true,
-      with_indexes: false,
-    }).then(data => {
+    Sefaria.getTopic(slug, {annotated: false}).then(data => {
       this.setState({
         loaded: true,
         namedEntity: data,
@@ -152,8 +145,8 @@ class LexiconBox extends Component {
               ) : null
             }
             <div className="contentText named-entity-description">
-              <span className="en" dangerouslySetInnerHTML={ {__html: ne.description ? ne.description.en.replace(/<[^>]+>/g, '') : `No description known for '${ne.primaryTitle.en}'`}} />
-              <span className="he" dangerouslySetInnerHTML={ {__html: ne.description ? ne.description.he.replace(/<[^>]+>/g, '') : `לא קיים מידע עבור '${ne.primaryTitle.he}'`} } />
+              <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
+              <span className="he">{ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}</span>
             </div>
           </div>));
           content = (!!this.state.namedEntity.possibilities ? (

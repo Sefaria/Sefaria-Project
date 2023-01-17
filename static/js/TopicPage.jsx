@@ -209,7 +209,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }
 
     useEffect(() => {
-        Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
+        Sefaria.getTopic(topic).then(setTopicData);
     }, [topic]);
 
     useEffect(() => {
@@ -263,7 +263,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText text={{en: description.en.replace(/<[^>]+>/g, ''), he: description.he.replace(/<[^>]+>/g, '')}} />
+                <InterfaceText text={{en: description.en, he: description.he}} />
               </div>
               : null }
             </div>
@@ -452,7 +452,7 @@ const TopicPage = ({
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const d = await Sefaria.getTopic(topic, {annotate_time_period: true});
+        const d = await Sefaria.getTopic(topic, {with_html: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache

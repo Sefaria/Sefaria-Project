@@ -69,7 +69,7 @@ const SearchTopic = (props) => {
                 {topicCategory}
                 {"enDesc" in props.topic ?
                     <div className="topicDescSearchResult systemText">
-                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}} html={true}/>
+                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
                     </div> : null}
                 {sourcesSheetsDiv}
         </div>
@@ -176,7 +176,7 @@ class SearchResultList extends Component {
         }
     }
     async addGeneralTopic(topic) {
-        const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
+        const d = await Sefaria.getTopic(topic.key, {annotated: false});
         let searchTopic = {
             analyticCat: "Topic",
             title: d.primaryTitle["en"],

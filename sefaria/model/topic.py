@@ -313,6 +313,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if not kwargs.get("with_html"):
+            for k, v in d.get("description", {}).items():
+                d["description"][k] = re.sub("<[^>]+>", "", v)
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
