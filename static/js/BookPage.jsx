@@ -153,9 +153,12 @@ class BookPage extends Component {
     let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {
-      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
-    } else if (category == "Targum") {
-      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+      const baseCategory = index.categories[0];
+      const commCategory = index.categories.find(x => x === "Commentary" || x.includes(` on ${baseCategory}`)); //this finds commentary categories in Mishnah, Talmud and Tanakh such as "Rishonim on Tanakh"
+      const urlCategories = index.categories.slice(0, index.categories.indexOf(commCategory || baseCategory) + 1);
+      catUrl = `/texts/${urlCategories.join("/")}`
+    } else if (category == "Targum" || category == "Guides") {
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf(category) + 1).join("/");
     } else if (category == "Talmud") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Talmud") + 2).join("/");
     } else {

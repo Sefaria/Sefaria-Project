@@ -185,6 +185,7 @@ class ReaderApp extends Component {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
+    window.addEventListener("beforeprint", this.handlePrint);
     document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
@@ -203,6 +204,8 @@ class ReaderApp extends Component {
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
     window.removeEventListener("resize", this.setPanelCap);
+    window.removeEventListener("beforeprint", this.handlePrint);
+    document.removeEventListener('copy', this.handleCopyEvent);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -381,23 +384,14 @@ class ReaderApp extends Component {
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
-          (prev.settings.aliyotTorah != next.settings.aliyotTorah))
-      {
-         return true;
-
+          (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah)) {
+        return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
         if (!prev.navigationCategories || !next.navigationCategories) {
           return true; // They are not equal and one is null
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
-          return true; // both are set, compare arrays
-        }
-
-      } else if (prev.navigationTopicCategory !== next.navigationTopicCategory) {
-        // Handle array comparison, !== could mean one is null or both are arrays
-        if (!prev.navigationTopicCategory || !next.navigationTopicCategory) {
-          return true; // They are not equal and one is null
-        } else if (!prev.navigationTopicCategory.compare(next.navigationTopicCategory)) {
           return true; // both are set, compare arrays
         }
       }
@@ -1805,6 +1799,40 @@ class ReaderApp extends Component {
 
   }
 
+  handlePrint(e) {
+      gtag("event", "print");
+  }
+
+  handleGACopyEvents(e, selectedEls, textOnly) {
+      const activePanelIndex = e.target.closest('.readerPanel').id.split("-")[1]
+      const activePanel = this.state.panels[activePanelIndex]
+
+
+      const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
+      const category = book ? Sefaria.index(book)["primary_category"] : null
+
+      let params = {
+        "length": textOnly.length,
+        "panelType": activePanel["menuOpen"] || activePanel["mode"],
+        "book": book,
+        "category": category,
+      }
+
+      gtag("event", "copy_text", params);
+
+      // check if selection is spanning or bilingual
+      if (book) {
+        const selectedEnEls = selectedEls.querySelectorAll('.en')
+        const selectedHeEls = selectedEls.querySelectorAll('.he')
+        if ((selectedEnEls.length > 0) && (selectedHeEls.length > 0)) {
+          gtag("event", "bilingual_copy_text", params);
+        }
+        if ((selectedEnEls.length > 1) || (selectedHeEls.length > 1)) {
+          gtag("event", "spanning_copy_text", params);
+        }
+      }
+  }
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     // - Ensure we don't copy hidden English or Hebrew text
@@ -1813,6 +1841,7 @@ class ReaderApp extends Component {
     const selection = document.getSelection()
     const textOnly = selection.toString();
     let html = textOnly;
+    let selectedEls;
 
     if (selection.rangeCount) {
       const container = document.createElement("div");
@@ -1858,6 +1887,13 @@ class ReaderApp extends Component {
       }
 
       html = container.innerHTML;
+      selectedEls = container;
+    }
+
+
+    // ga tracking
+    if (this.state.panels.length > 0 && e.target.closest('.readerPanel')) {
+      this.handleGACopyEvents(e, selectedEls, textOnly)
     }
 
     const clipdata = e.clipboardData || window.clipboardData;

@@ -20,8 +20,8 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
-    "Log in": "התחבר",
-    "Sign up": "הרשם",
+    "Log in": "התחברות",
+    "Sign up": "הרשמה",
 
     // Texts Page
     "Learn More": "לקריאה נוספת",
@@ -57,6 +57,15 @@ const Strings = {
     "Daily Study": "לימוד יומי",
 
     // Topics
+    "English Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים אנגלית",
+    "Hebrew Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים עברית",
+    "Choose a Category": "בחר קטגוריה",
+    "Main Menu": "תפריט ראשי",
+    "Saving topic information.": "מעדכן נתוני נושא",
+    "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
+    "Add a short description.": "הוסף תיאור קצר",
+    "Add a description.": "הוסף תיאור",
+    "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
@@ -67,6 +76,25 @@ const Strings = {
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
+    "English Topic Title": "כותרת נושא אנגלית",
+    "Hebrew Topic Title": "כותרת נושא עברית",
+    "English Topic Description": "תיאור נושא אנגלית",
+    "Hebrew Topic Description": "תיאור נושא עברית",
+    "Delete Topic": "מחק נושא",
+    "Topic Deleted": "הנושא נמחק",
+    "Topic Editor": "עריכת נושאים",
+    "Please choose a category.": "אנא בחרו קטגוריה",
+    "Title must be provided": "יש לספק כותרת",
+    "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
+    "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+
+
+    // Topics Tool
+    "Search for a Topic.": "חפש נושא",
+    "Add Topic": "הוספת נושא",
+    "Create a new topic: ": "יצירת נושא: ",
+
+
 
     // All Topics
     "All Topics": "כל הנושאים",
