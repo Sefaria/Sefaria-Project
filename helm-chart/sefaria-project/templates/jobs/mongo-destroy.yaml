@@ -3,7 +3,7 @@
 # MONGO_HOST: Mongo hostname
 # SANDBOX_NAME: The name of the table created by this job
 ---
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -21,11 +21,14 @@ spec:
       containers:
       - name: destroy-mongo-{{ .Values.deployEnv }}
         image: mongo:4.4
-        env:
-          - name: MONGO_HOST
-            value: {{ .Values.localSettings.MONGO_HOST | quote }}
-          - name: SANDBOX_NAME
-            value: {{ .Values.deployEnv }}
+        envFrom:
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
         command: ["/script/destroy-mongo.sh"]
         volumeMounts:
         - name: script

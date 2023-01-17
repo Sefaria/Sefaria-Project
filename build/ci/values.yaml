@@ -44,15 +44,16 @@ monitor:
     tag: 
 secrets:
   localSettings: 
-    ref: local-settings-secrets
+    ref: local-settings-secrets-dev
   backupManager: 
     ref: backup-manager
   slackWebhook: 
     ref: slack-webhook-helm
+  mongo:
+    ref: mongo-credentials
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {}
-  MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''

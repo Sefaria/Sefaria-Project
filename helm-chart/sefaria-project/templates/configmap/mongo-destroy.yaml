@@ -1,4 +1,4 @@
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -16,11 +16,35 @@ data:
     set -e
     set -x
 
-    mongo --host $MONGO_HOST sefaria-$SANDBOX_NAME <<EOF
-    db.dropDatabase();
-    EOF
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
 
-    mongo --host $MONGO_HOST apscheduler-$SANDBOX_NAME <<EOF
+    URI="mongodb://"
+
+    if [[ ! -z SEFARIA_DB_USER ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z SEFARIA_DB_PASSWORD ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+
+    fi
+    {{- if eq .Values.sandbox "true" }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
+
+
+    URI="${URI}${MONGO_HOST}/${DATABASE}?ssl=false&authSource=admin"
+
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    mongo "$URI" <<EOF
     db.dropDatabase();
     EOF
 {{- end }}

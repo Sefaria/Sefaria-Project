@@ -1,4 +1,4 @@
-{{- if eq .Values.sandbox "true" }}
+{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,8 +14,34 @@ data:
   restore-mongo.sh: |-
     #!/bin/bash
     set -e
-    set -x
 
-    tar xzvf /storage/dump.tar.gz -C /storage
-    mongorestore --drop --host=$MONGO_HOST:27017 -v -d "${SEFARIA_DB}-{{ .Values.deployEnv }}" --dir=/storage/dump/sefaria
+    tar xzvf /storage/dump.tar.gz -C /storage 
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z SEFARIA_DB_USER ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z SEFARIA_DB_PASSWORD ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+    fi
+
+    URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
+
+    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    {{- if eq .Values.sandbox "true" }}
+    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
+    {{- else }}
+    DATABASE="${SEFARIA_DB}"
+    {{- end }}
+
+    mongorestore --drop --uri="$URI" -v -d "${DATABASE}" --dir=/storage/dump/sefaria
 {{- end }}
