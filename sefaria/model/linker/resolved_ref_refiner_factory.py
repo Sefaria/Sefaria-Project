@@ -18,6 +18,11 @@ class ResolvedRefRefinerFactoryKey:
 
 
 class ResolvedRefRefinerFactory:
+    """
+    Factory class to create `ResolveRefRefiner`s
+    Use `register_refiner()` to register rules when a certain refiner should be used
+    Order in which refiners are registered matters. The first rule that matches will be used.
+    """
 
     def __init__(self):
         self.__refiner_list = []
