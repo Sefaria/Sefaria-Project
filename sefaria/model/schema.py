@@ -904,7 +904,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             if getattr(node, 'referenceable', True):
                 nodes.append(node)
             else:
-                nodes += node.get_referenceable_nodes()
+                nodes += node.get_next_referenceable_descendants()
         return nodes
 
     def get_referenceable_alone_nodes(self):
