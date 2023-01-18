@@ -899,11 +899,18 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
 
     def get_next_referenceable_descendants(self):
+        '''
+        Node can have the attribute 'referenceable' sets to True (which is the default when the attribute ismissing), False of 'optional'.
+        When node has referenceable False, it will return its referenceable descendant instead of itself.
+        When has referenceable 'optional', it will return the node itself and its referenceable descendant.
+        :return: list of the next referenceable descendant of the node
+        '''
         nodes = []
         for node in self.children:
-            if getattr(node, 'referenceable', True):
+            referenceable = getattr(node, 'referenceable', True)
+            if referenceable: #referenceable or optional
                 nodes.append(node)
-            else:
+            if referenceable is not True: #unreferenceable or optional
                 nodes += node.get_next_referenceable_descendants()
         return nodes
 
