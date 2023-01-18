@@ -233,7 +233,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             # self.nodes.validate()
         else:
             self.nodes = None
+        self._set_struct_objs()
 
+    def _set_struct_objs(self):
         self.struct_objs = {}
         if getattr(self, "alt_structs", None) and self.nodes:
             for name, struct in list(self.alt_structs.items()):
@@ -664,6 +666,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                     self.nodes.key = t
                     self.nodes.add_title(t, "en", True, True)
                     break
+            self._update_alt_structs_on_title_change()
+
         """
         Make sure these fields do not appear:
         "titleVariants",      # required for old style
@@ -685,6 +689,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         except ValueError:
             logger.warning("Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
             delattr(self, "errorMargin")
+
+    def _update_alt_structs_on_title_change(self):
+        old_title = self.pkeys_orig_values["title"]
+        new_title = self.nodes.primary_title("en")
+        def change_alt_node_refs(node):
+            if 'wholeRef' in node:
+                node['wholeRef'] = node['wholeRef'].replace(old_title, new_title)
+            if 'refs' in node:
+                node['refs'] = [r.replace(old_title, new_title) for r in node['refs']]
+            if 'nodes' in node:
+                for n in node['nodes']:
+                    change_alt_node_refs(n)
+        alts = getattr(self, 'alt_structs', None)
+        if alts and old_title != new_title:
+            for alt in alts.values():
+                change_alt_node_refs(alt)
+            self._set_struct_objs()
 
     def _validate(self):
         assert super(Index, self)._validate()
@@ -1341,9 +1362,35 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             raise InputError("Version actualLanguage does not match bracketed language")
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
-        if self.get_index() is None:
+        index = self.get_index()
+        if index is None:
             raise InputError("Versions cannot be created for non existing Index records")
-        
+        assert self._check_node_offsets(self.chapter, index.nodes), 'there are more sections than index_offsets_by_depth'
+
+        return True
+
+    def _check_arrays_lengths(self, array1, array2):
+        if len(array1) < len(array2):
+            return False
+        if isinstance(array1[0], list):
+            for subarray1, subarray2 in zip(array1, array2):
+                if not self._check_arrays_lengths(subarray1, subarray2):
+                    return False
+        return True
+
+    def _check_node_offsets(self, content, node):
+        if isinstance(content, list) and hasattr(node, 'index_offsets_by_depth'):
+            for depth, nums in node.index_offsets_by_depth.items():
+                if int(depth) > 1 and not self._check_arrays_lengths(nums, content):
+                    return False
+                elif depth == '1':
+                    if not isinstance(nums, int):
+                        return False
+            return True
+        elif isinstance(content, dict):
+            for k, v in content.items():
+                if not self._check_node_offsets(v, node.get_child_by_key(k)):
+                    return False
         return True
 
     def _normalize(self):
@@ -1415,7 +1462,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def is_copyrighted(self):
         return "Copyright" in getattr(self, "license", "")
 
-    def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
+    def walk_thru_contents(self, action, heTref=None, schema=None, terms_dict=None):
         """
         Walk through the contents of a version and run `action` for each segment. Only required parameter to call is `action`
         :param func action: (segment_str, tref, he_tref, version) => None
@@ -1446,57 +1493,90 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         The result will be all_text populated with all segments from Masekhet Berakhot.
 
         """
-        def get_primary_title(lang, titles):
-            return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
+        args = self.__initialize_walk_thru_contents_params(schema, heTref)
+        return self.__walk_thru_contents_recursive(action, *args, terms_dict=terms_dict)
 
-        if item is None:
-            item = self.chapter
-        if tref is None:
-            tref = self.title
+    def __initialize_walk_thru_contents_params(self, schema, heTref):
+        item = self.chapter
+        tref = self.title
         index = None
         if schema is None:
             index = self.get_index()
             schema = index.schema
         if heTref is None:
             heTref = index.get_title('he') if index else ""  # NOTE: heTref initialization is dependent on schema initialization
-        if addressTypes is None and schema is not None:
-            addressTypes = schema["addressTypes"] if "addressTypes" in schema else None
-        if type(item) is dict:
-            for n in schema["nodes"]:
-                try:
-                    is_virtual_node = VirtualNode in globals()[n.get("nodeType", "")].__bases__
-                except KeyError:
-                    is_virtual_node = False
-                if n.get("default", False) or is_virtual_node:
-                    node_title_en = node_title_he = ""
-                elif n.get("sharedTitle", False):
-                    titles = terms_dict[n["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": n["sharedTitle"]}).titles
-                    node_title_en = ", " + get_primary_title("en", titles)
-                    node_title_he = ", " + get_primary_title("he", titles)
-                else:
-                    node_title_en = ", " + get_primary_title("en", n["titles"])
-                    node_title_he = ", " + get_primary_title("he", n["titles"])
+        addressTypes = None
+        index_offsets_by_depth = None
+        section_indexes = []
 
-                if is_virtual_node:
-                    curr_ref = Ref(tref)
-                    vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == n.get("nodeType", "") and x.firstWord == n["firstWord"])
-                    for vchild in vnode.all_children():
-                        vstring = " ".join(vchild.get_text())
-                        vref = vchild.ref()
-                        self.walk_thru_contents(action, vstring, vref.normal(), vref.he_normal(), n, [])
-                else:
-                    self.walk_thru_contents(action, item[n["key"]], tref + node_title_en, heTref + node_title_he, n, addressTypes)
-        elif type(item) is list:
-            for ii, i in enumerate(item):
-                try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
-                    self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
-                except IndexError as e:
-                    print(str(e))
-                    print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+        return item, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes
+
+    def __walk_thru_contents_recursive(self, action, *recursive_args, terms_dict=None):
+        item = recursive_args[0]
+
+        if isinstance(item, dict):
+            self.__walk_thru_node_tree(action, *recursive_args, terms_dict=terms_dict)
+        elif isinstance(item, list):
+            self.__walk_thru_jagged_array(action, *recursive_args)
         elif isinstance(item, str):
-            action(item, tref, heTref, self)
+            self.__apply_action_to_segment(action, *recursive_args)
+
+    def __walk_thru_node_tree(self, action, item, tref, schema, heTref, *walk_thru_contents_args, terms_dict=None):
+        def get_primary_title(lang, titles):
+            return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
+
+        for node in schema["nodes"]:
+            try:
+                is_virtual_node = VirtualNode in globals()[node.get("nodeType", "")].__bases__
+            except KeyError:
+                is_virtual_node = False
+            if node.get("default", False) or is_virtual_node:
+                node_title_en = node_title_he = ""
+            elif node.get("sharedTitle", False):
+                titles = terms_dict[node["sharedTitle"]]["titles"] if terms_dict is not None else Term().load({"name": node["sharedTitle"]}).titles
+                node_title_en = ", " + get_primary_title("en", titles)
+                node_title_he = ", " + get_primary_title("he", titles)
+            else:
+                node_title_en = ", " + get_primary_title("en", node["titles"])
+                node_title_he = ", " + get_primary_title("he", node["titles"])
+
+            if is_virtual_node:
+                curr_ref = Ref(tref)
+                vnode = next(x for x in curr_ref.index_node.children if hasattr(x, 'nodeType') and x.nodeType == node.get("nodeType", "") and x.firstWord == node["firstWord"])
+                for vchild in vnode.all_children():
+                    vstring = " ".join(vchild.get_text())
+                    vref = vchild.ref()
+                    self.__walk_thru_contents_recursive(action, vstring, vref.normal(), node, vref.he_normal(), *walk_thru_contents_args)
+            else:
+                self.__walk_thru_contents_recursive(action, item[node["key"]], tref + node_title_en, node, heTref + node_title_he, *walk_thru_contents_args)
+
+    def __walk_thru_jagged_array(self, action, item, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
+        if schema is not None:
+            if addressTypes is None:
+                addressTypes = schema.get("addressTypes", None)
+            if index_offsets_by_depth is None:
+                index_offsets_by_depth = schema.get("index_offsets_by_depth", None)
+
+        for section_index, ja in enumerate(item):
+            try:
+                offset = JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
+                next_section_indexes = section_indexes + [section_index+offset]
+                self.__walk_thru_contents_recursive(action, ja, tref, {}, heTref, addressTypes, index_offsets_by_depth, next_section_indexes)
+            except IndexError as e:
+                print(str(e))
+                print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
+
+    def __apply_action_to_segment(self, action, segment_str, tref, schema, heTref, addressTypes, index_offsets_by_depth, section_indexes):
+        segment_tref = self.__add_sections_to_tref(tref, "en", addressTypes, section_indexes)
+        segment_heTref = self.__add_sections_to_tref(heTref, "he", addressTypes, section_indexes)
+        action(segment_str, segment_tref, segment_heTref, self)
+
+    @staticmethod
+    def __add_sections_to_tref(tref, lang, addressTypes, section_indexes):
+        for depth, section_index in enumerate(section_indexes):
+            section_str = AddressType.to_str_by_address_type(addressTypes[depth], lang, section_index+1)
+            tref += f"{' ' if depth == 0 else ':'}{section_str}"
+        return tref
 
 
 class VersionSet(abst.AbstractMongoSet):
@@ -2396,6 +2476,8 @@ class TextFamily(object):
 
             self._alts = alts_ja.array()
 
+        self._index_offsets_by_depth = self._inode.trim_index_offsets_by_sections(oref.sections, oref.toSections)
+
     def contents(self):
         """
         :return dict: Returns the contents of the text family.
@@ -2483,6 +2565,7 @@ class TextFamily(object):
             d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
 
         d["alts"] = self._alts
+        d['index_offsets_by_depth'] = self._index_offsets_by_depth
 
         return d
 
@@ -2607,7 +2690,7 @@ class Ref(object, metaclass=RefCacheType):
         'index', 'book', 'primary_category', 'sections', 'toSections', 'index_node',
         '_lang', 'tref', 'orig_tref', '_normal', '_he_normal', '_url', '_next', '_prev',
         '_padded', '_context', '_first_spanned_ref', '_spanned_refs', '_ranged_refs',
-        '_range_depth', '_range_index',
+        '_range_depth', '_range_index', 'legacy_tref',
     )
 
     def __init__(self, tref=None, _obj=None):
@@ -2625,9 +2708,9 @@ class Ref(object, metaclass=RefCacheType):
         self.__init_ref_pointer_vars()
 
         if tref:
-            self.orig_tref = self.tref = tref
+            self.orig_tref = tref
             self._lang = "he" if is_hebrew(tref, heb_only=True) else "en"
-            self.__clean_tref()
+            self.tref = self.__clean_tref(tref, self._lang)
             self.__init_tref()
             self._validate()
         elif _obj:
@@ -2657,8 +2740,9 @@ class Ref(object, metaclass=RefCacheType):
     def __validate_sections_in_range(self):
         checks = [self.sections, self.toSections]
         for check in checks:
-            if 0 in check:
-                raise InputError("{} {} must be greater than 0".format(self.book, self.index_node.sectionNames[check.index(0)]))
+            for c, che in enumerate(check):
+                if che < 1:
+                    raise InputError(f'{self.book} {"".join([str(x) for x in check[:c]])} starts at {1+self._get_offset([x-1 for x in check[:c]])}')
             if getattr(self.index_node, "lengths", None) and len(check):
                 if check[0] > self.index_node.lengths[0]:
                     display_size = self.index_node.address_class(0).toStr("en", self.index_node.lengths[0])
@@ -2674,23 +2758,27 @@ class Ref(object, metaclass=RefCacheType):
             if self.toSections[i] < self.sections[i]:
                 raise InputError("{} is an invalid range.  Ranges must end later than they begin.".format(self.normal()))
 
-    def __clean_tref(self):
-        self.tref = self.tref.strip().replace("–", "-").replace("\u2011", "-").replace("_", " ")  # don't replace : in Hebrew, where it can indicate amud
-        if self._lang == "he":
-            return
+    @staticmethod
+    def __clean_tref(tref, lang):
+        tref = tref.strip().replace("–", "-").replace("\u2011", "-").replace("_", " ")
 
-        self.tref = self.tref.replace(":", ".")
+        # don't replace : in Hebrew, where it can indicate amud
+        if lang == "he":
+            return tref
+
+        tref = tref.replace(":", ".")
 
         try:
             # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-            self.tref = self.tref[0].upper() + self.tref[1:]
+            tref = tref[0].upper() + tref[1:]
         except IndexError:
             pass
 
+        return tref
+
     def __reinit_tref(self, new_tref):
         logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
-        self.tref = new_tref
-        self.__clean_tref()
+        self.tref = self.__clean_tref(new_tref, self._lang)
         self._lang = "en"
         self.__init_tref()
 
@@ -2870,7 +2958,8 @@ class Ref(object, metaclass=RefCacheType):
                             return
 
         if not self.sections:
-            raise InputError("Failed to parse sections for ref {}".format(self.orig_tref))
+            msg = f"Failed to parse sections for ref {self.orig_tref}"
+            raise PartialRefInputError(msg, title, None)
 
         self.toSections = self.sections[:]
 
@@ -2895,12 +2984,17 @@ class Ref(object, metaclass=RefCacheType):
         self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
         delta = len(self.sections) - len(range_parts)
         for i in range(delta, len(self.sections)):
+            offset = self._get_offset([x-1 for x in self.toSections[:i]])
             try:
                 self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                range_parts[i - delta], sections=self.sections[i])
+                                                                                range_parts[i - delta], sections=self.sections[i]) - offset
             except (ValueError, IndexError):
                 raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
+    def _get_offset(self, section_indexes, use_node=None):
+        use_node = use_node if use_node else self.index_node
+        index_offsets_by_depth = getattr(use_node, 'index_offsets_by_depth', None)
+        return JaggedArrayNode.get_index_offset(section_indexes, index_offsets_by_depth)
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2910,10 +3004,16 @@ class Ref(object, metaclass=RefCacheType):
             raise InputError("Can not parse sections from ref: {}".format(tref))
 
         gs = ref_match.groupdict()
+        indexes = []
         for i in range(0, use_node.depth):
             gname = "a{}".format(i)
             if gs.get(gname) is not None:
-                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
+                try:
+                    offset = self._get_offset(indexes, use_node)
+                except IndexError:
+                    raise InputError(f"Can not parse sections from ref: {tref}")
+                sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)) - offset)
+            indexes.append(sections[-1]-1)
         return sections
 
 
@@ -4348,9 +4448,9 @@ class Ref(object, metaclass=RefCacheType):
             # For complex texts, it can be a deeper branch of the dictionary: "chapter.Bereshit.Torah" or similar
             projection[self.storage_address()] = 1
         else:
-            skip = self.sections[0] - 1
+            offset = self.sections[0] - 1
             limit = 1 if self.range_index() > 0 else self.toSections[0] - self.sections[0] + 1
-            slce = {"$slice": [skip, limit]}
+            slce = {"$slice": [offset, limit]}
             projection[self.storage_address()] = slce
             if len(self.index_node.address()) > 1:
                 # create dummy key at level of our selection - see above.
@@ -4489,14 +4589,14 @@ class Ref(object, metaclass=RefCacheType):
         normal += " "
 
         normal += ":".join(
-            [self.index_node.address_class(i).toStr(lang, n) for i, n in enumerate(self.sections)]
+            [self.normal_section(i, lang) for i in range(len(self.sections))]
         )
 
         for i in range(len(self.sections)):
             if not self.sections[i] == self.toSections[i]:
                 normal += "-{}".format(
                     ":".join(
-                        [self.index_node.address_class(i + j).toStr(lang, n) for j, n in enumerate(self.toSections[i:])]
+                        [self.normal_section(i + j, lang, 'toSections') for j in range(len(self.toSections[i:]))]
                     )
                 )
                 break
@@ -4504,25 +4604,16 @@ class Ref(object, metaclass=RefCacheType):
         return normal
 
     def normal_sections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
+        return [self.normal_section(i, lang) for i in range(len(self.sections))]
 
     def normal_toSections(self, lang="en"):
-        return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
+        return [self.normal_section(i, lang, 'toSections') for i in range(len(self.toSections))]
 
-    def normal_section(self, section_index, lang="en", **kwargs):
-        """
-        Return the display form of the section value at depth `section_index`
-        Does not support ranges
-        :param section_index: 0 based
-        :param lang:
-        :param kwargs:
-            dotted=<bool> - Use dotted form for Hebrew talmud?,
-            punctuation=<bool> - Use geresh for Hebrew numbers?
-        :return:
-        """
-        assert not self.is_range()
-        assert len(self.sections) > section_index
-        return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index], **kwargs)
+    def normal_section(self, section_index, lang='en', attr='sections', **kwargs):
+        sections = getattr(self, attr)
+        assert len(sections) > section_index
+        offset = self._get_offset([x-1 for x in sections[:section_index]])
+        return self.index_node.address_class(section_index).toStr(lang, sections[section_index]+offset, **kwargs)
 
     def normal_last_section(self, lang="en", **kwargs):
         """
@@ -4534,6 +4625,7 @@ class Ref(object, metaclass=RefCacheType):
             punctuation=<bool> - Use geresh for Hebrew numbers?
         :return:
         """
+        assert not self.is_range()
         length = len(self.sections)
         if length == 0:
             return ""
@@ -4714,6 +4806,36 @@ class Ref(object, metaclass=RefCacheType):
             except AssertionError:
                 continue
         return list(expanded_set)
+
+    @staticmethod
+    def instantiate_ref_with_legacy_parse_fallback(tref: str) -> 'Ref':
+        """
+        Tries the following in order and returns the first that works
+        - Instantiate `tref` as is
+        - Use appropriate `LegacyRefParser` to parse `tref`
+        - If ref has partial match, return partially matched ref
+        Can raise an `InputError`
+        @param tref: textual ref to parse
+        @return: best `Ref` according to rules above
+        """
+        from sefaria.helper.legacy_ref import legacy_ref_parser_handler, LegacyRefParserError
+
+        try:
+            oref = Ref(tref)
+            try:
+                # this field can be set if a legacy parsed ref is pulled from cache
+                delattr(oref, 'legacy_tref')
+            except AttributeError:
+                pass
+            return oref
+        except PartialRefInputError as e:
+            matched_ref = Ref(e.matched_part)
+            try:
+                tref = Ref.__clean_tref(tref, matched_ref._lang)
+                legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
+                return legacy_ref_parser.parse(tref)
+            except LegacyRefParserError:
+                return matched_ref
 
 
 class Library(object):
@@ -6233,16 +6355,6 @@ def process_index_change_in_core_cache(indx, **kwargs):
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
-
-
-def process_index_change_in_alt_structs(indx, **kwargs):
-    # Note: this function is only a place holder.
-    old_title = kwargs["old"]
-    new_title = kwargs["new"]
-    if hasattr(indx, 'alt_structs'):
-        #make the change
-        # print("Cascading Alt_struct refs from  {} to {}".format(kwargs['old'], kwargs['new']))
-        pass
 
 
 def process_index_change_in_toc(indx, **kwargs):
