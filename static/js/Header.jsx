@@ -41,8 +41,8 @@ class Header extends Component {
     }
     const altText = `${Sefaria._siteSettings["SITE_NAME"]["en"]} Logo`;
     const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src={Sefaria._siteSettings.HE_LOGO} alt={altText}/> :
-      <img src={Sefaria._siteSettings.LOGO} alt={altText}/>;
+      <img src={`/static${Sefaria._siteSettings.HE_LOGO}`} alt={altText}/> :
+      <img src={`/static${Sefaria._siteSettings.LOGO}`} alt={altText}/>;
 
     const headerContent = (
       <>
@@ -51,11 +51,10 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           { Sefaria._siteSettings.SITE_NAME.en == "ContextUS" ?
-            <a href="/topics/category/authors1" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
+            <a href="/topics/category/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
             <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> : null}
-          { Sefaria._siteSettings.TORAH_SPECIFIC ?
-            <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink> : null}
+          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
           {/*{ !Sefaria._siteSettings.TORAH_SPECIFIC ?*/}
           {/*  <a href="/topics/authors" className="textLink"><InterfaceText>Authors</InterfaceText></a> : null}*/}
         </div>
@@ -525,6 +524,14 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <img src="/static/icons/info.svg" />
           <InterfaceText>{aboutMessage}</InterfaceText>
         </a>
+        
+        {Sefaria._uid ?
+        <>
+          <a href="/settings/account">
+          <img src="/static/icons/settings.svg" />
+          <InterfaceText>Account Settings</InterfaceText>
+        </a>
+        </> : null }
 
         {Sefaria._siteSettings.TORAH_SPECIFIC ?
           <MobileInterfaceLanguageToggle /> : null}

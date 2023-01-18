@@ -232,8 +232,10 @@ var linkerV3Config = config({
     output: {
         path: path.resolve(buildDir + 'linker.v3'),
         filename: 'linker.v3.js'
-    }
-
+    },
+    plugins: [
+        new BundleTracker({filename: './node/webpack-stats.linker.v3.json'}),
+    ]
 })
 
 module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, categorizeSheetsConfig, linkerV3Config];

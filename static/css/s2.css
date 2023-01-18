@@ -4917,6 +4917,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: inherit;
   margin-bottom: 14px;
 }
+.segment .segmentText table, th, td {
+  border: 1px solid;
+}
 .continuous .segment {
   display: inline;
   margin: 0;
@@ -4930,9 +4933,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment .segmentText{
   display: inline;
-}
-.segment .segmentText table, th, td {
-  border: 1px solid;
 }
 .segment > .he,
 .segment > .en,
@@ -5708,14 +5708,13 @@ But not to use a display block directive that might break continuous mode for ot
   color: #666666;
 }
 .connectionsPanel .toolsButton.seeLess{
-  margin-inline-start: 60px;
+  margin-inline-start: 33px;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
   color: #999999;
   align-items: center;
-  margin-top: 15px;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
   height: 10px;
@@ -6466,7 +6465,7 @@ But not to use a display block directive that might break continuous mode for ot
   padding: 20px 34px;
   margin: initial;
 }
-.topicButton.isFirst {
+.topicList #topicItem-0 {
   border-top: none;
 }
 .topicButton:hover {
@@ -6658,11 +6657,6 @@ But not to use a display block directive that might break continuous mode for ot
   width: 100%;
   text-align: center;
   margin: 0;
-}
-.button.extraSmall.topic {
-  color: #000000;
-  background-color: var(--lighter-grey);
-  white-space: nowrap;
 }
 .addToSourceSheetBox .button.small {
   width: 37%;
@@ -9639,9 +9633,6 @@ background-color: white;
 .addInterfaceInput button,
 .addInterfaceInput .suggestion {
   pointer-events: auto;
-}
-.addInterfaceInput button,
-.addInterfaceInput .suggestion {
   cursor: pointer;
 }
 
@@ -9671,6 +9662,38 @@ background-color: white;
   margin-inline-end: 20px;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
+}
+.topicSearch.addInterfaceInput {
+  display: flex;
+  margin-left: 30px;
+  margin-right: 30px;
+  justify-content: space-between;
+}
+
+.topicSearch.addInterfaceInput input {
+  margin-top: 30px;
+  height: 30px;
+  max-width: 250px;
+  min-width: 250px;
+  padding-inline-end: 30px;
+  margin-left:  0;
+  margin-right: 0;
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput input.selected {
+  color: #4B71B7;
+}
+
+.topicSearch.addInterfaceInput .button {
+  margin-top: 30px;
+  position: relative;
+  white-space: nowrap;
+}
+.addInterfaceInput .suggestion {
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput select.suggestionBox {
+  margin-top: 60px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
@@ -11298,6 +11321,7 @@ body .homeFeedWrapper.userStats {
 
 }
 
+
 .editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
@@ -11333,7 +11357,7 @@ body .homeFeedWrapper.userStats {
   font-weight: normal;
   color: #000;
 }
-.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc {
+.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc, .editTextInfo #newIndex #topicHeDesc, .editTextInfo #newIndex #topicHeCatDesc {
   height: 200px;
   width: 97%;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
@@ -11356,14 +11380,15 @@ body .homeFeedWrapper.userStats {
 }
 #categoryChooserMenu {
   overflow: hidden;
-  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
-  width: 660px;
+  background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
+  width: 100%;
   height: 50px;
   margin: 0 0 10px 0;
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
+
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11372,6 +11397,18 @@ body .homeFeedWrapper.userStats {
   margin: 0 0 10px 0;
   padding: 4px 25px 4px 10px;
 }
+
+.connectionsPanel .editTextInfo #categoryChooserMenu {
+  width: 102%;
+}
+
+.connectionsPanel .editTextInfo .collectionsWidget {
+  width: 70%;
+}
+.connectionsPanel .editTextInfo #categoryChooserMenu select {
+  width: 98.5%;
+}
+
 .searchBox .editTextInfo .collectionsWidget {
   width: 280px;
 }
@@ -11424,8 +11461,9 @@ body .homeFeedWrapper.userStats {
   height: 50px;
   font-size: 16px;
   margin: 0 0 10px 0;
-  max-width: 100%;
+  max-width: 97%;
 }
+
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
@@ -11507,7 +11545,7 @@ body .homeFeedWrapper.userStats {
   z-index: 1;
 }
 .editTextInfo .collectionsWidget {
-  width: 580px;
+  width: 39%;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;
   position: absolute;

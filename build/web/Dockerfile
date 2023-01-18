@@ -1,4 +1,4 @@
-FROM gcr.io/production-deployment/base-web:v3.7.0
+FROM gcr.io/production-deployment/base-web:v3.7-bullseye
 
 WORKDIR /app/
 # Copied separately to allow for caching of the `pip install` build step

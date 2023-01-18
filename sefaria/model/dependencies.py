@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript, topic
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -11,7 +11,6 @@ import sefaria.system.cache as scache
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-# subscribe(text.process_index_change_in_alt_structs,                     text.Index, "save")
 
 
 # Index Name Change
@@ -28,7 +27,6 @@ subscribe(ref_data.process_index_title_change_in_ref_data,              text.Ind
 subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
-# subscribe(text.process_index_change_in_alt_structs,                     text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -74,6 +72,8 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 
 # Topic
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
+subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+
 
 # Terms
 # TODO cascade change to Term.name.
@@ -101,7 +101,6 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 
 # Notifications, Stories
 subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
-subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Collections
 subscribe(collection.process_collection_slug_change_in_sheets,             collection.Collection, "attributeChange", "slug")

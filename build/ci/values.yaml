@@ -22,9 +22,6 @@ nodejs:
     imageRegistry: gcr.io/development-205018/sefaria-node-${BRANCH}
     tag: 
 varnish:
-  containerImage:
-    imageRegistry: gcr.io/production-deployment/sefaria-varnish
-    tag: v6
   secrets:
     varnish:
       ref: varnish-secret-helm

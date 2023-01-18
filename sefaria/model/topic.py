@@ -3,11 +3,13 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet
 from .category import Category
-from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog
 import regex as re
+from sefaria.site.site_settings import SITE_SETTINGS
+
 logger = structlog.get_logger(__name__)
 
 
@@ -41,7 +43,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
-
     ]
 
     def load(self, query, proj=None):
@@ -70,6 +71,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for title in self.title_group.titles:
             title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
+        slug_field = self.slug_fields[0]
+        slug = getattr(self, slug_field)
+        if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
+            self.subclass = "author"
+
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -108,8 +114,12 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def change_description(self, desc, cat_desc):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
+
+        :param desc: Dictionary of descriptions, with keys being two letter language codes
+        :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
+        :return:
         """
-        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
+
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
             self.categoryDescription = cat_desc
@@ -232,7 +242,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 continue
             try:
                 link.save()
-            except DuplicateRecordError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
@@ -496,7 +506,10 @@ class AuthorTopic(PersonTopic):
         link_names = []  # [(href, en, he)]
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
-                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
+                en_primary_title = index_or_cat.get_title('en')
+                if "ContextUS" == SITE_SETTINGS["SITE_NAME"]["en"]:
+                    en_primary_title = index_or_cat.get_title('en').replace(f"{str(self)}, ", "", 1)
+                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": en_primary_title, "he": index_or_cat.get_title('he')})]
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})

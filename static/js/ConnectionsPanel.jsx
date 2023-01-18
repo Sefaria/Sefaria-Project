@@ -64,6 +64,7 @@ class ConnectionsPanel extends Component {
     this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
     this.addScrollListener();
   }
+
   componentWillUnmount() {
     this._isMounted = false;
     this.removeScrollListener();
@@ -93,10 +94,26 @@ class ConnectionsPanel extends Component {
       this.getCurrentVersions();
     }
 
-    if (prevProps.mode !== 'TextList' && this.props.mode === 'TextList') {
+    if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
       this.removeScrollListener();
+
+      if(this.isScrollReset()) {
+        this.props.setSideScrollPosition(null);
+      }
+
+      else if (this.props.scrollPosition && this.isScrollMonitored()) {
+        $(".content").scrollTop(this.props.scrollPosition)
+            .trigger("scroll");
+      }
+
       this.addScrollListener();
     }
+  }
+  isScrollMonitored() {
+    return ["ConnectionsList", "WebPages", "Sheets"].includes(this.props.mode);
+  }
+  isScrollReset() {
+    return ["Resources"].includes(this.props.mode);
   }
   addScrollListener() {
     this.$scrollView = $(".connectionsPanel .texts");
@@ -110,7 +127,12 @@ class ConnectionsPanel extends Component {
     }
   }
   handleScroll(event) {
-    this.debouncedCheckVisibleSegments();
+    if(this.isScrollMonitored()) {
+      this.props.setSideScrollPosition($(event.target).scrollTop());
+    }
+    else if (this.props.mode === "TextList") {
+      this.debouncedCheckVisibleSegments();
+    }
   }
   checkVisibleSegments() {
     if (!this._isMounted || !this.props.filter || !this.props.filter.length) { return; }
@@ -216,19 +238,19 @@ class ConnectionsPanel extends Component {
     //d - data received from this.getData()
     //language - the language of the version
     //console.log(d);
-    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
+    const currentVersionTitle = (lang === "he") ? d.heVersionTitle : d.versionTitle;
     return {
-      ...d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
+      ...d.versions.find(v => v.versionTitle === currentVersionTitle && v.language === lang),
       title: d.indexTitle,
       heTitle: d.heIndexTitle,
-      sources: lang == "he" ? d.heSources : d.sources,
-      merged: lang == "he" ? !!d.heSources : !!d.sources,
+      sources: lang === "he" ? d.heSources : d.sources,
+      merged: lang === "he" ? !!d.heSources : !!d.sources,
     }
   }
   getCurrentVersions() {
     const data = this.getData((data) => {
       let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage == "bilingual") {
+      if (currentLanguage === "bilingual") {
         currentLanguage = "hebrew"
       }
       if (!data || data.error) {
@@ -238,16 +260,16 @@ class ConnectionsPanel extends Component {
         });
         return
       }
-      if (currentLanguage == "hebrew" && !data.he.length) {
+      if (currentLanguage === "hebrew" && !data.he.length) {
         currentLanguage = "english"
       }
-      if (currentLanguage == "english" && !data.text.length) {
+      if (currentLanguage === "english" && !data.text.length) {
         currentLanguage = "hebrew"
       }
       this.setState({
         currObjectVersions: {
-          en: ((this.props.masterPanelLanguage != "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage == "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-          he: ((this.props.masterPanelLanguage != "english" && !!data.he.length) || (this.props.masterPanelLanguage == "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
+          en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
+          he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
         },
         mainVersionLanguage: currentLanguage,
         sectionRef: data.sectionRef,
@@ -256,10 +278,10 @@ class ConnectionsPanel extends Component {
   }
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
-    if (typeof (srefs) == "object" && srefs.length == 1) {
+    if (typeof (srefs) == "object" && srefs.length === 1) {
       srefs = Sefaria.splitRangingRef(srefs[0]);
     }
-    if (srefs.length == 1 && (Sefaria.sectionRef(srefs[0]) == srefs[0])) {
+    if (srefs.length === 1 && (Sefaria.sectionRef(srefs[0]) === srefs[0])) {
       const oref = Sefaria.ref(srefs[0]);
       srefs = Sefaria.makeSegments(oref).map(segment => segment.ref)
     }
@@ -304,7 +326,7 @@ class ConnectionsPanel extends Component {
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
         translations: this.state.availableTranslations.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
-      const showResourceButtons = Object.values(resourcesButtonCounts).some(elem => elem > 0);
+      const showResourceButtons = Sefaria.is_moderator || Object.values(resourcesButtonCounts).some(elem => elem > 0);
       const toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
       }
@@ -345,7 +367,7 @@ class ConnectionsPanel extends Component {
             :
             null
           }
-          {showResourceButtons || Sefaria.is_moderator ?
+          {showResourceButtons ?
             <ConnectionsPanelSection title={"Resources"}>
               {
                 //ironically we need the masterpanel mode to be sheet to indicate a sheet is loaded, but the
@@ -764,6 +786,8 @@ ConnectionsPanel.propTypes = {
   clearSelectedWords: PropTypes.func.isRequired,
   clearNamedEntity: PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  scrollPosition: PropTypes.number,
+  setSideScrollPosition: PropTypes.func.isRequired,
 };
 
 
@@ -1030,7 +1054,7 @@ class ConnectionsSummary extends Component {
       });
 
       summary = topSummary;
-      let essayLinks = Sefaria.essayLinks(refs, this.props.currObjectVersions);
+      let essayLinks = this.props.currObjectVersions ? Sefaria.essayLinks(refs, this.props.currObjectVersions) : [];
       if (essayLinks.length > 0) {
         essayLinks.forEach(function (link, i) {
           const essayTextFilter = <TextFilter
@@ -1173,7 +1197,11 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   }
   return (
     <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
-      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contextSelector=".topicList" srefs={srefs} update={updateTopics}/> : null}
+      {Sefaria.is_moderator && masterPanelMode === "Text" ? <TopicSearch contentLang={contentLang} contextSelector=".topicList"
+                                                                         srefs={srefs}
+                                                                         update={updateTopics}
+                                                                         createNewTopicStr={Sefaria.translation(contentLang, "Create a new topic: ")}/>
+                                                                         : null}
       {(!topics || !topics.length) ? (
         <div className="webpageList empty">
           <div className="loadingMessage sans-serif">
@@ -1183,8 +1211,8 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
       ) : topics.map(
           (topic, i) => (
           <TopicListItem
-            isFirst={i === 0}
             key={topic.topic}
+            id={i}
             topic={topic}
             interfaceLang={interfaceLang}
             srefs={srefs}
@@ -1195,15 +1223,14 @@ const TopicList = ({ masterPanelMode, srefs, interfaceLang, contentLang }) => {
   );
 }
 
-const TopicListItem = ({ isFirst, topic, interfaceLang, srefs }) => {
+const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
   const langKey = interfaceLang === 'english' ? 'en' : 'he';
   if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
-  const topicLinkClass = isFirst ? "topicButton isFirst" : "topicButton";
   return (
-      <a href={`/topics/${topic.topic}`} className={topicLinkClass} target="_blank">
+      <a href={`/topics/${topic.topic}`} className="topicButton" target="_blank" id={`topicItem-${id}`}>
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
@@ -1253,7 +1280,7 @@ class WebPagesList extends Component {
       });
       sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
-        return (<div className="website" onClick={() => this.setFilter(site.name)} key={site.name}>
+        return (<div className="website" role="button" tabindex="0" onKeyUp={(event) => event.key==='Enter' && this.setFilter(site.name)} onClick={() => this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
           <span className="siteName">{site.name} <span className="connectionsCount">({site.count})</span></span>
         </div>);

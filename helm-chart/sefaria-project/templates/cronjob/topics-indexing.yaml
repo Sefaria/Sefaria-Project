@@ -9,7 +9,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "0 0 * * 1"
-  jobTemplate: 
+  jobTemplate:
     spec:
       backoffLimit: 1
       template:
@@ -41,10 +41,10 @@ spec:
                   subPath: local_settings.py
                   readOnly: true
               resources:
-                requests: 
+                requests:
                   memory: "5Gi"
                   cpu: "1000m"
-                limits: 
+                limits:
                   memory: "8Gi"
                   cpu: "1500m"
           volumes:

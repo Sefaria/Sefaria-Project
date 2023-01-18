@@ -13,9 +13,6 @@ releaseImageTag:
 # - Set appropriate labels to Nginx pod
 # - Requests images with the tag "sandbox-<releaseImageTag>"
 sandbox: "false"
-# Setting this to true setsup liveness, readiness & startup probes on the web
-# pod.
-contentSandbox: "false"
 
 # This value sets the name of the environment and it's associated objects. Some
 # suggestions for the values are prod/dev/test
@@ -49,6 +46,10 @@ backup:
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
+  sitemaps:
+    enabled: false
+    serviceAccount: database-backup-write
+    bucket: sefaria-sitemaps
 
 web:
   # key-pair values to load into web pod environment.  Takes precedence over global localsettings
@@ -113,7 +114,7 @@ linker:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: gcr.io/production-deployment/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -335,6 +336,7 @@ secrets:
     #   CLOUDFLARE_EMAIL:
     #   CLOUDFLARE_TOKEN:
     #   GOOGLE_TAG_MANAGER_CODE:
+    #   GOOGLE_GTAG:
     #   HOTJAR_ID:
     #   AWS_ACCESS_KEY:
     #   AWS_SECRET_KEY:

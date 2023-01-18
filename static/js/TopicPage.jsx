@@ -192,6 +192,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
     const [addingTopics, toggleAddingTopics] = useTopicToggle();
     let topicEditorStatus = null;
+
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
             topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
@@ -199,8 +200,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description || ""} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription || ""}
+                         origDesc={topicData?.description} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription}
+                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
     }
@@ -305,20 +307,56 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     );
 };
 
+const TopicSponsorship = ({topic_slug}) => {
+    // TODO: Store this data somewhere intelligent
+    const topic_sponsorship_map = {
+        "parashat-lech-lecha": {
+            "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
+            "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
+        },
+        "parashat-toldot" : {
+            "en": "Dedicated by Nancy (née Ackerman) and Alex Warshofsky in gratitude for Jewish learning as their daughter, Avigayil, is called to the Torah as a bat mitzvah, and in loving memory of Freydl Gitl who paved the way in her Jewish life.",
+            "he": "מוקדש על-ידי ננסי (שם נעורים: אקרמן) ואלכס ורשופסקי בתודה על לימודי היהדות, לציון עלייתה של בתם אביגיל לתורה לרגל בת המצווה שלה ולזכרה האהוב של פריידי גיטל שסללה את הדרך בחייה היהודיים."
+        },
+        "parashat-vayigash": {
+            "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
+            "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
+        },
+        "parashat-achrei-mot": {
+            "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
+            "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
+        }
+    };
+    const sponsorship_language = topic_sponsorship_map[topic_slug];
+    if (!sponsorship_language) return null;
+
+    return (
+        <div className="dedication">
+            <InterfaceText text={sponsorship_language}/>
+        </div>
+    );
+}
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const [addingTopics, toggleAddingTopics] = useTopicToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description || ""}
-                          origCategoryDesc={topicData?.categoryDescription || ""}
-                          origSlug={topicData["slug"]} origCategorySlug={initCatSlug} close={toggleAddingTopics}/>;
+      return <TopicEditor origEn={en}
+                          origHe={he}
+                          origDesc={topicData?.description}
+                          origCategoryDesc={topicData?.categoryDescription}
+                          origSlug={topicData["slug"]}
+                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                          origCategorySlug={initCatSlug}
+                          close={toggleAddingTopics}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+
   return (
     <div>
         <div className="navTitle tight">
@@ -336,6 +374,9 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
              </a>
            </div>
        : null}
+       {topicData && topicData.ref ?
+           <TopicSponsorship topic_slug={topicData.slug} />
+       : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
               <span className="int-en">{topicData.description.en}</span>
@@ -351,7 +392,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null}
        {topicData?.indexes?.length ?
         <div>
-          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on {Sefaria._siteSettings.SITE_NAME.en}</InterfaceText></div>
           <div className="authorIndexList">
             {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
           </div>

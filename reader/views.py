@@ -56,10 +56,12 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
-from sefaria.helper.search import get_query_obj
+from sefaria.helper.search import get_query_obj, get_es_server_url
 from sefaria.search import get_search_categories
-
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, get_random_topic_source, ref_topic_link_prep, annotate_topic_link
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
+                                get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
+                                get_random_topic_source, ref_topic_link_prep, annotate_topic_link, \
+                                get_node_in_library_topic_toc, get_path_for_topic_slug
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -196,6 +198,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
+            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -293,11 +296,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = Ref(tref)
-        except PartialRefInputError as e:
-            logger.warning('{}'.format(e))
-            matched_ref = Ref(e.matched_part)
-            return reader_redirect(matched_ref.url())
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
@@ -323,6 +322,10 @@ def get_connections_mode(filter):
     sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open","WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch")
     if filter[0] in sidebarModes:
         return filter[0], True
+    elif filter[0].endswith(" ConnectionsList"):
+        return "ConnectionsList", False
+    elif filter[0].startswith("WebPage:"):
+        return "WebPagesList", False
     else:
         return "TextList", False
 
@@ -373,10 +376,15 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            panel["connectionsMode"], deleteFilter = get_connections_mode(filter)
-            if deleteFilter == True:
+            panel["connectionsMode"], delete_filter = get_connections_mode(filter)
+            if panel["connectionsMode"] == "ConnectionsList":
+                panel['filter'] = [x.replace(" ConnectionsList", "") for x in panel['filter']]
+                if len(panel['filter']) == 1:
+                    panel['connectionsCategory'] = panel['filter'][0]
+            if panel['connectionsMode'] == "WebPagesList":
+                panel['webPagesFilter'] = [x.replace("WebPage:", "") for x in panel['filter']][0]
+            if delete_filter:
                 del panel['filter']
-
         settings_override = {}
         panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
@@ -655,7 +663,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
             except (IndexError, KeyError):
-                desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.") if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Explore texts.")
+                desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
 
     else:
         sheet = panels[0].get("sheet",{})
@@ -700,7 +708,7 @@ def texts_category_list(request, cats):
 
     if cats == "recent":
         title = _("Recently Viewed")
-        desc  = _("Texts that you've recently viewed on {}.".format(SITE_SETTINGS["SITE_NAME"]["en"]))
+        desc = _("Texts that you've recently viewed on {}.".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     else:
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
@@ -709,9 +717,10 @@ def texts_category_list(request, cats):
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
-        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string} 
+        catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
         title = cat_string + _(" | "+SITE_SETTINGS["SITE_NAME"]["en"])
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
+
 
     props = {
         "initialMenu": "navigation",
@@ -743,14 +752,13 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-
     if SITE_SETTINGS["TORAH_SPECIFIC"]:
         title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
         desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
     else:
         title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets.")
         desc = _("Texts and source sheets about %(topic)s") % {'topic': topic_obj.get_primary_title(short_lang)}
-    
+
     return render_template(request, 'base.html', props, {
         "title": title,
         "desc":  desc,
@@ -772,7 +780,6 @@ def all_topics_page(request, letter):
         "title": title,
         "desc":  desc
     })
-
 
 def get_search_params(get_dict, i=None):
     def get_param(param, i=None):
@@ -852,6 +859,21 @@ def search(request):
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _(SITE_SETTINGS["SITE_NAME"]["en"]+" Search"),
         "desc":      desc
     })
+
+
+@login_required
+def enable_new_editor(request):
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
+
+@login_required
+def disable_new_editor(request):
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": False})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 
 def public_collections(request):
@@ -961,7 +983,7 @@ def translations_page(request, slug):
     Main page for translations
     """
     title_dictionary = {
-        #"ar": {"name": "Arabic", "nativeName": "عربى"},
+        "ar": {"name": "Arabic", "nativeName": "عربى", "title": "نصوص يهودية بالعربية", "desc": "أكبر مكتبة مجانية للنصوص اليهودية المتاحة للقراءة عبر الإنترنت باللغات العبرية والعربية والإنجليزية بما في ذلك التوراة والتناخ والتلمود والميشناه والمدراش والتعليقات والمزيد."},
         "de": {"name": "German", "nativeName": "Deutsch", "title": "Jüdische Texte in Deutscher Sprache", "desc": "Die größte kostenlose Bibliothek jüdischer Texte, die online auf Hebräisch, Deutsch und Englisch gelesen werden kann, einschließlich Tora, Tanach, Talmud, Mischna, Midrasch, Kommentare und mehr."},
         "en": {"name": "English", "nativeName": "English", "title": "Jewish Texts in English", "desc": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."},
         "eo": {"name": "Esperanto", "nativeName": "Esperanto", "title": "Judaj Tekstoj en Esperanto", "desc": "La plej granda senpaga biblioteko de judaj tekstoj legebla interrete en la hebrea, Esperanto kaj la angla inkluzive de Torao, Tanaĥo, Talmudo, Miŝnao, Midraŝo, komentaĵoj kaj pli."},
@@ -1037,7 +1059,6 @@ def saved(request):
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
-
 def user_history(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -1055,18 +1076,10 @@ def updates(request):
     desc  = _("See texts, translations and connections that have been recently added to {}".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     return menu_page(request, page="updates", title=title, desc=desc)
 
-
-@staff_member_required
-def story_editor(request):
-    title = _("Story Editor")
-    return menu_page(request, page="story_editor", title=title)
-
-
 @login_required
 def user_stats(request):
     title = _("User Stats")
     return menu_page(request, page="user_stats", title=title)
-
 
 @login_required
 def notifications(request):
@@ -1077,7 +1090,6 @@ def notifications(request):
         "notifications": notifications.client_contents(),
     }
     return menu_page(request, props, page="notifications", title=title)
-
 
 @staff_member_required
 def modtools(request):
@@ -1367,7 +1379,8 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = Ref(tref)
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    tref = oref.url()
 
     if request.method == "GET":
         uref = oref.url()
@@ -1709,7 +1722,7 @@ def index_api(request, title, raw=False):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def bare_link_api(request, book, cat):
     if request.method == "GET":
         resp = get_book_link_collection(book, cat)
@@ -1721,7 +1734,7 @@ def bare_link_api(request, book, cat):
 
 @catch_error_as_json
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def link_count_api(request, cat1, cat2):
     """
     Return a count document with the number of links between every text in cat1 and every text in cat2
@@ -2214,7 +2227,7 @@ def version_status_api(request):
 
 
 @json_response_decorator
-@django_cache(default_on_miss = True)
+@django_cache(cache_type="persistent", default_on_miss=True, decorate_data_with_key=True)
 def version_status_tree_api(request, lang=None):
     return library.simplify_toc(lang=lang)
 
@@ -2719,134 +2732,6 @@ def dictionary_api(request, word):
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
-@catch_error_as_json
-def stories_api(request, gid=None):
-    """
-    API for retrieving stories.
-    """
-
-    # if not request.user.is_authenticated:
-    #     return jsonResponse({"error": "You must be logged in to access your notifications."})
-
-    if request.method == "GET":
-
-        page      = int(request.GET.get("page", 0))
-        page_size = int(request.GET.get("page_size", 10))
-        shared_only = bool(request.GET.get("shared_only", False))
-        admin_feed = bool(request.GET.get("admin_feed", False))
-
-        if not request.user.is_authenticated:
-            shared_only = True
-            user = None
-            traits = get_session_traits(request)
-        else:
-            user = UserProfile(id=request.user.id)
-            traits = get_session_traits(request, request.user.id)
-
-        if admin_feed:
-            if not request.user.is_staff:
-                return {"error": "Permission Denied"}
-            stories = SharedStorySet({}, limit=page_size, page=page).contents()
-            count = len(stories)
-        elif shared_only or not user:
-            stories = SharedStorySet.for_traits(traits, limit=page_size, page=page).contents()
-            count = len(stories)
-        else:
-            stories = UserStorySet.recent_for_user(request.user.id, traits, limit=page_size, page=page).contents()
-            count = len(stories)
-            stories = addDynamicStories(stories, user, page)
-
-        return jsonResponse({
-                                "stories": stories,
-                                "page": page,
-                                "page_size": page_size,
-                                "count": count
-                            })
-
-    elif request.method == "POST":
-        if not request.user.is_authenticated:
-            key = request.POST.get("apikey")
-            if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to perform this action."})
-            apikey = db.apikeys.find_one({"key": key})
-            if not apikey:
-                return jsonResponse({"error": "Unrecognized API key."})
-            user = User.objects.get(id=apikey["uid"])
-            if not user.is_staff:
-                return jsonResponse({"error": "Only Sefaria Moderators can add stories."})
-
-            payload = json.loads(request.POST.get("json"))
-            try:
-                s = SharedStory(payload).save()
-                return jsonResponse({"status": "ok", "story": s.contents()})
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-
-        elif request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                payload = json.loads(request.POST.get("json"))
-                try:
-                    s = SharedStory(payload).save()
-                    return jsonResponse({"status": "ok", "story": s.contents()})
-                except AssertionError as e:
-                    return jsonResponse({"error": str(e)})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
-
-    elif request.method == "DELETE":
-        if not gid:
-            return jsonResponse({"error": "No post id given for deletion."})
-        if request.user.is_staff:
-            @csrf_protect
-            def protected_post(request):
-                SharedStory().load_by_id(gid).delete()
-                return jsonResponse({"status": "ok"})
-
-            return protected_post(request)
-        else:
-            return jsonResponse({"error": "Unauthorized"})
-
-def addDynamicStories(stories, user, page):
-    """
-
-    :param stories: Array of Story.contents() dicts
-    :param user: UserProfile object
-    :param page: Which page of stories are we rendering - 0 based
-    :return: Array of Story.contents() dicts.
-    """
-    if page == 0:
-        # Disable most recent story
-        return stories
-
-        # Keep Reading Most recent
-        most_recent = user.get_history(last_place=True, secondary=False, limit=1)[0]
-        if most_recent:
-            if getattr(most_recent, "is_sheet", None):
-                stry = SheetListFactory().generate_story(
-                    sheet_ids=[most_recent.sheet_id],
-                    title={"en": "Keep Reading", "he": "המשך לקרוא"},
-                    lead={"en": "Sheets", "he": "דפים"}
-                )
-            else:
-                stry = TextPassageStoryFactory().generate_from_user_history(most_recent,
-                    lead={"en": "Keep Reading", "he": "המשך לקרוא"})
-            stories = [stry.contents()] + stories
-
-    if page == 1:
-        # Show an old saved story
-        saved = user.get_history(saved=True, secondary=False, sheets=False)
-        if len(saved) > 2:
-            saved_item = choice(saved)
-            stry = TextPassageStoryFactory().generate_from_user_history(saved_item,
-                    lead={"en": "Take Another Look", "he": "קרא עוד"})
-            stories = [stry.contents()] + stories
-
-    return stories
-
-
 @login_required
 def user_stats_api(request, uid):
 
@@ -2863,43 +2748,6 @@ def user_stats_api(request, uid):
 def site_stats_api(request):
     assert request.method == "GET", "Unsupported Method"
     return jsonResponse(site_stats_data())
-
-
-@staff_member_required
-def story_reflector(request):
-    """
-    Show what a story will look like.
-    :param request:
-    :return:
-    """
-    assert request.user.is_authenticated and request.user.is_staff and request.method == "POST"
-
-    @csrf_protect
-    def protected_post(request):
-        payload = json.loads(request.POST.get("json"))
-
-        factory_name = payload.get("factory")
-        method_name = payload.get("method")
-        if factory_name and method_name:
-            try:
-                del payload["factory"]
-                del payload["method"]
-                factory = getattr(sefaria_story, factory_name)
-                method = getattr(factory, method_name)
-                sefaria_story = method(**payload)
-                return jsonResponse(sefaria_story.contents())
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-        else:
-            #Treat payload as attrs to story object
-            try:
-                sefaria_story = SharedStory(payload)
-                return jsonResponse(sefaria_story.contents())
-            except AssertionError as e:
-                return jsonResponse({"error": str(e)})
-
-    return protected_post(request)
-
 
 
 @catch_error_as_json
@@ -2934,8 +2782,7 @@ def updates_api(request, gid=None):
 
             payload = json.loads(request.POST.get("json"))
             try:
-                gn = GlobalNotification(payload).save()
-                SharedStory.from_global_notification(gn).save()
+                GlobalNotification(payload).save()
                 return jsonResponse({"status": "ok"})
             except AssertionError as e:
                 return jsonResponse({"error": str(e)})
@@ -2945,8 +2792,7 @@ def updates_api(request, gid=None):
             def protected_post(request):
                 payload = json.loads(request.POST.get("json"))
                 try:
-                    gn = GlobalNotification(payload).save()
-                    SharedStory.from_global_notification(gn).save()
+                    GlobalNotification(payload).save()
                     return jsonResponse({"status": "ok"})
                 except AssertionError as e:
                     return jsonResponse({"error": str(e)})
@@ -3184,7 +3030,6 @@ def topics_page(request):
         "desc":           desc
     })
 
-
 @sanitize_get_params
 def topic_page(request, topic):
     """
@@ -3205,7 +3050,7 @@ def topic_page(request, topic):
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_data(topic),
+        "topicData": _topic_page_data(topic),
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
@@ -3246,14 +3091,21 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
         t.add_title(data["title"], 'en', True, True)
+        if "heTitle" in data:
+            t.add_title(data["heTitle"], "he", True, True)
         t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
-        t.change_description(data["description"], data.get("catDescription", ""))
+        t.description_published = True
+        t.change_description(data["description"], data.get("catDescription", {}))
         t.save()
+
+        library.get_topic_toc(rebuild=True)
+        library.get_topic_toc_json(rebuild=True)
+        library.get_topic_toc_category_mapping(rebuild=True)
 
         def protected_index_post(request):
             return jsonResponse(t.contents())
@@ -3266,6 +3118,9 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            library.get_topic_toc(rebuild=True)
+            library.get_topic_toc_json(rebuild=True)
+            library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3285,7 +3140,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes)
+        response = get_topic(v2, topic, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3301,24 +3156,23 @@ def topics_api(request, topic, v2=False):
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
-            # if we move topic to top level, we delete the IntraTopicLink and if we move the topic from top level, we must create one
-            # as top level topics don't need intratopiclinks
+            # special casing for moving to and fro the Main Menu
+            # and if we move the topic from top level, we must create one
 
-            origLink = IntraTopicLink().load({"fromTopic": topic_obj.slug,
-                                              "toTopic": topic_data["origCategory"],
-                                              "linkType": "displays-under"})
-            if topic_data["origCategory"] == "Main Menu":
-                assert origLink is None
-                origLink = IntraTopicLink()
+            origLinkDict = {"fromTopic": topic_obj.slug, "toTopic": topic_data["origCategory"], "linkType": "displays-under"}
 
             if topic_data["category"] == "Main Menu":
+                # create new link if existing link links topic to itself, as this means the topic
+                # functions as both a topic and category. otherwise modify existing link
+                origLink = IntraTopicLink() if topic_data["origCategory"] == topic_obj.slug else IntraTopicLink().load(origLinkDict)
+
                 # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                 child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
                 if child is None:
                     topic_obj.shouldDisplay = True
                     topic_obj.save()
 
-                origLink.delete() # get rid of link to previous category
+                origLink.delete() # if we move topic to top level, we delete the IntraTopicLink
 
                 # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
                 linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
@@ -3326,28 +3180,53 @@ def topics_api(request, topic, v2=False):
                 if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
                     IntraTopicLink(linkToItself).save()
             else:
+                # create new link (1) if existing link links topic to itself, as this means the topic
+                # functions as both a topic and category, or (2) if topic is being moved out of main menu, as this means no current link may exist
+                origLink = IntraTopicLink() if topic_data["origCategory"] in ["Main Menu", topic_obj.slug] else IntraTopicLink().load(origLinkDict)
                 origLink.fromTopic = topic_obj.slug
                 origLink.toTopic = topic_data["category"]
                 origLink.linkType = "displays-under"
                 origLink.dataSource = "sefaria"
                 origLink.save()
 
-        needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
+        topic_needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
 
         if (topic_data["category"] == "Main Menu") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
-            needs_save = True
+            topic_needs_save = True
             topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
 
-        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
-            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
-            needs_save = True
+        if topic_data["origHeTitle"] != topic_data["heTitle"]:
+            topic_obj.add_title(topic_data["heTitle"], 'he', True, True)
+            topic_needs_save = True
 
-        if needs_save:
+        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", {}) != topic_data.get("catDescription", {}):
+            topic_obj.description_published = True
+            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", {}))
+            topic_needs_save = True
+
+        if topic_needs_save:
             topic_obj.save()
+
+        if topic_data["origCategory"] != topic_data["category"]:
+            library.get_topic_toc(rebuild=True)
+        else:
+            path = get_path_for_topic_slug(topic_data["origSlug"])
+            old_node = get_node_in_library_topic_toc(path)
+            if topic_data["origSlug"] != old_node["slug"]:
+                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
+            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
+            if "heTitle" in topic_data:
+                old_node["he"] = topic_obj.get_primary_title('he')
+            if hasattr(topic_obj, "categoryDescription"):
+                old_node["categoryDescription"] = topic_obj.categoryDescription
+
+        library.get_topic_toc_json(rebuild=True)
+        library.get_topic_toc_category_mapping(rebuild=True)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
         return protected_index_post(request)
+
 
 @catch_error_as_json
 def topic_graph_api(request, topic):
@@ -3403,10 +3282,16 @@ def topic_ref_api(request, tref):
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
 }
-def _topic_data(topic):
+
+def _topic_page_data(topic):
+    _topic_data(topic=topic, annotate_time_period=True)
+
+
+def _topic_data(**kwargs):
     cat = library.get_topic_toc_category_mapping().get(topic, None)
     ref_link_type_filters = _CAT_REF_LINK_TYPE_FILTER_MAP.get(cat, ['about', 'popular-writing-of'])
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=ref_link_type_filters, with_indexes=True)
+
+    response = get_topic(True, ref_link_type_filters=ref_link_type_filters, **kwargs)
     return response
 
 
@@ -4376,17 +4261,15 @@ def dummy_search_api(request):
 
 @csrf_exempt
 def search_wrapper_api(request):
-    from sefaria.helper.search import get_es_server_url
-
     if request.method == "POST":
         if "json" in request.POST:
             j = request.POST.get("json")  # using form-urlencoded
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(get_es_server_url(admin=False))
+        es_client = Elasticsearch(get_es_server_url(admin=True))
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
-        search_obj = get_query_obj(search_obj=search_obj, **{k: v for k, v in list(j.items())})
+        search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
             return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))

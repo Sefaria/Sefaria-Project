@@ -9,14 +9,14 @@ import {HDate, months} from '@hebcal/core';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    
+
     /**
      * Method to scroll into view port, if it's outside the viewport
      * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
      * @param {Object} target - DOM Element
      * @returns {undefined}
      * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-     * 
+     *
      */
     static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
         // Target is outside the viewport from the bottom
@@ -112,6 +112,20 @@ class Util {
         };
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
+    }
+     static subscribeToNbList(email) {
+        if (Sefaria.util.isValidEmailAddress(email)) {
+            const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
+            $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
+                if ("error" in data) {
+                    console.log(data.error);
+                } else {
+                    console.log("Subscribed! Welcome to our list.");
+                }
+            }).error(data => console.log("Sorry, there was an error."));
+        } else {
+        console.log("not valid email address")
+        }
     }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;

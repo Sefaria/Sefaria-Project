@@ -348,6 +348,11 @@ class NormalizerFactory:
         "cantillation": RegexNormalizer("[\u0591-\u05bd\u05bf-\u05c5\u05c7]+", ""),
         "parens-plus-contents": RegexNormalizer(r"\([^)]+\)", " "),
         "brackets": RegexNormalizer(r"[\[\]]", ""),
+        "kri-ktiv": RegexNormalizer(r'\[[^\[\]]{1,7}\]', ""),  # approximation for length of ktiv
+        "english": RegexNormalizer(r'[A-Za-z]+', ""),
+        "punctuation": RegexNormalizer(r'[.,"?!״:׃]+', ""),
+        "hashem": RegexNormalizer(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d4['\u05f3]|\u05d9\u05d9)($|\s)", "\1\2\u05d9\u05d4\u05d5\u05d4\3"),
+        "elokim": RegexNormalizer(r"(^|\s)([\u05de\u05e9\u05d5\u05db\u05dc\u05d1]?)(?:\u05d0\u05dc\u05e7\u05d9\u05dd)($|\s)", "\1\2\u05d0\u05dc\u05d4\u05d9\u05dd\3"),
         "unidecode": TableReplaceNormalizer(UNIDECODE_TABLE),
         "maqaf": ReplaceNormalizer('־', ' '),
         "itag": ITagNormalizer(' '),

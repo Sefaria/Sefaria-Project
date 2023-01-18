@@ -1115,8 +1115,8 @@ p.registration-links a:hover{
   color: #000;
   font-size: 18px;
 }
-#peoplePage .author a .int-en, 
-#talmudicPeoplePage .author a .int-en, 
+#peoplePage .author a .int-en,
+#talmudicPeoplePage .author a .int-en,
 #personPage a .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -1294,7 +1294,7 @@ p.registration-links a:hover{
 #jobsPage li {
   margin: 14px 0;
 }
-#jobsPage .job{
+#jobsPage .job, #jobsPage .job details summary{
   margin-bottom: 15px;
   scroll-margin-top: 5em;
   --english-font: var(--english-serif-font-family);
@@ -1305,6 +1305,21 @@ p.registration-links a:hover{
   line-height: 29px;
   color: #000000;
 }
+#jobsPage .job details {
+  margin-bottom: 15px;
+  scroll-margin-top: 5em;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: normal;
+  color: #000000;
+}
+#jobsPage .job details p {
+  margin-bottom: 15px;
+}
+
 #jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
   margin-top: 80px;
   font-style: normal;
