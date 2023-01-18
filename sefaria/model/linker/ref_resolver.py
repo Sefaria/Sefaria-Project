@@ -9,7 +9,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
 from .ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, RangedRawRefParts, ContextPart, TermContext
-from .referenceable_book_node import NamedReferenceableBookNode, DiburHamatchilNodeSet, NumberedReferenceableBookNode
+from .referenceable_book_node import NamedReferenceableBookNode, DiburHamatchilNodeSet, NumberedReferenceableBookNode, ReferenceableBookNode
 from .match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 import structlog
 logger = structlog.get_logger(__name__)
@@ -61,7 +61,7 @@ class ResolvedRef(abst.Cloneable):
     def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
-        self.node = node
+        self.node: ReferenceableBookNode = node
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type

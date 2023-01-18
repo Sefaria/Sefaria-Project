@@ -831,7 +831,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_title_trie(self, lang: str):
+    def get_match_template_trie(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
@@ -897,6 +897,15 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
         """
         return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
+
+    def get_next_referenceable_descendants(self):
+        nodes = []
+        for node in self.children:
+            if getattr(node, 'referenceable', True):
+                nodes.append(node)
+            else:
+                nodes += node.get_referenceable_nodes()
+        return nodes
 
     def get_referenceable_alone_nodes(self):
         """
@@ -1125,7 +1134,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable']  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1212,7 +1221,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps"]
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """

@@ -1,10 +1,11 @@
 {
-	"title": "",
-	"text": [
-"There is only one week left to give this year — please join us in supporting new texts, translations, and tech features in 2023 by making a donation today!"
-],
-	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
-	"buttonText": "Donate Now",
-	"name": "2022-12-26-end-of-year-msg05-banner",
-	"schemaVersion": 1
+  "title": "",
+  "text": [
+    "Your opinion matters!",
+    "We invite you to participate in a quick survey to help us better understand you and your experiences. It will take approximately 5 minutes to complete."
+  ],
+  "buttonLink": "https://qualtricsxmd6qzd2jyv.qualtrics.com/jfe/form/SV_6KcZChAjIHptfSu?source=app",
+  "buttonText": "Take the Survey",
+  "name": "2023-01-09-modal-survey",
+  "schemaVersion": 1
 }
