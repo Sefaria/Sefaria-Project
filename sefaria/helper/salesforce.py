@@ -1,5 +1,5 @@
-from rauth import OAuth2Service
-import json
+import base64
+import requests
 
 from sefaria import settings as sls
 
@@ -15,39 +15,19 @@ class CrmConnectionManager(object):
 class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
         CrmConnectionManager.__init__(self, sls.SALESFORCE_BASE_URL)
-        # self.params = {'grant_type': sls.SALESFORCE_GRANT_TYPE}
-        self.params = {'response_type': 'code'}
-        # self.data = {
-        # 'Content-type': 'application/x-www-form-urlencoded',
-        # 'Accept': 'application/json',
-        # 'grant_type': sls.SALESFORCE_GRANT_TYPE
-        # }
-        self.data = {}
 
     def get_connection(self):
-        access_token_url = "%s/services/oauth2/token" % self.base_url
-        authorize_url = "%s/services/oauth2/authorize" % self.base_url
-        # service = OAuth2Service(
-        #     client_id=sls.SALESFORCE_CLIENT_ID,
-        #     client_secret=sls.SALESFORCE_CLIENT_SECRET,
-        #     access_token_url=access_token_url,
-        #     authorize_url=authorize_url,
-        #     base_url=self.base_url
-        # )
-        # url = service.get_authorize_url(**self.params)
-        # session = service.get_auth_session(data=self.data)
-        service = OAuth2Service(
-            client_id=sls.SALESFORCE_CLIENT_ID,
-            client_secret=sls.SALESFORCE_CLIENT_SECRET,
-            access_token_url=access_token_url,
-            authorize_url=authorize_url,
-            base_url=self.base_url,
-            name='sefaria_app'
-        )
-        token = service.get_access_token(decoder=json.loads, data={"grant_type": "authorization_code"})
-        # Get an access token
-        data = {'grant_type': 'client_credentials'}
-        session = service.get_session(token)
-
-        #ession = service.get_session(data=data)
+        access_token_url = "%s/services/oauth2/token?grant_type=client_credentials" % self.base_url
+        base64_auth = base64.b64encode((sls.SALESFORCE_CLIENT_ID + ":" + sls.SALESFORCE_CLIENT_SECRET).encode("ascii"))\
+            .decode("ascii")
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic %s' % base64_auth
+        }
+        basic_res = requests.post(access_token_url, headers=headers)
+        basic_data = basic_res.json()
+        session = requests.Session()
+        session.headers.update({
+            'Authorization': 'Bearer %s' % basic_data['access_token']
+        })
         return session
