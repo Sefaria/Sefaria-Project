@@ -6,7 +6,7 @@ from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
-import structlog
+import structlog, bleach
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -77,6 +77,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
             self.subclass = "author"
 
+    def _sanitize(self):
+        super()._sanitize()
+        for attr in ['description', 'categoryDescription']:
+            p = getattr(self, attr, {})
+            for k, v in p.items():
+                p[k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+            setattr(self, attr, p)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
