@@ -315,6 +315,25 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+  getSectionByAddressType: function(addressType, i, offset=0) {
+    let section = i + offset;
+    let heSection;
+    if (addressType === 'Talmud') {
+      section = Sefaria.hebrew.intToDaf(section);
+      heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+    } else if (addressType === "Year") {
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
+      section += 1241;
+    } else if (addressType === "Folio") {
+      heSection = Sefaria.hebrew.encodeHebrewFolio(section);
+      section = Sefaria.hebrew.intToFolio(section);
+    } else {
+      section += 1;
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section);
+    }
+  return [section, heSection];
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -494,7 +513,7 @@ Sefaria = extend(Sefaria, {
     return null;
   },
   ISOMap: {
-    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1},
+    "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية"},
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
     "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
     "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
@@ -725,6 +744,11 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
+  _get_offsets: function (data, length=1) {
+    let offsets = data?.index_offsets_by_depth?.[data.textDepth] || Array(length).fill(0);
+    offsets = (typeof(offsets) === 'number') ? [offsets] : offsets.flat();
+    return offsets;
+  },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
@@ -745,7 +769,8 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, "");
 
     const delim = data.ref === data.book ? " " : ":";
-    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+    const offset = this._get_offsets(data);
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+offset[0];
 
     let prev = Array(length);
     let next = Array(length);
@@ -1867,9 +1892,9 @@ _media: {},
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
 
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
     var start = (data.textDepth == data.sections.length && !withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
         var number = i+start;
@@ -1896,7 +1921,7 @@ _media: {},
         var delim       = baseSection ? ":" : " ";
         var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
 
-        start = (n == 0 ? start : 1);
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
         for (var i = 0; i < length; i++) {
           var startSection = data.sections.slice(-2)[0];
           var section = typeof startSection == "string" ?
@@ -2278,15 +2303,11 @@ _media: {},
     return this._topics[topic];
   },
   _topicSlugsToTitles: null,
-  _initTopicSlugsToTitles: function() {
-    this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});
-  },
   slugsToTitles: function() {
     //initializes _topicSlugsToTitles for Topic Editor tool and adds necessary "Choose a Category" and "Main Menu" for
     //proper use of the Topic Editor tool
-    if (!Sefaria._topicSlugsToTitles) { Sefaria._initTopicSlugsToTitles();}
-    let specialCases = {"": "Choose a Category", "Main Menu": "Main Menu"};
-    return Object.assign(specialCases, Sefaria._topicSlugsToTitles);
+    if (!Sefaria._topicSlugsToTitles) { this._topicSlugsToTitles = Sefaria.topic_toc.reduce(Sefaria._initTopicTocSlugToTitleReducer, {});}
+    return Sefaria._topicSlugsToTitles;
   },
   _topicTocPages: null,
   _initTopicTocPages: function() {
@@ -2303,7 +2324,7 @@ _media: {},
   },
   _initTopicTocSlugToTitleReducer: function(a,c) {
     if (!c.children) { return a; }
-    a[c.slug] = c.en;
+    a[c.slug] = {"en": c.en, "he": c.he};
     for (let sub_c of c.children) {
       Sefaria._initTopicTocSlugToTitleReducer(a, sub_c);
     }

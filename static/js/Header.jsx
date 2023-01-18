@@ -524,6 +524,14 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <img src="/static/icons/info.svg" />
           <InterfaceText>{aboutMessage}</InterfaceText>
         </a>
+        
+        {Sefaria._uid ?
+        <>
+          <a href="/settings/account">
+          <img src="/static/icons/settings.svg" />
+          <InterfaceText>Account Settings</InterfaceText>
+        </a>
+        </> : null }
 
         {Sefaria._siteSettings.TORAH_SPECIFIC ?
           <MobileInterfaceLanguageToggle /> : null}

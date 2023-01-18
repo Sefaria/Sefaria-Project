@@ -1,10 +1,11 @@
 {
-	"title": "",
-	"text": [
-"Sefaria is a 501(c)(3) non-profit organization. If you haven't yet, make your tax-deductible donation before the end of the year so that we can add new texts to the library and make Torah more accessible in 2023."
-],
-	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
-	"buttonText": "Donate Now",
-	"name": "2022-12-22-end-of-year-msg04-banner",
-	"schemaVersion": 1
+  "title": "",
+  "text": [
+    "Your opinion matters!",
+    "We invite you to participate in a quick survey to help us better understand you and your experiences. It will take approximately 5 minutes to complete."
+  ],
+  "buttonLink": "https://qualtricsxmd6qzd2jyv.qualtrics.com/jfe/form/SV_6KcZChAjIHptfSu?source=app",
+  "buttonText": "Take the Survey",
+  "name": "2023-01-09-modal-survey",
+  "schemaVersion": 1
 }

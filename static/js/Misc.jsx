@@ -1775,11 +1775,11 @@ class LoginPrompt extends Component {
         </div>
         <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
-          <span className="int-he">התחבר</span>
+          <span className="int-he">התחברות</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
-          <span className="int-he">הרשם</span>
+          <span className="int-he">הרשמה</span>
         </a>
       </div>);
   }
@@ -1849,7 +1849,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 1000,
+        "showDelay": 30000,
       },
       "banner": {
         "trackingName": "Banner Message",
@@ -2395,14 +2395,13 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
-const AdminToolHeader = function({en, he, validate, close}) {
+const AdminToolHeader = function({title, validate, close}) {
   /*
-  Save and Cancel buttons with a header using the 'en'/'he' text.  Save button calls 'validate' and cancel button calls 'close'.
+  Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
-                <span className="int-en">{en}</span>
-                <span className="int-he">{he}</span>
+                <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">

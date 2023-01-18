@@ -5,6 +5,9 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class MatchTemplate(abst.Cloneable):
@@ -27,6 +30,14 @@ class MatchTemplate(abst.Cloneable):
             serial['scope'] = self.scope
         return serial
 
+    def matches_scope(self, other_scope: str) -> bool:
+        """
+        Does `self`s scope match `other_scope`?
+        @param other_scope:
+        @return: True if scope matches
+        """
+        return other_scope == 'any' or self.scope == 'any' or other_scope == self.scope
+
     terms = property(get_terms)
 
 
@@ -36,7 +47,7 @@ class MatchTemplateTrie:
     E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
     then an entry in the trie would be {"Term 1": {"Term 2": ...}}
     """
-    def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
+    def __init__(self, lang: str, nodes: List[schema.TitledTreeNode] = None, sub_trie: dict = None, scope: str = None):
         """
         :param lang:
         :param nodes:
@@ -45,37 +56,54 @@ class MatchTemplateTrie:
         """
         self.lang = lang
         self.scope = scope
-        if nodes is not None:
-            self.__init_with_nodes(nodes)
-        else:
-            self._trie = sub_trie
+        self._trie = self.__init_trie(nodes, sub_trie)
 
-    def __init_with_nodes(self, nodes):
-        self._trie = {}
+    def __init_trie(self, nodes: List[schema.TitledTreeNode], sub_trie: dict):
+        if nodes is None:
+            return sub_trie
+        return self.__init_trie_with_nodes(nodes)
+
+    def __init_trie_with_nodes(self, nodes: List[schema.TitledTreeNode]):
+        trie = {}
         for node in nodes:
-            is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
-                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
-                curr_dict_queue = [self._trie]
-                for term in match_template.terms:
-                    if term is None:
-                        try:
-                            node_ref = node.ref()
-                        except:
-                            node_ref = node.get_primary_title('en')
-                        print(f"{node_ref} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
-                        continue
-                    len_curr_dict_queue = len(curr_dict_queue)
-                    for _ in range(len_curr_dict_queue):
-                        curr_dict = curr_dict_queue.pop(0)
-                        curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
-                # add nodes to leaves
-                for curr_dict in curr_dict_queue:
-                    leaf_node = NamedReferenceableBookNode(node.index if is_index_level else node)
-                    if LEAF_TRIE_ENTRY in curr_dict:
-                        curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
-                    else:
-                        curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
+                if not node.is_root() and not match_template.matches_scope(self.scope):
+                    continue
+                curr_dict_queue = [trie]
+                self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
+                self.__add_nodes_to_leaves(node, curr_dict_queue)
+        return trie
+
+    @staticmethod
+    def __log_non_existent_term_warning(node: schema.TitledTreeNode):
+        try:
+            node_ref = node.ref()
+        except:
+            node_ref = node.get_primary_title('en')
+        logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
+                       f"Check match_templates and fix.")
+
+    def __add_all_term_titles_to_trie(self, term_list: List[schema.NonUniqueTerm], node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+        for term in term_list:
+            if term is None:
+                self.__log_non_existent_term_warning(node)
+                continue
+            self.__add_term_titles_to_trie(term, curr_dict_queue)
+
+    def __add_term_titles_to_trie(self, term, curr_dict_queue: List[dict]):
+        len_curr_dict_queue = len(curr_dict_queue)
+        for _ in range(len_curr_dict_queue):
+            curr_dict = curr_dict_queue.pop(0)
+            curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
+
+    @staticmethod
+    def __add_nodes_to_leaves(node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+        for curr_dict in curr_dict_queue:
+            leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
+            if LEAF_TRIE_ENTRY in curr_dict:
+                curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
+            else:
+                curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
 
     @staticmethod
     def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:

@@ -44,11 +44,14 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             return thingy.referenceable_children()
         else:
             # Any other type of TitledTreeNode
-            return self._titled_tree_node.children
+            return self._titled_tree_node.get_next_referenceable_descendants()
 
     def _get_pure_referenceable_children(self) -> List[ReferenceableBookNode]:
         """
         These children do not appear in schema tree
+        There are two possibilities
+        1) the schema node for this referenceable node has a dibur hamatchil child
+        2) the schema node for this referenceable is a JAN. JANs act as both named and numbered nodes
         @return:
         """
         thingy = self._titled_tree_node_or_index
@@ -71,7 +74,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return [self._transform_schema_node_to_referenceable(x) for x in self._get_schema_children()]
 
     def ref_part_title_trie(self, *args, **kwargs):
-        return self._titled_tree_node.ref_part_title_trie(*args, **kwargs)
+        return self._titled_tree_node.get_match_template_trie(*args, **kwargs)
 
 
 class NumberedReferenceableBookNode(ReferenceableBookNode):

@@ -296,11 +296,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = Ref(tref)
-        except PartialRefInputError as e:
-            logger.warning('{}'.format(e))
-            matched_ref = Ref(e.matched_part)
-            return reader_redirect(matched_ref.url())
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
@@ -987,7 +983,7 @@ def translations_page(request, slug):
     Main page for translations
     """
     title_dictionary = {
-        #"ar": {"name": "Arabic", "nativeName": "عربى"},
+        "ar": {"name": "Arabic", "nativeName": "عربى", "title": "نصوص يهودية بالعربية", "desc": "أكبر مكتبة مجانية للنصوص اليهودية المتاحة للقراءة عبر الإنترنت باللغات العبرية والعربية والإنجليزية بما في ذلك التوراة والتناخ والتلمود والميشناه والمدراش والتعليقات والمزيد."},
         "de": {"name": "German", "nativeName": "Deutsch", "title": "Jüdische Texte in Deutscher Sprache", "desc": "Die größte kostenlose Bibliothek jüdischer Texte, die online auf Hebräisch, Deutsch und Englisch gelesen werden kann, einschließlich Tora, Tanach, Talmud, Mischna, Midrasch, Kommentare und mehr."},
         "en": {"name": "English", "nativeName": "English", "title": "Jewish Texts in English", "desc": "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."},
         "eo": {"name": "Esperanto", "nativeName": "Esperanto", "title": "Judaj Tekstoj en Esperanto", "desc": "La plej granda senpaga biblioteko de judaj tekstoj legebla interrete en la hebrea, Esperanto kaj la angla inkluzive de Torao, Tanaĥo, Talmudo, Miŝnao, Midraŝo, komentaĵoj kaj pli."},
@@ -1383,7 +1379,8 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = Ref(tref)
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    tref = oref.url()
 
     if request.method == "GET":
         uref = oref.url()
@@ -3103,7 +3100,7 @@ def add_new_topic_api(request):
             new_link.save()
 
         t.description_published = True
-        t.change_description(data["description"], data.get("catDescription", ""))
+        t.change_description(data["description"], data.get("catDescription", {}))
         t.save()
 
         library.get_topic_toc(rebuild=True)
@@ -3202,9 +3199,9 @@ def topics_api(request, topic, v2=False):
             topic_obj.add_title(topic_data["heTitle"], 'he', True, True)
             topic_needs_save = True
 
-        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", "") != topic_data.get("catDescription", ""):
+        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", {}) != topic_data.get("catDescription", {}):
             topic_obj.description_published = True
-            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", ""))
+            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", {}))
             topic_needs_save = True
 
         if topic_needs_save:
