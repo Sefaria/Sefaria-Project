@@ -178,10 +178,9 @@ data:
     NATIONBUILDER_CLIENT_SECRET = os.getenv("NATIONBUILDER_CLIENT_SECRET")
 
     # Integration with Salesforce
-    SALESFORCE_BASE_URL = "https://sefariainc--dev.sandbox.lightning.force.com"
+    SALESFORCE_BASE_URL = "https://sefariainc--dev.sandbox.my.salesforce.com"
     SALESFORCE_CLIENT_ID = os.getenv("SALESFORCE_CLIENT_ID")
     SALESFORCE_CLIENT_SECRET = os.getenv("SALESFORCE_CLIENT_SECRET")
-    SALESFORCE_GRANT_TYPE = "client_credentials"
 
     DISABLE_INDEX_SAVE = False
 

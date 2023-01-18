@@ -101,7 +101,6 @@ NATIONBUILDER_CLIENT_SECRET = ""
 SALESFORCE_BASE_URL = ""
 SALESFORCE_CLIENT_ID = ""
 SALESFORCE_CLIENT_SECRET = ""
-SALESFORCE_GRANT_TYPE = ""  # "client_credentials"
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False
