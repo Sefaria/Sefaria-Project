@@ -132,6 +132,7 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
     :param en: (String, optional)
     :param he: (String, optional)
     :param searchRoot: (String, optional) If this is present, then in the context of search filters, this category will appear under `searchRoot`.
+    :param order: (int) the order of the category in the location (negative for the end)
     :return: (model.Category) the new category object
     """
     c = Category()
@@ -147,6 +148,8 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
     c.add_shared_term(path[-1])
     c.path = path
     c.lastPath = path[-1]
+    if order:
+        c.order = order
     if searchRoot is not None:
         c.searchRoot = searchRoot
     if order is not None:
