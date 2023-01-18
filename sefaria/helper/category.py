@@ -122,7 +122,7 @@ def move_category_into(cat, parent):
         ind.save(override_dependencies=True)
 
 
-def create_category(path, en=None, he=None, searchRoot=None):
+def create_category(path, en=None, he=None, searchRoot=None, order=None):
     """
     Will create a new category at the location in the TOC indicated by `path`.
     If there is a term for `path[-1]`, then that term will be used for this category.
@@ -132,6 +132,7 @@ def create_category(path, en=None, he=None, searchRoot=None):
     :param en: (String, optional)
     :param he: (String, optional)
     :param searchRoot: (String, optional) If this is present, then in the context of search filters, this category will appear under `searchRoot`.
+    :param order: (int) the order of the category in the location (negative for the end)
     :return: (model.Category) the new category object
     """
     c = Category()
@@ -147,6 +148,8 @@ def create_category(path, en=None, he=None, searchRoot=None):
     c.add_shared_term(path[-1])
     c.path = path
     c.lastPath = path[-1]
+    if order:
+        c.order = order
     if searchRoot is not None:
         c.searchRoot = searchRoot
     print("Creating - {}".format(" / ".join(c.path)))
