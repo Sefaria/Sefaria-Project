@@ -245,6 +245,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
 }
+.readerPanel span.mediumGrey {
+  color: var(--medium-grey);
+}
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
