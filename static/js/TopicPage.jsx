@@ -192,6 +192,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
     const [addingTopics, toggleAddingTopics] = useTopicToggle();
     let topicEditorStatus = null;
+
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
             topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
@@ -199,8 +200,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description || {}} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription || {}}
+                         origDesc={topicData?.description} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription}
                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
@@ -320,6 +321,10 @@ const TopicSponsorship = ({topic_slug}) => {
         "parashat-vayigash": {
             "en": "Dedicated by Linda and Leib Koyfman in memory of Dr. Douglas Rosenman, z\"l, beloved father of Hilary Koyfman, and father-in-law of Mo Koyfman.",
             "he": "נתרם על-ידי לינדה ולייב קויפמן לזכר ד\"ר דאגלס רוזנמן ז\"ל, אביה האהוב של הילארי קויפמן וחותנו של מו קויפמן"
+        },
+        "parashat-achrei-mot": {
+            "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
+            "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
         }
     };
     const sponsorship_language = topic_sponsorship_map[topic_slug];
@@ -337,12 +342,13 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const [addingTopics, toggleAddingTopics] = useTopicToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
       return <TopicEditor origEn={en}
                           origHe={he}
-                          origDesc={topicData?.description || {}}
-                          origCategoryDesc={topicData?.categoryDescription || {}}
+                          origDesc={topicData?.description}
+                          origCategoryDesc={topicData?.categoryDescription}
                           origSlug={topicData["slug"]}
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                           origCategorySlug={initCatSlug}
@@ -350,6 +356,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+
   return (
     <div>
         <div className="navTitle tight">

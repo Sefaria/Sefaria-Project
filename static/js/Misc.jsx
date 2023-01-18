@@ -141,22 +141,27 @@ const LoadingRing = () => (
 );
 
 const DonateLink = ({children, classes, source, link}) => {
-  link = link || "default";
-  const linkOptions = {
-    default: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
-    },
-    header: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
-    },
-    sponsor: {
-      en: "https://sefaria.nationbuilder.com/sponsor",
-      he: "https://sefaria.nationbuilder.com/sponsor",
-    }
-  };
-  const url = Sefaria._v(linkOptions[link]);
+  let url = Sefaria._siteSettings?.DONATION_URL;
+  if (!url)
+  {
+    link = link || "default";
+    const linkOptions = {
+      default: {
+        en: "https://sefaria.nationbuilder.com/supportsefaria",
+        he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+      },
+      header: {
+        en: "https://sefaria.nationbuilder.com/supportsefaria_w",
+        he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+      },
+      sponsor: {
+        en: "https://sefaria.nationbuilder.com/sponsor",
+        he: "https://sefaria.nationbuilder.com/sponsor",
+      }
+    };
+    url = Sefaria._v(linkOptions[link]);
+  }
+
   const trackClick = () => {
     Sefaria.track.event("Donations", "Donation Click", source);
   };
@@ -1770,11 +1775,11 @@ class LoginPrompt extends Component {
         </div>
         <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
-          <span className="int-he">התחבר</span>
+          <span className="int-he">התחברות</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
-          <span className="int-he">הרשם</span>
+          <span className="int-he">הרשמה</span>
         </a>
       </div>);
   }
@@ -1844,7 +1849,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 1000,
+        "showDelay": 30000,
       },
       "banner": {
         "trackingName": "Banner Message",
@@ -1858,8 +1863,8 @@ class InterruptingMessage extends Component {
     }
   }
   shouldShow() {
-    const exlcudedPaths = ["/donate", "/mobile", "/app"];
-    return exlcudedPaths.indexOf(window.location.pathname) === -1;
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
   }
   delayedShow() {
     setTimeout(function() {
@@ -2390,14 +2395,13 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
-const AdminToolHeader = function({en, he, validate, close}) {
+const AdminToolHeader = function({title, validate, close}) {
   /*
-  Save and Cancel buttons with a header using the 'en'/'he' text.  Save button calls 'validate' and cancel button calls 'close'.
+  Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
-                <span className="int-en">{en}</span>
-                <span className="int-he">{he}</span>
+                <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">

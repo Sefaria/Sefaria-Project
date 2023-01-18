@@ -297,9 +297,9 @@ CACHES = {
 }
 
 
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-11-27-giving-tuesday",
+    "name": "2023-01-09-modal-survey",
     "style":      "modal",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
@@ -310,9 +310,9 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-"""
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 

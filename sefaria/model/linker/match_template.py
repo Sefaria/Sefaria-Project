@@ -5,6 +5,9 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
+import structlog
+
+logger = structlog.get_logger(__name__)
 
 
 class MatchTemplate(abst.Cloneable):
@@ -27,6 +30,14 @@ class MatchTemplate(abst.Cloneable):
             serial['scope'] = self.scope
         return serial
 
+    def matches_scope(self, other_scope: str) -> bool:
+        """
+        Does `self`s scope match `other_scope`?
+        @param other_scope:
+        @return: True if scope matches
+        """
+        return other_scope == 'any' or self.scope == 'any' or other_scope == self.scope
+
     terms = property(get_terms)
 
 
@@ -36,7 +47,7 @@ class MatchTemplateTrie:
     E.g. if there is match template with term slugs ["term1", "term2"], term1 has title "Term 1", term2 has title "Term 2"
     then an entry in the trie would be {"Term 1": {"Term 2": ...}}
     """
-    def __init__(self, lang, nodes=None, sub_trie=None, scope=None) -> None:
+    def __init__(self, lang: str, nodes: List[schema.TitledTreeNode] = None, sub_trie: dict = None, scope: str = None):
         """
         :param lang:
         :param nodes:
@@ -45,37 +56,54 @@ class MatchTemplateTrie:
         """
         self.lang = lang
         self.scope = scope
-        if nodes is not None:
-            self.__init_with_nodes(nodes)
-        else:
-            self._trie = sub_trie
+        self._trie = self.__init_trie(nodes, sub_trie)
 
-    def __init_with_nodes(self, nodes):
-        self._trie = {}
+    def __init_trie(self, nodes: List[schema.TitledTreeNode], sub_trie: dict):
+        if nodes is None:
+            return sub_trie
+        return self.__init_trie_with_nodes(nodes)
+
+    def __init_trie_with_nodes(self, nodes: List[schema.TitledTreeNode]):
+        trie = {}
         for node in nodes:
-            is_index_level = getattr(node, 'index', False) and node == node.index.nodes
             for match_template in node.get_match_templates():
-                if not is_index_level and self.scope != 'any' and match_template.scope != 'any' and self.scope != match_template.scope: continue
-                curr_dict_queue = [self._trie]
-                for term in match_template.terms:
-                    if term is None:
-                        try:
-                            node_ref = node.ref()
-                        except:
-                            node_ref = node.get_primary_title('en')
-                        print(f"{node_ref} has match_templates that reference slugs that don't exist. Check match_templates and fix.")
-                        continue
-                    len_curr_dict_queue = len(curr_dict_queue)
-                    for _ in range(len_curr_dict_queue):
-                        curr_dict = curr_dict_queue.pop(0)
-                        curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
-                # add nodes to leaves
-                for curr_dict in curr_dict_queue:
-                    leaf_node = NamedReferenceableBookNode(node.index if is_index_level else node)
-                    if LEAF_TRIE_ENTRY in curr_dict:
-                        curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
-                    else:
-                        curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
+                if not node.is_root() and not match_template.matches_scope(self.scope):
+                    continue
+                curr_dict_queue = [trie]
+                self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
+                self.__add_nodes_to_leaves(node, curr_dict_queue)
+        return trie
+
+    @staticmethod
+    def __log_non_existent_term_warning(node: schema.TitledTreeNode):
+        try:
+            node_ref = node.ref()
+        except:
+            node_ref = node.get_primary_title('en')
+        logger.warning(f"{node_ref} has match_templates that reference slugs that don't exist."
+                       f"Check match_templates and fix.")
+
+    def __add_all_term_titles_to_trie(self, term_list: List[schema.NonUniqueTerm], node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+        for term in term_list:
+            if term is None:
+                self.__log_non_existent_term_warning(node)
+                continue
+            self.__add_term_titles_to_trie(term, curr_dict_queue)
+
+    def __add_term_titles_to_trie(self, term, curr_dict_queue: List[dict]):
+        len_curr_dict_queue = len(curr_dict_queue)
+        for _ in range(len_curr_dict_queue):
+            curr_dict = curr_dict_queue.pop(0)
+            curr_dict_queue += self.__get_sub_tries_for_term(term, curr_dict)
+
+    @staticmethod
+    def __add_nodes_to_leaves(node: schema.TitledTreeNode, curr_dict_queue: List[dict]):
+        for curr_dict in curr_dict_queue:
+            leaf_node = NamedReferenceableBookNode(node.index if node.is_root() else node)
+            if LEAF_TRIE_ENTRY in curr_dict:
+                curr_dict[LEAF_TRIE_ENTRY] += [leaf_node]
+            else:
+                curr_dict[LEAF_TRIE_ENTRY] = [leaf_node]
 
     @staticmethod
     def __get_sub_trie_for_new_key(key: str, curr_trie: dict) -> dict:
@@ -190,51 +218,3 @@ class MatchTemplateTrie:
     def __iter__(self):
         for item in self._trie:
             yield item
-
-
-class MatchTemplateGraph:
-    """
-    DAG which represents connections between terms in index titles
-    where each connection is a pair of consecutive terms
-    """
-    def __init__(self, nodes: List[schema.TitledTreeNode]):
-        self._graph = defaultdict(set)
-        for node in nodes:
-            for match_template in node.get_match_templates():
-                if len(match_template.term_slugs) < 2: continue
-                terms = list(match_template.terms)
-                for iterm, term in enumerate(terms[:-1]):
-                    next_term = terms[iterm+1]
-                    if term.ref_part_role == 'structural' and next_term.ref_part_role == 'structural':
-                        self._graph[term.slug].add(next_term.slug)
-
-    def parent_has_child(self, parent: str, child: str) -> bool:
-        """
-        For case where context is Yerushalmi Berakhot 1:1 and ref is Shabbat 1:1. Want to infer that we're referring to
-        Yerushalmi Shabbat
-        """
-        return child in self._graph[parent]
-
-    def do_parents_share_child(self, parent1: str, parent2: str, child: str) -> bool:
-        """
-        For case where context is Yerushalmi Berakhot 1:1 and ref is Bavli 2a. Want to infer that we're referring to
-        Bavli Berakhot 2a b/c Yerushalmi and Bavli share child Berakhot
-        """
-        return self.parent_has_child(parent1, child) and self.parent_has_child(parent2, child)
-
-    def get_parent_for_children(self, context_match_templates: List[MatchTemplate], input_slugs: list) -> Optional[str]:
-        for template in context_match_templates:
-            for context_slug in template.term_slugs:
-                for input_slug in input_slugs:
-                    if self.parent_has_child(context_slug, input_slug):
-                        return context_slug
-
-    def get_shared_child(self, context_match_templates: List[MatchTemplate], input_slugs: List[str]) -> Optional[str]:
-        for template in context_match_templates:
-            for i, context_slug in enumerate(template.term_slugs[:-1]):
-                next_context_slug = template.term_slugs[i+1]
-                for input_slug in input_slugs:
-                    if self.do_parents_share_child(context_slug, input_slug, next_context_slug):
-                        return next_context_slug
-
-

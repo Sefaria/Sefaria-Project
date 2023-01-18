@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 ## New Interfaces for Constitutional Texts
-=======
-## New Interfaces for Jewish Texts
 
 [Sefaria](https://www.sefaria.org) is creating interfaces, apps (like a source sheet builder), and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
 
@@ -316,7 +313,6 @@ We're grateful to the following organizations for providing us with donated serv
 - [Google Apps for Work](https://apps.google.com/)
 - [PyCharm](https://www.jetbrains.com/pycharm/)
 - [Slack](https://slack.com)
->>>>>>> 0191e907cb5146ad9f4fd1147d887a79ed86ee11
 
 [ContextUS](https://www.contextus.org) is an living repository of American constitutional texts.
 The underlying code is derived from [The Sefaria Project](http://www.github.com/Sefaria/Sefaria-Project).

@@ -2,15 +2,15 @@ from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
 from enum import IntEnum, Enum
 from functools import reduce
-from itertools import product
 from tqdm import tqdm
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from .ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, RangedRawRefParts, ContextPart, TermContext
-from .referenceable_book_node import NamedReferenceableBookNode, DiburHamatchilNodeSet, NumberedReferenceableBookNode
-from .match_template import MatchTemplateTrie, MatchTemplateGraph, LEAF_TRIE_ENTRY
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
+from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
+from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
 logger = structlog.get_logger(__name__)
 try:
@@ -19,19 +19,6 @@ try:
     from spacy.language import Language
 except ImportError:
     spacy = Doc = Span = Token = Language = None
-    logger.warning("Failed to load spaCy. spaCy is not part of general requirements in requirements.txt since it is "
-                   "only used for machine learning tasks currently and not required for general server functionality. "
-                   "To install, follow instructions here: https://spacy.io/usage.")
-
-
-def subref(ref: text.Ref, section: int):
-    if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
-        d = ref._core_dict()
-        d['sections'][-1] += (section-1)
-        d['toSections'] = d['sections'][:]
-        return text.Ref(_obj=d)
-    else:
-        return ref.subref(section)
 
 
 class ContextType(Enum):
@@ -64,13 +51,16 @@ class ResolvedRef(abst.Cloneable):
     def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
         self.raw_ref = raw_ref
         self.resolved_parts = resolved_parts
-        self.node = node
+        self.node: ReferenceableBookNode = node
         self.ref = ref
         self.context_ref = context_ref
         self.context_type = context_type
         self.context_parts = context_parts[:] if context_parts else []
         self._thoroughness = _thoroughness
         self._matched_dh_map = _matched_dh_map or {}
+
+    def complies_with_thoroughness_level(self):
+        return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
 
     @property
     def pretty_text(self) -> str:
@@ -120,150 +110,6 @@ class ResolvedRef(abst.Cloneable):
             else:
                 self.resolved_parts += [part]
 
-    def has_prev_unused_numbered_ref_part(self, part: RawRefPart) -> bool:
-        """
-        Helper function to avoid matching AddressInteger sections out of order
-        Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
-        """
-        prev_part = self.raw_ref.prev_num_parts_map.get(part, None)
-        if prev_part is None: return False
-        return prev_part not in set(self.resolved_parts)
-
-    def has_prev_unused_numbered_ref_part_for_node(self, part: RawRefPart, lang: str, node: NamedReferenceableBookNode) -> bool:
-        """
-        For SchemaNodes or ArrayMapNodes that have numeric equivalents (e.g. an alt struct for perek)
-        make sure we are not matching AddressIntegers out of order. See self.has_prev_unused_numbered_ref_part()
-        """
-        if part.type != RefPartType.NUMBERED or \
-                not node.get_numeric_equivalent() or \
-                not self.has_prev_unused_numbered_ref_part(part):
-            return False
-        try:
-            possible_sections, possible_to_sections, addr_classes = schema.AddressInteger(0).get_all_possible_sections_from_string(lang, part.text, strip_prefixes=True)
-            for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-                if sec != node.get_numeric_equivalent(): continue
-                if addr_class == schema.AddressInteger: return True
-        except KeyError:
-            return False
-
-    def _get_refined_matches_for_dh_part(self, lang, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: DiburHamatchilNodeSet):
-        """
-        Finds dibur hamatchil ref which best matches `raw_ref_part`
-        Currently a simplistic algorithm
-        If there is a DH match, return the corresponding ResolvedRef
-        """
-        if self._thoroughness < ResolutionThoroughness.HIGH and self.ref.is_book_level():
-            return []
-        best_matches = node.best_fuzzy_matches(lang, raw_ref_part)
-
-        if len(best_matches):
-            best_dh = max(best_matches, key=lambda x: x.order_key())
-            self._set_matched_dh(raw_ref_part, best_dh.potential_dh_token_idx)
-
-        return [self.clone(resolved_parts=refined_parts.copy(), node=dh_match.dh_node, ref=text.Ref(dh_match.dh_node.ref)) for dh_match in best_matches]
-
-    def _get_refined_refs_for_numbered_part(self, raw_ref_part: RawRefPart, refined_parts: List[RawRefPart], node: NumberedReferenceableBookNode, lang, fromSections: List[RawRefPart]=None) -> List[
-        'ResolvedRef']:
-        if node is None: return []
-        try:
-            possible_sections, possible_to_sections, addr_classes = node.get_all_possible_sections_from_string(lang, raw_ref_part.text, fromSections, strip_prefixes=True)
-        except (IndexError, TypeError, KeyError):
-            return []
-        refined_refs = []
-        addr_classes_used = []
-        for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
-            if self.has_prev_unused_numbered_ref_part(raw_ref_part) and addr_class == schema.AddressInteger:
-                """
-                If raw_ref has NUMBERED parts [a, b]
-                and part b matches before part a
-                and part b gets matched as AddressInteger
-                discard match because AddressInteger parts need to match in order
-                """
-                continue
-            try:
-                refined_ref = subref(self.ref, sec)
-                if toSec != sec:
-                    to_ref = subref(self.ref, toSec)
-                    refined_ref = refined_ref.to(to_ref)
-                refined_refs += [refined_ref]
-                addr_classes_used += [addr_class]
-            except (InputError, IndexError, AssertionError, AttributeError):
-                continue
-        return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref) for refined_ref in refined_refs]
-
-    def _get_refined_refs_for_numbered_context_part(self, sec_context: SectionContext, refined_parts: List[RawRefPart], node: NumberedReferenceableBookNode) -> List[
-        'ResolvedRef']:
-        if node is None or not node.matches_section_context(sec_context):
-            return []
-        try:
-            refined_ref = self.ref.subref(sec_context.address)
-        except (InputError, IndexError, AssertionError, AttributeError):
-            return []
-        return [self.clone(resolved_parts=refined_parts, node=node, ref=refined_ref)]
-
-    def _get_refined_matches_for_ranged_sections(self, sections: List['RawRefPart'], refined_parts: List[RawRefPart],
-                                                 node: NumberedReferenceableBookNode, lang, fromSections: list=None):
-        resolved_raw_refs = [self.clone(resolved_parts=refined_parts, node=node)]
-        incomplete_resolved_raw_refs = []
-        is_first_pass = True
-        for section_part in sections:
-            queue_len = len(resolved_raw_refs)
-            for _ in range(queue_len):
-                temp_resolved_raw_ref = resolved_raw_refs.pop(0)
-                if not is_first_pass:
-                    temp_children = temp_resolved_raw_ref.node.get_children(temp_resolved_raw_ref.ref)
-                    temp_resolved_raw_ref.node = None if len(temp_children) == 0 else temp_children[0]
-                is_first_pass = False
-                next_resolved_raw_refs = temp_resolved_raw_ref._get_refined_refs_for_numbered_part(section_part, refined_parts, temp_resolved_raw_ref.node, lang, fromSections)
-                resolved_raw_refs += next_resolved_raw_refs
-                if len(next_resolved_raw_refs) == 0 and False:
-                    # disabling incomplete ranged ref matches to avoid false positives
-                    incomplete_resolved_raw_refs += [temp_resolved_raw_ref]
-        return resolved_raw_refs, incomplete_resolved_raw_refs
-
-    def _get_refined_matches_for_ranged_part(self, raw_ref_part: RangedRawRefParts, refined_parts: List[RawRefPart],
-                                             node: NumberedReferenceableBookNode, lang) -> List['ResolvedRef']:
-        section_resolved_raw_refs, incomplete_section_refs = self._get_refined_matches_for_ranged_sections(raw_ref_part.sections, refined_parts, node, lang)
-        toSection_resolved_raw_refs, _ = self._get_refined_matches_for_ranged_sections(raw_ref_part.toSections, refined_parts, node, lang, fromSections=[x.ref.sections for x in section_resolved_raw_refs])
-        ranged_resolved_raw_refs = []
-        for section, toSection in product(section_resolved_raw_refs, toSection_resolved_raw_refs):
-            try:
-                ranged_resolved_raw_refs += [self.clone(resolved_parts=refined_parts, node=section.node, ref=section.ref.to(toSection.ref))]
-            except InputError:
-                continue
-        if len(section_resolved_raw_refs) == 0:
-            # TODO do we only want to include incomplete refs when they are no complete ones? probably.
-            ranged_resolved_raw_refs += incomplete_section_refs
-        return ranged_resolved_raw_refs
-
-    def get_refined_matches(self, part: RawRefPart, node, lang: str) -> List['ResolvedRef']:
-        refined_ref_parts = self.resolved_parts + [part]
-        matches = []
-        if node.is_default():
-            # default node automatically matches but doesnt append any new ref part to match
-            matches += [self.clone(resolved_parts=self.resolved_parts, node=node, ref=node.ref())]
-        # see NumberedTitledTreeNode.get_referenceable_child() for why we check if parent is None
-        elif part.type == RefPartType.NUMBERED and isinstance(node, NumberedReferenceableBookNode):
-            if isinstance(part, SectionContext):
-                matches += self._get_refined_refs_for_numbered_context_part(part, refined_ref_parts, node)
-            else:
-                matches += self._get_refined_refs_for_numbered_part(part, refined_ref_parts, node, lang)
-        elif part.type == RefPartType.RANGE and isinstance(node, NumberedReferenceableBookNode):
-            matches += self._get_refined_matches_for_ranged_part(part, refined_ref_parts, node, lang)
-        elif isinstance(node, NamedReferenceableBookNode) and (part.type in {RefPartType.NAMED, RefPartType.NUMBERED}):
-            if node.ref_part_title_trie(lang).has_continuations(part.key(), key_is_id=part.key_is_id) and not self.has_prev_unused_numbered_ref_part_for_node(part, lang, node):
-                matches += [self.clone(resolved_parts=refined_ref_parts, node=node, ref=node.ref())]
-        elif part.type == RefPartType.DH:
-            if isinstance(node, NumberedReferenceableBookNode):
-                # jagged array node can be skipped entirely if it has a dh child
-                # technically doesn't work if there is a referenceable child in between ja and dh node
-                node_children = node.get_children(self.ref)
-                node = None if len(node_children) == 0 else node_children[0]
-            if isinstance(node, DiburHamatchilNodeSet):
-                matches += self._get_refined_matches_for_dh_part(lang, part, refined_ref_parts, node)
-        # TODO sham and directional cases
-        return matches
-
     def get_resolved_parts(self, include: Iterable[type] = None, exclude: Iterable[type] = None) -> List[RawRefPart]:
         """
         Returns list of resolved_parts according to criteria `include` and `exclude`
@@ -298,7 +144,6 @@ class ResolvedRef(abst.Cloneable):
         """
         For sorting
         """
-        matches_context_book = bool(self.context_ref) and self.ref.index.title == self.context_ref.index.title
         explicit_matched = self.get_resolved_parts(exclude={ContextPart})
         num_context_parts_matched = 0
         # theory is more context is helpful specifically for DH matches because if DH still matches with more context,
@@ -306,7 +151,7 @@ class ResolvedRef(abst.Cloneable):
         # and doesn't give more confidence that it's correct
         if next(iter(part for part in explicit_matched if part.type == RefPartType.DH), False):
             num_context_parts_matched = self.num_resolved(include={ContextPart})
-        return len(explicit_matched), int(matches_context_book), num_context_parts_matched
+        return len(explicit_matched), num_context_parts_matched
 
 
 class AmbiguousResolvedRef:
@@ -397,14 +242,13 @@ class IbidHistory:
 class RefResolver:
 
     def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
-                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie], ref_part_title_graph: MatchTemplateGraph,
+                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie],
                  term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
         from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
 
         self._raw_ref_model_by_lang = raw_ref_model_by_lang
         self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
         self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
-        self._ref_part_title_graph = ref_part_title_graph
         self._term_matcher_by_lang = term_matcher_by_lang
         self._ibid_history = IbidHistory()
         self._thoroughness = ResolutionThoroughness.NORMAL
@@ -581,7 +425,7 @@ class RefResolver:
                 if ipart == len(raw_ref.raw_ref_parts) - 1: curr_part_end = ipart + 1  # include curr part
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
-                    [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
+                    curr_parts = [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
                     split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
@@ -634,18 +478,15 @@ class RefResolver:
             return []
 
     def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
-        'ResolvedRef']:
+            'ResolvedRef']:
         context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
-        context_full_matches = []
         contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
-        # NOTE: removing graph context for now since I can't think of a case when it's helpful
-        # for context_ref, context_type in contexts:
-        #     context_full_matches += self._get_unrefined_ref_part_matches_for_graph_context(lang, context_ref, context_type, raw_ref)
-        matches = context_full_matches + context_free_matches
+        matches = context_free_matches
         if len(matches) == 0:
-            # TODO current assumption is only need to add context title if no matches. but it's possible this is necessary even if there were matches
+            context_full_matches = []
             for context_ref, context_type in contexts:
-                matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+                context_full_matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+            matches = context_full_matches + context_free_matches
         return matches
 
     def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
@@ -661,26 +502,6 @@ class RefResolver:
             match.context_type = context_type
             match.context_parts += term_contexts
             matches += [match]
-        return matches
-
-    def _get_unrefined_ref_part_matches_for_graph_context(self, lang: str, context_ref: Optional[text.Ref], context_type: ContextType, raw_ref: RawRef) -> List[ResolvedRef]:
-        matches = []
-        if context_ref is None:
-            return matches
-        context_match_templates = list(context_ref.index.nodes.get_match_templates())
-        raw_ref_term_slugs = [term.slug for term in self.get_term_matcher(lang).match_terms(raw_ref.raw_ref_parts)]
-        context_parent = self._ref_part_title_graph.get_parent_for_children(context_match_templates, raw_ref_term_slugs)
-        # I dont think this is necessary anymore since this case is covered by title context
-        # context_child = self._ref_part_title_graph.get_shared_child(context_match_templates, raw_ref_term_slugs)
-        for context_slug in (context_parent,):
-            if context_slug is None: continue
-            term_context = TermContext(schema.NonUniqueTerm.init(context_slug))
-            temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match + [term_context])
-            matches += list(filter(lambda x: x.num_resolved(exclude={TermContext}) and x.num_resolved(include={TermContext}), temp_matches))
-            for match in matches:
-                match.context_ref = context_ref
-                match.context_type = context_type
-                match.context_parts += [term_context]
         return matches
 
     def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
@@ -852,7 +673,8 @@ class RefResolver:
         children = match.get_node_children()
         for part in ref_parts:
             for child in children:
-                temp_matches = match.get_refined_matches(part, child, lang)
+                resolved_ref_refiner = resolved_ref_refiner_factory.create(part, child, match)
+                temp_matches = resolved_ref_refiner.refine(lang)
                 for temp_match in temp_matches:
                     temp_ref_parts = list(set(ref_parts) - set(temp_match.resolved_parts))
                     fully_refined += RefResolver._get_refined_ref_part_matches_recursive(lang, temp_match, temp_ref_parts)

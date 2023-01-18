@@ -102,8 +102,6 @@ spec:
           - containerPort: 80
             protocol: TCP
         resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
-        # turn off health checks for content sandboxes
-        {{ if ne .Values.contentSandbox "true" }}
         # set failure thresholds
         startupProbe:
           httpGet:
@@ -126,7 +124,6 @@ spec:
           # initialDelaySeconds: 120
           periodSeconds: 60
           timeoutSeconds: 60
-        {{ end }}
         volumeMounts:
         # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
         - mountPath: /app/sefaria/local_settings.py
@@ -166,7 +163,7 @@ spec:
                 path: local_settings.py
         - name: elastic-cert
           secret:
-            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} 
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
             optional: true
         - name: client-secret
           secret:

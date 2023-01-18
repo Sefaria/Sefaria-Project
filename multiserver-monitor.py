@@ -13,6 +13,7 @@ if __name__ == '__main__':
     if not MULTISERVER_ENABLED:
         logger.error(u"MULTISERVER_ENABLED is not set.  Exiting")
         exit()
+
     sched = run_background_scheduler()
     sched.print_jobs()
 

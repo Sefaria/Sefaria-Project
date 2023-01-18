@@ -1,4 +1,4 @@
-# NB: This assumes an already-functioning mongo instance. 
+# NB: This assumes an already-functioning mongo instance.
 # Parameters:
 # MONGO_DUMP_PATH: URI of database dump
 # MONGO_HOST: Mongo hostname
