@@ -6,7 +6,7 @@ import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
-import {AdminEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
+import {TopicEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
   SheetBlock,
   TextPassage,
@@ -204,7 +204,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he,
                          origDesc: topicData?.description, origCategoryDesc: topicData?.categoryDescription
                         };
-            topicEditorStatus = <AdminEditor origData={origData} toolType="topic" onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+            topicEditorStatus = <TopicEditor origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
     }
@@ -349,7 +349,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
       const origData = {origSlug: topicData.slug, origEn: en, origHe: he,
                  origDesc: topicData?.description, origCategorySlug: initCatSlug,
                  origCategoryDesc: topicData?.categoryDescription};
-      return <AdminEditor origData={origData}
+      return <TopicEditor origData={origData}
                           toolType="topic"
 
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}

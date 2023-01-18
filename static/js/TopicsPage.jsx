@@ -4,7 +4,7 @@ import {
     ResponsiveNBox, AdminToolHeader,
     CategoryChooser
 } from './Misc';
-import {AdminEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
+import {TopicEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -61,7 +61,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   if (Sefaria.is_moderator && addingTopics) {
       const origData = {origEn: ""};
-      topicStatus = <AdminEditor close={toggleAddingTopics} toolType="topic" origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      topicStatus = <TopicEditor close={toggleAddingTopics} toolType="topic" origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
   }
   else if (Sefaria.is_moderator) {
       topicStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;

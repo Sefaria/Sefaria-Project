@@ -56,9 +56,9 @@ const Strings = {
     "All Visualizations": "תרשימים גרפיים נוספים",
     "Daily Study": "לימוד יומי",
 
-    // Topics
-    "English Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים אנגלית",
-    "Hebrew Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים עברית",
+    // Topics and Category Admin tools
+    "English Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים אנגלית",
+    "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
     "Choose a Category": "בחר קטגוריה",
     "Main Menu": "תפריט ראשי",
     "Saving topic information.": "מעדכן נתוני נושא",

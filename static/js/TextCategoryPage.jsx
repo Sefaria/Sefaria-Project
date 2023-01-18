@@ -5,7 +5,7 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import {useEditToggle, AdminEditorButton, AdminEditor} from "./AdminEditor";
+import {useEditToggle, AdminEditorButton, CategoryEditor} from "./AdminEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -21,6 +21,7 @@ import {
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
+  const [addCategory, toggleAddCategory] = useEditToggle();
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -47,16 +48,8 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       heCatTitle = Sefaria.hebrewTerm(category);
     }
   }
-  let editStatus = null;
-  if (Sefaria.is_moderator && editCategory) {
-      const origData = {origEn: ""};
-      editStatus = <AdminEditor origData={origData} close={toggleEditCategory} toolType="category" onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
-  }
-  else if (Sefaria.is_moderator) {
-      editStatus = <AdminEditorButton text="Create a Category" toggleAddingTopics={toggleEditCategory}/>;
-  }
-  const tocObject = Sefaria.tocObjectByCategories(cats);
 
+  const tocObject = Sefaria.tocObjectByCategories(cats);
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel   = category === "Commentary" ? 1 : 0;
   const aboutModule = [
@@ -64,6 +57,28 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   ];
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
+
+  let editStatus = null;
+  if (Sefaria.is_moderator) {
+
+  }
+  if (editCategory) {
+      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, path: categories.slice(0, -1)};
+      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+  }
+  else if (addCategory) {
+      const origData = {origEn: ""};
+      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} toolType="category" onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+  }
+  else {
+      editStatus = <div>
+                    <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
+                    <AdminEditorButton text="Edit Category" toggleAddingTopics={toggleEditCategory}/>
+                    </div>;
+  }
+
 
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   

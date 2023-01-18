@@ -22,50 +22,44 @@ function useEditToggle() {
   return [editingBool, toggleAddingTopics];
 }
 
-
-const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
-    const [savingStatus, setSavingStatus] = useState(false);
+const TopicEditor = ({origData, onCreateSuccess, close}) => {
     const [origCategoryDescBool, setOrigCategoryDescBool] = useState(Object.keys(origData.origCategoryDesc || {}).length > 0);
-    const [isTopicCategory, setIsTopicCategory] = useState(origCategoryDescBool && toolType === "topic");  // applicable when adding/editing Topic with children
-    const [path, setPath] = useState(origData.categories || []); // only applicable when editing/adding Categories
-    const isNew = origData?.origEn === "";
+    const [isTopicCategory, setIsTopicCategory] = useState(origCategoryDescBool);  // applicable when adding/editing Topic with children
     const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
-                                    heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
-                                    enDescription: origData?.origDesc?.en,
-                                    enCategoryDescription: origData?.origCategoryDesc?.en,
-                                    heCategoryDescription: origData?.origCategoryDesc?.he});
-    let catMenu = null;
+                                heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
+                                enDescription: origData?.origDesc?.en,
+                                enCategoryDescription: origData?.origCategoryDesc?.en,
+                                heCategoryDescription: origData?.origCategoryDesc?.he,
+                                });
+    const [isNew, setIsNew] = useState(origData?.origEn === "");
+
+
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
-      //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      //logic is: if it starts out with origCategoryDesc, isTopicCategory should always be true, otherwise, it should depend solely on 'Main Menu'
       const newIsTopicCategory = origCategoryDescBool || e.target.value === Sefaria._("Main Menu");
       setIsTopicCategory(newIsTopicCategory);
       setData(data);
     }
-    if (toolType === "topic") {
-        let slugsToTitles = Sefaria.slugsToTitles();
-        let specialCases = {
-            "": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
-            "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
-        };
-        slugsToTitles = Object.assign(specialCases, slugsToTitles);
-        catMenu = <div className="section">
-                        <label><InterfaceText>Category</InterfaceText></label>
-                        <div id="categoryChooserMenu">
-                            <select key="topicCats" id="topicCats" onChange={handleCatChange}>
-                                {Object.keys(slugsToTitles).map(function (tempSlug, i) {
-                                    const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
-                                    return <option key={i} value={tempSlug} selected={data.catSlug === tempSlug}>{tempTitle}</option>;
-                                })}
-                            </select>
-                        </div>
-                </div>;
-    } else if (toolType === "category") {
-        catMenu = <div className="section">
-                    <label><InterfaceText>Category</InterfaceText></label>
-                    <CategoryChooser categories={path} update={setPath}/>
-                </div>;
-    }
+
+    let slugsToTitles = Sefaria.slugsToTitles();
+    let specialCases = {
+        "": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
+    };
+    slugsToTitles = Object.assign(specialCases, slugsToTitles);
+    const [catMenu, setCatMenu] =    <div className="section">
+                                            <label><InterfaceText>Category</InterfaceText></label>
+                                            <div id="categoryChooserMenu">
+                                                <select key="topicCats" id="topicCats" onChange={handleCatChange}>
+                                                    {Object.keys(slugsToTitles).map(function (tempSlug, i) {
+                                                        const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
+                                                        return <option key={i} value={tempSlug} selected={data.catSlug === tempSlug}>{tempTitle}</option>;
+                                                    })}
+                                                </select>
+                                            </div>
+                                    </div>;
+
 
     const validate = function () {
         if (data.catSlug === "") {
@@ -78,21 +72,21 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
         }
         save();
     }
-    const save = function () {
-        toggleInProgress();
+    const save = function (toggle) {
+        toggle();
         let url = "";
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
         if (postData.isTopicCategory) {
             postData = {...postData, "catDescription": {"en": data.enCatDescription, "he": data.heCategoryDescription}};
         }
-        postData.category = toolType === "topic" ? data.catSlug : path;  // use `path` when this editing/adding a Category
+        postData.category = data.catSlug;
 
         if (isNew) {
-          url = toolType === "topic" ? "/api/topic/new" : `/api/category/${path}`;
+          url = "/api/topic/new";
         }
         else {
-          url = toolType === "topic" ? `/api/topics/${data.origSlug}` : `/api/category/${path}`;
+          url = `/api/topics/${data.origSlug}`;
           postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
                     origTitle: data.origEn, origHeTitle: data.origHe, origSlug: data.origSlug};
           if (isTopicCategory) {
@@ -103,7 +97,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
         const postJSON = JSON.stringify(postData);
         $.post(url,  {"json": postJSON}, function(result) {
           if (result.error) {
-            toggleInProgress();
+            toggle();
             alert(result.error);
           } else {
             const newSlug = result.slug;
@@ -113,10 +107,8 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
             alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
           });
     }
-    const toggleInProgress = function() {
-      setSavingStatus(savingStatus => !savingStatus);
-    }
-    const deleteTopic = function() {
+
+    const deleteObj = function() {
       $.ajax({
         url: "/api/topic/delete/"+origSlug,
         type: "DELETE",
@@ -133,6 +125,118 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
       });
     }
 
+    return <AdminEditor close={close} validate={validate} deleteObj={deleteObj} catMenu={catMenu} isNew={isNew}
+            shortDescBool={isTopicCategory}/>;
+}
+
+const CategoryEditor = ({origData, onCreateSuccess, close}) => {
+    const [path, setPath] = useState(origData.path || []);
+    const [origPath, setOrigPath] = useState([...origData.path, origData?.origEn])
+    const [data, setData] = useState({...origData, enTitle: origData?.origEn,
+                                heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
+                                enDescription: origData?.origDesc?.en,
+                                enCategoryDescription: origData?.origCategoryDesc?.en,
+                                heCategoryDescription: origData?.origCategoryDesc?.he, path: origData.path || []});
+    const [isNew, setIsNew] = useState(origData?.origEn === "");
+
+    const [catMenu, setCatMenu] = useState(<div className="section">
+                                            <label><InterfaceText>Category</InterfaceText></label>
+                                            <CategoryChooser categories={path} update={setPath}/>
+                                        </div>);
+    const validate = function () {
+        if (!!Sefaria.terms[data.enTitle]) {
+            // Category title has corresponding title
+            const term = Sefaria.getTerm(data.enTitle);
+        }
+
+        if (data.enTitle.length === 0) {
+          alert(Sefaria._("Title must be provided."));
+          return false;
+        }
+        save();
+    }
+    const save = function (toggle) {
+        toggle();
+        // create new term and then category
+        const termName = data.enTitle;
+        const termTitles = [{'lang': 'en', 'text': termName, 'primary': true}, {
+            'lang': 'he',
+            'text': data.heTitle,
+            'primary': true
+        }];
+        const postTermJSON = JSON.stringify({"name": termName, "titles": termTitles})
+        $.post(`api/terms/${data.enTitle}`, {"json": postTermJSON}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                const newSlug = result.slug;
+                onCreateSuccess(newSlug);
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
+        });
+
+
+        let url = "";
+        let fullPath = [...path, data.enTitle];
+        let postData = {
+            ...data, "enDesc": data.enDescription, "heDesc": data.heDescription, "enShortDesc": data.enCatDescription,
+            "heShortDesc": data.heCategoryDescription, "lastPath": data.enTitle, path: fullPath
+        };
+
+        if (isNew) {
+            url = `/api/category/${fullPath}`;
+        } else {
+            url = `/api/category/${fullPath}?update=1`;
+            postData = {
+                ...postData, origEnDesc: data.origEnDesc, origHeDesc: data.origHeDesc,
+                origLastPath: data.origEn, origHeLastPath: data.origHe, origPath
+            };
+            postData.origCatDescription = data.origCategoryDesc;
+        }
+
+        const postCategoryJSON = JSON.stringify(postData);
+        $.post(url, {"json": postCategoryJSON}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                const newSlug = result.slug;
+                onCreateSuccess(newSlug);
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown);
+        });
+    }
+
+
+    const deleteObj = function() {
+      $.ajax({
+        url: "/api/category/delete/"+origSlug,
+        type: "DELETE",
+        success: function(result) {
+          if ("error" in result) {
+            alert(result.error);
+          } else {
+            alert(Sefaria._("Topic Deleted."));
+            window.location = "/topics";
+          }
+        }
+      }).fail(function() {
+        alert(Sefaria._("Something went wrong. Sorry!"));
+      });
+    }
+
+    return <AdminEditor close={close} catMenu={catMenu} data={data} update={setData} isNew={isNew} shortDescBool={true}/>;
+}
+
+const AdminEditor = ({data, close, catMenu, update, validate, deleteObj, isNew=true, shortDescBool=false}) => {
+    const [savingStatus, setSavingStatus] = useState(false);
+
+    const toggleInProgress = function() {
+      setSavingStatus(savingStatus => !savingStatus);
+    }
 
     const setValues = function(e) {
         if (e.target.id === "topicTitle") {
@@ -153,7 +257,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
         else if (e.target.id === "topicHeCatDesc") {
             data.heCategoryDescription = e.target.value;
         }
-        setData(data);
+        update(data);
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -162,7 +266,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                         <div className="collectionsWidget">{Sefaria._("Saving topic information.")}
                         <br/><br/>{Sefaria._("Processing title changes may take some time.")})</div> : null}
                     <div id="newIndex">
-                        <AdminToolHeader title="Topic Editor" close={close} validate={validate}/>
+                        <AdminToolHeader title="Topic Editor" close={close} validate={() => validate(toggleInProgress)}/>
                         <div className="section">
                             <label><InterfaceText>English Title</InterfaceText></label>
                             <input id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
@@ -184,8 +288,8 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                                 <textarea id="topicHeDesc" onBlur={setValues}
                                        defaultValue={data.heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
-                       {isTopicCategory ?  <div> <div className="section">
-                                                     <label><InterfaceText>English Short Description for Topic Table of Contents</InterfaceText></label>
+                       {shortDescBool ?  <div> <div className="section">
+                                                     <label><InterfaceText>English Short Description for Table of Contents</InterfaceText></label>
                                                      <textarea
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
@@ -193,7 +297,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                                                          placeholder={Sefaria._("Add a short description.")}/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
-                                                    <label><InterfaceText>Hebrew Short Description for Topic Table of Contents</InterfaceText></label>
+                                                    <label><InterfaceText>Hebrew Short Description for Table of Contents</InterfaceText></label>
                                                     <textarea
                                                         id="topicHeCatDesc"
                                                         onBlur={setValues}
@@ -202,7 +306,7 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
                                             </div> : null}
                                       </div> :
                        null}
-                      {!isNew ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                      {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
                     </div>
@@ -211,4 +315,4 @@ const AdminEditor = ({origData, toolType, onCreateSuccess, close}) => {
      </div>
 }
 
-export {AdminEditor, AdminEditorButton, useEditToggle};
+export {CategoryEditor, TopicEditor, AdminEditorButton, useEditToggle};

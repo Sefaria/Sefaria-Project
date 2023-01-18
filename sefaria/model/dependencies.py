@@ -114,7 +114,7 @@ subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug"
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "delete")
-subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
+# subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")  # shouldn't be necessary since same func is triggered on attributeChange
 
 # Manuscripts
 subscribe(manuscript.process_slug_change_in_manuscript,  manuscript.Manuscript, "attributeChange", "slug")

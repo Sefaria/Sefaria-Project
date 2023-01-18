@@ -16,6 +16,8 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     history_noun = "category"
 
     track_pkeys = True
+    criteria_field = 'lastPath'
+    criteria_override_field = 'oldLastPath'  # used when primary attribute changes. field that holds old value.
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
@@ -42,6 +44,17 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _set_derived_attributes(self):
         self._load_title_group()
+
+    def load_from_dict(self, d, is_init=False):
+        if not self.is_new():
+            if d.get("oldLastPath", "") != d.get("lastPath", ""):
+                self.change_key_name(d.get("lastPath"))
+
+        for prop in ["enDesc", "heDesc", "enShortDesc", "heShortDesc"]:
+            if d.get(prop, "") != d.get(f"orig{prop}", ""):
+                setattr(self, prop, d.get(prop))
+
+        super(Category, self).load_from_dict(d, is_init)
 
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.
