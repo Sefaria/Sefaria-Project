@@ -657,7 +657,7 @@ class RefResolver:
             context_to_consider = sec_contexts + term_contexts
             temp_matches = RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + context_to_consider)
 
-            # remove matches which dont use context
+            # remove matches which don't use context
             temp_matches = list(filter(lambda x: len(set(x.get_resolved_parts(include={ContextPart})) & set(context_to_consider)) > 0, temp_matches))
             for match in temp_matches:
                 match.context_ref = context_ref
