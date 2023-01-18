@@ -350,8 +350,6 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
                  origDesc: topicData?.description, origCategorySlug: initCatSlug,
                  origCategoryDesc: topicData?.categoryDescription};
       return <TopicEditor origData={origData}
-                          toolType="topic"
-
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                           close={toggleAddingTopics}/>;
   }

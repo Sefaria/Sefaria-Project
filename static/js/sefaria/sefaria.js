@@ -408,13 +408,6 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
-  getTerm: function(name) {
-     // Sefaria.terms doesn't include non-primary titles, so this function is useful when these titles are needed
-     return this._ApiPromise(Sefaria.apiHost + `api/terms/${name}`)
-        .then(d => {
-            return Promise.resolve(d);
-        });
-  },
   getText: function(ref, settings) {
     // returns a promise
     settings = this._complete_text_settings(settings);

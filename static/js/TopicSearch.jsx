@@ -109,7 +109,7 @@ class TopicSearch extends Component {
   render() {
         if (this.state.showAdminEditor) {
             const topicData = {origEn: this.state.value};
-            return <TopicEditor origData={topicData} toolType="topic" close={this.reset} onCreateSuccess={this.post}/>;
+            return <TopicEditor origData={topicData} close={this.reset} onCreateSuccess={this.post}/>;
         }
         else {
             return (<Autocompleter selectedCallback={this.validate}

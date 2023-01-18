@@ -2523,18 +2523,6 @@ def terms_api(request, name):
             return jsonResponse(term.contents(), callback=request.GET.get("callback", None))
 
     if request.method in ("POST", "DELETE"):
-        # term_json = request.POST.get("json")
-        # term_obj = schema.Term().load({"name": term_json["name"]})
-        # he_primary = [t['text'] for t in term_json["titles"] if t['lang'] == 'he' and t['primary']][0]
-        # term_obj_via_he_primary = schema.Term().load_by_title(he_primary)
-        # if term_obj_via_he_primary is None or term_obj == term_obj_via_he_primary:
-        #     # if we couldn't find a corresponding term by loading a title with he_primary, it's safe to add the title to the existing term
-        #     # and if the two terms are identical, it's also safe to add the title
-        #     term_obj.add_title(he_primary, 'he', False, False)
-        # else:
-        #     # in this case, we found a term_obj_via_he_primary but it's not identical to term, so it's unclear what user's goal is
-        #     raise InputError("{} and {} must be titles of the same term".format(term_json["name"], he_primary))
-
         def _internal_do_post(request, uid):
             t = Term().load({'name': name}) or Term().load_by_title(name)
             if request.method == "POST":

@@ -65,12 +65,12 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   if (editCategory) {
       const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
       const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, path: categories.slice(0, -1)};
-      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc};
+      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
   }
   else if (addCategory) {
       const origData = {origEn: ""};
-      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} toolType="category" onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={categories} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
   }
   else {
       editStatus = <div>

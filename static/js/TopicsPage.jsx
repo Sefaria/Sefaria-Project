@@ -61,7 +61,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   if (Sefaria.is_moderator && addingTopics) {
       const origData = {origEn: ""};
-      topicStatus = <TopicEditor close={toggleAddingTopics} toolType="topic" origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      topicStatus = <TopicEditor close={toggleAddingTopics} origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
   }
   else if (Sefaria.is_moderator) {
       topicStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
