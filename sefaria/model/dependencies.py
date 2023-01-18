@@ -70,6 +70,11 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
+# Topic
+subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
+subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+
+
 # Terms
 # TODO cascade change to Term.name.
 # TODO Current locations where we know terms are used [Index, Categories]
