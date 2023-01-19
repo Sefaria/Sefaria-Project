@@ -17,7 +17,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     track_pkeys = True
     criteria_field = 'lastPath'
-    criteria_override_field = 'oldLastPath'  # used when primary attribute changes. field that holds old value.
+    criteria_override_field = 'origLastPath'  # used when primary attribute changes. field that holds old value.
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
@@ -50,11 +50,15 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
             if d.get("oldLastPath", "") != d.get("lastPath", ""):
                 self.change_key_name(d.get("lastPath"))
 
-        for prop in ["enDesc", "heDesc", "enShortDesc", "heShortDesc"]:
-            if d.get(prop, "") != d.get(f"orig{prop}", ""):
-                setattr(self, prop, d.get(prop))
+        for prop in ["heDesc", "enDesc", "enShortDesc", "heShortDesc"]:
+            # in an update, if dict values don't differ from the obj value
+            # and both values are empty, they don't need to be in DB
+            if prop in d and d.get(prop, "") == getattr(self, prop, None) == "":
+                d.pop(prop)
 
         super(Category, self).load_from_dict(d, is_init)
+        return self
+
 
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.

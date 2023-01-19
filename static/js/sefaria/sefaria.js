@@ -2223,6 +2223,18 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
+  getTerm: function(name) {
+    //data.js only populates Sefaria.terms with primary titles; this adds a field 'titles' with the others
+    const processor = function(data) {
+        let primaryTitles = data.titles.filter((t) => t.primary);
+        let otherTitles = data.titles.filter((t) => !t.primary);
+        otherTitles = otherTitles.map(t => ({[t.lang]: t.text}));
+        primaryTitles = primaryTitles.map(t => ({[t.lang]: t.text}));
+        data = {"en": primaryTitles.en, "he": primaryTitles.he, "titles": otherTitles};
+        return data;
+    }
+    this._cachedApiPromise({url: Sefaria.apiHost + `api/terms/${name}`, key: name, store: Sefaria.terms, processor})
+  },
   getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
     const cat = Sefaria.topicTocCategory(slug);
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.

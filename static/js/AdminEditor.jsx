@@ -32,6 +32,10 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
                                 heCategoryDescription: origData?.origCategoryDesc?.he,
                                 });
     const [isNew, setIsNew] = useState(origData?.origEn === "");
+    const [savingStatus, setSavingStatus] = useState(false);
+    const toggle = function() {
+      setSavingStatus(savingStatus => !savingStatus);
+    }
 
 
     const handleCatChange = function(e) {
@@ -72,7 +76,7 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
         }
         save();
     }
-    const save = function (toggle) {
+    const save = function () {
         toggle();
         let url = "";
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
@@ -125,99 +129,131 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
       });
     }
 
-    return <AdminEditor title={"Topic Editor"} close={close} validate={validate} deleteObj={deleteObj} catMenu={catMenu} isNew={isNew}
-            shortDescBool={isTopicCategory}/>;
+    return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+                        validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew} shortDescBool={isTopicCategory}/>;
 }
 
-const CategoryEditor = ({origData={}, onCreateSuccess, close, origPath=[]}) => {
+const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
-    const [data, setData] = useState({...origData, enTitle: origData?.origEn,
-                                heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
+    const [data, setData] = useState({enTitle: origData?.origEn,
+                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he,
                                 enDescription: origData?.origDesc?.en,
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he});
     const [isNew, setIsNew] = useState(origData?.origEn === "");
+    const [changed, setChanged] = useState(false);
+    const [savingStatus, setSavingStatus] = useState(false);
 
+    const updateData = function(newData) {
+        setChanged(true);
+        setData(newData);
+    }
+    const toggle = function() {
+      setSavingStatus(savingStatus => !savingStatus);
+    }
     const [catMenu, setCatMenu] = useState(<div className="section">
                                             <label><InterfaceText>Category</InterfaceText></label>
                                             <CategoryChooser categories={path} update={setPath}/>
                                         </div>);
-    const validate = async function (toggle) {
-        if (!!Sefaria.terms[data.enTitle]) {
-            // Category title has corresponding title
-            try {
-                await Sefaria._cachedApiPromise({url: Sefaria.apiHost + `api/terms/${data.enTitle}`, key: name, store: Sefaria.terms});
-            } catch(e) {
-                console.log(e);
+    const validate = async function () {
+        if (!changed) {
+            alert("First, change one of the fields before saving.");
+            return false;
+        }
+
+        if (data.heTitle !== origData.origHe && !!Sefaria.terms[data.enTitle] && data.heTitle.length > 0) { // Category title has corresponding term and there is a hebrew title to check
+            await Sefaria.getTerm(data.enTitle);
+            console.log("getTerm is OK");
+
+            //check if data.heTitle is one of the term's primary or secondary titles
+            if (Sefaria.terms[data.enTitle].he === data.heTitle || Sefaria.terms[data.enTitle]?.otherTitles.he.filter(x => data.heTitle === x)) {
+                alert(Sefaria._(`English and Hebrew titles of category, ${data.enTitle} and ${data.heTitle} do not correspond to a term.  Please use the term editor.`));
+                return false;
             }
-            console.log(Sefaria.terms[data.enTitle]);
         }
 
         if (data.enTitle.length === 0) {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        save(toggle);
+        await save();
     }
-    const save = function (toggle) {
-        toggle();
-        let error = false;
-        // create new term and then category
-        const termName = data.enTitle;
-        const termTitles = [{'lang': 'en', 'text': termName, 'primary': true}, {
-            'lang': 'he',
-            'text': data.heTitle,
-            'primary': true
-        }];
-        const postTermJSON = JSON.stringify({"name": termName, "titles": termTitles})
-        $.post(`/api/terms/${data.enTitle}`, {"json": postTermJSON}, function (result) {
-            if (result.error) {
-                toggle();
-                alert(result.error);
-                error = true;
-            }
-        }).fail(function (xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-            error = true;
-        });
 
-        if (!error) {
-            let fullPath = [...path, data.enTitle];
-            let postCategoryData = {
-                "sharedTitle": termName,
-                "enDesc": data.enDescription,
-                "heDesc": data.heDescription,
-                "enShortDesc": data.enCatDescription,
-                "heShortDesc": data.heCategoryDescription,
-                "lastPath": data.enTitle,
-                "path": fullPath
-            };
-
-            let url = "";
-            if (isNew) {
-                url = `/api/category/${fullPath.join("/")}`;
-            }
-            else {
-                url += `/api/category/${[...origPath, data.origEn].join("/")}?update=1`;
-                postCategoryData = {
-                    ...postCategoryData, origEnDesc: data.origEnDesc, origHeDesc: data.origHeDesc,
-                    origLastPath: data.origEn, origHeLastPath: data.origHe, origPath
-                };
-                postCategoryData.origCatDescription = data.origCategoryDesc;
-            }
-
-            $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
+    const postTerm = async function (name) {
+        const termTitles = [{'lang': 'en', 'text': name, 'primary': true}, {
+                'lang': 'he',
+                'text': data.heTitle,
+                'primary': true
+            }];
+        const postTermJSON = JSON.stringify({"name": name, "titles": termTitles});
+        let success = false;
+        await new Promise((resolve, reject) => {
+            $.post(`/api/terms/${name}`, {"json": postTermJSON}, function (result) {
                 if (result.error) {
                     toggle();
                     alert(result.error);
-                } else {
-                    const newSlug = result.slug;
-                    onCreateSuccess(newSlug);
+                }
+                else {
+                    success = true;
+                    resolve();
                 }
             }).fail(function (xhr, status, errorThrown) {
                 alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
             });
+            })
+        console.log(success);
+        return success;
+    }
+
+    const redirect = function (newPath) {
+        window.location.href = "/texts/"+newPath;
+    }
+
+    const save = async function () {
+        toggle();
+        const termName = data.enTitle;
+        if (!Sefaria.terms[termName]) {
+            //term doesn't exist so post it, but if postTerm, there was an error so exit function
+            const success = await postTerm(termName);
+            console.log("postTerm");
+            console.log(success);
+            if (!success) {
+                redirect("");
+            }
         }
+
+        let fullPath = [...path, data.enTitle];
+        let postCategoryData = {
+            "sharedTitle": termName,
+            "enDesc": data.enDescription,
+            "heDesc": data.heDescription,
+            "enShortDesc": data.enCatDescription,
+            "heShortDesc": data.heCategoryDescription,
+            "lastPath": data.enTitle,
+            "path": fullPath
+        };
+
+        let url = "";
+        if (isNew) {
+            url = `/api/category/${fullPath.join("/")}`;
+        } else {
+            url += `/api/category/${[...origPath, data.origEn].join("/")}?update=1`;
+            postCategoryData = {...postCategoryData, origEnDesc: data.origEnDesc, origHeDesc: data.origHeDesc,
+                origLastPath: data.origEn, origPath, origEnShortDesc: origData?.origCategoryDesc?.en,
+                origHeShortDesc: origData?.origCategoryDesc?.he
+            };
+        }
+
+        $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                redirect(result.path);
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
     }
 
 
@@ -238,16 +274,13 @@ const CategoryEditor = ({origData={}, onCreateSuccess, close, origPath=[]}) => {
       });
     }
 
-    return <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data}
-                        validate={validate} deleteObj={deleteObj} update={setData} isNew={isNew} shortDescBool={true}/>;
+    return <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true}/>;
 }
 
-const AdminEditor = ({title, data, close, catMenu, update, validate, deleteObj, isNew=true, shortDescBool=false}) => {
-    const [savingStatus, setSavingStatus] = useState(false);
+const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
+                         validate, deleteObj, isNew=true, shortDescBool=false}) => {
 
-    const toggleInProgress = function() {
-      setSavingStatus(savingStatus => !savingStatus);
-    }
 
     const setValues = function(e) {
         if (e.target.id === "topicTitle") {
@@ -268,7 +301,7 @@ const AdminEditor = ({title, data, close, catMenu, update, validate, deleteObj, 
         else if (e.target.id === "topicHeCatDesc") {
             data.heCategoryDescription = e.target.value;
         }
-        update(data);
+        updateData(data);
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -277,7 +310,7 @@ const AdminEditor = ({title, data, close, catMenu, update, validate, deleteObj, 
                         <div className="collectionsWidget">{Sefaria._("Saving topic information.")}
                         <br/><br/>{Sefaria._("Processing title changes may take some time.")})</div> : null}
                     <div id="newIndex">
-                        <AdminToolHeader title={title} close={close} validate={() => validate(toggleInProgress)}/>
+                        <AdminToolHeader title={title} close={close} validate={() => validate()}/>
                         <div className="section">
                             <label><InterfaceText>English Title</InterfaceText></label>
                             <input id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>

@@ -66,11 +66,11 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
       const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
       const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
       const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc};
-      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)}/>;
   }
   else if (addCategory) {
       const origData = {origEn: ""};
-      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={categories} onCreateSuccess={(slug) => window.location.href = "/texts/"}/>;
+      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={categories}/>;
   }
   else {
       editStatus = <div>
