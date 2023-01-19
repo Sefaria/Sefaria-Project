@@ -342,8 +342,11 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     if (title === "Pesach Haggadah") {
         return ["Pesach Haggadah Ashkenaz", "הגדה של פסח אשכנז"]
     }
+
+    // Don't remove category strings at the beginning of these titles
     const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
-        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah'];
+        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah',
+        "Baal HaSulam's Preface to Zohar", "Baal HaSulam's Introduction to Zohar"];
     if (whiteList.indexOf(title) > -1 || categories.slice(-1)[0] === "Siddur") {
         return [title, heTitle];
     }

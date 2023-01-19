@@ -234,7 +234,8 @@ def merge_text(a, b):
 
 def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
-    Walks ever segment contained in title, calls func on the text and saves the result.
+    Walks ever segment contained in title, calls rewrite_function on the text and saves the result.
+    rewrite_function should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
     """
     from sefaria.tracker import modify_text
 
