@@ -12,7 +12,8 @@ from sefaria.helper.category import move_index_into, create_category
 UID = 28
 SOURCE_SLUG = "ashlag-glossary"
 TEXTS = [
-    'Peticha LeChokhmat HaKabbalah',
+    # 'Peticha LeChokhmat HaKabbalah',
+    "Petichah LeChokhmat HaKabbalah",
     'Introduction to Sulam Commentary',
     "Baal HaSulam's Preface to Zohar"
 ]
@@ -113,13 +114,18 @@ def build_all_topics():
     category_topic.properties = {"source": SOURCE_SLUG}
     category_topic.save()
 
+    # save original descriptions, because the <<>> gets mangled by bleach
+    orig_descs = {}
+
     # import from sheet
     for d in load_raw_from_sheet():
         t = build_topic_from_record(d)
+        orig_desc = t.description["en"]
         t.save()
+        orig_descs[t.slug] = orig_desc
         create_intra_topic_link(t.slug, category_topic.slug, "is-a", SOURCE_SLUG)
 
-    interlink_topics()
+    interlink_topics(orig_descs)
 
 
 def get_slug_from_record(d):
@@ -194,7 +200,7 @@ def build_topic_from_record(d):
 # Create an intratopic link for each pair
 
 
-def interlink_topics():
+def interlink_topics(orig_descs):
     '''
 
     :return:
@@ -226,7 +232,7 @@ def interlink_topics():
             else:
                 return PHRASE_REG.sub(do_sub, m.group(1))
 
-        desc = getattr(topix, "description", {}).get("en")
+        desc = orig_descs.get(topix.slug)  #getattr(topix, "description", {}).get("en")
         if not desc:
             continue
 
@@ -334,6 +340,7 @@ def create_topic_links_for_text(text_name, mapping):
 
         for ref in Ref(text_name).all_segment_refs():
             tc = ref.text("en", v.versionTitle)
+            old = tc.text
 
             # Find and record all matching terms
             for referral in FULL_REG.findall(tc.text):
@@ -351,7 +358,8 @@ def create_topic_links_for_text(text_name, mapping):
 
             # Remove the << >>
             tc.text = FULL_REG.sub(r"\1", tc.text)
-            tc.save()
+            if tc.text != old:
+                tc.save()
 
         for ref in matches.all_refs():
             oref = Ref(ref)
