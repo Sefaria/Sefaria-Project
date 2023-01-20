@@ -1923,7 +1923,6 @@ class ReaderApp extends Component {
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
       html = container.outerHTML;
-      // console.log(html)
       textOnly = this.htmlToText(html);
       selectedEls = container;
     }
