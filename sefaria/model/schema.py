@@ -34,10 +34,14 @@ class TitleGroup(object):
     A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
     langs = ["en", "he"]
+
+    # Attributes required in each title
     required_attrs = [
         "lang",
         "text"
     ]
+
+    # Attributes optional in each title
     optional_attrs = [
         "primary",
         "presentation",

@@ -152,6 +152,8 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
         c.order = order
     if searchRoot is not None:
         c.searchRoot = searchRoot
+    if order is not None:
+        c.order = order
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
     return c

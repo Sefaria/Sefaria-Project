@@ -1288,6 +1288,7 @@ class AbstractTextRecord(object):
     def has_manually_wrapped_refs(self):
         return True
 
+
 class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     A version of a text.
@@ -2475,8 +2476,10 @@ class TextFamily(object):
                                 break
 
             self._alts = alts_ja.array()
-
-        self._index_offsets_by_depth = self._inode.trim_index_offsets_by_sections(oref.sections, oref.toSections)
+        if self._inode.is_virtual:
+            self._index_offsets_by_depth = None
+        else:
+            self._index_offsets_by_depth = self._inode.trim_index_offsets_by_sections(oref.sections, oref.toSections)
 
     def contents(self):
         """

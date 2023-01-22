@@ -3116,6 +3116,7 @@ def topics_api(request, topic, v2=False):
     API to get data or edit data for an existing topic
     """
     if request.method == "GET":
+        with_html = bool(int(request.GET.get("with_html", False)))
         with_links = bool(int(request.GET.get("with_links", False)))
         annotate_links = bool(int(request.GET.get("annotate_links", False)))
         group_related = bool(int(request.GET.get("group_related", False)))
@@ -3123,7 +3124,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
+        response = get_topic(v2, topic, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
