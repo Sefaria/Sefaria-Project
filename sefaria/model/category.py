@@ -178,7 +178,7 @@ def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
         if isinstance(child, TocCategory):
             c = child.get_category_object()
             if isinstance(kwargs["new"], list):
-                c.path = kwargs["new"]
+                c.path[:pos+1] = kwargs['new']
             elif isinstance(kwargs["new"], str):
                 c.path[pos] = kwargs["new"]
             c.save(override_dependencies=True)
@@ -187,7 +187,7 @@ def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
             if isinstance(kwargs["new"], list):
-                i.categories = kwargs["new"]
+                i.categories[:pos+1] = kwargs["new"]
             elif isinstance(kwargs["new"], str):
                 i.categories[pos] = kwargs["new"]
             i.save(override_dependencies=True)
