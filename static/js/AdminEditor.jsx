@@ -144,6 +144,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
 
+
     const updateData = function(newData) {
         setChanged(true);
         setData(newData);
@@ -151,10 +152,22 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
+
+    const updateCatMenu = function(newPath) {
+        setChanged(true);
+        setPath(newPath);
+        setCatMenu(<div className="section">
+                            <label><InterfaceText>Category</InterfaceText></label>
+                            <CategoryChooser categories={newPath} update={updateCatMenu}/>
+                    </div>);
+    }
+
     const [catMenu, setCatMenu] = useState(<div className="section">
-                                            <label><InterfaceText>Category</InterfaceText></label>
-                                            <CategoryChooser categories={path} update={setPath}/>
+                                                <label><InterfaceText>Category</InterfaceText></label>
+                                                <CategoryChooser categories={path} update={updateCatMenu}/>
                                         </div>);
+
+
     const validate = async function () {
         if (!changed) {
             alert("First, change one of the fields before saving.");
@@ -163,7 +176,6 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
         if (data.heTitle !== origData.origHe && !!Sefaria.terms[data.enTitle] && data.heTitle.length > 0) { // Category title has corresponding term and there is a hebrew title to check
             await Sefaria.getTerm(data.enTitle);
-            console.log("getTerm is OK");
 
             //check if data.heTitle is one of the term's primary or secondary titles
             if (Sefaria.terms[data.enTitle].he === data.heTitle || Sefaria.terms[data.enTitle]?.otherTitles.he.filter(x => data.heTitle === x)) {
@@ -189,7 +201,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         let success = false;
         await new Promise((resolve, reject) => {
             $.post(`/api/terms/${name}`, {"json": postTermJSON}, function (result) {
-                if (result.error) {
+                if (result.error)  {
                     toggle();
                     alert(result.error);
                 }
@@ -201,7 +213,6 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
             });
             })
-        console.log(success);
         return success;
     }
 
@@ -215,8 +226,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (!Sefaria.terms[termName]) {
             //term doesn't exist so post it, but if postTerm, there was an error so exit function
             const success = await postTerm(termName);
-            console.log("postTerm");
-            console.log(success);
+
             if (!success) {
                 redirect("");
             }
@@ -239,7 +249,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         } else {
             url += `/api/category/${[...origPath, data.origEn].join("/")}?update=1`;
             postCategoryData = {...postCategoryData, origEnDesc: data.origEnDesc, origHeDesc: data.origHeDesc,
-                origLastPath: data.origEn, origPath, origEnShortDesc: origData?.origCategoryDesc?.en,
+                origLastPath: origData.origEn, origPath, origEnShortDesc: origData?.origCategoryDesc?.en,
                 origHeShortDesc: origData?.origCategoryDesc?.he
             };
         }
@@ -320,7 +330,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
                                 <input id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
-                        {catMenu}
+                        {isNew ? null : catMenu}
                         <div className="section">
                             <label><InterfaceText>English Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}

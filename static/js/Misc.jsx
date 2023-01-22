@@ -2449,9 +2449,9 @@ const CategoryChooser = function({categories, update}) {
     let options = [];
     let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
     for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
+      if (!subcats[j].hasOwnProperty("primary_category")) {  //Indices have primary_category field, Categories don't
         if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
+          options.push(<option key={j} value={subcats[j].category} selected>{subcats[j].category}</option>);
         }
         else
         {

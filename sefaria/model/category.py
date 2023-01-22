@@ -18,7 +18,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     track_pkeys = True
     criteria_field = 'lastPath'
     criteria_override_field = 'origLastPath'  # used when primary attribute changes. field that holds old value.
-    pkeys = ["lastPath"]  # Needed for dependency tracking
+    pkeys = ["lastPath", "path"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
         "enDesc",
@@ -47,7 +47,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def load_from_dict(self, d, is_init=False):
         if not self.is_new():
-            if d.get("oldLastPath", "") != d.get("lastPath", ""):
+            if d.get("origLastPath", "") != d.get("lastPath", ""):
                 self.change_key_name(d.get("lastPath"))
 
         for prop in ["heDesc", "enDesc", "enShortDesc", "heShortDesc"]:
@@ -158,23 +158,38 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
+def process_category_path_change_in_categories_and_indexes(changed_cat, **kwargs):
+    from sefaria.model.text import library
+    old_toc_node = library.get_toc_tree().lookup(kwargs["old"])
+    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
+
+
 def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
     from sefaria.model.text import library
-
     old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
+    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
+
+
+def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
     children = old_toc_node.all_children()
     for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
-            c.path[pos] = kwargs["new"]
+            if isinstance(kwargs["new"], list):
+                c.path = kwargs["new"]
+            elif isinstance(kwargs["new"], str):
+                c.path[pos] = kwargs["new"]
             c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
-            i.categories[pos] = kwargs["new"]
+            if isinstance(kwargs["new"], list):
+                i.categories = kwargs["new"]
+            elif isinstance(kwargs["new"], str):
+                i.categories[pos] = kwargs["new"]
             i.save(override_dependencies=True)
 
 
