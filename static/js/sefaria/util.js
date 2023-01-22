@@ -5,19 +5,18 @@ import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
 import Sefaria  from './sefaria';
 import {HDate, months} from '@hebcal/core';
-import FeatureTrack from "./track_ga4";
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    
+
     /**
      * Method to scroll into view port, if it's outside the viewport
      * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
      * @param {Object} target - DOM Element
      * @returns {undefined}
      * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-     * 
+     *
      */
     static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
         // Target is outside the viewport from the bottom
@@ -122,7 +121,6 @@ class Util {
                     console.log(data.error);
                 } else {
                     console.log("Subscribed! Welcome to our list.");
-                    FeatureTrack.clicked(`subscribeToNbList`,`${lists}`)
                 }
             }).error(data => console.log("Sorry, there was an error."));
         } else {

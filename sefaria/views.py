@@ -631,6 +631,7 @@ def rebuild_auto_completer(request):
     library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
+    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
@@ -941,35 +942,36 @@ def profile_spam_dashboard(request):
         })
 
 
+def purge_spammer_account_data(spammer_id, delete_from_nationbuilder=True):
+    from django.contrib.auth.models import User
+    # Delete from Nationbuilder
+    profile = db.profiles.find_one({"id": spammer_id})
+    if delete_from_nationbuilder and "nationbuilder_id" in profile:
+        delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
+    sheets = db.sheets.find({"owner": spammer_id})
+    for sheet in sheets:
+        sheet["spam_sheet_quarantine"] = datetime.now()
+        sheet["datePublished"] = None
+        sheet["status"] = "unlisted"
+        sheet["displayedCollection"] = None
+        db.sheets.save(sheet)
+    # Delete Notes
+    db.notes.delete_many({"owner": spammer_id})
+    # Delete Notifcations
+    db.notifications.delete_many({"uid": spammer_id})
+    # Delete Following Relationships
+    db.following.delete_many({"follower": spammer_id})
+    db.following.delete_many({"followee": spammer_id})
+    # Delete Profile
+    db.profiles.delete_one({"id": spammer_id})
+    # Set account inactive
+    spammer_account = User.objects.get(id=spammer_id)
+    spammer_account.is_active = False
+    spammer_account.save()
 
 
 @staff_member_required
 def spam_dashboard(request):
-    from django.contrib.auth.models import User
-
-
-    def purge_spammer_account_data(spammer_id):
-        # Delete from Nationbuilder
-        profile = db.profiles.find_one({"id": spammer_id})
-        if "nationbuilder_id" in profile:
-            delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
-        # Delete Sheets
-        db.sheets.delete_many({"owner": spammer_id})
-        # Delete Notes
-        db.notes.delete_many({"owner": spammer_id})
-        # Delete Notifcations
-        db.notifications.delete_many({"uid": spammer_id})
-        # Delete Following Relationships
-        db.following.delete_many({"follower": spammer_id})
-        db.following.delete_many({"followee": spammer_id})
-        # Delete Profile
-        db.profiles.delete_one({"id": spammer_id})
-        # Set account inactive
-        spammer_account = User.objects.get(id=spammer_id)
-        spammer_account.is_active = False
-        spammer_account.save()
-
-
     if request.method == 'POST':
         req_type = request.POST.get("type")
 

@@ -273,7 +273,7 @@ class DiburHamatchilAdder:
 
         index = Index().load({"title": index.title})  # reload index to make sure perek nodes are correct
         perek_refs = []
-        for perek_node in index.get_alt_struct_nodes():
+        for perek_node in index.get_alt_struct_leaves():
             perek_ref = Ref(perek_node.wholeRef)
             perek_refs += [perek_ref]
 
@@ -376,7 +376,7 @@ class LinkerIndexConverter:
                 for name, root in alt_struct_dict.items():
                     self.index.set_alt_structure(name, root)
         self._traverse_nodes(self.index.nodes, self.node_visitor, is_alt_node=False)
-        alt_nodes = self.index.get_alt_struct_nodes()
+        alt_nodes = self.index.get_alt_struct_leaves()
         for inode, node in enumerate(alt_nodes):
             self.node_visitor(node, 1, inode, len(alt_nodes), True)
         self._update_lengths()  # update lengths for good measure

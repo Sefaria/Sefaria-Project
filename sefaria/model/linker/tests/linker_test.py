@@ -1,5 +1,6 @@
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, span_inds
-from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory, DiburHamatchilNodeSet, NumberedReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
+from sefaria.model.linker.ref_resolver import ResolvedRef, ResolutionThoroughness, RefResolver, IbidHistory
 from .linker_test_utils import *
 from sefaria.model import schema
 from sefaria.settings import ENABLE_LINKER

@@ -247,6 +247,17 @@ def recommend_topics(refs: list) -> list:
 
     return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
 
+def ref_topic_link_prep(link):
+    link['anchorRef'] = link['ref']
+    link['anchorRefExpanded'] = link['expandedRefs']
+    del link['ref']
+    del link['expandedRefs']
+    if link.get('dataSource', None):
+        data_source_slug = link['dataSource']
+        data_source = library.get_topic_data_source(data_source_slug)
+        link['dataSource'] = data_source.displayName
+        link['dataSource']['slug'] = data_source_slug
+    return link
 
 def get_topics_for_ref(tref, annotate=False):
     serialized = [l.contents() for l in Ref(tref).topiclinkset()]
@@ -257,16 +268,8 @@ def get_topics_for_ref(tref, annotate=False):
             link_topic_dict = {}
         serialized = list(filter(None, (annotate_topic_link(link, link_topic_dict) for link in serialized)))
     for link in serialized:
-        link['anchorRef'] = link['ref']
-        link['anchorRefExpanded'] = link['expandedRefs']
-        del link['ref']
-        del link['expandedRefs']
-        if link.get('dataSource', None):
-            data_source_slug = link['dataSource']
-            data_source = library.get_topic_data_source(data_source_slug)
-            link['dataSource'] = data_source.displayName
-            link['dataSource']['slug'] = data_source_slug
-    
+        ref_topic_link_prep(link)
+
     serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
     return serialized
 
@@ -898,3 +901,24 @@ def set_all_slugs_to_primary_title():
     # no-op if slug already corresponds to primary title
     for t in TopicSet():
         t.set_slug_to_primary_title()
+
+def get_path_for_topic_slug(slug):
+    path = []
+    while slug in library.get_topic_toc_category_mapping().keys():
+        if library.get_topic_toc_category_mapping()[slug] == slug:
+            break  # this case occurs when we are at a top level node which has a child with the same name
+        path.append(slug)
+        slug = library.get_topic_toc_category_mapping()[slug]  # get parent's slug
+    path.append(slug)
+    return path
+
+def get_node_in_library_topic_toc(path):
+    curr_level_in_library_topic_toc = {"children": library.get_topic_toc(), "slug": ""}
+    while len(path) > 0:
+        curr_node_slug = path.pop()
+        for x in curr_level_in_library_topic_toc.get("children", []):
+            if x["slug"] == curr_node_slug:
+                curr_level_in_library_topic_toc = x
+                break
+
+    return curr_level_in_library_topic_toc
