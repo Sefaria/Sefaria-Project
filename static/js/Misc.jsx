@@ -2423,7 +2423,7 @@ const CategoryChooser = function({categories, update}) {
       let el = categoryMenu.current.children[i].children[0];
       let elValue = el.options[el.selectedIndex].value;
       let possCategories = newCategories.concat([elValue]);
-      if (Sefaria.tocItemsByCategories(possCategories).length === 0) {
+      if (!Sefaria.tocObjectByCategories(possCategories)) {
         // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
