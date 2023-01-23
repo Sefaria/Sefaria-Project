@@ -71,7 +71,7 @@ const InterfaceText = ({text, html, children, context}) => {
     elemclasses += fallbackCls;
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
-    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
+    if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       textResponse = Sefaria._(children, context);
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
@@ -2421,12 +2421,13 @@ const CategoryChooser = function({categories, update}) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+      let elValue = el.options[el.selectedIndex].value;
+      let possCategories = newCategories.concat([elValue]);
+      if (Sefaria.tocItemsByCategories(possCategories).length === 0) {
+        // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
-      newCategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(elValue);
     }
     update(newCategories); //tell parent of new values
   }

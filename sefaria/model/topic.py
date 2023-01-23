@@ -1,12 +1,12 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet
+from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
-import structlog
+import structlog, bleach
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -42,6 +42,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
     ]
+    # The below is to support HTML markup in the description
+    ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
+    ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -74,6 +77,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
             self.subclass = "author"
 
+    def _sanitize(self):
+        super()._sanitize()
+        for attr in ['description', 'categoryDescription']:
+            p = getattr(self, attr, {})
+            for k, v in p.items():
+                p[k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+            setattr(self, attr, p)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -109,7 +119,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def change_description(self, desc, cat_desc):
+    def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
 
@@ -310,6 +320,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if not kwargs.get("with_html"):
+            for k, v in d.get("description", {}).items():
+                d["description"][k] = re.sub("<[^>]+>", "", v or "")
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
