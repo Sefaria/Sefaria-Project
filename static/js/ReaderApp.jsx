@@ -1833,28 +1833,6 @@ class ReaderApp extends Component {
       }
   }
 
-  htmlToText(html){
-    //remove code brakes and tabs
-    html = html.replace(/\n/g, "");
-    html = html.replace(/\t/g, "");
-
-    //keep html brakes and tabs
-    html = html.replace(/<\/td>/g, "\t");
-    html = html.replace(/<\/table>/g, "\n");
-    html = html.replace(/<\/tr>/g, "\n");
-    html = html.replace(/<\/p>/g, "\n");
-    html = html.replace(/<\/div>/g, "\n");
-    html = html.replace(/<br>/g, "\n");
-    html = html.replace(/<br( )*\/>/g, "\n");
-
-
-    //parse html into text
-    const dom = (new DOMParser()).parseFromString('<!doctype html><body>' + html, 'text/html');
-    //remove duplicate line breaks
-    const text = dom.body.textContent.replace(/\n\s*\n/g, "\n");
-
-    return text
-  }
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
@@ -1888,7 +1866,7 @@ class ReaderApp extends Component {
         let elsToRemove = container.querySelectorAll("br");
         elsToRemove.forEach(el => el.remove())
 
-
+        // each of these are divs which by default creates line breaks for various html/txt renderers on paste. We want to collapse them.
         const classesToCollapse = ["segment", "rangeSpan", "segmentText", "contentSpan"];
         classesToCollapse.map(cls => {
           let elsToCollapse = container.getElementsByClassName(cls);
@@ -1898,7 +1876,7 @@ class ReaderApp extends Component {
         });
       }
 
-      // Elements to Remove
+      // These interfere with the copying and pasting of text and users do not want them there. This code removes them.
       const classesToRemove = ["segmentNumber", "linkCount", "clearFix", "footnote-marker"];
       classesToRemove.map(cls => {
         let elsToRemove = container.getElementsByClassName(cls);
@@ -1923,7 +1901,7 @@ class ReaderApp extends Component {
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
       html = container.outerHTML;
-      textOnly = this.htmlToText(html);
+      textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
     }
 
