@@ -164,21 +164,24 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     }
 
     const [isPrimaryObj, setIsPrimaryObj] = useState(() => primaryObj());
+    let catMenu = null;
 
+    const populateCatMenu = (newPath, update) => (
+        <div className="section">
+            <label><InterfaceText>Category</InterfaceText></label>
+            <CategoryChooser categories={newPath} update={update}/>
+        </div>
+    )
 
     const updateCatMenu = function(newPath) {
         if (newPath !== path) {
-            setChanged(changed);
+            setChanged(true);
         }
         setPath(newPath);
-        setCatMenu(<div className="section">
-                        <label><InterfaceText>Category</InterfaceText></label>
-                        <CategoryChooser categories={newPath} update={updateCatMenu}/>
-                    </div>);
+        catMenu = populateCatMenu(newPath);
     }
 
-    const [catMenu, setCatMenu] = useState((path) => updateCatMenu(path));
-
+    catMenu = populateCatMenu(path, updateCatMenu);
 
     const updateData = function(newData) {
         setChanged(true);
@@ -307,11 +310,11 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     }
 
     return <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} extras={[isPrimaryObj]}/>;
+                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} extras={[isPrimaryObj]} path={path}/>;
 }
 
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
-                         validate, deleteObj, isNew=true, shortDescBool=false, extras=[]}) => {
+                         validate, deleteObj, isNew=true, shortDescBool=false, extras=[], path=[]}) => {
 
     const setValues = function(e) {
         if (e.target.id === "topicTitle") {
@@ -383,7 +386,15 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                       <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
                       {extras.length > 0 ? extras : null}
+                        {path.length === 0 ? null :
+                            <div id="categoryChooserMenu">
+                              <select>
+                                  {Sefaria.tocItemsByCategories(path).map((child, i) => {
+                                    <option key={`child-${i}`} id={`child-${i}`} value={child}>{child}</option>
+                                  })}
 
+                              </select>
+                            </div>}
 
                     </div>
                 </div>
