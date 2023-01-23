@@ -165,6 +165,21 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const [isPrimaryObj, setIsPrimaryObj] = useState(() => primaryObj());
 
+
+    const updateCatMenu = function(newPath) {
+        if (newPath !== path) {
+            setChanged(changed);
+        }
+        setPath(newPath);
+        setCatMenu(<div className="section">
+                        <label><InterfaceText>Category</InterfaceText></label>
+                        <CategoryChooser categories={newPath} update={updateCatMenu}/>
+                    </div>);
+    }
+
+    const [catMenu, setCatMenu] = useState((path) => updateCatMenu(path));
+
+
     const updateData = function(newData) {
         setChanged(true);
         setData(newData);
@@ -173,21 +188,6 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
-
-    const updateCatMenu = function(newPath) {
-        setChanged(true);
-        setPath(newPath);
-        setCatMenu(<div className="section">
-                            <label><InterfaceText>Category</InterfaceText></label>
-                            <CategoryChooser categories={newPath} update={updateCatMenu}/>
-                    </div>);
-    }
-
-    const [catMenu, setCatMenu] = useState(<div className="section">
-                                                <label><InterfaceText>Category</InterfaceText></label>
-                                                <CategoryChooser categories={path} update={updateCatMenu}/>
-                                        </div>);
-
 
     const validate = async function () {
         if (!changed) {
@@ -383,6 +383,8 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                       <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
                       {extras.length > 0 ? extras : null}
+
+
                     </div>
                 </div>
             </div>
