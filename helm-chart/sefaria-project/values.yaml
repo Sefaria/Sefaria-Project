@@ -178,6 +178,24 @@ nodejs:
       memory: "200Mi"
       cpu: "400m"
 
+# A pre-populated stand-alone mongo container that can be used for testing in
+# development
+standaloneMongo:
+  # When true, the standalone mongo-in-a-can will be deployed
+  enabled: false
+  containerImage:
+    # Full path of the image registry inclusive of the image name
+    imageRegistry: gcr.io/development-deployment/sefaria-mongo
+    # Commit id of the repo for which the image build has been triggered.
+    tag: latest
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "200Mi"
+      cpu: "400m"
+
 varnish:
   containerImage:
     # Full path of the image registry inclusive of the image name

@@ -5,10 +5,14 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
+data:
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
+  {{- if eq .Values.standaloneMongo.enabled true }}
+  MONGO_HOST: "mongo-standalone-{{ .Values.deployEnv }}"
+  {{- else }}
   MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
+  {{- end }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
   SEARCH_ADMIN: {{ .Values.localSettings.SEARCH_ADMIN | quote }}
   TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
