@@ -2416,7 +2416,8 @@ def category_api(request, path=None):
 
     if request.method == "POST":
         def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, Category, cat, **kwargs).contents()
+            func = tracker.update if request.GET.get("update", False) else tracker.add
+            return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2443,10 +2444,11 @@ def category_api(request, path=None):
         j = json.loads(j)
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if Category().load({"path": j["path"]}):
-            return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
-        if not Category().load({"path": j["path"][:-1]}):
-            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
+        if not request.GET.get("update", False):
+            if Category().load({"path": j["path"]}):
+                return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
+            if not Category().load({"path": j["path"][:-1]}):
+                return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":

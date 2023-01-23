@@ -16,7 +16,9 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     history_noun = "category"
 
     track_pkeys = True
-    pkeys = ["lastPath"]  # Needed for dependency tracking
+    criteria_field = 'lastPath'
+    criteria_override_field = 'origLastPath'  # used when primary attribute changes. field that holds old value.
+    pkeys = ["path", "lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
         "enDesc",
@@ -42,6 +44,21 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _set_derived_attributes(self):
         self._load_title_group()
+
+    def load_from_dict(self, d, is_init=False):
+        if not self.is_new():
+            if d.get("origLastPath", "") != d.get("lastPath", ""):
+                self.change_key_name(d.get("lastPath"))
+
+        for prop in ["heDesc", "enDesc", "enShortDesc", "heShortDesc"]:
+            # in an update, if dict values don't differ from the obj value
+            # and both values are empty, they don't need to be in DB
+            if prop in d and d.get(prop, "") == getattr(self, prop, None) == "":
+                d.pop(prop)
+
+        super(Category, self).load_from_dict(d, is_init)
+        return self
+
 
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.
@@ -141,23 +158,38 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
+def process_category_path_change_in_categories_and_indexes(changed_cat, **kwargs):
+    from sefaria.model.text import library
+    old_toc_node = library.get_toc_tree().lookup(kwargs["old"])
+    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
+
+
 def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
     from sefaria.model.text import library
-
     old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
+    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
+
+
+def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
     children = old_toc_node.all_children()
     for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
-            c.path[pos] = kwargs["new"]
+            if isinstance(kwargs["new"], list):
+                c.path[:pos+1] = kwargs['new']
+            elif isinstance(kwargs["new"], str):
+                c.path[pos] = kwargs["new"]
             c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
-            i.categories[pos] = kwargs["new"]
+            if isinstance(kwargs["new"], list):
+                i.categories[:pos+1] = kwargs["new"]
+            elif isinstance(kwargs["new"], str):
+                i.categories[pos] = kwargs["new"]
             i.save(override_dependencies=True)
 
 

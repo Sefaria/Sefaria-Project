@@ -4,7 +4,7 @@ import {
     ResponsiveNBox, AdminToolHeader,
     CategoryChooser
 } from './Misc';
-import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
+import {TopicEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -16,7 +16,7 @@ import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  const [addingTopics, toggleAddingTopics] = useTopicToggle();
+  const [addingTopics, toggleAddingTopics] = useEditToggle();
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
     return (
@@ -60,10 +60,11 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   let topicStatus = null;
 
   if (Sefaria.is_moderator && addingTopics) {
-      topicStatus = <TopicEditor close={toggleAddingTopics} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      const origData = {origEn: ""};
+      topicStatus = <TopicEditor close={toggleAddingTopics} origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
   }
   else if (Sefaria.is_moderator) {
-      topicStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
+      topicStatus = <AdminEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
   }
 
   return (

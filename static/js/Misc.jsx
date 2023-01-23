@@ -2421,12 +2421,13 @@ const CategoryChooser = function({categories, update}) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+      let elValue = el.options[el.selectedIndex].value;
+      let possCategories = newCategories.concat([elValue]);
+      if (Sefaria.tocItemsByCategories(possCategories).length === 0) {
+        // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
-      newCategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(elValue);
     }
     update(newCategories); //tell parent of new values
   }
@@ -2449,9 +2450,9 @@ const CategoryChooser = function({categories, update}) {
     let options = [];
     let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
     for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
+      if (!subcats[j].hasOwnProperty("primary_category")) {  //Indices have primary_category field, Categories don't
         if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
+          options.push(<option key={j} value={subcats[j].category} selected>{subcats[j].category}</option>);
         }
         else
         {

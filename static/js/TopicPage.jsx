@@ -6,7 +6,7 @@ import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
-import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
+import {TopicEditor, AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
   SheetBlock,
   TextPassage,
@@ -170,7 +170,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 const TopicToCategorySlug = function(topic, category=null) {
-    //helper function for TopicEditor
+    //helper function for AdminEditor
     if (!category) {
         category = Sefaria.topicTocCategory(topic.slug);
     }
@@ -191,19 +191,20 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-    const [addingTopics, toggleAddingTopics] = useTopicToggle();
+    const [addingTopics, toggleAddingTopics] = useEditToggle();
     let topicEditorStatus = null;
 
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
-            topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
+            topicEditorStatus = <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
         }
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
-            topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription}
-                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+            const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he,
+                         origDesc: topicData?.description, origCategoryDesc: topicData?.categoryDescription
+                        };
+            topicEditorStatus = <TopicEditor origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
     }
@@ -340,23 +341,20 @@ const TopicSponsorship = ({topic_slug}) => {
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const [addingTopics, toggleAddingTopics] = useTopicToggle();
+  const [addingTopics, toggleAddingTopics] = useEditToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor origEn={en}
-                          origHe={he}
-                          origDesc={topicData?.description}
-                          origCategoryDesc={topicData?.categoryDescription}
-                          origSlug={topicData["slug"]}
+      const origData = {origSlug: topicData.slug, origEn: en, origHe: he,
+                 origDesc: topicData?.description, origCategorySlug: initCatSlug,
+                 origCategoryDesc: topicData?.categoryDescription};
+      return <TopicEditor origData={origData}
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                          origCategorySlug={initCatSlug}
                           close={toggleAddingTopics}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
-                            <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+                            <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
 
   return (
     <div>
