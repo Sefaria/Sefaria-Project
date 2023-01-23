@@ -67,8 +67,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache, mode=max
+          cache-from: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+          cache-to: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
@@ -116,8 +116,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache, mode=max
+          cache-from: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+          cache-to: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           build-args: |
