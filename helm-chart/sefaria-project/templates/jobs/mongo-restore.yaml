@@ -6,6 +6,7 @@
 # ENVIRONMENT: Deployment environment {prod, preprod, stage}
 ---
 {{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
+{{- if eq .Values.standaloneMongo.enabled false }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -62,4 +63,5 @@ spec:
           command: ["/script/restore-mongo.sh"]
       restartPolicy: Never
   ttlSecondsAfterFinished: 432000
+{{- end }}
 {{- end }}

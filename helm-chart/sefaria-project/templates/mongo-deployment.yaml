@@ -1,0 +1,49 @@
+{{- if .Values.standaloneMongo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.deployEnv }}-standalone-mongo"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-{{ .Values.deployEnv }}
+  template:
+    metadata:
+      name: "{{ .Values.deployEnv }}-standalone-mongo"
+      labels:
+        app: mongo-standalone-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: database
+        releaseRevision: "{{ .Release.Revision }}"
+        {{- include "sefaria.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - mongo
+              topologyKey: kubernetes.io/hostname
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - "mongo-{{ .Values.deployEnv }}"
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+        - name: mongo
+          image: "{{ .Values.standaloneMongo.containerImage.imageRegistry }}:{{ .Values.standaloneMongo.containerImage.tag }}"
+          imagePullPolicy: Always
+          resources: {{ toYaml .Values.standaloneMongo.resources | nindent 12 }}
+{{- end }}

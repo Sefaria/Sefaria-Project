@@ -1,4 +1,5 @@
 {{- if eq .Values.sandbox "true" }}
+{{- if eq .Values.standaloneMongo.enabled false }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -18,4 +19,5 @@ data:
 
     tar xzvf /storage/dump.tar.gz -C /storage
     mongorestore --drop --host=$MONGO_HOST:27017 -v -d "${SEFARIA_DB}-{{ .Values.deployEnv }}" --dir=/storage/dump/sefaria
+{{- end }}
 {{- end }}
