@@ -67,8 +67,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
-          cache-to: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
+          cache-from: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+          cache-to: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
