@@ -11452,7 +11452,7 @@ body .homeFeedWrapper.userStats {
   font: var(--english-sans-serif-font-family);
 }
 
-.editTextInfo #newIndex input {
+.editTextInfo #newIndex input[type="text"] {
   padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;

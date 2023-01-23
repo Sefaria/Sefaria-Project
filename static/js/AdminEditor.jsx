@@ -52,7 +52,7 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
         "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
-    const [catMenu, setCatMenu] =    <div className="section">
+    const [catMenu, setCatMenu] =   useState(<div className="section">
                                             <label><InterfaceText>Category</InterfaceText></label>
                                             <div id="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
@@ -62,7 +62,7 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
                                                     })}
                                                 </select>
                                             </div>
-                                    </div>;
+                                    </div>);
 
 
     const validate = function () {
@@ -139,16 +139,37 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                                 heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he,
                                 enDescription: origData?.origDesc?.en,
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he});
+                                heCategoryDescription: origData?.origCategoryDesc?.he, isPrimary: !!origData.isPrimary});
     const [isNew, setIsNew] = useState(origData?.origEn === "");
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
+    const [isPrimary, setIsPrimary] = useState(!!origData.isPrimary);
 
+
+    const handleClick = function(event) {
+        const newIsPrimary = event.target.value === 'true';
+        setIsPrimary(newIsPrimary);
+        setChanged(true);
+        setIsPrimaryObj(primaryObj(newIsPrimary));
+    }
+
+    const primaryObj = function(newIsPrimary=false) {
+        return <form onClick={handleClick}>
+            <label><InterfaceText>Primary Status</InterfaceText></label>
+            <label htmlFor="true"><InterfaceText>True</InterfaceText></label>
+            <input type="radio" value='true' name="bool1" id="bool1" checked={newIsPrimary} />
+            <label htmlFor="false"><InterfaceText>False</InterfaceText></label>
+            <input type="radio" value='false' name="bool2" id="bool2" checked={!newIsPrimary}/>
+        </form>;
+    }
+
+    const [isPrimaryObj, setIsPrimaryObj] = useState(() => primaryObj());
 
     const updateData = function(newData) {
         setChanged(true);
         setData(newData);
     }
+
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -234,6 +255,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
         let fullPath = [...path, data.enTitle];
         let postCategoryData = {
+            "isPrimary": isPrimary,
             "sharedTitle": termName,
             "enDesc": data.enDescription,
             "heDesc": data.heDescription,
@@ -285,12 +307,11 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     }
 
     return <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true}/>;
+                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} extras={[isPrimaryObj]}/>;
 }
 
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
-                         validate, deleteObj, isNew=true, shortDescBool=false}) => {
-
+                         validate, deleteObj, isNew=true, shortDescBool=false, extras=[]}) => {
 
     const setValues = function(e) {
         if (e.target.id === "topicTitle") {
@@ -316,19 +337,17 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     return <div className="editTextInfo">
             <div className="static">
                 <div className="inner">
-                    {savingStatus ?
-                        <div className="collectionsWidget">{Sefaria._("Saving topic information.")}
-                        <br/><br/>{Sefaria._("Processing title changes may take some time.")})</div> : null}
+                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={title} close={close} validate={() => validate()}/>
                         <div className="section">
                             <label><InterfaceText>English Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
+                            <input type='text' id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                                <input id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
+                                <input type='text' id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
                         {isNew ? null : catMenu}
                         <div className="section">
@@ -363,6 +382,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                       {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
+                      {extras.length > 0 ? extras : null}
                     </div>
                 </div>
             </div>

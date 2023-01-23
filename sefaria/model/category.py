@@ -18,7 +18,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     track_pkeys = True
     criteria_field = 'lastPath'
     criteria_override_field = 'origLastPath'  # used when primary attribute changes. field that holds old value.
-    pkeys = ["lastPath", "path"]  # Needed for dependency tracking
+    pkeys = ["path", "lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
         "enDesc",
