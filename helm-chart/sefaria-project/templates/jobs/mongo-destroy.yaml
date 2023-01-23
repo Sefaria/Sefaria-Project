@@ -4,6 +4,7 @@
 # SANDBOX_NAME: The name of the table created by this job
 ---
 {{- if eq .Values.sandbox "true" }}
+{{- if eq .Values.standaloneMongo.enabled false }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -37,4 +38,5 @@ spec:
           name: destroy-mongo-{{ .Values.deployEnv }}
           defaultMode: 0755
   ttlSecondsAfterFinished: 432000
+{{- end }}
 {{- end }}
