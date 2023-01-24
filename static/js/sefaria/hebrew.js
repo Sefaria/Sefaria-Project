@@ -130,9 +130,10 @@ class Hebrew {
   }
 
   /**
-   * This function takes an integer representing a database addressable location and converts it into the appropriate 2 sided Talmud page address
-   * @param i the integer physical location
-   * @returns {string} the Daf X[a/b] notation, e.g. Daf 15b
+   * This function takes an integer representing a database addressable location and converts it into the appropriate 2 sided Talmud page address. 
+   * For Reverse function see below dafToInt()
+   * @param {number} i - The integer physical location
+   * @returns {string} The Daf X[a/b] notation, e.g. Daf 15b
    */
   static intToDaf(i) {
     // Base 0 int -> daf
@@ -141,11 +142,23 @@ class Hebrew {
     const daf = Math.ceil(i/2);
     return daf + (i%2 ? "a" : "b");
   }
-
+  
+  /**
+   * This function takes a Talmud daf string and turns it into the correct db addressable physical location for that text. The reverse of the above intToDaf()
+   * @param {string} daf - The input string
+   * @returns {number} The actual integer location of the text
+   */
+  static dafToInt(daf) {
+    var amud = daf.slice(-1);
+    var i = parseInt(daf.slice(0, -1)) - 1;
+    i = amud == "a" ? i * 2 : i*2 +1;
+    return i;
+  }
+  
   /**
    * This function takes an integer representing a database addressable location and converts it into the appropriate 4 sided Jerusalem Talmud like manuscript page address
-   * @param i the integer physical location
-   * @returns {string} the Daf X[a-d] notation, e.g. Daf 4c
+   * @param {number} i - The integer physical location
+   * @returns {string} The Daf X[a-d] notation, e.g. Daf 4c
    */
   static intToFolio(i) {
     i += 1;
@@ -154,17 +167,6 @@ class Hebrew {
     return daf + (mod === 1 ? "a" : mod === 2 ? "b" : mod === 3 ? "c" : "d");
   }
   
-  /**
-   * This function takes a Talmud daf string and turns it into the correct db addressable physical location for that text
-   * @param daf the input string
-   * @returns {number} the actual integer location of the text
-   */
-  static dafToInt(daf) {
-    var amud = daf.slice(-1);
-    var i = parseInt(daf.slice(0, -1)) - 1;
-    i = amud == "a" ? i * 2 : i*2 +1;
-    return i;
-  }
 }
 
 Hebrew.hebrewNumerals = {
