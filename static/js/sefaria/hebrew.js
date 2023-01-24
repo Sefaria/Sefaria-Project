@@ -128,6 +128,12 @@ class Hebrew {
 
     return (s in known ? known[s] : s + "s");
   }
+
+  /**
+   * This function takes an integer representing a database addressable location and converts it into the appropriate 2 sided Talmud page address
+   * @param i the integer physical location
+   * @returns {string} the Daf X[a/b] notation, e.g. Daf 15b
+   */
   static intToDaf(i) {
     // Base 0 int -> daf
     // e.g. 2 -> "2a"
@@ -137,9 +143,9 @@ class Hebrew {
   }
 
   /**
-   * This function takes an integer representing a database addressable location and converting it into the appropriate 4 sided manuscript page address
+   * This function takes an integer representing a database addressable location and converts it into the appropriate 4 sided Jerusalem Talmud like manuscript page address
    * @param i the integer physical location
-   * @returns {string} the Daf Xa-d notation
+   * @returns {string} the Daf X[a-d] notation, e.g. Daf 4c
    */
   static intToFolio(i) {
     i += 1;
@@ -147,6 +153,12 @@ class Hebrew {
     const mod = i%4;
     return daf + (mod === 1 ? "a" : mod === 2 ? "b" : mod === 3 ? "c" : "d");
   }
+  
+  /**
+   * This function takes a Talmud daf string and turns it into the correct db addressable physical location for that text
+   * @param daf the input string
+   * @returns {number} the actual integer location of the text
+   */
   static dafToInt(daf) {
     var amud = daf.slice(-1);
     var i = parseInt(daf.slice(0, -1)) - 1;
