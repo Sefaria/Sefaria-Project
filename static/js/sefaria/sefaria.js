@@ -315,6 +315,13 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+    /**
+     * This function takes helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * @param {string} addressType - The address type of the schema being requested
+     * @param {number} i - The numeric section string from the database
+     * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
+     * @returns {[string,string]} Section string in both languages. 
+     */  
   getSectionStringByAddressType: function(addressType, i, offset=0) {
     let section = i + offset;
     let heSection;
