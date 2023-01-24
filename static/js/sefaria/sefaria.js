@@ -2017,14 +2017,14 @@ _media: {},
   tocObjectByCategories: function(cats) {
     // Returns the TOC entry that corresponds to list of categories `cats`
     let found, item;
-    let list = Sefaria.toc
+    let list = Sefaria.toc;
     for (let i = 0; i < cats.length; i++) {
       found = false;
       item = null;
       for (let k = 0; k < list.length; k++) {
         if (list[k].category === cats[i]) {
           item = list[k];
-          list = item.contents;
+          list = item.contents || [];
           found = true;
           break;
         }
@@ -2036,7 +2036,7 @@ _media: {},
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
     const object = Sefaria.tocObjectByCategories(cats);
-    return object?.contents ? Sefaria.util.clone(object.contents) : [];  // return [] in case object is null or an empty category
+    return object ? Sefaria.util.clone(object.contents) : [];
   },
   categoryAttribution: function(categories) {
     var attributions = [
