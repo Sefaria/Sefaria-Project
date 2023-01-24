@@ -16,8 +16,13 @@ class Hebrew {
 
     return n;
   }
+  
+  /**
+   * Encodes an integer "Daf" and returns a string encoding it as a Hebrew numeral.
+   * @param {number} n - The integer
+   * @returns {string} - Hebrew numeral
+   */
   static encodeHebrewNumeral(n) {
-    // Takes an integer and returns a string encoding it as a Hebrew numeral.
     n = parseInt(n);
     if (n >= 1300) {
       return n;
@@ -47,9 +52,15 @@ class Hebrew {
         heb += values[n];
       }
     }
-
     return heb;
   }
+  
+  /**
+   * Encodes an English "Daf" (2 sided page) ref address string into a corresponding Hebrew one.
+   * @param {string} daf - The English daf string
+   * @param {string} form - Whether to use colon or letters
+   * @returns {string} - Hebrew representation
+   */
   static encodeHebrewDaf(daf, form) {
     // Returns Hebrew daf strings from "32b"
     form = form || "short";
@@ -64,6 +75,12 @@ class Hebrew {
       return this.encodeHebrewNumeral(n) + " " + this.encodeHebrewNumeral(a);
     }
   }
+
+  /**
+   * Encodes an English "Folio" (4 sided daf) ref address string into a corresponding Hebrew one.
+   * @param {string} daf - The English folio string
+   * @returns {string} - Hebrew representation
+   */
   static encodeHebrewFolio(daf) {
     const n = parseInt(daf.slice(0,-1));
     let a = {a: "א", b: "ב", c: "ג", d: "ד"}[daf.slice(-1)];
@@ -130,7 +147,7 @@ class Hebrew {
   }
 
   /**
-   * This function takes an integer representing a database addressable location and converts it into the appropriate 2 sided Talmud page address. 
+   * Takes an integer representing a database addressable location and converts it into the appropriate 2 sided Talmud page address. 
    * For Reverse function see below dafToInt()
    * @param {number} i - The integer physical location
    * @returns {string} The Daf X[a/b] notation, e.g. Daf 15b
@@ -144,7 +161,7 @@ class Hebrew {
   }
   
   /**
-   * This function takes a Talmud daf string and turns it into the correct db addressable physical location for that text. The reverse of the above intToDaf()
+   * Takes a Talmud daf string and turns it into the correct db addressable physical location for that text. The reverse of the above intToDaf()
    * @param {string} daf - The input string
    * @returns {number} The actual integer location of the text
    */
@@ -156,7 +173,7 @@ class Hebrew {
   }
   
   /**
-   * This function takes an integer representing a database addressable location and converts it into the appropriate 4 sided Jerusalem Talmud like manuscript page address
+   * Takes an integer representing a database addressable location and converts it into the appropriate 4 sided Jerusalem Talmud like manuscript page address
    * @param {number} i - The integer physical location
    * @returns {string} The Daf X[a-d] notation, e.g. Daf 4c
    */

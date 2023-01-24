@@ -316,7 +316,7 @@ Sefaria = extend(Sefaria, {
     }
   },
     /**
-     * This function takes helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
      * @param {string} addressType - The address type of the schema being requested
      * @param {number} i - The numeric section string from the database
      * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
