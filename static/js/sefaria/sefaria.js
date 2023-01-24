@@ -326,8 +326,8 @@ Sefaria = extend(Sefaria, {
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
       section += 1241;
     } else if (addressType === "Folio") {
+      section = Sefaria.hebrew.intToFolio(section);  
       heSection = Sefaria.hebrew.encodeHebrewFolio(section);
-      section = Sefaria.hebrew.intToFolio(section);
     } else {
       section += 1;
       heSection = Sefaria.hebrew.encodeHebrewNumeral(section);
