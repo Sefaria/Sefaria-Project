@@ -2036,7 +2036,7 @@ _media: {},
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
     const object = Sefaria.tocObjectByCategories(cats);
-    return object ? Sefaria.util.clone(object.contents) : [];
+    return object?.contents ? Sefaria.util.clone(object.contents) : [];  // return [] in case object is null or an empty category
   },
   categoryAttribution: function(categories) {
     var attributions = [
