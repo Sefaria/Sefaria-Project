@@ -2248,7 +2248,6 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
-  // getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
   getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.topicTocCategory(slug);
     let ref_link_type_filters = ['about', 'popular-writing-of']
@@ -2258,14 +2257,16 @@ _media: {},
     }
     const a = 0 + annotated;
     const url = `${this.apiHost}/api/v2/topics/${slug}?annotate_time_period=1&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_html=${0 + with_html}&with_links=${a}&annotate_links=${a}&with_refs=${a}&group_related=${a}&with_indexes=${a}`;
-    const key = slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
-
+    const key = this._getTopicCacheKey(slug, {annotated, with_html});
     return this._cachedApiPromise({
       url,
-      key: key,
+      key,
       store: this._topics,
       processor: this.processTopicsData,
     });
+  },
+  _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
+      return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
@@ -2302,8 +2303,9 @@ _media: {},
     data.tabs = tabs;
     return data;
   },
-  getTopicFromCache: function(topic) {
-    return this._topics[topic];
+  getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
+      const key = this._getTopicCacheKey(slug, {annotated, with_html});
+      return this._topics[key];
   },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
