@@ -324,22 +324,22 @@ Sefaria = extend(Sefaria, {
      */  
   getSectionStringByAddressType: function(addressType, i, offset=0) {
     let section = i + offset;
-    let heSection;
+    let enSection, heSection;
     if (addressType === 'Talmud') {
-      section = Sefaria.hebrew.intToDaf(section);
-      heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+      enSection = Sefaria.hebrew.intToDaf(section);
+      heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
+      enSection = section + 1241;  
       heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
-      section += 1241;
     } else if (addressType === "Folio") {
-      section = Sefaria.hebrew.intToFolio(section);  
-      heSection = Sefaria.hebrew.encodeHebrewFolio(section);
+      enSection = Sefaria.hebrew.intToFolio(section);  
+      heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
-      section += 1;
+      enSection = section + 1;
       heSection = Sefaria.hebrew.encodeHebrewNumeral(section);
     }
-  return [section, heSection];
+  return [enSection, heSection];
   },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
