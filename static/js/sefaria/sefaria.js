@@ -315,7 +315,7 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
-  getSectionByAddressType: function(addressType, i, offset=0) {
+  getSectionStringByAddressType: function(addressType, i, offset=0) {
     let section = i + offset;
     let heSection;
     if (addressType === 'Talmud') {
