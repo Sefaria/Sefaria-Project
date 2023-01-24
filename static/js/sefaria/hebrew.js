@@ -135,6 +135,12 @@ class Hebrew {
     const daf = Math.ceil(i/2);
     return daf + (i%2 ? "a" : "b");
   }
+
+  /**
+   * This function takes an integer representing a database addressable location and converting it into the appropriate 4 sided manuscript page address
+   * @param i the integer physical location
+   * @returns {string} the Daf Xa-d notation
+   */
   static intToFolio(i) {
     i += 1;
     const daf = Math.ceil(i/4);
