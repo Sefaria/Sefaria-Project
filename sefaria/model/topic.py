@@ -514,7 +514,7 @@ class AuthorTopic(PersonTopic):
         from .text import Index
 
         index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        link_names = []  # [(href, en, he)]
+        link_names = []  # [(href, {lang: title})]
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
                 link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
