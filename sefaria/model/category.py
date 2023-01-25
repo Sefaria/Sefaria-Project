@@ -16,8 +16,8 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     history_noun = "category"
 
     track_pkeys = True
-    criteria_field = 'lastPath'
-    criteria_override_field = 'origLastPath'  # used when primary attribute changes. field that holds old value.
+    criteria_field = 'path'
+    criteria_override_field = 'origPath'  # used when primary attribute changes. field that holds old value.
     pkeys = ["path", "lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
@@ -47,14 +47,8 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def load_from_dict(self, d, is_init=False):
         if not self.is_new():
-            if d.get("origLastPath", "") != d.get("lastPath", ""):
-                self.change_key_name(d.get("lastPath"))
-
-        for prop in ["heDesc", "enDesc", "enShortDesc", "heShortDesc"]:
-            # in an update, if dict values don't differ from the obj value
-            # and both values are empty, they don't need to be in DB
-            if prop in d and d.get(prop, "") == getattr(self, prop, None) == "":
-                d.pop(prop)
+            if getattr(self, "lastPath") != d["path"][-1]:  #lastPath should derive from path on an update
+                self.change_key_name(d["path"][-1])
 
         super(Category, self).load_from_dict(d, is_init)
         return self

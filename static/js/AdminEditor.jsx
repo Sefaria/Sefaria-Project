@@ -194,18 +194,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const validate = async function () {
         if (!changed) {
-            alert("First, change one of the fields before saving.");
+            alert("Please change one of the fields before saving.");
             return false;
-        }
-
-        if (data.heTitle !== origData.origHe && !!Sefaria.terms[data.enTitle] && data.heTitle.length > 0) { // Category title has corresponding term and there is a hebrew title to check
-            await Sefaria.getTerm(data.enTitle);
-
-            //check if data.heTitle is one of the term's primary or secondary titles
-            if (Sefaria.terms[data.enTitle].he === data.heTitle || Sefaria.terms[data.enTitle]?.otherTitles.he.filter(x => data.heTitle === x)) {
-                alert(Sefaria._(`English and Hebrew titles of category, ${data.enTitle} and ${data.heTitle} do not correspond to a term.  Please use the term editor.`));
-                return false;
-            }
         }
 
         if (data.enTitle.length === 0) {
@@ -215,30 +205,6 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         await save();
     }
 
-    const postTerm = async function (name) {
-        const termTitles = [{'lang': 'en', 'text': name, 'primary': true}, {
-                'lang': 'he',
-                'text': data.heTitle,
-                'primary': true
-            }];
-        const postTermJSON = JSON.stringify({"name": name, "titles": termTitles});
-        let success = false;
-        await new Promise((resolve, reject) => {
-            $.post(`/api/terms/${name}`, {"json": postTermJSON}, function (result) {
-                if (result.error)  {
-                    toggle();
-                    alert(result.error);
-                }
-                else {
-                    success = true;
-                    resolve();
-                }
-            }).fail(function (xhr, status, errorThrown) {
-                alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-            });
-            })
-        return success;
-    }
 
     const redirect = function (newPath) {
         window.location.href = "/texts/"+newPath;
@@ -246,38 +212,24 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const save = async function () {
         toggle();
-        const termName = data.enTitle;
-        if (!Sefaria.terms[termName]) {
-            //term doesn't exist so post it, but if postTerm, there was an error so exit function
-            const success = await postTerm(termName);
-
-            if (!success) {
-                redirect("");
-            }
-        }
-
         let fullPath = [...path, data.enTitle];
         let postCategoryData = {
             "isPrimary": isPrimary,
-            "sharedTitle": termName,
             "enDesc": data.enDescription,
             "heDesc": data.heDescription,
             "enShortDesc": data.enCatDescription,
             "heShortDesc": data.heCategoryDescription,
-            "lastPath": data.enTitle,
-            "path": fullPath
+            "heSharedTitle": data.heTitle,
+            "sharedTitle": data.enTitle,
+            "path": fullPath,
         };
 
-        let url = "";
-        if (isNew) {
-            url = `/api/category/${fullPath.join("/")}`;
-        } else {
-            url += `/api/category/${[...origPath, data.origEn].join("/")}?update=1`;
-            postCategoryData = {...postCategoryData, origEnDesc: data.origEnDesc, origHeDesc: data.origHeDesc,
-                origLastPath: origData.origEn, origPath, origEnShortDesc: origData?.origCategoryDesc?.en,
-                origHeShortDesc: origData?.origCategoryDesc?.he
-            };
+        let url = `/api/category/${fullPath.join("/")}?category_editor=1`;
+        if (!isNew) {
+            url += "&update=1";
+            postCategoryData = {...postCategoryData, origPath: origPath.concat(origData.origEn)}
         }
+
 
         $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
             if (result.error) {
@@ -294,14 +246,14 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: "/api/category/delete/"+origSlug,
+        url: "/api/category/delete/"+origData.origPath.join("/"),
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
             alert(result.error);
           } else {
-            alert(Sefaria._("Topic Deleted."));
-            window.location = "/topics";
+            alert(Sefaria._("Category Deleted."));
+            window.location = "/texts";
           }
         }
       }).fail(function() {

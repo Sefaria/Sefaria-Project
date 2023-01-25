@@ -2398,7 +2398,7 @@ def category_api(request, path=None):
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
+    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "GET":
         if not path:
@@ -2418,6 +2418,34 @@ def category_api(request, path=None):
         def _internal_do_post(request, cat, uid, **kwargs):
             func = tracker.update if request.GET.get("update", False) else tracker.add
             return func(uid, Category, cat, **kwargs).contents()
+
+        def _validate(j):
+            # _validate returns "" if no error, otherwise it returns the error msg
+            if "path" not in j:
+                return jsonResponse({"error": "'path' is a required attribute"})
+            if not update and Category().load({"path": j["path"]}):
+                return "Category {} already exists.".format(", ".join(j["path"]))
+            if not Category().load({"path": j["path"][:-1]}):
+                return "No parent category found: {}".format(", ".join(j["path"][:-1]))
+
+            if request.GET.get("category_editor", False):
+                # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
+                # if neither of the titles correspond to a term, create the appropriate term
+                last_path = j.get("sharedTitle", "")
+                he_last_path = j.get("heSharedTitle", "")
+                en_term = Term().load({"name": last_path})
+                he_term = Term().load_by_title(he_last_path)
+
+                if (en_term and he_term != en_term) or (he_term and he_term != en_term):
+                    # they do not correspond, either because both terms exist but are not the same, or one term already
+                    # exists but the other one doesn't exist
+                    return f"English and Hebrew titles, {last_path} and {he_last_path}, do not correspond to the same term.  Please use the term editor."
+                elif en_term is None and he_term is None:
+                    t = Term()
+                    t.name = last_path
+                    t.add_primary_titles(last_path, he_last_path)
+                    t.save()
+                return ""
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2442,14 +2470,12 @@ def category_api(request, path=None):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
-        if "path" not in j:
-            return jsonResponse({"error": "'path' is a required attribute"})
-        if not request.GET.get("update", False):
-            if Category().load({"path": j["path"]}):
-                return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
-            if not Category().load({"path": j["path"][:-1]}):
-                return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+        update = int(request.GET.get("update", False))
+        error_msg = _validate(j)
+        if len(error_msg) > 0:
+            return jsonResponse({"error": error_msg})
+        else:
+            return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
         return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
