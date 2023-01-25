@@ -304,7 +304,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
                                 <input type='text' id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
                             </div> : null}
-                        {isNew ? null : catMenu}
+                        {catMenu}
                         <div className="section">
                             <label><InterfaceText>English Description</InterfaceText></label>
                             <textarea id="topicDesc" onBlur={setValues}
@@ -341,7 +341,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                         {path.length === 0 ? null :
                             <div id="categoryChooserMenu">
                               <select>
-                                  {Sefaria.tocItemsByCategories(path).map((child, i) => {
+                                  {Sefaria.tocObjectByCategories(path)?.contents?.map((child, i) => {
                                     <option key={`child-${i}`} id={`child-${i}`} value={child}>{child}</option>
                                   })}
 

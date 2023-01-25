@@ -46,11 +46,12 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         self._load_title_group()
 
     def load_from_dict(self, d, is_init=False):
+        super(Category, self).load_from_dict(d, is_init)
+
         if not self.is_new():
             if getattr(self, "lastPath") != d["path"][-1]:  #lastPath should derive from path on an update
                 self.change_key_name(d["path"][-1])
 
-        super(Category, self).load_from_dict(d, is_init)
         return self
 
 
