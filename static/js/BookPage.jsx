@@ -777,7 +777,7 @@ class JaggedArrayNodeSection extends Component {
       let content = [];
       for (let i = 0; i < this.props.contentCounts.length; i++) {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
-        let [enSection, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i);
+        let [enSection, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i);
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
@@ -799,7 +799,7 @@ class JaggedArrayNodeSection extends Component {
     let sectionLinks = [];
     for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
-      let [section, heSection] = Sefaria.getSectionByAddressType(this.props.addressTypes[0], i, this.props.offset);
+      let [section, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
@@ -859,7 +859,7 @@ class ArrayMapNode extends Component {
         if (ref === "") {
           return null;
         }
-        let [section, heSection] = Sefaria.getSectionByAddressType(schema.addressTypes[0], i);
+        let [section, heSection] = Sefaria.getSectionStringByAddressType(schema.addressTypes[0], i);
         let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
