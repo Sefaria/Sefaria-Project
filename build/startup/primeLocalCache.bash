@@ -13,6 +13,8 @@ urlsToPrime=(
     "/api/preview/Zohar"
 )
 
-for url in "${urlsToPrime[@]}"; do echo $targetHostname$url; done
-for url in "${urlsToPrime[@]}"; do curl -s -k -o /dev/null $targetHostname$url; done
+for url in "${urlsToPrime[@]}"; do 
+    echo $targetHostname$url; 
+    curl -s -k -o /dev/null $targetHostname$url; 
+done
 # for url in "${urlsToPrime[@]}"; do curl -s $targetHostname$u $url; done
