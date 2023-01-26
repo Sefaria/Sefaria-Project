@@ -20,8 +20,6 @@ import {
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
-  const [editCategory, toggleEditCategory] = useEditToggle();
-  const [addCategory, toggleAddCategory] = useEditToggle();
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -57,37 +55,12 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   ];
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
-
-  let editStatus = null;
-  if (Sefaria.is_moderator) {
-
-  }
-  if (editCategory) {
-      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc};
-      editStatus = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)}/>;
-  }
-  else if (addCategory) {
-      const origData = {origEn: ""};
-      editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={categories}/>;
-  }
-  else {
-      editStatus = <div>
-                    <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
-                    <AdminEditorButton text="Edit Category" toggleAddingTopics={toggleEditCategory}/>
-                    </div>;
-  }
-
-
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
-  
   const title = compare ? categoryToggle :
     <div className="navTitle">
       <h1>
         <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
       </h1>
-      {editStatus}
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -150,7 +123,27 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
   const cats = categories || [];
   const contentLang = useContext(ContentLanguageContext).language;
   const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
-
+  const [editCategory, toggleEditCategory] = useEditToggle();
+  const [addCategory, toggleAddCategory] = useEditToggle();
+  let editStatus = null;
+  if (Sefaria.is_moderator) {
+      const tocObject = Sefaria.tocObjectByCategories(cats);
+      if (editCategory) {
+          const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+          const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+          const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc};
+          editStatus =
+              <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)}/>;
+      } else if (addCategory) {
+          const origData = {origEn: ""};
+          editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={categories}/>;
+      } else {
+          editStatus = <div>
+                          <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
+                          <AdminEditorButton text="Edit Category" toggleAddingTopics={toggleEditCategory}/>
+                      </div>;
+      }
+  }
   for (const item of sortedContents) {
 
     if (item.category) {
@@ -262,6 +255,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
   const boxedContent = [];
   let currentRun   = [];
   let i;
+  boxedContent.push(editStatus);
   for (i = 0; i < content.length; i++) {
     // Walk through content looking for runs of texts/subcats to group together into a table
     if (content[i].type === "div") { // this is a subcategory

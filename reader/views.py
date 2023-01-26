@@ -2425,7 +2425,8 @@ def category_api(request, path=None):
                 return jsonResponse({"error": "'path' is a required attribute"})
             if not update and Category().load({"path": j["path"]}):
                 return "Category {} already exists.".format(", ".join(j["path"]))
-            if not Category().load({"path": j["path"][:-1]}):
+            parent = j["path"][:-1]
+            if len(parent) > 0 and not Category().load({"path": parent}):  # ignore len(parent) == 0 since these categories are at the root of the TOC tree
                 return "No parent category found: {}".format(", ".join(j["path"][:-1]))
 
             if request.GET.get("category_editor", False):

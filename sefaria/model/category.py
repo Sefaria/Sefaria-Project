@@ -158,13 +158,6 @@ def process_category_path_change_in_categories_and_indexes(changed_cat, **kwargs
     old_toc_node = library.get_toc_tree().lookup(kwargs["old"])
     process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
 
-
-def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
-    from sefaria.model.text import library
-    old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
-    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
-
-
 def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
     assert isinstance(old_toc_node, TocCategory)
     pos = len(old_toc_node.ancestors()) - 1
