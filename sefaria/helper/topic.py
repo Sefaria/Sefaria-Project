@@ -15,11 +15,11 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def get_topic(v2, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
+def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         return {}
-    response = topic_obj.contents(annotate_time_period=annotate_time_period)
+    response = topic_obj.contents(annotate_time_period=annotate_time_period, with_html=with_html)
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
         'he': topic_obj.get_primary_title('he')

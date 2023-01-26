@@ -345,6 +345,7 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     const whiteList = Sefaria._siteSettings.TORAH_SPECIFIC ? ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
         'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah'] : ["Farand's Records of the Constitutional Convention",
         "Plutarch's Lives"];
+
     if (whiteList.indexOf(title) > -1 || categories.slice(-1)[0] === "Siddur") {
         return [title, heTitle];
     }
