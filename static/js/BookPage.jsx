@@ -1153,7 +1153,9 @@ const EditTextInfo = function({initTitle, close}) {
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})));
-  const [compDate, setCompDate] = useState
+  const [compDate, setCompDate] = useState(index.current?.compDate || "");
+  const [errorMargin, setErrorMargin] = useState(index.current?.errorMargin || "");
+
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
@@ -1206,6 +1208,10 @@ const EditTextInfo = function({initTitle, close}) {
     }
     if (enTitle !== oldTitle) {
       postIndex.oldTitle = oldTitle;
+    }
+    if (compDate !== "") {
+      postIndex.errorMargin = errorMargin === "" ? 0 : errorMargin;
+      postIndex.compDate = compDate;
     }
     let postJSON = JSON.stringify(postIndex);
     let title = enTitle.replace(/ /g, "_");
@@ -1270,21 +1276,21 @@ const EditTextInfo = function({initTitle, close}) {
 
             <div className="section">
                 <label><InterfaceText>English Description</InterfaceText></label>
-              <textarea onBlur={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
+              <textarea className="default" onBlur={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
             </div>
             <div className="section">
                 <label><InterfaceText>Short English Description</InterfaceText></label>
-              <textarea onBlur={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
+              <textarea className="default" onBlur={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <div className="section">
                   <label><InterfaceText>Hebrew Description</InterfaceText></label>
-                <textarea onBlur={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
+                <textarea className="default" onBlur={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
               </div> : null}
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <div className="section">
                   <label><InterfaceText>Short Hebrew Description</InterfaceText></label>
-                <textarea onBlur={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
+                <textarea className="default" onBlur={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
               </div> : null}
 
             <div className="section">
@@ -1312,6 +1318,16 @@ const EditTextInfo = function({initTitle, close}) {
                   <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
                   <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
                 </div> : null}
+            <div className="section">
+              <div><InterfaceText>Completion Date</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+
+              <input id="compDate" onBlur={(e) => setCompDate(e.target.value)} defaultValue={compDate}/>
+            </div>
+            <div className="section">
+              <div><InterfaceText>Error Margin</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+
+              <input id="errorMargin" onBlur={(e) => setErrorMargin(e.target.value)} defaultValue={errorMargin}/>
+            </div>
           </div>
         </div>
       </div>
