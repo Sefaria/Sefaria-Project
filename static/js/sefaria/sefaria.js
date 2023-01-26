@@ -337,7 +337,7 @@ Sefaria = extend(Sefaria, {
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
-      heSection = Sefaria.hebrew.encodeHebrewNumeral(section);
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section + 1);
     }
   return [enSection, heSection];
   },
