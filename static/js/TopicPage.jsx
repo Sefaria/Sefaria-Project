@@ -193,6 +193,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
     const [addingTopics, toggleAddingTopics] = useTopicToggle();
     let topicEditorStatus = null;
+
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
             topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
@@ -200,14 +201,15 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description || ""} origCategorySlug={initCatSlug}
-                         origCategoryDesc={topicData?.categoryDescription || ""}
+                         origDesc={topicData?.description} origCategorySlug={initCatSlug}
+                         origCategoryDesc={topicData?.categoryDescription}
+                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                          close={toggleAddingTopics}/>;
         }
     }
 
     useEffect(() => {
-        Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
+        Sefaria.getTopic(topic).then(setTopicData);
     }, [topic]);
 
     useEffect(() => {
@@ -341,14 +343,21 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const [addingTopics, toggleAddingTopics] = useTopicToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
+
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor origEn={en} origHe={he} origDesc={topicData?.description || ""}
-                          origCategoryDesc={topicData?.categoryDescription || ""}
-                          origSlug={topicData["slug"]} origCategorySlug={initCatSlug} close={toggleAddingTopics}/>;
+      return <TopicEditor origEn={en}
+                          origHe={he}
+                          origDesc={topicData?.description}
+                          origCategoryDesc={topicData?.categoryDescription}
+                          origSlug={topicData["slug"]}
+                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                          origCategorySlug={initCatSlug}
+                          close={toggleAddingTopics}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
                             <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+
   return (
     <div>
         <div className="navTitle tight">
@@ -371,8 +380,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <span className="int-en">{topicData.description.en}</span>
-              <span className="int-he">{topicData.description.he}</span>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: topicData.description.en} } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: topicData.description.he} } />
             </div>
        : null}
        {topicData && topicData.ref ?
@@ -428,7 +437,7 @@ const TopicPage = ({
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
-    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
+    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
@@ -443,7 +452,7 @@ const TopicPage = ({
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const d = await Sefaria.getTopic(topic, {annotate_time_period: true});
+        const d = await Sefaria.getTopic(topic, {with_html: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache

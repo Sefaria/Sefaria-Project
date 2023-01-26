@@ -34,10 +34,14 @@ class TitleGroup(object):
     A collection of titles.  Used for titles of SchemaNodes and for Terms
     """
     langs = ["en", "he"]
+
+    # Attributes required in each title
     required_attrs = [
         "lang",
         "text"
     ]
+
+    # Attributes optional in each title
     optional_attrs = [
         "primary",
         "presentation",
@@ -781,6 +785,11 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
                 return child
         return None
 
+    def get_child_by_key(self, key):
+        for child in self.children:
+            if hasattr(child, 'key') and child.key == key:
+                return child
+
     def has_titled_continuation(self):
         """
         :return: True if any normal forms of this node continue with a title.  Used in regex building.
@@ -831,7 +840,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return self.title_group.add_title(text, lang, primary, replace_primary, presentation)
 
-    def ref_part_title_trie(self, lang: str):
+    def get_match_template_trie(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         return MatchTemplateTrie(lang, nodes=[self], scope='combined')
 
@@ -897,6 +906,15 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         @return: True if `self` has any match template that has scope = "alone" OR scope = "any"
         """
         return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
+
+    def get_next_referenceable_descendants(self):
+        nodes = []
+        for node in self.children:
+            if getattr(node, 'referenceable', True):
+                nodes.append(node)
+            else:
+                nodes += node.get_referenceable_nodes()
+        return nodes
 
     def get_referenceable_alone_nodes(self):
         """
@@ -1125,7 +1143,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress", "match_templates", "numeric_equivalent", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'referenceable', "addresses", "skipped_addresses"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1212,7 +1230,7 @@ class SchemaNode(TitledTreeNode):
 
     """
     is_virtual = False
-    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps"]
+    optional_param_keys = ["match_templates", "numeric_equivalent", "ref_resolver_context_swaps", 'referenceable']
 
     def __init__(self, serial=None, **kwargs):
         """
@@ -1482,7 +1500,7 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
     - Structure Nodes whose children can be addressed by Integer or other :class:`AddressType`
     - Content Nodes that define the schema for JaggedArray stored content
     """
-    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes"]
+    optional_param_keys = SchemaNode.optional_param_keys + ["lengths", "toc_zoom", "referenceableSections", "isSegmentLevelDiburHamatchil", "diburHamatchilRegexes", 'index_offsets_by_depth']
 
     def __init__(self, serial=None, **kwargs):
         # call SchemaContentNode.__init__, then the additional parts from NumberedTitledTreeNode.__init__
@@ -1496,6 +1514,19 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         # this is minorly repetitious, at the top tip of the diamond inheritance.
         SchemaNode.validate(self)
         NumberedTitledTreeNode.validate(self)
+        self.check_index_offsets_by_depth()
+
+    def check_index_offsets_by_depth(self):
+        if hasattr(self, 'index_offsets_by_depth'):
+            assert all(int(num) <= self.depth for num in self.index_offsets_by_depth)
+            def check_offsets(to_check, depth=0):
+                if depth == 0:
+                    assert isinstance(to_check, int)
+                else:
+                    for array in to_check:
+                        check_offsets(array, depth-1)
+            for k, v in self.index_offsets_by_depth.items():
+                check_offsets(v, int(k)-1)
 
     def has_numeric_continuation(self):
         return True
@@ -1505,6 +1536,36 @@ class JaggedArrayNode(SchemaNode, NumberedTitledTreeNode):
         res["sectionNames"] = self.sectionNames
         res["depth"] = self.depth
         return res
+
+    @staticmethod
+    def get_index_offset(section_indexes, index_offsets_by_depth):
+        current_depth = len(section_indexes) + 1
+        if not index_offsets_by_depth or str(current_depth) not in index_offsets_by_depth:
+            return 0
+        return reduce(lambda x, y: x[y], section_indexes, index_offsets_by_depth[str(current_depth)])
+
+    def trim_index_offsets_by_sections(self, sections, toSections, depths=None):
+        """
+        Trims `self.index_offsets_by_depth` according to `sections` and `toSections`
+        @param sections:
+        @param toSections:
+        @param depths:
+        @return:
+        """
+        index_offsets_by_depth = copy.deepcopy(getattr(self, 'index_offsets_by_depth', {}))
+        if index_offsets_by_depth and sections:
+            if not depths:
+                depths = sorted([int(x) for x in index_offsets_by_depth.keys()])
+            for depth in depths:
+                if depth == 1:
+                    continue
+                if len(sections) > depth - 2:
+                    for d in range(depth, max(depths)+1):
+                        last = reduce(lambda x, _: x[-1], range(depth-2), index_offsets_by_depth[str(d)])
+                        del last[toSections[depth-2]:]
+                        first = reduce(lambda x, _: x[0], range(depth-2), index_offsets_by_depth[str(d)])
+                        del first[:sections[depth-2]-1]
+        return index_offsets_by_depth
 
 
 class StringNode(JaggedArrayNode):

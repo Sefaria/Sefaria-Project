@@ -245,6 +245,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
 }
+.readerPanel span.mediumGrey {
+  color: var(--medium-grey);
+}
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
@@ -273,7 +276,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  /* font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; */
   font-size: 16px;
   font-weight: normal;
   color: #000;
@@ -1259,6 +1264,11 @@ div.interfaceLinks-row a {
   display: flex;
   padding: 6px 12px;
 }
+.ui-autocomplete .ui-menu-last-item {
+  border-top:  1px solid var(--lighter-grey);
+  display: flex;
+  padding: 6px 12px;
+}
 .interface-hebrew .ui-autocomplete .ui-menu-item {
   direction: rtl;
   text-align: right;
@@ -2133,7 +2143,8 @@ div.interfaceLinks-row a {
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
 }
-.topicPanel .topicDescription span {
+.topicPanel .topicDescription a {
+  color: var(--commentary-blue);
 }
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
@@ -5694,14 +5705,13 @@ But not to use a display block directive that might break continuous mode for ot
   color: #666666;
 }
 .connectionsPanel .toolsButton.seeLess{
-  margin-inline-start: 60px;
+  margin-inline-start: 33px;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
   color: #999999;
   align-items: center;
-  margin-top: 15px;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
   height: 10px;
@@ -6451,6 +6461,9 @@ But not to use a display block directive that might break continuous mode for ot
   border-top: 1px solid #E5E5E5;
   padding: 20px 34px;
   margin: initial;
+}
+.topicList #topicItem-0 {
+  border-top: none;
 }
 .topicButton:hover {
   text-decoration: none;
@@ -8492,6 +8505,24 @@ div.aboutSheetMetadata span:not(:first-child)::before{
     position: initial;
     vertical-align: 0px;
 }
+.searchBox.TopicSearchBox {
+  margin: 30px 0px 20px 30px;
+}
+.searchBox.TopicSearchBox input {
+  padding: 15px;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+  height: 40px;
+  width: 209px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  border-radius: 6px;
+  font-size: 18px;
+  color: #000000;
+}
+.searchBox.TopicSearchBox input.selected {
+  color: var(--commentary-blue);
+}
 .header .searchBox .keyboardInputInitiator {
     display: none;
 }
@@ -9599,9 +9630,6 @@ background-color: white;
 .addInterfaceInput button,
 .addInterfaceInput .suggestion {
   pointer-events: auto;
-}
-.addInterfaceInput button,
-.addInterfaceInput .suggestion {
   cursor: pointer;
 }
 
@@ -9631,6 +9659,38 @@ background-color: white;
   margin-inline-end: 20px;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
+}
+.topicSearch.addInterfaceInput {
+  display: flex;
+  margin-left: 30px;
+  margin-right: 30px;
+  justify-content: space-between;
+}
+
+.topicSearch.addInterfaceInput input {
+  margin-top: 30px;
+  height: 30px;
+  max-width: 250px;
+  min-width: 250px;
+  padding-inline-end: 30px;
+  margin-left:  0;
+  margin-right: 0;
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput input.selected {
+  color: #4B71B7;
+}
+
+.topicSearch.addInterfaceInput .button {
+  margin-top: 30px;
+  position: relative;
+  white-space: nowrap;
+}
+.addInterfaceInput .suggestion {
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput select.suggestionBox {
+  margin-top: 60px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
@@ -11211,9 +11271,9 @@ img.smallProfileImage {
   font-size: 14px;
   width: max-content;
 }
-.mainColumn a:not(.button) {
+/* .mainColumn a:not(.button) {
   color: #000;
-}
+} */
 .storyBody a {
   text-decoration: underline;
 }
@@ -11294,7 +11354,7 @@ body .homeFeedWrapper.userStats {
   font-weight: normal;
   color: #000;
 }
-.editTextInfo #newIndex textarea {
+.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc, .editTextInfo #newIndex #topicHeDesc, .editTextInfo #newIndex #topicHeCatDesc {
   height: 200px;
   width: 97%;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
@@ -11309,19 +11369,23 @@ body .homeFeedWrapper.userStats {
   float: right;
   background-color: var(--lightest-grey);
 }
+.button.small.addTopic {
+  background-color: #212E50;
+  color: #FFFFFF;
+  float: right;
+  margin-right: 30px;
+}
 #categoryChooserMenu {
   overflow: hidden;
-  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
-  width: 660px;
+  background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
+  width: 100%;
   height: 50px;
   margin: 0 0 10px 0;
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-#categoryChooserMenu select option:first-child {
-  color: var(--lighter-grey);
-}
+
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11331,6 +11395,37 @@ body .homeFeedWrapper.userStats {
   padding: 4px 25px 4px 10px;
 }
 
+.connectionsPanel .editTextInfo #categoryChooserMenu {
+  width: 102%;
+}
+
+.connectionsPanel .editTextInfo .collectionsWidget {
+  width: 70%;
+}
+.connectionsPanel .editTextInfo #categoryChooserMenu select {
+  width: 98.5%;
+}
+
+.searchBox .editTextInfo .collectionsWidget {
+  width: 280px;
+}
+
+.searchBox .editTextInfo #newIndex {
+  margin: 50px auto;
+}
+.searchBox #categoryChooserMenu {
+  width: 97%;
+  background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
+}
+.searchBox #categoryChooserMenu select {
+  width: 100%;
+}
+.searchBox .editTextInfo #newIndex input {
+  width: 97%;
+}
+.searchBox .editTextInfo #newIndex #topicDesc {
+  width: 92%;
+}
 #categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
@@ -11363,7 +11458,7 @@ body .homeFeedWrapper.userStats {
   height: 50px;
   font-size: 16px;
   margin: 0 0 10px 0;
-  max-width: 100%;
+  max-width: 97%;
 }
 
 .editTextInfo #newIndex #heTitle {
@@ -11407,6 +11502,7 @@ body .homeFeedWrapper.userStats {
 	display: none;
 }
 @media screen and (max-width: 680px) {
+
   #categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
@@ -11446,7 +11542,7 @@ body .homeFeedWrapper.userStats {
   z-index: 1;
 }
 .editTextInfo .collectionsWidget {
-  width: 580px;
+  width: 39%;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;
   position: absolute;

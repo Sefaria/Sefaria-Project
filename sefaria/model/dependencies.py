@@ -11,7 +11,6 @@ import sefaria.system.cache as scache
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-# subscribe(text.process_index_change_in_alt_structs,                     text.Index, "save")
 
 
 # Index Name Change
@@ -28,7 +27,6 @@ subscribe(ref_data.process_index_title_change_in_ref_data,              text.Ind
 subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
 subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
 subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
-# subscribe(text.process_index_change_in_alt_structs,                     text.Index, "attributeChange", "title")
 
 # Taken care of on save
 # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
@@ -71,6 +69,11 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 
 # Note Delete
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
+
+# Topic
+subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
+subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+
 
 # Terms
 # TODO cascade change to Term.name.

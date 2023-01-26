@@ -44,10 +44,10 @@ jobs:
       - name: Format branch name
         id: branch-name
         run: |
-          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -62,10 +62,10 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
@@ -98,10 +98,10 @@ jobs:
       - name: Format branch name
         id: branch-name
         run: |
-          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
@@ -117,12 +117,12 @@ jobs:
             latest=true
       - name: Set outputs
         id: get-sha
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           build-args: |
@@ -159,26 +159,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
           project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
         run: |
-          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
       - name: Set outputs
         id: get-sha
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-      - name: setup helm
-        uses: azure/setup-helm@v1
+          #      - name: setup helm
+          #        uses: azure/setup-helm@v3
       - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
         run: ./build/ci/sandbox-helm-deploy.sh build/ci/values.yaml
         env:
@@ -195,7 +203,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Set outputs
         id: get-sha
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Wait for test sandbox to become available 
         # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
         run: ./build/ci/waitForSandbox.bash
@@ -211,25 +219,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      # Set Up Connection to Dev Mongo
-      # 1. Auth to cluster
-      # 2. Open encrypted connection
-      - uses: google-github-actions/setup-gcloud@v0
+      - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
           project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
       - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Set outputs
         id: get-sha
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
         run: |
-          echo "::set-output name=current_branch::"$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g')
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
       - name: Start Job
         run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
@@ -276,20 +290,27 @@ jobs:
     steps: 
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: google-github-actions/setup-gcloud@v0
+      - name: Authenticate GHA Runner to GCP
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
           project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Set outputs
         id: get-sha
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-      - name: setup helm
-        uses: azure/setup-helm@v1
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: check helm
         id: get-helm
-        run: echo "::set-output name=count::$(helm list -n $NAMESPACE | grep $NAME | wc -l)"
+        run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
         env:
           NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
           NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
