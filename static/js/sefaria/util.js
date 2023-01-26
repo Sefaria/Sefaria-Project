@@ -24,7 +24,7 @@ class Util {
             //  The bottom of the target will be aligned to the bottom of the visible area of the scrollable ancestor.
             target.scrollIntoView(scrollIntoViewOptions);
         }
-    
+
         // Target is outside the view from the top
         if (target.getBoundingClientRect().top < 0) {
             // The top of the target will be aligned to the top of the visible area of the scrollable ancestor
@@ -86,7 +86,7 @@ class Util {
         //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
         const hd = new HDate(new Date(dateObjStr));
         //Up to this we could have gotten away with built in international date objects in js:
-        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above. 
+        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above.
         //That would result in a hybrid hebrew date though, that still uses English numerals for day and year.
         //So we use Hebcal's renderGematriya()
         return Sefaria.interfaceLang === 'english' ? hd.render() : hd.renderGematriya();
@@ -220,6 +220,30 @@ class Util {
             }
         }
     }
+
+    static htmlToText(html){
+        //remove code brakes and tabs
+        html = html.replace(/\n/g, "");
+        html = html.replace(/\t/g, "");
+
+        //keep html brakes and tabs
+        html = html.replace(/<\/td>/g, "\t");
+        html = html.replace(/<\/table>/g, "\n");
+        html = html.replace(/<\/tr>/g, "\n");
+        html = html.replace(/<\/p>/g, "\n");
+        html = html.replace(/<\/div>/g, "\n");
+        html = html.replace(/<br>/g, "\n");
+        html = html.replace(/<br( )*\/>/g, "\n");
+
+
+        //parse html into text
+        const dom = (new DOMParser()).parseFromString('<!doctype html><body>' + html, 'text/html');
+        //remove duplicate line breaks
+        const text = dom.body.textContent.replace(/\n\s*\n/g, "\n");
+
+        return text
+      }
+
 
 
     static cleanHTML(html) {
@@ -544,9 +568,9 @@ class Util {
         */
 
         Number.prototype.addCommas = function() {
-          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         };
-        
+
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -734,7 +758,7 @@ class Util {
       return vars;
     }
     static replaceUrlParam(paramName, paramValue){
-      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end  
+      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end
       var url = INBROWSER ? window.location.href : this._initialPath;
       if(paramValue == null)
           paramValue = '';

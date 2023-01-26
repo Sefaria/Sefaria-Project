@@ -140,7 +140,7 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
     if existing_c:
         print("Already exists")
         return existing_c
-    new_c = Category()
+    c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
             raise Exception("Need term names for {}".format(path[-1]))
@@ -150,16 +150,18 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
         term.add_primary_titles(en, he)
         term.scheme = "toc_categories"
         term.save()
-    new_c.add_shared_term(path[-1])
-    new_c.path = path
-    new_c.lastPath = path[-1]
+    c.add_shared_term(path[-1])
+    c.path = path
+    c.lastPath = path[-1]
     if order:
-        new_c.order = order
+        c.order = order
     if searchRoot is not None:
-        new_c.searchRoot = searchRoot
-    print("Creating - {}".format(" / ".join(new_c.path)))
-    new_c.save(override_dependencies=True)
-    return new_c
+        c.searchRoot = searchRoot
+    if order is not None:
+        c.order = order
+    print("Creating - {}".format(" / ".join(c.path)))
+    c.save(override_dependencies=True)
+    return c
 
 
 def get_category_paths(path):
