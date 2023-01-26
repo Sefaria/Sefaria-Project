@@ -2421,12 +2421,13 @@ const CategoryChooser = function({categories, update}) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+      let elValue = el.options[el.selectedIndex].value;
+      let possCategories = newCategories.concat([elValue]);
+      if (!Sefaria.tocObjectByCategories(possCategories)) {
+        // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
-      newCategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(elValue);
     }
     update(newCategories); //tell parent of new values
   }
@@ -2447,17 +2448,11 @@ const CategoryChooser = function({categories, update}) {
   //now add to menu second and/or third level categories found in categories
   for (let i=0; i<categories.length; i++) {
     let options = [];
-    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i+1));
+    const subcats = !tocObject?.contents ? [] : tocObject.contents.filter(x => x.hasOwnProperty("category")); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
     for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
-        if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
-        }
-        else
-        {
-          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
-        }
-      }
+      const selected = categories.length >= i && categories[i+1] === subcats[j].category;
+      options.push(<option key={j} value={subcats[j].category} selected={selected}>{subcats[j].category}</option>);
     }
     if (options.length > 0) {
       menus.push(options);
