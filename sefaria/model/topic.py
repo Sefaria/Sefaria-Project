@@ -702,7 +702,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+    optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
 
     def load(self, query, proj=None):
         query = TopicLinkSetHelper.init_query(query, 'refTopic')
