@@ -294,7 +294,7 @@ const RambanLandingPage = () => {
             ['Pekudei', 'The Hiltzik Family', '', '/Exodus.38.21?with=Ramban']]
             .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]} link={i[3]}/>)}/>
         </div>
-        
+
         <StaticHR />
 
         <div className="staticPageBlockInner flexContainer">
@@ -1377,7 +1377,7 @@ const PBSC2020LandingPage = () => (
         />
 
         <ButtonRow white={true} enTitle="Explore more projects" heTitle="למידע על עוד כמה מיזמים">
-            { [ 
+            { [
                 ["Abba Saul", "", "https://github.com/scopreon/abba-saul/"],
                 ["Amud-anan", "", "https://github.com/Binyomin-Cohen/sefaria"],
                 ["Bashamayim Hi", "", "https://yosefsklar.github.io/bashamayim-hi/"],
@@ -1403,7 +1403,7 @@ const PBSC2020LandingPage = () => (
                 ["Visualizing Works Influence", "", "https://adinabechhofer.github.io/"],
                 ["Yamim Noraim Machzor", "", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Yomyomishna", "", "https://yomyomishna.web.app/"]
-            ].map(i => 
+            ].map(i =>
                 <SimpleButton
                     white={true}
                     rounded={false}
@@ -1768,6 +1768,169 @@ const DonatePage = () => (
 
   </StaticPage>
 );
+
+const WordByWordPage = () => (
+  <StaticPage optionalClass="donate wordbyword">
+
+    <div className="staticPageHeader wordbyword">
+      <div className="staticPageBlockInner flexContainer">
+        <div className="staticPageHeaderTextBox donate">
+          <h1>
+            <span className="int-en">{"Word-by-Word: A Jewish Women's Writing Circle"}</span>
+          </h1>
+          <div className="staticPageHeaderText"><em>"...I am grateful to God for this gift, this possibility of developing myself and of writing, of expressing all that is in me."</em><br/>- Anne Frank</div>
+        </div>
+      </div>
+    </div>
+
+
+    <div className="staticPageCallToActionFooter">
+      <div className="staticPageBlockInner flexContainer light">
+          <div className="msgToSupporters">
+
+              <p>Word-by-Word: A Jewish Women’s Writing Circle will provide up to 20 Jewish women writers engaged in serious Torah scholarship the support and guidance to complete publishable books of Jewish textual analysis that will be significant contributions to any Jewish library. Word-by-Word will offer writers a three-year stipend and community to develop talent by providing skill-based workshops, professional coaching, peer mentoring, an annual retreat, and opportunities to network with publishers and experienced authors. Sefaria is proud to partner with Dr. Erica Brown on this new initiative, co-led by Sefaria’s Chief Learning Officer, Sara Wolkenfeld.</p>
+              <p><em>This program is generously funded by Micah Philanthropies, the Walder Foundation, and the Arev Fund.</em></p>
+
+          </div>
+      </div>
+    </div>
+
+    <GreyBox>
+      <H1Block en="About the Program" he="" serif={true}/>
+      <div className="staticPageBlockInner flexContainer">
+
+          <ResponsiveNBox
+            threshold3={768}
+            threshold2={500}
+            gap="10px"
+            stretch={true}
+            content={[
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Requirements"
+                    heTitle=""
+                    enText="<p>Application must include a detailed synopsis of the proposed book (1,000 words), a detailed table of contents, and two published writing samples. </p>
+                            <p>The finished book must be written in English, must be at least 150 pages / 75,000 words.</p>
+                            <p>Participants should be located in a time zone that makes it reasonable for them to participate in programming on U.S. time zones.</p>"
+                    heText=""
+                    colorBar="#AB4E66"
+                />,
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Schedule"
+                    heTitle=""
+                    enText="<p>Applicants must be willing to commit to the following schedule:</p>
+                            <p>Annual writing retreat each June. The first retreat will be held June 18-22, 2023</p>
+                            <p>Monthly online meetings of a 1.5 hour duration. Participants are required to attend 8 out of 10 of these meetings each year.</p>"
+                    heText=""
+                    colorBar="#D4896C"
+                />,
+                <HeaderWithColorAccentBlockAndText
+                    enTitle="Benefits"
+                    heTitle=""
+                    enText="<p>Each participant will receive a total stipend of $18,000 ($6,000/year over three years).</p>
+                            <p>Workshops with experts from the writing and publishing world.</p>
+                            <p>Each participant is entitled to 10-15 hours of coaching per year. Program leaders will work with each author to match her with an appropriate coach. Coaching sessions will be scheduled at the discretion of the participant.</p>"
+                    heText=""
+                    colorBar="#CCB479"
+                />
+            ]}
+          />
+      </div>
+      <Spacer/>
+    </GreyBox>
+
+    <CallToActionFooterWithButton
+        href="/static/files/Word-by-Word Jewish Women's Writing Circle.pdf"
+        he_href=""
+        enText="Read the full schedule, requirements, and application information."
+        heText=""
+        enButtonText="Download"
+        heButtonText=""
+    />
+
+    <Feature
+        enTitle="Sara Wolkenfeld"
+        enText="Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is also a fellow at the David Hartman Center at the Hartman Institute of North America, and is a member of Class Six of the Wexner Field Fellowship. She writes about Jewish texts and Jewish law, and her current projects focus on applying Talmudic ideas to questions of advancements in digital technology."
+        enImg="/static/img/sara_circle.png"
+        enImgAlt="Sara Wolkenfeld headshot"
+        heTitle=""
+        heText=""
+        heImg=""
+        heImgAlt=""
+        borderColor="#004E5F"
+    />
+
+    <Feature
+        enTitle="Erica Brown"
+        enText="Dr. Erica Brown is the Vice Provost for Values and Leadership at Yeshiva University and the founding director of its Rabbi Lord Jonathan Sacks-Herenstein Center for Values and Leadership. She previously served as the director of the Mayberg Center for Jewish Education and Leadership and an associate professor of curriculum and pedagogy at The George Washington University. Erica is the author or co-author of 15 books on leadership, the Hebrew Bible and spirituality. Erica has a daily podcast, “Take Your Soul to Work.” Her forthcoming book Kohelet and the Search for Meaning (Maggid) will be available in 2023. Her last book Esther: Power, Fate and Fragility in Exile (Maggid) was a finalist for the National Jewish Book Award."
+        enImg="/static/img/ericabrown_circle 1.png"
+        enImgAlt="Erica Brown headshot"
+        heTitle=""
+        heText=""
+        heImg=""
+        heImgAlt=""
+        borderColor="#004E5F"
+    />
+
+    <H1Block en="Get Your questions answered." he="" serif={true}/>
+    <div className="staticPageBlockInner">
+        <Accordian
+            enTitle="What’s the application deadline?"
+            heTitle=""
+            enText="<p>The deadline for applications is March 13, 2023. We will not consider applications submitted after this date.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="How many women will be in the cohort?"
+            heTitle=""
+            enText="<p>We plan to welcome 20 women to this cohort.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="How does the stipend work?"
+            heTitle=""
+            enText="<p>Each woman will be awarded $6,000 per year, contingent on meeting the yearly writing requirements (15,000 words in the first year, 25,000 words in years two and three).</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="How will the cohort support each other?"
+            heTitle=""
+            enText="<p>Through monthly meetings, a WhatsApp group, and regular check-ins, this cohort will build a supportive community in which women motivate each other, check in on progress, and share ideas. The monthly meetings will provide space to get to know one another, share drafts and get feedback, collaborate around best practices, and champion one another’s projects. The annual retreat will help cement these relationships and expose the cohort to developments in the field and veteran writers.</p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+        <Accordian
+            enTitle="I have more questions. How can I contact you?"
+            heTitle=""
+            enText="<p>Please email Rachel Buckman at <a href='mailto:rachel@sefaria.org'>rachel@sefaria.org</a></p>"
+            heText=""
+            colorBar="#B8D4D3"
+        />
+
+
+    </div>
+    <Spacer/>
+
+    <CallToActionFooterWithButton
+        href="https://sefaria.typeform.com/to/wJXgn9jL"
+        he_href=""
+        enText="Ready to Apply? Fill our your application by March 13, 2023."
+        heText=""
+        enButtonText="Apply Now"
+        heButtonText=""
+    />
+
+
+
+  </StaticPage>
+);
+
 
 const PoweredByPage = () => (
     <StaticPage>
@@ -2435,7 +2598,7 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
 const ButtonRow = ({children, light, white, enTitle, heTitle}) => (
     <div className={classNames({
         "buttonRow": 1,
-        "blockVerticalPadding": 1, 
+        "blockVerticalPadding": 1,
         "lightgreyBackground": light,
         "greyBackground": !white && !light
     })}>
@@ -2475,7 +2638,7 @@ const ParashaSponsorship = ({title, sponsorNames, message, link}) => {
 const StaticHR = () =>
     <div className="staticPageBlockInner"><hr /></div>;
 
-const ConditionalLink = ({ link, children }) => 
+const ConditionalLink = ({ link, children }) =>
   link ? <a href={link} target="_blank">{children}</a> : children;
 
 
@@ -2489,5 +2652,6 @@ export {
     RambanLandingPage,
     EducatorsPage,
     RabbisPage,
-    DonatePage
+    DonatePage,
+    WordByWordPage
 }

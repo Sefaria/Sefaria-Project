@@ -2880,6 +2880,15 @@ display: none;
   padding: 70px 0 30px;
   background-position: bottom right;
 }
+
+.staticPage .staticPageHeader.wordbyword {
+  background-image: url("/static/img/word-by-word-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: bottom right;
+}
+
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
@@ -3155,6 +3164,20 @@ display: none;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   border-radius: 6px;
 }
+.staticPage.wordbyword .feature .featureText {
+  width: 57%;
+}
+.staticPage.wordbyword .feature .featureImage {
+  width: 35%;
+}
+
+.staticPage.wordbyword .feature .featureImage img {
+  width: initial;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+
 .staticPage .feature {
   padding: 40px 0;
   background-color: #FBFBFA;
@@ -3175,6 +3198,10 @@ display: none;
   margin-top: 20px;
   width: 100%;
 }
+.staticPage.donate.wordbyword .simpleButtonWrapper {
+  width: 33%;
+}
+
 .staticPage.donate .finStewardBox {
   display: flex;
   flex-direction: column;
@@ -3240,6 +3267,15 @@ display: none;
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
   }
+
+  .staticPage.donate.wordbyword .simpleButtonWrapper,
+  .staticPage.donate.wordbyword .feature .featureText,
+  .staticPage.donate.wordbyword .feature .featureImage,
+  .staticPage.donate.wordbyword .feature .featureImage img,
+  .staticPage.donate.wordbyword .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+
   .staticPage .staticPageCallToActionFooter .callToActionText {
     padding-bottom: 20px;
   }
