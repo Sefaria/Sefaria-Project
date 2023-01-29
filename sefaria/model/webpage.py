@@ -334,7 +334,7 @@ def get_webpages_for_ref(tref):
 
 
 def test_normalization():
-    pages = WebPageSet()()
+    pages = WebPageSet()
     count = 0
     for page in pages:
         norm = WebPage.normalize_url(page.url)
@@ -537,7 +537,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 def find_sites_to_be_excluded():
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in tqdm(enumerate(WebPageSet()())):
+    for i, webpage in tqdm(enumerate(WebPageSet())):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
