@@ -64,7 +64,6 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
                                             </div>
                                     </div>);
 
-
     const validate = function () {
         if (data.catSlug === "") {
           alert(Sefaria._("Please choose a category."));
@@ -97,7 +96,7 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
             postData.origCatDescription = data.origCategoryDesc;
           }
         }
-
+        
         const postJSON = JSON.stringify(postData);
         $.post(url,  {"json": postJSON}, function(result) {
           if (result.error) {

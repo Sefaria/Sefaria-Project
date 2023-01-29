@@ -129,9 +129,9 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
-          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
           :
-          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
   );
 };
 
@@ -2470,23 +2470,24 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TitleVariants = function({titles, update}) {
+const TitleVariants = function({titles, update, options}) {
   /*
   Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
-  and `update` is method to call after deleting or adding to titles
+  and `update` is method to call after deleting or adding to titles. `options` is an object that can have
+  the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
   const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
+    const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
+    const newTitles = [].concat(titles, title);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title+" already exists.");
+      alert(title.name+" already exists.");
     }
     return validTitle;
   }
@@ -2495,11 +2496,11 @@ const TitleVariants = function({titles, update}) {
                 <ReactTags
                     allowNew={true}
                     tags={titles}
-                    onDelete={onTitleDelete}
+                    onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
                     placeholderText={Sefaria._("Add a title...")}
                     delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
+                    onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
+                    onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />
          </div>
 }
