@@ -168,7 +168,7 @@ const Dedication = () => {
     }, []);
 
     return (
-        dedicationData && dedicationData.en && dedicationData.he ?
+        dedicationData && (dedicationData.en || dedicationData.he) ?
         <div className="dedication">
           <span>
               <span className="int-en">{dedicationData.en}</span>
