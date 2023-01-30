@@ -1810,7 +1810,7 @@ class ReaderApp extends Component {
 
 
       const book = activePanel['currentlyVisibleRef'] ? Sefaria.parseRef(activePanel['currentlyVisibleRef'])["book"] : null
-      const category = book ? Sefaria.index(book)["primary_category"] : null
+      const category = book && Sefaria.index(book) ? Sefaria.index(book)["primary_category"] : null
 
       let params = {
         "length": textOnly.length,
@@ -1834,13 +1834,12 @@ class ReaderApp extends Component {
       }
   }
 
+
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    // - Ensure we don't copy hidden English or Hebrew text
-    // - Remove elements like link dots
-    // - Strip links inline in the text
     const selection = document.getSelection()
-    const textOnly = selection.toString();
+    const closestReaderPanel = this.state.panels.length > 0 && e.target.closest('.readerPanel') || null
+    let textOnly = selection.toString();
     let html = textOnly;
     let selectedEls;
 
@@ -1850,8 +1849,36 @@ class ReaderApp extends Component {
         container.appendChild(selection.getRangeAt(i).cloneContents());
       }
 
-      // Elements to Remove
-      const classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
+
+      // Set content direction & add line breaks for each contentSpan
+      let contentSpans = container.querySelectorAll(".contentSpan");
+      if (closestReaderPanel && !closestReaderPanel.classList.contains('continuous')) {
+        contentSpans.forEach(el => {
+            el.outerHTML = `<div dir="${Sefaria.hebrew.isHebrew(el.innerText) ? 'rtl' : 'ltr'}">${el.innerHTML}</div>`;
+        })
+      }
+
+      if (closestReaderPanel && closestReaderPanel.classList.contains('hebrew')) {
+        container.setAttribute('dir', 'rtl');
+      }
+
+      // Remove extra breaks for continuous mode
+      if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
+        let elsToRemove = container.querySelectorAll("br");
+        elsToRemove.forEach(el => el.remove())
+
+        // each of these are divs which by default creates line breaks for various html/txt renderers on paste. We want to collapse them.
+        const classesToCollapse = ["segment", "rangeSpan", "segmentText", "contentSpan"];
+        classesToCollapse.map(cls => {
+          let elsToCollapse = container.getElementsByClassName(cls);
+          while(elsToCollapse.length > 0){
+            elsToCollapse[0].outerHTML = elsToCollapse[0].innerHTML;
+          }
+        });
+      }
+
+      // These interfere with the copying and pasting of text and users do not want them there. This code removes them.
+      const classesToRemove = ["segmentNumber", "linkCount", "clearFix", "footnote-marker"];
       classesToRemove.map(cls => {
         let elsToRemove = container.getElementsByClassName(cls);
         while(elsToRemove.length > 0){
@@ -1859,41 +1886,29 @@ class ReaderApp extends Component {
         }
       });
 
+      // Remove hidden footnotes
+      let hiddenFootnotes = container.querySelectorAll(".footnote:not([style*='display: inline'])");
+      for(let footnote of hiddenFootnotes){
+        footnote.parentNode.removeChild(footnote);
+      }
+
+      // Add footnote marker and appropriate space for open footnotes
+      let footnotes = container.querySelectorAll(".footnote");
+      footnotes.forEach(el => el.prepend(" *"))
+
       // Links to Strip
-      const linksToStrip = ".segment a.namedEntityLink, .segment a.refLink";
+      const linksToStrip = "a.namedEntityLink, a.refLink";
       let elsToStrip = container.querySelectorAll(linksToStrip);
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
-
-      // Remove invisible languages based on the class of the readerPanel you're
-      // copying from.
-      const selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
-      if (selectionAncestor.nodeType == 1) {
-
-        const curReaderPanel = selectionAncestor.closest('.readerPanel');
-
-        if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-          let elsToRemove = container.getElementsByClassName('en')
-          while(elsToRemove.length > 0){
-            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-          }
-        }
-
-        else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-          let elsToRemove = container.getElementsByClassName('he')
-          while(elsToRemove.length > 0){
-            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-          }
-        }
-      }
-
-      html = container.innerHTML;
+      html = container.outerHTML;
+      textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
     }
 
 
     // ga tracking
-    if (this.state.panels.length > 0 && e.target.closest('.readerPanel')) {
+    if (closestReaderPanel) {
       this.handleGACopyEvents(e, selectedEls, textOnly)
     }
 

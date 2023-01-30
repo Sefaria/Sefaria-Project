@@ -62,10 +62,10 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
@@ -119,10 +119,10 @@ jobs:
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=sefaria-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=sefaria-${{ matrix.app }}/cache, mode=max
+#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           build-args: |

@@ -310,7 +310,7 @@ class TextRange extends Component {
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
     const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
-    
+
     let strip_vowels_re = null;
 
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
@@ -346,7 +346,7 @@ class TextRange extends Component {
       segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
 
       return (
-        <span key={i + segment.ref}>
+        <span className="rangeSpan" key={i + segment.ref}>
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
