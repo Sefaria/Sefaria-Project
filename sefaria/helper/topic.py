@@ -948,11 +948,6 @@ def change_category(topic_obj, new_category, old_category):
             # from the topic TOC
             IntraTopicLink({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
                             "dataSource": "sefaria", "linkType": "displays-under"}).save()
-    
-    def create_new_link():
-        if orig_link:
-            orig_link.delete()
-        IntraTopicLink(new_link_dict).save()
 
     def create_new_link():
         if orig_link:

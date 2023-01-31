@@ -1,7 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
 
-
 def move_index_into(index, cat):
     """
     :param index: (String)  The primary name of the Index to move.
@@ -168,3 +167,22 @@ def get_category_paths(path):
     from sefaria.model.category import TocCategory
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
+
+
+def check_term(last_path, he_last_path):
+    # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
+    # if neither of the titles correspond to a term, create the appropriate term
+    error_msg = ""
+    en_term = Term().load({"name": last_path})
+    he_term = Term().load_by_title(he_last_path)
+
+    if (en_term and he_term != en_term) or (he_term and he_term != en_term):
+        # they do not correspond, either because both terms exist but are not the same, or one term already
+        # exists but the other one doesn't exist
+        error_msg = f"English and Hebrew titles, {last_path} and {he_last_path}, do not correspond to the same term.  Please use the term editor."
+    elif en_term is None and he_term is None:
+        t = Term()
+        t.name = last_path
+        t.add_primary_titles(last_path, he_last_path)
+        t.save()
+    return error_msg
