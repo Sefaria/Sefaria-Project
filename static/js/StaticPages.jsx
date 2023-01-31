@@ -1796,7 +1796,7 @@ const WordByWordPage = () => (
     </div>
 
     <GreyBox>
-      <H1Block en="About the Program" he="" serif={true}/>
+      <H2Block en="About the Program" he="" />
       <div className="staticPageBlockInner flexContainer">
 
           <ResponsiveNBox
@@ -1847,6 +1847,7 @@ const WordByWordPage = () => (
         heButtonText=""
         newTab={true}
     />
+     <H2Block en="Word-by-Word Leadership" he=""/>
 
     <Feature
         enTitle="Sara Wolkenfeld"
