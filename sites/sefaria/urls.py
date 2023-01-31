@@ -43,7 +43,8 @@ static_pages = [
     "rabbis",
     "contest",
     "design-system",
-    "powered-by"
+    "powered-by",
+    "word-by-word"
 ]
 
 static_pages_by_lang = [
