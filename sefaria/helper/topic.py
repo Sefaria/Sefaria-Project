@@ -1017,8 +1017,7 @@ def update_topic(topic_data):
         topic_obj = rename_topic(topic_data["heTitle"], topic_obj, lang='he')
 
     if category_changed:
-        topic_obj = change_category(topic_data["category"], topic_data["origCategory"],
-                                    topic_obj)  # can change topic and intratopiclinks
+        topic_obj = change_category(topic_obj, topic_data["category"], topic_data["origCategory"])  # can change topic and intratopiclinks
 
     topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
     topic_obj = update_description(topic_data["description"], topic_data["origDescription"],
