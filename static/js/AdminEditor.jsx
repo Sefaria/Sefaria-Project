@@ -25,8 +25,8 @@ function useEditToggle() {
 const TopicEditor = ({origData, onCreateSuccess, close}) => {
     const [origCategoryDescBool, setOrigCategoryDescBool] = useState(Object.keys(origData.origCategoryDesc || {}).length > 0);
     const [isTopicCategory, setIsTopicCategory] = useState(origCategoryDescBool);  // applicable when adding/editing Topic with children
-    const [data, setData] = useState({...origData, catSlug: origData?.origCategorySlug, enTitle: origData?.origEn,
-                                heTitle: origData?.origHe, heDescription: origData?.origDesc?.he,
+    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug, enTitle: origData.origEn,
+                                heTitle: origData.origHe, heDescription: origData?.origDesc?.he,
                                 enDescription: origData?.origDesc?.en,
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he,

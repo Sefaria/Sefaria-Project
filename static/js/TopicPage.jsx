@@ -201,8 +201,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
             const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
-                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he,
-                         origDesc: topicData?.description, origCategoryDesc: topicData?.categoryDescription};
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            origData.origDesc = topicData.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
             const displaysAbove = "displays-above" in topicData?.links;
             topicEditorStatus = <TopicEditor origData={origData}
                                              origWasCat={displaysAbove}
@@ -348,9 +349,10 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      const origData = {origSlug: topicData.slug, origEn: en, origHe: he,
-                 origDesc: topicData?.description, origCategorySlug: initCatSlug,
-                 origCategoryDesc: topicData?.categoryDescription};
+      const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            origData.origDesc = topicData.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
       const displaysAbove = "displays-above" in topicData?.links;
       return <TopicEditor origData={origData}
                           origWasCat={displaysAbove}
