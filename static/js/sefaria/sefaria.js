@@ -580,10 +580,9 @@ Sefaria = extend(Sefaria, {
     } else {
        tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
     }
-    if (includeHeTranslations && !('he' in tempValue)) {
-        const heVersions = versions['he'].filter(version => version.is_translation);
-        console.log(heVersions, heVersions.length);
-        if (heVersions.length) {
+   if (includeHeTranslations && !('he' in tempValue)) {
+        const heVersions = versions['he']?.filter(version => version.isTranslation);
+        if (heVersions?.length) {
             tempValue['he'] =  heVersions;
         }
       }
