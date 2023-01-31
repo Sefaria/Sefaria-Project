@@ -1845,6 +1845,7 @@ const WordByWordPage = () => (
         heText=""
         enButtonText="Download"
         heButtonText=""
+        newTab={true}
     />
 
     <Feature
@@ -1924,6 +1925,7 @@ const WordByWordPage = () => (
         heText=""
         enButtonText="Apply Now"
         heButtonText=""
+        newTab={true}
     />
 
 
@@ -2493,11 +2495,11 @@ const Sheet = ({title, link, author, image}) =>
         <span className="staticPageSheetAuthor">{author}</span>
     </div>;
 
-const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonText, heButtonText}) => (
+const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonText, heButtonText, newTab=false}) => (
   <div className="staticPageCallToActionFooter">
     <div className="staticPageBlockInner flexContainer">
       <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
-      <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
+      <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true} newTab={newTab}/>
     </div>
   </div>
 );
