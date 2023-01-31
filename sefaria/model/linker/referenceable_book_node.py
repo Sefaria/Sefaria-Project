@@ -40,20 +40,18 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
 
     def _get_all_children(self) -> List[ReferenceableBookNode]:
         thingy = self._titled_tree_node_or_index
-        children = []
         #the schema node for this referenceable node has a dibur hamatchil child
         if isinstance(thingy, schema.NumberedTitledTreeNode) and thingy.is_segment_level_dibur_hamatchil():
-            children = [DiburHamatchilNodeSet({"container_refs": self.ref().normal()})]
+            return [DiburHamatchilNodeSet({"container_refs": self.ref().normal()})]
         #the schema node for this referenceable is a JAN. JANs act as both named and numbered nodes
-        elif isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
-            children = [NumberedReferenceableBookNode(thingy)]
-        if not children:
-            if isinstance(thingy, text.Index):
-                children = thingy.referenceable_children()
-            else:
-                # Any other type of TitledTreeNode
-                children = self._titled_tree_node.children
-            children = [self._transform_schema_node_to_referenceable(x) for x in children]
+        if isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
+            return [NumberedReferenceableBookNode(thingy)]
+        if isinstance(thingy, text.Index):
+            children = thingy.referenceable_children()
+        else:
+            # Any other type of TitledTreeNode
+            children = self._titled_tree_node.children
+        children = [self._transform_schema_node_to_referenceable(x) for x in children]
         return children
 
     @staticmethod
