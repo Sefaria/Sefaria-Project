@@ -1,5 +1,4 @@
 import pytest
-from sefaria.model.topic import *
 from sefaria.helper.topic import *
 
 
