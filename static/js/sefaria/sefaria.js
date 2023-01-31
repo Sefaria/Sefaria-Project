@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
      let versions = this._cachedApi(ref, this._versions, []);
      return this._makeVersions(versions, byLang, filter, excludeFilter)
   },
-  getVersions: async function(ref, byLang, filter, excludeFilter) {
+  getVersions: async function(ref, byLang, filter, excludeFilter, includeHeTranslations=false) {
       /**
        * Returns a list of available text versions for `ref`.
        *
@@ -560,15 +560,15 @@ Sefaria = extend(Sefaria, {
        * excludeFilter: if the filter should be including the filter value or excluding it.
        */
     let versionsInCache = ref in this._versions;
-    if(!versionsInCache) {
+    if (!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
         await this._ApiPromise(url).then(d => {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
+    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter, includeHeTranslations));
   },
-  _makeVersions: function(versions, byLang, filter, excludeFilter){
+  _makeVersions: function(versions, byLang, filter, excludeFilter, includeHeTranslations){
     let tempValue;
     if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
         tempValue = Object.keys(versions)
@@ -577,9 +577,16 @@ Sefaria = extend(Sefaria, {
             obj[key] = versions[key];
             return obj;
           }, {});
-    }else{
+    } else {
        tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
     }
+    if (includeHeTranslations && !('he' in tempValue)) {
+        const heVersions = versions['he'].filter(version => version.is_translation);
+        console.log(heVersions, heVersions.length);
+        if (heVersions.length) {
+            tempValue['he'] =  heVersions;
+        }
+      }
     let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
     return finalValue;
   },
