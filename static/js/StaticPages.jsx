@@ -1798,7 +1798,6 @@ const WordByWordPage = () => (
     <GreyBox>
       <H2Block en="About the Program" he="" />
       <div className="staticPageBlockInner flexContainer">
-
           <ResponsiveNBox
             threshold3={768}
             threshold2={500}
@@ -1847,8 +1846,9 @@ const WordByWordPage = () => (
         heButtonText=""
         newTab={true}
     />
-     <H2Block en="Word-by-Word Leadership" he=""/>
-
+    <GreyBox light={true}>
+    <H2Block en="Word-by-Word Leadership" he=""/>
+</GreyBox>
     <Feature
         enTitle="Sara Wolkenfeld"
         enText="Sara Wolkenfeld is the Chief Learning Officer at Sefaria, an online database and interface for Jewish texts. Sara is also a fellow at the David Hartman Center at the Hartman Institute of North America, and is a member of Class Six of the Wexner Field Fellowship. She writes about Jewish texts and Jewish law, and her current projects focus on applying Talmudic ideas to questions of advancements in digital technology."
@@ -1872,7 +1872,6 @@ const WordByWordPage = () => (
         heImgAlt=""
         borderColor="#004E5F"
     />
-
     <H1Block en="Get Your questions answered." he="" serif={true}/>
     <div className="staticPageBlockInner">
         <Accordian
@@ -2272,7 +2271,7 @@ const HeBlock = ({children, padded}) => <div className={"int-he" + (padded ? " s
 
 const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 
-const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
+const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>
 
 const H1Block = ({en, he}) =>
   <div className="staticPageBlockInner">
