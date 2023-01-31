@@ -1789,7 +1789,7 @@ const WordByWordPage = () => (
           <div className="msgToSupporters">
 
               <p>Word-by-Word: A Jewish Women’s Writing Circle will provide up to 20 Jewish women writers engaged in serious Torah scholarship the support and guidance to complete publishable books of Jewish textual analysis that will be significant contributions to any Jewish library. Word-by-Word will offer writers a three-year stipend and community to develop talent by providing skill-based workshops, professional coaching, peer mentoring, an annual retreat, and opportunities to network with publishers and experienced authors. Sefaria is proud to partner with Dr. Erica Brown on this new initiative, co-led by Sefaria’s Chief Learning Officer, Sara Wolkenfeld.</p>
-              <p><em>This program is generously funded by Micah Philanthropies, the Walder Foundation, and the Arev Fund.</em></p>
+              <p><em>This program is generously funded by Micah Philanthropies, Walder Foundation, and the Arev Fund.</em></p>
 
           </div>
       </div>
