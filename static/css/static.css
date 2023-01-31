@@ -3011,6 +3011,11 @@ display: none;
   margin-top: -40px;
   width: 100%;
 }
+.staticPage .msgToSupportersEven {
+    margin-top: -40px;
+    margin-bottom: -40px;
+    width: 100%;
+}
 .staticPage .msgToSupporters h1 {
   font-weight: 500;
   font-size: 42px;
