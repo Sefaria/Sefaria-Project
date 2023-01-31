@@ -1,5 +1,4 @@
 import pytest
-from sefaria.model.topic import *
 from sefaria.helper.topic import *
 
 
@@ -205,29 +204,3 @@ def test_change_child_of_root_with_self_linkegories(root_wout_self_link, child_o
 	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	assert new_tree_from_normal_root == orig_tree_from_normal_root
 	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
-
-
-
-# def update_topic(topic_data):
-# 	topic_obj = Topic().load({'slug': topic_data["origSlug"]})
-# 	category_changed = topic_data["category"] != topic_data["origCategory"]
-# 	en_title_changed = topic_data["origTitle"] != topic_data["title"]
-# 	he_title_changed = topic_data["origHeTitle"] != topic_data["heTitle"]
-#
-# 	if en_title_changed:
-# 		topic_obj = rename_topic(topic_data["title"], topic_obj)  # saves topic and cascades to links
-#
-# 	if he_title_changed:
-# 		topic_obj = rename_topic(topic_data["heTitle"], topic_obj, lang='he')
-#
-# 	if category_changed:
-# 		topic_obj = change_category(topic_data["category"], topic_data["origCategory"],
-# 									topic_obj)  # can change topic and intratopiclinks
-#
-# 	topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-# 	topic_obj = update_top_level_display(topic_data["category"], topic_data["origCategory"], topic_obj)  # doesnt' save
-# 	topic_obj = update_description(topic_data["description"], topic_data["origDescription"],
-# 								   topic_data.get("catDescription", {}),
-# 								   topic_data.get("origCatDescription", {}), topic_obj)  # doesn't save
-# 	topic_obj.save()
-# 	return topic_obj
