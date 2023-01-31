@@ -242,12 +242,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
-            setattr(link, attr, self.slug)
-            if getattr(link, 'fromTopic', None) == link.toTopic:
-                # self-link
-                link.delete()
-                continue
+            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
+                setattr(link, 'fromTopic', self.slug)
+                link.toTopic = self.slug
+            else:
+                attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
+                setattr(link, attr, self.slug)
+                if getattr(link, 'fromTopic', None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
+                    link.delete()
+                    continue
             try:
                 link.save()
             except (InputError, DuplicateRecordError) as e:
