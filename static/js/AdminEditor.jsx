@@ -113,7 +113,7 @@ const TopicEditor = ({origData, onCreateSuccess, close}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: "/api/topic/delete/"+origSlug,
+        url: "/api/topic/delete/"+data.origSlug,
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
@@ -306,18 +306,19 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                         {catMenu}
                         <div className="section">
                             <label><InterfaceText>English Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={setValues}
+                            <textarea id="topicDesc" onBlur={setValues} className="default"
                                    defaultValue={data.enDescription} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Description</InterfaceText></label>
-                                <textarea id="topicHeDesc" onBlur={setValues}
+                                <textarea id="topicHeDesc" onBlur={setValues} className="default"
                                        defaultValue={data.heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
                        {shortDescBool ?  <div> <div className="section">
                                                      <label><InterfaceText>English Short Description for Table of Contents</InterfaceText></label>
                                                      <textarea
+                                                         className="default"
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
                                                          defaultValue={data.enCatDescription}
@@ -326,6 +327,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
                                                     <label><InterfaceText>Hebrew Short Description for Table of Contents</InterfaceText></label>
                                                     <textarea
+                                                        className="default"
                                                         id="topicHeCatDesc"
                                                         onBlur={setValues}
                                                         defaultValue={data.heCategoryDescription}
@@ -336,16 +338,16 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                       {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
                                     </div> : null}
-                      {extras.length > 0 ? extras : null}
-                        {path.length === 0 ? null :
-                            <div id="categoryChooserMenu">
-                              <select>
-                                  {Sefaria.tocObjectByCategories(path)?.contents?.map((child, i) => {
-                                    <option key={`child-${i}`} id={`child-${i}`} value={child}>{child}</option>
-                                  })}
+                      {/*{extras.length > 0 ? extras : null}*/}
+                      {/*  {path.length === 0 ? null :*/}
+                      {/*      <div id="categoryChooserMenu">*/}
+                      {/*        <select>*/}
+                      {/*            {Sefaria.tocObjectByCategories(path)?.contents?.map((child, i) => {*/}
+                      {/*              <option key={`child-${i}`} id={`child-${i}`} value={child}>{child}</option>*/}
+                      {/*            })}*/}
 
-                              </select>
-                            </div>}
+                      {/*        </select>*/}
+                      {/*      </div>}*/}
 
                     </div>
                 </div>
