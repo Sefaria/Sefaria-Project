@@ -932,10 +932,6 @@ def rename_topic(new, topic_obj, lang='en'):
     return topic_obj
 
 
-
-def move_from_main_menu():
-    pass
-
 def change_category(topic_obj, new_category, old_category):
     def move_to_main_menu():
         if has_children:
@@ -953,9 +949,10 @@ def change_category(topic_obj, new_category, old_category):
             IntraTopicLink({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
                             "dataSource": "sefaria", "linkType": "displays-under"}).save()
 
-    parent = IntraTopicLink().load({"fromTopic": topic_obj.slug, "linkType": "displays-under"})
     # change IntraTopicLink from old category to new category and set newSlug if it changed
-    # special casing for moving to the Main Menu, where we delete the IntraTopicLink that linked it to its previous parent
+    # special casing for moving to the Main Menu, where we delete the IntraTopicLink that
+    # linked it to its previous parent
+    parent = IntraTopicLink().load({"fromTopic": topic_obj.slug, "linkType": "displays-under"})
     parent_slug = getattr(parent, 'toTopic', "")
     orig_link_dict = {"fromTopic": topic_obj.slug, "toTopic": parent_slug, "linkType": "displays-under"}
     orig_link = IntraTopicLink().load(orig_link_dict)
@@ -994,28 +991,32 @@ def update_top_level_display(new_category, old_category, topic_obj):
     return topic_obj
 
 
+def update_description(desc, origDesc, catDesc, origCatDesc, topic_obj):
+    if origDesc != desc or origCatDesc != catDesc:
+        topic_obj.description_published = True
+        topic_obj.change_description(desc, catDesc)
+    return topic_obj
+
+
 def update_topic(topic_data):
     topic_obj = Topic().load({'slug': topic_data["origSlug"]})
     category_changed = topic_data["category"] != topic_data["origCategory"]
     en_title_changed = topic_data["origTitle"] != topic_data["title"]
+    he_title_changed = topic_data["origHeTitle"] != topic_data["heTitle"]
 
     if en_title_changed:
-        topic_obj = rename_topic(topic_data["title"], topic_obj)
+        topic_obj = rename_topic(topic_data["title"], topic_obj)  # saves topic and cascades to links
 
-    if topic_data["origHeTitle"] != topic_data["heTitle"]:
+    if he_title_changed:
         topic_obj = rename_topic(topic_data["heTitle"], topic_obj, lang='he')
 
     if category_changed:
-        topic_obj = change_category(topic_data["category"], topic_data["origCategory"], topic_obj)
+        topic_obj = change_category(topic_data["category"], topic_data["origCategory"], topic_obj) # can change topic and intratopiclinks
 
     topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-    topic_obj = update_top_level_display(topic_data["category"], topic_data["origCategory"], topic_obj)
-    topic_obj = update_description(topic_data, topic_obj)
+    topic_obj = update_top_level_display(topic_data["category"], topic_data["origCategory"], topic_obj)  # doesnt' save
+    topic_obj = update_description(topic_data["description"], topic_data["origDescription"], topic_data.get("catDescription", {}),
+                                   topic_data.get("origCatDescription", {}), topic_obj) # doesn't save
     topic_obj.save()
     return topic_obj
 
-def update_description(topic_data, topic_obj):
-    if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", {}) != topic_data.get("catDescription", {}):
-        topic_obj.description_published = True
-        topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", {}))
-    return topic_obj
