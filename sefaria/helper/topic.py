@@ -949,6 +949,11 @@ def change_category(topic_obj, new_category, old_category):
             IntraTopicLink({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
                             "dataSource": "sefaria", "linkType": "displays-under"}).save()
 
+    def create_new_link():
+        if orig_link:
+            orig_link.delete()
+        IntraTopicLink(new_link_dict).save()
+
     # change IntraTopicLink from old category to new category and set newSlug if it changed
     # special casing for moving to the Main Menu, where we delete the IntraTopicLink that
     # linked it to its previous parent
@@ -958,28 +963,29 @@ def change_category(topic_obj, new_category, old_category):
     orig_link = IntraTopicLink().load(orig_link_dict)
     curr_has_link_to_itself = (topic_obj.slug == parent_slug) and orig_link is not None
     has_children = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug}) is not None
+    new_link_dict = {"fromTopic": topic_obj.slug, "toTopic": new_category, "linkType": "displays-under",
+                     "dataSource": "sefaria"}
 
-    if new_category == "Main Menu":
+    if not curr_has_link_to_itself and old_category != "Main Menu" and new_category != "Main Menu":  # the most ordinary case of category change
+        orig_link.load_from_dict(new_link_dict).save()
+    elif new_category == "Main Menu":
         move_to_main_menu()
-    else:
-        if curr_has_link_to_itself and not has_children and curr_has_link_to_itself:
-            # this case happens when top-level category with no children is moved down the tree, in which case
+    elif curr_has_link_to_itself:
+        # create new link if existing link links topic to itself, as this means the topic
+        # functions as both a topic and category and we don't want to modify that link, or
+        create_new_link()
+
+        if not has_children:
+            # this case happens when category with no children is moved down the tree, in which case
             # there is no reason to keep link to itself
             IntraTopicLink().load({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
                                    "dataSource": "sefaria", "linkType": "displays-under"}).delete()
+    elif old_category == "Main Menu":
+        # create new link if topic is being moved out of main menu, as this means no
+        # current IntraTopicLink may exist
+        create_new_link()
 
-        modified_link = {"fromTopic": topic_obj.slug, "toTopic": new_category, "linkType": "displays-under",
-         "dataSource": "sefaria"}
-        if old_category == "Main Menu" or curr_has_link_to_itself:
-            # (1) create new link if existing link links topic to itself, as this means the topic
-            # functions as both a topic and category and we don't want to modify that link, or
-            # (2) create new link if topic is being moved out of main menu, as this means no
-            # current IntraTopicLink may exist
-            if orig_link:
-                orig_link.delete()
-            IntraTopicLink(modified_link).save()
-        else:
-            orig_link.load_from_dict(modified_link).save()
+    topic_obj = update_top_level_display(new_category, old_category, topic_obj)
 
     return topic_obj
 
@@ -1011,12 +1017,13 @@ def update_topic(topic_data):
         topic_obj = rename_topic(topic_data["heTitle"], topic_obj, lang='he')
 
     if category_changed:
-        topic_obj = change_category(topic_data["category"], topic_data["origCategory"], topic_obj) # can change topic and intratopiclinks
+        topic_obj = change_category(topic_data["category"], topic_data["origCategory"],
+                                    topic_obj)  # can change topic and intratopiclinks
 
     topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-    topic_obj = update_top_level_display(topic_data["category"], topic_data["origCategory"], topic_obj)  # doesnt' save
-    topic_obj = update_description(topic_data["description"], topic_data["origDescription"], topic_data.get("catDescription", {}),
-                                   topic_data.get("origCatDescription", {}), topic_obj) # doesn't save
+    topic_obj = update_description(topic_data["description"], topic_data["origDescription"],
+                                   topic_data.get("catDescription", {}),
+                                   topic_data.get("origCatDescription", {}), topic_obj)
     topic_obj.save()
     return topic_obj
 
