@@ -551,7 +551,7 @@ Sefaria = extend(Sefaria, {
      let versions = this._cachedApi(ref, this._versions, []);
      return this._makeVersions(versions, byLang, filter, excludeFilter)
   },
-  getVersions: async function(ref, byLang, filter, excludeFilter, includeHeTranslations) {
+  getVersions: async function(ref, byLang, filter, excludeFilter, translations) {
       /**
        * Returns a list of available text versions for `ref`.
        *
@@ -560,7 +560,7 @@ Sefaria = extend(Sefaria, {
        * excludeFilter: if the filter should be including the filter value or excluding it.
        */
     const rawVersions = await this.getRawVersions(ref);
-    return this._makeVersions(rawVersions, byLang, filter, excludeFilter, includeHeTranslations);
+    return this._makeVersions(rawVersions, byLang, filter, excludeFilter, translations);
   },
   getRawVersions: async function(ref) {
     let versionsInCache = ref in this._versions;
@@ -572,9 +572,18 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._versions[ref]);
   },
-  _makeVersions: function(versions, byLang, filter, excludeFilter, includeHeTranslations=false){
-    let tempValue;
-    if (filter?.length) { // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
+  _makeVersions: function(versions, byLang, filter, excludeFilter, translations=false){
+    let tempValue = {};
+    if (filter?.length && translations) {
+        for (let [key, value] of Object.entries(versions)) {
+            if (key === 'he' || (!excludeFilter ? filter.includes(key) : !filter.includes(key))) {
+                const langVersions = value.filter(version => version.isBaseText === false || (key !== 'he' && !version.isBaseText));
+                if (langVersions.length) {
+                    tempValue[key] = langVersions;
+                }
+            }
+        }
+    } else if (filter?.length) { // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
         tempValue = Object.keys(versions)
           .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
           .reduce((obj, key) => {
@@ -583,12 +592,6 @@ Sefaria = extend(Sefaria, {
           }, {});
     } else {
         tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
-    }
-    if (includeHeTranslations && !('he' in tempValue)) {
-        const heVersions = versions['he']?.filter(version => version.isBaseText === false);
-        if (heVersions?.length) {
-            tempValue['he'] =  heVersions;
-        }
     }
     let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
     return finalValue;
