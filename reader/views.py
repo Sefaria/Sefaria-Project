@@ -2445,18 +2445,24 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
+        new_category = Category().load({"path": j["path"]})
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if not update and Category().load({"path": j["path"]}):
+        if not update and new_category:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
         parent = j["path"][:-1]
-        if len(parent) > 0 and not Category().load({"path": parent}):  # ignore len(parent) == 0 since these categories are at the root of the TOC tree
+        if len(parent) > 0 and not Category().load({"path": parent}):
+            # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
         if request.GET.get("category_editor", False):
             last_path = j.get("sharedTitle", "")
             he_last_path = j.get("heSharedTitle", "")
+            if update and j["origPath"][-1] == last_path and new_category is not None:
+                # this case occurs when moving Tanakh's Rashi category into
+                # Rishonim on Bavli which may mean user wants to merge the two
+                return jsonResponse({"error": f"Merging two categories named {last_path} is not supported."})
             error_msg = check_term(last_path, he_last_path)
             if len(error_msg) > 0:
                 return jsonResponse({"error": error_msg})

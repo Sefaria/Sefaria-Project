@@ -153,31 +153,40 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
-def process_category_path_change_in_categories_and_indexes(changed_cat, **kwargs):
-    from sefaria.model.text import library
-    old_toc_node = library.get_toc_tree().lookup(kwargs["old"])
-    process_category_change_in_categories_and_indexes(old_toc_node, **kwargs)
+def process_category_path_change(changed_cat, **kwargs):
+    def modify(old_val, new_val):
+        if isinstance(new_val, str):
+            old_val[-1] = new_val
+        elif isinstance(new_val, list):
+            old_val = new_val
+        return old_val
 
-def process_category_change_in_categories_and_indexes(old_toc_node, **kwargs):
+    from sefaria.model.text import library
+    tree = library.get_toc_tree()
+    new_categories = kwargs["new"]
+    old_toc_node = tree.lookup(kwargs["old"])
     assert isinstance(old_toc_node, TocCategory)
-    pos = len(old_toc_node.ancestors()) - 1
+
+    #if I move Tanakh and collection is in Tanakh Torah, ["Tanakh", "Torah"] startswith ["Tanakh"]
+    #if I move Torah and collection is in Tanakh, Torah, ["Tanakh", "Torah"] starts
+    collections = collection.CollectionSet({"toc": {"$exists": True}})
+    for c in collections:
+        collection_in_old_category_tree = str(c.toc["categories"]).startswith(str(kwargs["old"]))
+        if collection_in_old_category_tree:
+            c.toc["categories"] = modify(c.toc["categories"], new_categories)
+            c.save(override_dependencies=True)
+
     children = old_toc_node.all_children()
     for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
-            if isinstance(kwargs["new"], list):
-                c.path[:pos+1] = kwargs['new']
-            elif isinstance(kwargs["new"], str):
-                c.path[pos] = kwargs["new"]
+            c.path = modify(c.path, new_categories)
             c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
-            if isinstance(kwargs["new"], list):
-                i.categories[:pos+1] = kwargs["new"]
-            elif isinstance(kwargs["new"], str):
-                i.categories[pos] = kwargs["new"]
+            i.categories = modify(i.categories, new_categories)
             i.save(override_dependencies=True)
 
 

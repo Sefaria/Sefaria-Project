@@ -173,7 +173,7 @@ def check_term(last_path, he_last_path):
     # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
     # if neither of the titles correspond to a term, create the appropriate term
     error_msg = ""
-    en_term = Term().load({"name": last_path})
+    en_term = Term().load_by_title(last_path)
     he_term = Term().load_by_title(he_last_path)
 
     if (en_term and he_term != en_term) or (he_term and he_term != en_term):
