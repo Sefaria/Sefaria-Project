@@ -559,6 +559,10 @@ Sefaria = extend(Sefaria, {
        * filter: array filter which languages ISO codes
        * excludeFilter: if the filter should be including the filter value or excluding it.
        */
+    const rawVersions = await this.getRawVersions(ref);
+    return this._makeVersions(rawVersions, byLang, filter, excludeFilter);
+  },
+  getRawVersions: async function(ref) {
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
@@ -566,7 +570,7 @@ Sefaria = extend(Sefaria, {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
+    return Promise.resolve(this._versions[ref]);
   },
   _makeVersions: function(versions, byLang, filter, excludeFilter){
     let tempValue;
