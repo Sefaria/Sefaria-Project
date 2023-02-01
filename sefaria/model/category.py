@@ -154,11 +154,8 @@ class CategorySet(abstract.AbstractMongoSet):
 
 
 def process_category_path_change(changed_cat, **kwargs):
-    def modify(old_val, new_val):
-        if isinstance(new_val, str):
-            old_val[-1] = new_val
-        elif isinstance(new_val, list):
-            old_val = new_val
+    def modify(old_val, new_val, pos):
+        old_val[:pos] = new_val
         return old_val
 
     from sefaria.model.text import library
@@ -170,23 +167,24 @@ def process_category_path_change(changed_cat, **kwargs):
     #if I move Tanakh and collection is in Tanakh Torah, ["Tanakh", "Torah"] startswith ["Tanakh"]
     #if I move Torah and collection is in Tanakh, Torah, ["Tanakh", "Torah"] starts
     collections = collection.CollectionSet({"toc": {"$exists": True}})
+    pos = len(old_toc_node.ancestors())
     for c in collections:
         collection_in_old_category_tree = str(c.toc["categories"]).startswith(str(kwargs["old"]))
         if collection_in_old_category_tree:
-            c.toc["categories"] = modify(c.toc["categories"], new_categories)
+            c.toc["categories"] = modify(c.toc["categories"], new_categories, pos)
             c.save(override_dependencies=True)
 
     children = old_toc_node.all_children()
     for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
-            c.path = modify(c.path, new_categories)
+            c.path = modify(c.path, new_categories, pos)
             c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
-            i.categories = modify(i.categories, new_categories)
+            i.categories = modify(i.categories, new_categories, pos)
             i.save(override_dependencies=True)
 
 

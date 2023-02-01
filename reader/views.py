@@ -2396,13 +2396,23 @@ def tag_category_api(request, path=None):
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
+    DELETE takes a category path on the URL
     GET takes a category path on the URL.  Returns the category specified.
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
     POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
     """
-    if request.method == "GET":
+    if request.method == "DELETE":
+        path_to_delete = request.POST.get("json")["path"]
+        cat = Category().load({"path": request.GET})
+        if cat:
+            cat.delete()
+            library.rebuild_toc(rebuild_topics=False)
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Category {} doesn't exist".format(path_to_delete)})
+    elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
         cats = path.split("/")
