@@ -19,12 +19,12 @@ class TranslationsBox extends Component {
   }
   componentDidMount() {
     if(!this.isSheet()) {
-      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true, true).then(this.onVersionsLoad);
     }
   }
   componentDidUpdate(prevProps, prevState) {
     if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
+      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true, true).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
