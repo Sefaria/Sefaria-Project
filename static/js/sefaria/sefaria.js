@@ -574,22 +574,22 @@ Sefaria = extend(Sefaria, {
   },
   _makeVersions: function(versions, byLang, filter, excludeFilter, translations=false){
     let tempValue = {};
-    if (filter?.length && translations) {
+    function includeLang(key)  { return !excludeFilter ? filter.includes(key) : !filter.includes(key)};
+    if (filter?.length) {
         for (let [key, value] of Object.entries(versions)) {
-            if (key === 'he' || (!excludeFilter ? filter.includes(key) : !filter.includes(key))) {
-                const langVersions = value.filter(version => version.isBaseText === false || (key !== 'he' && !version.isBaseText));
-                if (langVersions.length) {
-                    tempValue[key] = langVersions;
+            if (translations) {
+                if (key === 'he' || includeLang(key)) {
+                    const langVersions = value.filter(version => version.isBaseText === false || (key !== 'he' && !version.isBaseText));
+                    if (langVersions.length) {
+                        tempValue[key] = langVersions;
+                    }
+                }
+            } else {
+                if (includeLang(key)) {
+                    tempValue[key] = value;
                 }
             }
         }
-    } else if (filter?.length) { // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
-        tempValue = Object.keys(versions)
-          .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
-          .reduce((obj, key) => {
-            obj[key] = versions[key];
-            return obj;
-          }, {});
     } else {
         tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
     }
