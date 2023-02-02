@@ -164,8 +164,6 @@ def process_category_path_change(changed_cat, **kwargs):
     old_toc_node = tree.lookup(kwargs["old"])
     assert isinstance(old_toc_node, TocCategory)
 
-    #if I move Tanakh and collection is in Tanakh Torah, ["Tanakh", "Torah"] startswith ["Tanakh"]
-    #if I move Torah and collection is in Tanakh, Torah, ["Tanakh", "Torah"] starts
     collections = collection.CollectionSet({"toc": {"$exists": True}})
     pos = len(old_toc_node.ancestors())
     for c in collections:
