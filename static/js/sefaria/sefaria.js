@@ -574,20 +574,19 @@ Sefaria = extend(Sefaria, {
   },
   _makeVersions: function(versions, byLang, filter, excludeFilter, translations=false){
     let tempValue = {};
-    function includeLang(key)  { return !excludeFilter ? filter.includes(key) : !filter.includes(key)};
+    function includeLang(key)  { return !excludeFilter ? filter.includes(key) : !filter.includes(key); }
+    function includeVersion(lang, isBaseText) {
+        if (translations) {
+            return includeLang(lang) || (lang === 'he' && isBaseText == false);
+        } else {
+            return includeLang(lang);
+        }
+    }
     if (filter?.length) {
         for (let [key, value] of Object.entries(versions)) {
-            if (translations) {
-                if (key === 'he' || includeLang(key)) {
-                    const langVersions = value.filter(version => version.isBaseText === false || (key !== 'he' && !version.isBaseText));
-                    if (langVersions.length) {
-                        tempValue[key] = langVersions;
-                    }
-                }
-            } else {
-                if (includeLang(key)) {
-                    tempValue[key] = value;
-                }
+            const langVersions = value.filter(version => includeVersion(key, version.isBaseText));
+            if (langVersions.length) {
+                tempValue[key] = langVersions;
             }
         }
     } else {
