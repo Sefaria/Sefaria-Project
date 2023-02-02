@@ -5,12 +5,11 @@ from sefaria.model import *
 if __name__ == '__main__':
     for index in IndexSet():
         versions = index.versionSet()
-        try:
-            langs = [v.actualLanguage for v in versions]
-        except AttributeError:
-            print('adding actualLang en to', version)
-            for version in versions:
-                version.actualLanguage = 'en'
+        for version in versions:
+            if not version.actualLanguage:
+                version.actualLanguage = version.language
+                print(f'adding actualLang {version.language} to {version}')
+        langs = [v.actualLanguage for v in versions]
         if 'he' in langs:
             for version in versions:
                 if version.actualLanguage != 'he' or version.versionTitle == 'Hebrew Translation':
