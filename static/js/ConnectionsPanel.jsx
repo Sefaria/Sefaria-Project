@@ -1378,6 +1378,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
+    gtag("event", "feature_clicked", {name: `tools_button_${en}`})
     onClick();
   }
   let iconElem = null;

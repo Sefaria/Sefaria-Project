@@ -20,7 +20,8 @@ import {
   RambanLandingPage,
   EducatorsPage,
   RabbisPage,
-  DonatePage
+  DonatePage,
+  WordByWordPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -2240,5 +2241,6 @@ export {
   RambanLandingPage,
   EducatorsPage,
   RabbisPage,
-  DonatePage
+  DonatePage,
+  WordByWordPage
 };
