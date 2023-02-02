@@ -169,6 +169,8 @@ class VersionBlock extends Component {
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
+    console.log(this);
+    if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
     const langMap = {
       "en": "Translation",
       "he" : "Version"
@@ -191,6 +193,10 @@ class VersionBlock extends Component {
   }
   makeImageSrc(){
     return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
+  }
+
+  isHeTranslation() {
+    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.isTranslation;
   }
 
   render() {
@@ -276,9 +282,9 @@ class VersionBlock extends Component {
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
-              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
+              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": this.isHeTranslation() ? "heTranslation" : ""}`}
                    href={this.makeVersionLink(v.language)}
-                   onClick={this.onSelectVersionClick}>
+                   onClick={this.isHeTranslation() ? this.onVersionTitleClick : this.onSelectVersionClick}>
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
@@ -434,6 +440,7 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
+                      isTranslation={this.props.translations}
                     />
                   ))
                 }
