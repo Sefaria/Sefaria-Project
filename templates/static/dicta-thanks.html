@@ -5,20 +5,8 @@
 
 {% block description %}{% trans "Sefaria thanks Dicta for all of their help." %}{% endblock %}
 
-{% block css %}
-    #top #languageToggle {
-        display: inline;
-    }
-    #top #languageToggle #bilingual {
-        display: none;
-    }
-    #aboutPage a {
-        text-decoration: underline;
-    }
-{% endblock %}
-
 {% block content %}
-<div id="aboutPage" class="biReady container static">
+<main id="dictaThanksPage" class="biReady container static">
     <div class="inner">
         <h1>
             <span class="int-en">Sefaria and Dicta</span>
@@ -71,5 +59,5 @@
             </p>
         </div>
     </div>
-</div>
+</main>
 {% endblock %}
