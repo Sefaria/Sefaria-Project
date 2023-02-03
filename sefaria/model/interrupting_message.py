@@ -1,6 +1,7 @@
 import json
 from django.template.loader import render_to_string
 from sefaria.model.user_profile import UserProfile
+from sefaria.site.site_settings import SITE_SETTINGS
 
 class InterruptingMessage(object):
   def __init__(self, attrs={}, request=None):
@@ -21,6 +22,10 @@ class InterruptingMessage(object):
     # Always show to debug
     if self.condition.get("debug", False):
       return True
+
+    # For any site that isn't TORAH_SPECIFIC, require the site name to be true
+    if not SITE_SETTINGS["TORAH_SPECIFIC"] and not self.condition.get(SITE_SETTINGS["SITE_NAME"]["en"], False):
+      return False
 
     # Nameless is useless
     if not self.name:
