@@ -195,7 +195,7 @@ class VersionBlock extends Component {
   }
 
   isHeTranslation() {
-    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.isTranslation;
+    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.inTranslationBox;
   }
 
   render() {
@@ -360,7 +360,7 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
-  isTranslation:          PropTypes.bool,
+  inTranslationBox:          PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -440,7 +440,7 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
-                      isTranslation={this.props.isTranslation}
+                      inTranslationBox={this.props.inTranslationBox}
                     />
                   ))
                 }
@@ -461,7 +461,7 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
-  isTranslation: PropTypes.bool,
+  inTranslationBox: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,
