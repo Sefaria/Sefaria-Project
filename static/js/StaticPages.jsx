@@ -1817,7 +1817,7 @@ const WordByWordPage = () => (
                     enTitle="Schedule"
                     heTitle=""
                     enText="<p>Applicants must be willing to commit to the following schedule:</p>
-                            <p>Annual writing retreat each June. The first retreat will be held June 18-22, 2023</p>
+                            <p>Annual writing retreat each June. The first retreat is provisionally scheduled for June 18-22, 2023</p>
                             <p>Monthly online meetings of a 1.5 hour duration. Participants are required to attend 8 out of 10 of these meetings each year.</p>"
                     heText=""
                     colorBar="#D4896C"
@@ -1921,7 +1921,7 @@ const WordByWordPage = () => (
     <CallToActionFooterWithButton
         href="https://sefaria.typeform.com/to/wJXgn9jL"
         he_href=""
-        enText="Ready to Apply? Fill our your application by March 13, 2023."
+        enText="Ready to Apply? Fill out your application by March 13, 2023."
         heText=""
         enButtonText="Apply Now"
         heButtonText=""
