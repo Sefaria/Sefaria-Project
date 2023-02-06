@@ -315,6 +315,32 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+    /**
+     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * @param {string} addressType - The address type of the schema being requested
+     * @param {number} i - The numeric section string from the database
+     * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
+     * @returns {[string,string]} Section string in both languages. 
+     */  
+  getSectionStringByAddressType: function(addressType, i, offset=0) {
+    let section = i + offset;
+    let enSection, heSection;
+    if (addressType === 'Talmud') {
+      enSection = Sefaria.hebrew.intToDaf(section);
+      heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
+    } else if (addressType === "Year") {
+      enSection = section + 1241;  
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
+    } else if (addressType === "Folio") {
+      enSection = Sefaria.hebrew.intToFolio(section);  
+      heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
+    } else {
+      enSection = section + 1;
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section + 1);
+    }
+  return [enSection, heSection];
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -725,6 +751,11 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
+  _get_offsets: function (data, length=1) {
+    let offsets = data?.index_offsets_by_depth?.[data.textDepth] || Array(length).fill(0);
+    offsets = (typeof(offsets) === 'number') ? [offsets] : offsets.flat();
+    return offsets;
+  },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
@@ -745,7 +776,8 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, "");
 
     const delim = data.ref === data.book ? " " : ":";
-    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+    const offset = this._get_offsets(data);
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+offset[0];
 
     let prev = Array(length);
     let next = Array(length);
@@ -1865,9 +1897,9 @@ _media: {},
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
 
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
     var start = (data.textDepth == data.sections.length && !withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
         var number = i+start;
@@ -1894,7 +1926,7 @@ _media: {},
         var delim       = baseSection ? ":" : " ";
         var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
 
-        start = (n == 0 ? start : 1);
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
         for (var i = 0; i < length; i++) {
           var startSection = data.sections.slice(-2)[0];
           var section = typeof startSection == "string" ?
@@ -1992,14 +2024,14 @@ _media: {},
   tocObjectByCategories: function(cats) {
     // Returns the TOC entry that corresponds to list of categories `cats`
     let found, item;
-    let list = Sefaria.toc
+    let list = Sefaria.toc;
     for (let i = 0; i < cats.length; i++) {
       found = false;
       item = null;
       for (let k = 0; k < list.length; k++) {
         if (list[k].category === cats[i]) {
           item = list[k];
-          list = item.contents;
+          list = item.contents || [];
           found = true;
           break;
         }
@@ -2223,19 +2255,25 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
-  getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+  getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.topicTocCategory(slug);
+    let ref_link_type_filters = ['about', 'popular-writing-of']
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
     if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
       ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
     }
-    const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    const a = 0 + annotated;
+    const url = `${this.apiHost}/api/v2/topics/${slug}?annotate_time_period=1&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_html=${0 + with_html}&with_links=${a}&annotate_links=${a}&with_refs=${a}&group_related=${a}&with_indexes=${a}`;
+    const key = this._getTopicCacheKey(slug, {annotated, with_html});
     return this._cachedApiPromise({
       url,
-      key: slug,
+      key,
       store: this._topics,
       processor: this.processTopicsData,
     });
+  },
+  _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
+      return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
@@ -2272,8 +2310,9 @@ _media: {},
     data.tabs = tabs;
     return data;
   },
-  getTopicFromCache: function(topic) {
-    return this._topics[topic];
+  getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
+      const key = this._getTopicCacheKey(slug, {annotated, with_html});
+      return this._topics[key];
   },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
