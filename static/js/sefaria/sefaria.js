@@ -561,7 +561,7 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._versions[ref]);
   },
-  getHebrewVersions: async function(ref) {
+  getSourceVersions: async function(ref) {
     return Sefaria.getVersions(ref).then(result => {
         console.log(result);
         let versions = {'he': result['he']}
