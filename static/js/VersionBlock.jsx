@@ -170,11 +170,7 @@ class VersionBlock extends Component {
   }
   makeSelectVersionLanguage(){
     if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
-    const langMap = {
-      "en": "Translation",
-      "he" : "Version"
-    }
-    let voc = langMap[this.props.version.actualLanguage] || "Translation";
+    let voc = this.props.version.isBaseText ? 'Version' : "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
 
