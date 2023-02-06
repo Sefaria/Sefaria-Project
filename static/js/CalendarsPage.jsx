@@ -165,7 +165,7 @@ const calendarDescriptions = {
     he: "סדר לימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלק את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שנה אחת.",
   },
   "Daf a Week": {
-    en: "A learning program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
+    en: "A learning program that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
     he: "סדר שבועי ללימוד התלמוד הבבלי שבו נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
     enSubtitle: "Talmud",
   },
