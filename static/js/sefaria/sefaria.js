@@ -552,6 +552,11 @@ Sefaria = extend(Sefaria, {
      return this._makeVersions(versions, byLang)
   },
   getVersions: async function(ref) {
+    /**
+     * Gets versions from cache or API
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
@@ -562,12 +567,22 @@ Sefaria = extend(Sefaria, {
     return Promise.resolve(this._versions[ref]);
   },
   getSourceVersions: async function(ref) {
+    /**
+     * Gets Hebrew versions only
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
     return Sefaria.getVersions(ref).then(result => {
         let versions = {'he': result['he']}
         return versions;
     })
   },
   getTranslations: async function(ref) {
+    /**
+     * Gets all versions except Hebrew versions that have isBaseText true
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
     return Sefaria.getVersions(ref).then(result => {
         let versions = Object.keys(result)
           .filter(key => { return key !== 'he'; })
