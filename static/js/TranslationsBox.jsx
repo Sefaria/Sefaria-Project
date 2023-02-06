@@ -19,12 +19,12 @@ class TranslationsBox extends Component {
   }
   componentDidMount() {
     if(!this.isSheet()) {
-      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true, true).then(this.onVersionsLoad);
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   componentDidUpdate(prevProps, prevState) {
     if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true, true).then(this.onVersionsLoad);
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -86,7 +86,7 @@ class TranslationsBox extends Component {
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
-          translations={true}
+          isTranslation={true}
         />
       );
     }
@@ -105,6 +105,7 @@ TranslationsBox.propTypes = {
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  isTranslation:            PropTypes.bool,
 };
 
 

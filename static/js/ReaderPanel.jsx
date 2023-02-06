@@ -1234,7 +1234,7 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
+    Sefaria.getHebrewVersions(this.props.currentRef).then(versionList => {
       const enVTitle = this.props.currVersions.enAPIResult;
       if (!enVTitle) {
         // merged version from API

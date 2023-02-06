@@ -38,13 +38,13 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getHebrewVersions(this.props.sectionRef).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
       this.setState({details: null});
       this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getHebrewVersions(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {

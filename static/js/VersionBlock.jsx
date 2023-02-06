@@ -361,6 +361,7 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
+  isTranslation:          PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -440,7 +441,7 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
-                      isTranslation={this.props.translations}
+                      isTranslation={this.props.isTranslation}
                     />
                   ))
                 }
@@ -461,6 +462,7 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
+  isTranslation: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,
