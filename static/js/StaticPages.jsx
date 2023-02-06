@@ -1838,7 +1838,7 @@ const WordByWordPage = () => (
     </GreyBox>
 
     <CallToActionFooterWithButton
-        href="/static/files/Word-by-Word Jewish Women's Writing Circle.pdf"
+        href="https://drive.google.com/file/d/1DXh0J-y0hHJTZuIdaoa2k3CrJBHeBdxK/view"
         he_href=""
         enText="Read the full schedule, requirements, and application information."
         heText=""
