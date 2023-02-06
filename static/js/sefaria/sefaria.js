@@ -591,7 +591,7 @@ Sefaria = extend(Sefaria, {
             return obj;
           }, {})
         let heVersions = result?.he?.filter((key) => key.isBaseText===false);
-        if (heVersions.length) {
+        if (heVersions?.length) {
             versions.he = heVersions;
         }
         return versions;
