@@ -169,7 +169,6 @@ class VersionBlock extends Component {
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
-    console.log(this);
     if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
     const langMap = {
       "en": "Translation",

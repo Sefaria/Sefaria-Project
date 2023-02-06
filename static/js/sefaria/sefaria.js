@@ -563,19 +563,21 @@ Sefaria = extend(Sefaria, {
   },
   getSourceVersions: async function(ref) {
     return Sefaria.getVersions(ref).then(result => {
-        console.log(result);
         let versions = {'he': result['he']}
         return versions;
     })
   },
   getTranslations: async function(ref) {
     return Sefaria.getVersions(ref).then(result => {
-        let versions = JSON.parse(JSON.stringify(result));
-        let heVersions = versions?.he?.filter((key) => key.isBaseText===false);
+        let versions = Object.keys(result)
+          .filter(key => { return key !== 'he'; })
+          .reduce((obj, key) => {
+            obj[key] = result[key];
+            return obj;
+          }, {})
+        let heVersions = result?.he?.filter((key) => key.isBaseText===false);
         if (heVersions.length) {
             versions.he = heVersions;
-        } else {
-            delete versions.he;
         }
         return versions;
     })
