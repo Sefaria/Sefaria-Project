@@ -78,7 +78,7 @@ from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
-from sefaria.helper.category import check_term
+from sefaria.helper.category import handle_category_editor
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -2404,14 +2404,13 @@ def category_api(request, path=None):
     POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "DELETE":
-        path_to_delete = request.POST.get("json")["path"]
-        cat = Category().load({"path": request.GET})
+        cat = Category().load({"path": path.split("/")})
         if cat:
             cat.delete()
-            library.rebuild_toc(rebuild_topics=False)
+            library.rebuild_toc(skip_rebuild_topics=False)
             return jsonResponse({"status": "OK"})
         else:
-            return jsonResponse({"error": "Category {} doesn't exist".format(path_to_delete)})
+            return jsonResponse({"error": "Category {} doesn't exist".format(path)})
     elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
@@ -2427,8 +2426,8 @@ def category_api(request, path=None):
         return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
-        def _internal_do_post(request, cat, uid, **kwargs):
-            func = tracker.update if request.GET.get("update", False) else tracker.add
+        def _internal_do_post(update, cat, uid, **kwargs):
+            func = tracker.update if update else tracker.add
             return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
@@ -2455,10 +2454,10 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
-        new_category = Category().load({"path": j["path"]})
+        new_category_exists = Category().load({"path": j["path"]}) is not None
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if not update and new_category:
+        if not update and new_category_exists:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
         parent = j["path"][:-1]
@@ -2467,15 +2466,9 @@ def category_api(request, path=None):
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
         if request.GET.get("category_editor", False):
-            last_path = j.get("sharedTitle", "")
-            he_last_path = j.get("heSharedTitle", "")
-            if update and j["origPath"][-1] == last_path and new_category is not None:
-                # this case occurs when moving Tanakh's Rashi category into
-                # Rishonim on Bavli which may mean user wants to merge the two
-                return jsonResponse({"error": f"Merging two categories named {last_path} is not supported."})
-            error_msg = check_term(last_path, he_last_path)
-            if len(error_msg) > 0:
-                return jsonResponse({"error": error_msg})
+            category_editor_results = handle_category_editor(uid, j, update=update, **kwargs)
+            return jsonResponse(category_editor_results)
+
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":

@@ -1,6 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
-
+from sefaria import tracker
 def move_index_into(index, cat):
     """
     :param index: (String)  The primary name of the Index to move.
@@ -168,6 +168,27 @@ def get_category_paths(path):
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
 
+def handle_category_editor(uid, json, update=False, **kwargs):
+    new_category = Category().load({"path": json["path"]}) is not None
+    error_msg = get_category_editor_errors(json, update=update, new_category=new_category)
+    if len(error_msg) > 0:
+        return {"error": error_msg}
+    else:
+        func = tracker.update if update else tracker.add
+        return func(uid, Category, json, **kwargs).contents()
+
+def get_category_editor_errors(j, update=False, new_category=False):
+    # if Category Editor is used, validate its data
+    last_path = j.get("sharedTitle", "")
+    he_last_path = j.get("heSharedTitle", "")
+    error_msg = ""  # empty error msg means there are no errors
+    if update and "origPath" in j and j["origPath"][-1] == last_path and new_category:
+        # this case occurs when moving Tanakh's Rashi category into
+        # Rishonim on Bavli which may mean user wants to merge the two
+        error_msg = f"Merging two categories named {last_path} is not supported."
+    else:
+        error_msg = check_term(last_path, he_last_path)
+    return error_msg
 
 def check_term(last_path, he_last_path):
     # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.

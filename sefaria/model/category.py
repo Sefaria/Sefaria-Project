@@ -29,7 +29,8 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "sharedTitle",
         "isPrimary",
         "searchRoot",
-        "order"
+        "order",
+        "origPath"
     ]
 
     def __str__(self):
@@ -43,17 +44,12 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         self.sharedTitle = None
 
     def _set_derived_attributes(self):
+        if hasattr(self, "origPath") and self.lastPath != self.path[-1]:
+            # `origPath` is used by the Category Editor to update the path,
+            # which should then propagate to the `lastPath` and `sharedTitle`
+            self.change_key_name(self.path[-1])
         self._load_title_group()
-
-    def load_from_dict(self, d, is_init=False):
-        super(Category, self).load_from_dict(d, is_init)
-
-        if not self.is_new():
-            if getattr(self, "lastPath") != d["path"][-1]:  #lastPath should derive from path on an update
-                self.change_key_name(d["path"][-1])
-
-        return self
-
+        self._load_title_group()
 
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.
@@ -353,6 +349,11 @@ class TocTree(object):
                 return self._path_hash[tuple(["Other"]) + path]
             except KeyError:
                 return None
+
+    def remove_category(self, toc_node):
+        assert isinstance(toc_node, TocCategory)
+        del self._path_hash[tuple(toc_node.get_category_object().path)]
+        toc_node.detach()
 
     def remove_index(self, toc_node):
         assert isinstance(toc_node, TocTextIndex)

@@ -245,7 +245,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: "/api/category/"+origData.origPath.join("/")
+        url: "/api/category/"+origPath.join("/"),
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {

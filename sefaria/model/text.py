@@ -4982,7 +4982,7 @@ class Library(object):
         if include_toc:
             self.rebuild_toc()
 
-    def rebuild_toc(self, skip_toc_tree=False, rebuild_topics=True):
+    def rebuild_toc(self, skip_toc_tree=False, skip_rebuild_topics=False):
         """
         Rebuilds the TocTree representation at startup time upon load of the Library class singleton.
         The ToC is a tree of nodes that represents the ToC as seen on the Sefaria homepage.
@@ -4996,10 +4996,10 @@ class Library(object):
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
-        if rebuild_topics:
+        if not skip_rebuild_topics:
             self._topic_toc = self.get_topic_toc(rebuild=True)
-            self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
-            self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
+        self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
+        self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -5374,6 +5374,12 @@ class Library(object):
         self.get_toc_tree().update_title(indx, recount=True)
 
         self.rebuild_toc(skip_toc_tree=True)
+
+    def delete_category_from_toc(self, category):
+        # This is used in the case of a remotely triggered multiserver update
+        toc_node = self.get_toc_tree().lookup(category.path)
+        if toc_node:
+            self.get_toc_tree().remove_category(toc_node)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
@@ -6393,6 +6399,14 @@ def reset_simple_term_mapping(o, **kwargs):
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")
+
+def rebuild_library_after_category_delete(*args, **kwargs):
+    library.rebuild(include_toc=True)
+    library.delete_category_from_toc(args[0])
+
+    if MULTISERVER_ENABLED:
+        server_coordinator.publish_event("library", "rebuild", [True])
+        server_coordinator.publish_event("library", "delete_category_from_toc", [args[0]])
 
 
 def rebuild_library_after_category_change(*args, **kwargs):
