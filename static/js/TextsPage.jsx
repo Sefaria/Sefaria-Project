@@ -112,7 +112,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
   const sidebarModules = [
     multiPanel ? {type: "AboutContext"} : {type: null},
 /*    {type: "Promo"},
->>>>>>> s4d
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
     {type: "Resources"},*/
