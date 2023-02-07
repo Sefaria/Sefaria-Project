@@ -136,6 +136,7 @@ const reformatCalendars = () => {
 
 // TODO these descriptions should be moved to the DB
 // For now, to get this descriptions on mobile, we have copied this data to MobileContentServer/JsonExporterForIOS.py
+// Engineers need to be careful to keep these two copies in sync if one of them is edited.
 const calendarDescriptions = {
   "Parashat Hashavua": {},
   "Haftarah": {
