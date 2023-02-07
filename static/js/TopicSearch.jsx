@@ -6,7 +6,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
 import {Autocompleter, InterfaceText} from "./Misc";
-import {TopicEditor} from "./TopicEditor";
+import {TopicEditor} from "./AdminEditor";
 
 
 class TopicSearch extends Component {
@@ -108,7 +108,8 @@ class TopicSearch extends Component {
 
   render() {
         if (this.state.showTopicEditor) {
-            return <TopicEditor origEn={this.state.value} close={this.reset} onCreateSuccess={this.post}/>;
+            const data = {origEn: this.state.value};
+            return <TopicEditor origData={data} close={this.reset} onCreateSuccess={this.post}/>;
         }
         else {
             return (<Autocompleter selectedCallback={this.validate}
