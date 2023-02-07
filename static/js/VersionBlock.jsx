@@ -169,11 +169,8 @@ class VersionBlock extends Component {
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
-    const langMap = {
-      "en": "Translation",
-      "he" : "Version"
-    }
-    let voc = langMap[this.props.version.actualLanguage] || "Translation";
+    if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
+    let voc = this.props.version.isBaseText ? 'Version' : "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
 
@@ -191,6 +188,10 @@ class VersionBlock extends Component {
   }
   makeImageSrc(){
     return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
+  }
+
+  isHeTranslation() {
+    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.inTranslationBox;
   }
 
   render() {
@@ -276,9 +277,9 @@ class VersionBlock extends Component {
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
-              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
+              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": this.isHeTranslation() ? "heTranslation" : ""}`}
                    href={this.makeVersionLink(v.language)}
-                   onClick={this.onSelectVersionClick}>
+                   onClick={this.isHeTranslation() ? this.onVersionTitleClick : this.onSelectVersionClick}>
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
@@ -355,6 +356,7 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
+  inTranslationBox:          PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -434,6 +436,7 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
+                      inTranslationBox={this.props.inTranslationBox}
                     />
                   ))
                 }
@@ -454,6 +457,7 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
+  inTranslationBox: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,
