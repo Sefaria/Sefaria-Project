@@ -566,16 +566,35 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._versions[ref]);
   },
+  filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
+    return Object.keys(versionsObj)
+        .filter(lang => {
+            return includeFilter === langs.includes(lang);
+        })
+        .reduce((obj, lang) => {
+            obj[lang] = versionsObj[lang];
+            return obj;
+          }, {});
+  },
+  filterVersionsArrayByAttr: function(versionsArray, filter) {
+    return versionsArray.filter(version => {
+        for (const key in filter) {
+            if (version?.[key] !== filter[key]) {
+                return false;
+            }
+        }
+        return true;
+    });
+  },
   getSourceVersions: async function(ref) {
     /**
      * Gets Hebrew versions only
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
-    return Sefaria.getVersions(ref).then(result => {
-        let versions = {'he': result['he']}
-        return versions;
-    })
+    return Sefaria.getVersions(ref).then(versions => {
+        return Sefaria.filterVersionsObjByLangs(versions, ['he'], true);
+    });
   },
   getTranslations: async function(ref) {
     /**
@@ -584,18 +603,13 @@ Sefaria = extend(Sefaria, {
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(result => {
-        let versions = Object.keys(result)
-          .filter(key => { return key !== 'he'; })
-          .reduce((obj, key) => {
-            obj[key] = result[key];
-            return obj;
-          }, {})
-        let heVersions = result?.he?.filter((key) => key.isBaseText===false);
-        if (heVersions?.length) {
+        let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        if (heVersions.length) {
             versions.he = heVersions;
         }
         return versions;
-    })
+    });
   },
   _makeVersions: function(versions, byLang){
     return byLang ? versions : Object.values(versions).flat();
