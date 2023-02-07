@@ -73,8 +73,8 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
-    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/give?utm_source=Sefaria&utm_medium=App&utm_campaign=Support' if x.interfaceLang == 'english' else 'https://sefaria.nationbuilder.com/il_mobile?utm_source=Sefaria&utm_medium=App&utm_campaign=ILSupport')),
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/give?utm_source=Sefaria&utm_medium=App&utm_campaign=Support' if x.interfaceLang == 'english' else 'https://sefaria.nationbuilder.com/il_mobile?utm_source=Sefaria&utm_medium=App&utm_campaign=ILSupport')),
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
