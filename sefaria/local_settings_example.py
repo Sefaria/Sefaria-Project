@@ -175,7 +175,7 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 # DafRoulette server
 RTC_SERVER = '' # Root URL/IP of the server
 
-GOOGLE_GTAG = ''
+GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 HOTJAR_ID = None
@@ -206,7 +206,7 @@ USE_VARNISH_ESI = False
 DISABLE_INDEX_SAVE = False
 
 # Turns off search autocomplete suggestions, which are reinitialized on every server reload
-# which can be annoying for local development. 
+# which can be annoying for local development.
 DISABLE_AUTOCOMPLETER = False
 
 # Turns on loading of machine learning models to run linker

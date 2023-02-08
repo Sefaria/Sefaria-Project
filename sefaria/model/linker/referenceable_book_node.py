@@ -38,25 +38,21 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
 
-    def _get_schema_children(self):
+    def _get_all_children(self) -> List[ReferenceableBookNode]:
         thingy = self._titled_tree_node_or_index
-        if isinstance(thingy, text.Index):
-            return thingy.referenceable_children()
-        else:
-            # Any other type of TitledTreeNode
-            return self._titled_tree_node.children
-
-    def _get_pure_referenceable_children(self) -> List[ReferenceableBookNode]:
-        """
-        These children do not appear in schema tree
-        @return:
-        """
-        thingy = self._titled_tree_node_or_index
+        #the schema node for this referenceable node has a dibur hamatchil child
         if isinstance(thingy, schema.NumberedTitledTreeNode) and thingy.is_segment_level_dibur_hamatchil():
             return [DiburHamatchilNodeSet({"container_refs": self.ref().normal()})]
-        elif isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
+        #the schema node for this referenceable is a JAN. JANs act as both named and numbered nodes
+        if isinstance(thingy, schema.JaggedArrayNode) and len(thingy.children) == 0:
             return [NumberedReferenceableBookNode(thingy)]
-        return []
+        if isinstance(thingy, text.Index):
+            children = thingy.referenceable_children()
+        else:
+            # Any other type of TitledTreeNode
+            children = self._titled_tree_node.children
+        children = [self._transform_schema_node_to_referenceable(x) for x in children]
+        return children
 
     @staticmethod
     def _transform_schema_node_to_referenceable(schema_node: schema.TitledTreeNode) -> ReferenceableBookNode:
@@ -65,10 +61,20 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
         return NamedReferenceableBookNode(schema_node)
 
     def get_children(self, *args, **kwargs) -> List[ReferenceableBookNode]:
-        pure_children = self._get_pure_referenceable_children()
-        if len(pure_children) > 0:
-            return pure_children
-        return [self._transform_schema_node_to_referenceable(x) for x in self._get_schema_children()]
+        '''
+        Node can have the attribute 'referenceable' sets to True (which is the default when the attribute ismissing), False or 'optional'.
+        When node has referenceable False, it will return its referenceable descendant instead of itself.
+        When has referenceable 'optional', it will return the node itself and its referenceable descendant.
+        :return: list of the referenceable cihldren of the node
+        '''
+        nodes = []
+        for node in self._get_all_children():
+            referenceable = getattr(node, 'referenceable', True)
+            if referenceable: #referenceable or optional
+                nodes.append(node)
+            if referenceable is not True: #unreferenceable or optional
+                nodes += node._get_all_children()
+        return nodes
 
     def ref_part_title_trie(self, *args, **kwargs):
         return self._titled_tree_node.get_match_template_trie(*args, **kwargs)

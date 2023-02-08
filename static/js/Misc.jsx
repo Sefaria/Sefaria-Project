@@ -71,7 +71,7 @@ const InterfaceText = ({text, html, children, context}) => {
     elemclasses += fallbackCls;
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
-    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
+    if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       textResponse = Sefaria._(children, context);
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
@@ -129,9 +129,9 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   }
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
-          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
           :
-          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
   );
 };
 
@@ -2421,12 +2421,13 @@ const CategoryChooser = function({categories, update}) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+      let elValue = el.options[el.selectedIndex].value;
+      let possCategories = newCategories.concat([elValue]);
+      if (!Sefaria.tocObjectByCategories(possCategories)) {
+        // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
-      newCategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(elValue);
     }
     update(newCategories); //tell parent of new values
   }
@@ -2447,17 +2448,11 @@ const CategoryChooser = function({categories, update}) {
   //now add to menu second and/or third level categories found in categories
   for (let i=0; i<categories.length; i++) {
     let options = [];
-    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i+1));
+    const subcats = !tocObject?.contents ? [] : tocObject.contents.filter(x => x.hasOwnProperty("category")); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
     for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
-        if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
-        }
-        else
-        {
-          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
-        }
-      }
+      const selected = categories.length >= i && categories[i+1] === subcats[j].category;
+      options.push(<option key={j} value={subcats[j].category} selected={selected}>{subcats[j].category}</option>);
     }
     if (options.length > 0) {
       menus.push(options);
@@ -2475,23 +2470,24 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TitleVariants = function({titles, update}) {
+const TitleVariants = function({titles, update, options}) {
   /*
   Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
-  and `update` is method to call after deleting or adding to titles
+  and `update` is method to call after deleting or adding to titles. `options` is an object that can have
+  the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
   const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
+    const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
+    const newTitles = [].concat(titles, title);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title+" already exists.");
+      alert(title.name+" already exists.");
     }
     return validTitle;
   }
@@ -2500,11 +2496,11 @@ const TitleVariants = function({titles, update}) {
                 <ReactTags
                     allowNew={true}
                     tags={titles}
-                    onDelete={onTitleDelete}
+                    onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
                     placeholderText={Sefaria._("Add a title...")}
                     delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
+                    onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
+                    onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />
          </div>
 }

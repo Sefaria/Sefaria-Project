@@ -209,7 +209,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     }
 
     useEffect(() => {
-        Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
+        Sefaria.getTopic(topic).then(setTopicData);
     }, [topic]);
 
     useEffect(() => {
@@ -380,8 +380,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <span className="int-en">{topicData.description.en}</span>
-              <span className="int-he">{topicData.description.he}</span>
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: topicData.description.en} } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: topicData.description.he} } />
             </div>
        : null}
        {topicData && topicData.ref ?
@@ -437,7 +437,7 @@ const TopicPage = ({
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
-    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
+    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
@@ -452,7 +452,7 @@ const TopicPage = ({
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const d = await Sefaria.getTopic(topic, {annotate_time_period: true});
+        const d = await Sefaria.getTopic(topic, {with_html: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache

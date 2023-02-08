@@ -296,11 +296,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = Ref(tref)
-        except PartialRefInputError as e:
-            logger.warning('{}'.format(e))
-            matched_ref = Ref(e.matched_part)
-            return reader_redirect(matched_ref.url())
+            oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
         except InputError:
             raise Http404
 
@@ -986,7 +982,7 @@ def translations_page(request, slug):
         "he": {"name": "Hebrew", "nativeName": "עברית", "title": "ספריה בעברית", "desc": "הספרייה החינמית הגדולה ביותר של טקסטים יהודיים הזמינים לקריאה מקוונת בעברית ובאנגלית, לרבות תורה, תנח, תלמוד, משנה, מדרש, פירושים ועוד."},
         "it": {"name": "Italian", "nativeName": "Italiano", "title": "Testi ebraici in italiano", "desc": "La più grande libreria gratuita di testi ebraici disponibile per la lettura online in ebraico, italiano e inglese, inclusi Torah, Tanakh, Talmud, Mishnah, Midrash, commenti e altro ancora." },
         #"lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
+        "pl": {"name": "Polish", "nativeName": "Polski", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
         "pt": {"name": "Portuguese", "nativeName": "Português", "title": "Textos judaicos em portugues", "desc": "A maior biblioteca gratuita de textos judaicos disponível para leitura online em hebraico, português e inglês, incluindo Torá, Tanakh, Talmud, Mishnah, Midrash, comentários e muito mais."},
         "ru": {"name": "Russian", "nativeName": "Pусский", "title": "Еврейские тексты на русском языке", "desc": "Самая большая бесплатная библиотека еврейских текстов, доступных для чтения онлайн на иврите, русском и английском языках, включая Тору, Танах, Талмуд, Мишну, Мидраш, комментарии и многое другое."},
         "yi": {"name": "Yiddish", "nativeName": "יידיש", "title": "יידישע טעקסטן אויף יידיש", "desc": "די גרעסטע פרייע ביבליאָטעק פון יידישע טעקסטן צו לייענען אָנליין אין לשון קדוש ,יידיש און ענגליש. תורה, תנך, תלמוד, משנה, מדרש, פירושים און אזוי אנדערע."},
@@ -1375,7 +1371,8 @@ def modify_bulk_text_api(request, title):
 @catch_error_as_json
 @csrf_exempt
 def texts_api(request, tref):
-    oref = Ref(tref)
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
+    tref = oref.url()
 
     if request.method == "GET":
         uref = oref.url()
@@ -3119,6 +3116,7 @@ def topics_api(request, topic, v2=False):
     API to get data or edit data for an existing topic
     """
     if request.method == "GET":
+        with_html = bool(int(request.GET.get("with_html", False)))
         with_links = bool(int(request.GET.get("with_links", False)))
         annotate_links = bool(int(request.GET.get("annotate_links", False)))
         group_related = bool(int(request.GET.get("group_related", False)))
@@ -3126,7 +3124,7 @@ def topics_api(request, topic, v2=False):
         annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
         with_indexes = bool(int(request.GET.get("with_indexes", False)))
         ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
-        response = get_topic(v2, topic, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
+        response = get_topic(v2, topic, with_html=with_html, with_links=with_links, annotate_links=annotate_links, with_refs=with_refs, group_related=group_related, annotate_time_period=annotate_time_period, ref_link_type_filters=ref_link_type_filters, with_indexes=with_indexes)
         return jsonResponse(response, callback=request.GET.get("callback", None))
     elif request.method == "POST":
         if not request.user.is_staff:
@@ -3142,38 +3140,39 @@ def topics_api(request, topic, v2=False):
 
         if topic_data["origCategory"] != topic_data["category"]:
             # change IntraTopicLink from old category to new category and set newSlug if it changed
-            # special casing for moving to and fro the Main Menu
-            # and if we move the topic from top level, we must create one
-
-            origLinkDict = {"fromTopic": topic_obj.slug, "toTopic": topic_data["origCategory"], "linkType": "displays-under"}
+            # special casing for moving to the Main Menu, where we delete the IntraTopicLink that linked it to its previous parent
+            from_topic = topic_obj.slug
+            orig_to_topic = topic_data["origCategory"]
+            orig_link_dict = {"fromTopic": from_topic, "toTopic": orig_to_topic, "linkType": "displays-under"}
+            orig_link = IntraTopicLink().load(orig_link_dict)
+            has_link_to_itself = (from_topic == orig_to_topic) and orig_link is not None
 
             if topic_data["category"] == "Main Menu":
-                # create new link if existing link links topic to itself, as this means the topic
-                # functions as both a topic and category. otherwise modify existing link
-                origLink = IntraTopicLink() if topic_data["origCategory"] == topic_obj.slug else IntraTopicLink().load(origLinkDict)
-
-                # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                 child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
                 if child is None:
+                    # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
                     topic_obj.shouldDisplay = True
                     topic_obj.save()
 
-                origLink.delete() # if we move topic to top level, we delete the IntraTopicLink
+                if orig_link:  # top of the tree doesn't need an IntraTopicLink to its previous parent
+                    orig_link.delete()
 
-                # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
-                linkToItself = {"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "dataSource": "sefaria",
+                link_to_itself = {"fromTopic": from_topic, "toTopic": from_topic, "dataSource": "sefaria",
                                 "linkType": "displays-under"}
-                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(linkToItself) is None:
-                    IntraTopicLink(linkToItself).save()
+                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(link_to_itself) is None:
+                    # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
+                    IntraTopicLink(link_to_itself).save()
             else:
-                # create new link (1) if existing link links topic to itself, as this means the topic
-                # functions as both a topic and category, or (2) if topic is being moved out of main menu, as this means no current link may exist
-                origLink = IntraTopicLink() if topic_data["origCategory"] in ["Main Menu", topic_obj.slug] else IntraTopicLink().load(origLinkDict)
-                origLink.fromTopic = topic_obj.slug
-                origLink.toTopic = topic_data["category"]
-                origLink.linkType = "displays-under"
-                origLink.dataSource = "sefaria"
-                origLink.save()
+                # (1) create new link if existing link links topic to itself, as this means the topic
+                # functions as both a topic and category and we don't want to modify that link, or
+                # (2) create new link if topic is being moved out of main menu, as this means no current IntraTopicLink may exist
+                # (3) otherwise, modify existing link so that it has new category
+                link = IntraTopicLink() if (has_link_to_itself or orig_to_topic == "Main Menu") else orig_link
+                link.fromTopic = from_topic
+                link.toTopic = topic_data["category"]
+                link.linkType = "displays-under"
+                link.dataSource = "sefaria"
+                link.save()
 
         topic_needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
 

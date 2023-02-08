@@ -315,6 +315,32 @@ Sefaria = extend(Sefaria, {
       return refs;
     }
   },
+    /**
+     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * @param {string} addressType - The address type of the schema being requested
+     * @param {number} i - The numeric section string from the database
+     * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
+     * @returns {[string,string]} Section string in both languages. 
+     */  
+  getSectionStringByAddressType: function(addressType, i, offset=0) {
+    let section = i + offset;
+    let enSection, heSection;
+    if (addressType === 'Talmud') {
+      enSection = Sefaria.hebrew.intToDaf(section);
+      heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
+    } else if (addressType === "Year") {
+      enSection = section + 1241;  
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
+      heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
+    } else if (addressType === "Folio") {
+      enSection = Sefaria.hebrew.intToFolio(section);  
+      heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
+    } else {
+      enSection = section + 1;
+      heSection = Sefaria.hebrew.encodeHebrewNumeral(section + 1);
+    }
+  return [enSection, heSection];
+  },
   titlesInText: function(text) {
     // Returns an array of the known book titles that appear in text.
     return Sefaria.books.filter(function(title) {
@@ -421,7 +447,7 @@ Sefaria = extend(Sefaria, {
             // This happens before saving the text to cache so that both caches are consistent
             if(d?.versions?.length){
                 let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
-                d.versions = Sefaria._makeVersions(versions, false, null, false);
+                d.versions = Sefaria._makeVersions(versions, false);
             }
             Sefaria._saveText(d, settings);
             return d;
@@ -486,7 +512,7 @@ Sefaria = extend(Sefaria, {
         //save versions and then text so both caches have updated versions
         if(data?.versions?.length){
             let versions = this._saveVersions(data.sectionRef, data.versions);
-            data.versions = this._makeVersions(versions, false, null, false);
+            data.versions = this._makeVersions(versions, false);
         }
         this._saveText(data, settings);
         cb(data);
@@ -505,7 +531,7 @@ Sefaria = extend(Sefaria, {
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
-    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
+    "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
@@ -523,16 +549,14 @@ Sefaria = extend(Sefaria, {
   _translateVersions: {},
   getVersionFromCache: function(ref,  byLang, filter, excludeFilter){
      let versions = this._cachedApi(ref, this._versions, []);
-     return this._makeVersions(versions, byLang, filter, excludeFilter)
+     return this._makeVersions(versions, byLang)
   },
-  getVersions: async function(ref, byLang, filter, excludeFilter) {
-      /**
-       * Returns a list of available text versions for `ref`.
-       *
-       * byLang: whether to return an object bucketed by actual version language or a list
-       * filter: array filter which languages ISO codes
-       * excludeFilter: if the filter should be including the filter value or excluding it.
-       */
+  getVersions: async function(ref) {
+    /**
+     * Gets versions from cache or API
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
@@ -540,22 +564,41 @@ Sefaria = extend(Sefaria, {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
+    return Promise.resolve(this._versions[ref]);
   },
-  _makeVersions: function(versions, byLang, filter, excludeFilter){
-    let tempValue;
-    if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
-        tempValue = Object.keys(versions)
-          .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
+  getSourceVersions: async function(ref) {
+    /**
+     * Gets Hebrew versions only
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
+    return Sefaria.getVersions(ref).then(result => {
+        let versions = {'he': result['he']}
+        return versions;
+    })
+  },
+  getTranslations: async function(ref) {
+    /**
+     * Gets all versions except Hebrew versions that have isBaseText true
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
+    return Sefaria.getVersions(ref).then(result => {
+        let versions = Object.keys(result)
+          .filter(key => { return key !== 'he'; })
           .reduce((obj, key) => {
-            obj[key] = versions[key];
+            obj[key] = result[key];
             return obj;
-          }, {});
-    }else{
-       tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
-    }
-    let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
-    return finalValue;
+          }, {})
+        let heVersions = result?.he?.filter((key) => key.isBaseText===false);
+        if (heVersions?.length) {
+            versions.he = heVersions;
+        }
+        return versions;
+    })
+  },
+  _makeVersions: function(versions, byLang){
+    return byLang ? versions : Object.values(versions).flat();
   },
   _saveVersions: function(ref, versions){
       for (let v of versions) {
@@ -725,6 +768,11 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
+  _get_offsets: function (data, length=1) {
+    let offsets = data?.index_offsets_by_depth?.[data.textDepth] || Array(length).fill(0);
+    offsets = (typeof(offsets) === 'number') ? [offsets] : offsets.flat();
+    return offsets;
+  },
   _splitTextSection: function(data, settings) {
     // Takes data for a section level text and populates cache with segment levels.
     // Don't do this for Refs above section level, like "Rashi on Genesis 1",
@@ -745,7 +793,8 @@ Sefaria = extend(Sefaria, {
     he = he.pad(length, "");
 
     const delim = data.ref === data.book ? " " : ":";
-    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1;
+    const offset = this._get_offsets(data);
+    const start = data.textDepth === data.sections.length ? data.sections[data.textDepth-1] : 1+offset[0];
 
     let prev = Array(length);
     let next = Array(length);
@@ -1865,9 +1914,9 @@ _media: {},
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
 
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
     var start = (data.textDepth == data.sections.length && !withContext ?
-                  data.sections.slice(-1)[0] : 1);
-
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
     if (!data.isSpanning) {
       for (var i = 0; i < topLength; i++) {
         var number = i+start;
@@ -1894,7 +1943,7 @@ _media: {},
         var delim       = baseSection ? ":" : " ";
         var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
 
-        start = (n == 0 ? start : 1);
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
         for (var i = 0; i < length; i++) {
           var startSection = data.sections.slice(-2)[0];
           var section = typeof startSection == "string" ?
@@ -1992,14 +2041,14 @@ _media: {},
   tocObjectByCategories: function(cats) {
     // Returns the TOC entry that corresponds to list of categories `cats`
     let found, item;
-    let list = Sefaria.toc
+    let list = Sefaria.toc;
     for (let i = 0; i < cats.length; i++) {
       found = false;
       item = null;
       for (let k = 0; k < list.length; k++) {
         if (list[k].category === cats[i]) {
           item = list[k];
-          list = item.contents;
+          list = item.contents || [];
           found = true;
           break;
         }
@@ -2223,19 +2272,25 @@ _media: {},
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
-  getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
+  getTopic: function(slug, {annotated=true, with_html=false}={}) {
     const cat = Sefaria.topicTocCategory(slug);
+    let ref_link_type_filters = ['about', 'popular-writing-of']
     // overwrite ref_link_type_filters with predefined list. currently used to hide "Sources" and "Sheets" on author pages.
     if (!!cat && !!Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug]) {
       ref_link_type_filters = Sefaria._CAT_REF_LINK_TYPE_FILTER_MAP[cat.slug];
     }
-    const url = `${this.apiHost}/api/v2/topics/${slug}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    const a = 0 + annotated;
+    const url = `${this.apiHost}/api/v2/topics/${slug}?annotate_time_period=1&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_html=${0 + with_html}&with_links=${a}&annotate_links=${a}&with_refs=${a}&group_related=${a}&with_indexes=${a}`;
+    const key = this._getTopicCacheKey(slug, {annotated, with_html});
     return this._cachedApiPromise({
       url,
-      key: slug,
+      key,
       store: this._topics,
       processor: this.processTopicsData,
     });
+  },
+  _getTopicCacheKey: function(slug, {annotated=true, with_html=false}={}) {
+      return slug + (annotated ? "-a" : "") + (with_html ? "-h" : "");
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
@@ -2272,8 +2327,9 @@ _media: {},
     data.tabs = tabs;
     return data;
   },
-  getTopicFromCache: function(topic) {
-    return this._topics[topic];
+  getTopicFromCache: function(slug, {annotated=true, with_html=false}={}) {
+      const key = this._getTopicCacheKey(slug, {annotated, with_html});
+      return this._topics[key];
   },
   _topicSlugsToTitles: null,
   slugsToTitles: function() {
@@ -2772,7 +2828,7 @@ Sefaria.unpackDataFromProps = function(props) {
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
             let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
-            panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
+            panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
         Sefaria._saveText(panel.text, settings);
@@ -2780,7 +2836,7 @@ Sefaria.unpackDataFromProps = function(props) {
       if(panel.bookRef){
          if(panel.versions?.length){
             let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
-            panel.versions = Sefaria._makeVersions(versions, false, null, false);
+            panel.versions = Sefaria._makeVersions(versions, false);
          }
       }
       if (panel.indexDetails) {

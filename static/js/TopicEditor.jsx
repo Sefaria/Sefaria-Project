@@ -162,19 +162,20 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                         </div>
                         <div className="section">
                             <label><InterfaceText>English Topic Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={setValues}
+                            <textarea id="topicDesc"  className="default" onBlur={setValues}
                                    defaultValue={description} placeholder={Sefaria._("Add a description.")}/>
                         </div>
                         {Sefaria._siteSettings.TORAH_SPECIFIC ?
                             <div className="section">
                                 <label><InterfaceText>Hebrew Topic Description</InterfaceText></label>
-                                <textarea id="topicHeDesc" onBlur={setValues}
+                                <textarea id="topicHeDesc" className="default" onBlur={setValues}
                                        defaultValue={heDescription} placeholder={Sefaria._("Add a description.")}/>
                             </div> : null}
                        {isCategory ?  <div> <div className="section">
                                                      <label><InterfaceText>English Short Description for Topic Table of Contents</InterfaceText></label>
                                                      <textarea
                                                          id="topicCatDesc"
+                                                          className="default"
                                                          onBlur={setValues}
                                                          defaultValue={catDescription}
                                                          placeholder={Sefaria._("Add a short description.")}/>
@@ -183,6 +184,7 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
                                                     <label><InterfaceText>Hebrew Short Description for Topic Table of Contents</InterfaceText></label>
                                                     <textarea
                                                         id="topicHeCatDesc"
+                                                        className="default"
                                                         onBlur={setValues}
                                                         defaultValue={heCategoryDescription}
                                                         placeholder={Sefaria._("Add a short description.")}/>

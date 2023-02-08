@@ -1,12 +1,12 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet
+from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
-import structlog
+import structlog, bleach
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -42,6 +42,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
     ]
+    # The below is to support HTML markup in the description
+    ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
+    ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -74,6 +77,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
             self.subclass = "author"
 
+    def _sanitize(self):
+        super()._sanitize()
+        for attr in ['description', 'categoryDescription']:
+            p = getattr(self, attr, {})
+            for k, v in p.items():
+                p[k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+            setattr(self, attr, p)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -109,7 +119,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def change_description(self, desc, cat_desc):
+    def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
 
@@ -240,7 +250,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 continue
             try:
                 link.save()
-            except InputError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
@@ -310,6 +320,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if not kwargs.get("with_html"):
+            for k, v in d.get("description", {}).items():
+                d["description"][k] = re.sub("<[^>]+>", "", v or "")
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -501,10 +514,10 @@ class AuthorTopic(PersonTopic):
         from .text import Index
 
         index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        link_names = []  # [(href, en, he)]
+        unique_urls = {}  # {url: {lang: title}}. This dict arbitrarily chooses one title per URL.
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
-                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
+                unique_urls[f'/{index_or_cat.title.replace(" ", "_")}'] = {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')}
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -514,8 +527,8 @@ class AuthorTopic(PersonTopic):
                     base_category_term = Term().load({"name": base_category.sharedTitle})
                     en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
-        return link_names
+                unique_urls[f'/texts/{"/".join(index_or_cat.path)}'] = {"en": en_text, "he": he_text}
+        return list(unique_urls.items())
 
     @staticmethod
     def is_author(slug):

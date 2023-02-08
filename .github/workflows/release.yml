@@ -65,11 +65,9 @@ jobs:
             ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  verify:
-    runs-on: ubuntu-latest
-    needs: semantic-release
-    steps:
-      - run: echo ${{ needs.semantic-release.outputs.version }}
+      - name: fail if no version
+        if: steps.semantic.outputs.new-release-published == 'false'
+        run: exit 1
   deploy:
     needs: semantic-release
     uses: ./.github/workflows/production-deploy.yaml
