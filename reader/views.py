@@ -3084,7 +3084,7 @@ def add_new_topic_api(request):
             new_link.save()
 
         t.description_published = True
-        t.change_description(data["description"], data.get("catDescription", {}))
+        t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
         library.get_topic_toc(rebuild=True)
@@ -3131,7 +3131,10 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = update_topic(topic_data)
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic_obj = update_topic(topic_obj, category=topic_data["category"], orig_category=topic_data["origCategory"],
+                                 description=topic_data["description"], categoryDescription=topic_data.get("catDescription", None),
+                                 title=topic_data["title"], he_title=topic_data["heTitle"], manual=True)
 
         if topic_data["origCategory"] != topic_data["category"]:
             library.get_topic_toc(rebuild=True)

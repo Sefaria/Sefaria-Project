@@ -172,6 +172,7 @@ def title_and_category_changes(node_to_change, orig_parent, new_parent):
 
 
 def test_title_and_category_changes(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 
 	node_to_change = child_of_root_with_self_link["topic"]
 	orig_parent = root_with_self_link["topic"].slug
@@ -183,10 +184,8 @@ def test_title_and_category_changes(root_wout_self_link, child_of_root_wout_self
 	new_parent = root_with_self_link["topic"].slug
 	title_and_category_changes(node_to_change, orig_parent, new_parent)
 
-	node_to_change = grandchild_of_root_with_self_link["topic"]
-	orig_parent = child_of_root_with_self_link["topic"].slug
-	new_parent = "Main Menu"
-	title_and_category_changes(node_to_change, orig_parent, new_parent)
+	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
+	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
 

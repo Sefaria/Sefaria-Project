@@ -119,6 +119,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
+
     def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
@@ -130,7 +131,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = cat_desc
+            self.categoryDescription = cat_desc if cat_desc else {"en": "", "he": ""}
         elif getattr(self, "categoryDescription", False):
             delattr(self, "categoryDescription")
 
@@ -243,7 +244,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
             if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
-                setattr(link, 'fromTopic', self.slug)
+                link.fromTopic = self.slug
                 link.toTopic = self.slug
             else:
                 attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
