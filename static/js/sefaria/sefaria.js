@@ -567,6 +567,11 @@ Sefaria = extend(Sefaria, {
     return Promise.resolve(this._versions[ref]);
   },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
+      /**
+       * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
+       * @langa {array} of string of language codes
+       * includeFilter {boolean} true for returning the language in the langs param, false for returning other languages
+       */
     return Object.keys(versionsObj)
         .filter(lang => {
             return includeFilter === langs.includes(lang);
@@ -576,14 +581,14 @@ Sefaria = extend(Sefaria, {
             return obj;
           }, {});
   },
-  filterVersionsArrayByAttr: function(versionsArray, filter) {
+  filterVersionsArrayByAttr: function(versionsArray, filterObj) {
+      /**
+       * @versionsArray {array} of version objects
+       * filterObj {object} keys are attribute of version objects and values are their values
+       * returns an array of versions from versionsArray that has all the attributes and their values as in filterObj
+       */
     return versionsArray.filter(version => {
-        for (const key in filter) {
-            if (version?.[key] !== filter[key]) {
-                return false;
-            }
-        }
-        return true;
+        return Object.keys(filterObj).every(key => version?.[key] === filterObj[key])
     });
   },
   getSourceVersions: async function(ref) {
