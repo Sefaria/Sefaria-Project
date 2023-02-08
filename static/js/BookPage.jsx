@@ -1156,7 +1156,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
-  const [authors, setAuthors] = useState(index.current.authors.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})));
+  const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [compDate, setCompDate] = useState(index.current?.compDate || "");
   const [errorMargin, setErrorMargin] = useState(index.current?.errorMargin || "");
 
