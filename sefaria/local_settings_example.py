@@ -180,6 +180,9 @@ GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 HOTJAR_ID = None
 
+# Determine which CRM connection implementations to use
+CRM_TYPE = "NATIONBUILDER"  # "SALESFORCE" || "NATIONBUILDER"
+
 # Integration with a NationBuilder list
 NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""

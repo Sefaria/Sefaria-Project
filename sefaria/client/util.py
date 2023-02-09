@@ -7,7 +7,6 @@ from django.core.mail import EmailMultiAlternatives
 from webpack_loader import utils as webpack_utils
 
 from sefaria import settings as sls
-from sefaria.helper.crm.nationbuilder import get_nationbuilder_connection
 # from sefaria.model.user_profile import UserProfile
 
 
@@ -39,43 +38,6 @@ def jsonpResponse(data, callback, status=200):
         data["_id"] = str(data["_id"])
     return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
 
-
-def subscribe_to_list(lists, email, first_name=None, last_name=None):
-    from sefaria.model.user_profile import UserProfile
-
-    if not sls.NATIONBUILDER:
-        return
-
-    tags = lists
-    post = {
-        "person": {
-            "email": email,
-            "tags": tags,
-        }
-    }
-    if first_name:
-        post["person"]["first_name"] = first_name
-    if last_name:
-        post["person"]["last_name"] = last_name
-
-    session = get_nationbuilder_connection()
-    r = session.put("https://"+sls.NATIONBUILDER_SLUG+".nationbuilder.com/api/v1/people/push",
-                    data=json.dumps(post),
-                    params={'format': 'json'},
-                    headers={'content-type': 'application/json'})
-    try: # add nationbuilder id to user profile
-        nationbuilder_user = r.json()
-        nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else nationbuilder_user["id"]
-        user_profile = UserProfile(email=email, user_registration=True)
-        if user_profile.id != None and user_profile.nationbuilder_id != nationbuilder_id:
-            user_profile.nationbuilder_id = nationbuilder_id
-            user_profile.save()
-    except:
-        pass
-
-    session.close()
-
-    return r
 
 def send_email(subject, message_html, from_email, to_email):
     msg = EmailMultiAlternatives(subject, message_html, "Sefaria <hello@sefaria.org>", [to_email], reply_to=[from_email])

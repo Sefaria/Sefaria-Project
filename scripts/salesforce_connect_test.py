@@ -2,7 +2,7 @@
 import django
 django.setup()
 
-from sefaria.helper.salesforce import SalesforceConnectionManager
+from sefaria.helper.crm.salesforce import SalesforceConnectionManager
 
 cm = SalesforceConnectionManager()
 

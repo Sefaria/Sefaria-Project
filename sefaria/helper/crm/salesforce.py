@@ -1,16 +1,8 @@
 import base64
 import requests
+from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
 from sefaria import settings as sls
-
-
-class CrmConnectionManager(object):
-    def __init__(self, base_url):
-        self.base_url = base_url
-
-    def get_connection(self):
-        pass
-
 
 class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
@@ -31,3 +23,6 @@ class SalesforceConnectionManager(CrmConnectionManager):
             'Authorization': 'Bearer %s' % basic_data['access_token']
         })
         return session
+
+    def subscribe_to_list(self):
+        pass

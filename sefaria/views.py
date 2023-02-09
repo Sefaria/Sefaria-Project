@@ -35,8 +35,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
@@ -179,7 +180,8 @@ def subscribe(request, email):
     lists = lists.split("|")
     if len(lists) == 0:
         return jsonResponse({"error": "Please specify a list."})
-    if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email):
+    connection_manager = CrmFactory().get_connection_manager()
+    if connection_manager.subscribe_to_list(lists + ["Newsletter_Sign_Up"], email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})

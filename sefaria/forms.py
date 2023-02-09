@@ -15,7 +15,7 @@ from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
 
-from sefaria.client.util import subscribe_to_list
+from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
@@ -95,7 +95,9 @@ class SefariaNewUserForm(EmailUserCreationForm):
         if mailingLists:
             mailingLists.append("Signed_Up_on_Sefaria")
             try:
-                subscribe_to_list(mailingLists, user.email, first_name=user.first_name, last_name=user.last_name)
+                connection_manager = CrmFactory().get_connection_manager()
+                connection_manager.subscribe_to_list(mailingLists, user.email, first_name=user.first_name,
+                                                     last_name=user.last_name)
             except:
                 pass
 
