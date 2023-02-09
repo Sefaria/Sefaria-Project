@@ -253,9 +253,10 @@ def change_sheet_owner(sheet_id, new_owner_id):
     if not sheet:
         raise Exception("Sheet not found")
     sheet["owner"] = new_owner_id
-    sheet["ownerImageUrl"] = owner_data["imageUrl"]
-    sheet["ownerProfileUrl"] = owner_data["profileUrl"]
-    sheet["ownerOrganization"] = owner_data["organization"]
+    # The following info should not be stored -- delete it so it doesn't cause issues
+    del sheet["ownerImageUrl"]
+    del sheet["ownerProfileUrl"]
+    del sheet["ownerOrganization"]
     db.sheets.save(sheet)
 
 
