@@ -40,25 +40,11 @@ def jsonpResponse(data, callback, status=200):
     return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
 
 
-def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
+def subscribe_to_list(lists, email, first_name=None, last_name=None):
     from sefaria.model.user_profile import UserProfile
 
     if not sls.NATIONBUILDER:
         return
-
-    if bypass_nationbuilder:
-        name          = first_name + " " + last_name if first_name and last_name else ""
-        method        = "Signed up directly" if direct_sign_up else "Signed up during account creation"
-        message_html  = "%s<br>%s<br>%s" % (name, email, method)
-        subject       = "Mailing list signup"
-        from_email    = "Sefaria <hello@sefaria.org>"
-        to            = "amelia@sefaria.org"
-
-        msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
-        msg.content_subtype = "html"  # Main content is now text/html
-        msg.send()
-
-        return True
 
     tags = lists
     post = {
