@@ -1,14 +1,13 @@
-# CRM Interfaces
+# CRM
 
-This attempts document the ways in which the Sefaria application interacts with the CRM. The document
-attempts, as much as possible, to treat the CRM as a black box, and to merely document the types of information
-that get sent to the CRM and what the business case for sending that information is.
-
+This documents the ways in which the Sefaria application interacts with the CRM. It attempts, as much as possible,
+to be written to be CRM platform-agnostic.
 
 To view mermaid diagrams in PyCharm, follow instructions here: 
 https://www.jetbrains.com/go/guide/tips/mermaid-js-support-in-markdown/
 
 
+## CRM Interfaces
 ## Diagrams - key
 
 `User` - Human User of Sefaria Application
@@ -22,6 +21,11 @@ systems: these are not documented here. We only document the interfaces with the
 
 ## User Sign-Up for Account
 
+After users successfully sign up for an account, the Sefaria App creates a request to store user data in the CRM.
+Sefaria includes the necessary information to sign the user up for mailing lists based on interface language
+and information provided during signup.
+
+The Sefaria App should also store a unique identifier for accessing that app user's account on the CRM.
 
 ```mermaid
 sequenceDiagram
@@ -29,7 +33,7 @@ sequenceDiagram
     participant Sefaria
     Participant Db as Databases
     Participant CRM
-    Participant 3rd as 3rd Party Black Box<br>(ActiveCampaign?)
+    Participant 3rd as 3rd Party Email<br>Subscription Manager
     User->>Sefaria: Signs up for account
     Sefaria->>Db: Create User (SQL)
     Db-->>Sefaria: OK
@@ -45,7 +49,10 @@ sequenceDiagram
 ```
 
 ## User Changes Account Email
-This is not currently implemented but should be implemented in salesforce.
+This is not currently implemented but should be implemented in the future. When the user changes their email,
+Sefaria should request that the CRM keep track of the fact that the Sefaria App User has changed their email.
+
+Whether or not making this request updates default emails and mailing list settings is implemented by the CRM. 
 
 ```mermaid
 sequenceDiagram
@@ -65,6 +72,7 @@ sequenceDiagram
 ```
 
 ## Syncing sustainers
+Each week, the Sefaria App pulls the sustainer status of Sefaria App Users and updates their sustainer status
 
 ```mermaid
 sequenceDiagram
@@ -83,13 +91,15 @@ sequenceDiagram
 ```
 
 ## Someone signs up for a mailing list
-Current implementation:
+This is the current set-up for users signing up for a mailing list. It goes through the CRM. It's possible
+that we will change this.
+
 ```mermaid
 sequenceDiagram
     participant User 
     participant Sefaria
     Participant CRM
-    Participant 3rd as 3rd Party Black Box<br>(ActiveCampaign?)
+    Participant 3rd as 3rd Party Email<br>Subscription Manager
     User->>Sefaria: Sign up for mailing list
     Sefaria->>CRM: PUT Email ONLY
     CRM-->>Sefaria: OK
