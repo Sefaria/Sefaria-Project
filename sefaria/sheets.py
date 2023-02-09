@@ -249,7 +249,6 @@ def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displ
 
 def change_sheet_owner(sheet_id, new_owner_id):
     sheet = db.sheets.find_one({"id": sheet_id})
-    owner_data = public_user_data(new_owner_id)
     if not sheet:
         raise Exception("Sheet not found")
     sheet["owner"] = new_owner_id
