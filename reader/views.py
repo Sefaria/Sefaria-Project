@@ -3132,19 +3132,20 @@ def topics_api(request, topic, v2=False):
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
-        topic_obj = update_topic(topic_obj, category=topic_data["category"], orig_category=topic_data["origCategory"],
-                                 description=topic_data["description"], categoryDescription=topic_data.get("catDescription", None),
-                                 title=topic_data["title"], he_title=topic_data["heTitle"], manual=True)
-
-        if topic_data["origCategory"] != topic_data["category"]:
+        topic_data["manual"] = True
+        if topic_data["category"] != topic_data["origCategory"]:
+            topic_obj = update_topic(topic_obj, **topic_data)
             library.get_topic_toc(rebuild=True)
         else:
+            topic_data.pop("category")  # no need to check category in update_topic
+            topic_obj = update_topic(topic_obj, **topic_data)
             # if just title or description changed, don't rebuild entire topic toc, rather edit library._topic_toc directly
             path = get_path_for_topic_slug(topic_data["origSlug"])
             old_node = get_node_in_library_topic_toc(path)
             if topic_data["origSlug"] != old_node["slug"]:
                 return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
-            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
+            old_node.update(
+                {"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
             if "heTitle" in topic_data:
                 old_node["he"] = topic_obj.get_primary_title('he')
             if hasattr(topic_obj, "categoryDescription"):

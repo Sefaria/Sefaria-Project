@@ -34,7 +34,9 @@ const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc={},
     const [heDescription, setHeDescription] = useState(origDesc?.he || "");
     const [heCategoryDescription, setHeCategoryDescription] = useState(origCategoryDesc?.he || "");
     const isNewTopic = origSlug === "";
-    const [isCategory, setIsCategory] = useState(origWasCat);
+
+    const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
+                                                               // isCategory determines whether user can edit categoryDescriptions of topic
 
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {"": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
