@@ -569,7 +569,7 @@ Sefaria = extend(Sefaria, {
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**
        * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
-       * @langa {array} of string of language codes
+       * @langs {array} of string of language codes
        * @includeFilter {boolean} true for returning the language in the langs param, false for returning other languages
        */
     return Object.keys(versionsObj)
