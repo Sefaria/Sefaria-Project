@@ -992,11 +992,13 @@ def update_topic(topic_obj, **kwargs):
     """
     Can update topic object's title, hebrew title, category, description, and categoryDescription fields
     :param topic_obj: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, and catDescription where `title`, `heTitle`,
+    :param **kwargs can be title, heTitle, category, description, catDescription, and rebuild_toc where `title`, `heTitle`,
          and `category` are strings. `description` and `catDescription` are dictionaries where the fields are `en` and `he`.
-         The `category` parameter should be the slug of the new category
+         The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
+    orig_slug = topic_obj.slug
+    old_category = ""
 
     if 'title' in kwargs and kwargs['title'] != topic_obj.get_primary_title('en'):
         topic_obj.add_title(kwargs['title'], 'en', True, True)
@@ -1017,4 +1019,23 @@ def update_topic(topic_obj, **kwargs):
         topic_obj.change_description(kwargs["description"], kwargs.get("catDescription", None))
 
     topic_obj.save()
+
+    if kwargs.get('rebuild_topic_toc', True):
+        rebuild_topic_toc(topic_obj, orig_slug, old_category != kwargs.get('category', ""))
     return topic_obj
+
+def rebuild_topic_toc(topic_obj, orig_slug, category_changed):
+    if category_changed:
+        library.get_topic_toc(rebuild=True)
+    else:
+        # if just title or description changed, don't rebuild entire topic toc, rather edit library._topic_toc directly
+        path = get_path_for_topic_slug(orig_slug)
+        old_node = get_node_in_library_topic_toc(path)
+        if orig_slug != topic_obj.slug:
+            return f"Slug {orig_slug} not found in library._topic_toc."
+        old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
+        old_node["he"] = topic_obj.get_primary_title('he')
+        if hasattr(topic_obj, "categoryDescription"):
+            old_node["categoryDescription"] = topic_obj.categoryDescription
+    library.get_topic_toc_json(rebuild=True)
+    library.get_topic_toc_category_mapping(rebuild=True)

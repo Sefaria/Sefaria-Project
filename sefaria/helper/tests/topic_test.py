@@ -80,48 +80,32 @@ def child_of_root_wout_self_link(root_wout_self_link):
 	t.delete()
 	l.delete()
 
-
-def append_character_to_title(t, en_char, he_char):
-	en = t.get_primary_title('en')
-	he = t.get_primary_title('he')
-	t = rename_topic(en+en_char, t)
-	t = rename_topic(he+he_char, t, lang='he')
-	return t
-
-
 def add_description(t):
 	enCatDesc = f'categoryDescription for {t.slug}'
 	heCatDesc = f'hebrew categoryDescription for {t.slug}'
 	enDesc = f'Description for {t.slug}'
 	heDesc = f'hebrew description for {t.slug}'
-	return update_description({'en': enDesc, 'he': heDesc}, getattr(t, "description", {}), {'en': enCatDesc, 'he': heCatDesc}, getattr(t, "categoryDescription", {}), t)
+	update_topic(description={'en': enDesc, 'he': heDesc}, catDescription={'en': enCatDesc, 'he': heCatDesc})
+	return t
 
 
 def remove_description(t):
-	return update_description({'en': "", 'he': ""}, getattr(t, "description", {}), {'en': "", 'he': ""}, getattr(t, "categoryDescription", {}), t)
-
-
-def remove_last_char_from_title(t):
-	en = t.get_primary_title('en')
-	he = t.get_primary_title('he')
-	en_char = en[-1]
-	he_char = he[-1]
-	t = rename_topic(en[:-1], t)
-	t = rename_topic(he[:-1], t, lang='he')
-	t.save()
-	return t, en_char, he_char
+	update_topic(description={'en': "", 'he': ""}, catDescription={'en': "", 'he': ""})
+	return t
 
 
 def modify_title(topic):
 	en, he = topic.get_primary_title('en'), topic.get_primary_title('he')
-	topic, removed_en_char, removed_he_char = remove_last_char_from_title(topic)
-	topic = append_character_to_title(topic, removed_en_char, removed_he_char)
+	update_topic(topic, title=en+'new', heTitle=he+'new')
 	new_en, new_he = topic.get_primary_title('en'), topic.get_primary_title('he')
-	topic.save()
+	assert en != new_en and new_he != he, f"Rename topics failed for {topic.slug}"
+
+	update_topic(topic, title=en, heTitle=he)
+	new_en, new_he = topic.get_primary_title('en'), topic.get_primary_title('he')
 	assert en == new_en and new_he == he, f"Rename topics failed for {topic.slug}"
 
 
-def add_and_remove_description(topic):
+def test_add_and_remove_description(topic):
 	origDesc = topic.description
 	origCatDesc = getattr(topic, "categoryDescription", {'en': "", 'he': ""})
 
@@ -144,60 +128,42 @@ def test_all_title(root_wout_self_link, child_of_root_wout_self_link, root_with_
 
 
 def test_change_root_categories(root_wout_self_link, root_with_self_link):
+	# tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
+	# and assert that moving it back to the root position yields the original tree
+
 	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
+	orig_trees = [orig_tree_from_normal_root, orig_tree_from_root_with_self_link]
 	roots = [root_wout_self_link["topic"], root_with_self_link["topic"]]
 	for i, root in enumerate(roots):
 		other_root = roots[1 - i]
-		root = change_category(root, other_root.slug, "Main Menu")  # move root to be child of other root
-		root = change_category(root, "Main Menu", root.slug)  # move it back to the main menu
-	new_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
-	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(roots[1])
-	assert new_tree_from_normal_root == orig_tree_from_normal_root
-	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
+		update_topic(root, category=other_root.slug) # move root to be child of other root
+		new_tree = library.get_topic_toc_json_recursive(other_root)
+		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
+		root = topic_change_category(root, "Main Menu")  # move it back to the main menu
+
+	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
+	final_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(roots[1])
+	assert final_tree_from_normal_root == orig_tree_from_normal_root  # assert that the tree is back to normal
+	assert final_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
-def title_and_category_changes(node_to_change, orig_parent, new_parent):
-	# change title and move to a different parent in the TOC
-	append_character_to_title(node_to_change, "S", "ס")
-	change_category(node_to_change, new_parent,
-					orig_parent)
-	node_to_change.save()
+def test_change_child_of_root_with_self_link(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+	# tests moving topics across the tree to a different root
 
-	# undo changes
-	remove_last_char_from_title(node_to_change)
-	change_category(node_to_change, orig_parent,
-					new_parent)
-	node_to_change.save()
-
-
-def test_title_and_category_changes(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
-	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
-
-	node_to_change = child_of_root_with_self_link["topic"]
-	orig_parent = root_with_self_link["topic"].slug
-	new_parent = root_wout_self_link["topic"].slug
-	title_and_category_changes(node_to_change, orig_parent, new_parent)
-
-	node_to_change = child_of_root_wout_self_link["topic"]
-	orig_parent = root_wout_self_link["topic"].slug
-	new_parent = root_with_self_link["topic"].slug
-	title_and_category_changes(node_to_change, orig_parent, new_parent)
-
-	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
-	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
-
-
-
-def test_change_child_of_root_with_self_linkegories(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 
-	change_category(child_of_root_with_self_link["topic"], root_wout_self_link["topic"].slug, root_with_self_link["topic"].slug)
-	change_category(child_of_root_wout_self_link["topic"], root_with_self_link["topic"].slug, root_wout_self_link["topic"].slug)
+	topic_change_category(child_of_root_with_self_link["topic"], root_wout_self_link["topic"].slug)
+	topic_change_category(child_of_root_wout_self_link["topic"], root_with_self_link["topic"].slug)
 
-	change_category(child_of_root_with_self_link["topic"], root_with_self_link["topic"].slug, root_wout_self_link["topic"].slug)
-	change_category(child_of_root_wout_self_link["topic"], root_wout_self_link["topic"].slug, root_with_self_link["topic"].slug)
+	new_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
+	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
+	assert new_tree_from_normal_root != orig_tree_from_normal_root
+	assert new_tree_from_root_with_self_link != orig_tree_from_root_with_self_link
+
+	topic_change_category(child_of_root_with_self_link["topic"], root_with_self_link["topic"].slug)
+	topic_change_category(child_of_root_wout_self_link["topic"], root_wout_self_link["topic"].slug)
 
 	new_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
 	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
