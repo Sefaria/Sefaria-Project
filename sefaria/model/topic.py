@@ -47,6 +47,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     # The below is to support HTML markup in the description
     ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
     ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
+    ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
+                        # this constant is helpful in the topic editor tool functions in this file
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:

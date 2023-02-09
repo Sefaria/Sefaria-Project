@@ -13,8 +13,6 @@ from sefaria.system.cache import django_cache
 import structlog
 
 logger = structlog.get_logger(__name__)
-ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
-                    # this variable is helpful in the topic editor tool functions in this file
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
     topic_obj = Topic.init(topic)
@@ -903,7 +901,7 @@ def set_all_slugs_to_primary_title():
     for t in TopicSet():
         t.set_slug_to_primary_title()
 
-def get_path_for_topic_slug(slug, only_last_path=False):
+def get_path_for_topic_slug(slug):
     path = []
     while slug in library.get_topic_toc_category_mapping().keys():
         if library.get_topic_toc_category_mapping()[slug] == slug:
@@ -911,11 +909,7 @@ def get_path_for_topic_slug(slug, only_last_path=False):
         path.append(slug)
         slug = library.get_topic_toc_category_mapping()[slug]  # get parent's slug
     path.append(slug)
-    if only_last_path:
-        last_path = path[-1] if len(path) > 1 else ROOT
-        return last_path
-    else:
-        return path
+    return path
 
 def get_node_in_library_topic_toc(path):
     curr_level_in_library_topic_toc = {"children": library.get_topic_toc(), "slug": ""}
@@ -928,7 +922,7 @@ def get_node_in_library_topic_toc(path):
 
     return curr_level_in_library_topic_toc
 
-def topic_change_category(topic_obj, new_category, old_category=""):
+def topic_change_category(topic_obj, new_category, old_category="", rebuild=False):
     """
         This changes a topic's category in the topic TOC.  The IntraTopicLink to the topic's parent category
         will be updated to its new parent category.  This function also handles special casing for topics that have
@@ -938,40 +932,34 @@ def topic_change_category(topic_obj, new_category, old_category=""):
         :param topic_obj: (model.Topic) the Topic object
         :param new_category: (String) slug of the new Topic category
         :param old_category: (String, optional) slug of old Topic category
+        :param rebuild: (bool, optional) whether the topic TOC should be rebuilt
         :return: (model.Topic) the new topic object on success, or None in the case where old_category == new_category
         """
     assert new_category != topic_obj.slug, f"{new_category} should not be the same as {topic_obj.slug}"
+    orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
     if old_category == "":
-        old_category = get_path_for_topic_slug(topic_obj.slug, only_last_path=True)
+        old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category == new_category:
-            logger.warning("To change the category of a topic, the categories should not be equal.")
+            logger.warning("To change the category of a topic, new and old categories should not be equal.")
             return None
 
-    if old_category != ROOT:
-        orig_link = IntraTopicLink().load({"fromTopic": topic_obj.slug, "toTopic": old_category, "linkType": "displays-under"})
-    else:
-        orig_link = None
-
     link_to_itself = IntraTopicLink().load({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug, "linkType": "displays-under"})
-    num_children = IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic_obj.slug}).count()
-    if link_to_itself:
-        num_children -= 1  # dont count the self-link
-    had_children_before_changing_category = num_children > 0
+    had_children_before_changing_category = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug, "fromTopic": {"$ne": topic_obj.slug}}) is not None
     new_link_dict = {"fromTopic": topic_obj.slug, "toTopic": new_category, "linkType": "displays-under",
                      "dataSource": "sefaria"}
 
-    if old_category != ROOT and new_category != ROOT:
+    if old_category != Topic.ROOT and new_category != Topic.ROOT:
         orig_link.load_from_dict(new_link_dict).save()
-    elif new_category != ROOT:
-        # old_category is ROOT, so we are moving down the tree from the ROOT
+    elif new_category != Topic.ROOT:
+        # old_category is Topic.ROOT, so we are moving down the tree from the Topic.ROOT
         IntraTopicLink(new_link_dict).save()
         topic_obj.isTopLevelDisplay = False
         topic_obj.save()
-        if old_category == ROOT and not had_children_before_changing_category and link_to_itself:
-            # suppose a topic had been put at the ROOT and a self-link was created because the topic had sources.
-            # if it now were moved out of the ROOT, it no longer needs the link to itself
+        if old_category == Topic.ROOT and not had_children_before_changing_category and link_to_itself:
+            # suppose a topic had been put at the Topic.ROOT and a self-link was created because the topic had sources.
+            # if it now were moved out of the Topic.ROOT, it no longer needs the link to itself
             link_to_itself.delete()
-    elif new_category == ROOT:
+    elif new_category == Topic.ROOT:
         if orig_link:
             # top of the tree doesn't need an IntraTopicLink to its previous parent
             orig_link.delete()
@@ -984,6 +972,9 @@ def topic_change_category(topic_obj, new_category, old_category=""):
             # from the topic TOC
             IntraTopicLink({"fromTopic": topic_obj.slug, "toTopic": topic_obj.slug,
                             "dataSource": "sefaria", "linkType": "displays-under"}).save()
+
+    if rebuild:
+        rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
 
@@ -997,8 +988,8 @@ def update_topic(topic_obj, **kwargs):
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
-    orig_slug = topic_obj.slug
     old_category = ""
+    orig_slug = topic_obj.slug
 
     if 'title' in kwargs and kwargs['title'] != topic_obj.get_primary_title('en'):
         topic_obj.add_title(kwargs['title'], 'en', True, True)
@@ -1007,7 +998,8 @@ def update_topic(topic_obj, **kwargs):
         topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
 
     if 'category' in kwargs:
-        old_category = get_path_for_topic_slug(topic_obj.slug, only_last_path=True)     #  slug of 'shabbat' yields old_category of 'holidays'
+        orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
+        old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
             topic_obj = topic_change_category(topic_obj, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
 
@@ -1021,10 +1013,10 @@ def update_topic(topic_obj, **kwargs):
     topic_obj.save()
 
     if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic_obj, orig_slug, old_category != kwargs.get('category', ""))
+        rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
     return topic_obj
 
-def rebuild_topic_toc(topic_obj, orig_slug, category_changed):
+def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     if category_changed:
         library.get_topic_toc(rebuild=True)
     else:

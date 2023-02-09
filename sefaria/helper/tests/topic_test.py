@@ -80,51 +80,14 @@ def child_of_root_wout_self_link(root_wout_self_link):
 	t.delete()
 	l.delete()
 
-def add_description(t):
-	enCatDesc = f'categoryDescription for {t.slug}'
-	heCatDesc = f'hebrew categoryDescription for {t.slug}'
-	enDesc = f'Description for {t.slug}'
-	heDesc = f'hebrew description for {t.slug}'
-	update_topic(description={'en': enDesc, 'he': heDesc}, catDescription={'en': enCatDesc, 'he': heCatDesc})
-	return t
 
-
-def remove_description(t):
-	update_topic(description={'en': "", 'he': ""}, catDescription={'en': "", 'he': ""})
-	return t
-
-
-def modify_title(topic):
-	en, he = topic.get_primary_title('en'), topic.get_primary_title('he')
-	update_topic(topic, title=en+'new', heTitle=he+'new')
-	new_en, new_he = topic.get_primary_title('en'), topic.get_primary_title('he')
-	assert en != new_en and new_he != he, f"Rename topics failed for {topic.slug}"
-
-	update_topic(topic, title=en, heTitle=he)
-	new_en, new_he = topic.get_primary_title('en'), topic.get_primary_title('he')
-	assert en == new_en and new_he == he, f"Rename topics failed for {topic.slug}"
-
-
-def test_add_and_remove_description(topic):
-	origDesc = topic.description
-	origCatDesc = getattr(topic, "categoryDescription", {'en': "", 'he': ""})
-
-	topic = add_description(topic)
-	topic.save()
-	newDesc = topic.description
-	newCatDesc = getattr(topic, "categoryDescription", {'en': "", 'he': ""})
-	assert origDesc != newDesc and origCatDesc != newCatDesc, f"Add description failed for {topic.slug}"
-
-	topic = remove_description(topic)
-	topic.save()
-	newDesc = topic.description
-	newCatDesc = getattr(topic, "categoryDescription", {'en': "", 'he': ""})
-	assert origDesc == newDesc and origCatDesc == newCatDesc, f"Remove description failed for {topic.slug}"
-
-
-def test_all_title(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	for t in [root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]:
-		modify_title(t["topic"])
+		new_values = {"title": "new title", "heTitle": "new hebrew title", "description": {"en": "desc", "he": "hebrew desc"}}
+		update_topic(t["topic"], **new_values)
+		assert t["topic"].description == new_values["description"]
+		assert t["topic"].get_primary_title('en') == new_values['title']
+		assert t["topic"].get_primary_title('he') == new_values['heTitle']
 
 
 def test_change_root_categories(root_wout_self_link, root_with_self_link):
@@ -137,10 +100,10 @@ def test_change_root_categories(root_wout_self_link, root_with_self_link):
 	roots = [root_wout_self_link["topic"], root_with_self_link["topic"]]
 	for i, root in enumerate(roots):
 		other_root = roots[1 - i]
-		update_topic(root, category=other_root.slug) # move root to be child of other root
+		update_topic(root, category=other_root.slug)  # move root to be child of other root
 		new_tree = library.get_topic_toc_json_recursive(other_root)
 		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
-		root = topic_change_category(root, "Main Menu")  # move it back to the main menu
+		update_topic(root, category="Main Menu")  # move it back to the main menu
 
 	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
 	final_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(roots[1])
