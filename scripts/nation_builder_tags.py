@@ -1,6 +1,6 @@
 import django
 import csv
-from sefaria.helper.nationbuilder import get_all_tags, nationbuilder_get_all
+from sefaria.helper.crm.nationbuilder import get_all_tags, nationbuilder_get_all
 
 django.setup()
 

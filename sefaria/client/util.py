@@ -2,13 +2,12 @@
 import json
 from datetime import datetime
 
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.core.mail import EmailMultiAlternatives
-from functools import wraps
 from webpack_loader import utils as webpack_utils
 
 from sefaria import settings as sls
-from sefaria.helper.nationbuilder import get_nationbuilder_connection
+from sefaria.helper.crm.nationbuilder import get_nationbuilder_connection
 # from sefaria.model.user_profile import UserProfile
 
 

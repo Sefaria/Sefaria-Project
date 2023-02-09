@@ -1,12 +1,11 @@
 import django
 django.setup()
 import time
-import json
-import sys
 
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
-from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam, get_everyone, get_person_by_email, nationbuilder_get_all, get_nationbuilder_connection, update_person, create_person, delete_from_nationbuilder_if_spam
+from sefaria.helper.crm.nationbuilder import get_everyone, get_person_by_email, nationbuilder_get_all, get_nationbuilder_connection, \
+    create_person, delete_from_nationbuilder_if_spam
 from django.contrib.auth.models import User
 
 """
