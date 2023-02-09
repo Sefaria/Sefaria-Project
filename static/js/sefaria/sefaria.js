@@ -584,7 +584,7 @@ Sefaria = extend(Sefaria, {
   filterVersionsArrayByAttr: function(versionsArray, filterObj) {
       /**
        * @versionsArray {array} of version objects
-       * filterObj {object} keys are attribute of version objects and values are their values
+       * @filterObj {object} keys are attribute of version objects and values are their values
        * returns an array of versions from versionsArray that has all the attributes and their values as in filterObj
        */
     return versionsArray.filter(version => {
