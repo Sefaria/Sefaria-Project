@@ -1,7 +1,7 @@
 # CRM
 
-This documents the ways in which the Sefaria application interacts with the CRM. It attempts, as much as possible,
-to be written to be CRM platform-agnostic.
+This documents the ways in which the Sefaria application interacts with the CRM. There is also a section that 
+documents the migration process.
 
 To view mermaid diagrams in PyCharm, follow instructions here: 
 https://www.jetbrains.com/go/guide/tips/mermaid-js-support-in-markdown/
