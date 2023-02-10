@@ -6,6 +6,50 @@ to be written to be CRM platform-agnostic.
 To view mermaid diagrams in PyCharm, follow instructions here: 
 https://www.jetbrains.com/go/guide/tips/mermaid-js-support-in-markdown/
 
+## CRM Migration Process: Nationbuilder to Salesforce
+Sefaria = Sefaria Application
+
+```mermaid
+flowchart TD
+    subgraph Sefaria Engineering 
+    A1[Sefaria is connected to Nationbuilder]
+    A2[Engineers create Sefaria interface for<br>CRM connection with option to switch write<br>location by updating environment variable]
+    A3{Works on sandbox?}
+    A3.1{Will we write<br>interim data to log<br>or Salesforce Prod?}
+    A3.2[Update Sefaria to write to Log]
+    Interim[Interim writing solution complete]
+    A3.3[Update Sefaria settings to write to Salesforce]
+    Load[Load log data to salesforce]
+    A4[Update Sefaria to write to Salesforce ]
+    A4.1[Resolve interim period App Users & Contacts]
+    A5{Interim Data in Log<br>or Production?}
+    Done
+    end
+    subgraph MMG 
+    B1[Load Mock Data into Sandbox]
+    B1.1{Data is validated?}
+    B3[Create Salesforce Production]
+    B4[Load Final Data into Production]
+    end 
+    B1-.->B1.1
+    B1.1-.Yes.->A3.1
+      B1.1-.No.->B1.1
+    A1-->A2
+    A2-->A3
+    A3-.Yes.->A3.1
+    A3.1-.Log.->A3.2
+    A3.1-.Salesforce Prod.->A4
+    A3.2-->Interim
+    A4-->Interim
+    Interim-->B4
+    B4-->A5 
+    A5-.Log.->A3.3
+    A5-.Salesforce Prod.->A4.1
+    B3-->B4
+    A3.3-->Load
+    Load-->Done
+    A4.1-->Done
+```
 
 ## CRM Interfaces
 ## Diagrams - key
