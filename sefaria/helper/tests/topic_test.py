@@ -90,28 +90,31 @@ def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_
 		assert t["topic"].get_primary_title('he') == new_values['heTitle']
 
 
-def test_change_root_categories(root_wout_self_link, root_with_self_link):
+def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):
 	# tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
-	# and assert that moving it back to the root position yields the original tree
+	# and assert that moving it back to the root position yields the original tree.
+	# also tests
 
 	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	orig_trees = [orig_tree_from_normal_root, orig_tree_from_root_with_self_link]
 	roots = [root_wout_self_link["topic"], root_with_self_link["topic"]]
+	orig_titles = [roots[0].get_primary_title('en'), roots[1].get_primary_title('en')]
 	for i, root in enumerate(roots):
 		other_root = roots[1 - i]
-		update_topic(root, category=other_root.slug)  # move root to be child of other root
+		update_topic(root, title=f"fake new title {i+1}", category=other_root.slug)  # move root to be child of other root
 		new_tree = library.get_topic_toc_json_recursive(other_root)
 		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
-		update_topic(root, category="Main Menu")  # move it back to the main menu
+		update_topic(root, title=orig_titles[0], category="Main Menu")  # move it back to the main menu
 
+	assert roots[0].get_primary_title('en') == orig_titles[0] and roots[1].get_primary_title('en') == orig_titles[1]
 	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
 	final_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(roots[1])
 	assert final_tree_from_normal_root == orig_tree_from_normal_root  # assert that the tree is back to normal
 	assert final_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
-def test_change_child_of_root_with_self_link(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+def test_change_categories(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	# tests moving topics across the tree to a different root
 
 	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
