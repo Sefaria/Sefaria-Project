@@ -23,7 +23,8 @@ function useEditToggle() {
 }
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat=false}) => {
-    const [isTopicCategory, setIsTopicCategory] = useState(origWasCat);
+    const [isTopicCategory, setIsTopicCategory] = useState(origWasCat); // initialize to True if the topic originally was a category
+                                                                        // isCategory determines whether user can edit categoryDescriptions of topic
     const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug || "", enTitle: origData.origEn,
                                 heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
                                 enDescription: origData?.origDesc?.en || "",

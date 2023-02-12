@@ -3084,7 +3084,7 @@ def add_new_topic_api(request):
             new_link.save()
 
         t.description_published = True
-        t.change_description(data["description"], data.get("catDescription", {}))
+        t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
         library.get_topic_toc(rebuild=True)
@@ -3131,24 +3131,11 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = update_topic(topic_data)
-
-        if topic_data["origCategory"] != topic_data["category"]:
-            library.get_topic_toc(rebuild=True)
-        else:
-            # if just title or description changed, don't rebuild entire topic toc, rather edit library._topic_toc directly
-            path = get_path_for_topic_slug(topic_data["origSlug"])
-            old_node = get_node_in_library_topic_toc(path)
-            if topic_data["origSlug"] != old_node["slug"]:
-                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
-            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
-            if "heTitle" in topic_data:
-                old_node["he"] = topic_obj.get_primary_title('he')
-            if hasattr(topic_obj, "categoryDescription"):
-                old_node["categoryDescription"] = topic_obj.categoryDescription
-
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic_data["manual"] = True
+        if topic_data["category"] == topic_data["origCategory"]:
+            topic_data.pop("category")  # no need to check category in update_topic
+        topic_obj = update_topic(topic_obj, **topic_data)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
