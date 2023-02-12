@@ -6,7 +6,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
 import {Autocompleter, InterfaceText} from "./Misc";
-import {TopicEditor} from "./AdminEditor";
+import {TopicEditor} from "./TopicEditor";
 
 
 class TopicSearch extends Component {

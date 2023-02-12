@@ -1,4 +1,4 @@
-import React, { useContext }  from 'react';
+import React, { useContext, useState }  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -194,7 +194,8 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
 
         content.push(
-          <div className='category' key={"cat." + nestLevel + "." + item.category}>
+          <div>
+               className='category' key={"cat." + nestLevel + "." + item.category}>
             <h2>
               <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
               {hasDesc && !longDesc ? 

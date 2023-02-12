@@ -97,7 +97,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
-
   return (
     <div className={classes} key="0">
       {comparePanelHeader}
