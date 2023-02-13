@@ -2,6 +2,7 @@ import Sefaria from "./sefaria/sefaria";
 import {InterfaceText} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
+import React, {useState} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close}) => {

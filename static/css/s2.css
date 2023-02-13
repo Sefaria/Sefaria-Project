@@ -4686,6 +4686,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display:  flex;
 }
 .toggleOption {
+  font-size: 26px;
   box-sizing: border-box;
   text-align: center;
   border: 1px solid #ccc;
@@ -4697,6 +4698,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
+
 .toggleSet.aliyotTorah .toggleOption,
 .toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
@@ -4754,11 +4756,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .color .dark, .color .dark.on {
   background-color: #333331;
 }
-.toggleOption {
-  font-size: 26px;
-  line-height: 34px;
-  vertical-align: middle;
-}
+
 .toggleSet .toggleOption .he,
 .toggleSet .toggleOption .en {
   display: inline;
@@ -4786,6 +4784,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border-radius: 6px;
+}
+.toggleSet.blueStyle.primary {
+  width: 100%;
+}
+.toggleSet.blueStyle.primary .toggleOption {
+  background-color: revert;
 }
 .toggleSet.blueStyle .toggleOption {
   border: none;
@@ -11378,6 +11382,17 @@ body .homeFeedWrapper.userStats {
 #categoryChooserMenu {
   overflow: hidden;
   background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
+  width: 100%;
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+}
+
+.reorderTool {
+  overflow: hidden;
+  background: url("/static/img/arrow-up.png") 93% 20px/10px 10px no-repeat, url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat;
   width: 100%;
   height: 50px;
   margin: 0 0 10px 0;

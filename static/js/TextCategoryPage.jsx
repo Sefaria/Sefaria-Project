@@ -5,7 +5,8 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import {useEditToggle, AdminEditorButton, CategoryEditor} from "./AdminEditor";
+import {useEditToggle, AdminEditorButton} from "./AdminEditor";
+import {CategoryEditor} from "./CategoryEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -131,7 +132,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
       if (editCategory) {
           const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
           const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-          const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc};
+          const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
           editStatus =
               <CategoryEditor origData={origData} close={toggleEditCategory} origPath={categories.slice(0, -1)}/>;
       } else if (addCategory) {
@@ -194,8 +195,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
 
         content.push(
-          <div>
-               className='category' key={"cat." + nestLevel + "." + item.category}>
+          <div className='category' key={"cat." + nestLevel + "." + item.category}>
             <h2>
               <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
               {hasDesc && !longDesc ? 

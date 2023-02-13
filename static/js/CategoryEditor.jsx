@@ -1,7 +1,9 @@
-import {CategoryChooser, InterfaceText} from "./Misc";
+import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
+import React, {useState} from "react";
+
 
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
@@ -9,31 +11,37 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                                 heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he,
                                 enDescription: origData?.origDesc?.en,
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he, isPrimary: !!origData.isPrimary});
+                                heCategoryDescription: origData?.origCategoryDesc?.he});
     const [isNew, setIsNew] = useState(origData?.origEn === "");
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
-    const [isPrimary, setIsPrimary] = useState(!!origData.isPrimary);
-
-
-    const handleClick = function(event) {
-        const newIsPrimary = event.target.value === 'true';
-        setIsPrimary(newIsPrimary);
+    const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
+    const origSubcategoriesAndBooks = Sefaria.tocItemsByCategories([...path, origData.origEn]).map(child => child.title || child.category);
+    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks);
+    const reorderClickHandler = (e) => {
+        const pos = (100*e.clientX/e.currentTarget.getBoundingClientRect().right);
+        const index = subcategoriesAndBooks.indexOf(e.currentTarget.value);
+        let index_to_swap = -1;
+        if (pos > 96 && index < subcategoriesAndBooks.length) { //click down
+            index_to_swap = index + 1;
+        }
+        else if (pos > 90 && index > 0) { //click up
+            index_to_swap = index - 1;
+        }
+        if (index_to_swap >= 0) {
+            let temp = subcategoriesAndBooks[index_to_swap];
+            subcategoriesAndBooks[index_to_swap] = subcategoriesAndBooks[index];
+            subcategoriesAndBooks[index] = temp;
+            setSubcategoriesAndBooks([...subcategoriesAndBooks]);
+        }
         setChanged(true);
-        setIsPrimaryObj(primaryObj(newIsPrimary));
     }
 
-    const primaryObj = function(newIsPrimary=false) {
-        return <form onClick={handleClick}>
-            <label><InterfaceText>Primary Status</InterfaceText></label>
-            <label htmlFor="true"><InterfaceText>True</InterfaceText></label>
-            <input type="radio" value='true' name="bool1" id="bool1" checked={newIsPrimary} />
-            <label htmlFor="false"><InterfaceText>False</InterfaceText></label>
-            <input type="radio" value='false' name="bool2" id="bool2" checked={!newIsPrimary}/>
-        </form>;
+    const handlePrimaryClick = function(type, status) {
+        setIsPrimary(status);
+        setChanged(true);
     }
 
-    const [isPrimaryObj, setIsPrimaryObj] = useState(() => primaryObj());
     let catMenu = null;
 
     const populateCatMenu = (newPath, update) => (
@@ -84,16 +92,19 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         toggle();
         let fullPath = [...path, data.enTitle];
         let postCategoryData = {
-            "isPrimary": isPrimary,
+            isPrimary,
             "enDesc": data.enDescription,
             "heDesc": data.heDescription,
             "enShortDesc": data.enCatDescription,
             "heShortDesc": data.heCategoryDescription,
             "heSharedTitle": data.heTitle,
             "sharedTitle": data.enTitle,
-            "path": fullPath,
+            "path": fullPath
         };
 
+        if (origSubcategoriesAndBooks !== subcategoriesAndBooks) {
+            postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
+        }
         let url = `/api/category/${fullPath.join("/")}?category_editor=1`;
         if (!isNew) {
             url += "&update=1";
@@ -130,9 +141,31 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
+    const primaryOptions = [
+                          {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },
+                          {name: "false", content: Sefaria._("False"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to False") },
+                        ];
+    return <div>
+        <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
+                extras={
+                    [subcategoriesAndBooks.map((child, i) => {
+                        return <input type="text" id={`reorder-${i}`} className="reorderTool"
+                                      onClick={(e) => reorderClickHandler(e)} readOnly value={child}/>;
+                    }),
+                    <ToggleSet
+                      blueStyle={true}
+                      ariaLabel="Primary Status"
+                      label={Sefaria._("Primary Status")}
+                      name="primary"
+                      separated={false}
+                      options={primaryOptions}
+                      setOption={handlePrimaryClick}
+                      currentValue={isPrimary} />,
+                    ]
+                }/>
 
-    return <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} extras={[isPrimaryObj]} path={path}/>;
+    </div>;
 }
 
 export {CategoryEditor};

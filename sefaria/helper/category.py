@@ -169,13 +169,25 @@ def get_category_paths(path):
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
 
 def handle_category_editor(uid, json, update=False, **kwargs):
-    new_category = Category().load({"path": json["path"]}) is not None
+    new_category = Category().load({"path": json["path"]}) is None
     error_msg = get_category_editor_errors(json, update=update, new_category=new_category)
     if len(error_msg) > 0:
         return {"error": error_msg}
     else:
+        order = 0
+        for subcategoryOrBook in json.get('subcategoriesAndBooks', []):
+            order += 5
+            obj = None
+            try:
+                obj = library.get_index(subcategoryOrBook)
+                obj.order = [order]
+            except BookNameError as e:
+                obj = Category().load({"lastPath": subcategoryOrBook})
+                obj.order = order
+            obj.save()
         func = tracker.update if update else tracker.add
-        return func(uid, Category, json, **kwargs).contents()
+        update_results = func(uid, Category, json, **kwargs).contents()
+        return update_results
 
 def get_category_editor_errors(j, update=False, new_category=False):
     # if Category Editor is used, validate its data
