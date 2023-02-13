@@ -1844,7 +1844,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 30000,
+        "showDelay": 1000,
       },
       "banner": {
         "trackingName": "Banner Message",
