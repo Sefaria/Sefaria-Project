@@ -8,3 +8,12 @@ class CrmConnectionManager(object):
 
     def add_user_to_crm(self, lists, email, first_name, last_name):
         pass
+
+    def change_user_email(self, uid, new_email):
+        pass
+
+    def add_user_to_mailing_lists(self, uid, lists):
+        pass
+
+    def sync_sustainers(self):
+        pass
