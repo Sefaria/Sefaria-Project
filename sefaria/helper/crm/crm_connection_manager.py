@@ -8,6 +8,3 @@ class CrmConnectionManager(object):
 
     def add_user_to_crm(self, lists, email, first_name, last_name):
         pass
-
-    def save_crm_access_info_to_profile(self):
-        pass
