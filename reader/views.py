@@ -78,7 +78,7 @@ from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
-from sefaria.helper.category import handle_category_editor
+from sefaria.helper.category import handle_category_editor, update_order_of_children
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -2465,9 +2465,13 @@ def category_api(request, path=None):
             # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
+        reorder = request.GET.get("reorder", False)
         if request.GET.get("category_editor", False):
-            category_editor_results = handle_category_editor(uid, j, update=update, **kwargs)
+            category_editor_results = handle_category_editor(uid, j, update=update, reorder=reorder, **kwargs)
             return jsonResponse(category_editor_results)
+        elif reorder:
+            reorder_editor_results = update_order_of_children(j)
+            return jsonResponse(reorder_editor_results)
 
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
