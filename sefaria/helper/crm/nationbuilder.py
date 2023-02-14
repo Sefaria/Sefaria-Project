@@ -127,11 +127,12 @@ class NationbuilderConnectionManager(CrmConnectionManager):
     def get_by_tag(tag_name):
         return f"/api/v1/tags/{tag_name}/people"
 
+
 def get_all_tags():
     return "/api/v1/tags"
-
-def tag_person(id):
-    return f"/api/v1/people/{id}/taggings"
+#
+# def tag_person(id):
+#     return f"/api/v1/people/{id}/taggings"
 
 
 def update_person(id):
@@ -164,101 +165,101 @@ def get_nationbuilder_connection():
     token = sls.NATIONBUILDER_TOKEN
     session = service.get_session(token)
     return session
+#
+# def get_tags_for_user(profile, trendManagers, custom_field_trend_managers=[]):  # TODO - split up?
+#     # trends
+#     trends = {}
+#     for trend in db.trend.find({"uid": profile['id']}):
+#         if not trends.get(trend["name"], False):
+#             trends[trend["name"]] = {}
+#         trends[trend["name"]][trend["period"]] = trend["value"]
+#     to_add = []
+#     to_remove = []
+#     for trendManager in trendManagers:
+#         info = trendManager.getPersonInfo(trends)
+#         if info['value'] == True:
+#             to_add.append(info['name'])
+#         else:
+#             to_remove.append(info['name'])
+#     custom_tags_info = [trend_manager.getPersonInfo(trends) for trend_manager in custom_field_trend_managers]
+#     return to_add, to_remove, custom_tags_info
 
-def get_tags_for_user(profile, trendManagers, custom_field_trend_managers=[]):  # TODO - split up?
-    # trends
-    trends = {}
-    for trend in db.trend.find({"uid": profile['id']}):
-        if not trends.get(trend["name"], False):
-            trends[trend["name"]] = {}
-        trends[trend["name"]][trend["period"]] = trend["value"]
-    to_add = []
-    to_remove = []
-    for trendManager in trendManagers:
-        info = trendManager.getPersonInfo(trends)
-        if info['value'] == True:
-            to_add.append(info['name'])
-        else:
-            to_remove.append(info['name'])
-    custom_tags_info = [trend_manager.getPersonInfo(trends) for trend_manager in custom_field_trend_managers]
-    return to_add, to_remove, custom_tags_info
-
-
-def nationbuilder_update_all_tags():
-    """
-    Update nationbuilder tags and custom fields based on trends
-    """
-    TOP_CATEGORIES = [
-        "Tanakh",
-        "Mishnah",
-        "Talmud",
-        "Midrash",
-        "Halakhah",
-        "Kabbalah",
-        "Liturgy",
-        "Jewish Thought",
-        "Tosefta"
-        "Chasidut",
-        "Musar",
-        "Responsa",
-        "Second Temple",
-        "Reference",
-    ]  # why won't this import from sefaria.model.categories??
-    session = get_nationbuilder_connection()
-    category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period
-                               in ["alltime", "currently"]]
-    trend_managers = []
-    for period in ["currently", "alltime"]:
-        trend_managers += [SheetReaderManager(period=period), SheetCreatorManager(period=period),
-                           SheetCreatorManager(period=period, public=True),
-                           SheetCreatorManager(period=period, public=True, valueThresholdMin=3),
-                           SheetCreatorManager(period=period, public=True),
-                           SheetCreatorManager(period=period, valueThresholdMin=10),
-                           ParashaLearnerManager(period=period)]
-    trend_managers += category_trend_managers
-    custom_field_trend_managers = [CustomTraitManager("hebrew_ability", "HebrewAbility")]
-    for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
-        tags_to_add, tags_to_remove, custom_tags_info = get_tags_for_user(profile, trend_managers,
-                                                                          custom_field_trend_managers)
-        print(tags_to_add)
-        print(tags_to_remove)
-        nationbuilder_update_person_tags(session, profile["nationbuilder_id"], json.dumps({
-            "tagging": {
-                "tag": tags_to_add
-            }
-        }), json.dumps({
-            "tagging": {
-                "tag": tags_to_remove
-            }
-        }))
-        nationbuilder_update_person_custom_fields(session, profile["nationbuilder_id"], custom_tags_info)
-
-
-def nationbuilder_update_person_tags(session, id, to_add, to_remove):
-    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    req_add = session.put(tag_person(id), data=to_add, headers=headers)
-    req_delete = session.delete(tag_person(id), data=to_remove, headers=headers)
-    try:
-        print(req_add.json())
-        print(req_delete.json())
-    except Exception as e:
-        print(e)
-        print(req_add)
-        print(req_delete)
+#
+# def nationbuilder_update_all_tags():
+#     """
+#     Update nationbuilder tags and custom fields based on trends
+#     """
+#     TOP_CATEGORIES = [
+#         "Tanakh",
+#         "Mishnah",
+#         "Talmud",
+#         "Midrash",
+#         "Halakhah",
+#         "Kabbalah",
+#         "Liturgy",
+#         "Jewish Thought",
+#         "Tosefta"
+#         "Chasidut",
+#         "Musar",
+#         "Responsa",
+#         "Second Temple",
+#         "Reference",
+#     ]  # why won't this import from sefaria.model.categories??
+#     session = get_nationbuilder_connection()
+#     category_trend_managers = [CategoryTrendManager(category, period=period) for category in TOP_CATEGORIES for period
+#                                in ["alltime", "currently"]]
+#     trend_managers = []
+#     for period in ["currently", "alltime"]:
+#         trend_managers += [SheetReaderManager(period=period), SheetCreatorManager(period=period),
+#                            SheetCreatorManager(period=period, public=True),
+#                            SheetCreatorManager(period=period, public=True, valueThresholdMin=3),
+#                            SheetCreatorManager(period=period, public=True),
+#                            SheetCreatorManager(period=period, valueThresholdMin=10),
+#                            ParashaLearnerManager(period=period)]
+#     trend_managers += category_trend_managers
+#     custom_field_trend_managers = [CustomTraitManager("hebrew_ability", "HebrewAbility")]
+#     for profile in db.profiles.find({"nationbuilder_id": {"$exists": True}}):
+#         tags_to_add, tags_to_remove, custom_tags_info = get_tags_for_user(profile, trend_managers,
+#                                                                           custom_field_trend_managers)
+#         print(tags_to_add)
+#         print(tags_to_remove)
+#         nationbuilder_update_person_tags(session, profile["nationbuilder_id"], json.dumps({
+#             "tagging": {
+#                 "tag": tags_to_add
+#             }
+#         }), json.dumps({
+#             "tagging": {
+#                 "tag": tags_to_remove
+#             }
+#         }))
+#         nationbuilder_update_person_custom_fields(session, profile["nationbuilder_id"], custom_tags_info)
 
 
-def nationbuilder_update_person_custom_fields(session, id, person_info_list):
-    headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
-    person_data = {person_info["name"]: person_info["value"] for person_info in person_info_list}
-    req_add = session.put(update_person(id), data=json.dumps({"person": person_data}), headers=headers)
-    print(req_add.json())
+# def nationbuilder_update_person_tags(session, id, to_add, to_remove):
+#     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+#     req_add = session.put(tag_person(id), data=to_add, headers=headers)
+#     req_delete = session.delete(tag_person(id), data=to_remove, headers=headers)
+#     try:
+#         print(req_add.json())
+#         print(req_delete.json())
+#     except Exception as e:
+#         print(e)
+#         print(req_add)
+#         print(req_delete)
+#
+#
+# def nationbuilder_update_person_custom_fields(session, id, person_info_list):
+#     headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+#     person_data = {person_info["name"]: person_info["value"] for person_info in person_info_list}
+#     req_add = session.put(update_person(id), data=json.dumps({"person": person_data}), headers=headers)
+#     print(req_add.json())
 
-
+# TODO: Delete when nation_builder_tags.py and sync_mongo_with_nationbuilder.py can get deleted
 def nationbuilder_get_all(endpoint_func, args=[]):
     session = get_nationbuilder_connection()
     next_endpoint = endpoint_func(*args)
     while (next_endpoint):
-        print(next_endpoint)  # TODO comment out before mergin to master
+        print(next_endpoint)
         for attempt in range(0, 3):
             try:
                 res = session.get(base_url + next_endpoint)
