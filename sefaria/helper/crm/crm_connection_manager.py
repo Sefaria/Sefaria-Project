@@ -6,7 +6,7 @@ class CrmConnectionManager(object):
     def get_connection(self):
         pass
 
-    def subscribe_to_list(self, lists, email, first_name, last_name):
+    def add_user_to_crm(self, lists, email, first_name, last_name):
         pass
 
     def save_crm_access_info_to_profile(self):

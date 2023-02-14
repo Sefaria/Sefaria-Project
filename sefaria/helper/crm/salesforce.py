@@ -24,5 +24,11 @@ class SalesforceConnectionManager(CrmConnectionManager):
         })
         return session
 
-    def subscribe_to_list(self):
+    def add_user_to_crm(self, lists, email, first_name, last_name):
+        """
+        Adds a new user to the CRM and subscribes them to the specified lists
+        """
+        pass
+
+    def save_crm_access_info_to_profile(self):
         pass

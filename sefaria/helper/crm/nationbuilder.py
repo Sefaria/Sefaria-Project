@@ -34,7 +34,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         session = service.get_session(token)
         return session
 
-    def subscribe_to_list(self, lists, email, first_name=None, last_name=None):
+    def add_user_to_crm(self, lists, email, first_name=None, last_name=None):
         if not sls.NATIONBUILDER:
             return
 

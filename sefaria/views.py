@@ -181,7 +181,7 @@ def subscribe(request, email):
     if len(lists) == 0:
         return jsonResponse({"error": "Please specify a list."})
     connection_manager = CrmFactory().get_connection_manager()
-    if connection_manager.subscribe_to_list(lists + ["Newsletter_Sign_Up"], email):
+    if connection_manager.add_user_to_crm(lists + ["Newsletter_Sign_Up"], email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})

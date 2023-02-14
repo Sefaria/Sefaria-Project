@@ -96,8 +96,8 @@ class SefariaNewUserForm(EmailUserCreationForm):
             mailingLists.append("Signed_Up_on_Sefaria")
             try:
                 connection_manager = CrmFactory().get_connection_manager()
-                connection_manager.subscribe_to_list(mailingLists, user.email, first_name=user.first_name,
-                                                     last_name=user.last_name)
+                connection_manager.add_user_to_crm(mailingLists, user.email, first_name=user.first_name,
+                                                   last_name=user.last_name)
             except:
                 pass
 
