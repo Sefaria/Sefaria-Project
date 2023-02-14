@@ -101,6 +101,7 @@ class TextRange extends Component {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
+      firstAvailableRef: 0,
       translationLanguagePreference: this.props.translationLanguagePreference,
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
