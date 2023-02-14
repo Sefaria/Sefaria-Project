@@ -9,8 +9,6 @@ from sefaria.system.database import db
 import structlog, bleach
 import regex as re
 logger = structlog.get_logger(__name__)
-from sefaria.settings import MULTISERVER_ENABLED
-from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
