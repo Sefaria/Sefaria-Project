@@ -907,15 +907,6 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         """
         return any(template.scope in self.MATCH_TEMPLATE_ALONE_SCOPES for template in self.get_match_templates())
 
-    def get_next_referenceable_descendants(self):
-        nodes = []
-        for node in self.children:
-            if getattr(node, 'referenceable', True):
-                nodes.append(node)
-            else:
-                nodes += node.get_referenceable_nodes()
-        return nodes
-
     def get_referenceable_alone_nodes(self):
         """
         Currently almost exact copy of function with same name in Index

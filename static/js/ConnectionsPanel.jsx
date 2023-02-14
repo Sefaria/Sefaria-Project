@@ -201,7 +201,7 @@ class ConnectionsPanel extends Component {
       });
     }
     if (!this.isSheet()) {
-      Sefaria.getVersions(ref, false, ["he"], true).then(versions => this.setState({ availableTranslations: versions })); //for counting translations
+      Sefaria.getTranslations(ref).then(versions => this.setState({ availableTranslations: Object.values(versions).flat() })); //for counting translations
       Sefaria.getRef(this.props.currentlyVisibleRef).then(data => { //this does not properly return a secionRef for a spanning/ranged ref
         const currRef = (typeof data == "string") ? Sefaria.sectionRef(data) : data["sectionRef"]; //this is an annoying consequence of getRef not actually returning a
         // consistent response. Its either the ref from cache or the entire text api response if async.
@@ -1387,6 +1387,7 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        secondaryHe, secondaryEn, greyColor=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
+    gtag("event", "feature_clicked", {name: `tools_button_${en}`})
     onClick();
   }
   let iconElem = null;

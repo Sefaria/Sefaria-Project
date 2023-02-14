@@ -233,6 +233,32 @@ def sheet_to_dict(sheet):
 	return sheet_dict
 
 
+
+def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displayedCollection=False):
+    sheet = db.sheets.find_one({"id": sheet_id})
+    if not sheet:
+        raise Exception("Sheet not found")
+    if sheet["id"] not in collection.sheets:
+        collection.sheets.append(sheet["id"])
+        # If a sheet's owner adds it to a collection, and the sheet is not highlighted
+        # in another collection, set it to highlight this collection.
+        if is_sheet_owner and (not sheet.get("displayedCollection", None) or override_displayedCollection):
+            sheet["displayedCollection"] = collection.slug
+            db.sheets.save(sheet)
+
+
+def change_sheet_owner(sheet_id, new_owner_id):
+    sheet = db.sheets.find_one({"id": sheet_id})
+    if not sheet:
+        raise Exception("Sheet not found")
+    sheet["owner"] = new_owner_id
+    # The following info should not be stored -- delete it so it doesn't cause issues
+    del sheet["ownerImageUrl"]
+    del sheet["ownerProfileUrl"]
+    del sheet["ownerOrganization"]
+    db.sheets.save(sheet)
+
+
 def annotate_user_collections(sheets, user_id):
 	"""
 	Adds a `collections` field to each sheet in `sheets` which includes the collections
@@ -354,7 +380,7 @@ def trending_topics(days=7, ntags=14):
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
-	# For testing purposes: if nothing is trennding in specified number of days, 
+	# For testing purposes: if nothing is trennding in specified number of days,
 	# (because local data is stale) look at a bigger window
 	# ------
 	# Updated to return an empty array on 7/29/21 b/c it was causing a recursion error due to stale data on sandboxes

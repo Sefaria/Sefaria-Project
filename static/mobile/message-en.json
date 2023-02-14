@@ -1,11 +1,13 @@
 {
   "title": "",
   "text": [
-    "Your opinion matters!",
-    "We invite you to participate in a quick survey to help us better understand you and your experiences. It will take approximately 5 minutes to complete."
+    "Friend,",
+    "Exciting news: Between now and Purim, all donations to Sefaria’s new Library Fund will be matched 1:1 by a generous donor.",
+    "Donations to this fund will directly support costs related to text acquisition, translation, digitization, and more. All support will help grow the library and enhance your Jewish learning.",
+    "Donate to the Library Fund TODAY and your donation will be DOUBLED up to $36,000!"
   ],
-  "buttonLink": "https://qualtricsxmd6qzd2jyv.qualtrics.com/jfe/form/SV_6KcZChAjIHptfSu?source=app",
-  "buttonText": "Take the Survey",
-  "name": "2023-01-09-modal-survey",
+  "buttonLink": "https://sefaria.nationbuilder.com/libraryfund2023_ae",
+  "buttonText": "DOUBLE MY DONATION",
+  "name": "2023-02-04-library-fund-1",
   "schemaVersion": 1
 }

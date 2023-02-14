@@ -984,7 +984,7 @@ def translations_page(request, slug):
         "he": {"name": "Hebrew", "nativeName": "עברית", "title": "ספריה בעברית", "desc": "הספרייה החינמית הגדולה ביותר של טקסטים יהודיים הזמינים לקריאה מקוונת בעברית ובאנגלית, לרבות תורה, תנח, תלמוד, משנה, מדרש, פירושים ועוד."},
         "it": {"name": "Italian", "nativeName": "Italiano", "title": "Testi ebraici in italiano", "desc": "La più grande libreria gratuita di testi ebraici disponibile per la lettura online in ebraico, italiano e inglese, inclusi Torah, Tanakh, Talmud, Mishnah, Midrash, commenti e altro ancora." },
         #"lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
+        "pl": {"name": "Polish", "nativeName": "Polski", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
         "pt": {"name": "Portuguese", "nativeName": "Português", "title": "Textos judaicos em portugues", "desc": "A maior biblioteca gratuita de textos judaicos disponível para leitura online em hebraico, português e inglês, incluindo Torá, Tanakh, Talmud, Mishnah, Midrash, comentários e muito mais."},
         "ru": {"name": "Russian", "nativeName": "Pусский", "title": "Еврейские тексты на русском языке", "desc": "Самая большая бесплатная библиотека еврейских текстов, доступных для чтения онлайн на иврите, русском и английском языках, включая Тору, Танах, Талмуд, Мишну, Мидраш, комментарии и многое другое."},
         "yi": {"name": "Yiddish", "nativeName": "יידיש", "title": "יידישע טעקסטן אויף יידיש", "desc": "די גרעסטע פרייע ביבליאָטעק פון יידישע טעקסטן צו לייענען אָנליין אין לשון קדוש ,יידיש און ענגליש. תורה, תנך, תלמוד, משנה, מדרש, פירושים און אזוי אנדערע."},
@@ -3109,7 +3109,7 @@ def add_new_topic_api(request):
             new_link.save()
 
         t.description_published = True
-        t.change_description(data["description"], data.get("catDescription", {}))
+        t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
         library.get_topic_toc(rebuild=True)
@@ -3156,24 +3156,11 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = update_topic(topic_data)
-
-        if topic_data["origCategory"] != topic_data["category"]:
-            library.get_topic_toc(rebuild=True)
-        else:
-            # if just title or description changed, don't rebuild entire topic toc, rather edit library._topic_toc directly
-            path = get_path_for_topic_slug(topic_data["origSlug"])
-            old_node = get_node_in_library_topic_toc(path)
-            if topic_data["origSlug"] != old_node["slug"]:
-                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
-            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
-            if "heTitle" in topic_data:
-                old_node["he"] = topic_obj.get_primary_title('he')
-            if hasattr(topic_obj, "categoryDescription"):
-                old_node["categoryDescription"] = topic_obj.categoryDescription
-
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic_data["manual"] = True
+        if topic_data["category"] == topic_data["origCategory"]:
+            topic_data.pop("category")  # no need to check category in update_topic
+        topic_obj = update_topic(topic_obj, **topic_data)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
