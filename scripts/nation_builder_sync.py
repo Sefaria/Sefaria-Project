@@ -2,8 +2,9 @@ import django
 django.setup()
 import sys
 from sefaria.system.database import db
-from sefaria.helper.crm.nationbuilder import get_by_tag, nationbuilder_get_all, update_user_flags, \
+from sefaria.helper.crm.nationbuilder import nationbuilder_get_all, update_user_flags, \
     nationbuilder_update_all_tags
+from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.model.user_profile import UserProfile
 from sefaria.model.trend import setAllTrends
 from scripts.sync_mongo_with_nationbuilder import add_profiles_to_nationbuilder, add_nationbuilder_id_to_mongo
@@ -17,39 +18,6 @@ Flags:
 """
 
 # Get list of current sustainers from profiles
-
-
-def sync_sustainers_to_mongo():
-    sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
-    added_count = 0
-    removed_count = 0
-    no_profile_count = 0
-    already_synced_count = 0
-    for nationbuilder_sustainer in nationbuilder_get_all(get_by_tag, ['sustainer_current_engineering']):
-        
-        nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email']) 
-
-        if (nationbuilder_sustainer_profile.id != None): # has user profile
-            existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
-
-            if existing_sustainer: # remove sustainer from dictionary; already synced
-                del sustainers[nationbuilder_sustainer_profile.id]
-                already_synced_count += 1
-            else: # add new sustainer to db
-                update_user_flags(nationbuilder_sustainer_profile, "is_sustainer", True)
-                added_count += 1
-        else:
-            no_profile_count += 1
-
-    for sustainer_to_remove in sustainers:
-        profile = UserProfile(sustainer_to_remove)
-        update_user_flags(profile, "is_sustainer", False)
-        removed_count += 1
-
-    print("added: {}".format(added_count))
-    print("removed: {}".format(removed_count))
-    print("no_profile: {}".format(no_profile_count))
-    print("already synced: {}".format(already_synced_count))
 
 trends_only = False
 tags_only = False
@@ -72,18 +40,20 @@ while(i < len(sys.argv)):
     elif sys.argv[i] == "--gt=":
         gt = int(sys.argv[i][5:])
     i+=1
-    
+
 if sustainers_only:
-    sync_sustainers_to_mongo()
+    connection_manager = CrmFactory().get_connection_manager()
+    connection_manager.sync_sustainers()
 if trends_only:
-    setAllTrends(skip)    
+    setAllTrends(skip)
 if tags_only:
     nationbuilder_update_all_tags()
 if nonexistent_nb_id_only:
     print("nb sync only")
     add_profiles_to_nationbuilder(gt)
 if not trends_only and not tags_only and not sustainers_only and not nonexistent_nb_id_only:
-    sync_sustainers_to_mongo()
+    connection_manager = CrmFactory().get_connection_manager()
+    connection_manager.sync_sustainers()
     add_nationbuilder_id_to_mongo(False)
     setAllTrends(skip)
     nationbuilder_update_all_tags()
