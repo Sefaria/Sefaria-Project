@@ -1,14 +1,7 @@
 import django
 django.setup()
 import sys
-from sefaria.system.database import db
-from sefaria.helper.crm.nationbuilder import nationbuilder_get_all, update_user_flags, \
-    nationbuilder_update_all_tags
 from sefaria.helper.crm.crm_factory import CrmFactory
-from sefaria.model.user_profile import UserProfile
-from sefaria.model.trend import setAllTrends
-from scripts.sync_mongo_with_nationbuilder import add_profiles_to_nationbuilder, add_nationbuilder_id_to_mongo
-
 """
 Mutiple "only" flags can be run at once. If none are run, everything will be run.
 Flags:
@@ -41,19 +34,22 @@ while(i < len(sys.argv)):
         gt = int(sys.argv[i][5:])
     i+=1
 
-if sustainers_only:
-    connection_manager = CrmFactory().get_connection_manager()
-    connection_manager.sync_sustainers()
-if trends_only:
-    setAllTrends(skip)
-if tags_only:
-    nationbuilder_update_all_tags()
-if nonexistent_nb_id_only:
-    print("nb sync only")
-    add_profiles_to_nationbuilder(gt)
-if not trends_only and not tags_only and not sustainers_only and not nonexistent_nb_id_only:
-    connection_manager = CrmFactory().get_connection_manager()
-    connection_manager.sync_sustainers()
-    add_nationbuilder_id_to_mongo(False)
-    setAllTrends(skip)
-    nationbuilder_update_all_tags()
+connection_manager = CrmFactory().get_connection_manager()
+connection_manager.sync_sustainers()
+
+# if sustainers_only:
+#     connection_manager = CrmFactory().get_connection_manager()
+#     connection_manager.sync_sustainers()
+# if trends_only:
+#     setAllTrends(skip)
+# if tags_only:
+#     nationbuilder_update_all_tags()
+# if nonexistent_nb_id_only:
+#     print("nb sync only")
+#     add_profiles_to_nationbuilder(gt)
+# if not trends_only and not tags_only and not sustainers_only and not nonexistent_nb_id_only:
+#     connection_manager = CrmFactory().get_connection_manager()
+#     connection_manager.sync_sustainers()
+#     add_nationbuilder_id_to_mongo(False)
+#     setAllTrends(skip)
+#     nationbuilder_update_all_tags()
