@@ -45,6 +45,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     # The below is to support HTML markup in the description
     ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
     ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
+    ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
+                        # this constant is helpful in the topic editor tool functions in this file
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -88,6 +90,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
+    def add_title(self, text, lang, primary=False, replace_primary=False):
+        super(Topic, self).add_title(text, lang, primary=primary, replace_primary=replace_primary)
+        if lang == 'en' and primary:
+            self.set_slug_to_primary_title()
+
     def title_is_transliteration(self, title, lang):
         return self.title_group.get_title_attr(title, lang, 'transliteration') is not None
 
@@ -119,6 +126,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
+
     def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
@@ -130,7 +138,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = cat_desc
+            self.categoryDescription = cat_desc if cat_desc else {"en": "", "he": ""}
         elif getattr(self, "categoryDescription", False):
             delattr(self, "categoryDescription")
 
@@ -242,12 +250,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
-            setattr(link, attr, self.slug)
-            if getattr(link, 'fromTopic', None) == link.toTopic:
-                # self-link
-                link.delete()
-                continue
+            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
+                link.fromTopic = self.slug
+                link.toTopic = self.slug
+            else:
+                attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
+                setattr(link, attr, self.slug)
+                if getattr(link, 'fromTopic', None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
+                    link.delete()
+                    continue
             try:
                 link.save()
             except (InputError, DuplicateRecordError) as e:

@@ -297,22 +297,22 @@ CACHES = {
 }
 
 
-#
-# GLOBAL_INTERRUPTING_MESSAGE = {
-#     "name": "2023-01-09-modal-survey",
-#     "style":      "modal",  # "modal" or "banner"
-#     "repetition": 1,
-#     "is_fundraising": False,
-#     "condition":  {
-#         "returning_only": False,
-#         "english_only": False,
-#         "desktop_only": False,
-#         "debug": False,
-#     }
-# }
+
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name": "2023-02-04-library-fund-1",
+    "style":      "modal",  # "modal" or "banner"
+    "repetition": 1,
+    "is_fundraising": False,
+    "condition":  {
+        "returning_only": False,
+        "english_only": False,
+        "desktop_only": False,
+        "debug": False,
+    }
+}
 
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
