@@ -12,7 +12,10 @@ class CrmConnectionManager(object):
     def change_user_email(self, uid, new_email):
         pass
 
-    def add_user_to_mailing_lists(self, uid, lists):
+    def add_email_to_mailing_lists(self, email, lists):
+        """
+        Add email directly to mailing list
+        """
         pass
 
     def sync_sustainers(self):
