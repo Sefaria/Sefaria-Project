@@ -241,6 +241,7 @@ const Strings = {
     "Current Translation": "תרגום נוכחי",
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
+    "View in Sidebar": "פתיחת תרגום",
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
     "Sources": "מקורות",
