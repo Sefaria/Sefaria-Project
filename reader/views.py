@@ -77,7 +77,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic
+from sefaria.helper.topic import update_topic, reorder_topic_children
 from sefaria.helper.category import handle_category_editor, update_order_of_children
 
 if USE_VARNISH:
@@ -3156,11 +3156,15 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
-        topic_data["manual"] = True
-        if topic_data["category"] == topic_data["origCategory"]:
-            topic_data.pop("category")  # no need to check category in update_topic
-        topic_obj = update_topic(topic_obj, **topic_data)
+        reorder = request.GET.get("reorder", False)
+        if reorder:
+            topic_obj = reorder_topic_children(topic_data["topic"], topic_data["subtopics"])
+        else:
+            topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+            topic_data["manual"] = True
+            if topic_data["category"] == topic_data["origCategory"]:
+                topic_data.pop("category")  # no need to check category in update_topic
+            topic_obj = update_topic(topic_obj, **topic_data)
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())

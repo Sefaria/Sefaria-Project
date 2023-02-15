@@ -51,9 +51,28 @@ const post = ({url, postCategoryData, setSavingStatus}) => {
         });
 }
 
-const ReorderEditor = ({close, path=[]}) => {
-    const [tocItems, setTocItems] = useState(path.length === 0 ? Sefaria.toc.map(child => child.category)
-                                            : Sefaria.tocItemsByCategories(path).map(child => child.title || child.category));
+const ReorderEditor = ({close, path=[], type="topics"}) => {
+    const determineTocItems = () => {
+        if (type !== "topics")
+        {
+            if (path.length === 0) {
+                return Sefaria.toc.map(child => child.category);
+            }
+            else {
+                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
+            }
+        }
+        else {
+            if (path.length === 0) {
+                return Sefaria.topic_toc(child => child.en);
+            }
+            else {
+                return Sefaria.topicTocPage(path);
+            }
+        }
+
+    }
+    const [tocItems, setTocItems] = useState(determineTocItems())
     const [savingStatus, setSavingStatus] = useState(false);
     const [isChanged, setIsChanged] = useState(false);
     const update = (newTocItems) => {
@@ -70,8 +89,16 @@ const ReorderEditor = ({close, path=[]}) => {
     }
     const save = () => {
         setSavingStatus(true);
-        const postCategoryData = {subcategoriesAndBooks: tocItems, path};
-        let url = `/api/category/${path.join("/")}?&reorder=1`;
+        let postCategoryData = {};
+        let url = "";
+        if (type !== "topics") {
+            postCategoryData = {subcategoriesAndBooks: tocItems, path};
+            url = `/api/category/${path.join("/")}?reorder=1`;
+        }
+        else {
+             url = `api/topic/${path}?reorder=1`;
+             postCategoryData = {subtopics: tocItems, topic: path};
+        }
         post({url, postCategoryData, setSavingStatus});
     }
     return <div className="editTextInfo">
