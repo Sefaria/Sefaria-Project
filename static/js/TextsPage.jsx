@@ -15,7 +15,10 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
+  CategoryHeader
 } from './Misc';
+import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
@@ -94,8 +97,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-      <h1><InterfaceText>Browse the Library</InterfaceText></h1>
-
+      <CategoryHeader title="Browse the Library"/>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
@@ -119,7 +121,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
-
   return (
     <div className={classes} key="0">
       {comparePanelHeader}

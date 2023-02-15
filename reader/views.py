@@ -16,7 +16,6 @@ import os
 import re
 import uuid
 
-from sefaria.helper.topic import update_topic
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -78,6 +77,8 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
+from sefaria.helper.topic import update_topic
+from sefaria.helper.category import handle_category_editor, update_order_of_children
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -2403,13 +2404,22 @@ def tag_category_api(request, path=None):
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
+    DELETE takes a category path on the URL
     GET takes a category path on the URL.  Returns the category specified.
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
+    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
     """
-    if request.method == "GET":
+    if request.method == "DELETE":
+        cat = Category().load({"path": path.split("/")})
+        if cat:
+            cat.delete()
+            library.rebuild_toc(skip_rebuild_topics=False)
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+    elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
         cats = path.split("/")
@@ -2424,8 +2434,9 @@ def category_api(request, path=None):
         return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
-        def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, Category, cat, **kwargs).contents()
+        def _internal_do_post(update, cat, uid, **kwargs):
+            func = tracker.update if update else tracker.add
+            return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2450,12 +2461,26 @@ def category_api(request, path=None):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
+        update = int(request.GET.get("update", False))
+        new_category_exists = Category().load({"path": j["path"]}) is not None
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if Category().load({"path": j["path"]}):
+        if not update and new_category_exists:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
-        if not Category().load({"path": j["path"][:-1]}):
+
+        parent = j["path"][:-1]
+        if len(parent) > 0 and not Category().load({"path": parent}):
+            # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
+
+        reorder = request.GET.get("reorder", False)
+        if request.GET.get("category_editor", False):
+            category_editor_results = handle_category_editor(uid, j, update=update, reorder=reorder, **kwargs)
+            return jsonResponse(category_editor_results)
+        elif reorder:
+            reorder_editor_results = update_order_of_children(uid, j)
+            return jsonResponse(reorder_editor_results)
+
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
@@ -3094,13 +3119,13 @@ def add_new_topic_api(request):
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
-        t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         t.description_published = True
+        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 

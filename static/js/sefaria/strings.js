@@ -56,9 +56,9 @@ const Strings = {
     "All Visualizations": "תרשימים גרפיים נוספים",
     "Daily Study": "לימוד יומי",
 
-    // Topics
-    "English Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים אנגלית",
-    "Hebrew Short Description for Topic Table of Contents": "תיאור קצר עבור עמוד מפתח נושאים עברית",
+    // Topics and Category Admin tools
+    "English Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים אנגלית",
+    "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
     "Choose a Category": "בחר קטגוריה",
     "Main Menu": "תפריט ראשי",
     "Saving topic information.": "מעדכן נתוני נושא",
@@ -76,11 +76,9 @@ const Strings = {
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
-    "English Topic Title": "כותרת נושא אנגלית",
-    "Hebrew Topic Title": "כותרת נושא עברית",
-    "English Topic Description": "תיאור נושא אנגלית",
-    "Hebrew Topic Description": "תיאור נושא עברית",
-    "Delete Topic": "מחק נושא",
+    "English Title": "כותרת אנגלית",
+    "English Description": "תיאור אנגלית",
+    "Hebrew Description": "תיאור עברית",
     "Topic Deleted": "הנושא נמחק",
     "Topic Editor": "עריכת נושאים",
     "Please choose a category.": "אנא בחרו קטגוריה",
