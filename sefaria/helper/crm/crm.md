@@ -52,16 +52,23 @@ flowchart TD
 ```
 
 ## CRM Interfaces
+The `CrmConnectionManager` base class defines methods to perform the following actions.
+
+Concrete classes of `CrmConnectionManager` should implement a `get_connection` function that authenticates
+the Sefaria application and returns a Requests session object.
+
 ## Diagrams - key
 
 `User` - Human User of Sefaria Application
+
+`Administrator` - Human administrator, likely someone who works at Sefaria
 
 `Sefaria` - Sefaria application (backend)
 
 `Databases` - Sefaria application databases (represents both the Mongo & the User/SQL DB)
 
-`CRM` - Customer Relationship Management system. Black box (assumption is that the CRM interfaces with 3rd-party
-systems: these are not documented here. We only document the interfaces with the CRM)
+`CRM` - Customer Relationship Management system. Assumption is that the CRM interfaces with 3rd-party
+systems.
 
 ## User Sign-Up for Account
 
@@ -70,6 +77,8 @@ Sefaria includes the necessary information to sign the user up for mailing lists
 and information provided during signup.
 
 The Sefaria App should also store a unique identifier for accessing that app user's account on the CRM.
+
+This corresponds with the `CrmConnectionManager.add_user_to_crm` method
 
 ```mermaid
 sequenceDiagram
@@ -96,7 +105,9 @@ sequenceDiagram
 This is not currently implemented but should be implemented in the future. When the user changes their email,
 Sefaria should request that the CRM keep track of the fact that the Sefaria App User has changed their email.
 
-Whether or not making this request updates default emails and mailing list settings is implemented by the CRM. 
+Whether or not making this request updates default emails and mailing list settings is implemented by the CRM.
+
+This corresponds with the `CrmConnectionManager.change_user_email` method.
 
 ```mermaid
 sequenceDiagram
@@ -118,6 +129,8 @@ sequenceDiagram
 ## Syncing sustainers
 Each week, the Sefaria App pulls the sustainer status of Sefaria App Users and updates their sustainer status
 
+This corresponds with the `CrmConnectionManager.sync_sustainers` method.
+
 ```mermaid
 sequenceDiagram
     participant Cronjob as Weekly Cronjob
@@ -138,6 +151,8 @@ sequenceDiagram
 This is the current set-up for users signing up for a mailing list. It goes through the CRM. It's possible
 that we will change this.
 
+This corresponds with the `CrmConnectionManager.add_email_to_mailing_lists` method.
+
 ```mermaid
 sequenceDiagram
     participant User 
@@ -149,4 +164,23 @@ sequenceDiagram
     CRM-->>Sefaria: OK
     3rd->>CRM: GET: Contacts on<br>mailing lists
     CRM-->>3rd: OK
+```
+
+## User marked as spam
+
+For Nationbuilder, this *deletes* the user.
+
+When we move to Salesforce, we will want to implement something different. We still need spec.
+
+This corresponds with the `CrmConnectionManager.mark_as_spam_in_crm` method.
+
+```mermaid
+sequenceDiagram
+    participant Administrator 
+    participant Sefaria
+    Participant CRM
+    Administrator->>Sefaria: Mark user as Spam
+    Sefaria->>CRM: Mark User as Spam (or delete)
+    CRM-->>Sefaria: OK
+    Sefaria-->>Administrator: Ok
 ```
