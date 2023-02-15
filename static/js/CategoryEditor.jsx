@@ -98,7 +98,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const origSubcategoriesAndBooks = useRef(Sefaria.tocItemsByCategories([...origPath, origData.origEn]).map(child => child.title || child.category));
+    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []).map(child => child.title || child.category));
 
     const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
 
@@ -146,15 +146,19 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         const fullPath = [...path, data.enTitle];
         const origFullPath = [...origPath, origData.origEn];
         let postCategoryData = {
-            isPrimary,
+            "isPrimary": isPrimary === 'true',
             "enDesc": data.enDescription,
             "heDesc": data.heDescription,
-            "enShortDesc": data.enCatDescription,
+            "enShortDesc": data.enCategoryDescription,
             "heShortDesc": data.heCategoryDescription,
             "heSharedTitle": data.heTitle,
             "sharedTitle": data.enTitle,
             "path": fullPath
         };
+
+        if (Sefaria._siteSettings.SITE_NAME["en"] === "ContextUS") {
+            postCategoryData["heSharedTitle"] = data.enTitle.split("").reverse().join("");  // there needs to be a hebrew title for the category's term
+        }
 
         let url = `/api/category/${fullPath.join("/")}?&category_editor=1`;
         if (!isNew) {
@@ -172,8 +176,12 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
 
     const deleteObj = function() {
+      if (subcategoriesAndBooks.length > 0) {
+          alert("Cannot delete a category with contents.");
+          return;
+      }
       $.ajax({
-        url: "/api/category/"+origPath.join("/"),
+        url: "/api/category/"+origPath.concat(origData.origEn).join("/"),
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {

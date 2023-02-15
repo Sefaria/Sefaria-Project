@@ -49,7 +49,6 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
             # which should then propagate to the `lastPath` and `sharedTitle`
             self.change_key_name(self.path[-1])
         self._load_title_group()
-        self._load_title_group()
 
     def change_key_name(self, name):
         # Doesn't yet support going from shared term to local or vise-versa.
