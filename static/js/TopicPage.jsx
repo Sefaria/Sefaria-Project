@@ -20,7 +20,9 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
-    SimpleLinkedBlock
+    SimpleLinkedBlock,
+    TopicToCategorySlug, CategoryHeader,
+
 } from './Misc';
 
 
@@ -170,48 +172,13 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 */
 
 
-const TopicToCategorySlug = function(topic, category=null) {
-    //helper function for AdminEditor
-    if (!category) {
-        category = Sefaria.topicTocCategory(topic.slug);
-    }
-    let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
-                                                                  // so all category topics initialized to "Main Menu"
-    if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
-        // this case handles categories that are not top level but have children under them
-        const displayUnderLinks = topic.links["displays-under"]?.links;
-        if (displayUnderLinks && displayUnderLinks.length === 1) {
-            initCatSlug = displayUnderLinks[0].topic;
-        }
-    }
-    return initCatSlug;
-}
+
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth, 
   openDisplaySettings, openSearch}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-    const [addingTopics, toggleAddingTopics] = useEditToggle();
-    let topicEditorStatus = null;
-
-    if (Sefaria.is_moderator) {
-        if (!addingTopics) {
-            topicEditorStatus = <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
-        }
-        else if (addingTopics && "slug" in topicData) {
-            const initCatSlug = TopicToCategorySlug(topicData);
-            const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
-                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
-            origData.origDesc = topicData.description || {"en": "", "he": ""};
-            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-            const displaysAbove = "displays-above" in topicData?.links;
-            topicEditorStatus = <TopicEditor origData={origData}
-                                             origWasCat={displaysAbove}
-                                             onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                             close={toggleAddingTopics}/>;
-        }
-    }
 
     useEffect(() => {
         Sefaria.getTopic(topic).then(setTopicData);
@@ -298,8 +265,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                          <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
-                          {topicEditorStatus}
+                        <CategoryHeader type="topics" title={topicTitle.en} heTitle={topicTitle.he}/>
                       </div>
                       <div className="readerNavCategories">
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />

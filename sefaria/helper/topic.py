@@ -1016,8 +1016,6 @@ def update_topic(topic_obj, **kwargs):
         rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
     return topic_obj
 
-def reorder_topic_children(topic, subtopics):
-    for link
 
 def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     if category_changed:

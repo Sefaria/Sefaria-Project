@@ -61,7 +61,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-      <CategoryHeader path={cats} contentLang={contentLang} title={catTitle} heTitle={heCatTitle} textCategoryPage={true}/>
+      <CategoryHeader path={cats} contentLang={contentLang} title={catTitle} heTitle={heCatTitle} textCategoryPage={true} type="category"/>
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -170,7 +170,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
       } else {
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <CategoryHeader path={newCats} contentLang={contentLang}/>
+            <CategoryHeader path={newCats} contentLang={contentLang} type="category"/>
             <TextCategoryContents
               contents      = {item.contents}
               categories    = {newCats}

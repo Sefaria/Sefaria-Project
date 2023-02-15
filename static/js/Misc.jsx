@@ -14,7 +14,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
-import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
+import {CategoryEditor} from "./CategoryEditor";
+import {TopicEditor} from "./TopicEditor";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1050,29 +1051,175 @@ class ToggleOption extends Component {
 
         //style={this.props.style}
 
-const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCategoryPage=false}) => {
+const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
+    const clickHandler = (e) => {
+        const pos = (100 * e.clientX / e.currentTarget.getBoundingClientRect().right);
+        const index = subcategoriesAndBooks.indexOf(e.currentTarget.value);
+        let index_to_swap = -1;
+        if (pos > 96 && index < subcategoriesAndBooks.length)
+        { //click down
+            index_to_swap = index + 1;
+        }
+        else if (pos > 90 && index > 0)
+        { //click up
+            index_to_swap = index - 1;
+        }
+        if (index_to_swap >= 0) {
+            let temp = subcategoriesAndBooks[index_to_swap];
+            subcategoriesAndBooks[index_to_swap] = subcategoriesAndBooks[index];
+            subcategoriesAndBooks[index] = temp;
+            updateOrder([...subcategoriesAndBooks]);
+            if (updateParentChangedStatus) {
+                updateParentChangedStatus(true);
+            }
+        }
+    }
+
+    return subcategoriesAndBooks.map((child, i) => {
+                return <input type="text" id={`reorder-${i}`} className="reorderTool"
+                onClick={(e) => clickHandler(e)} readOnly value={child}/>;
+            })
+}
+const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
+    $.post(url, {"json": JSON.stringify(data)}, function (result) {
+            if (result.error) {
+                setSavingStatus(false);
+                alert(result.error);
+            } else {
+                redirect(result.path);
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
+}
+
+ const TopicToCategorySlug = function(topic, category=null) {
+   //helper function for AdminEditor
+   if (!category) {
+     category = Sefaria.topicTocCategory(topic.slug);
+   }
+   let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
+   // so all category topics initialized to "Main Menu"
+   if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+     // this case handles categories that are not top level but have children under them
+     const displayUnderLinks = topic.links["displays-under"]?.links;
+     if (displayUnderLinks && displayUnderLinks.length === 1) {
+       initCatSlug = displayUnderLinks[0].topic;
+     }
+   }
+   return initCatSlug;
+ }
+
+const ReorderEditor = ({close, path=[], type="topics"}) => {
+    const determineTocItems = () => {
+        if (type === "category")
+        {
+            if (path.length === 0) {
+                return Sefaria.toc.map(child => child.category);
+            }
+            else {
+                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
+            }
+        }
+        else if (type === "topics") {
+            if (path.length === 0) {
+                return Sefaria.topic_toc.map(child => child.en);
+            }
+            else {
+                return Sefaria.topicTocPage(path).map(child => child.en);
+            }
+        }
+
+    }
+    const [tocItems, setTocItems] = useState(determineTocItems())
+    const [savingStatus, setSavingStatus] = useState(false);
+    const [isChanged, setIsChanged] = useState(false);
+    const update = (newTocItems) => {
+        setTocItems(newTocItems);
+        setIsChanged(true);
+    }
+    const validate = () => {
+        if (!isChanged) {
+            alert("You haven't reordered the categories.")
+        }
+        else {
+            save();
+        }
+    }
+    const save = () => {
+        setSavingStatus(true);
+        let postCategoryData = {};
+        let url = "";
+        if (type !== "topics") {
+            postCategoryData = {subcategoriesAndBooks: tocItems, path};
+            url = `/api/category/${path.join("/")}?reorder=1`;
+            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+path.join("/")});
+        }
+        else {
+             url = `api/topics/reorder`;
+             postCategoryData = {topics: tocItems};
+             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+        }
+
+    }
+    return <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
+                    <div id="newIndex">
+                        <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
+                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
+                    </div>
+                </div>
+            </div>
+    </div>
+}
+
+const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCategoryPage=false, type="topics"}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hideButtons, setHideButtons] = useState(true);
   const adminClasses = classNames({adminButtons: 1, hideButtons});
-  const tocObject = Sefaria.tocObjectByCategories(path);
   let editStatus = null;
+
   if (Sefaria.is_moderator && editCategory) {
-    if (path.length === 0) {  // at /texts
-      editStatus = <ReorderEditor close={toggleEditCategory}/>;
-    }
-    else {
-      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
-      editStatus =
-          <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
-    }
+      if (path.length === 0) {  // at /texts
+        editStatus = <ReorderEditor close={toggleEditCategory} type={type}/>;
+      }
+      else if (type === "category") {
+        let tocObject = Sefaria.tocObjectByCategories(path);
+        const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+        const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+        const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
+        editStatus =
+            <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+      }
+      else if (type === "topics") {
+        let topicData = Sefaria.getTopicFromCache(path);
+        if ("slug" in topicData) {
+            const initCatSlug = TopicToCategorySlug(topicData);
+            const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            origData.origDesc = topicData.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+            const displaysAbove = "displays-above" in topicData?.links;
+            editStatus = <TopicEditor origData={origData}
+                                             origWasCat={displaysAbove}
+                                             onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                             close={toggleEditCategory}/>;
+        }
+
+      }
   } else if (Sefaria.is_moderator && addCategory) {
-    const origData = {origEn: ""};
-    editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
-  }
-  else if (Sefaria.is_moderator) {
+      const origData = {origEn: ""};
+      if (type === "category") {
+        editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+      }
+      else if (type === "topics") {
+        const origData = {origEn: ""};
+        editStatus = <TopicEditor close={toggleAddCategory} origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      }
+  } else if (Sefaria.is_moderator) {
     editStatus = <span className={adminClasses}>
                         <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
                         <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
@@ -1080,18 +1227,28 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   }
   const adminButtonsSpan = <span className="end">{editStatus}</span>;
   const wrapper = "headerWithAdminButtons";
-  if (path.length === 0) {  // at /texts
+  if (path.length === 0) {  // at /texts; do topics need className="sans-serif"?
     return <span className={wrapper}>
             <h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}><InterfaceText>{title}</InterfaceText></h1>
             {adminButtonsSpan}
           </span>;
   }
   else if (textCategoryPage) {  // top of textCategoryPage
-    return <span className={wrapper}><h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
-            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-          </h1>{adminButtonsSpan}</span>;
+    if (type === "category") {
+      return <span className={wrapper}><h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
+              <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
+              </h1>{adminButtonsSpan}
+            </span>;
+    }
+    else if (type === "topics") {
+      return <span className={wrapper}>
+              <h1><InterfaceText text={{en: title, he: heTitle}} /></h1>
+              {adminButtonsSpan}
+            </span>;
+    }
   }
   else { // subcategories
+    let tocObject = Sefaria.tocObjectByCategories(path);
     let shortDesc = contentLang === "hebrew" ? tocObject.heShortDesc : tocObject.enShortDesc;
     const hasDesc  = !!shortDesc;
     const longDesc = hasDesc && shortDesc.split(" ").length > 5;
@@ -2888,5 +3045,9 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  handleMouseOverAdminButtons
+  handleMouseOverAdminButtons,
+  ReorderEditor,
+  postWithCallBack,
+  Reorder,
+  TopicToCategorySlug
 };
