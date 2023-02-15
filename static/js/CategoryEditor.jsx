@@ -157,7 +157,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         };
 
         if (Sefaria._siteSettings.SITE_NAME["en"] === "ContextUS") {
-            postCategoryData["heSharedTitle"] = data.enTitle.split("").reverse().join("");  // there needs to be a hebrew title for the category's term
+            postCategoryData["heSharedTitle"] = data.enTitle.slice(0, -1);  // there needs to be a hebrew title for the category's term
         }
 
         let url = `/api/category/${fullPath.join("/")}?&category_editor=1`;
