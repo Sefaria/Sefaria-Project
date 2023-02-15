@@ -17,7 +17,7 @@ spec:
           serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
           affinity:
             podAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
+              prefferedDuringSchedulingIgnoredDuringExecution:
               - labelSelector:
                   matchExpressions:
                   - key: app
@@ -29,6 +29,10 @@ spec:
             - key: schedule-on-database-vm
               operator: "Equal"
               value: "true"
+              effect: "NoSchedule"
+            - key: mongo-replicaset 
+              operator: "Equal"
+              value: "reserved"
               effect: "NoSchedule"
           initContainers:
           - name: mongo-dumper
