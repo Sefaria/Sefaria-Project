@@ -1,7 +1,7 @@
 class CrmConnectionManager(object):
     def __init__(self, base_url):
         self.base_url = base_url
-        self.connection = self.get_connection()
+        self.session = self.get_connection()
 
     def get_connection(self):
         pass
@@ -16,4 +16,10 @@ class CrmConnectionManager(object):
         pass
 
     def sync_sustainers(self):
+        pass
+
+    def mark_as_spam_in_crm(self, profile):
+        """
+        Do in CRM whatever decision has been made to do about spam users.
+        """
         pass

@@ -944,12 +944,13 @@ def profile_spam_dashboard(request):
         })
 
 
-def purge_spammer_account_data(spammer_id, delete_from_nationbuilder=True):
+def purge_spammer_account_data(spammer_id, delete_from_crm=True):
     from django.contrib.auth.models import User
     # Delete from Nationbuilder
     profile = db.profiles.find_one({"id": spammer_id})
-    if delete_from_nationbuilder and "nationbuilder_id" in profile:
-        delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
+    if delete_from_crm:
+        crm_connection_manager = CrmFactory().get_connection_manager()
+        crm_connection_manager.mark_as_spam_in_crm(profile)
     sheets = db.sheets.find({"owner": spammer_id})
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()

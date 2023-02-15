@@ -105,14 +105,14 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                     del sustainers[nationbuilder_sustainer_profile.id]
                     already_synced_count += 1
                 else:  # add new sustainer to db
-                    update_user_flags(nationbuilder_sustainer_profile, "is_sustainer", True)
+                    self.update_user_flags(nationbuilder_sustainer_profile, "is_sustainer", True)
                     added_count += 1
             else:
                 no_profile_count += 1
 
         for sustainer_to_remove in sustainers:
             profile = UserProfile(sustainer_to_remove)
-            update_user_flags(profile, "is_sustainer", False)
+            self.update_user_flags(profile, "is_sustainer", False)
             removed_count += 1
 
         print("added: {}".format(added_count))
@@ -120,12 +120,43 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         print("no_profile: {}".format(no_profile_count))
         print("already synced: {}".format(already_synced_count))
 
+    def mark_as_spam_in_crm(self, profile):
+        """
+        Deletes spam users from nationbuilder if they are determined to be spam.
+        """
+        user_profile_id = profile["id"]
+        if "nationbuilder_id" in profile:
+            nationbuilder_id = profile["nationbuilder_id"]
+            r = self.session.get(self.update_person(nationbuilder_id))
+            try:
+                # If user is only signed up for junk tags, delete from CRM
+                tags = [x for x in r.json()["person"]["tags"] if
+                        x.lower() not in ["announcements_general_hebrew", "announcements_general",
+                                          "announcements_edu_hebrew",
+                                          "announcements_edu", "signed_up_on_sefaria", "spam"]]
+                if len(tags) == 0:
+                    self.session.delete(self.update_person(nationbuilder_id))
+                else:  # TODO: Think through better ways to log this
+                    print(f"{user_profile_id} not deleted -- has tags {','.join(tags)}")
+            except Exception as e:
+                print(f"Failed to delete {user_profile_id}. Error: {e}")
+
     def __del__(self):
         self.session.close()
 
     @staticmethod
     def get_by_tag(tag_name):
         return f"/api/v1/tags/{tag_name}/people"
+
+    @staticmethod
+    def update_person(id):
+        return f"/api/v1/people/{id}"
+
+    @staticmethod
+    def update_user_flags(profile, flag, value):
+        # updates our database user, not nb
+        profile.update({flag: value})
+        profile.save()
 
 
 def get_all_tags():
