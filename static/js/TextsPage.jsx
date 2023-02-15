@@ -15,6 +15,7 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
+  CategoryHeader
 } from './Misc';
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
@@ -22,22 +23,7 @@ import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
-  const [editCategory, toggleEditCategory] = useEditToggle();
-  const [addCategory, toggleAddCategory] = useEditToggle();
-  let editStatus = null;
-  if (Sefaria.is_moderator) {
-      if (editCategory) {
-          editStatus = <ReorderEditor close={toggleEditCategory}/>;
-      } else if (addCategory) {
-          const origData = {origEn: ""};
-          editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={[]}/>;
-      } else {
-          editStatus = <div>
-                          <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
-                          <AdminEditorButton text="Reorder" toggleAddingTopics={toggleEditCategory}/>
-                      </div>;
-      }
-  }
+
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -88,8 +74,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-      <h1><InterfaceText>Browse the Library</InterfaceText></h1>{editStatus}
-
+      <CategoryHeader title="Browse the Library"/>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>

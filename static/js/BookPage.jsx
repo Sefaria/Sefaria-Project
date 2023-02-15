@@ -1267,7 +1267,7 @@ const EditTextInfo = function({initTitle, close}) {
         <div className="inner">
           {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
-            <AdminToolHeader en={"Index Editor"} he={"עריכת מאפייני אינדקס"} close={close} validate={validateThenSave}/>
+            <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
               <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>

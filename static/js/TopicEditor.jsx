@@ -23,9 +23,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
-      //logic is: if it starts out with origCategoryDesc, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
-      const newisCategory = origCategoryDescBool || e.target.value === Sefaria._("Main Menu");
-      setIsCategory(newisCategory);
+      //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
+      setIsCategory(newIsCategory);
       setData(data);
     }
 

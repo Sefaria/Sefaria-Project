@@ -4785,6 +4785,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border-radius: 6px;
 }
+.headerWithAdminButtons {
+  display: flex;
+  align-items: center;
+}
+.headerWithAdminButtons .end {
+  flex: 1;
+  text-align: end;
+}
+.adminButtons.hideButtons {
+  display: none;
+}
+.adminButtons {
+  display: block;
+}
 .toggleSet.blueStyle.primary {
   width: 100%;
 }

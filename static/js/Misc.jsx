@@ -13,6 +13,8 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
+import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1047,6 +1049,77 @@ class ToggleOption extends Component {
 }
 
         //style={this.props.style}
+
+const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCategoryPage=false}) => {
+  const [editCategory, toggleEditCategory] = useEditToggle();
+  const [addCategory, toggleAddCategory] = useEditToggle();
+  const [hideButtons, setHideButtons] = useState(true);
+  const adminClasses = classNames({adminButtons: 1, hideButtons});
+  const tocObject = Sefaria.tocObjectByCategories(path);
+  let editStatus = null;  contentLang
+  if (Sefaria.is_moderator && editCategory) {
+    if (path.length === 0) {  // at /texts
+      editStatus = <ReorderEditor close={toggleEditCategory}/>;
+    }
+    else {
+      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
+      editStatus =
+          <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+    }
+  } else if (Sefaria.is_moderator && addCategory) {
+    const origData = {origEn: ""};
+    editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+  }
+  else if (Sefaria.is_moderator) {
+    editStatus = <span className={adminClasses}>
+                        <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
+                        <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
+                    </span>;
+  }
+  const adminButtonsSpan = <span className="end">{editStatus}</span>;
+  const wrapper = "headerWithAdminButtons";
+  if (path.length === 0) {  // at /texts
+    return <span className={wrapper}>
+            <h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}><InterfaceText>{title}</InterfaceText></h1>
+            {adminButtonsSpan}
+          </span>;
+  }
+  else if (textCategoryPage) {  // top of textCategoryPage
+    return <span className={wrapper}><h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
+            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
+          </h1>{adminButtonsSpan}</span>;
+  }
+  else { // subcategories
+    let shortDesc = contentLang === "hebrew" ? tocObject.heShortDesc : tocObject.enShortDesc;
+    const hasDesc  = !!shortDesc;
+    const longDesc = hasDesc && shortDesc.split(" ").length > 5;
+    shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
+    return  <span className={wrapper}>
+               <h2 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
+                <ContentText text={{en: tocObject.category, he: tocObject.heCategory}} defaultToInterfaceOnBilingual={true} />
+                {hasDesc && !longDesc ?
+                <span className="categoryDescription">
+                  <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+                </span> : null }
+              </h2>
+              {hasDesc && longDesc ?
+              <div className="categoryDescription long sans-serif">
+                <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+              </div> : null }
+            {adminButtonsSpan}
+           </span>;
+  }
+}
+
+
+
+
+const handleMouseOverAdminButtons = (hide) => {
+  hide(false);
+  setTimeout(() => hide(true), 3000);
+}
 
 class SearchButton extends Component {
   render() {
@@ -2752,6 +2825,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 export {
+  CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
   SimpleContentBlock,
@@ -2813,5 +2887,6 @@ export {
   DivineNameReplacer,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants
+  TitleVariants,
+  handleMouseOverAdminButtons
 };

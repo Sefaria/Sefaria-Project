@@ -168,34 +168,40 @@ def get_category_paths(path):
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
 
-def update_order_of_children(json):
+def update_order_of_children(uid, json):
     order = 0
+    results = []
     for subcategoryOrBook in json['subcategoriesAndBooks']:
         order += 5
         try:
-            obj = library.get_index(subcategoryOrBook)
-            obj.order = [order]
+            obj = library.get_index(subcategoryOrBook).contents()
+            obj['order'] = [order]
+            result = tracker.update(uid, Index, obj)
         except BookNameError as e:
-            obj = Category().load({"lastPath": subcategoryOrBook})
-            obj.order = order
-        obj.save()
+            obj = Category().load({"lastPath": subcategoryOrBook}).contents()
+            obj['order'] = order
+            result = tracker.update(uid, Category, obj)
+        results.append(result.contents())
+    return results
 
-def handle_category_editor(uid, json, update=False, **kwargs):
-    error_msg = get_category_editor_errors(json, update=update)
+def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
+    error_msg = get_category_editor_errors(json)
     if len(error_msg) > 0:
         return {"error": error_msg}
     else:
-        update_order_of_children(json)
+        if reorder:
+            update_order_of_children(uid, json)
         func = tracker.update if update else tracker.add
         update_results = func(uid, Category, json, **kwargs).contents()
         return update_results
 
-def get_category_editor_errors(j, update=False):
+def get_category_editor_errors(j):
     # if Category Editor is used, validate its data
     last_path = j.get("sharedTitle", "")
     he_last_path = j.get("heSharedTitle", "")
     error_msg = ""  # empty error msg means there are no errors
-    if Category().load({"path": j["path"]}) is not None and "origPath" in j and j["origPath"][-1] == last_path:
+    new_category_exists = Category().load({"path": j["path"]}) is not None
+    if new_category_exists and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
         # this case occurs when moving Tanakh's Rashi category into
         # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
         error_msg = f"Merging two categories named {last_path} is not supported."

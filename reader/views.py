@@ -2470,7 +2470,7 @@ def category_api(request, path=None):
             category_editor_results = handle_category_editor(uid, j, update=update, reorder=reorder, **kwargs)
             return jsonResponse(category_editor_results)
         elif reorder:
-            reorder_editor_results = update_order_of_children(j)
+            reorder_editor_results = update_order_of_children(uid, j)
             return jsonResponse(reorder_editor_results)
 
         return jsonResponse(_internal_do_post(request, j, uid, **kwargs))

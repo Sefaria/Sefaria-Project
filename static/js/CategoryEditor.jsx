@@ -4,6 +4,9 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import React, {useState, useRef} from "react";
 
+const redirect = function (newPath) {
+    window.location.href = "/texts/"+newPath;
+}
 
 const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
     const clickHandler = (e) => {
@@ -28,24 +31,56 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
             }
         }
     }
+
     return subcategoriesAndBooks.map((child, i) => {
                 return <input type="text" id={`reorder-${i}`} className="reorderTool"
                 onClick={(e) => clickHandler(e)} readOnly value={child}/>;
             })
 }
 
+const post = ({url, postCategoryData, setSavingStatus}) => {
+    $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
+            if (result.error) {
+                setSavingStatus(false);
+                alert(result.error);
+            } else {
+                redirect(result.path);
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
+}
+
 const ReorderEditor = ({close, path=[]}) => {
     const [tocItems, setTocItems] = useState(path.length === 0 ? Sefaria.toc.map(child => child.category)
                                             : Sefaria.tocItemsByCategories(path).map(child => child.title || child.category));
     const [savingStatus, setSavingStatus] = useState(false);
-
+    const [isChanged, setIsChanged] = useState(false);
+    const update = (newTocItems) => {
+        setTocItems(newTocItems);
+        setIsChanged(true);
+    }
+    const validate = () => {
+        if (!isChanged) {
+            alert("You haven't reordered the categories.")
+        }
+        else {
+            save();
+        }
+    }
+    const save = () => {
+        setSavingStatus(true);
+        const postCategoryData = {subcategoriesAndBooks: tocItems, path};
+        let url = `/api/category/${path.join("/")}?&reorder=1`;
+        post({url, postCategoryData, setSavingStatus});
+    }
     return <div className="editTextInfo">
             <div className="static">
                 <div className="inner">
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={setTocItems}/>
+                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
                     </div>
                 </div>
             </div>
@@ -106,13 +141,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         await save();
     }
 
-
-    const redirect = function (newPath) {
-        window.location.href = "/texts/"+newPath;
-    }
-
     const save = async function () {
-        setSavingStatus(savingStatus => !savingStatus);
+        setSavingStatus(true);
         const fullPath = [...path, data.enTitle];
         const origFullPath = [...origPath, origData.origEn];
         let postCategoryData = {
@@ -126,7 +156,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             "path": fullPath
         };
 
-        let url = `/api/category/${fullPath.join("/")}?category_editor=1`;
+        let url = `/api/category/${fullPath.join("/")}?&category_editor=1`;
         if (!isNew) {
             url += "&update=1";
             postCategoryData = {...postCategoryData, origPath: origFullPath}
@@ -137,18 +167,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             url += "&reorder=1";
         }
 
-
-
-        $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
-            if (result.error) {
-                setSavingStatus(savingStatus => !savingStatus);
-                alert(result.error);
-            } else {
-                redirect(result.path);
-            }
-        }).fail(function (xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-        });
+        post({url, postCategoryData, setSavingStatus});
     }
 
 
