@@ -3102,13 +3102,13 @@ def add_new_topic_api(request):
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
-        t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         t.description_published = True
+        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 

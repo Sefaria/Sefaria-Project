@@ -63,7 +63,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         let url = "";
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
-        if (postData.isCategory) {
+        if (isCategory) {
             postData = {...postData, "catDescription": {"en": data.enCatDescription, "he": data.heCategoryDescription}};
         }
         postData.category = data.catSlug;
@@ -74,7 +74,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         else {
           url = `/api/topics/${data.origSlug}`;
           postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
-                    origTitle: data.origEn, origHeTitle: data.origHe, origSlug: data.origSlug};
+                    origSlug: data.origSlug};
           if (isCategory) {
             postData.origCatDescription = data.origCategoryDesc;
           }
