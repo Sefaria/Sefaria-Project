@@ -33,7 +33,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
             data.enDescription = e.target.value;
         }
         else if (e.target.id === "topicCatDesc") {
-            data.enCatDescription = e.target.value;
+            data.enCategoryDescription = e.target.value;
         }
         else if (e.target.id === "topicHeTitle") {
             data.heTitle = e.target.value;
@@ -79,7 +79,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                                                          className="default"
                                                          id="topicCatDesc"
                                                          onBlur={setValues}
-                                                         defaultValue={data.enCatDescription}
+                                                         defaultValue={data.enCategoryDescription}
                                                          placeholder={Sefaria._("Add a short description.")}/>
                                             </div>
                                             {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">

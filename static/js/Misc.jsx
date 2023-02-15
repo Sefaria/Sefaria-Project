@@ -1056,7 +1056,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   const [hideButtons, setHideButtons] = useState(true);
   const adminClasses = classNames({adminButtons: 1, hideButtons});
   const tocObject = Sefaria.tocObjectByCategories(path);
-  let editStatus = null;  contentLang
+  let editStatus = null;
   if (Sefaria.is_moderator && editCategory) {
     if (path.length === 0) {  // at /texts
       editStatus = <ReorderEditor close={toggleEditCategory}/>;
