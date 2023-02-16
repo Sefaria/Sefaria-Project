@@ -7403,6 +7403,7 @@ a .button:hover {
 }
 .headerWithAdminButtons {
   display: flex;
+  position: relative;
   flex: 1;
 }
 .adminButtons.hideButtons {
@@ -7413,12 +7414,10 @@ a .button:hover {
   flex-direction: column;
   margin-left: 240px;
   width: 147px;
-  height: 90px;
   position: absolute;
+  height: 90px;
 }
-.adminButtons.specialPos {
-  margin-top: -280px;
-}
+
 .button .buttonIcon {
   margin-inline-end: 7px;
   vertical-align: middle;

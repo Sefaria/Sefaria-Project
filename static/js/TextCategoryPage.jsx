@@ -16,7 +16,6 @@ import {
   InterfaceText,
   CategoryHeader,
   ContentText,
-  handleMouseOverAdminButtons
 } from './Misc';
 
 
