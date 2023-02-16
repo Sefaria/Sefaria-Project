@@ -1054,31 +1054,30 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hideButtons, setHideButtons] = useState(true);
-  const adminClasses = classNames({adminButtons: 1, hideButtons});
+  const adminClasses = classNames({adminButtons: 1, hideButtons, specialPos: path.length === 0});
   const tocObject = Sefaria.tocObjectByCategories(path);
-  let editStatus = null;
+  let adminButtonsSpan = null;
   if (Sefaria.is_moderator && editCategory) {
     if (path.length === 0) {  // at /texts
-      editStatus = <ReorderEditor close={toggleEditCategory}/>;
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory}/>;
     }
     else {
       const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
       const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
       const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
-      editStatus =
+      adminButtonsSpan =
           <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
     }
   } else if (Sefaria.is_moderator && addCategory) {
     const origData = {origEn: ""};
-    editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+    adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
   }
   else if (Sefaria.is_moderator) {
-    editStatus = <span className={adminClasses}>
+    adminButtonsSpan = <span className={adminClasses}>
                         <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
                         <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
                     </span>;
   }
-  const adminButtonsSpan = <span className="end">{editStatus}</span>;
   const wrapper = "headerWithAdminButtons";
   if (path.length === 0) {  // at /texts
     return <span className={wrapper}>
