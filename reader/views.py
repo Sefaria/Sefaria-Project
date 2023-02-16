@@ -2407,7 +2407,7 @@ def category_api(request, path=None):
         cat = Category().load({"path": path.split("/")})
         if cat:
             cat.delete()
-            library.rebuild_toc(skip_rebuild_topics=False)
+            library.rebuild_toc()
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Category {} doesn't exist".format(path)})
