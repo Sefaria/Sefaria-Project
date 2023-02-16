@@ -3190,7 +3190,7 @@ def topic_graph_api(request, topic):
 def reorder_topics(request):
     topics = request.POST["json"].get("topics", [])
     for display_order, topic in enumerate(topics):
-        topic.displayOrder = display_order
+        topic.displayOrder = display_order*10
         topic.save()
 
 
