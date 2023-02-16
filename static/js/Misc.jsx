@@ -1180,56 +1180,53 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hideButtons, setHideButtons] = useState(true);
   const adminClasses = classNames({adminButtons: 1, hideButtons});
-  let editStatus = null;
+  let adminButtonsSpan = null;
+  const handleMouseOverAdminButtons = () => {
+    setHideButtons(false);
+    setTimeout(() => setHideButtons(true), 3000);
+  }
 
   if (Sefaria.is_moderator && editCategory) {
-      if (path.length === 0) {  // at /texts
-        editStatus = <ReorderEditor close={toggleEditCategory} type={type}/>;
-      }
-      else if (type === "category") {
-        let tocObject = Sefaria.tocObjectByCategories(path);
-        const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-        const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-        const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
-        editStatus =
-            <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
-      }
-      else if (type === "topics") {
-        let topicData = Sefaria.getTopicFromCache(path);
-        if ("slug" in topicData) {
+      if (path.length === 0) {  // at /texts or /topics
+        adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
+      } else if (type === "category") {
+          let tocObject = Sefaria.tocObjectByCategories(path);
+          const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+          const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+          const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
+          adminButtonsSpan =
+              <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+      } else if (type === "topics") {
+          let topicData = Sefaria.getTopicFromCache(path);
+          if ("slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
-            const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
-                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            const origData = {
+              origSlug: topicData.slug, origCategorySlug: initCatSlug,
+              origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
+            };
             origData.origDesc = topicData.description || {"en": "", "he": ""};
             origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
             const displaysAbove = "displays-above" in topicData?.links;
             editStatus = <TopicEditor origData={origData}
-                                             origWasCat={displaysAbove}
-                                             onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                             close={toggleEditCategory}/>;
-        }
-
+                                      origWasCat={displaysAbove}
+                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                      close={toggleEditCategory}/>;
+          }
       }
   } else if (Sefaria.is_moderator && addCategory) {
       const origData = {origEn: ""};
-      if (type === "category") {
-        editStatus = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
-      }
-      else if (type === "topics") {
-        const origData = {origEn: ""};
-        editStatus = <TopicEditor close={toggleAddCategory} origData={origData} onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
-      }
-  } else if (Sefaria.is_moderator) {
-    editStatus = <span className={adminClasses}>
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+  }
+  else if (Sefaria.is_moderator) {
+      adminButtonsSpan = <span className={adminClasses}>
                         <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
                         <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
                     </span>;
   }
-  const adminButtonsSpan = <span className="end">{editStatus}</span>;
-  const wrapper = "headerWithAdminButtons";
+  const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
   if (path.length === 0) {  // at /texts; do topics need className="sans-serif"?
     return <span className={wrapper}>
-            <h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}><InterfaceText>{title}</InterfaceText></h1>
+            <h1 onMouseEnter={() => handleMouseOverAdminButtons()}><InterfaceText>{title}</InterfaceText></h1>
             {adminButtonsSpan}
           </span>;
   }
@@ -1254,7 +1251,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
     const longDesc = hasDesc && shortDesc.split(" ").length > 5;
     shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
     return  <span className={wrapper}>
-               <h2 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
+               <h2 onMouseEnter={() => handleMouseOverAdminButtons()}>
                 <ContentText text={{en: tocObject.category, he: tocObject.heCategory}} defaultToInterfaceOnBilingual={true} />
                 {hasDesc && !longDesc ?
                 <span className="categoryDescription">
@@ -1272,11 +1269,6 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
 
 
 
-
-const handleMouseOverAdminButtons = (hide) => {
-  hide(false);
-  setTimeout(() => hide(true), 3000);
-}
 
 class SearchButton extends Component {
   render() {
@@ -3045,7 +3037,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  handleMouseOverAdminButtons,
   ReorderEditor,
   postWithCallBack,
   Reorder,

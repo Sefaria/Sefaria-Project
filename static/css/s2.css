@@ -4785,21 +4785,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border-radius: 6px;
 }
-.headerWithAdminButtons {
-  display: flex;
-  flex: 1;
-}
-.adminButtons.hideButtons {
-  display: none;
-}
-.adminButtons {
-  display: flex;
-  flex-direction: column;
-  margin-left: 20px;
-  width: 127px;
-  height: 90px;
-  position: absolute;
-}
+
 .toggleSet.blueStyle.primary {
   width: 100%;
 }
@@ -7405,8 +7391,24 @@ a .button:hover {
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
   color: #666666;
-  font-size: 14px;
 }
+.headerWithAdminButtons {
+  display: flex;
+  position: relative;
+  flex: 1;
+}
+.adminButtons.hideButtons {
+  display: none;
+}
+.adminButtons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 240px;
+  width: 147px;
+  position: absolute;
+  height: 90px;
+}
+
 .button .buttonIcon {
   margin-inline-end: 7px;
   vertical-align: middle;
