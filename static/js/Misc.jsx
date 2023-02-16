@@ -1074,7 +1074,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   }
   else if (Sefaria.is_moderator) {
     editStatus = <span className={adminClasses}>
-                        <AdminEditorButton text="Add a Sub-Category" toggleAddingTopics={toggleAddCategory}/>
+                        <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
                         <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
                     </span>;
   }
