@@ -1179,6 +1179,20 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hideButtons, setHideButtons] = useState(true);
+  const isTopicCat = () => {
+    let topicData = Sefaria.getTopicFromCache(path);
+    if ("slug" in topicData) {
+      const initCatSlug = TopicToCategorySlug(topicData);
+      const origData = {
+        origSlug: topicData.slug, origCategorySlug: initCatSlug,
+        origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
+      };
+      origData.origDesc = topicData.description || {"en": "", "he": ""};
+      origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+      return "displays-above" in topicData?.links;
+    }
+  }
+  const topicIsCat = useRef(false);
   const adminClasses = classNames({adminButtons: 1, hideButtons});
   let adminButtonsSpan = null;
   const handleMouseOverAdminButtons = () => {
@@ -1194,39 +1208,33 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
           const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
           const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
           const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
-          adminButtonsSpan =
-              <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+          adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
       } else if (type === "topics") {
-          let topicData = Sefaria.getTopicFromCache(path);
-          if ("slug" in topicData) {
-            const initCatSlug = TopicToCategorySlug(topicData);
-            const origData = {
-              origSlug: topicData.slug, origCategorySlug: initCatSlug,
-              origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
-            };
-            origData.origDesc = topicData.description || {"en": "", "he": ""};
-            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-            const displaysAbove = "displays-above" in topicData?.links;
-            editStatus = <TopicEditor origData={origData}
-                                      origWasCat={displaysAbove}
+          adminButtonsSpan = <TopicEditor origData={Sefaria.getTopicFromCache(path)}
+                                      origWasCat={topicIsCat.current}
                                       onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
                                       close={toggleEditCategory}/>;
-          }
       }
   } else if (Sefaria.is_moderator && addCategory) {
       const origData = {origEn: ""};
-      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+      if (type === "category") {
+        adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+      }
+      else if (type === "topics") {
+        adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={topicIsCat.current}
+                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      }
   }
   else if (Sefaria.is_moderator) {
       adminButtonsSpan = <span className={adminClasses}>
-                        <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
-                        <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
-                    </span>;
+                            <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
+                            <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
+                        </span>;
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
   if (path.length === 0) {  // at /texts; do topics need className="sans-serif"?
-    return <span className={wrapper}>
-            <h1 onMouseEnter={() => handleMouseOverAdminButtons()}><InterfaceText>{title}</InterfaceText></h1>
+    return <span className={wrapper} onMouseEnter={() => handleMouseOverAdminButtons()}>
+            <h1><InterfaceText>{title}</InterfaceText></h1>
             {adminButtonsSpan}
           </span>;
   }
