@@ -1179,6 +1179,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hideButtons, setHideButtons] = useState(true);
+  clean up using {children}
   const isTopicCat = () => {
     let topicData = Sefaria.getTopicFromCache(path);
     if ("slug" in topicData) {
