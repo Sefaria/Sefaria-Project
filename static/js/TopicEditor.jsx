@@ -12,10 +12,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he,
                                 });
-    const [isNew, setIsNew] = useState(origData?.origEn === "");
+    const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
-   const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
-                                                               // isCategory determines whether user can edit categoryDescriptions of topic
+    const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
+                                                                  // isCategory determines whether user can edit categoryDescriptions of topic
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -64,7 +64,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
         if (isCategory) {
-            postData = {...postData, "catDescription": {"en": data.enCatDescription, "he": data.heCategoryDescription}};
+            postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
         }
         postData.category = data.catSlug;
 
