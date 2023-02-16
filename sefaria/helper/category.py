@@ -192,7 +192,7 @@ def update_order_of_children(uid, subcategoriesAndBooks):
 
 def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
     """
-    if Category Editor is used, validate its data, and if valid,
+    if Category Editor is used, validate its data, and if valid, create or update category, and reorder children.
     :param uid: (int)  The UID of user modifying category
     :param json: (dict) json from POST of request containing info about a Category object
     :param update: (boolean, Optional) update Category's data as specified in json
@@ -200,7 +200,6 @@ def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
     """
     last_path = json.get("sharedTitle", "")
     he_last_path = json.get("heSharedTitle", "")
-    error_msg = ""  # empty error msg means there are no errors
     new_category_exists = Category().load({"path": json["path"]}) is not None
     if new_category_exists and "origPath" in json and json["origPath"] != json["path"] and json["origPath"][-1] == last_path:
         # this case occurs when moving Tanakh's Rashi category into
@@ -214,9 +213,8 @@ def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
     update_results = {}
     if reorder:
         update_results["reorder"] = update_order_of_children(uid, json["subcategoriesAndBooks"])
-    if update:
-        func = tracker.update if update else tracker.add
-        update_results["update"] = func(uid, Category, json, **kwargs).contents()
+    func = tracker.update if update else tracker.add
+    update_results["update"] = func(uid, Category, json, **kwargs).contents()
     return update_results
 
 
