@@ -41,10 +41,10 @@ class WebPage(abst.AbstractMongoRecord):
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain      = WebPage.domain_for_url(self.url)
-            self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
+            self.page_favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
-            self.site_favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else self.favicon
+            self.site_favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else None
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
@@ -209,8 +209,8 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.contents()
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
-        d["faviconUrl"] = self.favicon
-        d["siteFaviconUrl"] = self.site_favicon
+        d["webPageFaviconUrl"] = self.page_favicon
+        d["webSiteFaviconUrl"] = self.site_favicon
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d

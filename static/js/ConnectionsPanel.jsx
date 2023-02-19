@@ -1284,7 +1284,7 @@ class WebPagesList extends Component {
         if (page.siteName in sites) {
           sites[page.siteName].count++;
         } else {
-          sites[page.siteName] = { name: page.siteName, faviconUrl: page.siteFaviconUrl, count: 1 };
+          sites[page.siteName] = { name: page.siteName, faviconUrl: page.webSiteFaviconUrl || page.webPageFaviconUrl, count: 1 };
         }
       });
       sites = Object.values(sites).sort(this.webSitesSort);
@@ -1298,7 +1298,7 @@ class WebPagesList extends Component {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
       content = webpages.map(webpage => {
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
-          <img className="icon" src={webpage.faviconUrl} />
+          <img className="icon" src={webpage.webPageFaviconUrl} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
           {webpage.description ? <div className="description">{webpage.description}</div> : null}
