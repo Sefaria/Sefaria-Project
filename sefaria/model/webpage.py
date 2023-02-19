@@ -210,7 +210,7 @@ class WebPage(abst.AbstractMongoRecord):
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
         d["faviconUrl"] = self.favicon
-        d["siteFavicon"] = self.site_favicon
+        d["siteFaviconUrl"] = self.site_favicon
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
