@@ -44,7 +44,7 @@ class WebPage(abst.AbstractMongoRecord):
             self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
-            self.site_favicon = "https://www.google.com/s2/favicons?domain={}".format(self._site_data['domains'][0])
+            self.site_favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else self.favicon
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
