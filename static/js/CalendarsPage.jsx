@@ -17,7 +17,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
   const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)",
-    "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul", "Chok LeYisrael", "Tanya Yomi"];
+    "Halakhah Yomit", "Arukh HaShulchan Yomi", "Tanakh Yomi", "Zohar for Elul", "Chok LeYisrael", "Tanya Yomi", "Yerushalmi Yomi"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
