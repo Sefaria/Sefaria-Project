@@ -1201,6 +1201,34 @@ const EditTextInfo = function({initTitle, close}) {
     }
     return true;
   }
+  const validateCompDate = (newValue) => {
+    if ("-" in newValue) {
+      const range = newValue.split("-");
+      const start = Number.parseInt(range[0]);
+      const end = Number.parseInt(range[1]);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else if (end <= start) {
+        alert(`Invalid date format ${start} to ${end}`);
+      }
+      else {
+        const midpoint = (start + end) / 2;
+        setCompDate(midpoint);
+        setErrorMargin(midpoint - start);
+      }
+    }
+    else {
+      setErrorMargin(0);
+      const year = Number.parseInt(newValue);
+      if (Number.isNaN(year)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else {
+        setCompDate(year);
+      }
+    }
+  }
   const save = function() {
     const enTitleVariantNames = titleVariants.map(i => i.name);
     const heTitleVariantNames = heTitleVariants.map(i => i.name);
@@ -1270,7 +1298,7 @@ const EditTextInfo = function({initTitle, close}) {
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
-              <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
+              <input type="text" id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
@@ -1301,11 +1329,6 @@ const EditTextInfo = function({initTitle, close}) {
               <label><InterfaceText>Category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
-            {index.current.hasOwnProperty("sectionNames") ?
-              <div className="section">
-                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
-                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
-              </div> : null}
 
             <div className="section">
               <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
@@ -1323,15 +1346,14 @@ const EditTextInfo = function({initTitle, close}) {
                   <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
                 </div> : null}
             <div className="section">
-              <div><InterfaceText>Completion Date</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-
-              <input id="compDate" onBlur={(e) => setCompDate(e.target.value)} defaultValue={compDate}/>
+              <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
+              <input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
             </div>
-            <div className="section">
-              <div><InterfaceText>Error Margin</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-
-              <input id="errorMargin" onBlur={(e) => setErrorMargin(e.target.value)} defaultValue={errorMargin}/>
-            </div>
+            {index.current.hasOwnProperty("sectionNames") ?
+              <div className="section">
+                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+              </div> : null}
           </div>
         </div>
       </div>

@@ -15,7 +15,8 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
-  CategoryHeader
+  CategoryHeader,
+  useHideButtons
 } from './Misc';
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
@@ -23,7 +24,7 @@ import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
-
+  const [hideButtons, setHideButtons] = useHideButtons(true);
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -74,7 +75,9 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-      <CategoryHeader title="Browse the Library"/>
+        <CategoryHeader hideButtons={hideButtons}>
+            <h1 onMouseEnter={() => setHideButtons()}><InterfaceText>Browse the Library</InterfaceText></h1>
+        </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>

@@ -1050,17 +1050,22 @@ class ToggleOption extends Component {
 
         //style={this.props.style}
 
-const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCategoryPage=false}) => {
+function useHideButtons() {
+    const [hideButtons, setHideButtons] = useState(true);
+    const handleMouseOverAdminButtons = () => {
+        setHideButtons(false);
+        setTimeout(() => setHideButtons(true), 3000);
+    }
+    return [hideButtons, handleMouseOverAdminButtons];
+}
+
+const CategoryHeader = ({children, path=[], hideButtons=true}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
-  const [hideButtons, setHideButtons] = useState(true);
+
   const adminClasses = classNames({adminButtons: 1, hideButtons});
   const tocObject = Sefaria.tocObjectByCategories(path);
   let adminButtonsSpan = null;
-  const handleMouseOverAdminButtons = () => {
-    setHideButtons(false);
-    setTimeout(() => setHideButtons(true), 3000);
-  }
 
   if (Sefaria.is_moderator && editCategory) {
     if (path.length === 0) {  // at /texts
@@ -1084,37 +1089,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
                     </span>;
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
-  if (path.length === 0) {  // at /texts
-    return <span className={wrapper}>
-            <h1 onMouseEnter={() => handleMouseOverAdminButtons()}><InterfaceText>{title}</InterfaceText></h1>
-            {adminButtonsSpan}
-          </span>;
-  }
-  else if (textCategoryPage) {  // top of textCategoryPage
-    return <span className={wrapper}><h1 onMouseEnter={() => handleMouseOverAdminButtons()}>
-            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
-          </h1>{adminButtonsSpan}</span>;
-  }
-  else { // subcategories
-    let shortDesc = contentLang === "hebrew" ? tocObject.heShortDesc : tocObject.enShortDesc;
-    const hasDesc  = !!shortDesc;
-    const longDesc = hasDesc && shortDesc.split(" ").length > 5;
-    shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
-    return  <span className={wrapper}>
-               <h2 onMouseEnter={() => handleMouseOverAdminButtons()}>
-                <ContentText text={{en: tocObject.category, he: tocObject.heCategory}} defaultToInterfaceOnBilingual={true} />
-                {hasDesc && !longDesc ?
-                <span className="categoryDescription">
-                  <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-                </span> : null }
-              </h2>
-              {hasDesc && longDesc ?
-              <div className="categoryDescription long sans-serif">
-                <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-              </div> : null }
-            {adminButtonsSpan}
-           </span>;
-  }
+  return <span className={wrapper}>{children}{adminButtonsSpan}</span>;
 }
 
 
@@ -2509,10 +2484,10 @@ const CategoryChooser = function({categories, update}) {
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
     if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+      return <option key={key+1} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
-      return <option key={key} value={child.category}>{child.category}</option>
+      return <option key={key+1} value={child.category}>{child.category}</option>
     }
   });
   menus.push(options);
@@ -2534,7 +2509,7 @@ const CategoryChooser = function({categories, update}) {
           {menus.map((menu, index) =>
             <div id="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
               </select>
             </div>)}
@@ -2887,4 +2862,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
+  useHideButtons
 };
