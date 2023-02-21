@@ -265,7 +265,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" title={topicTitle.en} heTitle={topicTitle.he}/>
+                        <CategoryHeader type="topics">
+                            <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                        </CategoryHeader>
                       </div>
                       <div className="readerNavCategories">
                         <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />

@@ -36,7 +36,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const [catMenu, setCatMenu] =   useState(<div className="section">
-                                            <label><InterfaceText>Category</InterfaceText></label>
+                                            <label><InterfaceText>Parent Topic</InterfaceText></label>
                                             <div id="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {

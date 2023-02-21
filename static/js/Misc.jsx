@@ -1174,32 +1174,21 @@ const ReorderEditor = ({close, path=[], type="topics"}) => {
             </div>
     </div>
 }
+function useHideButtons() {
+    const [hideButtons, setHideButtons] = useState(true);
+    const handleMouseOverAdminButtons = () => {
+        setHideButtons(false);
+        setTimeout(() => setHideButtons(true), 3000);
+    }
+    return [hideButtons, handleMouseOverAdminButtons];
+}
 
-const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCategoryPage=false, type="topics"}) => {
+
+const CategoryHeader = ({children, type, path=[], hideButtons=true}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
-  const [hideButtons, setHideButtons] = useState(true);
-  clean up using {children}
-  const isTopicCat = () => {
-    let topicData = Sefaria.getTopicFromCache(path);
-    if ("slug" in topicData) {
-      const initCatSlug = TopicToCategorySlug(topicData);
-      const origData = {
-        origSlug: topicData.slug, origCategorySlug: initCatSlug,
-        origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
-      };
-      origData.origDesc = topicData.description || {"en": "", "he": ""};
-      origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-      return "displays-above" in topicData?.links;
-    }
-  }
-  const topicIsCat = useRef(false);
   const adminClasses = classNames({adminButtons: 1, hideButtons});
   let adminButtonsSpan = null;
-  const handleMouseOverAdminButtons = () => {
-    setHideButtons(false);
-    setTimeout(() => setHideButtons(true), 3000);
-  }
 
   if (Sefaria.is_moderator && editCategory) {
       if (path.length === 0) {  // at /texts or /topics
@@ -1233,47 +1222,7 @@ const CategoryHeader = ({path=[], contentLang='en', title="", heTitle="", textCa
                         </span>;
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
-  if (path.length === 0) {  // at /texts; do topics need className="sans-serif"?
-    return <span className={wrapper} onMouseEnter={() => handleMouseOverAdminButtons()}>
-            <h1><InterfaceText>{title}</InterfaceText></h1>
-            {adminButtonsSpan}
-          </span>;
-  }
-  else if (textCategoryPage) {  // top of textCategoryPage
-    if (type === "category") {
-      return <span className={wrapper}><h1 onMouseEnter={() => handleMouseOverAdminButtons(setHideButtons)}>
-              <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
-              </h1>{adminButtonsSpan}
-            </span>;
-    }
-    else if (type === "topics") {
-      return <span className={wrapper}>
-              <h1><InterfaceText text={{en: title, he: heTitle}} /></h1>
-              {adminButtonsSpan}
-            </span>;
-    }
-  }
-  else { // subcategories
-    let tocObject = Sefaria.tocObjectByCategories(path);
-    let shortDesc = contentLang === "hebrew" ? tocObject.heShortDesc : tocObject.enShortDesc;
-    const hasDesc  = !!shortDesc;
-    const longDesc = hasDesc && shortDesc.split(" ").length > 5;
-    shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
-    return  <span className={wrapper}>
-               <h2 onMouseEnter={() => handleMouseOverAdminButtons()}>
-                <ContentText text={{en: tocObject.category, he: tocObject.heCategory}} defaultToInterfaceOnBilingual={true} />
-                {hasDesc && !longDesc ?
-                <span className="categoryDescription">
-                  <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-                </span> : null }
-              </h2>
-              {hasDesc && longDesc ?
-              <div className="categoryDescription long sans-serif">
-                <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-              </div> : null }
-            {adminButtonsSpan}
-           </span>;
-  }
+  return <span className={wrapper}>{children}{adminButtonsSpan}</span>;
 }
 
 
@@ -2668,10 +2617,10 @@ const CategoryChooser = function({categories, update}) {
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
     if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+      return <option key={key+1} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
-      return <option key={key} value={child.category}>{child.category}</option>
+      return <option key={key+1} value={child.category}>{child.category}</option>
     }
   });
   menus.push(options);
@@ -2693,7 +2642,7 @@ const CategoryChooser = function({categories, update}) {
           {menus.map((menu, index) =>
             <div id="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
               </select>
             </div>)}
@@ -3049,5 +2998,6 @@ export {
   ReorderEditor,
   postWithCallBack,
   Reorder,
-  TopicToCategorySlug
+  TopicToCategorySlug,
+  useHideButtons
 };

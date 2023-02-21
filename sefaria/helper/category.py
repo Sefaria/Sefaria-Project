@@ -168,10 +168,16 @@ def get_category_paths(path):
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
 
-def update_order_of_children(uid, json):
+
+def update_order_of_children(uid, subcategoriesAndBooks):
+    """
+    Used by ReorderEditor and CategoryEditor.  Reorders subcategories and books.
+    :param uid: (int) UID of user modifying categories and/or books
+    :param subcategoriesAndBooks: (list) List of books and/or categories
+    """
     order = 0
     results = []
-    for subcategoryOrBook in json['subcategoriesAndBooks']:
+    for subcategoryOrBook in subcategoriesAndBooks:
         order += 5
         try:
             obj = library.get_index(subcategoryOrBook).contents()
@@ -185,33 +191,41 @@ def update_order_of_children(uid, json):
     return results
 
 def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
-    error_msg = get_category_editor_errors(json)
-    if len(error_msg) > 0:
-        return {"error": error_msg}
-    else:
-        if reorder:
-            update_order_of_children(uid, json)
-        func = tracker.update if update else tracker.add
-        update_results = func(uid, Category, json, **kwargs).contents()
-        return update_results
-
-def get_category_editor_errors(j):
-    # if Category Editor is used, validate its data
-    last_path = j.get("sharedTitle", "")
-    he_last_path = j.get("heSharedTitle", "")
-    error_msg = ""  # empty error msg means there are no errors
-    new_category_exists = Category().load({"path": j["path"]}) is not None
-    if new_category_exists and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
+    """
+    if Category Editor is used, validate its data, and if valid, create or update category, and reorder children.
+    :param uid: (int)  The UID of user modifying category
+    :param json: (dict) json from POST of request containing info about a Category object
+    :param update: (boolean, Optional) update Category's data as specified in json
+    :param reorder: (boolean, Optional) reorder Category's children
+    """
+    last_path = json.get("sharedTitle", "")
+    he_last_path = json.get("heSharedTitle", "")
+    new_category_exists = Category().load({"path": json["path"]}) is not None
+    if new_category_exists and "origPath" in json and json["origPath"] != json["path"] and json["origPath"][-1] == last_path:
         # this case occurs when moving Tanakh's Rashi category into
         # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
-        error_msg = f"Merging two categories named {last_path} is not supported."
+        return {"error": f"Merging two categories named {last_path} is not supported."}
     else:
         error_msg = check_term(last_path, he_last_path)
-    return error_msg
+        if len(error_msg) > 0:
+            return {"error": error_msg}
+
+    update_results = {}
+    if reorder:
+        update_results["reorder"] = update_order_of_children(uid, json["subcategoriesAndBooks"])
+    func = tracker.update if update else tracker.add
+    update_results["update"] = func(uid, Category, json, **kwargs).contents()
+    return update_results
+
 
 def check_term(last_path, he_last_path):
-    # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
-    # if neither of the titles correspond to a term, create the appropriate term
+    """
+     if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
+     if neither of the titles correspond to a term, create the appropriate term
+    :param last_path: (str) Corresponds to lastPath of Category and english title of Term
+    :param he_last_path: (str) Corresponds to a hebrew title of Term
+    """
+
     error_msg = ""
     en_term = Term().load_by_title(last_path)
     he_term = Term().load_by_title(he_last_path)
