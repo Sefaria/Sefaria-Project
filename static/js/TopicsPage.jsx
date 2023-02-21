@@ -13,11 +13,12 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
 import Footer  from './Footer';
-import {CategoryHeader} from "./Misc";
+import {useHideButtons, CategoryHeader} from "./Misc";
 import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
+  const [hideButtons, setHideButtons] = useHideButtons(true);
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
     return (
@@ -66,7 +67,9 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
               <div className="navTitle tight sans-serif">
-                  <CategoryHeader title="Explore by Topic" path={[]} type="topics"/>
+                  <CategoryHeader hideButtons={hideButtons} type="topics">
+                    <h1 onMouseEnter={() => setHideButtons()}><InterfaceText>Explore by Topic</InterfaceText></h1>
+                  </CategoryHeader>
               </div>
               { about }
               { categoryListings }

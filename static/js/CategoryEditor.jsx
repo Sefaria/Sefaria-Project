@@ -17,9 +17,13 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []).map(child => child.title || child.category));
+    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState([]);
+    const [changedCatsOrder, setChangedCatsOrder] = useState(false);
 
-    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
+    const updateSubcatsAndBooks = (newCats) => {
+        setChangedCatsOrder(true);
+        setSubcategoriesAndBooks(newCats);
+    }
 
     const handlePrimaryClick = function(type, status) {
         setIsPrimary(status);
@@ -85,7 +89,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             postCategoryData = {...postCategoryData, origPath: origFullPath}
         }
 
-        if (origSubcategoriesAndBooks.current !== subcategoriesAndBooks && !isNew) {  // only reorder children when category isn't new
+        if (changedCatsOrder && !isNew) {  // only reorder children when category isn't new
             postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
             url += "&reorder=1";
         }
@@ -123,7 +127,10 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
                 extras={
                     [isNew ? null :
-                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged} updateOrder={setSubcategoriesAndBooks}/>,
+                        <Reorder path={[...origPath, origData.origEn]}
+                                 origSubcategoriesAndBooks={subcategoriesAndBooks}
+                                 type="books"
+                                 updateOrder={updateSubcatsAndBooks}/>,
                     <ToggleSet
                       blueStyle={true}
                       ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"

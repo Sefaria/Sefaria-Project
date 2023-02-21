@@ -62,7 +62,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader path={cats} hideButtons={hideButtons}>
+        <CategoryHeader path={cats} hideButtons={hideButtons} type="books">
             <h1 onMouseEnter={() => setHideButtons()}>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
             </h1>
@@ -180,7 +180,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <CategoryHeader path={newCats} hideButtons={hideButtons}>
+            <CategoryHeader path={newCats} hideButtons={hideButtons} type="books">
                  <h2 onMouseEnter={() => setHideButtons()}>
                  <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
                  {hasDesc && !longDesc ?

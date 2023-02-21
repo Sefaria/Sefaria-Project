@@ -21,7 +21,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    TopicToCategorySlug, CategoryHeader,
+    TopicToCategorySlug, CategoryHeader, useHideButtons,
 
 } from './Misc';
 
@@ -176,7 +176,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth, 
   openDisplaySettings, openSearch}) => {
-    
+    const [hideButtons, setHideButtons] = useHideButtons(true);
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -265,7 +265,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics">
+                        <CategoryHeader type="topics" hideButtons={hideButtons}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>

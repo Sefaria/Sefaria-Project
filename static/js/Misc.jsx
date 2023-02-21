@@ -1049,14 +1049,36 @@ class ToggleOption extends Component {
   }
 }
 
-        //style={this.props.style}
+         //style={this.props.style}
 
-const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
+const Reorder = ({updateOrder, path=[], origSubcategoriesAndBooks=[], type=""}) => {
+    const determineOrigItems = () => {
+        if (type === "books")
+        {
+            if (path.length === 0) {
+                return Sefaria.toc.map(child => child.category);
+            }
+            else {
+                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
+            }
+        }
+        else if (type === "topics") {
+            if (path.length === 0) {
+                return Sefaria.topic_toc.map(child => child.en);
+            }
+            else {
+                return Sefaria.topicTocPage(path).map(child => child.en);
+            }
+        }
+    }
+    const subcategoriesAndBooks = origSubcategoriesAndBooks.length > 0 ? origSubcategoriesAndBooks : determineOrigItems();
+
     const clickHandler = (e) => {
         const pos = (100 * e.clientX / e.currentTarget.getBoundingClientRect().right);
-        const index = subcategoriesAndBooks.indexOf(e.currentTarget.value);
+        let newSubcatsAndBooks = [...subcategoriesAndBooks];
+        const index = newSubcatsAndBooks.indexOf(e.currentTarget.value);
         let index_to_swap = -1;
-        if (pos > 96 && index < subcategoriesAndBooks.length)
+        if (pos > 96 && index < newSubcatsAndBooks.length)
         { //click down
             index_to_swap = index + 1;
         }
@@ -1065,13 +1087,10 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
             index_to_swap = index - 1;
         }
         if (index_to_swap >= 0) {
-            let temp = subcategoriesAndBooks[index_to_swap];
-            subcategoriesAndBooks[index_to_swap] = subcategoriesAndBooks[index];
-            subcategoriesAndBooks[index] = temp;
-            updateOrder([...subcategoriesAndBooks]);
-            if (updateParentChangedStatus) {
-                updateParentChangedStatus(true);
-            }
+            let temp = newSubcatsAndBooks[index_to_swap];
+            newSubcatsAndBooks[index_to_swap] = newSubcatsAndBooks[index];
+            newSubcatsAndBooks[index] = temp;
+            updateOrder(newSubcatsAndBooks);
         }
     }
 
@@ -1080,6 +1099,7 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
                 onClick={(e) => clickHandler(e)} readOnly value={child}/>;
             })
 }
+
 const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
     $.post(url, {"json": JSON.stringify(data)}, function (result) {
             if (result.error) {
@@ -1110,28 +1130,8 @@ const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
    return initCatSlug;
  }
 
-const ReorderEditor = ({close, path=[], type="topics"}) => {
-    const determineTocItems = () => {
-        if (type === "category")
-        {
-            if (path.length === 0) {
-                return Sefaria.toc.map(child => child.category);
-            }
-            else {
-                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
-            }
-        }
-        else if (type === "topics") {
-            if (path.length === 0) {
-                return Sefaria.topic_toc.map(child => child.en);
-            }
-            else {
-                return Sefaria.topicTocPage(path).map(child => child.en);
-            }
-        }
-
-    }
-    const [tocItems, setTocItems] = useState(determineTocItems())
+const ReorderEditor = ({close, path=[], type=""}) => {
+    const [tocItems, setTocItems] = useState([])
     const [savingStatus, setSavingStatus] = useState(false);
     const [isChanged, setIsChanged] = useState(false);
     const update = (newTocItems) => {
@@ -1156,7 +1156,7 @@ const ReorderEditor = ({close, path=[], type="topics"}) => {
             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+path.join("/")});
         }
         else {
-             url = `api/topics/reorder`;
+             url = `api/topic/reorder`;
              postCategoryData = {topics: tocItems};
              postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
         }
@@ -1168,7 +1168,10 @@ const ReorderEditor = ({close, path=[], type="topics"}) => {
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
+                        <Reorder origSubcategoriesAndBooks={tocItems}
+                                 path={path}
+                                 type={type}
+                                 updateOrder={update}/>
                     </div>
                 </div>
             </div>
@@ -1190,10 +1193,26 @@ const CategoryHeader = ({children, type, path=[], hideButtons=true}) => {
   const adminClasses = classNames({adminButtons: 1, hideButtons});
   let adminButtonsSpan = null;
 
+  const isTopicCat = () => {
+      let topicData = Sefaria.getTopicFromCache(path);
+      if (topicData?.slug) {
+        const initCatSlug = TopicToCategorySlug(topicData);
+        const origData = {
+          origSlug: topicData.slug, origCategorySlug: initCatSlug,
+          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
+        };
+        origData.origDesc = topicData.description || {"en": "", "he": ""};
+        origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+        return "displays-above" in topicData?.links;
+      }
+  }
+  const topicIsCat = useRef(isTopicCat());
+
+
   if (Sefaria.is_moderator && editCategory) {
       if (path.length === 0) {  // at /texts or /topics
         adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
-      } else if (type === "category") {
+      } else if (type === "books") {
           let tocObject = Sefaria.tocObjectByCategories(path);
           const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
           const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
@@ -1207,7 +1226,7 @@ const CategoryHeader = ({children, type, path=[], hideButtons=true}) => {
       }
   } else if (Sefaria.is_moderator && addCategory) {
       const origData = {origEn: ""};
-      if (type === "category") {
+      if (type === "books") {
         adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
       }
       else if (type === "topics") {

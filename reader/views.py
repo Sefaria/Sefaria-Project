@@ -3188,10 +3188,14 @@ def topic_graph_api(request, topic):
 
 @staff_member_required
 def reorder_topics(request):
-    topics = request.POST["json"].get("topics", [])
-    for display_order, topic in enumerate(topics):
+    topics = json.loads(request.POST["json"]).get("topics", [])
+    results = []
+    for display_order, topic_title in enumerate(topics):
+        topic = Topic().load({'titles.text': topic_title})
         topic.displayOrder = display_order*10
         topic.save()
+        results.append(topic.contents())
+    return jsonResponse({"topics": results})
 
 
 @catch_error_as_json
