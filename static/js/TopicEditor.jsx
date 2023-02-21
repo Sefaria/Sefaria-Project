@@ -6,7 +6,7 @@ import React, {useState} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
-    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug, enTitle: origData.origEn,
+    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug || "", enTitle: origData.origEn,
                                 heTitle: origData.origHe, heDescription: origData?.origDesc?.he,
                                 enDescription: origData?.origDesc?.en,
                                 enCategoryDescription: origData?.origCategoryDesc?.en,

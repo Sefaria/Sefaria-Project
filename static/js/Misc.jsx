@@ -1106,7 +1106,7 @@ const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
                 setSavingStatus(false);
                 alert(result.error);
             } else {
-                redirect(result.path);
+                redirect();
             }
         }).fail(function (xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());

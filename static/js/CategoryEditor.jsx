@@ -22,6 +22,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const updateSubcatsAndBooks = (newCats) => {
         setChangedCatsOrder(true);
+        setChanged(true);
         setSubcategoriesAndBooks(newCats);
     }
 
@@ -86,13 +87,14 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         let url = `/api/category/${fullPath.join("/")}?&category_editor=1`;
         if (!isNew) {
             url += "&update=1";
-            postCategoryData = {...postCategoryData, origPath: origFullPath}
+            postCategoryData = {...postCategoryData, origPath: origFullPath};
+            if (changedCatsOrder) {  // only reorder order was changed
+                postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
+                url += "&reorder=1";
+            }
         }
 
-        if (changedCatsOrder && !isNew) {  // only reorder children when category isn't new
-            postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
-            url += "&reorder=1";
-        }
+
 
         postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
