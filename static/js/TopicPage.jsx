@@ -265,7 +265,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" hideButtons={hideButtons}>
+                        <CategoryHeader type="topics" hideButtons={setHideButtons}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -316,28 +316,15 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const [addingTopics, toggleAddingTopics] = useEditToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  if (Sefaria.is_moderator && addingTopics && !!topicData) {
-      const initCatSlug = TopicToCategorySlug(topicData, category);
-      const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
-                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
-            origData.origDesc = topicData.description || {"en": "", "he": ""};
-            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-      const displaysAbove = "displays-above" in topicData?.links;
-      return <TopicEditor origData={origData}
-                          origWasCat={displaysAbove}
-                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                          close={toggleAddingTopics}/>;
-  }
-  const topicStatus = Sefaria.is_moderator && !!topicData ?
-                            <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
-
+  const [hideButtons, setHideButtons] = useHideButtons(true);
   return (
     <div>
         <div className="navTitle tight">
-          <h1>
-            <InterfaceText text={{en:en, he:he}}/>
-          </h1>
-            {topicStatus}
+            <CategoryHeader type="topics" hideButtons={setHideButtons} path={topic}>
+                <h1>
+                    <InterfaceText text={{en:en, he:he}}/>
+                </h1>
+            </CategoryHeader>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?
