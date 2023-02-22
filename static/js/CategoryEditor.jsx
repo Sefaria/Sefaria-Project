@@ -9,8 +9,8 @@ import React, {useState, useRef} from "react";
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
     const [data, setData] = useState({enTitle: origData.origEn,
-                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he,
-                                enDescription: origData?.origDesc?.en,
+                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
+                                enDescription: origData?.origDesc?.en || "",
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he});
     const [isNew, setIsNew] = useState(origData?.origEn === "");

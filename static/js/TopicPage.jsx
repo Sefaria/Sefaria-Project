@@ -265,8 +265,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" hideButtons={setHideButtons}>
-                            <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                        <CategoryHeader type="topics" hideButtons={hideButtons} path={topic}>
+                            <h1 onMouseEnter={() => setHideButtons()}><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
                       <div className="readerNavCategories">
@@ -313,15 +313,14 @@ const TopicSponsorship = ({topic_slug}) => {
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const [addingTopics, toggleAddingTopics] = useEditToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const [hideButtons, setHideButtons] = useHideButtons(true);
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" hideButtons={setHideButtons} path={topic}>
-                <h1>
+            <CategoryHeader type="topics" hideButtons={hideButtons} path={topic} editOnly={true}>
+                <h1 onMouseEnter={() => setHideButtons()}>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
             </CategoryHeader>
