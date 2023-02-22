@@ -28,7 +28,7 @@ def regenerate_bare_links_api(cat1, cat2):
         print("bare_link_api:, Book: {}, Category: {}".format(c1idx, cat2))
         django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c1idx, cat=cat2)
         if USE_VARNISH:
-            purge_url("{}/api/links/bare/{}/{}".format(c1idx, cat2))
+            purge_url(f"{FRONT_END_URL}/api/links/bare/{c1idx}/{cat2}")
     for c2idx in cat2idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c2idx, cat1))
         django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c2idx, cat=cat1)
