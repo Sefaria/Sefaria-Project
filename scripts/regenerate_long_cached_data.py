@@ -17,8 +17,8 @@ def regenerate_version_status_tree():
         django_cache(action="set", cache_type="persistent", cache_prefix='version_status_tree_api', decorate_data_with_key=True)(library.simplify_toc)(lang=lang if lang else "")
     if USE_VARNISH:
         for lang in ["he", "en"]:
-            purge_url("{}/api/texts/version-status/tree/{}".format(FRONT_END_URL, lang))
-        purge_url("{}/api/texts/version-status/tree/".format(FRONT_END_URL))
+            purge_url(f"{FRONT_END_URL}/api/texts/version-status/tree/{lang}")
+        purge_url(f"{FRONT_END_URL}/api/texts/version-status/tree/")
 
 
 def regenerate_bare_links_api(cat1, cat2):
@@ -33,14 +33,14 @@ def regenerate_bare_links_api(cat1, cat2):
         print("bare_link_api:, Book: {}, Category: {}".format(c2idx, cat1))
         django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c2idx, cat=cat1)
         if USE_VARNISH:
-            purge_url("{}/api/links/bare/{}/{}".format(c2idx, cat1))
+            purge_url(f"{FRONT_END_URL}/api/links/bare/{c2idx}/{cat1}"
 
 
 def regenerate_link_count_api(cat1, cat2):
     print("link_count_api:, Category1: {}, Category2: {}".format(cat1, cat2))
     django_cache(action="set", cache_type="persistent", cache_prefix='link_count_api', decorate_data_with_key=True)(get_link_counts)(cat1=cat1, cat2=cat2)
     if USE_VARNISH:
-        purge_url("{}/api/counts/links/{}/{}".format(cat1, cat2))
+        purge_url(f"{FRONT_END_URL}/api/counts/links/{cat1}/{cat2}")
 
 
 def regenerate_all_used():
