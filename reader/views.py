@@ -4329,7 +4329,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "MidrashRabbah": {
             "title": "Midrash Rabbah",
             "heTitle": "מדרש רבה",
-            "shapeParam": "Midrash/Aggadah/Midrash Rabbah",
+            "shapeParam": "Midrash Rabbah",
             "linkCountParam": "Midrash Rabbah",
             "colorByBook": True,
         },
