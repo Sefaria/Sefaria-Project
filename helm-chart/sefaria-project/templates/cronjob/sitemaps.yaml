@@ -61,9 +61,7 @@ spec:
             - name: BUCKET
               value: {{ .Values.backup.sitemaps.bucket }}
             command: ["bash"]
-            args: ["-c", "gcloud auth activate &&
-             gsutil -m cp -r /storage/sitemaps gs://$BUCKET/static &&
-             gsutil -m acl -r ch -u AllUsers:R gs://$BUCKET/static/sitemaps/"]
+            args: ["-c", "gsutil -m cp -r /storage/sitemaps gs://$BUCKET/static && gsutil -m acl -r ch -u AllUsers:R gs://$BUCKET/static/sitemaps/"]
           restartPolicy: Never
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 2
