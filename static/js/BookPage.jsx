@@ -74,7 +74,9 @@ class BookPage extends Component {
 
     if (this.isBookToc() && !this.props.compare) {
       if(!this.state.versionsLoaded){
-        Sefaria.getVersions(this.props.title, false, null, false).then(this.onVersionsLoad);
+        Sefaria.getVersions(this.props.title).then(result => {
+          this.onVersionsLoad(Object.values(result).flat());
+        })
       }
     }
   }
@@ -967,7 +969,9 @@ DictionaryNode.propTypes = {
 
 class VersionsList extends Component {
   componentDidMount() {
-    Sefaria.getVersions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+    Sefaria.getVersions(this.props.currentRef).then((result) => {
+          this.onVersionsLoad(Object.values(result).flat());
+        });
   }
   onVersionsLoad(versions){
     versions.sort(
