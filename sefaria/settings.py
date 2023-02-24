@@ -299,10 +299,10 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-02-04-library-fund-1",
-    "style":      "modal",  # "modal" or "banner"
+    "name": "2023-02-23-library-fund-2",
+    "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": False,
+    "is_fundraising": True,
     "condition":  {
         "returning_only": False,
         "english_only": False,
