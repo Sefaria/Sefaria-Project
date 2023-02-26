@@ -769,7 +769,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    if (this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "navigation") {
 
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
@@ -1234,14 +1234,14 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
+    Sefaria.getTranslations(this.props.currentRef).then(versions => {
       const enVTitle = this.props.currVersions.enAPIResult;
       if (!enVTitle) {
         // merged version from API
         this.setDisplayVersionTitle({});
         return;
       }
-      for (let version of versionList) {
+      for (let version of Object.values(versions).flat()) {
         if (version.versionTitle === enVTitle) {
           this.setDisplayVersionTitle(version);
           break;

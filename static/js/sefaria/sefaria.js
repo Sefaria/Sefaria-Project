@@ -411,8 +411,8 @@ Sefaria = extend(Sefaria, {
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
-      firstAvailableRef: settings.firstAvailableRef || 1,
-      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
+      firstAvailableRef: ("firstAvailableRef" in settings) ? settings.firstAvailableRef : 1,
+      fallbackOnDefaultVersion: ("fallbackOnDefaultVersion" in settings) ? settings.fallbackOnDefaultVersion : 1,
     };
     if (settings.versionPref) {
       // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
@@ -447,7 +447,7 @@ Sefaria = extend(Sefaria, {
             // This happens before saving the text to cache so that both caches are consistent
             if(d?.versions?.length){
                 let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
-                d.versions = Sefaria._makeVersions(versions, false, null, false);
+                d.versions = Sefaria._makeVersions(versions, false);
             }
             Sefaria._saveText(d, settings);
             return d;
@@ -512,7 +512,7 @@ Sefaria = extend(Sefaria, {
         //save versions and then text so both caches have updated versions
         if(data?.versions?.length){
             let versions = this._saveVersions(data.sectionRef, data.versions);
-            data.versions = this._makeVersions(versions, false, null, false);
+            data.versions = this._makeVersions(versions, false);
         }
         this._saveText(data, settings);
         cb(data);
@@ -531,7 +531,7 @@ Sefaria = extend(Sefaria, {
     "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
-    "pl": {"name": "Polish", "nativeName": "Polskie", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
+    "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
@@ -549,16 +549,14 @@ Sefaria = extend(Sefaria, {
   _translateVersions: {},
   getVersionFromCache: function(ref,  byLang, filter, excludeFilter){
      let versions = this._cachedApi(ref, this._versions, []);
-     return this._makeVersions(versions, byLang, filter, excludeFilter)
+     return this._makeVersions(versions, byLang)
   },
-  getVersions: async function(ref, byLang, filter, excludeFilter) {
-      /**
-       * Returns a list of available text versions for `ref`.
-       *
-       * byLang: whether to return an object bucketed by actual version language or a list
-       * filter: array filter which languages ISO codes
-       * excludeFilter: if the filter should be including the filter value or excluding it.
-       */
+  getVersions: async function(ref) {
+    /**
+     * Gets versions from cache or API
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
     let versionsInCache = ref in this._versions;
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
@@ -566,22 +564,60 @@ Sefaria = extend(Sefaria, {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
+    return Promise.resolve(this._versions[ref]);
   },
-  _makeVersions: function(versions, byLang, filter, excludeFilter){
-    let tempValue;
-    if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
-        tempValue = Object.keys(versions)
-          .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
-          .reduce((obj, key) => {
-            obj[key] = versions[key];
+  filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
+      /**
+       * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
+       * @langs {array} of string of language codes
+       * @includeFilter {boolean} true for returning the language in the langs param, false for returning other languages
+       */
+    return Object.keys(versionsObj)
+        .filter(lang => {
+            return includeFilter === langs.includes(lang);
+        })
+        .reduce((obj, lang) => {
+            obj[lang] = versionsObj[lang];
             return obj;
           }, {});
-    }else{
-       tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
-    }
-    let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
-    return finalValue;
+  },
+  filterVersionsArrayByAttr: function(versionsArray, filterObj) {
+      /**
+       * @versionsArray {array} of version objects
+       * @filterObj {object} keys are attribute of version objects and values are their values
+       * returns an array of versions from versionsArray that has all the attributes and their values as in filterObj
+       */
+    return versionsArray.filter(version => {
+        return Object.keys(filterObj).every(key => version?.[key] === filterObj[key])
+    });
+  },
+  getSourceVersions: async function(ref) {
+    /**
+     * Gets Hebrew versions only
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
+    return Sefaria.getVersions(ref).then(versions => {
+        return Sefaria.filterVersionsObjByLangs(versions, ['he'], true);
+    });
+  },
+  getTranslations: async function(ref) {
+    /**
+     * Gets all versions except Hebrew versions that have isBaseText true
+     * @ref {string} ref
+     * @returns {string: [versions]} Versions by language
+     */
+    return Sefaria.getVersions(ref).then(result => {
+        let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        if (heVersions.length) {
+            versions.he = heVersions;
+        }
+        return versions;
+    });
+  },
+  _makeVersions: function(versions, byLang){
+    return byLang ? versions : Object.values(versions).flat();
   },
   _saveVersions: function(ref, versions){
       for (let v of versions) {
@@ -2811,7 +2847,7 @@ Sefaria.unpackDataFromProps = function(props) {
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
             let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
-            panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
+            panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
         Sefaria._saveText(panel.text, settings);
@@ -2819,7 +2855,7 @@ Sefaria.unpackDataFromProps = function(props) {
       if(panel.bookRef){
          if(panel.versions?.length){
             let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
-            panel.versions = Sefaria._makeVersions(versions, false, null, false);
+            panel.versions = Sefaria._makeVersions(versions, false);
          }
       }
       if (panel.indexDetails) {

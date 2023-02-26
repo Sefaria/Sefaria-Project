@@ -32,7 +32,9 @@ class ExtendedNotes extends Component {
   }
   componentDidMount() {
     // use Sefaria.getVersions(ref, cb), where cb will invoke setState
-    Sefaria.getVersions(this.props.title, false, null, false).then(this.getVersionData);
+    Sefaria.getVersions(this.props.title).then(versions => {
+      this.getVersionData(Object.values(versions).flat());
+    });
   }
   goBack(event) {
     event.preventDefault();

@@ -74,7 +74,6 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
 
-
 # Terms
 # TODO cascade change to Term.name.
 # TODO Current locations where we know terms are used [Index, Categories]

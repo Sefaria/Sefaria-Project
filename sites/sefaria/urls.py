@@ -43,7 +43,8 @@ static_pages = [
     "rabbis",
     "contest",
     "design-system",
-    "powered-by"
+    "powered-by",
+    "word-by-word"
 ]
 
 static_pages_by_lang = [
@@ -72,6 +73,7 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/give?utm_source=Sefaria&utm_medium=App&utm_campaign=Support' if x.interfaceLang == 'english' else 'https://sefaria.nationbuilder.com/il_mobile?utm_source=Sefaria&utm_medium=App&utm_campaign=ILSupport')),
     url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),

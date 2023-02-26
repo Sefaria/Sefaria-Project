@@ -1,11 +1,10 @@
 {
   "title": "",
   "text": [
-    "Your opinion matters!",
-    "We invite you to participate in a quick survey to help us better understand you and your experiences. It will take approximately 5 minutes to complete."
+    "We’re only $10,000 away from our goal of raising $36,000 for the Library Fund by Purim. Please give today and directly support the addition of new texts to the library!"
   ],
-  "buttonLink": "https://qualtricsxmd6qzd2jyv.qualtrics.com/jfe/form/SV_6KcZChAjIHptfSu?source=app",
-  "buttonText": "Take the Survey",
-  "name": "2023-01-09-modal-survey",
+  "buttonLink": "https://sefaria.nationbuilder.com/libraryfund2023_ae",
+  "buttonText": "Give to the Library Fund",
+  "name": "2023-02-24-library-fund-2",
   "schemaVersion": 1
 }
