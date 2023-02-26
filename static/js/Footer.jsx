@@ -31,9 +31,37 @@ class Footer extends Component {
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
-  render() {
-    if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
+  renderContextUS() {
+      return (
+      <footer id="footer" className="static sans-serif">
+        <div id="footerInner">
+            <Section en="About" he="About">
+                <Link href="/about" en="What is ContextUS?" he="What is ContextUS?" />
+                <Link href="/help" en="Help" he="Help" />
+                <Link href="/team" en="Team" he="Team" />
+                <Link href="https://jackmillercenter.org/about-us/" en="The Jack Miller Center" he="JMC" />
+                <Link href="/terms" en="Terms of Use" he="Terms of Use" />
+                <Link href="/privacy-policy" en="Privacy Policy" he="Privacy Policy" />
+            </Section>
 
+            <Section en="Tools" he="Tools">
+                <Link href="/sheets" en="Source Sheets" he="Source Sheets" />
+                <Link href="/faqs" en="FAQs" he="FAQs" />
+            </Section>
+
+             <Section en="Feedback" he="Feedback">
+                <Link href="mailto:mpromisel@gojmc.org" en="Request a Text" he="Request a Text" />
+                <Link href="mailto:mpromisel@gojmc.org" en="Report a Bug" he="Report a Bug" />
+            </Section>
+
+            <Section en="Join Us" he="Us Join">
+                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"Donate"}}/></DonateLink>
+            </Section>
+        </div>
+      </footer>
+    );
+  }
+  renderSefaria() {
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
@@ -117,6 +145,14 @@ class Footer extends Component {
         </div>
       </footer>
     );
+  }
+  render() {
+      if (Sefaria._siteSettings.SITE_NAME.en === "ContextUS") {
+          return this.renderContextUS();
+      }
+      else if (Sefaria._siteSettings.SITE_NAME.en === "Sefaria") {
+          return this.renderSefaria();
+      }
   }
 }
 

@@ -1,8 +1,9 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
-
+from sefaria import tracker
 
 def move_index_into(index, cat, verbose=True):
+
     """
     :param index: (String)  The primary name of the Index to move.
     :param cat:  (model.Category or List) Category to move into - either a Category object, or a List with the path leading to the Category
@@ -173,3 +174,62 @@ def get_category_paths(path):
     from sefaria.model.category import TocCategory
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
+
+def update_order_of_children(uid, json):
+    order = 0
+    results = []
+    for subcategoryOrBook in json['subcategoriesAndBooks']:
+        order += 5
+        try:
+            obj = library.get_index(subcategoryOrBook).contents()
+            obj['order'] = [order]
+            result = tracker.update(uid, Index, obj)
+        except BookNameError as e:
+            obj = Category().load({"lastPath": subcategoryOrBook}).contents()
+            obj['order'] = order
+            result = tracker.update(uid, Category, obj)
+        results.append(result.contents())
+    return results
+
+def handle_category_editor(uid, json, update=False, reorder=False, **kwargs):
+    error_msg = get_category_editor_errors(json)
+    if len(error_msg) > 0:
+        return {"error": error_msg}
+    else:
+        if reorder:
+            update_order_of_children(uid, json)
+        func = tracker.update if update else tracker.add
+        update_results = func(uid, Category, json, **kwargs).contents()
+        return update_results
+
+def get_category_editor_errors(j):
+    # if Category Editor is used, validate its data
+    last_path = j.get("sharedTitle", "")
+    he_last_path = j.get("heSharedTitle", "")
+    error_msg = ""  # empty error msg means there are no errors
+    new_category_exists = Category().load({"path": j["path"]}) is not None
+    if new_category_exists and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
+        # this case occurs when moving Tanakh's Rashi category into
+        # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
+        error_msg = f"Merging two categories named {last_path} is not supported."
+    else:
+        error_msg = check_term(last_path, he_last_path)
+    return error_msg
+
+def check_term(last_path, he_last_path):
+    # if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
+    # if neither of the titles correspond to a term, create the appropriate term
+    error_msg = ""
+    en_term = Term().load_by_title(last_path)
+    he_term = Term().load_by_title(he_last_path)
+
+    if (en_term and he_term != en_term) or (he_term and he_term != en_term):
+        # they do not correspond, either because both terms exist but are not the same, or one term already
+        # exists but the other one doesn't exist
+        error_msg = f"English and Hebrew titles, {last_path} and {he_last_path}, do not correspond to the same term.  Please use the term editor."
+    elif en_term is None and he_term is None:
+        t = Term()
+        t.name = last_path
+        t.add_primary_titles(last_path, he_last_path)
+        t.save()
+    return error_msg

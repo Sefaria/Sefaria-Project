@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 import reader.views as reader_views
 
 
-static_pages = ["about"]
+static_pages = ["about", "sheets", "help", "team", "terms", "faqs", "privacy-policy"]
 
 site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),

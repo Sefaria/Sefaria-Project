@@ -2,10 +2,136 @@
 import pytest
 import json
 from deepdiff import DeepDiff
-
+import copy
 from sefaria.system.exceptions import InputError
 from sefaria.model import *
+from sefaria import tracker
+from sefaria.helper.category import handle_category_editor
 import sefaria.model.category as c
+
+
+class Test_Category_Editor(object):
+    @pytest.fixture(autouse=True, scope='module')
+    def create_new_terms(self):
+        terms = []
+        for title in ["New Fake Category 1", "New Fake Category 2"]:
+            t = Term()
+            t.add_primary_titles(title, title[::-1])
+            t.name = title
+            t.save()
+            terms.append(t)
+        yield terms
+        for t in terms:
+            t.delete()
+
+    @pytest.fixture(autouse=True, scope='module')
+    def create_new_cats(self, create_new_terms):
+        titles = {"New Fake Category 1": ["New Fake Category 1"],
+                  "New Fake Category 2": ["New Fake Category 1", "New Fake Category 2"]}
+        cats = []
+        for title, path in titles.items():
+            c = Category()
+            c.path = path
+            c.add_shared_term(title)
+            c.save()
+            cats.append(c)
+        yield cats
+        for c in cats[::-1]:
+            c.delete()
+
+    @pytest.fixture(autouse=True, scope='module')
+    def create_fake_indices(self, create_new_cats):
+        books = []
+        for i, title in enumerate(['Fake Book One', 'Fake Book Two']):
+            data = {
+                "categories": create_new_cats[i].path,
+                "title": title,
+                "schema": {
+                    "titles": [
+                        {
+                            "lang": "en",
+                            "text": title,
+                            "primary": True
+                        },
+                        {
+                            "lang": "he",
+                            "text": title[::-1],
+                            "primary": True
+                        }
+                    ],
+                    "nodeType": "JaggedArrayNode",
+                    "depth": 2,
+                    "sectionNames": [
+                        "Section",
+                        "Line"
+                    ],
+                    "addressTypes": [
+                        "Integer",
+                        "Integer"
+                    ],
+                    "key": title
+                },
+            }
+            book = Index(data)
+            book.save()
+            books.append(book)
+
+        yield books
+        for b in books:
+            b.delete()
+
+    @pytest.fixture(scope='module', autouse=True)
+    def new_main_cat_shared_title(self):
+        t = Term()
+        t.name = "New Shared Title for Main Cat"
+        t.add_primary_titles(t.name, t.name[::-1])
+        t.save()
+        yield t
+        t.delete()
+
+    @staticmethod
+    def change_cat(term, orig_categories, new_categories):
+        # simulate category editor: change title, path and desc all at once
+        main_cat_new_dict = {"path": new_categories, "sharedTitle": term.get_primary_title('en'),
+                             "heSharedTitle": term.get_primary_title('he'), "origPath": orig_categories}
+        return handle_category_editor(1, main_cat_new_dict, update=True)
+
+    @staticmethod
+    def get_thin_toc(path):
+        return library.get_toc_tree().lookup(path).serialize(thin=True)
+
+
+    def test_category_editor_desc_change(self, create_new_terms, create_new_cats):
+        main_cat_term = create_new_terms[0]
+        main_cat = create_new_cats[0]
+        orig_contents = {"enDesc": "new en desc", "heSharedTitle": main_cat_term.get_primary_title('he'), "sharedTitle": main_cat_term.get_primary_title('en'),
+                         "path": main_cat.path}
+        results = handle_category_editor(1, orig_contents, update=True)
+        assert "errors" not in results, results
+        new_cat = Category().load({"path": orig_contents["path"]})
+        assert new_cat.enDesc == "new en desc", "Description didn't get modified"
+
+
+    def test_category_editor_category_change(self, create_new_terms, create_new_cats, create_fake_indices, new_main_cat_shared_title):
+        # tests category editor by modifying a category and then reversing the changes and confirming that everything is back in place
+        main_cat_term = create_new_terms[0]
+        main_cat = create_new_cats[0]
+        orig_contents = copy.deepcopy(main_cat.contents())
+        orig_categories = orig_contents["path"]
+        orig_toc = Test_Category_Editor.get_thin_toc(orig_categories)
+        new_categories = ["Midrash", new_main_cat_shared_title.name]
+
+        first_run = {"term": new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
+                     "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True)}
+        second_run = {"term": main_cat_term, "orig": new_categories, "new": orig_categories,
+                      "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True)}
+        for run in [first_run, second_run]:
+            results = Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
+            assert "errors" not in results, results["errors"]
+            new_toc = Test_Category_Editor.get_thin_toc(run["new"])
+            index_cats = library.get_index(create_fake_indices[0].title).categories
+            assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"
+            assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
 
 
 class Test_Categories(object):
