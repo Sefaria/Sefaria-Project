@@ -211,7 +211,7 @@ class EditCollectionPage extends Component {
         {this.props.initialData ?
         <div className="field">
           <label>
-              <InterfaceText>List on Sefaria</InterfaceText>
+              <InterfaceText>List on {Sefaria._siteSettings.SITE_NAME.en}</InterfaceText>
           </label>
           {this.state.moderationStatus !== "nolist" ?
           <div className="onoffswitch">
