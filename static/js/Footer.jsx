@@ -147,12 +147,13 @@ class Footer extends Component {
     );
   }
   render() {
-      if (Sefaria._siteSettings.SITE_NAME.en === "ContextUS") {
-          return this.renderContextUS();
-      }
-      else if (Sefaria._siteSettings.SITE_NAME.en === "Sefaria") {
-          return this.renderSefaria();
-      }
+      return;
+      // if (Sefaria._siteSettings.SITE_NAME.en === "ContextUS") {
+      //     return this.renderContextUS();
+      // }
+      // else if (Sefaria._siteSettings.SITE_NAME.en === "Sefaria") {
+      //     return this.renderSefaria();
+      // }
   }
 }
 
