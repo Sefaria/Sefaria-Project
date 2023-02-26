@@ -400,6 +400,8 @@ def tanya_yomi(datetime_obj):
         "category": rf.index.get_primary_category()
     })
     return tanya_items
+
+
 @graceful_exception(logger=logger, return_value=[])
 def yerushalmi_yomi(datetime_obj):
     yerushalmi_items = []
@@ -420,6 +422,7 @@ def yerushalmi_yomi(datetime_obj):
         "category": rf.index.get_primary_category()
     })
     return yerushalmi_items
+
 
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
