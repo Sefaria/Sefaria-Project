@@ -44,7 +44,7 @@ const post = ({url, postCategoryData, setSavingStatus}) => {
                 setSavingStatus(false);
                 alert(result.error);
             } else {
-                redirect(result.path);
+                redirect("");
             }
         }).fail(function (xhr, status, errorThrown) {
             alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
@@ -109,7 +109,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
     const populateCatMenu = (update) => (
         <div className="section">
-            <label><InterfaceText>Category</InterfaceText></label>
+            <label><InterfaceText>Parent Category</InterfaceText></label>
             <CategoryChooser categories={path} update={update}/>
         </div>
     )
@@ -207,8 +207,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged} updateOrder={setSubcategoriesAndBooks}/>,
                     <ToggleSet
                       blueStyle={true}
-                      ariaLabel="Primary Status"
-                      label={Sefaria._("Primary Status")}
+                      ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                      label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
                       name="primary"
                       separated={false}
                       options={primaryOptions}

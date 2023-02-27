@@ -16,12 +16,14 @@ import {
   InterfaceText,
   CategoryHeader,
   ContentText,
+  useHideButtons
 } from './Misc';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
+  const [hideButtons, setHideButtons] = useHideButtons(true);
   const contentLang = useContext(ContentLanguageContext).language;
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -60,7 +62,12 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-      <CategoryHeader path={cats} contentLang={contentLang} title={catTitle} heTitle={heCatTitle} textCategoryPage={true}/>
+        <CategoryHeader path={cats} hideButtons={hideButtons}>
+            <h1 onMouseEnter={() => setHideButtons()}>
+            <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+            </h1>
+        </CategoryHeader>
+
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -120,6 +127,7 @@ TextCategoryPage.propTypes = {
 const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
   const content = [];
   const cats = categories || [];
+  const [hideButtons, setHideButtons] = useHideButtons(true);
   const contentLang = useContext(ContentLanguageContext).language;
   const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
 
@@ -167,9 +175,25 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
 
       // Add a nested subcategory
       } else {
+        let shortDesc = contentLang === "hebrew" ? item.heShortDesc : item.enShortDesc;
+        const hasDesc  = !!shortDesc;
+        const longDesc = hasDesc && shortDesc.split(" ").length > 5;
+        shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <CategoryHeader path={newCats} contentLang={contentLang}/>
+            <CategoryHeader path={newCats} hideButtons={hideButtons}>
+                 <h2 onMouseEnter={() => setHideButtons()}>
+                 <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
+                 {hasDesc && !longDesc ?
+                 <span className="categoryDescription">
+                   <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+                 </span> : null }
+               </h2>
+            </CategoryHeader>
+            {hasDesc && longDesc ?
+              <div className="categoryDescription long sans-serif">
+                <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+              </div> : null }
             <TextCategoryContents
               contents      = {item.contents}
               categories    = {newCats}
