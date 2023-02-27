@@ -18,6 +18,21 @@ entries:
     version: 0.12.0-learning-prompts.1
   - apiVersion: v2
     appVersion: v5.31.10
+    created: "2023-02-27T14:08:51.156653396Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 1014c9afbe15d60381cd02b21c3c51021f957167f7b9787e74d5758534d17035
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.11.4.tgz
+    version: 0.11.4
+  - apiVersion: v2
+    appVersion: v5.31.10
     created: "2023-02-27T13:09:35.182489705Z"
     description: Chart to deploy complete Sefaria environment
     digest: c1a9a652355e1b2bc52d426972b45e9399e8761b8298a94be849f172e8bfece0
@@ -2490,4 +2505,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-02-27T13:43:11.657812453Z"
+generated: "2023-02-27T14:08:51.153655317Z"
