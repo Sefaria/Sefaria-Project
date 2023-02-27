@@ -26,7 +26,7 @@ spec:
                       operator: In
                       values:
                       - mongo
-                topologyKey: kubernetes.io/hostname
+                  topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"
