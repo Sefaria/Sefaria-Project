@@ -17,8 +17,9 @@ spec:
           serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
           affinity:
             podAffinity:
-              prefferedDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                preference:
                   matchExpressions:
                   - key: app
                     operator: In
