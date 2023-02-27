@@ -376,12 +376,12 @@ const ContextUSsheetsLandingPage = () => (
             heActionURL="/sheets/new?utm_source=ContextUS&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
         />
-        <GreyBox light={true}>
-            <H2Block
-                en="Discover new ways to learn & teach"
-                he="גלו דרכים חדשות ללמוד וללמד"
-            />
-        </GreyBox>
+        {/*<GreyBox light={true}>*/}
+        {/*    <H2Block*/}
+        {/*        en="Discover new ways to learn & teach"*/}
+        {/*        he="גלו דרכים חדשות ללמוד וללמד"*/}
+        {/*    />*/}
+        {/*</GreyBox>*/}
         {/*<Feature*/}
         {/*    enTitle="Organize Sources"*/}
         {/*    enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "*/}
