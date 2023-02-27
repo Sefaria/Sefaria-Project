@@ -38,8 +38,8 @@ class Footer extends Component {
             <Section en="About" he="About">
                 <Link href="/about" en="What is ContextUS?" he="What is ContextUS?" />
                 <Link href="/collections/help-center?tab=sheets" en="Help" he="Help" />
-                <Link href="https://jackmillercenter.org/about-us/our-staff/" en="Team" he="Team" />
-                <Link href="https://jackmillercenter.org/about-us/" en="The Jack Miller Center" he="JMC" />
+                <Link href="https://jackmillercenter.org/about-us/our-staff/" en="Team" he="Team" blank={true} />
+                <Link href="https://jackmillercenter.org/about-us/" en="The Jack Miller Center" he="JMC" blank={true} />
                 {/*<Link href="/terms" en="Terms of Use" he="Terms of Use" />*/}
                 {/*<Link href="/privacy-policy" en="Privacy Policy" he="Privacy Policy" />*/}
             </Section>
