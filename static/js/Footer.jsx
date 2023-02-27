@@ -37,16 +37,16 @@ class Footer extends Component {
         <div id="footerInner">
             <Section en="About" he="About">
                 <Link href="/about" en="What is ContextUS?" he="What is ContextUS?" />
-                <Link href="/help" en="Help" he="Help" />
-                <Link href="/team" en="Team" he="Team" />
+                <Link href="/collections/help-center?tab=sheets" en="Help" he="Help" />
+                <Link href="https://jackmillercenter.org/about-us/our-staff/" en="Team" he="Team" />
                 <Link href="https://jackmillercenter.org/about-us/" en="The Jack Miller Center" he="JMC" />
-                <Link href="/terms" en="Terms of Use" he="Terms of Use" />
-                <Link href="/privacy-policy" en="Privacy Policy" he="Privacy Policy" />
+                {/*<Link href="/terms" en="Terms of Use" he="Terms of Use" />*/}
+                {/*<Link href="/privacy-policy" en="Privacy Policy" he="Privacy Policy" />*/}
             </Section>
 
             <Section en="Tools" he="Tools">
                 <Link href="/sheets" en="Source Sheets" he="Source Sheets" />
-                <Link href="/faqs" en="FAQs" he="FAQs" />
+                {/*<Link href="/faqs" en="FAQs" he="FAQs" />*/}
             </Section>
 
              <Section en="Feedback" he="Feedback">
@@ -147,13 +147,12 @@ class Footer extends Component {
     );
   }
   render() {
-      return;
-      // if (Sefaria._siteSettings.SITE_NAME.en === "ContextUS") {
-      //     return this.renderContextUS();
-      // }
-      // else if (Sefaria._siteSettings.SITE_NAME.en === "Sefaria") {
-      //     return this.renderSefaria();
-      // }
+      if (Sefaria._siteSettings.SITE_NAME.en === "ContextUS") {
+          return this.renderContextUS();
+      }
+      else if (Sefaria._siteSettings.SITE_NAME.en === "Sefaria") {
+          return this.renderSefaria();
+      }
   }
 }
 
