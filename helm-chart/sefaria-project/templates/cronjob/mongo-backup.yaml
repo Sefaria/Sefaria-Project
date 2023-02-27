@@ -19,12 +19,13 @@ spec:
             podAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
               - weight: 1
-                preference:
-                  matchExpressions:
-                  - key: app
-                    operator: In
-                    values:
-                    - mongo
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - mongo
                 topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
