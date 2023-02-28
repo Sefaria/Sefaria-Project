@@ -6,6 +6,82 @@ documents the migration process.
 To view mermaid diagrams in PyCharm, follow instructions here: 
 https://www.jetbrains.com/go/guide/tips/mermaid-js-support-in-markdown/
 
+## Post-Migration: Transition Diagrams for Profile States
+
+### App Users that have a Nationbuilder ID.
+
+Transition diagram describing the validation script on profiles where `nationbuilder_id` is truthy.
+
+**IMPORTANT NOTE**: the mongo database should *only* store references to Salesforce UIDs for "app users," not the
+contact those app users are associated with, as these are subject to change.
+
+```mermaid
+stateDiagram-v2
+[*] --> NotChecked
+NotChecked --> ScriptFailureLogged: Unexpected Error
+NotChecked --> RequestedContact: Send HTTP request to Salesforce
+RequestedContact --> OkResponse: 200 OK
+RequestedContact --> NotFound: 404 Not Found
+OkResponse --> WroteSalesforceAppUserUid: DB write success
+RequestedContact --> UnexpectedResponse : Unexpected Response / Failure
+UnexpectedResponse --> WroteUnexpectedResponse: DB write success
+UnexpectedResponse --> DbWriteUnexpectedResFailure: DB write failure
+OkResponse --> DbWriteOkErrorLogged: Db write failure
+NotFound --> DbWriteNotFoundErrorLogged: Db write failure
+NotFound --> WroteNotFound: DB write success
+WroteSalesforceAppUserUid --> [*]
+```
+
+#### Handling "Failure States" for App Users that have a Nationbuilder ID
+
+`ScriptFailureLogged` - The script to validate users did not complete. Debug errors and re-run script.
+
+`DbWriteOkErrorLogged` - The user was found in Salesforce but there was an issue writing data to the database.
+Manually resolve this (or write another script to handle these folks)
+
+`WroteNotFound` - The user was not in Salesforce but has a Nationbuilder ID. This is a possible spam
+user that was not deleted properly, OR there was an issue migrating the user. Create a CSV of these users and
+make decision about how to resolve later (consulte MarComs). These have `NbProfileNotFoundInSalesforce-datetime`
+in `CrmLog` field on Mongo.
+
+`WroteUnexpectedResponse` - Manually look through these and figure out what went wrong. Should also probably log the
+response.  These have `NbProfileUnexpectedRes-datetime: {error message}` in `CrmLog` on mongo.
+
+`ErrorLogged` statuses - the response should have gotten written to Mongo but did not.
+Pull these from logs and write to Mongo.
+
+**NOTE:** Only after the failure states are handled can we remove nationbuilder_id from mongo.
+
+### App Users migrated from Nationbuilder that don't have nationbuilder ID
+This is being left as an open TODO. These folks will have to be resolved at some point, after a conversation
+with MarComs.
+
+### New Users who sign up for the App
+```mermaid
+stateDiagram-v2
+[*] --> UserCreated
+UserCreated --> RequestAddToSalesforce: Send HTTP request to Salesforce
+RequestAddToSalesforce --> OK: 200 OK
+OK --> WroteSalesforceAppUserUid: Db write success
+RequestAddToSalesforce --> UnexpectedResponse: Unexpected Response
+UnexpectedResponse --> WroteSalesforceErrorToDb: Db write success
+UnexpectedResponse --> LoggedDbFailure: Db write failure
+WroteSalesforceAppUserUid --> [*]
+```
+
+### Note on resolving App Users with existing contacts
+The resolution of App Users with existing contacts is handled solely on the Salesforce side, either by
+automated flow or manual process. The Sefaria application does not handle the logic of whether
+a new app user gets a new Contact profile created for it, or whether it gets associated with an existing
+Contact profile. 
+
+#### Handling "Failure States"
+`WroteSalesforceErrorToDb` - These need to be checked and debugged.  They have
+`NewUserSalesforceWriteError-datetime: {error message}` in their `CrmLog` on Mongo.
+
+`LoggedDbFailure` - Manually resolve
+ 
+
 ## CRM Migration Process: Nationbuilder to Salesforce
 Sefaria = Sefaria Application
 
