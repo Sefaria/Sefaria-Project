@@ -381,45 +381,60 @@ import {LinkExcluder} from "./excluder";
         });
     }
 
-    // public API
-
-    ns.link = function({
-        sefariaUrl = "https://www.sefaria.org",  // for configuring which backend linker communicates with
-        mode = "popup-click",
-        whitelistSelector = null,
-        excludeFromLinking = null,    // CSS Selector
-        popupStyles = {},
-        interfaceLang = "english",
-        contentLang = "bilingual",
-        dynamic = false,
-        hidePopupsOnMobile = true,
-        debug = false,
-
-        // Deprecated options
-        selector = null,           // CSS Selector
-        excludeFromTracking = null,   // CSS Selector
-        parenthesesOnly = false,
-        quotationOnly = false,
-    }) {
+    function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly }) {
         if (selector || excludeFromTracking || parenthesesOnly || quotationOnly) {
             console.warn("Deprecation warning: you are currently using at least one of the following deprecated options:" +
                 " `selector`, `excludeFromTracking`, `parenthesesOnly`, `quotationOnly`. These options no longer are" +
                 " used and you can safely remove them. See here for documentation: https://github.com/Sefaria/Sefaria-Project/wiki/Sefaria-Auto-Linker-v3")
         }
-        ns.sefariaUrl = sefariaUrl;
-        ns.excludeFromLinking = excludeFromLinking;
-        ns.dynamic = dynamic;
-        ns.debug = debug;
+    }
+
+    function getMode({ mode, hidePopupsOnMobile }) {
+        if (hidePopupsOnMobile) {
+            return getPopupModeOnMobile(mode);
+        }
+        return mode;
+    }
+
+    function applyDefaultOptions(options) {
+        const defaultOptions = {
+            sefariaUrl: "https://www.sefaria.org",  // for configuring which backend linker communicates with
+            mode: "popup-click",
+            whitelistSelector: null,
+            excludeFromLinking: null,    // CSS Selector
+            popupStyles: {},
+            interfaceLang: "english",
+            contentLang: "bilingual",
+            dynamic: false,
+            hidePopupsOnMobile: true,
+            debug: false,
+
+            // Deprecated options
+            selector: null,           // CSS Selector
+            excludeFromTracking: null,   // CSS Selector
+            parenthesesOnly: false,
+            quotationOnly: false,
+        };
+        return {...options, ...defaultOptions};
+    }
+
+    // public API
+
+    ns.link = function(inputOptions) {
+        deprecatedOptionsWarning(inputOptions);
+        const options = applyDefaultOptions(inputOptions);
+        ns.sefariaUrl = options.sefariaUrl;
+        ns.excludeFromLinking = options.excludeFromLinking;
+        ns.dynamic = options.dynamic;
+        ns.debug = options.debug;
         ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
-        if (debug || true) { removeExistingSefariaLinks(); }
-        if (hidePopupsOnMobile) {
-            mode = getPopupModeOnMobile(mode);
-        }
-        ns.popupManager = new PopupManager({ mode, interfaceLang, contentLang, popupStyles, debug, reportCitation });
+        if (options.debug || true) { removeExistingSefariaLinks(); }
+        const mode = getMode(options);
+        ns.popupManager = new PopupManager({ mode, reportCitation, ...options });
         ns.popupManager.setupPopup();
 
-        getFullWhitelistSelectors(whitelistSelector)
+        getFullWhitelistSelectors(options.whitelistSelector)
             .then(whitelistSelectors => ns.whitelistSelectors = whitelistSelectors)
             .then(findRefs);
     }

@@ -17,14 +17,16 @@ spec:
           serviceAccount: {{ .Values.backup.mongo.serviceAccount }}
           affinity:
             podAffinity:
-              prefferedDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchExpressions:
-                  - key: app
-                    operator: In
-                    values:
-                    - mongo
-                topologyKey: kubernetes.io/hostname
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                      - mongo
+                  topologyKey: kubernetes.io/hostname
           tolerations:
             - key: schedule-on-database-vm
               operator: "Equal"
