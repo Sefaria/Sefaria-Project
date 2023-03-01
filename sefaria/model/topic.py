@@ -720,29 +720,34 @@ class RefTopicLink(abst.AbstractMongoRecord):
     # descriptions: Titles and learning prompts for this Ref in this Topic context.  Structured as follows:
     # descriptions: {
     #     en: {
-    #         title: "...",
-    #         prompt: "..."
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
     #     },
     #     he: {
-    #         title: "...",
-    #         prompt: "..."
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
     #     }
     # }
     optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic', 'descriptions']
 
-    def set_description(self, lang, title, prompt):
+    def set_description(self, lang, title, prompt, primacy=0):
         d = getattr(self, "descriptions", {})
         d[lang] = {
             "title": title,
-            "prompt": prompt
+            "prompt": prompt,
+            "primacy": primacy
         }
         self.descriptions = d
+        return self
 
     def _sanitize(self):
         super()._sanitize()
         for lang, d in getattr(self, "descriptions", {}).items():
             for k, v in d.items():
-                self.descriptions[lang][k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                if isinstance(v, str):
+                    self.descriptions[lang][k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
 
     def load(self, query, proj=None):
         query = TopicLinkSetHelper.init_query(query, 'refTopic')

@@ -69,6 +69,7 @@ class ReaderApp extends Component {
         navigationTopicTitle:    props.initialNavigationTopicTitle,
         navigationTopicLetter:   props.initialNavigationTopicLetter,
         topicTitle:              props.initialTopicTitle,
+        topicTestVersion:        props.topicTestVersion,
         profile:                 props.initialProfile,
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
@@ -2201,7 +2202,8 @@ ReaderApp.propTypes = {
   initialPanels:               PropTypes.array,
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
-  initialPanelCap:             PropTypes.number
+  initialPanelCap:             PropTypes.number,
+  topicTestVersion:          PropTypes.string,
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2218,7 +2220,8 @@ ReaderApp.defaultProps = {
   initialPanels:               [],
   initialDefaultVersions:      {},
   initialPanelCap:             2,
-  initialPath:                 "/"
+  initialPath:                 "/",
+  topicTestVersion:          null
 };
 
 const sefariaSetup = Sefaria.setup;
