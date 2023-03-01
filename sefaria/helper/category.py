@@ -172,13 +172,15 @@ def get_category_paths(path):
 def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
     """
     Used by ReorderEditor and CategoryEditor.  Reorders subcategories and books.
-    :param cat: (model.Category or List) Either a Category object or a list of category keys defining a category
+    :param cat: (model.Category or List) Either a Category object, a list of category keys defining a category, or None.
+                If empty list or None, assumed to be at the root of the TOC tree.
     :param uid: (int) UID of user modifying categories and/or books
     :param subcategoriesAndBooks: (list) List of books and/or categories
     """
     if isinstance(cat, list):
         cat = Category().load({"path": cat})
-    assert isinstance(cat, Category)
+    assert isinstance(cat, Category) or cat is None
+    cat_path = cat.path if cat else []
 
     order = 0
     results = []
@@ -189,7 +191,7 @@ def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
             obj['order'] = [order]
             result = tracker.update(uid, Index, obj)
         except BookNameError as e:
-            obj = Category().load({"path": cat.path+[subcategoryOrBook]}).contents()
+            obj = Category().load({"path": cat_path+[subcategoryOrBook]}).contents()
             obj['order'] = order
             result = tracker.update(uid, Category, obj)
         results.append(result.contents())

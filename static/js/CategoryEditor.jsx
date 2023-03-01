@@ -73,7 +73,7 @@ const ReorderEditor = ({close, path=[]}) => {
     const save = () => {
         setSavingStatus(true);
         const postCategoryData = {subcategoriesAndBooks: tocItems, path};
-        let url = `/api/category/${path.join("/")}?&reorder=1`;
+        let url = `/api/category?reorder=1`;
         post({url, postCategoryData, setSavingStatus});
     }
     return <div className="editTextInfo">
