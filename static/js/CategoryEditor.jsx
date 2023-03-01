@@ -33,8 +33,9 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
     }
 
     return subcategoriesAndBooks.map((child, i) => {
-                return <input type="text" id={`reorder-${i}`} className="reorderTool"
-                onClick={(e) => clickHandler(e)} readOnly value={child}/>;
+                return <div id={`reorder-${i}`} className="reorderTool">{child}
+                        <div id="up" onClick={(e) => clickHandler(e)}>^</div>
+                        <div id="down" onClick={(e) => clickHandler(e)}>v</div></div>;
             })
 }
 
