@@ -100,6 +100,12 @@ const refSort = (currSortOption, a, b) => {
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
+    if ((Sefaria.interfaceLang === 'english') &&
+        (a.descriptions?.en?.primacy || b.descriptions?.en?.primacy)) {
+        return (b.descriptions?.en?.primacy || 0) - (a.descriptions?.en?.primacy || 0); }
+    else if ((Sefaria.interfaceLang === 'hebrew') &&
+        (a.descriptions?.he?.primacy || b.descriptions?.he?.primacy)) {
+        return (b.descriptions?.he?.primacy || 0) - (a.descriptions?.he?.primacy || 0); }
     else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
@@ -128,7 +134,7 @@ const sheetSort = (currSortOption, a, b) => {
     if (a.order.dateCreated < b.order.dateCreated) { return 1; }
   } else {
     // relevance
-    if (b.order.relevance == a.order.relevance) { return b.order.views - a.order.views; }
+    if (b.order.relevance === a.order.relevance) { return b.order.views - a.order.views; }
     return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
   }
 };
@@ -435,7 +441,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref, topicTestVersion
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
@@ -589,6 +595,7 @@ TopicPage.propTypes = {
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
+  topicTestVersion:    PropTypes.string
 };
 
 

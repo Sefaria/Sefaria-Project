@@ -466,7 +466,7 @@ Sefaria = extend(Sefaria, {
     }
     paramStr = paramStr.replace(/&/,'?');
 
-    // Split into multipe requests if URL length goes above limit
+    // Split into multiple requests if URL length goes above limit
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
@@ -2318,15 +2318,15 @@ _media: {},
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
-        if (tabKey == 'about') {
+        if (tabKey === 'about') {
           tabKey = refObj.is_sheet ? 'sheets' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey == 'sheets') {
+          if (tabKey === 'sheets') {
             title = {en: 'Sheets', he: Sefaria._('Sheets')};
           }
-          if (tabKey == 'sources') {
+          if (tabKey === 'sources') {
             title = {en: 'Sources', he: Sefaria._('Sources')};
           }
           tabs[tabKey] = {
