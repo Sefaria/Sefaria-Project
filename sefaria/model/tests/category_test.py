@@ -6,10 +6,9 @@ import copy
 from sefaria.system.exceptions import InputError
 from sefaria.model import *
 from sefaria import tracker
-from sefaria.helper.category import handle_category_editor
 import sefaria.model.category as c
-
-
+from sefaria.helper.category import update_order_of_category_children
+import datetime
 class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_new_terms(self):
@@ -38,14 +37,17 @@ class Test_Category_Editor(object):
         yield cats
         for c in cats[::-1]:
             c.delete()
+        library.rebuild_toc()
 
     @pytest.fixture(autouse=True, scope='module')
     def create_fake_indices(self, create_new_cats):
         books = []
-        for i, title in enumerate(['Fake Book One', 'Fake Book Two']):
+        paths_for_books = [create_new_cats[0].path, create_new_cats[1].path, create_new_cats[0].path]
+        for i, title in enumerate(['Fake Book One', 'Fake Book Two', 'Fake Book Three']):
             data = {
-                "categories": create_new_cats[i].path,
+                "categories": paths_for_books[i],
                 "title": title,
+                "order": [i*5],
                 "schema": {
                     "titles": [
                         {
@@ -89,31 +91,40 @@ class Test_Category_Editor(object):
         yield t
         t.delete()
 
+    @pytest.fixture(scope='module', autouse=True)
+    def new_collection(self, create_new_cats):
+        c = Collection({"name": "Fake Collection",
+                    "sheets": 1,
+                    "slug": "https://www.sefaria.org/Collections/fake-collection",
+                    "lastModified": datetime.datetime(2021, 2, 5, 14, 57, 32, 336000),
+                    "admins": [1],
+                    "members": [1]})
+        c.toc = {"categories": create_new_cats[0].path}
+        yield c
+        c.delete()
+
     @staticmethod
     def change_cat(term, orig_categories, new_categories):
         # simulate category editor: change title, path and desc all at once
         main_cat_new_dict = {"path": new_categories, "sharedTitle": term.get_primary_title('en'),
                              "heSharedTitle": term.get_primary_title('he'), "origPath": orig_categories}
-        return handle_category_editor(1, main_cat_new_dict, update=True)
+        tracker.update(1, Category, main_cat_new_dict)
 
     @staticmethod
     def get_thin_toc(path):
         return library.get_toc_tree().lookup(path).serialize(thin=True)
 
-
-    def test_category_editor_desc_change(self, create_new_terms, create_new_cats):
-        main_cat_term = create_new_terms[0]
-        main_cat = create_new_cats[0]
-        orig_contents = {"enDesc": "new en desc", "heSharedTitle": main_cat_term.get_primary_title('he'), "sharedTitle": main_cat_term.get_primary_title('en'),
-                         "path": main_cat.path}
-        results = handle_category_editor(1, orig_contents, update=True)
-        assert "errors" not in results, results
-        new_cat = Category().load({"path": orig_contents["path"]})
-        assert new_cat.enDesc == "new en desc", "Description didn't get modified"
+    def test_reorder_editor(self, create_new_cats, create_fake_indices):
+        first_book = create_fake_indices[0]
+        second_book = create_fake_indices[2]
+        reorderedBooks = [first_book, second_book]
+        assert second_book.order[0] > first_book.order[0]
+        update_order_of_category_children(create_new_cats[0], 1, reorderedBooks)
+        assert second_book.order[0] < first_book.order[0]
 
 
-    def test_category_editor_category_change(self, create_new_terms, create_new_cats, create_fake_indices, new_main_cat_shared_title):
-        # tests category editor by modifying a category and then reversing the changes and confirming that everything is back in place
+    def test_category_change_all(self, create_new_terms, create_new_cats, create_fake_indices, new_collection, new_main_cat_shared_title):
+        # modify a category and then reverse the changes and confirm that everything is back in place
         main_cat_term = create_new_terms[0]
         main_cat = create_new_cats[0]
         orig_contents = copy.deepcopy(main_cat.contents())
@@ -128,6 +139,31 @@ class Test_Category_Editor(object):
         for run in [first_run, second_run]:
             results = Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
             assert "errors" not in results, results["errors"]
+            assert new_collection.toc["categories"] == run["new"]
+            new_toc = Test_Category_Editor.get_thin_toc(run["new"])
+            index_cats = library.get_index(create_fake_indices[0].title).categories
+            assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"
+            assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
+
+
+    def test_category_change_title_change_only(self, create_new_terms, create_new_cats, create_fake_indices,
+                                               new_main_cat_shared_title, new_collection):
+        # modify a category and then reverse the changes and confirm that everything is back in place
+        main_cat_term = create_new_terms[0]
+        main_cat = create_new_cats[0]
+        orig_contents = copy.deepcopy(main_cat.contents())
+        orig_categories = orig_contents["path"]
+        orig_toc = Test_Category_Editor.get_thin_toc(orig_categories)
+        new_categories = orig_categories[:-1] + [new_main_cat_shared_title.name]
+
+        first_run = {"term": new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
+                     "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True)}
+        second_run = {"term": main_cat_term, "orig": orig_categories, "new": new_categories,
+                      "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True)}
+        for run in [first_run, second_run]:
+            results = Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
+            assert "errors" not in results, results["errors"]
+            assert new_collection.toc["categories"] == run["new"]
             new_toc = Test_Category_Editor.get_thin_toc(run["new"])
             index_cats = library.get_index(create_fake_indices[0].title).categories
             assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"

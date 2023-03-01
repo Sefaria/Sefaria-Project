@@ -78,7 +78,7 @@ from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
-from sefaria.helper.category import handle_category_editor, update_order_of_children
+from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -2454,10 +2454,10 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
-        new_category_exists = Category().load({"path": j["path"]}) is not None
+        new_category = Category().load({"path": j["path"]})
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if not update and new_category_exists:
+        if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
         parent = j["path"][:-1]
@@ -2466,17 +2466,32 @@ def category_api(request, path=None):
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
         reorder = request.GET.get("reorder", False)
-        if request.GET.get("category_editor", False):
-            category_editor_results = handle_category_editor(uid, j, update=update, reorder=reorder, **kwargs)
-            return jsonResponse(category_editor_results)
-        elif reorder:
-            reorder_editor_results = update_order_of_children(uid, j['subcategoriesAndBooks'])
-            return jsonResponse(reorder_editor_results)
+        last_path = j.get("sharedTitle", "")
+        he_last_path = j.get("heSharedTitle", "")
 
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+        if new_category is not None and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
+            # this case occurs when moving Tanakh's Rashi category into
+            # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
+            return {"error": f"Merging two categories named {last_path} is not supported."}
+        elif "heSharedTitle" in j:
+            # if heSharedTitle provided, make sure sharedTitle and heSharedTitle correspond to same Term
+            en_term = Term().load_by_title(last_path)
+            he_term = Term().load_by_title(he_last_path)
+            if en_term and en_term == he_term:
+                pass  # both titles are found in an existing Term object
+            else:
+                # titles weren't found in same Term object, so try to create a new Term
+                t = Term()
+                t.name = last_path
+                t.add_primary_titles(last_path, he_last_path)
+                t.save()
 
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        results = {}
+        if reorder:
+            results["reorder"] = update_order_of_category_children(new_category, uid, json["subcategoriesAndBooks"])
+        if j['path'] != "":
+            results["update"] = _internal_do_post(update, j, uid, **kwargs)
+        return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 

@@ -5,7 +5,6 @@ import {AdminEditor} from "./AdminEditor";
 import {ReorderEditor, Reorder, postWithCallBack} from "./Misc";
 import React, {useState, useRef} from "react";
 
-
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
     const [data, setData] = useState({enTitle: origData.origEn,
@@ -84,7 +83,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             postCategoryData["heSharedTitle"] = data.enTitle.slice(0, -1);  // there needs to be a hebrew title for the category's term
         }
 
-        let url = `/api/category/${fullPath.join("/")}?&category_editor=1`;
+        let url = `/api/category/${fullPath.join("/")}`;
         if (!isNew) {
             url += "&update=1";
             postCategoryData = {...postCategoryData, origPath: origFullPath};

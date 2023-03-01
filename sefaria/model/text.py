@@ -6397,17 +6397,8 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 def reset_simple_term_mapping(o, **kwargs):
     library.get_simple_term_mapping(rebuild=True)
 
-
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")
-
-def rebuild_library_after_category_delete(*args, **kwargs):
-    library.rebuild(include_toc=True)
-    library.delete_category_from_toc(args[0])
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild", [True])
-        server_coordinator.publish_event("library", "delete_category_from_toc", [args[0]])
 
 
 def rebuild_library_after_category_change(*args, **kwargs):
