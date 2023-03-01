@@ -9,16 +9,15 @@ const redirect = function (newPath) {
 }
 
 const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
-    const clickHandler = (e) => {
-        const pos = (100 * e.clientX / e.currentTarget.getBoundingClientRect().right);
-        const index = subcategoriesAndBooks.indexOf(e.currentTarget.value);
+    const clickHandler = (dir, child) => {
+        const index = subcategoriesAndBooks.indexOf(child);
         let index_to_swap = -1;
-        if (pos > 96 && index < subcategoriesAndBooks.length)
-        { //click down
+        if (dir === 'down' && index < subcategoriesAndBooks.length)
+        {
             index_to_swap = index + 1;
         }
-        else if (pos > 90 && index > 0)
-        { //click up
+        else if (dir === 'up' && index > 0)
+        {
             index_to_swap = index - 1;
         }
         if (index_to_swap >= 0) {
@@ -33,9 +32,11 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
     }
 
     return subcategoriesAndBooks.map((child, i) => {
-                return <div id={`reorder-${i}`} className="reorderTool">{child}
-                        <div id="up" onClick={(e) => clickHandler(e)}>^</div>
-                        <div id="down" onClick={(e) => clickHandler(e)}>v</div></div>;
+                return <div id={`reorder-${i}`} className="reorderTool">
+                            <div id="title">{child}</div>
+                            <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
+                            <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+                      </div>;
             })
 }
 
@@ -162,16 +163,19 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         }
 
         let url = `/api/category/${fullPath.join("/")}`;
+        let urlParams = []
         if (!isNew) {
-            url += "&update=1";
+            urlParams.push("update=1");
             postCategoryData = {...postCategoryData, origPath: origFullPath}
         }
 
         if (origSubcategoriesAndBooks.current !== subcategoriesAndBooks && !isNew) {  // only reorder children when category isn't new
             postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
-            url += "&reorder=1";
+            urlParams.push("reorder=1");
         }
-
+        if (urlParams.length > 0) {
+            url += `?${urlParams.join('&')}`;
+        }
         post({url, postCategoryData, setSavingStatus});
     }
 

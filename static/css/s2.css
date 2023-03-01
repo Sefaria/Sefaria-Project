@@ -7397,7 +7397,7 @@ a .button:hover {
   position: relative;
   flex: 1;
 }
-.adminButtons.hideButtons {
+.adminButtons.hiddenButtons {
   display: none;
 }
 .adminButtons {
@@ -11412,14 +11412,23 @@ body .homeFeedWrapper.userStats {
 }
 
 .reorderTool {
-  overflow: hidden;
-  background: url("/static/img/arrow-up.png") 93% 20px/10px 10px no-repeat, url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat;
-  width: 100%;
   height: 50px;
   margin: 0 0 10px 0;
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
+}
+
+.reorderTool #title {
+  margin: 10px;
+  display: inline-block;
+  width: 85%;
+}
+
+.reorderTool #up, .reorderTool #down {
+  width: 10px;
+  margin: 0 4% 0 0;
+  display: inline-block;
 }
 
 #categoryChooserMenu select {
