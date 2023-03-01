@@ -231,7 +231,7 @@ class LexiconEntry extends Component {
           return <span>, {ahw}{aocc}</span>
         })
         .reduce((prev, curr) => [prev, curr]) : '';
-    const allHeadwords = entry.headword_suffix ? <span>[{hw}<span className="dangerouslySetInnerHTML" dangerouslySetInnerHTML={ {__html: entry['headword_suffix']}} />]{occurrences}</span>:
+    const allHeadwords = entry.headword_suffix ? <span>[{hw}<span className="headword-suffix" dangerouslySetInnerHTML={ {__html: entry['headword_suffix']}} />]{occurrences}</span>:
         (entry['brackets'] == 'all') ? <span>[{hw}{occurrences}{alts}]</span> :
         (entry['brackets'] == 'first_word') ? <span>[{hw}{occurrences}]{alts}</span> :
             <span>{hw}{occurrences}{alts}</span>;
