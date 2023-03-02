@@ -12,6 +12,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
 from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
+from sefaria.utils.util import truncate_string
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
@@ -269,7 +270,7 @@ class WebPage(abst.AbstractMongoRecord):
                 return None
         description = description.replace("&amp;", "&")
         description = description.replace("&nbsp;", " ")
-        return description
+        return truncate_string(description)
 
 
 class WebPageSet(abst.AbstractMongoSet):
