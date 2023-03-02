@@ -42,10 +42,10 @@ class Test_Category_Editor(object):
     @pytest.fixture(autouse=True, scope='module')
     def create_fake_indices(self, create_new_cats):
         books = []
-        paths_for_books = [create_new_cats[0].path, create_new_cats[1].path, create_new_cats[0].path]
+        paths_for_books = [create_new_cats[0].path, create_new_cats[0].path, create_new_cats[1].path]
         for i, title in enumerate(['Fake Book One', 'Fake Book Two', 'Fake Book Three']):
             data = {
-                "categories": paths_for_books[i],
+                "categories": list(paths_for_books[i]),
                 "title": title,
                 "order": [i*5],
                 "schema": {
@@ -95,11 +95,12 @@ class Test_Category_Editor(object):
     def new_collection(self, create_new_cats):
         c = Collection({"name": "Fake Collection",
                     "sheets": 1,
-                    "slug": "https://www.sefaria.org/Collections/fake-collection",
+                    "slug": "fake-collection",
                     "lastModified": datetime.datetime(2021, 2, 5, 14, 57, 32, 336000),
                     "admins": [1],
                     "members": [1]})
-        c.toc = {"categories": create_new_cats[0].path}
+        c.toc = {"categories": create_new_cats[0].path, "description": "", "heDescription": ""}
+        c.save()
         yield c
         c.delete()
 
@@ -116,11 +117,12 @@ class Test_Category_Editor(object):
 
     def test_reorder_editor(self, create_new_cats, create_fake_indices):
         first_book = create_fake_indices[0]
-        second_book = create_fake_indices[2]
-        reorderedBooks = [first_book, second_book]
-        assert second_book.order[0] > first_book.order[0]
+        second_book = create_fake_indices[1]
+        assert second_book.order[0] > first_book.order[0]   # confirm that second book follows first
+
+        reorderedBooks = [second_book.title, first_book.title]
         update_order_of_category_children(create_new_cats[0], 1, reorderedBooks)
-        assert second_book.order[0] < first_book.order[0]
+        assert library.get_index(second_book.title).order[0] < library.get_index(first_book.title).order[0]   # confirm that order has been reversed
 
 
     def test_category_change_all(self, create_new_terms, create_new_cats, create_fake_indices, new_collection, new_main_cat_shared_title):

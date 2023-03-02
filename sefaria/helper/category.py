@@ -175,7 +175,7 @@ def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
     :param cat: (model.Category or List) Either a Category object, a list of category keys defining a category, or None.
                 If empty list or None, assumed to be at the root of the TOC tree.
     :param uid: (int) UID of user modifying categories and/or books
-    :param subcategoriesAndBooks: (list) List of books and/or categories
+    :param subcategoriesAndBooks: (list) List of strings of titles of books and/or categories
     """
     if isinstance(cat, list):
         cat = Category().load({"path": cat})
