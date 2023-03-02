@@ -109,7 +109,6 @@ subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug"
 
 # Categories
 subscribe(category.process_category_path_change,  category.Category, "attributeChange", "path")
-subscribe(text.rebuild_library_after_category_delete,                   category.Category, "delete")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
 
 # Manuscripts

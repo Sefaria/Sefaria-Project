@@ -1055,7 +1055,7 @@ class ToggleOption extends Component {
 
         //style={this.props.style}
 
-function useHideButtons() {
+function useHiddenButtons() {
     const [hideButtons, setHideButtons] = useState(true);
     const handleMouseOverAdminButtons = () => {
         setHideButtons(false);
@@ -1064,11 +1064,12 @@ function useHideButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader = ({children, path=[], hideButtons=true}) => {
+const CategoryHeader = ({children, path=[]}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
+  const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
-  const adminClasses = classNames({adminButtons: 1, hideButtons});
+  const adminClasses = classNames({adminButtons: 1, hiddenButtons});
   const tocObject = Sefaria.tocObjectByCategories(path);
   let adminButtonsSpan = null;
 
@@ -1094,7 +1095,7 @@ const CategoryHeader = ({children, path=[], hideButtons=true}) => {
                     </span>;
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
-  return <span className={wrapper}>{children}{adminButtonsSpan}</span>;
+  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
 }
 
 
@@ -2867,5 +2868,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  useHideButtons
+  useHiddenButtons
 };
