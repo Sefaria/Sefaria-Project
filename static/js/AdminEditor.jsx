@@ -22,6 +22,8 @@ function useEditToggle() {
   return [editingBool, toggleAddingTopics];
 }
 
+
+
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                          validate, deleteObj, isNew=true, shortDescBool=false, extras=[], path=[]}) => {
 

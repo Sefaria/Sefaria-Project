@@ -200,7 +200,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
+            "_uses_new_editor": getattr(profile, "uses_new_editor", True),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -2415,7 +2415,7 @@ def category_api(request, path=None):
         cat = Category().load({"path": path.split("/")})
         if cat:
             cat.delete()
-            library.rebuild_toc(skip_rebuild_topics=False)
+            library.rebuild_toc()
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Category {} doesn't exist".format(path)})
