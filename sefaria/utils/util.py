@@ -453,6 +453,16 @@ def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to
         return s, chars_to_wrap
     return s
 
+def truncate_string(string, min_length, max_length):
+    if len(string) < max_length:
+        return string
+    for break_char in ".;, ":
+        # enumerate all places where this char is in segment
+        for pos, char in reversed(list(enumerate(string))):
+            if char == break_char and min_length <= pos <= max_length:
+                return string[:pos] + "…"
+    return string
+
 '''
 strip utils
 '''
