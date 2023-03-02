@@ -8,8 +8,11 @@ import re
 from functools import wraps
 from itertools import zip_longest
 
-epoch = datetime.utcfromtimestamp(0)
+"""
+Time utils
+"""
 
+epoch = datetime.utcfromtimestamp(0)
 
 def epoch_time(since=None):
     if since is None:
@@ -18,19 +21,62 @@ def epoch_time(since=None):
     total_seconds = lambda delta: int(delta.days * 86400 + delta.seconds + delta.microseconds / 1e6)
     return total_seconds(since - epoch)
 
+def td_format(td_object):
+    """
+    Turn a timedelta object into a nicely formatted string.
+    """
+    seconds = int(td_object.total_seconds())
+    periods = [
+            ('year',        60*60*24*365),
+            ('month',       60*60*24*30),
+            ('day',         60*60*24),
+            ('hour',        60*60),
+            ('minute',      60),
+            ('second',      1)
+            ]
 
-def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
-    def argumented_decorator(func):
-        @wraps(func)
-        def decorated_function(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except exception_type as e:
-                if logger:
-                    logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
-            return return_value
-        return decorated_function
-    return argumented_decorator
+    strings=[]
+    for period_name,period_seconds in periods:
+            if seconds > period_seconds:
+                    period_value , seconds = divmod(seconds,period_seconds)
+                    if period_value == 1:
+                            strings.append("%s %s" % (period_value, period_name))
+                    else:
+                            strings.append("%s %ss" % (period_value, period_name))
+
+    return ", ".join(strings)
+
+def get_hebrew_date(dt_obj:datetime) -> tuple:
+    """
+
+    :param dt_obj : datetime object
+    :return: en date and he date for Hebrew date
+    """
+    from convertdate import hebrew
+    months = [
+        ("Nisan", "ניסן"),
+        ("Iyar", "אייר"),
+        ("Sivan", "סיוון"),
+        ("Tammuz", "תמוז"),
+        ("Av", "אב"),
+        ("Elul", "אלול"),
+        ("Tishrei", "תשרי"),
+        ("Cheshvan", "חשון"),
+        ("Kislev", "כסלו"),
+        ("Tevet", "טבת"),
+        ("Shevat", "שבט"),
+        ("Adar", "אדר"),
+        ("Adar II", "אדר ב׳"),
+    ]
+    y, m, d = hebrew.from_gregorian(dt_obj.year, dt_obj.month, dt_obj.day)
+    en = "{} {}, {}".format(months[m-1][0], d, y)
+    he = "{} {}, {}".format(months[m-1][1], d, y)
+    return en, he
+
+
+'''
+Data structure utils - lists
+'''
 
 # also at JaggedArray.depth().  Still needed?
 def list_depth(x, deep=False):
@@ -48,7 +94,6 @@ def list_depth(x, deep=False):
     else:
         return 1
 
-
 """
 # Create a list that from the results of the function chunks:
     names = ['Genesis', 'Exodus', 'Leviticus', 'Numbers','Deuteronomy','Joshua', 'Judges', 'Samuel', 'Kings','Isaiah', 'Jeremiah', 'Ezekiel','Hosea']
@@ -64,6 +109,107 @@ def list_chunks(l, n):
     for i in range(0, len(l), n):
         # Create an index range for l of n items:
         yield l[i:i+n]
+
+def union(a, b):
+    """ return the union of two lists """
+    return list(set(a) | set(b))
+
+'''
+Data structure utils - dicts
+'''
+
+def traverse_dict_tree(dict_tree: dict, key_list: list):
+    """
+    For a list [a, b, c] return dict_tree[a][b][c]
+    :param dict_tree: a list of nested dict objects
+    :param key_list: list of keys
+    :return:
+    """
+    current_node = dict_tree
+    for key in key_list:
+        current_node = current_node[key]
+    return current_node
+
+def deep_update(dict1, dict2):
+    """
+    Merges dict2 into dict1. Will recursively merge as deep as necessary. returns merged dict
+    @param dict1:
+    @param dict2:
+    @return: merged dict
+    """
+    from collections.abc import Mapping
+
+    for k, v in dict2.items():
+        if isinstance(v, Mapping):
+            dict1[k] = deep_update(dict1.get(k, {}), v)
+        else:
+            dict1[k] = v
+    return dict1
+
+'''
+Data structure utils - jagged arrays
+'''
+
+# Moving to JaggedArray.flattenToArray()
+def flatten_jagged_array(jagged):
+    """
+    Returns a 1D list of each terminal element in a jagged array.
+    """
+    flat = []
+    for el in jagged:
+        if isinstance(el, list):
+            flat = flat + flatten_jagged_array(el)
+        else:
+            flat.append(el)
+
+    return flat
+
+def is_text_empty(text):
+    """
+    Returns true if a jagged array 'test' is emtpy or contains
+    only "" or 0.
+    """
+    text = flatten_jagged_array(text)
+
+    text = [t if t != 0 else "" for t in text]
+    return not len("".join(text))
+
+def rtrim_jagged_string_array(ja):
+    """
+    Returns a jagged string array corresponding to ja with any
+    trailing Falsey values in any subsection removed.
+    """
+    if not isinstance(ja, list):
+        return ja
+    while len(ja) and not ja[-1]:
+        ja.pop() # Remove any trailing Falsey values ("", 0, False)
+    return [rtrim_jagged_string_array(j) for j in ja]
+
+def text_preview(en, he):
+    """
+    Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
+    text merging what's available in jagged string arrays 'en' and 'he'.
+    """
+    n_chars = 80
+    en = [en] if isinstance(en, str) else [""] if en == [] or not isinstance(en, list) else en
+    he = [he] if isinstance(he, str) else [""] if he == [] or not isinstance(he, list) else he
+
+    def preview(section):
+        """Returns a preview string for list section"""
+        section =[s for s in section if isinstance(s, str)]
+        section = " ".join(map(str, section))
+        return strip_tags(section[:n_chars]).strip()
+
+    if not any(isinstance(x, list) for x in en + he):
+        return {'en': preview(en), 'he': preview(he)}
+    else:
+        zipped = zip_longest(en, he)
+        return [text_preview(x[0], x[1]) for x in zipped]
+
+
+'''
+file utils
+'''
 
 #checks if a file is in directory
 def in_directory(file, directory):
@@ -91,100 +237,11 @@ def get_directory_content(dirname, modified_after=False):
                 filenames.append(filepath)
     return filenames
 
-# Moving to JaggedArray.flattenToArray()
-def flatten_jagged_array(jagged):
-    """
-    Returns a 1D list of each terminal element in a jagged array.
-    """
-    flat = []
-    for el in jagged:
-        if isinstance(el, list):
-            flat = flat + flatten_jagged_array(el)
-        else:
-            flat.append(el)
-
-    return flat
 
 
-def is_text_empty(text):
-    """
-    Returns true if a jagged array 'test' is emtpy or contains
-    only "" or 0.
-    """
-    text = flatten_jagged_array(text)
-
-    text = [t if t != 0 else "" for t in text]
-    return not len("".join(text))
-
-
-def rtrim_jagged_string_array(ja):
-    """
-    Returns a jagged string array corresponding to ja with any
-    trailing Falsey values in any subsection removed.
-    """
-    if not isinstance(ja, list):
-        return ja
-    while len(ja) and not ja[-1]:
-        ja.pop() # Remove any trailing Falsey values ("", 0, False)
-    return [rtrim_jagged_string_array(j) for j in ja]
-
-
-def union(a, b):
-    """ return the union of two lists """
-    return list(set(a) | set(b))
-
-
-class MLStripper(HTMLParser):
-    def __init__(self):
-        super().__init__()
-
-        self.reset()
-        self.strict = False
-        self.convert_charrefs = True
-        self.fed = []
-
-    def handle_data(self, d):
-        self.fed.append(d)
-
-    def get_data(self):
-        return ' '.join(self.fed)
-
-
-def strip_tags(html, remove_new_lines=False):
-    """
-    Returns the text of html with tags stripped.
-    Customized to insert a space between adjacent tags after stripping.
-    """
-    html = html or ""
-    s = MLStripper()
-    s.feed(html)
-    stripped = s.get_data().strip()
-    if remove_new_lines:
-        stripped = re.sub(r"\n+", " ", stripped)
-    return stripped
-
-
-def text_preview(en, he):
-    """
-    Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview
-    text merging what's available in jagged string arrays 'en' and 'he'.
-    """
-    n_chars = 80
-    en = [en] if isinstance(en, str) else [""] if en == [] or not isinstance(en, list) else en
-    he = [he] if isinstance(he, str) else [""] if he == [] or not isinstance(he, list) else he
-
-    def preview(section):
-        """Returns a preview string for list section"""
-        section =[s for s in section if isinstance(s, str)]
-        section = " ".join(map(str, section))
-        return strip_tags(section[:n_chars]).strip()
-
-    if not any(isinstance(x, list) for x in en + he):
-        return {'en': preview(en), 'he': preview(he)}
-    else:
-        zipped = zip_longest(en, he)
-        return [text_preview(x[0], x[1]) for x in zipped]
-
+'''
+text utils
+'''
 
 def string_overlap(text1, text2):
     """
@@ -205,7 +262,7 @@ def string_overlap(text1, text2):
     # Quick check for the worst case.
     if text1 == text2:
         return min(text1_length, text2_length)
- 
+
     # Start by looking for a single character match
     # and increase length until no match is found.
     best = 0
@@ -219,32 +276,6 @@ def string_overlap(text1, text2):
         if text1[-length:] == text2[:length]:
             best = length
             length += 1
-
-
-def td_format(td_object):
-    """
-    Turn a timedelta object into a nicely formatted string.
-    """
-    seconds = int(td_object.total_seconds())
-    periods = [
-            ('year',        60*60*24*365),
-            ('month',       60*60*24*30),
-            ('day',         60*60*24),
-            ('hour',        60*60),
-            ('minute',      60),
-            ('second',      1)
-            ]
-
-    strings=[]
-    for period_name,period_seconds in periods:
-            if seconds > period_seconds:
-                    period_value , seconds = divmod(seconds,period_seconds)
-                    if period_value == 1:
-                            strings.append("%s %s" % (period_value, period_name))
-                    else:
-                            strings.append("%s %ss" % (period_value, period_name))
-
-    return ", ".join(strings)
 
 
 def replace_using_regex(regex, query, old, new, endline=None):
@@ -272,7 +303,7 @@ def replace_using_regex(regex, query, old, new, endline=None):
             temp = match.replace(old, new)
             query = query.replace(match, temp)
         if endline is not None:
-            query.replace('\n', endline+'\n')
+            query.replace('\n', endline + '\n')
     return query
 
 
@@ -339,7 +370,6 @@ def titlecase(text):
     UC_INITIALS = re.compile(r"^(?:[A-Z]{1}\.{1}|[A-Z]{1}\.{1}[A-Z]{1})+$")
     MAC_MC = re.compile(r"^([Mm]c|MC)(\w.+)")
 
-
     lines = re.split('[\r\n]+', text)
     processed = []
     for line in lines:
@@ -405,6 +435,60 @@ def titlecase(text):
 
     return "\n".join(processed)
 
+def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to_wrap=False):
+    chars_to_wrap.sort(key=lambda x: (x[0],x[0]-x[1]))
+    for i, (start, end, metadata) in enumerate(chars_to_wrap):
+        wrapped_text, start_added, end_added = get_wrapped_text(s[start:end], metadata)
+        s = s[:start] + wrapped_text + s[end:]
+        chars_to_wrap[i] = (start, end + start_added + end_added, metadata)
+        for j, (start2, end2, metadata2) in enumerate(chars_to_wrap[i+1:]):
+            if start2 >= end:
+                start2 += end_added
+            start2 += start_added
+            if end2 > end:
+                end2 += end_added
+            end2 += start_added
+            chars_to_wrap[i+j+1] = (start2, end2, metadata2)
+    if return_chars_to_wrap:
+        return s, chars_to_wrap
+    return s
+
+'''
+strip utils
+'''
+
+class MLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.fed = []
+
+    def handle_data(self, d):
+        self.fed.append(d)
+
+    def get_data(self):
+        return ' '.join(self.fed)
+
+
+def strip_tags(html, remove_new_lines=False):
+    """
+    Returns the text of html with tags stripped.
+    Customized to insert a space between adjacent tags after stripping.
+    """
+    html = html or ""
+    s = MLStripper()
+    s.feed(html)
+    stripped = s.get_data().strip()
+    if remove_new_lines:
+        stripped = re.sub(r"\n+", " ", stripped)
+    return stripped
+
+'''
+language code utils
+'''
 
 def short_to_long_lang_code(code):
     if code in ("bi", "he-en", "en-he"):
@@ -415,6 +499,28 @@ def short_to_long_lang_code(code):
         code = "english"
     return code
 
+
+def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
+    """
+    Wrapper for babel.languages.get_territory_language_info
+    Documentation here: https://github.com/python-babel/babel/blob/master/babel/languages.py#L45 (strange that this function isn't documented on their official site)
+
+    :param territory_code: two letter territory ISO code. If doesn't match anything babel recognizes, returns empty array
+    :param min_pop_perc: min population percentage of language usage in territory. stats are likely only mildly accurate but good enough
+    :param official_status: the status of the language in the territory. I think this can be 'official', 'de_facto_official', None, 'official_regional'. False means return all.
+
+    returns array of ISO lang codes
+    """
+    from babel import languages
+    lang_dict = languages.get_territory_language_info(territory_code)
+    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc * 100) and (
+                (official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
+    return langs
+
+
+'''
+subclass utils
+'''
 
 def get_all_subclasses(cls):
     subclasses = set()
@@ -437,6 +543,10 @@ def get_all_subclass_attribute(cls, attr):
             attr_vals.append(attr_val)
     return attr_vals
 
+
+'''
+other utils
+'''
 
 def get_size(obj, seen=None):
     """Recursively finds size of objects in bytes"""
@@ -465,95 +575,15 @@ def get_size(obj, seen=None):
         size += sum((get_size(i, seen) for i in obj))
     return size
 
-
-def get_hebrew_date(dt_obj:datetime) -> tuple:
-    """
-
-    :param dt_obj : datetime object
-    :return: en date and he date for Hebrew date
-    """
-    from convertdate import hebrew
-    months = [
-        ("Nisan", "ניסן"),
-        ("Iyar", "אייר"),
-        ("Sivan", "סיוון"),
-        ("Tammuz", "תמוז"),
-        ("Av", "אב"),
-        ("Elul", "אלול"),
-        ("Tishrei", "תשרי"),
-        ("Cheshvan", "חשון"),
-        ("Kislev", "כסלו"),
-        ("Tevet", "טבת"),
-        ("Shevat", "שבט"),
-        ("Adar", "אדר"),
-        ("Adar II", "אדר ב׳"),
-    ]
-    y, m, d = hebrew.from_gregorian(dt_obj.year, dt_obj.month, dt_obj.day)
-    en = "{} {}, {}".format(months[m-1][0], d, y)
-    he = "{} {}, {}".format(months[m-1][1], d, y)
-    return en, he
-
-
-def traverse_dict_tree(dict_tree: dict, key_list: list):
-    """
-    For a list [a, b, c] return dict_tree[a][b][c]
-    :param dict_tree: a list of nested dict objects
-    :param key_list: list of keys
-    :return:
-    """
-    current_node = dict_tree
-    for key in key_list:
-        current_node = current_node[key]
-    return current_node
-
-def get_lang_codes_for_territory(territory_code, min_pop_perc=0.2, official_status=False):
-    """
-    Wrapper for babel.languages.get_territory_language_info
-    Documentation here: https://github.com/python-babel/babel/blob/master/babel/languages.py#L45 (strange that this function isn't documented on their official site)
-
-    :param territory_code: two letter territory ISO code. If doesn't match anything babel recognizes, returns empty array
-    :param min_pop_perc: min population percentage of language usage in territory. stats are likely only mildly accurate but good enough
-    :param official_status: the status of the language in the territory. I think this can be 'official', 'de_facto_official', None, 'official_regional'. False means return all.
-    
-    returns array of ISO lang codes
-    """
-    from babel import languages
-    lang_dict = languages.get_territory_language_info(territory_code)
-    langs = [lang_code for lang_code, _ in filter(lambda x: x[1]['population_percent'] >= (min_pop_perc*100) and ((official_status == False) or x[1]['official_status'] == official_status), lang_dict.items())]
-    return langs
-
-
-def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to_wrap=False):
-    chars_to_wrap.sort(key=lambda x: (x[0],x[0]-x[1]))
-    for i, (start, end, metadata) in enumerate(chars_to_wrap):
-        wrapped_text, start_added, end_added = get_wrapped_text(s[start:end], metadata)
-        s = s[:start] + wrapped_text + s[end:]
-        chars_to_wrap[i] = (start, end + start_added + end_added, metadata)
-        for j, (start2, end2, metadata2) in enumerate(chars_to_wrap[i+1:]):
-            if start2 >= end:
-                start2 += end_added
-            start2 += start_added
-            if end2 > end:
-                end2 += end_added
-            end2 += start_added
-            chars_to_wrap[i+j+1] = (start2, end2, metadata2)
-    if return_chars_to_wrap:
-        return s, chars_to_wrap
-    return s
-
-
-def deep_update(dict1, dict2):
-    """
-    Merges dict2 into dict1. Will recursively merge as deep as necessary. returns merged dict
-    @param dict1:
-    @param dict2:
-    @return: merged dict
-    """
-    from collections.abc import Mapping
-
-    for k, v in dict2.items():
-        if isinstance(v, Mapping):
-            dict1[k] = deep_update(dict1.get(k, {}), v)
-        else:
-            dict1[k] = v
-    return dict1
+def graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
+    def argumented_decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exception_type as e:
+                if logger:
+                    logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
+            return return_value
+        return decorated_function
+    return argumented_decorator
