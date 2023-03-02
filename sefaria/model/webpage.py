@@ -76,7 +76,7 @@ class WebPage(abst.AbstractMongoRecord):
         if hasattr(self, 'type'):
             assert self.type == 'article', "WebPage's type can be 'article' or not exist"
         else:
-            assert not hasattr(self, 'source'), "only WebPage of type 'article can have 'source' attribute"
+            assert not hasattr(self, 'source'), "only WebPage of type 'article' can have 'source' attribute"
         super(WebPage, self)._validate()
 
     def _sanitize(self):
@@ -270,7 +270,7 @@ class WebPage(abst.AbstractMongoRecord):
                 return None
         description = description.replace("&amp;", "&")
         description = description.replace("&nbsp;", " ")
-        return truncate_string(description)
+        return truncate_string(description, 150, 170)
 
 
 class WebPageSet(abst.AbstractMongoSet):
