@@ -12,6 +12,7 @@ class CrmConnectionManager(object):
     def add_user_to_crm(self, lists, email, first_name, last_name):
         """
         Add a new Sefaria app user to the CRM.
+        Returns True if successful
         """
         pass
 

@@ -91,10 +91,9 @@ RTC_SERVER = '' # Root URL/IP of the server
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 # Determine which CRM connection implementations to use
-CRM_TYPE = "NATIONBUILDER"  # "SALESFORCE" || "NATIONBUILDER"
+CRM_TYPE = "NONE"  # "SALESFORCE" || "NATIONBUILDER" || "NONE"
 
 # Integration with a NationBuilder list
-NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
 NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""

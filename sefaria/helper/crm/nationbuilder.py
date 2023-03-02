@@ -35,9 +35,6 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         return session
 
     def add_user_to_crm(self, lists, email, first_name=None, last_name=None):
-        if not sls.NATIONBUILDER:
-            return
-
         tags = lists
         post = {
             "person": {
@@ -54,6 +51,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                              data=json.dumps(post),
                              params={'format': 'json'},
                              headers={'content-type': 'application/json'})
+
         try:  # add nationbuilder id to user profile
             nationbuilder_user = r.json()
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
@@ -63,8 +61,9 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                 user_profile.nationbuilder_id = nationbuilder_id
                 user_profile.save()
         except:
-            pass
-        return r
+            return False
+
+        return True
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):
         next_endpoint = endpoint_func(*args)

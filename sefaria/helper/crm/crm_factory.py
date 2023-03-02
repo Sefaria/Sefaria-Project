@@ -1,6 +1,7 @@
 from sefaria import settings as sls
 from sefaria.helper.crm.nationbuilder import NationbuilderConnectionManager
 from sefaria.helper.crm.salesforce import SalesforceConnectionManager
+from sefaria.helper.crm.dummy_crm import DummyConnectionManager
 
 
 class CrmFactory(object):
@@ -12,5 +13,7 @@ class CrmFactory(object):
             return NationbuilderConnectionManager()
         elif self.crm_type == "SALESFORCE":
             return SalesforceConnectionManager()
+        elif self.crm_type == "NONE":
+            return DummyConnectionManager()
         else:
             raise ValueError('Unexpected CRM Type found in Settings')
