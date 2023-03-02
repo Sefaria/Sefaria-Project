@@ -31,7 +31,10 @@ class WebPage(abst.AbstractMongoRecord):
         "description",
         "expandedRefs",
         "body",
-        "linkerHits"
+        "linkerHits",
+        'author',
+        'source',
+        'type'
     ]
 
     def load(self, url_or_query):
@@ -70,6 +73,10 @@ class WebPage(abst.AbstractMongoRecord):
     def _validate(self):
         validator = URLValidator()
         validator(self.url)
+        if hasattr(self, 'type'):
+            assert self.type == 'article' "WebPage's type can be 'article' or not exist"
+        else:
+            assert not hasattr(self, 'source') "only WebPage of type 'article can have 'source' attribute"
         super(WebPage, self)._validate()
 
     def _sanitize(self):
@@ -222,6 +229,8 @@ class WebPage(abst.AbstractMongoRecord):
         d["siteName"]   = self.site_name
         d["webPageFaviconUrl"] = self.page_favicon
         d["webSiteFaviconUrl"] = self.site_favicon
+        d['author'] = getattr(self, 'author', None)
+        d['source'] = getattr(self, 'source', None)
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
