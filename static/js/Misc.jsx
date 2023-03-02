@@ -1083,11 +1083,11 @@ const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
 
 function useHiddenButtons() {
     const [hideButtons, setHideButtons] = useState(true);
-    const handleMouseOver = () => {
+    const handleMouseOverAdminButtons = () => {
         setHideButtons(false);
         setTimeout(() => setHideButtons(true), 3000);
     }
-    return [hideButtons, handleMouseOver];
+    return [hideButtons, handleMouseOverAdminButtons];
 }
 
 const CategoryHeader = ({children,  type, path=[], editOnly = false}) => {
