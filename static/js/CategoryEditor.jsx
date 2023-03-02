@@ -2,8 +2,102 @@ import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {ReorderEditor, Reorder, postWithCallBack} from "./Misc";
+import {postWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
+
+const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
+    const clickHandler = (dir, child) => {
+        const index = subcategoriesAndBooks.indexOf(child);
+        let index_to_swap = -1;
+        if (dir === 'down' && index < subcategoriesAndBooks.length)
+        {
+            index_to_swap = index + 1;
+        }
+        else if (dir === 'up' && index > 0)
+        {
+            index_to_swap = index - 1;
+        }
+        if (index_to_swap >= 0) {
+            let temp = subcategoriesAndBooks[index_to_swap];
+            subcategoriesAndBooks[index_to_swap] = subcategoriesAndBooks[index];
+            subcategoriesAndBooks[index] = temp;
+            updateOrder([...subcategoriesAndBooks]);
+            if (updateParentChangedStatus) {
+                updateParentChangedStatus(true);
+            }
+        }
+    }
+
+    return subcategoriesAndBooks.map((child, i) => {
+                return <div id={`reorder-${i}`} className="reorderTool">
+                            <div id="title">{child}</div>
+                            <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
+                            <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+                      </div>;
+            })
+}
+
+const ReorderEditor = ({close, path=[], type=""}) => {
+    const determineOrigItems = () => {
+        if (type === "books")
+        {
+            if (path.length === 0) {
+                return Sefaria.toc.map(child => child.category);
+            }
+            else {
+                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
+            }
+        }
+        else if (type === "topics") {
+            if (path.length === 0) {
+                return Sefaria.topic_toc.map(child => child.en);
+            }
+            else {
+                return Sefaria.topicTocPage(path).map(child => child.en);
+            }
+        }
+    }
+    const [tocItems, setTocItems] = useState(determineOrigItems());
+    const [savingStatus, setSavingStatus] = useState(false);
+    const [isChanged, setIsChanged] = useState(false);
+    const update = (newTocItems) => {
+        setTocItems(newTocItems);
+        setIsChanged(true);
+    }
+    const validate = () => {
+        if (!isChanged) {
+            alert("You haven't reordered the categories.")
+        }
+        else {
+            save();
+        }
+    }
+    const save = () => {
+        let postCategoryData = {};
+        let url = "";
+        if (type !== "topics") {
+            postCategoryData = {subcategoriesAndBooks: tocItems, path};
+            url = `/api/category?reorder=1`;
+            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+path.join("/")});
+        }
+        else {
+             url = `api/topic/reorder`;
+             postCategoryData = {topics: tocItems};
+             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+        }
+    }
+    return <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
+                    <div id="newIndex">
+                        <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
+                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
+                    </div>
+                </div>
+            </div>
+    </div>
+}
 
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
@@ -16,14 +110,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState([]);
-    const [changedCatsOrder, setChangedCatsOrder] = useState(false);
-
-    const updateSubcatsAndBooks = (newCats) => {
-        setChangedCatsOrder(true);
-        setChanged(true);
-        setSubcategoriesAndBooks(newCats);
-    }
+    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []).map(child => child.title || child.category));
+    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
 
     const handlePrimaryClick = function(type, status) {
         setIsPrimary(status);
@@ -84,17 +172,18 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         }
 
         let url = `/api/category/${fullPath.join("/")}`;
+        let urlParams = []
         if (!isNew) {
-            url += "&update=1";
-            postCategoryData = {...postCategoryData, origPath: origFullPath};
-            if (changedCatsOrder) {  // only reorder order was changed
-                postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
-                url += "&reorder=1";
-            }
+            urlParams.push("update=1");
+            postCategoryData = {...postCategoryData, origPath: origFullPath}
         }
-
-
-
+        if (origSubcategoriesAndBooks.current !== subcategoriesAndBooks && !isNew) {  // only reorder children when category isn't new
+            postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
+            urlParams.push("reorder=1");
+        }
+        if (urlParams.length > 0) {
+            url += `?${urlParams.join('&')}`;
+        }
         postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
 
@@ -128,19 +217,16 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
                 extras={
                     [isNew ? null :
-                        <Reorder path={[...origPath, origData.origEn]}
-                                 origSubcategoriesAndBooks={subcategoriesAndBooks}
-                                 type="books"
-                                 updateOrder={updateSubcatsAndBooks}/>,
-                    <ToggleSet
-                      blueStyle={true}
-                      ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                      label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
-                      name="primary"
-                      separated={false}
-                      options={primaryOptions}
-                      setOption={handlePrimaryClick}
-                      currentValue={isPrimary} />,
+                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged} updateOrder={setSubcategoriesAndBooks}/>,
+                        <ToggleSet
+                          blueStyle={true}
+                          ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                          label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
+                          name="primary"
+                          separated={false}
+                          options={primaryOptions}
+                          setOption={handlePrimaryClick}
+                          currentValue={isPrimary} />,
                     ]
                 }/>
 

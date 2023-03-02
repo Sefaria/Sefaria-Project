@@ -14,7 +14,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
-import {CategoryEditor} from "./CategoryEditor";
+import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
 
 /**
@@ -1051,55 +1051,6 @@ class ToggleOption extends Component {
 
          //style={this.props.style}
 
-const Reorder = ({updateOrder, path=[], origSubcategoriesAndBooks=[], type=""}) => {
-    const determineOrigItems = () => {
-        if (type === "books")
-        {
-            if (path.length === 0) {
-                return Sefaria.toc.map(child => child.category);
-            }
-            else {
-                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
-            }
-        }
-        else if (type === "topics") {
-            if (path.length === 0) {
-                return Sefaria.topic_toc.map(child => child.en);
-            }
-            else {
-                return Sefaria.topicTocPage(path).map(child => child.en);
-            }
-        }
-    }
-    const subcategoriesAndBooks = origSubcategoriesAndBooks.length > 0 ? origSubcategoriesAndBooks : determineOrigItems();
-
-    const clickHandler = (e) => {
-        const pos = (100 * e.clientX / e.currentTarget.getBoundingClientRect().right);
-        let newSubcatsAndBooks = [...subcategoriesAndBooks];
-        const index = newSubcatsAndBooks.indexOf(e.currentTarget.value);
-        let index_to_swap = -1;
-        if (pos > 96 && index < newSubcatsAndBooks.length)
-        { //click down
-            index_to_swap = index + 1;
-        }
-        else if (pos > 90 && index > 0)
-        { //click up
-            index_to_swap = index - 1;
-        }
-        if (index_to_swap >= 0) {
-            let temp = newSubcatsAndBooks[index_to_swap];
-            newSubcatsAndBooks[index_to_swap] = newSubcatsAndBooks[index];
-            newSubcatsAndBooks[index] = temp;
-            updateOrder(newSubcatsAndBooks);
-        }
-    }
-
-    return subcategoriesAndBooks.map((child, i) => {
-                return <input type="text" id={`reorder-${i}`} className="reorderTool"
-                onClick={(e) => clickHandler(e)} readOnly value={child}/>;
-            })
-}
-
 const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
     $.post(url, {"json": JSON.stringify(data)}, function (result) {
             if (result.error) {
@@ -1130,54 +1081,7 @@ const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
    return initCatSlug;
  }
 
-const ReorderEditor = ({close, path=[], type=""}) => {
-    const [tocItems, setTocItems] = useState([])
-    const [savingStatus, setSavingStatus] = useState(false);
-    const [isChanged, setIsChanged] = useState(false);
-    const update = (newTocItems) => {
-        setTocItems(newTocItems);
-        setIsChanged(true);
-    }
-    const validate = () => {
-        if (!isChanged) {
-            alert("You haven't reordered the categories.")
-        }
-        else {
-            save();
-        }
-    }
-    const save = () => {
-        setSavingStatus(true);
-        let postCategoryData = {};
-        let url = "";
-        if (type !== "topics") {
-            postCategoryData = {subcategoriesAndBooks: tocItems, path};
-            url = `/api/category/${path.join("/")}?reorder=1`;
-            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+path.join("/")});
-        }
-        else {
-             url = `api/topic/reorder`;
-             postCategoryData = {topics: tocItems};
-             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
-        }
-
-    }
-    return <div className="editTextInfo">
-            <div className="static">
-                <div className="inner">
-                    {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
-                    <div id="newIndex">
-                        <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder origSubcategoriesAndBooks={tocItems}
-                                 path={path}
-                                 type={type}
-                                 updateOrder={update}/>
-                    </div>
-                </div>
-            </div>
-    </div>
-}
-function useHideButtons() {
+function useHiddenButtons() {
     const [hideButtons, setHideButtons] = useState(true);
     const handleMouseOver = () => {
         setHideButtons(false);
@@ -1186,11 +1090,13 @@ function useHideButtons() {
     return [hideButtons, handleMouseOver];
 }
 
-
-const CategoryHeader = ({children, type, path=[], hideButtons=true, editOnly = false}) => {
+const CategoryHeader = ({children,  type, path=[], editOnly = false}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
-  const adminClasses = classNames({adminButtons: 1, hideButtons});
+  const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
+
+  const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+  const tocObject = Sefaria.tocObjectByCategories(path);
   let adminButtonsSpan = null;
   const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(path));
 
@@ -1243,7 +1149,7 @@ const CategoryHeader = ({children, type, path=[], hideButtons=true, editOnly = f
       }
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
-  return <span className={wrapper}>{children}{adminButtonsSpan}</span>;
+  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
 }
 
 
@@ -3016,9 +2922,7 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  ReorderEditor,
   postWithCallBack,
-  Reorder,
   TopicToCategorySlug,
-  useHideButtons
+  useHiddenButtons
 };

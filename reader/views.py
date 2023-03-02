@@ -2426,7 +2426,7 @@ def category_api(request, path=None):
         return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
-        def _internal_do_post(update, cat, uid, **kwargs):
+        def _internal_do_post(request, update, cat, uid, **kwargs):
             func = tracker.update if update else tracker.add
             return func(uid, Category, cat, **kwargs).contents()
 
@@ -2488,9 +2488,11 @@ def category_api(request, path=None):
 
         results = {}
         if reorder:
-            results["reorder"] = update_order_of_category_children(new_category, uid, json["subcategoriesAndBooks"])
-        if j['path'] != "":
-            results["update"] = _internal_do_post(update, j, uid, **kwargs)
+            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
+            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
+        if len(j['path']) > 0:  # not at root of TOC
+            results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
+
         return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})

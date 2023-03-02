@@ -16,14 +16,13 @@ import {
   InterfaceText,
   CategoryHeader,
   ContentText,
-  useHideButtons
+  useHiddenButtons
 } from './Misc';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
-  const [hideButtons, setHideButtons] = useHideButtons(true);
   const contentLang = useContext(ContentLanguageContext).language;
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -62,8 +61,8 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader path={cats} hideButtons={hideButtons} type="books">
-            <h1 onMouseEnter={() => setHideButtons()}>
+        <CategoryHeader path={cats} type="books">
+            <h1>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
             </h1>
         </CategoryHeader>
@@ -126,7 +125,6 @@ TextCategoryPage.propTypes = {
 const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
   const content = [];
   const cats = categories || [];
-  const [hideButtons, setHideButtons] = useHideButtons(true);
   const contentLang = useContext(ContentLanguageContext).language;
   const sortedContents = contentLang === "hebrew" ? hebrewContentSort(contents) : contents;
 
@@ -180,8 +178,8 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <CategoryHeader path={newCats} hideButtons={hideButtons} type="books">
-                 <h2 onMouseEnter={() => setHideButtons()}>
+            <CategoryHeader path={newCats} type="books">
+                 <h2>
                  <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
                  {hasDesc && !longDesc ?
                  <span className="categoryDescription">

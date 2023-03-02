@@ -37,15 +37,15 @@ class Test_Category_Editor(object):
         yield cats
         for c in cats[::-1]:
             c.delete()
-        library.rebuild_toc()
+            library.rebuild_toc()
 
     @pytest.fixture(autouse=True, scope='module')
     def create_fake_indices(self, create_new_cats):
         books = []
-        paths_for_books = [create_new_cats[0].path, create_new_cats[1].path, create_new_cats[0].path]
+        paths_for_books = [create_new_cats[0].path, create_new_cats[0].path, create_new_cats[1].path]
         for i, title in enumerate(['Fake Book One', 'Fake Book Two', 'Fake Book Three']):
             data = {
-                "categories": paths_for_books[i],
+                "categories": list(paths_for_books[i]),
                 "title": title,
                 "order": [i*5],
                 "schema": {
@@ -80,10 +80,10 @@ class Test_Category_Editor(object):
 
         yield books
         for b in books:
-            b.delete()
+            library.get_index(b.title).delete()  # need to reload this due to caching
 
     @pytest.fixture(scope='module', autouse=True)
-    def new_main_cat_shared_title(self):
+    def create_new_main_cat_shared_title(self):
         t = Term()
         t.name = "New Shared Title for Main Cat"
         t.add_primary_titles(t.name, t.name[::-1])
@@ -92,14 +92,15 @@ class Test_Category_Editor(object):
         t.delete()
 
     @pytest.fixture(scope='module', autouse=True)
-    def new_collection(self, create_new_cats):
-        c = Collection({"name": "Fake Collection",
+    def create_new_collection(self, create_new_cats):
+        c = Collection({"name": "Fake Collection 123",
                     "sheets": 1,
-                    "slug": "https://www.sefaria.org/Collections/fake-collection",
+                    "slug": "fake-collection",
                     "lastModified": datetime.datetime(2021, 2, 5, 14, 57, 32, 336000),
                     "admins": [1],
                     "members": [1]})
-        c.toc = {"categories": create_new_cats[0].path}
+        c.toc = {"categories": create_new_cats[0].path, "description": "", "heDescription": ""}
+        c.save()
         yield c
         c.delete()
 
@@ -108,7 +109,7 @@ class Test_Category_Editor(object):
         # simulate category editor: change title, path and desc all at once
         main_cat_new_dict = {"path": new_categories, "sharedTitle": term.get_primary_title('en'),
                              "heSharedTitle": term.get_primary_title('he'), "origPath": orig_categories}
-        tracker.update(1, Category, main_cat_new_dict)
+        return tracker.update(1, Category, main_cat_new_dict).contents()
 
     @staticmethod
     def get_thin_toc(path):
@@ -116,58 +117,47 @@ class Test_Category_Editor(object):
 
     def test_reorder_editor(self, create_new_cats, create_fake_indices):
         first_book = create_fake_indices[0]
-        second_book = create_fake_indices[2]
-        reorderedBooks = [first_book, second_book]
-        assert second_book.order[0] > first_book.order[0]
+        second_book = create_fake_indices[1]
+        assert second_book.order[0] > first_book.order[0]   # confirm that second book follows first
+
+        reorderedBooks = [second_book.title, first_book.title]
         update_order_of_category_children(create_new_cats[0], 1, reorderedBooks)
-        assert second_book.order[0] < first_book.order[0]
+        assert library.get_index(second_book.title).order[0] < library.get_index(first_book.title).order[0]   # confirm that order has been reversed
 
-
-    def test_category_change_all(self, create_new_terms, create_new_cats, create_fake_indices, new_collection, new_main_cat_shared_title):
+    @staticmethod
+    def modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
         # modify a category and then reverse the changes and confirm that everything is back in place
         main_cat_term = create_new_terms[0]
         main_cat = create_new_cats[0]
         orig_contents = copy.deepcopy(main_cat.contents())
         orig_categories = orig_contents["path"]
         orig_toc = Test_Category_Editor.get_thin_toc(orig_categories)
-        new_categories = ["Midrash", new_main_cat_shared_title.name]
 
-        first_run = {"term": new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
+        first_run = {"term": create_new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
                      "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True)}
         second_run = {"term": main_cat_term, "orig": new_categories, "new": orig_categories,
                       "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True)}
         for run in [first_run, second_run]:
-            results = Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
-            assert "errors" not in results, results["errors"]
-            assert new_collection.toc["categories"] == run["new"]
-            new_toc = Test_Category_Editor.get_thin_toc(run["new"])
-            index_cats = library.get_index(create_fake_indices[0].title).categories
+            Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
+            assert Collection().load({'name': create_new_collection.name}).toc["categories"] == run["new"]  # need to reload this due to caching
+
+            index_cats = library.get_index(create_fake_indices[0].title).categories  # need to reload this due to caching
             assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"
+
+            new_toc = Test_Category_Editor.get_thin_toc(run["new"])
             assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
 
 
-    def test_category_change_title_change_only(self, create_new_terms, create_new_cats, create_fake_indices,
-                                               new_main_cat_shared_title, new_collection):
-        # modify a category and then reverse the changes and confirm that everything is back in place
-        main_cat_term = create_new_terms[0]
+    def test_title_change_and_parent_change(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
+        new_categories = ["Midrash", create_new_main_cat_shared_title.name]
+        Test_Category_Editor.modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices)
+
+    def test_title_change_only(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
         main_cat = create_new_cats[0]
         orig_contents = copy.deepcopy(main_cat.contents())
         orig_categories = orig_contents["path"]
-        orig_toc = Test_Category_Editor.get_thin_toc(orig_categories)
-        new_categories = orig_categories[:-1] + [new_main_cat_shared_title.name]
-
-        first_run = {"term": new_main_cat_shared_title, "orig": orig_categories, "new": new_categories,
-                     "deep_diff": lambda orig, new: DeepDiff(orig, new, ignore_order=True)}
-        second_run = {"term": main_cat_term, "orig": orig_categories, "new": new_categories,
-                      "deep_diff": lambda orig, new: not DeepDiff(orig, new, ignore_order=True)}
-        for run in [first_run, second_run]:
-            results = Test_Category_Editor.change_cat(run["term"], run["orig"], run["new"])
-            assert "errors" not in results, results["errors"]
-            assert new_collection.toc["categories"] == run["new"]
-            new_toc = Test_Category_Editor.get_thin_toc(run["new"])
-            index_cats = library.get_index(create_fake_indices[0].title).categories
-            assert run["new"] == index_cats, f"{index_cats} should be the same as {new_categories}"
-            assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
+        new_categories = orig_categories[:-1] + [create_new_main_cat_shared_title.name]
+        Test_Category_Editor.modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices)
 
 
 class Test_Categories(object):
