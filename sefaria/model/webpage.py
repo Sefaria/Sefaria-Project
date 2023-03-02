@@ -73,9 +73,9 @@ class WebPage(abst.AbstractMongoRecord):
         validator = URLValidator()
         validator(self.url)
         if hasattr(self, 'type'):
-            assert self.type == 'article' "WebPage's type can be 'article' or not exist"
+            assert self.type == 'article', "WebPage's type can be 'article' or not exist"
         else:
-            assert not hasattr(self, 'source') "only WebPage of type 'article can have 'source' attribute"
+            assert not hasattr(self, 'source'), "only WebPage of type 'article can have 'source' attribute"
         super(WebPage, self)._validate()
 
     def _sanitize(self):
