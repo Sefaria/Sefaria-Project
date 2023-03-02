@@ -8,7 +8,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
         CrmConnectionManager.__init__(self, sls.SALESFORCE_BASE_URL)
 
-    def get_connection(self):
+    def _get_connection(self):
         access_token_url = "%s/services/oauth2/token?grant_type=client_credentials" % self.base_url
         base64_auth = base64.b64encode((sls.SALESFORCE_CLIENT_ID + ":" + sls.SALESFORCE_CLIENT_SECRET).encode("ascii"))\
             .decode("ascii")

@@ -19,7 +19,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
     def __init__(self):
         CrmConnectionManager.__init__(self, base_url)
 
-    def get_connection(self):
+    def _get_connection(self):
         access_token_url = "http://%s.nationbuilder.com/oauth/token" % sls.NATIONBUILDER_SLUG
         authorize_url = "%s.nationbuilder.com/oauth/authorize" % sls.NATIONBUILDER_SLUG
         service = OAuth2Service(

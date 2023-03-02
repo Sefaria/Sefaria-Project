@@ -1,9 +1,9 @@
 class CrmConnectionManager(object):
     def __init__(self, base_url):
         self.base_url = base_url
-        self.session = self.get_connection()
+        self.session = self._get_connection()
 
-    def get_connection(self):
+    def _get_connection(self):
         """
         Authenticate application & return a Requests session object
         """
