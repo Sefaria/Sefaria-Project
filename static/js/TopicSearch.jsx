@@ -13,7 +13,7 @@ class TopicSearch extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showTopicEditor: false,
+      showAdminEditor: false,
       value: "",
     };
   }
@@ -94,7 +94,7 @@ class TopicSearch extends Component {
 
   changeInputValue = (newValue) => {
     if (newValue.startsWith(this.props.createNewTopicStr)) {
-        this.setState({showTopicEditor: true, value: newValue.replace(this.props.createNewTopicStr, "")});
+        this.setState({showAdminEditor: true, value: newValue.replace(this.props.createNewTopicStr, "")});
     }
     else {
         this.setState({value: newValue});
@@ -102,13 +102,14 @@ class TopicSearch extends Component {
   }
 
   reset = () => {
-      this.setState({showTopicEditor: false, value: ""});
+      this.setState({showAdminEditor: false, value: ""});
   }
 
 
   render() {
-        if (this.state.showTopicEditor) {
-            return <TopicEditor origEn={this.state.value} close={this.reset} onCreateSuccess={this.post}/>;
+        if (this.state.showAdminEditor) {
+            const topicData = {origEn: this.state.value};
+            return <TopicEditor origData={topicData} close={this.reset} onCreateSuccess={this.post}/>;
         }
         else {
             return (<Autocompleter selectedCallback={this.validate}

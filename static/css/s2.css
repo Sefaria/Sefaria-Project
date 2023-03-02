@@ -4686,6 +4686,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display:  flex;
 }
 .toggleOption {
+  font-size: 26px;
   box-sizing: border-box;
   text-align: center;
   border: 1px solid #ccc;
@@ -4697,6 +4698,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
+
 .toggleSet.aliyotTorah .toggleOption,
 .toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
@@ -4754,11 +4756,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .color .dark, .color .dark.on {
   background-color: #333331;
 }
-.toggleOption {
-  font-size: 26px;
-  line-height: 34px;
-  vertical-align: middle;
-}
+
 .toggleSet .toggleOption .he,
 .toggleSet .toggleOption .en {
   display: inline;
@@ -4786,6 +4784,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border-radius: 6px;
+}
+
+.toggleSet.blueStyle.primary {
+  width: 100%;
+}
+.toggleSet.blueStyle.primary .toggleOption {
+  background-color: revert;
 }
 .toggleSet.blueStyle .toggleOption {
   border: none;
@@ -7382,6 +7387,26 @@ a .button:hover {
   color: #000000;
   background-color: var(--lighter-grey);
   white-space: nowrap;
+}
+.adminButtons .button.extraSmall.topic {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  color: #666666;
+}
+.headerWithAdminButtons {
+  display: flex;
+  position: relative;
+  flex: 1;
+}
+.adminButtons.hiddenButtons {
+  display: none;
+}
+.adminButtons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 240px;
+  width: 147px;
+  position: absolute;
+  height: 90px;
 }
 
 .button .buttonIcon {
@@ -11386,6 +11411,26 @@ body .homeFeedWrapper.userStats {
   border: none;
 }
 
+.reorderTool {
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
+}
+
+.reorderTool #title {
+  margin: 10px;
+  display: inline-block;
+  width: 85%;
+}
+
+.reorderTool #up, .reorderTool #down {
+  width: 10px;
+  margin: 0 4% 0 0;
+  display: inline-block;
+}
+
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11452,7 +11497,7 @@ body .homeFeedWrapper.userStats {
   font: var(--english-sans-serif-font-family);
 }
 
-.editTextInfo #newIndex input {
+.editTextInfo #newIndex input[type="text"] {
   padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;

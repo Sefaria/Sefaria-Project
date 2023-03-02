@@ -16,7 +16,6 @@ import os
 import re
 import uuid
 
-from sefaria.helper.topic import update_topic
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -78,6 +77,8 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
+from sefaria.helper.topic import update_topic
+from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -2395,13 +2396,22 @@ def tag_category_api(request, path=None):
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
+    DELETE takes a category path on the URL
     GET takes a category path on the URL.  Returns the category specified.
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
+    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
     """
-    if request.method == "GET":
+    if request.method == "DELETE":
+        cat = Category().load({"path": path.split("/")})
+        if cat:
+            cat.delete()
+            library.rebuild_toc()
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+    elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
         cats = path.split("/")
@@ -2416,8 +2426,9 @@ def category_api(request, path=None):
         return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
-        def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, Category, cat, **kwargs).contents()
+        def _internal_do_post(request, update, cat, uid, **kwargs):
+            func = tracker.update if update else tracker.add
+            return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2442,16 +2453,47 @@ def category_api(request, path=None):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
+        update = int(request.GET.get("update", False))
+        new_category = Category().load({"path": j["path"]})
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if Category().load({"path": j["path"]}):
+        if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
-        if not Category().load({"path": j["path"][:-1]}):
-            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        parent = j["path"][:-1]
+        if len(parent) > 0 and not Category().load({"path": parent}):
+            # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
+            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
+
+        reorder = request.GET.get("reorder", False)
+        last_path = j.get("sharedTitle", "")
+        he_last_path = j.get("heSharedTitle", "")
+
+        if new_category is not None and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
+            # this case occurs when moving Tanakh's Rashi category into
+            # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
+            return {"error": f"Merging two categories named {last_path} is not supported."}
+        elif "heSharedTitle" in j:
+            # if heSharedTitle provided, make sure sharedTitle and heSharedTitle correspond to same Term
+            en_term = Term().load_by_title(last_path)
+            he_term = Term().load_by_title(he_last_path)
+            if en_term and en_term == he_term:
+                pass  # both titles are found in an existing Term object
+            else:
+                # titles weren't found in same Term object, so try to create a new Term
+                t = Term()
+                t.name = last_path
+                t.add_primary_titles(last_path, he_last_path)
+                t.save()
+
+        results = {}
+        if reorder:
+            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
+            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
+        if len(j['path']) > 0:  # not at root of TOC
+            results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
+
+        return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3077,13 +3119,13 @@ def add_new_topic_api(request):
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
-        t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         t.description_published = True
+        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 

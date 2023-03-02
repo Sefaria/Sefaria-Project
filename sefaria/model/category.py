@@ -16,7 +16,9 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     history_noun = "category"
 
     track_pkeys = True
-    pkeys = ["lastPath"]  # Needed for dependency tracking
+    criteria_field = 'path'
+    criteria_override_field = 'origPath'  # used when primary attribute changes. field that holds old value.
+    pkeys = ["path"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
     optional_attrs = [
         "enDesc",
@@ -27,7 +29,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "sharedTitle",
         "isPrimary",
         "searchRoot",
-        "order"
+        "order",
     ]
 
     def __str__(self):
@@ -41,6 +43,10 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         self.sharedTitle = None
 
     def _set_derived_attributes(self):
+        if hasattr(self, "origPath") and self.lastPath != self.path[-1]:
+            # `origPath` is used by the Category Editor to update the path,
+            # which should then propagate to the `lastPath` and `sharedTitle`
+            self.change_key_name(self.path[-1])
         self._load_title_group()
 
     def change_key_name(self, name):
@@ -141,23 +147,36 @@ class CategorySet(abstract.AbstractMongoSet):
     recordClass = Category
 
 
-def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs):
-    from sefaria.model.text import library
+def process_category_path_change(changed_cat, **kwargs):
+    def modify(old_val, new_val, pos):
+        old_val[:pos] = new_val
+        return old_val
 
-    old_toc_node = library.get_toc_tree().lookup(changed_cat.path[:-1] + [kwargs["old"]])
+    from sefaria.model.text import library
+    tree = library.get_toc_tree()
+    new_categories = kwargs["new"]
+    old_toc_node = tree.lookup(kwargs["old"])
     assert isinstance(old_toc_node, TocCategory)
-    pos = len(old_toc_node.ancestors()) - 1
+
+    collections = collection.CollectionSet({"toc": {"$exists": True}})
+    pos = len(old_toc_node.ancestors())
+    for c in collections:
+        collection_in_old_category_tree = str(c.toc["categories"]).startswith(str(kwargs["old"]))
+        if collection_in_old_category_tree:
+            c.toc["categories"] = modify(c.toc["categories"], new_categories, pos)
+            c.save(override_dependencies=True)
+
     children = old_toc_node.all_children()
     for child in children:
         if isinstance(child, TocCategory):
             c = child.get_category_object()
-            c.path[pos] = kwargs["new"]
+            c.path = modify(c.path, new_categories, pos)
             c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
             i = child.get_index_object()
-            i.categories[pos] = kwargs["new"]
+            i.categories = modify(i.categories, new_categories, pos)
             i.save(override_dependencies=True)
 
 
@@ -328,6 +347,11 @@ class TocTree(object):
                 return self._path_hash[tuple(["Other"]) + path]
             except KeyError:
                 return None
+
+    def remove_category(self, toc_node):
+        assert isinstance(toc_node, TocCategory)
+        del self._path_hash[tuple(toc_node.get_category_object().path)]
+        toc_node.detach()
 
     def remove_index(self, toc_node):
         assert isinstance(toc_node, TocTextIndex)
