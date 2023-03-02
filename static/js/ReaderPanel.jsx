@@ -416,6 +416,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       menuOpen: "topics",
       navigationTopicCategory: null,
+      topicTestVersion: this.props.topicTestVersion,
       navigationTopic,
       topicTitle
     });
@@ -931,7 +932,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
             translationLanguagePreference={this.props.translationLanguagePreference}
-            topicTestVersion={this.state.topicTestVersion}
+            topicTestVersion={this.props.topicTestVersion}
             key={"TopicPage"}
           />
         );
@@ -1193,6 +1194,7 @@ ReaderPanel.propTypes = {
   masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
+  topicTestVersion:            PropTypes.string,
 };
 
 

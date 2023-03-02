@@ -1680,7 +1680,7 @@ class ReaderApp extends Component {
   }
   openTopic(slug) {
     Sefaria.getTopic(slug).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle});
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicTestVersion: this.props.topicTestVersion});
     });
   }
   openTopicCategory(slug) {
@@ -2121,6 +2121,7 @@ class ReaderApp extends Component {
                       navigatePanel={navigatePanel}
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
+                      topicTestVersion={this.props.topicTestVersion}
                     />
                   </div>);
     }
