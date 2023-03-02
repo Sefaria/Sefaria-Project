@@ -2,7 +2,7 @@
 from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
-
+from django.core.validators import URLValidator
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
@@ -68,7 +68,18 @@ class WebPage(abst.AbstractMongoRecord):
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
+        validator = URLValidator()
+        validator(self.url)
         super(WebPage, self)._validate()
+
+    def _sanitize(self):
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            if attr == 'url':
+                continue
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
