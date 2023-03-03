@@ -3129,9 +3129,11 @@ def add_new_topic_api(request):
         t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
+        library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
+
 
         def protected_index_post(request):
             return jsonResponse(t.contents())
@@ -3144,6 +3146,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            library.build_topic_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3175,9 +3178,12 @@ def topics_api(request, topic, v2=False):
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
+        author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         if topic_data["category"] == topic_data["origCategory"]:
             topic_data.pop("category")  # no need to check category in update_topic
         topic_obj = update_topic(topic_obj, **topic_data)
+        if author_status_changed:
+            library.build_topic_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
