@@ -1332,7 +1332,7 @@ const EditTextInfo = function({initTitle, close}) {
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <input id="heTitle" id="textTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
                 </div> : null}
 
             <div className="section">
