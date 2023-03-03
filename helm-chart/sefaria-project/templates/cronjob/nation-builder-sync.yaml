@@ -47,7 +47,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/nation_builder_sync.py"
+              "/app/run /app/scripts/nation_builder_sync.py --sustainers-only"
             ]
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 1

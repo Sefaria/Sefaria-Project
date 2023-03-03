@@ -104,6 +104,12 @@ class ReusableTermCreator():
             new_term = self.RTM.create_term_from_titled_obj(Term().load({"name": name}), context="base")
             self.RTM.old_term_map[name] = new_term
 
+    @staticmethod
+    def get_abbr_for_one_word_hebrew_name(name):
+        if re.search('^[א-ת]*$', name):
+            return [name[:x] + "'" for x in range(2, len(name))]
+        return []
+
     def create_shas_terms(self):
         """
         create generic shas terms that can be reused for mishnah, tosefta, bavli and yerushalmi
@@ -173,6 +179,7 @@ class ReusableTermCreator():
         for (generic_title_en, generic_title_he), alt_titles in sorted(title_map.items(), key=lambda x: x[0]):
             alt_titles |= set(hard_coded_title_map.get(generic_title_en, []))
             alt_he = [tit for tit in alt_titles if is_hebrew(tit) and tit != generic_title_he]
+            alt_he += [t for t in self.get_abbr_for_one_word_hebrew_name(generic_title_he) if t not in alt_he]
             alt_en = [tit for tit in alt_titles if not is_hebrew(tit) and tit != generic_title_en]
             term = self.RTM.create_term(context="shas", en=generic_title_en, he=generic_title_he, alt_en=alt_en, alt_he=alt_he)
             title_term_map[generic_title_en] = term
@@ -224,7 +231,9 @@ class ReusableTermCreator():
         indexes = library.get_indexes_in_corpus("Tanakh", full_records=True)
         for index in tqdm(indexes, desc='tanakh', total=indexes.count()):
             hard_coded_alt_titles = hard_coded_tanakh_map.get(index.title)
-            self.RTM.create_term_from_titled_obj(index.nodes, "tanakh", hard_coded_alt_titles, title_adder=tanakh_title_adder)
+            alt_titles = hard_coded_alt_titles if hard_coded_alt_titles else []
+            alt_titles += [t for t in self.get_abbr_for_one_word_hebrew_name(index.get_title('he')) if t not in alt_titles]
+            self.RTM.create_term_from_titled_obj(index.nodes, "tanakh", alt_titles, title_adder=tanakh_title_adder)
 
         for term in TermSet({"scheme": "Parasha"}):
             hard_coded_alt_titles = hard_coded_parsha_map.get(term.name)
@@ -1353,7 +1362,7 @@ if __name__ == '__main__':
     converter_manager.convert_shulchan_arukh()
     converter_manager.convert_arukh_hashulchan()
     converter_manager.convert_mishnah_berurah()
-    converter_manager.convert_zohar()
+    # converter_manager.convert_zohar()
     converter_manager.convert_zohar_chadash()
     converter_manager.convert_minor_tractates()
     converter_manager.convert_sefer_hachinukh()

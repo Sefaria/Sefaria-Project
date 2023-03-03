@@ -411,8 +411,8 @@ Sefaria = extend(Sefaria, {
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
-      firstAvailableRef: settings.firstAvailableRef || 1,
-      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
+      firstAvailableRef: ("firstAvailableRef" in settings) ? settings.firstAvailableRef : 1,
+      fallbackOnDefaultVersion: ("fallbackOnDefaultVersion" in settings) ? settings.fallbackOnDefaultVersion : 1,
     };
     if (settings.versionPref) {
       // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist

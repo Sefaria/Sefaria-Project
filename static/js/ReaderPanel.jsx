@@ -769,7 +769,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    if (this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "navigation") {
 
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;

@@ -1,13 +1,10 @@
 {
   "title": "",
   "text": [
-    "Friend,",
-    "Exciting news: Between now and Purim, all donations to Sefaria’s new Library Fund will be matched 1:1 by a generous donor.",
-    "Donations to this fund will directly support costs related to text acquisition, translation, digitization, and more. All support will help grow the library and enhance your Jewish learning.",
-    "Donate to the Library Fund TODAY and your donation will be DOUBLED up to $36,000!"
+    "We’re only $10,000 away from our goal of raising $36,000 for the Library Fund by Purim. Please give today and directly support the addition of new texts to the library!"
   ],
   "buttonLink": "https://sefaria.nationbuilder.com/libraryfund2023_ae",
-  "buttonText": "DOUBLE MY DONATION",
-  "name": "2023-02-04-library-fund-1",
+  "buttonText": "Give to the Library Fund",
+  "name": "2023-02-24-library-fund-2",
   "schemaVersion": 1
 }
