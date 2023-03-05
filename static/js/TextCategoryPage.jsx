@@ -15,8 +15,7 @@ import {
   LanguageToggleButton,
   InterfaceText,
   CategoryHeader,
-  ContentText,
-  useHiddenButtons
+  ContentText
 } from './Misc';
 
 

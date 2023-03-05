@@ -31,7 +31,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {
-        "": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+        "": {"en": "Choose a Parent Topic", "he": Sefaria.translation('he', "Choose a Parent Topic")},
         "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);

@@ -15,8 +15,7 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
-  CategoryHeader,
-  useHiddenButtons
+  CategoryHeader
 } from './Misc';
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";

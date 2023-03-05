@@ -1096,9 +1096,13 @@ const CategoryHeader = ({children,  type, path=[], editOnly = false}) => {
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
-  const tocObject = Sefaria.tocObjectByCategories(path);
   let adminButtonsSpan = null;
-  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(path));
+  let topicData = Sefaria.getTopicFromCache(path);
+  if (!topicData) {
+    Sefaria.getTopic(path).then(d => {
+      topicData = d;
+    })
+  }
 
   if (Sefaria.is_moderator && editCategory) {
       if (path.length === 0) {  // at /texts or /topics
@@ -2922,7 +2926,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  postWithCallBack,
-  TopicToCategorySlug,
-  useHiddenButtons
+  postWithCallBack
 };

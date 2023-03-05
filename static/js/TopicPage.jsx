@@ -21,7 +21,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    TopicToCategorySlug, CategoryHeader, useHideButtons,
+    CategoryHeader,
 
 } from './Misc';
 
@@ -176,7 +176,6 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth, 
   openDisplaySettings, openSearch}) => {
-    const [hideButtons, setHideButtons] = useHideButtons(true);
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
@@ -265,8 +264,8 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" hideButtons={hideButtons} path={topic}>
-                            <h1 onMouseEnter={() => setHideButtons()}><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
+                        <CategoryHeader type="topics" path={topic}>
+                            <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
                       <div className="readerNavCategories">
@@ -315,12 +314,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  const [hideButtons, setHideButtons] = useHideButtons(true);
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" hideButtons={hideButtons} path={topic} editOnly={true}>
-                <h1 onMouseEnter={() => setHideButtons()}>
+            <CategoryHeader type="topics" path={topic} editOnly={true}>
+                <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
             </CategoryHeader>
