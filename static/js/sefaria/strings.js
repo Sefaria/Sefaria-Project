@@ -622,6 +622,9 @@ const Strings = {
       "View": "לצפות",
       "Add": "להוסיף",
       "Edit": "לערוך",
+    },
+    "WebPageList": {
+      'Author': 'מחבר'
     }
   },
 };
