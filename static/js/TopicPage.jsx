@@ -10,6 +10,7 @@ import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
 import {
   SheetBlock,
   TextPassage,
+  IntroducedTextPassage
 } from './Story';
 import {
     TabView,
@@ -42,6 +43,9 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
       if (outRefs[tempRef.ref]) {
         outRefs[tempRef.ref].order = tempRef.order;
         outRefs[tempRef.ref].dataSources = tempRef.dataSources;
+        if(tempRef.descriptions) {
+            outRefs[tempRef.ref].descriptions = tempRef.descriptions;
+        }
       }
     }
     return Object.entries(outRefs);
@@ -95,17 +99,17 @@ const refSort = (currSortOption, a, b) => {
   else {
     const aAvailLangs = a.order.availableLangs || [];
     const bAvailLangs = b.order.availableLangs || [];
+    if ((Sefaria.interfaceLang === 'english') &&
+      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
+      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+    else if ((Sefaria.interfaceLang === 'hebrew') &&
+      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
+      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0); }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
-    if ((Sefaria.interfaceLang === 'english') &&
-        (a.descriptions?.en?.primacy || b.descriptions?.en?.primacy)) {
-        return (b.descriptions?.en?.primacy || 0) - (a.descriptions?.en?.primacy || 0); }
-    else if ((Sefaria.interfaceLang === 'hebrew') &&
-        (a.descriptions?.he?.primacy || b.descriptions?.he?.primacy)) {
-        return (b.descriptions?.he?.primacy || 0) - (a.descriptions?.he?.primacy || 0); }
     else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
     else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
@@ -139,7 +143,7 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
-const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -155,12 +159,14 @@ const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
     </ToolTipped>
   );
 
+  const Passage = (topicTestVersion && text.descriptions) ? IntroducedTextPassage : TextPassage;
   return (
-    <TextPassage
+    <Passage
       key={item[0]}
       text={text}
       afterSave={afterSave}
-      toggleSignUpModal={toggleSignUpModal} />
+      toggleSignUpModal={toggleSignUpModal}
+    />
   );
 };
 
@@ -555,7 +561,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData)}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion)}
                                 />
                               );
                             })

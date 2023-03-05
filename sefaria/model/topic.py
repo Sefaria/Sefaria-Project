@@ -732,12 +732,11 @@ class RefTopicLink(abst.AbstractMongoRecord):
     # }
     optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic', 'descriptions']
 
-    def set_description(self, lang, title, prompt, primacy=0):
+    def set_description(self, lang, title, prompt):
         d = getattr(self, "descriptions", {})
         d[lang] = {
             "title": title,
             "prompt": prompt,
-            "primacy": primacy
         }
         self.descriptions = d
         return self

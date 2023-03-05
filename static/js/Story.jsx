@@ -8,7 +8,7 @@ import {
     SimpleContentBlock,
     SimpleLinkedBlock,
     ProfileListing,
-    ContentText,
+    ContentText, InterfaceText,
 } from './Misc';
 
 // Much of Stories was removed November 2022.
@@ -125,6 +125,47 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
+const IntroducedTextPassage = ({text, afterSave, toggleSignUpModal}) => {
+    if (!text.ref) { return null; }
+    const versions = text.versions || {}
+    const url = "/" + Sefaria.normRef(text.ref) +
+        Object.keys(versions)
+            .filter(vlang=>!!versions[vlang])
+            .map(vlang=>`&v${vlang}=${versions[vlang]}`)
+            .join("")
+            .replace("&","?");
+    const heOnly = !text.en;
+    const enOnly = !text.he;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
+    return (
+        <StoryFrame cls="introducedTextPassageStory">
+            <SaveLine
+                dref={text.ref}
+                versions={versions}
+                toggleSignUpModal={toggleSignUpModal}
+                classes={"storyTitleWrapper"}
+                afterChildren={afterSave || null} >
+                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title} url={url}/>
+                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+            </SaveLine>
+            <div className={"systemText learningPrompt"}>
+                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+            </div>
+            <ColorBarBox tref={text.ref}>
+                <StoryBodyBlock>
+                    <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
+                </StoryBodyBlock>
+            </ColorBarBox>
+        </StoryFrame>
+    );
+};
+IntroducedTextPassage.propTypes = {
+    intros: PropTypes.object,
+    text: textPropType,
+    afterSave: PropTypes.object,
+    toggleSignUpModal:  PropTypes.func
+};
 
 const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
   if (!text.ref) { return null; }
@@ -238,4 +279,5 @@ export {
   SheetBlock,
   StorySheetList,
   TextPassage,
+  IntroducedTextPassage
 };

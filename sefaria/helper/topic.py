@@ -182,6 +182,8 @@ def sort_refs_by_relevance(a, b):
         return 0
     if bool(aord) != bool(bord):
         return len(bord) - len(aord)
+    if aord.get("curatedPrimacy") or bord.get("curatedPrimacy"):
+        return len(bord.get("curatedPrimacy", {})) - len(aord.get("curatedPrimacy", {}))
     if aord.get('pr', 0) != bord.get('pr', 0):
         return bord.get('pr', 0) - aord.get('pr', 0)
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))

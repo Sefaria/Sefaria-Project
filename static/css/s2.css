@@ -11110,6 +11110,15 @@ body .homeFeedWrapper .content {
 .mainColumn .story {
   padding: 0 0 60px 0;
 }
+.story .subHeading {
+  padding-top: 4px;
+}
+.story .subHeading .int-en, .story .subHeading .int-he  {
+  color: #666;
+}
+.story .learningPrompt {
+  padding: 8px 0 12px;
+}
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
@@ -11143,7 +11152,7 @@ body .homeFeedWrapper .content {
 }
 .mainColumn .saveLine.storyTitleWrapper .saveButton,
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
-  margin-top: 13px;
+  margin-top: 2px;
 }
 .story.publishSheetStory .storyTitle {
   padding-bottom: 10px;
@@ -11220,7 +11229,7 @@ img.smallProfileImage {
 }
 .story .saveLine {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   clear: both;
   margin-bottom: 10px;
 }
