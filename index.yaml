@@ -32,6 +32,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.12.0-learning-prompts.1.tgz
     version: 0.12.0-learning-prompts.1
   - apiVersion: v2
+    appVersion: v5.31.12
+    created: "2023-03-05T18:23:03.213322008Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 3145a3ee9312693a426df404f34fd926b0bbd0cfe6d3fecff4a8e41703c852ea
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.11.5-modal-library-campaign.1.tgz
+    version: 0.11.5-modal-library-campaign.1
+  - apiVersion: v2
     appVersion: v5.31.10
     created: "2023-02-27T14:08:51.156653396Z"
     description: Chart to deploy complete Sefaria environment
@@ -2520,4 +2535,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-03-05T14:11:43.424715338Z"
+generated: "2023-03-05T18:23:03.209652971Z"
