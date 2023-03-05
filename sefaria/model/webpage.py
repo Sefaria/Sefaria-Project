@@ -34,7 +34,7 @@ class WebPage(abst.AbstractMongoRecord):
         "body",
         "linkerHits",
         'author',
-        'source',
+        'articleSource',
         'type'
     ]
 
@@ -76,7 +76,11 @@ class WebPage(abst.AbstractMongoRecord):
         if hasattr(self, 'type'):
             assert self.type == 'article', "WebPage's type can be 'article' or not exist"
         else:
-            assert not hasattr(self, 'source'), "only WebPage of type 'article' can have 'source' attribute"
+            assert not hasattr(self, 'articleSource'), "only WebPage of type 'article' can have 'articleSource' attribute"
+        articleSource = getattr(self, 'articleSource', None)
+        if articleSource:
+            assert 'title' in articleSource, "articleSource of WebPage should have title"
+            assert all(key in ['title', 'related_parts'] for key in articleSource), "articleSource of WebPage can have only the keys 'title' and 'related_parts'"
         super(WebPage, self)._validate()
 
     def _sanitize(self):
@@ -229,7 +233,12 @@ class WebPage(abst.AbstractMongoRecord):
         d["siteName"]   = self.site_name
         d["favicon"] = self.favicon
         d['author'] = getattr(self, 'author', None)
-        d['source'] = getattr(self, 'source', None)
+        d['articleSource'] = getattr(self, 'articleSource', None)
+        if d['articleSource']:
+            if 'related_parts' in d['articleSource']:
+                d['articleSource'] = f"{d['articleSource']['title']} {d['articleSource']['related_parts']}"
+            else:
+                d['articleSource'] = d['articleSource']['title']
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
