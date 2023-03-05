@@ -1301,11 +1301,11 @@ class WebPagesList extends Component {
           <img className="icon" src={webpage.webPageFaviconUrl} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
+          {webpage.description ? <div className="description">{webpage.description}</div> : null}
           {webpage.author ? <div className="author">Author: {webpage.author}</div> : null}
           {webpage.articleSource ? <div className="articleSource">
             Source: {webpage.articleSource.title}{webpage.articleSource.related_parts ? ` ${webpage.articleSource.related_parts}`: ''}
           </div> : null}
-          {webpage.description ? <div className="description">{webpage.description}</div> : null}
           <div className="stats">
             <span className="int-en">Citing: {webpage.anchorRef}</span>
             <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
