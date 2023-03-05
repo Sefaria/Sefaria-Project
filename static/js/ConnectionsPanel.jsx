@@ -1284,7 +1284,7 @@ class WebPagesList extends Component {
         if (page.siteName in sites) {
           sites[page.siteName].count++;
         } else {
-          sites[page.siteName] = { name: page.siteName, faviconUrl: page.webSiteFaviconUrl || page.webPageFaviconUrl, count: 1 };
+          sites[page.siteName] = { name: page.siteName, faviconUrl: page.favicon, count: 1 };
         }
       });
       sites = Object.values(sites).sort(this.webSitesSort);
