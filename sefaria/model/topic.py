@@ -79,7 +79,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         childOfAuthors = IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"})
         if childOfAuthors:
             self.subclass = "author"
-        elif self.subclass == "author":
+        elif getattr(self, "subclass", "") == "author":
             del self.subclass
 
     def _sanitize(self):
