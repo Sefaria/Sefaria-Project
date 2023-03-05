@@ -1307,9 +1307,8 @@ class WebPagesList extends Component {
           {webpage.articleSource ? <div className="articleSource" dir={direction}>
             <InterfaceText>Source</InterfaceText>: {webpage.articleSource.title}{webpage.articleSource.related_parts ? ` ${webpage.articleSource.related_parts}`: ''}
           </div> : null}
-          <div className="stats">
-            <span className="int-en">Citing: {webpage.anchorRef}</span>
-            <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
+          <div className="stats" dir={direction}>
+            <InterfaceText>Citing</InterfaceText>: {Sefaria._r(webpage.anchorRef)}
           </div>
         </div>)
       });
@@ -1326,8 +1325,7 @@ class WebPagesList extends Component {
 
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
       <div className="webpagesLinkerMessage sans-serif">
-        <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
-        <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
+        <InterfaceText>Sites that are listed here use the</InterfaceText> <a href="/linker"><InterfaceText>Sefaria Linker</InterfaceText></a>
       </div> : null;
 
     return <div className="webpageList">
