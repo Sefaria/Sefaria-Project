@@ -1309,7 +1309,6 @@ class WebPagesList extends Component {
           return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
         }
         const authorsNames = webpage.authors?.reduce((accumulator, author, i) => addAuthor(accumulator, author, i), '');
-        console.log(webpage.articleSource);
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.favicon} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
