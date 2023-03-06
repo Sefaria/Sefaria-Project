@@ -381,7 +381,7 @@ import {LinkExcluder} from "./excluder";
         });
     }
 
-    function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly }) {
+    function deprecatedOptionsWarning({ selector, excludeFromTracking, parenthesesOnly, quotationOnly } = {}) {
         if (selector || excludeFromTracking || parenthesesOnly || quotationOnly) {
             console.warn("Deprecation warning: you are currently using at least one of the following deprecated options:" +
                 " `selector`, `excludeFromTracking`, `parenthesesOnly`, `quotationOnly`. These options no longer are" +
@@ -415,7 +415,7 @@ import {LinkExcluder} from "./excluder";
             parenthesesOnly: false,
             quotationOnly: false,
         };
-        return {...options, ...defaultOptions};
+        return {...defaultOptions, ...options};
     }
 
     // public API
