@@ -9,6 +9,7 @@ Save the RefTopicLink
 """
 
 # -*- coding: utf-8 -*-
+import os
 import csv
 import django
 django.setup()
@@ -30,15 +31,24 @@ def set_topic_datasource():
 
 
 def import_descriptions(filename, lang):
+    high_primacy = 100
+    default_primacy = 50
     with open(filename, 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             topic_slug = row['Topic Slug']
-            ref = Ref(row['Ref']).normal()
-            title = row['Title for source']
-            prompt = row['Learning Prompt']
-            intro = 100 if row['Intro'] == "Y" or row['Intro'] == "y" else 80
-            if not topic_slug or not ref or not title or not prompt or not intro:
+            try:
+                ref = Ref(row['Ref']).normal()
+            except:
+                print(f"Skipping {row['Ref']}")
+                continue
+            title = row['Title']
+            prompt = row['Prompt']
+            if row['Intro'] == "Y" or row['Intro'] == "y":
+                primacy = high_primacy
+            else:
+                primacy = default_primacy
+            if not topic_slug or not ref or not title or not prompt:
                 print("Skipping row with missing data: {}".format(row))
                 continue
             print(f'{topic_slug} {ref}')
@@ -52,8 +62,8 @@ def import_descriptions(filename, lang):
                     "ref": ref,
                     "order": {
                         "curatedPrimacy": {
-                            "en": intro if lang == "en" else 0,
-                            "he": intro if lang == "he" else 0
+                            "en": primacy if lang == "en" else 0,
+                            "he": primacy if lang == "he" else 0
                         }
                     }
                 }
@@ -61,10 +71,20 @@ def import_descriptions(filename, lang):
             else:
                 if not rtl.order.get("curatedPrimacy"):
                     rtl.order["curatedPrimacy"] = {"en": 0, "he": 0}
-                rtl.order["curatedPrimacy"][lang] = intro
+                rtl.order["curatedPrimacy"][lang] = primacy
             rtl.set_description(lang, title, prompt)
-            rtl.save()
+            try:
+                rtl.save()
+            except AssertionError as e:
+                print(e)
+
 
 if __name__ == "__main__":
     set_topic_datasource()
-    import_descriptions("/Users/levisrael/Desktop/prompts.csv", "en")
+    import_descriptions(os.getenv("EN"), "en")
+    import_descriptions(os.getenv("HE"), "he")
+
+    '''
+    export EN='/Users/levisrael/Downloads/Learning Prompts for Spring 2023 - English - Sheet1.csv'
+    export HE='/Users/levisrael/Downloads/Learning Prompts for Spring 2023 - Hebrew - Sheet1.csv'
+    '''
