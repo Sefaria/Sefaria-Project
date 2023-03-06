@@ -386,7 +386,8 @@ class ReaderApp extends Component {
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
-          (prev.settings.aliyotTorah != next.settings.aliyotTorah)) {
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
+           prev.navigationTopic != next.navigationTopic) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
