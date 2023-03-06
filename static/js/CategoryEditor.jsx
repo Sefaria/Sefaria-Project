@@ -4,8 +4,8 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {postWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
-
-const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
+const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en};
+const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
         let index_to_swap = -1;
@@ -29,32 +29,21 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
     }
 
     return subcategoriesAndBooks.map((child, i) => {
-                return <div id={`reorder-${i}`} className="reorderTool">
-                            <div id="title">{child}</div>
-                            <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
-                            <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
-                      </div>;
-            })
+        return <div id={`reorder-${i}`} className="reorderTool">
+                    <div id="title">{displayOptions[displayType](child)}</div>
+                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
+                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+              </div>;
+        })
 }
 
-const ReorderEditor = ({close, path=[], type=""}) => {
+const ReorderEditor = ({close, type=""}) => {
     const determineOrigItems = () => {
-        if (type === "books")
-        {
-            if (path.length === 0) {
-                return Sefaria.toc.map(child => child.category);
-            }
-            else {
-                 return Sefaria.tocItemsByCategories(path).map(child => child.title || child.category);
-            }
+        if (type === "books") {
+            return Sefaria.toc;
         }
         else if (type === "topics") {
-            if (path.length === 0) {
-                return Sefaria.topic_toc.map(child => child.en);
-            }
-            else {
-                return Sefaria.topicTocPage(path).map(child => child.en);
-            }
+            return Sefaria.topic_toc;
         }
     }
     const [tocItems, setTocItems] = useState(determineOrigItems());
@@ -76,12 +65,12 @@ const ReorderEditor = ({close, path=[], type=""}) => {
         let postCategoryData = {};
         let url = "";
         if (type !== "topics") {
-            postCategoryData = {subcategoriesAndBooks: tocItems, path};
+            postCategoryData = {subcategoriesAndBooks: tocItems};
             url = `/api/category?reorder=1`;
-            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+path.join("/")});
+            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"});
         }
         else {
-             url = `api/topic/reorder`;
+             url = `/api/topic/reorder`;
              postCategoryData = {topics: tocItems};
              postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
         }
@@ -92,7 +81,7 @@ const ReorderEditor = ({close, path=[], type=""}) => {
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
+                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
                     </div>
                 </div>
             </div>
@@ -110,7 +99,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []).map(child => child.title || child.category));
+    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []));
     const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
 
     const handlePrimaryClick = function(type, status) {
@@ -167,7 +156,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             "path": fullPath
         };
 
-        if (Sefaria._siteSettings.SITE_NAME["en"] === "ContextUS") {
+        if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
             postCategoryData["heSharedTitle"] = data.enTitle.slice(0, -1);  // there needs to be a hebrew title for the category's term
         }
 
@@ -175,10 +164,12 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         let urlParams = []
         if (!isNew) {
             urlParams.push("update=1");
-            postCategoryData = {...postCategoryData, origPath: origFullPath}
+            postCategoryData = {...postCategoryData, origPath: origFullPath};
         }
-        if (origSubcategoriesAndBooks.current !== subcategoriesAndBooks && !isNew) {  // only reorder children when category isn't new
-            postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
+        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
+        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
+        if (origSubcategoryTitles !== newSubcategoryTitles && !isNew) {  // only reorder children when category isn't new
+            postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
             urlParams.push("reorder=1");
         }
         if (urlParams.length > 0) {
@@ -217,7 +208,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
                 extras={
                     [isNew ? null :
-                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged} updateOrder={setSubcategoriesAndBooks}/>,
+                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
+                                 updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
                         <ToggleSet
                           blueStyle={true}
                           ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
@@ -233,4 +225,4 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     </div>;
 }
 
-export {CategoryEditor, ReorderEditor};
+export {CategoryEditor, ReorderEditor, Reorder};

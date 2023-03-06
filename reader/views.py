@@ -2389,8 +2389,6 @@ def tag_category_api(request, path=None):
         return jsonResponse(category_names)
 
 
-
-
 @catch_error_as_json
 @csrf_exempt
 def category_api(request, path=None):
@@ -2401,7 +2399,7 @@ def category_api(request, path=None):
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
+    POST can take the argument 'reorder' on the URL and if provided, its children will be reordered.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
@@ -2454,9 +2452,20 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
-        new_category = Category().load({"path": j["path"]})
+        reorder = request.GET.get("reorder", False)
+
+        results = {}
+        if reorder:
+            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
+            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
+
         if "path" not in j:
-            return jsonResponse({"error": "'path' is a required attribute"})
+            if reorder:
+                return results  # at root of TOC
+            else:
+                return jsonResponse({"error": "'path' is a required attribute"})
+
+        new_category = Category().load({"path": j["path"]})
         if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
@@ -2465,7 +2474,6 @@ def category_api(request, path=None):
             # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
-        reorder = request.GET.get("reorder", False)
         last_path = j.get("sharedTitle", "")
         he_last_path = j.get("heSharedTitle", "")
 
@@ -2486,12 +2494,7 @@ def category_api(request, path=None):
                 t.add_primary_titles(last_path, he_last_path)
                 t.save()
 
-        results = {}
-        if reorder:
-            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
-            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
-        if len(j['path']) > 0:  # not at root of TOC
-            results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
+        results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
 
         return jsonResponse(results)
 
@@ -3213,8 +3216,8 @@ def topic_graph_api(request, topic):
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
     results = []
-    for display_order, topic_title in enumerate(topics):
-        topic = Topic().load({'titles.text': topic_title})
+    for display_order, topic_data in enumerate(topics):
+        topic = Topic().load({'slug': topic_data['slug']})
         topic.displayOrder = display_order*10
         topic.save()
         results.append(topic.contents())

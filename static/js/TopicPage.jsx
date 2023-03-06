@@ -190,31 +190,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 
     let topicBlocks = subtopics
       .filter(t => t.shouldDisplay !== false)
-      .sort((a, b) => {
-        // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
-        const [aDisplayOrder, bDisplayOrder] = [a, b].map(x => Sefaria.isTopicTopLevel(x.slug) ? 10000 : x.displayOrder);
-
-        // Sort alphabetically according to interface lang in absense of display order
-        if (aDisplayOrder === bDisplayOrder) {
-          const stripInitialPunctuation = str => str.replace(/^["#]/, "");
-          const [aAlpha, bAlpha] = [a, b].map(x => {
-            if (Sefaria.interfaceLang === "hebrew") {
-              return (x.he.length) ?
-                stripInitialPunctuation(x.he) :
-               "תתת" + stripInitialPunctuation(x.en);
-            } else {
-              return (x.en.length) ?
-                stripInitialPunctuation(x.en) :
-                stripInitialPunctuation(x.he)
-            }
-          });
-
-          return aAlpha < bAlpha ? -1 : 1;
-        }
-
-        return aDisplayOrder - bDisplayOrder;
-
-      })
+      .sort(Sefaria.sortTopicsCompareFn)
       .map((t,i) => {
         const { slug, children, description} = t;
         const openTopic = e => {
