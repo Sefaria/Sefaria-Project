@@ -415,7 +415,7 @@ import {LinkExcluder} from "./excluder";
             parenthesesOnly: false,
             quotationOnly: false,
         };
-        return {...options, ...defaultOptions};
+        return {...defaultOptions, ...options};
     }
 
     // public API
