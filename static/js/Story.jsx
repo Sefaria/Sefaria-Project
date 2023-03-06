@@ -140,18 +140,18 @@ const IntroducedTextPassage = ({text, afterSave, toggleSignUpModal}) => {
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
+            <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title} url={url}/>
+            <div className={"systemText learningPrompt"}>
+                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+            </div>
             <SaveLine
                 dref={text.ref}
                 versions={versions}
                 toggleSignUpModal={toggleSignUpModal}
                 classes={"storyTitleWrapper"}
                 afterChildren={afterSave || null} >
-                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title} url={url}/>
                 <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
             </SaveLine>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-            </div>
             <ColorBarBox tref={text.ref}>
                 <StoryBodyBlock>
                     <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />

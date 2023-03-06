@@ -4492,7 +4492,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
-  margin-bottom: 13px;
   padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
   height: 22px;
   display: flex;
@@ -4508,7 +4507,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
   margin-left: 10px;
   margin-right: 0;
-  margin-bottom: 13px;
   padding-bottom: 0;
 }
 .interface-hebrew .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
@@ -11110,14 +11108,12 @@ body .homeFeedWrapper .content {
 .mainColumn .story {
   padding: 0 0 60px 0;
 }
-.story .subHeading {
-  padding-top: 4px;
-}
+
 .story .subHeading .int-en, .story .subHeading .int-he  {
   color: #666;
 }
 .story .learningPrompt {
-  padding: 8px 0 12px;
+  padding: 10px 0 20px;
 }
 .mainColumn .story .storyTitleBlock {
   clear: both;
