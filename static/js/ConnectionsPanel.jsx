@@ -1297,13 +1297,27 @@ class WebPagesList extends Component {
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
       content = webpages.map(webpage => {
-        const direction = Sefaria.interfaceLang === 'hebrew' ? 'rtl' : 'ltr'
+        const direction = Sefaria.interfaceLang === 'hebrew' ? 'rtl' : 'ltr';
+        const authorsNum = webpage.authors?.length;
+        const author = authorsNum > 1 ? 'Authors' : 'Author';
+        const finalJoiner = webpage.isHebrew ? ' ו' : ' and ';
+        function arrangeAuthorName(authorName) {
+          return authorName.split(', ').reverse().join(' ');
+        }
+        function addAuthor(accumulator, author, i) {
+          let joiner = i === 0 ? '' :  i === authorsNum - 1 ? finalJoiner : ', ';
+          return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
+        }
+        const authorsNames = webpage.authors?.reduce((accumulator, author, i) => addAuthor(accumulator, author, i), '');
+        console.log(webpage.articleSource);
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.webPageFaviconUrl} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
           {webpage.description ? <div className="description">{webpage.description}</div> : null}
-          {webpage.author ? <div className="author" dir={direction}><InterfaceText>Author</InterfaceText>: {webpage.author}</div> : null}
+          {authorsNames ? <div className="authors" dir={direction}>
+            <InterfaceText>{author}</InterfaceText>: {authorsNames}
+          </div> : null}
           {webpage.articleSource ? <div className="articleSource" dir={direction}>
             <InterfaceText>Source</InterfaceText>: {webpage.articleSource.title}{webpage.articleSource.related_parts ? ` ${webpage.articleSource.related_parts}`: ''}
           </div> : null}

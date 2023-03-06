@@ -234,11 +234,6 @@ class WebPage(abst.AbstractMongoRecord):
         d["favicon"] = self.favicon
         d['authors'] = getattr(self, 'authors', None)
         d['articleSource'] = getattr(self, 'articleSource', None)
-        if d['articleSource']:
-            if 'related_parts' in d['articleSource']:
-                d['articleSource'] = f"{d['articleSource']['title']} {d['articleSource']['related_parts']}"
-            else:
-                d['articleSource'] = d['articleSource']['title']
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
