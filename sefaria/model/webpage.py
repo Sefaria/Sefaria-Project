@@ -33,7 +33,7 @@ class WebPage(abst.AbstractMongoRecord):
         "expandedRefs",
         "body",
         "linkerHits",
-        'author',
+        'authors',
         'articleSource',
         'type'
     ]
@@ -232,7 +232,7 @@ class WebPage(abst.AbstractMongoRecord):
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
         d["favicon"] = self.favicon
-        d['author'] = getattr(self, 'author', None)
+        d['authors'] = getattr(self, 'authors', None)
         d['articleSource'] = getattr(self, 'articleSource', None)
         if d['articleSource']:
             if 'related_parts' in d['articleSource']:
