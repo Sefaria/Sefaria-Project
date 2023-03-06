@@ -65,7 +65,8 @@ const ReorderEditor = ({close, type=""}) => {
         let postCategoryData = {};
         let url = "";
         if (type !== "topics") {
-            postCategoryData = {subcategoriesAndBooks: tocItems};
+            // use displayOptions to map toc objects to titles of category/book
+            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
             url = `/api/category?reorder=1`;
             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"});
         }

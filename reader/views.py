@@ -2452,20 +2452,9 @@ def category_api(request, path=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
         update = int(request.GET.get("update", False))
-        reorder = request.GET.get("reorder", False)
-
-        results = {}
-        if reorder:
-            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
-            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
-
-        if "path" not in j:
-            if reorder:
-                return results  # at root of TOC
-            else:
-                return jsonResponse({"error": "'path' is a required attribute"})
-
         new_category = Category().load({"path": j["path"]})
+        if "path" not in j:
+            return jsonResponse({"error": "'path' is a required attribute"})
         if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
 
@@ -2474,6 +2463,7 @@ def category_api(request, path=None):
             # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
             return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
 
+        reorder = request.GET.get("reorder", False)
         last_path = j.get("sharedTitle", "")
         he_last_path = j.get("heSharedTitle", "")
 
@@ -2494,7 +2484,12 @@ def category_api(request, path=None):
                 t.add_primary_titles(last_path, he_last_path)
                 t.save()
 
-        results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
+        results = {}
+        if reorder:
+            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
+            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
+        if len(j['path']) > 0:  # not at root of TOC
+            results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
 
         return jsonResponse(results)
 
@@ -3216,8 +3211,8 @@ def topic_graph_api(request, topic):
 def reorder_topics(request):
     topics = json.loads(request.POST["json"]).get("topics", [])
     results = []
-    for display_order, topic_data in enumerate(topics):
-        topic = Topic().load({'slug': topic_data['slug']})
+    for display_order, t in enumerate(topics):
+        topic = Topic().load({'slug': t['slug']})
         topic.displayOrder = display_order*10
         topic.save()
         results.append(topic.contents())
