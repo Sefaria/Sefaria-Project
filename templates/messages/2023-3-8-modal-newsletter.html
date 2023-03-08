@@ -1,0 +1,140 @@
+<style>
+    :root {
+        /* colors */
+        --sefaria-blue: #18345D;
+    }
+
+    #interruptingMessageContentBox {
+      background-color: var(--sefaria-blue);
+    }
+    #interruptingMessage {
+        padding: 20px 0px;
+        background-color: var(--sefaria-blue);
+    }
+    #interruptingMessageContentBox.hasColorLine{
+        border: none;
+    }
+    .colorLine {
+          width: 100%;
+          height: 4px;
+          z-index: 101;
+          background: linear-gradient(90deg, var(--tanakh-teal) 0% 10%, var(--mishnah-blue) 10% 20%, var(--talmud-gold) 20% 30%, var(--midrash-green) 30% 40%, var(--halakhah-red) 40% 50%, var(--kabbalah-purple) 50% 60%, var(--liturgy-rose) 60% 70%, var(--philosophy-purple) 70% 80%, var(--taanitic-green) 80% 90%, var(--chasidut-green) 90% 100%)
+    }
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-hebrew #highHolidayDonation {
+        {#text-align: right;#}
+        direction: rtl;
+    }
+
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+
+    #highHolidayDonation p .int-he {
+        size: 43px;
+        font-family: "Heebo", sans-serif;
+    }
+    #highHolidayDonation p.sub {
+        color: white;
+        font-size: 43px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+        font-style: normal;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
+    #highHolidayDonation p {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+        font-style: normal;
+        margin-top: 0;
+        size: 43px;
+
+    }
+
+    #highHolidayDonation h1 {
+        --english-font: "adobe-garamond-pro", Georgia, serif;
+        color: White;
+
+    }
+    #highHolidayDonation .button {
+        margin: 0px 6px 20px 6px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .interface-hebrew .email-input-wrapper.int-en {
+        display: none;
+    }
+
+    .interface-hebrew .email-input-wrapper.int-en {
+
+    }
+    .newsletterInput#email-input-en,.newsletterInput#email-input-he{
+        width: 200px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+        font-style: normal;
+    }
+
+</style>
+
+    <div id="highHolidayDonation">
+
+        <h1>
+            <span class="int-en">Ready to keep Learning?</span>
+            <span class="int-he">רוצים להמשיך ללמוד?</span>
+        </h1>
+
+        <p>
+                <span class="int-en">Sign up and be the first to know about new texts, library features, and upcoming events.
+                </span>
+                <span class="int-he">הצטרפו לרשימת התפוצה של ספריא וקבלו את כל העדכונים החשובים: החל מכותרים חדשים במאגר, דרך המלצות קריאה, טיפים לשימוש בספריא ועוד המון ערך.
+                </span>
+        </p>
+
+        <div className="email-input-wrapper">
+            <span class="int-en">
+                <input
+                  id="email-input-en"
+                  class="newsletterInput"
+                  placeholder=Email:
+                  />
+            </span>
+            <span class="int-he">
+                <input
+                  id="email-input-he"
+                  class="newsletterInput"
+                  placeholder="כתובת דוא״ל:"
+                />
+            </span>
+
+            <button class="button small white int-en" onclick="Sefaria.util.subscribeToNbList(`${document.querySelector('#email-input-en').value}`, 'ANNOUNCEMENTS_General|march23modal')" >
+                <span class="int-en">Submit</span>
+            </button>
+            <button class="button small white int-he" onclick="Sefaria.util.subscribeToNbList(`${document.querySelector('#email-input-he').value}`, 'ANNOUNCEMENTS_General_Hebrew|march23modal')" >
+                <span class="int-he">רשמו אותי</span>
+            </button>
+        </div>
+    </div>
