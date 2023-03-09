@@ -6,10 +6,12 @@ import { useIncrementalLoad } from './Hooks';
 import { Promotions } from './Promotions';
 import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
-import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
+import {TopicEditor} from './TopicEditor';
+import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
   SheetBlock,
   TextPassage,
+  IntroducedTextPassage
 } from './Story';
 import {
     TabView,
@@ -42,6 +44,9 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
       if (outRefs[tempRef.ref]) {
         outRefs[tempRef.ref].order = tempRef.order;
         outRefs[tempRef.ref].dataSources = tempRef.dataSources;
+        if(tempRef.descriptions) {
+            outRefs[tempRef.ref].descriptions = tempRef.descriptions;
+        }
       }
     }
     return Object.entries(outRefs);
@@ -95,6 +100,12 @@ const refSort = (currSortOption, a, b) => {
   else {
     const aAvailLangs = a.order.availableLangs || [];
     const bAvailLangs = b.order.availableLangs || [];
+    if ((Sefaria.interfaceLang === 'english') &&
+      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
+      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+    else if ((Sefaria.interfaceLang === 'hebrew') &&
+      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
+      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0); }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
@@ -128,12 +139,12 @@ const sheetSort = (currSortOption, a, b) => {
     if (a.order.dateCreated < b.order.dateCreated) { return 1; }
   } else {
     // relevance
-    if (b.order.relevance == a.order.relevance) { return b.order.views - a.order.views; }
+    if (b.order.relevance === a.order.relevance) { return b.order.views - a.order.views; }
     return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
   }
 };
 
-const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -149,12 +160,15 @@ const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
     </ToolTipped>
   );
 
+  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
+  const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
-    <TextPassage
+    <Passage
       key={item[0]}
       text={text}
       afterSave={afterSave}
-      toggleSignUpModal={toggleSignUpModal} />
+      toggleSignUpModal={toggleSignUpModal}
+    />
   );
 };
 
@@ -170,7 +184,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 const TopicToCategorySlug = function(topic, category=null) {
-    //helper function for TopicEditor
+    //helper function for AdminEditor
     if (!category) {
         category = Sefaria.topicTocCategory(topic.slug);
     }
@@ -191,20 +205,24 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
-    const [addingTopics, toggleAddingTopics] = useTopicToggle();
+    const [addingTopics, toggleAddingTopics] = useEditToggle();
     let topicEditorStatus = null;
 
     if (Sefaria.is_moderator) {
         if (!addingTopics) {
-            topicEditorStatus = <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
+            topicEditorStatus = <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/>;
         }
         else if (addingTopics && "slug" in topicData) {
             const initCatSlug = TopicToCategorySlug(topicData);
-            topicEditorStatus = <TopicEditor origSlug={topicData.slug} origEn={topicData.primaryTitle.en} origHe={topicData.primaryTitle.he}
-                         origDesc={topicData?.description} origCategorySlug={initCatSlug} origWasCat={"displays-above" in topicData?.links}
-                         origCategoryDesc={topicData?.categoryDescription}
-                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                         close={toggleAddingTopics}/>;
+            const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            origData.origDesc = topicData.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+            const displaysAbove = "displays-above" in topicData?.links;
+            topicEditorStatus = <TopicEditor origData={origData}
+                                             origWasCat={displaysAbove}
+                                             onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                             close={toggleAddingTopics}/>;
         }
     }
 
@@ -340,24 +358,23 @@ const TopicSponsorship = ({topic_slug}) => {
 
 const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const [addingTopics, toggleAddingTopics] = useTopicToggle();
+  const [addingTopics, toggleAddingTopics] = useEditToggle();
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
   if (Sefaria.is_moderator && addingTopics && !!topicData) {
       const initCatSlug = TopicToCategorySlug(topicData, category);
-      return <TopicEditor origEn={en}
-                          origHe={he}
-                          origWasCat={"displays-above" in topicData?.links}
-                          origDesc={topicData?.description}
-                          origCategoryDesc={topicData?.categoryDescription}
-                          origSlug={topicData["slug"]}
+      const origData = {origSlug: topicData.slug, origCategorySlug: initCatSlug,
+                         origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""};
+            origData.origDesc = topicData.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+      const displaysAbove = "displays-above" in topicData?.links;
+      return <TopicEditor origData={origData}
+                          origWasCat={displaysAbove}
                           onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                          origCategorySlug={initCatSlug}
                           close={toggleAddingTopics}/>;
   }
   const topicStatus = Sefaria.is_moderator && !!topicData ?
-                            <TopicEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
+                            <AdminEditorButton text="Edit Topic" toggleAddingTopics={toggleAddingTopics}/> : null;
 
   return (
     <div>
@@ -435,7 +452,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref, topicTestVersion
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
@@ -549,7 +566,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData)}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion)}
                                 />
                               );
                             })
@@ -589,6 +606,7 @@ TopicPage.propTypes = {
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
+  topicTestVersion:    PropTypes.string
 };
 
 

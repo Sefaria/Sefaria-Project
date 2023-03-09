@@ -1,10 +1,12 @@
-import React, { useContext }  from 'react';
+import React, { useContext, useState }  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
+import {useEditToggle, AdminEditorButton} from "./AdminEditor";
+import {CategoryEditor} from "./CategoryEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -12,14 +14,16 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
+  CategoryHeader,
   ContentText,
+  useHiddenButtons
 } from './Misc';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
-
+  const contentLang = useContext(ContentLanguageContext).language;
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
                       ["Talmud", "Bavli"]
@@ -47,7 +51,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   }
 
   const tocObject = Sefaria.tocObjectByCategories(cats);
-
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel   = category === "Commentary" ? 1 : 0;
   const aboutModule = [
@@ -55,14 +58,15 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   ];
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
-
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
-  
   const title = compare ? categoryToggle :
     <div className="navTitle">
-      <h1>
-        <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
-      </h1>
+        <CategoryHeader path={cats}>
+            <h1>
+            <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+            </h1>
+        </CategoryHeader>
+
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -117,7 +121,6 @@ TextCategoryPage.propTypes = {
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
 };
-
 
 // Recursive content of text category listing (including category title and lists of texts/subcategories)
 const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
@@ -174,20 +177,21 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         const hasDesc  = !!shortDesc;
         const longDesc = hasDesc && shortDesc.split(" ").length > 5;
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
-
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <h2>
-              <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
-              {hasDesc && !longDesc ? 
-              <span className="categoryDescription">
+            <CategoryHeader path={newCats}>
+                 <h2>
+                 <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
+                 {hasDesc && !longDesc ?
+                 <span className="categoryDescription">
+                   <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+                 </span> : null }
+               </h2>
+            </CategoryHeader>
+            {hasDesc && longDesc ?
+              <div className="categoryDescription long sans-serif">
                 <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-              </span> : null }
-            </h2>
-            {hasDesc && longDesc ? 
-            <div className="categoryDescription long sans-serif">
-              <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-            </div> : null }
+              </div> : null }
             <TextCategoryContents
               contents      = {item.contents}
               categories    = {newCats}
@@ -195,7 +199,8 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
               setCategories = {setCategories}
               openTextTOC   = {openTextTOC}
               initialWidth  = {initialWidth}
-              nestLevel     = {nestLevel + 1} />
+              nestLevel     = {nestLevel + 1}
+            />
           </div>
         );
       }

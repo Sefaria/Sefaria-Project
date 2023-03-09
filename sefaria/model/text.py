@@ -5376,6 +5376,12 @@ class Library(object):
 
         self.rebuild_toc(skip_toc_tree=True)
 
+    def delete_category_from_toc(self, category):
+        # This is used in the case of a remotely triggered multiserver update
+        toc_node = self.get_toc_tree().lookup(category.path)
+        if toc_node:
+            self.get_toc_tree().remove_category(toc_node)
+
     def delete_index_from_toc(self, indx, categories = None):
         """
         :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
@@ -6390,7 +6396,6 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 def reset_simple_term_mapping(o, **kwargs):
     library.get_simple_term_mapping(rebuild=True)
-
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")

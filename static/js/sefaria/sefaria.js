@@ -411,8 +411,8 @@ Sefaria = extend(Sefaria, {
       wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
       translationLanguagePreference: settings.translationLanguagePreference || null,
       versionPref: settings.versionPref || null,
-      firstAvailableRef: settings.firstAvailableRef || 1,
-      fallbackOnDefaultVersion: settings.fallbackOnDefaultVersion || 1,
+      firstAvailableRef: ("firstAvailableRef" in settings) ? settings.firstAvailableRef : 1,
+      fallbackOnDefaultVersion: ("fallbackOnDefaultVersion" in settings) ? settings.fallbackOnDefaultVersion : 1,
     };
     if (settings.versionPref) {
       // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
@@ -466,7 +466,7 @@ Sefaria = extend(Sefaria, {
     }
     paramStr = paramStr.replace(/&/,'?');
 
-    // Split into multipe requests if URL length goes above limit
+    // Split into multiple requests if URL length goes above limit
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
@@ -2318,15 +2318,15 @@ _media: {},
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
-        if (tabKey == 'about') {
+        if (tabKey === 'about') {
           tabKey = refObj.is_sheet ? 'sheets' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey == 'sheets') {
+          if (tabKey === 'sheets') {
             title = {en: 'Sheets', he: Sefaria._('Sheets')};
           }
-          if (tabKey == 'sources') {
+          if (tabKey === 'sources') {
             title = {en: 'Sources', he: Sefaria._('Sources')};
           }
           tabs[tabKey] = {
@@ -2336,7 +2336,7 @@ _media: {},
           };
         }
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
-        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {
