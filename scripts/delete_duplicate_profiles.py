@@ -22,7 +22,6 @@ def add_nationbuilder_id_to_correct_profile(first, second):
 
 
 def main():
-    id_map = defaultdict(list)
     fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
     with open("duplicate_profiles_outf.csv", "w+") as outf:
         csv_writer = csv.DictWriter(outf, fieldnames)
