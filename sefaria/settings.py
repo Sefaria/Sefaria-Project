@@ -305,7 +305,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     "is_fundraising": False,
     "condition":  {
         "returning_only": False,
-        "english_only": True,
+        "english_only": False,
         "desktop_only": True,
         "debug": False,
     }
