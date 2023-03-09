@@ -113,9 +113,8 @@ class Util {
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
     }
-     static subscribeToNbList(email) {
+     static subscribeToNbList(email, lists) {
         if (Sefaria.util.isValidEmailAddress(email)) {
-            const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
             $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
                 if ("error" in data) {
                     console.log(data.error);
