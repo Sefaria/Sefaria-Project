@@ -6,10 +6,9 @@ from sefaria.helper.crm.salesforce import SalesforceConnectionManager
 
 cm = SalesforceConnectionManager()
 
-session = cm.get_connection()
+# session = cm.get_connection()
 headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
-res = session.get(cm.base_url + '/services/data/v56.0/sobjects/', headers=headers)
+res = cm.session.get(cm.base_url + '/services/data/v56.0/sobjects/', headers=headers)
 res_data = res.json()
 print(res_data)
-print(session)
