@@ -11,6 +11,7 @@ import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
   SheetBlock,
   TextPassage,
+  IntroducedTextPassage
 } from './Story';
 import {
     TabView,
@@ -43,6 +44,9 @@ const fetchBulkText = (translationLanguagePreference, inRefs) =>
       if (outRefs[tempRef.ref]) {
         outRefs[tempRef.ref].order = tempRef.order;
         outRefs[tempRef.ref].dataSources = tempRef.dataSources;
+        if(tempRef.descriptions) {
+            outRefs[tempRef.ref].descriptions = tempRef.descriptions;
+        }
       }
     }
     return Object.entries(outRefs);
@@ -96,6 +100,12 @@ const refSort = (currSortOption, a, b) => {
   else {
     const aAvailLangs = a.order.availableLangs || [];
     const bAvailLangs = b.order.availableLangs || [];
+    if ((Sefaria.interfaceLang === 'english') &&
+      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
+      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+    else if ((Sefaria.interfaceLang === 'hebrew') &&
+      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
+      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0); }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
@@ -129,12 +139,12 @@ const sheetSort = (currSortOption, a, b) => {
     if (a.order.dateCreated < b.order.dateCreated) { return 1; }
   } else {
     // relevance
-    if (b.order.relevance == a.order.relevance) { return b.order.views - a.order.views; }
+    if (b.order.relevance === a.order.relevance) { return b.order.views - a.order.views; }
     return (Math.log(b.order.views) * b.order.relevance) - (Math.log(a.order.views) * a.order.relevance);
   }
 };
 
-const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -150,12 +160,15 @@ const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
     </ToolTipped>
   );
 
+  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
+  const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
-    <TextPassage
+    <Passage
       key={item[0]}
       text={text}
       afterSave={afterSave}
-      toggleSignUpModal={toggleSignUpModal} />
+      toggleSignUpModal={toggleSignUpModal}
+    />
   );
 };
 
@@ -439,7 +452,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref, topicTestVersion
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
@@ -553,7 +566,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData)}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion)}
                                 />
                               );
                             })
@@ -593,6 +606,7 @@ TopicPage.propTypes = {
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
+  topicTestVersion:    PropTypes.string
 };
 
 

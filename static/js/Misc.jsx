@@ -66,7 +66,7 @@ const InterfaceText = ({text, html, children, context}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
@@ -117,7 +117,7 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
-  if(languageToFilter == "bilingual"){
+  if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){
       //nifty function that sorts one array according to the order of a second array.
       renderedItems.sort(function(a, b){
