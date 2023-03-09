@@ -160,7 +160,8 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
     </ToolTipped>
   );
 
-  const Passage = (topicTestVersion && text.descriptions) ? IntroducedTextPassage : TextPassage;
+  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
+  const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}

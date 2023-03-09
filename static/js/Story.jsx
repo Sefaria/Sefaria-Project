@@ -128,12 +128,8 @@ StorySheetList.propTypes = {
 const IntroducedTextPassage = ({text, afterSave, toggleSignUpModal}) => {
     if (!text.ref) { return null; }
     const versions = text.versions || {}
-    const url = "/" + Sefaria.normRef(text.ref) +
-        Object.keys(versions)
-            .filter(vlang=>!!versions[vlang])
-            .map(vlang=>`&v${vlang}=${versions[vlang]}`)
-            .join("")
-            .replace("&","?");
+    const params = Sefaria.util.getUrlVersionsParams(versions);
+    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
     const heOnly = !text.en;
     const enOnly = !text.he;
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
@@ -170,12 +166,8 @@ IntroducedTextPassage.propTypes = {
 const TextPassage = ({text, afterSave, toggleSignUpModal}) => {
   if (!text.ref) { return null; }
   const versions = text.versions || {}
-  const url = "/" + Sefaria.normRef(text.ref) + 
-                    Object.keys(versions)
-                        .filter(vlang=>!!versions[vlang])
-                        .map(vlang=>`&v${vlang}=${versions[vlang]}`)
-                        .join("")
-                        .replace("&","?");
+  const params = Sefaria.util.getUrlVersionsParams(versions);
+  const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
   const heOnly = !text.en;
   const enOnly = !text.he;
   const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
