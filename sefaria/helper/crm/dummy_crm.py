@@ -1,4 +1,3 @@
-from sefaria import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
 
