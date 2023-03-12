@@ -201,6 +201,7 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    window.addEventListener('beforeinstallprompt', this.handleNativeAppInstallPrompt);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
   }
@@ -1001,6 +1002,17 @@ class ReaderApp extends Component {
       }
       parent = parent.parentNode;
     }
+  }
+  handleNativeAppInstallPrompt(e) {
+    // Prevent Chrome 67 and earlier from automatically showing the prompt
+    e.preventDefault();
+    e.prompt();
+    // Wait for the user to respond to the prompt
+    e.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+        } else {
+        }
+      });
   }
   handleInAppClickWithModifiers(e){
     //Make sure to respect ctrl/cmd etc modifier keys when a click on a link happens

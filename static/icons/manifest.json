@@ -1,17 +1,27 @@
 {
     "name": "Sefaria Web",
+    "short_name": "Sefaria",
     "icons": [
         {
-            "src": "/android-chrome-192x192.png?v=xQzLlLp7oR",
+            "src": "/icon.png?v=xQzLlLp7oR",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/android-chrome-256x256.png?v=xQzLlLp7oR",
-            "sizes": "256x256",
+            "src": "/icon512x512.png?v=xQzLlLp7oR",
+            "sizes": "512x512",
             "type": "image/png"
         }
     ],
+    "prefer_related_applications": true,
+    "related_applications": [
+        {
+            "platform": "play",
+            "id": "org.sefaria.sefaria",
+            "url": "https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        }
+    ],
+    "start_url": ".",
     "theme_color": "#273557",
     "background_color": "#273557",
     "display": "standalone"
