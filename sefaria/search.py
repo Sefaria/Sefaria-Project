@@ -240,14 +240,15 @@ def create_index(index_name, type):
     Clears the indexes and creates it fresh with the below settings.
     """
     clear_index(index_name)
-
     settings = {
         "index": {
             "blocks": {
                 "read_only_allow_delete": False
             },
             "analysis" : {
-                "analyzer" : {
+                "analyzer": {
+                    "stemmed_english": get_stemmed_english_analyzer(),
+                    "exact_english": get_exact_english_analyzer(),
                     "my_standard" : {
                         "tokenizer": "my_tokenizer",
                         "char_filter": [
