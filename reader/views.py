@@ -3073,8 +3073,13 @@ def topics_page(request):
         "desc":           desc
     })
 
+
+
+def topic_page_b(request, topic):
+    return topic_page(request, topic, test_version="b")
+
 @sanitize_get_params
-def topic_page(request, topic):
+def topic_page(request, topic, test_version=None):
     """
     Page of an individual Topic
     """
@@ -3085,6 +3090,7 @@ def topic_page(request, topic):
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
+
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
@@ -3095,6 +3101,9 @@ def topic_page(request, topic):
         },
         "topicData": _topic_page_data(topic),
     }
+
+    if test_version is not None:
+        props["topicTestVersion"] = test_version
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     if SITE_SETTINGS["TORAH_SPECIFIC"]:
@@ -3110,7 +3119,7 @@ def topic_page(request, topic):
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    return render_template(request,'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
