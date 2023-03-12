@@ -271,6 +271,7 @@ class Notification(abst.AbstractMongoRecord):
         data from profiles, sheets, etc
         """
         from sefaria.sheets import get_sheet_metadata
+        from sefaria.model.following import FollowRelationship
 
         n = super(Notification, self).contents(with_string_id=True)
         n["date"] = n["date"].timestamp()
@@ -298,6 +299,12 @@ class Notification(abst.AbstractMongoRecord):
                c = Collection().load({"privateSlug": collection_slug})
                n["content"]["collection_name"] = c.name
 
+        def annotate_follow(n, potential_followee):
+            """
+            Does `self.uid` follow `potential_followee`
+            """
+            relationship = FollowRelationship(follower=self.uid, followee=potential_followee)
+            n["content"]["is_already_following"] = relationship.exists()
 
         if n["type"] == "sheet like":
             annotate_sheet(n, n["content"]["sheet_id"])
@@ -312,6 +319,7 @@ class Notification(abst.AbstractMongoRecord):
 
         elif n["type"] == "follow":
             annotate_user(n, n["content"]["follower"])
+            annotate_follow(n, n["content"]["follower"])
 
         elif n["type"] == "collection add":
             annotate_user(n, n["content"]["adder"])
