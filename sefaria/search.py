@@ -234,7 +234,6 @@ def get_stemmed_english_analyzer():
     stemmed_english_analyzer['filter'] += ["my_snow"]
     return stemmed_english_analyzer
 
-
 def create_index(index_name, type):
     """
     Clears the indexes and creates it fresh with the below settings.
@@ -245,31 +244,15 @@ def create_index(index_name, type):
             "blocks": {
                 "read_only_allow_delete": False
             },
-            "analysis" : {
+            "analysis": {
                 "analyzer": {
                     "stemmed_english": get_stemmed_english_analyzer(),
                     "exact_english": get_exact_english_analyzer(),
-                    "my_standard" : {
-                        "tokenizer": "my_tokenizer",
-                        "char_filter": [
-                            "icu_normalizer"
-                        ],
-                        "filter": [
-                                "lowercase",
-                                "icu_folding",
-                                "my_snow"
-                                ]
-                    }
                 },
-                "tokenizer": {
-                    "my_tokenizer": {
-                        "type": "standard",
-                    }
-                },
-                "filter" : {
-                    "my_snow" : {
-                        "type" : "snowball",
-                        "language" : "English"
+                "filter": {
+                    "my_snow": {
+                        "type": "snowball",
+                        "language": "English"
                     }
                 }
             }
