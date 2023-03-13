@@ -52,7 +52,7 @@ def delete_text(oref, version, lang):
         curr_index = get_new_and_current_index_names('text')['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=curr_index, doc_type='text', id=id)
+        es_client.delete(index=curr_index, id=id)
     except Exception as e:
         logger.error("ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -76,7 +76,7 @@ def delete_version(index, version, lang):
 
 def delete_sheet(index_name, id):
     try:
-        es_client.delete(index=index_name, doc_type='sheet', id=id)
+        es_client.delete(index=index_name, id=id)
     except Exception as e:
         logger.error("ERROR deleting sheet {}".format(id))
 
@@ -92,6 +92,7 @@ def make_text_doc_id(ref, version, lang):
         version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
+    id = id[-512:]  # in case ID is very long, cut off beginning. Assumption is end will be unique given version title and lang.
     return id
 
 
@@ -146,7 +147,7 @@ def index_sheet(index_name, id):
             "dateModified": sheet.get("dateModified", None),
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
+        es_client.create(index=index_name, id=id, body=doc)
         global doc_count
         doc_count += 1
         return True
@@ -258,7 +259,7 @@ def create_index(index_name, type):
         }
     }
     print('Creating index {}'.format(index_name))
-    index_client.create(index=index_name, body=settings)
+    index_client.create(index=index_name, settings=settings)
 
     if type == 'text':
         put_text_mapping(index_name)
@@ -314,8 +315,8 @@ def put_text_mapping(index_name):
             },
             "naive_lemmatizer": {
                 'type': 'text',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
+                'analyzer': 'stemmed_english',
+                'search_analyzer': 'stemmed_english',
                 'fields': {
                     'exact': {
                         'type': 'text',
@@ -325,7 +326,7 @@ def put_text_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
+    index_client.put_mapping(body=text_mapping, index=index_name)
 
 
 def put_sheet_mapping(index_name):
@@ -391,7 +392,7 @@ def put_sheet_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
+    index_client.put_mapping(body=sheet_mapping, index=index_name)
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -592,7 +593,6 @@ class TextIndexer(object):
                 cls._bulk_actions += [
                     {
                         "_index": cls.index_name,
-                        "_type": "text",
                         "_id": make_text_doc_id(tref, vtitle, vlang),
                         "_source": doc
                     }
@@ -600,6 +600,7 @@ class TextIndexer(object):
             except Exception as e:
                 logger.error("ERROR indexing {} / {} / {} : {}".format(tref, vtitle, vlang, e))
 
+    @classmethod
     def remove_footnotes(cls, content):
         ftnotes = AbstractTextRecord.find_all_itags(content, only_footnotes=True)[1]
         if len(ftnotes) == 0:
