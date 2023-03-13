@@ -1304,11 +1304,11 @@ class WebPagesList extends Component {
         function arrangeAuthorName(authorName) {
           return authorName.split(', ').reverse().join(' ');
         }
-        function addAuthor(accumulator, author, i) {
+        function addAuthorToString(accumulator, author, i) {
           let joiner = i === 0 ? '' :  i === authorsNum - 1 ? finalJoiner : ', ';
           return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
         }
-        const authorsNames = webpage.authors?.reduce((accumulator, author, i) => addAuthor(accumulator, author, i), '');
+        const authorsNames = webpage.authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.favicon} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
