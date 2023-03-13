@@ -40,7 +40,8 @@ def import_descriptions(filename, lang):
             try:
                 ref = Ref(row['Ref']).normal()
             except:
-                print(f"Skipping {row['Ref']}")
+                if row['Ref']:
+                    print(f"Skipping {row['Ref']}")
                 continue
             title = row['Title']
             prompt = row['Prompt']
@@ -51,7 +52,7 @@ def import_descriptions(filename, lang):
             if not topic_slug or not ref or not title or not prompt:
                 print("Skipping row with missing data: {}".format(row))
                 continue
-            print(f'{topic_slug} {ref}')
+            # print(f'{topic_slug} {ref}')
             rtl = RefTopicLink().load({"toTopic": topic_slug, "ref": ref})
             if not rtl:
                 d = {
@@ -87,4 +88,6 @@ if __name__ == "__main__":
     '''
     export EN='/Users/levisrael/Downloads/Learning Prompts for Spring 2023 - English - Sheet1.csv'
     export HE='/Users/levisrael/Downloads/Learning Prompts for Spring 2023 - Hebrew - Sheet1.csv'
+    export EN='/tmp/prompts-en.csv'
+    export HE='/tmp/prompts-he.csv'    
     '''
