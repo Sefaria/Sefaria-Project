@@ -1,14 +1,15 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText} from "./Misc";
+import {InterfaceText, postWithCallBack, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
+import {Reorder} from "./CategoryEditor";
 import React, {useState} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
-    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug, enTitle: origData.origEn,
-                                heTitle: origData.origHe, heDescription: origData?.origDesc?.he,
-                                enDescription: origData?.origDesc?.en,
+    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug || "",
+                                enTitle: origData.origEn, heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
+                                enDescription: origData?.origDesc?.en || "",
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he,
                                 });
@@ -16,6 +17,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
                                                                   // isCategory determines whether user can edit categoryDescriptions of topic
+    const subtopics = Sefaria.topicTocPage(origData.origSlug);
+    const [sortedSubtopics, setSortedSubtopics] = useState(subtopics?.sort(Sefaria.sortTopicsCompareFn)
+                                                                                .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
+                                                                                || []);
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -31,7 +36,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {
-        "": {"en": "Choose a Category", "he": Sefaria.translation('he', "Choose a Category")},
+        "": {"en": "Choose a Parent Topic", "he": Sefaria.translation('he', "Choose a Parent Topic")},
         "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
@@ -47,7 +52,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                             </div>
                                     </div>);
 
-    const validate = function () {
+    const validate = async function () {
         if (data.catSlug === "") {
           alert(Sefaria._("Please choose a category."));
           return false;
@@ -56,9 +61,17 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        save();
+        if (sortedSubtopics.length > 0) {
+            await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
+        }
+        saveTopic();
     }
-    const save = function () {
+    const saveReorderedSubtopics = function () {
+         const url = `/api/topic/reorder`;
+         const postCategoryData = {topics: sortedSubtopics};
+         postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+    }
+    const saveTopic = function () {
         toggle();
         let url = "";
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
@@ -112,7 +125,14 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                        validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew} shortDescBool={isCategory}/>;
+                        validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew}
+                        shortDescBool={isCategory} extras={
+                            [isNew ? null :
+                                <Reorder subcategoriesAndBooks={sortedSubtopics}
+                                         updateOrder={setSortedSubtopics}
+                                         displayType="topics"/>,
+                            ]
+                        } />;
 }
 
 export {TopicEditor};

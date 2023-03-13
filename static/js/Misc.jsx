@@ -15,6 +15,7 @@ import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
+import {TopicEditor} from "./TopicEditor";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1048,7 +1049,37 @@ class ToggleOption extends Component {
   }
 }
 
-        //style={this.props.style}
+         //style={this.props.style}
+
+const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
+    $.post(url, {"json": JSON.stringify(data)}, function (result) {
+            if (result.error) {
+                setSavingStatus(false);
+                alert(result.error);
+            } else {
+                redirect();
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
+}
+
+ const TopicToCategorySlug = function(topic, category=null) {
+   //helper function for AdminEditor
+   if (!category) {
+     category = Sefaria.topicTocCategory(topic.slug);
+   }
+   let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
+   // so all category topics initialized to "Main Menu"
+   if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+     // this case handles categories that are not top level but have children under them
+     const displayUnderLinks = topic.links["displays-under"]?.links;
+     if (displayUnderLinks && displayUnderLinks.length === 1) {
+       initCatSlug = displayUnderLinks[0].topic;
+     }
+   }
+   return initCatSlug;
+ }
 
 function useHiddenButtons() {
     const [hideButtons, setHideButtons] = useState(true);
@@ -1059,38 +1090,70 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader = ({children, path=[]}) => {
+const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
-  const tocObject = Sefaria.tocObjectByCategories(path);
   let adminButtonsSpan = null;
+  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(path));
 
   if (Sefaria.is_moderator && editCategory) {
-    if (path.length === 0) {  // at /texts
-      adminButtonsSpan = <ReorderEditor close={toggleEditCategory}/>;
-    }
-    else {
+    if (path.length === 0) {  // at /texts or /topics
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
+    } else if (type === "books") {
+      let tocObject = Sefaria.tocObjectByCategories(path);
       const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
       const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {origEn: tocObject.category, origHe: tocObject.heCategory, origDesc, origCategoryDesc, isPrimary: tocObject.isPrimary};
-      adminButtonsSpan =
-          <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+      const origData = {
+        origEn: tocObject.category,
+        origHe: tocObject.heCategory,
+        origDesc,
+        origCategoryDesc,
+        isPrimary: tocObject.isPrimary
+      };
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+    } else if (type === "topics") {
+      if (!topicData) {
+        Sefaria.getTopic(path).then(d => {setTopicData(d);})
+      }
+      else {
+        const initCatSlug = TopicToCategorySlug(topicData);
+        const origData = {
+          origSlug: topicData.slug, origCategorySlug: initCatSlug,
+          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
+        };
+        origData.origDesc = topicData.description || {"en": "", "he": ""};
+        origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+        const origWasCat = "displays-above" in topicData?.links;
+        adminButtonsSpan = <TopicEditor origData={origData}
+                                        origWasCat={origWasCat}
+                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                        close={toggleEditCategory}/>;
+      }
+
     }
   } else if (Sefaria.is_moderator && addCategory) {
     const origData = {origEn: ""};
-    adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
-  }
-  else if (Sefaria.is_moderator) {
+    if (type === "books") {
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+    } else if (type === "topics") {
+      origData['origCategorySlug'] = path;
+      adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
+                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+    }
+  } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                        <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>
-                        <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
-                    </span>;
+                              {!editOnly ? <AdminEditorButton text="Add sub-category"
+                                                              toggleAddingTopics={toggleAddCategory}/> : null}
+      <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
+                          </span>;
+
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
-  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
+  return <span className={wrapper}><span
+      onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
 }
 
 
@@ -2863,5 +2926,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  useHiddenButtons
+  postWithCallBack
 };

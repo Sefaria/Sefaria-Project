@@ -2389,8 +2389,6 @@ def tag_category_api(request, path=None):
         return jsonResponse(category_names)
 
 
-
-
 @catch_error_as_json
 @csrf_exempt
 def category_api(request, path=None):
@@ -2401,7 +2399,7 @@ def category_api(request, path=None):
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
+    POST can take the argument 'reorder' on the URL and if provided, its children will be reordered.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
@@ -3207,6 +3205,18 @@ def topic_graph_api(request, topic):
             "links": [l.contents() for l in links]
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@staff_member_required
+def reorder_topics(request):
+    topics = json.loads(request.POST["json"]).get("topics", [])
+    results = []
+    for display_order, t in enumerate(topics):
+        topic = Topic().load({'slug': t['slug']})
+        topic.displayOrder = display_order*10
+        topic.save()
+        results.append(topic.contents())
+    return jsonResponse({"topics": results})
 
 
 @catch_error_as_json
