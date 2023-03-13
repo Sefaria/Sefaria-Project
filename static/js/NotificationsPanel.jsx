@@ -217,13 +217,13 @@ const FollowNotification = ({date, content}) => {
     </>
   );
 
-  const body = Sefaria.following.indexOf(content.follower) === -1 ? (
+  const body = content.is_already_following ? null : (
     <FollowButton
       large={true}
       uid={content.follower}
       followBack={true}
       smallText={false} />
-  ) : null;
+  );
 
   return (
     <Notification

@@ -190,7 +190,7 @@ class Util {
             var copy = [];
             var len = obj.length;
             for (var i = 0; i < len; ++i) {
-                copy[i] = this.clone(obj[i]);
+                copy[i] = this.clone(obj[i], trimFilters);
             }
             return copy;
         }
@@ -199,7 +199,7 @@ class Util {
         if (obj instanceof Object) {
             var copy = {};
             for (var attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = this.clone(obj[attr]);
+                if (obj.hasOwnProperty(attr)) copy[attr] = this.clone(obj[attr], trimFilters);
             }
             return copy;
         }
