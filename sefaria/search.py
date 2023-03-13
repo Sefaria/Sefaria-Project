@@ -220,7 +220,6 @@ def get_exact_english_analyzer():
             "icu_normalizer",
         ],
         "filter": [
-            "standard",
             "lowercase",
             "icu_folding",
         ],
