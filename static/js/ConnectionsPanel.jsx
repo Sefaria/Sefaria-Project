@@ -1300,15 +1300,20 @@ class WebPagesList extends Component {
         const direction = Sefaria.interfaceLang === 'hebrew' ? 'rtl' : 'ltr';
         const authorsNum = webpage.authors?.length;
         const author = authorsNum > 1 ? 'Authors' : 'Author';
-        const finalJoiner = webpage.isHebrew ? ' ו' : ' and ';
-        function arrangeAuthorName(authorName) {
-          return authorName.split(', ').reverse().join(' ');
+        function getAuthorsString() {
+          const finalJoiner = webpage.isHebrew ? ' ו' : ' and ';
+
+          function arrangeAuthorName(authorName) {
+            return authorName.split(', ').reverse().join(' ');
+          }
+
+          function addAuthorToString(accumulator, author, i) {
+            let joiner = i === 0 ? '' : i === authorsNum - 1 ? finalJoiner : ', ';
+            return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
+          }
+          return webpage.authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
         }
-        function addAuthorToString(accumulator, author, i) {
-          let joiner = i === 0 ? '' :  i === authorsNum - 1 ? finalJoiner : ', ';
-          return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
-        }
-        const authorsNames = webpage.authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
+        const authorsNames = getAuthorsString();
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.favicon} />
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
