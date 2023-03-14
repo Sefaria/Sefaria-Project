@@ -2483,6 +2483,8 @@ def category_api(request, path=None):
                 t.name = last_path
                 t.add_primary_titles(last_path, he_last_path)
                 t.save()
+                library.get_simple_term_mapping_json(rebuild=True)
+
 
         results = {}
         if reorder:
@@ -2491,6 +2493,9 @@ def category_api(request, path=None):
         if len(j['path']) > 0:  # not at root of TOC
             results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
 
+        if reorder or ("origPath" not in j) or (j.get('origPath') != j.get('path')):
+            # if we reorder the children, or create a new category, or if we update a category's path
+            library.rebuild_toc(skip_topic_tree=True)
         return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
