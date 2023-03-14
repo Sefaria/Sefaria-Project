@@ -1,14 +1,11 @@
-import {AdminToolHeader, CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
+import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
+import {postWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
-
-const redirect = function (newPath) {
-    window.location.href = "/texts/"+newPath;
-}
-
-const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=null}) => {
+const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en};
+const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
         let index_to_swap = -1;
@@ -32,30 +29,24 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, updateParentChangedStatus=
     }
 
     return subcategoriesAndBooks.map((child, i) => {
-                return <div id={`reorder-${i}`} className="reorderTool">
-                            <div id="title">{child}</div>
-                            <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
-                            <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
-                      </div>;
-            })
+        return <div id={`reorder-${i}`} className="reorderTool">
+                    <div id="title">{displayOptions[displayType](child)}</div>
+                    <img src="/static/img/arrow-up.png" id="up" onClick={() => clickHandler('up', child)}/>
+                    <img src="/static/img/arrow-down.png" id="down" onClick={() => clickHandler('down', child)}/>
+              </div>;
+        })
 }
 
-const post = ({url, postCategoryData, setSavingStatus}) => {
-    $.post(url, {"json": JSON.stringify(postCategoryData)}, function (result) {
-            if (result.error) {
-                setSavingStatus(false);
-                alert(result.error);
-            } else {
-                redirect("");
-            }
-        }).fail(function (xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-        });
-}
-
-const ReorderEditor = ({close, path=[]}) => {
-    const [tocItems, setTocItems] = useState(path.length === 0 ? Sefaria.toc.map(child => child.category)
-                                            : Sefaria.tocItemsByCategories(path).map(child => child.title || child.category));
+const ReorderEditor = ({close, type=""}) => {
+    const determineOrigItems = () => {
+        if (type === "books") {
+            return Sefaria.toc;
+        }
+        else if (type === "topics") {
+            return Sefaria.topic_toc;
+        }
+    }
+    const [tocItems, setTocItems] = useState(determineOrigItems());
     const [savingStatus, setSavingStatus] = useState(false);
     const [isChanged, setIsChanged] = useState(false);
     const update = (newTocItems) => {
@@ -71,10 +62,19 @@ const ReorderEditor = ({close, path=[]}) => {
         }
     }
     const save = () => {
-        setSavingStatus(true);
-        const postCategoryData = {subcategoriesAndBooks: tocItems, path};
-        let url = `/api/category?reorder=1`;
-        post({url, postCategoryData, setSavingStatus});
+        let postCategoryData = {};
+        let url = "";
+        if (type !== "topics") {
+            // use displayOptions to map toc objects to titles of category/book
+            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
+            url = `/api/category?reorder=1`;
+            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"});
+        }
+        else {
+             url = `/api/topic/reorder`;
+             postCategoryData = {topics: tocItems};
+             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+        }
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -82,7 +82,7 @@ const ReorderEditor = ({close, path=[]}) => {
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={"Reorder Editor"} close={close} validate={() => validate()}/>
-                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update}/>
+                        <Reorder subcategoriesAndBooks={tocItems} updateOrder={update} displayType={type}/>
                     </div>
                 </div>
             </div>
@@ -92,16 +92,15 @@ const ReorderEditor = ({close, path=[]}) => {
 const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [path, setPath] = useState(origPath);
     const [data, setData] = useState({enTitle: origData.origEn,
-                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he,
-                                enDescription: origData?.origDesc?.en,
+                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
+                                enDescription: origData?.origDesc?.en || "",
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he});
     const [isNew, setIsNew] = useState(origData?.origEn === "");
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []).map(child => child.title || child.category));
-
+    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []));
     const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
 
     const handlePrimaryClick = function(type, status) {
@@ -158,7 +157,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             "path": fullPath
         };
 
-        if (Sefaria._siteSettings.SITE_NAME["en"] === "ContextUS") {
+        if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
             postCategoryData["heSharedTitle"] = data.enTitle.slice(0, -1);  // there needs to be a hebrew title for the category's term
         }
 
@@ -166,17 +165,18 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         let urlParams = []
         if (!isNew) {
             urlParams.push("update=1");
-            postCategoryData = {...postCategoryData, origPath: origFullPath}
+            postCategoryData = {...postCategoryData, origPath: origFullPath};
         }
-
-        if (origSubcategoriesAndBooks.current !== subcategoriesAndBooks && !isNew) {  // only reorder children when category isn't new
-            postCategoryData["subcategoriesAndBooks"] = subcategoriesAndBooks;
+        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
+        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
+        if (origSubcategoryTitles !== newSubcategoryTitles && !isNew) {  // only reorder children when category isn't new
+            postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
             urlParams.push("reorder=1");
         }
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        post({url, postCategoryData, setSavingStatus});
+        postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
 
 
@@ -209,20 +209,21 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
                 extras={
                     [isNew ? null :
-                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged} updateOrder={setSubcategoriesAndBooks}/>,
-                    <ToggleSet
-                      blueStyle={true}
-                      ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                      label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
-                      name="primary"
-                      separated={false}
-                      options={primaryOptions}
-                      setOption={handlePrimaryClick}
-                      currentValue={isPrimary} />,
+                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
+                                 updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
+                        <ToggleSet
+                          blueStyle={true}
+                          ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                          label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
+                          name="primary"
+                          separated={false}
+                          options={primaryOptions}
+                          setOption={handlePrimaryClick}
+                          currentValue={isPrimary} />,
                     ]
                 }/>
 
     </div>;
 }
 
-export {CategoryEditor, ReorderEditor};
+export {CategoryEditor, ReorderEditor, Reorder};
