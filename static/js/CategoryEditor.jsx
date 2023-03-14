@@ -169,7 +169,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         }
         const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
         const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
-        if (origSubcategoryTitles !== newSubcategoryTitles && !isNew) {  // only reorder children when category isn't new
+        const reordered = origSubcategoryTitles.some((val, index) => val !== newSubcategoryTitles[index]);
+        if (reordered && !isNew) {  // only reorder children when category isn't new
             postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
             urlParams.push("reorder=1");
         }
