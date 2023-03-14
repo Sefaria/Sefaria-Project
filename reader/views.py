@@ -2466,7 +2466,6 @@ def category_api(request, path=None):
         reorder = request.GET.get("reorder", False)
         last_path = j.get("sharedTitle", "")
         he_last_path = j.get("heSharedTitle", "")
-
         if new_category is not None and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
             # this case occurs when moving Tanakh's Rashi category into
             # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
@@ -2483,7 +2482,6 @@ def category_api(request, path=None):
                 t.name = last_path
                 t.add_primary_titles(last_path, he_last_path)
                 t.save()
-                library.get_simple_term_mapping_json(rebuild=True)
 
 
         results = {}
@@ -2495,7 +2493,7 @@ def category_api(request, path=None):
 
         if reorder or ("origPath" not in j) or (j.get('origPath') != j.get('path')):
             # if we reorder the children, or create a new category, or if we update a category's path
-            library.rebuild_toc(skip_topic_tree=True)
+            library.rebuild(include_toc=True)
         return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
