@@ -28,7 +28,7 @@ web:
   containerImage:
     imageRegistry:
     tag:
-  replicaCount: 2
+  replicaCount: 1
   resources:
     web:
       gunicornWorkerCount: 5
