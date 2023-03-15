@@ -792,7 +792,6 @@ class ReaderApp extends Component {
       //console.log(hist);
     } else {
       if (currentUrl === hist.url) { return; } // Never push history with the same URL
-      console.log('url', hist.url, hist.state);
       history.pushState(hist.state, hist.title, hist.url);
       // console.log("Push History - " + hist.url);
       this.trackPageview();
