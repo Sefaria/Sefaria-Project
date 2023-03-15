@@ -52,7 +52,7 @@ if __name__ == '__main__':
         prog="DeleteDuplicateProfile",
         description="Deletes duplicate profiles in mongo (same id)"
     )
-    parser.add_argument("--d", "--dry-run", action='store_true',
+    parser.add_argument("-d", "--dry-run", action='store_true',
                         help="produce output file without actually deleting any profiles")
     args = parser.parse_args()
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             {"$match": {"_id": {"$ne": None}, "count": {"$gt": 1}}},
             {"$project": {"_id": 1}}
         ]):  # get profiles that are duplicated
-            csv_writer.writerow(dedupe(p, parser.d))
+            csv_writer.writerow(dedupe(p['_id'], args.dry_run))
 
 # old code -- does not work because all profiles have slugs, including duplicate profiles
 # for p in db.profiles.find({}):
