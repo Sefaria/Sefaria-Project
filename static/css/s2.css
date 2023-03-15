@@ -6176,14 +6176,20 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats,
-.webpageList .webpage .authors,
-.webpageList .webpage .articleSource,
+.webpageList .webpage .webpageMetadata,
 .mediaList .media .meta,
 .manuscript .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
+}
+.interface-hebrew .webpageList .webpage .webpageMetadata {
+  text-align: right;
+  direction: rtl;
+}
+.interface-english .webpageList .webpage .webpageMetadata {
+  text-align: left;
+  direction: ltr;
 }
 
 .webpageList .website .siteName {

@@ -1297,7 +1297,6 @@ class WebPagesList extends Component {
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
       content = webpages.map(webpage => {
-        const direction = Sefaria.interfaceLang === 'hebrew' ? 'rtl' : 'ltr';
         const authorsNum = webpage.authors?.length;
         const author = authorsNum > 1 ? 'Authors' : 'Author';
         function getAuthorsString() {
@@ -1319,14 +1318,16 @@ class WebPagesList extends Component {
           <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
           {webpage.description ? <div className="description">{webpage.description}</div> : null}
-          {authorsNames ? <div className="authors" dir={direction}>
-            <InterfaceText>{author}</InterfaceText>: {authorsNames}
-          </div> : null}
-          {webpage.articleSource ? <div className="articleSource" dir={direction}>
-            <InterfaceText>Source</InterfaceText>: {webpage.articleSource.title}{webpage.articleSource.related_parts ? ` ${webpage.articleSource.related_parts}`: ''}
-          </div> : null}
-          <div className="stats" dir={direction}>
-            <InterfaceText>Citing</InterfaceText>: {Sefaria._r(webpage.anchorRef)}
+          <div className="webpageMetadata">
+            {authorsNames ? <div className="authors">
+              <InterfaceText>{author}</InterfaceText>: {authorsNames}
+            </div> : null}
+            {webpage.articleSource ? <div className="articleSource">
+              <InterfaceText>Source</InterfaceText>: {webpage.articleSource.title}{webpage.articleSource.related_parts ? ` ${webpage.articleSource.related_parts}`: ''}
+            </div> : null}
+            <div className="citing">
+              <InterfaceText>Citing</InterfaceText>: {Sefaria._r(webpage.anchorRef)}
+            </div>
           </div>
         </div>)
       });
