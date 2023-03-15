@@ -2,6 +2,8 @@ from sefaria.system.database import db
 from collections import defaultdict
 import csv
 import sys
+import argparse
+
 
 """
 Deletes duplicate profiles in the database and produces an output file documenting
@@ -21,21 +23,12 @@ def add_nationbuilder_id_to_correct_profile(first, second):
     db.profile.save(to_update)
 
 
-def main():
+def main(dry_run):
     fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
     with open("duplicate_profiles_outf.csv", "w+") as outf:
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
-        dry_run = False
         i = 1
-
-        # Read args
-        while i < len(sys.argv):
-            if sys.argv[i] == "--dry-run":
-                dry_run = True
-            else:
-                raise Exception("Unrecognized argument: " + sys.argv[i])
-            i += 1
 
         for profile in db.profiles.aggregate([
             {"$group": {"_id": "$id", "count": {"$sum": 1}},},
@@ -68,8 +61,22 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    parser = argparse.ArgumentParser(
+        prog="DeleteDuplicateProfile",
+        description="Deletes duplicate profiles in mongo (same id)"
+    )
+    parser.add_argument("--d", "--dry-run", action='store_true',
+                        help="produce output file without actually deleting any profiles")
+    args = parser.parse_args()
 
+    sys.exit(main(args.d))
+
+# while i < len(sys.argv):
+#     if sys.argv[i] == "--dry-run":
+#         dry_run = True
+#     else:
+#         raise Exception("Unrecognized argument: " + sys.argv[i])
+#     i += 1
 
 # old code -- does not work because all profiles have slugs, including duplicate profiles
 # for p in db.profiles.find({}):
