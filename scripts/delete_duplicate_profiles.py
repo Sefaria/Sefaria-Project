@@ -23,42 +23,30 @@ def add_nationbuilder_id_to_correct_profile(first, second):
     db.profile.save(to_update)
 
 
-def main(dry_run):
-    fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
-    with open("duplicate_profiles_outf.csv", "w+") as outf:
-        csv_writer = csv.DictWriter(outf, fieldnames)
-        csv_writer.writeheader()
-        i = 1
+def dedupe(profile, dry_run):
+    duplicates = db.profiles.find({"id": profile['_id']})
+    first = next(duplicates)
+    second = next(duplicates)
+    fields = dict(id=first['id'],
+                  _id_deleted='',
+                  _id_remaining='',
+                  copied_nb_id=False,
+                  dry_run=dry_run
+                  )
 
-        for profile in db.profiles.aggregate([
-            {"$group": {"_id": "$id", "count": {"$sum": 1}},},
-            {"$match": {"_id": {"$ne": None}, "count": {"$gt": 1}}},
-            {"$project": {"_id": 1}}
-        ]):  # get profiles that are duplicated
-            duplicates = db.profiles.find({"id": profile['_id']})
-            first = next(duplicates)
-            second = next(duplicates)
-            fields = dict(id=first['id'],
-                          _id_deleted='',
-                          _id_remaining='',
-                          copied_nb_id=False,
-                          dry_run=dry_run
-                          )
-
-            if first.get('nationbuilder_id') is None and second.get('nationbuilder_id') is not None:
-                if not dry_run:
-                    add_nationbuilder_id_to_correct_profile(first, second)
-                fields['copied_nb_id'] = True
-            if second.get('bio', '') == '' and second.get('gauth_email') is None and second.get('public_email', '') == '':
-                if not dry_run:
-                    pass
-                    db.profiles.delete_one({'_id': second['_id']})
-                fields['_id_deleted'] = second['_id']
-                fields['_id_remaining'] = first['_id']
-            else:
-                fields['_id_deleted'] = 'FAILED TO DELETE'
-            csv_writer.writerow(fields)
-
+    if first.get('nationbuilder_id') is None and second.get('nationbuilder_id') is not None:
+        if not dry_run:
+            add_nationbuilder_id_to_correct_profile(first, second)
+        fields['copied_nb_id'] = True
+    if second.get('bio', '') == '' and second.get('gauth_email') is None and second.get('public_email', '') == '':
+        if not dry_run:
+            pass
+            db.profiles.delete_one({'_id': second['_id']})
+        fields['_id_deleted'] = second['_id']
+        fields['_id_remaining'] = first['_id']
+    else:
+        fields['_id_deleted'] = 'FAILED TO DELETE'
+    csv_writer.writerow(fields)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -69,14 +57,16 @@ if __name__ == '__main__':
                         help="produce output file without actually deleting any profiles")
     args = parser.parse_args()
 
-    sys.exit(main(args.d))
-
-# while i < len(sys.argv):
-#     if sys.argv[i] == "--dry-run":
-#         dry_run = True
-#     else:
-#         raise Exception("Unrecognized argument: " + sys.argv[i])
-#     i += 1
+    with open("duplicate_profiles_outf.csv", "w+") as outf:
+        fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
+        csv_writer = csv.DictWriter(outf, fieldnames)
+        csv_writer.writeheader()
+        for profile in db.profiles.aggregate([
+            {"$group": {"_id": "$id", "count": {"$sum": 1}}},
+            {"$match": {"_id": {"$ne": None}, "count": {"$gt": 1}}},
+            {"$project": {"_id": 1}}
+        ]):  # get profiles that are duplicated
+            dedupe(profile, parser.d)
 
 # old code -- does not work because all profiles have slugs, including duplicate profiles
 # for p in db.profiles.find({}):
