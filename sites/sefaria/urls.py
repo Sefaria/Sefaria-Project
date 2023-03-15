@@ -44,7 +44,9 @@ static_pages = [
     "contest",
     "design-system",
     "powered-by",
-    "word-by-word"
+    "word-by-word",
+    "cloudflare_site_is_down_en",
+    "cloudflare_site_is_down_he",
 ]
 
 static_pages_by_lang = [
