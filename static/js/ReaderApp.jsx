@@ -69,6 +69,7 @@ class ReaderApp extends Component {
         navigationTopicTitle:    props.initialNavigationTopicTitle,
         navigationTopicLetter:   props.initialNavigationTopicLetter,
         topicTitle:              props.initialTopicTitle,
+        topicTestVersion:        props.topicTestVersion,
         profile:                 props.initialProfile,
         collectionName:          props.initialCollectionName,
         collectionSlug:          props.initialCollectionSlug,
@@ -170,11 +171,12 @@ class ReaderApp extends Component {
       tab:                     state.tab                     || null,
       beitMidrashId:           state.beitMidrashId           || null,
       webPagesFilter:          state.webPagesFilter          || null,
-      sideScrollPosition:      state.sideScrollPosition      || null
+      sideScrollPosition:      state.sideScrollPosition      || null,
+      topicTestVersion:        state.topicTestVersion        || null
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
-      var oRef = Sefaria.ref(panel.refs[0]);
+      const oRef = Sefaria.ref(panel.refs[0]);
       if (oRef) {
         const lang = panel.settings.language === "hebrew"?"he":"en";
         panel.currVersions[lang] = this.getCachedVersion(oRef.indexTitle, lang);
@@ -221,29 +223,29 @@ class ReaderApp extends Component {
     if (!this.state.initialAnalyticsTracked) { this.trackPageview(); }
     // If a new panel has been added, and the panels extend beyond the viewable area, check horizontal scroll
     if (this.state.panels.length > this.state.panelCap && this.state.panels.length > prevState.panels.length) {
-      var elem = document.getElementById("panelWrapBox");
-      var viewExtent = (this.state.layoutOrientation == "ltr")                      // How far (px) current view extends into viewable area
+      const elem = document.getElementById("panelWrapBox");
+      const viewExtent = (this.state.layoutOrientation === "ltr")                      // How far (px) current view extends into viewable area
           ? elem.scrollLeft + this.state.windowWidth
           : elem.scrollWidth - elem.scrollLeft;
-      var lastCompletelyVisible = Math.floor(viewExtent / this.MIN_PANEL_WIDTH);    // # of last visible panel - base 1
-      var leftover = viewExtent % this.MIN_PANEL_WIDTH;                             // Leftover viewable pixels after last fully visible panel
+      const lastCompletelyVisible = Math.floor(viewExtent / this.MIN_PANEL_WIDTH);    // # of last visible panel - base 1
+      const leftover = viewExtent % this.MIN_PANEL_WIDTH;                             // Leftover viewable pixels after last fully visible panel
 
-      var newPanelPosition;                                                         // # of newly inserted panel - base 1
-      for (var i = 0; i < this.state.panels.length; i++) {
+      let newPanelPosition;                                                         // # of newly inserted panel - base 1
+      for (let i = 0; i < this.state.panels.length; i++) {
         if (!prevState.panels[i] || this.state.panels[i] != prevState.panels[i]) {
           newPanelPosition = i+1;
           break;
         }
       }
       if(newPanelPosition > lastCompletelyVisible) {
-        var scrollBy = 0;      // Pixels to scroll by
-        var panelOffset = 0;   // Account for partial panel scroll
+        let scrollBy = 0;      // Pixels to scroll by
+        let panelOffset = 0;   // Account for partial panel scroll
         if (leftover > 0) {    // If a panel is half scrolled, bring it fully into view
           scrollBy += this.MIN_PANEL_WIDTH - leftover;
           panelOffset += 1;
         }
         scrollBy += (newPanelPosition - lastCompletelyVisible - panelOffset) * this.MIN_PANEL_WIDTH;
-        elem.scrollLeft = (this.state.layoutOrientation == "ltr")
+        elem.scrollLeft = (this.state.layoutOrientation === "ltr")
             ? elem.scrollLeft + scrollBy
             : elem.scrollLeft - scrollBy;
       }
@@ -386,7 +388,8 @@ class ReaderApp extends Component {
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
-          (prev.settings.aliyotTorah != next.settings.aliyotTorah)) {
+          (prev.settings.aliyotTorah != next.settings.aliyotTorah) ||
+           prev.navigationTopic != next.navigationTopic) {
         return true;
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
@@ -472,7 +475,7 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (state.navigationTopic) {
-              hist.url = `topics/${state.navigationTopic}`;
+              hist.url = state.topicTestVersion ? `topics/${state.topicTestVersion}/${state.navigationTopic}` : `topics/${state.navigationTopic}`;
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
@@ -1678,7 +1681,7 @@ class ReaderApp extends Component {
   }
   openTopic(slug) {
     Sefaria.getTopic(slug).then(topic => {
-      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle});
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle, topicTestVersion: this.props.topicTestVersion});
     });
   }
   openTopicCategory(slug) {
@@ -2119,6 +2122,7 @@ class ReaderApp extends Component {
                       navigatePanel={navigatePanel}
                       divineNameReplacement={this.state.divineNameReplacement}
                       setDivineNameReplacement={this.setDivineNameReplacement}
+                      topicTestVersion={this.props.topicTestVersion}
                     />
                   </div>);
     }
@@ -2201,7 +2205,8 @@ ReaderApp.propTypes = {
   initialPanels:               PropTypes.array,
   initialDefaultVersions:      PropTypes.object,
   initialPath:                 PropTypes.string,
-  initialPanelCap:             PropTypes.number
+  initialPanelCap:             PropTypes.number,
+  topicTestVersion:          PropTypes.string,
 };
 ReaderApp.defaultProps = {
   multiPanel:                  true,
@@ -2218,7 +2223,8 @@ ReaderApp.defaultProps = {
   initialPanels:               [],
   initialDefaultVersions:      {},
   initialPanelCap:             2,
-  initialPath:                 "/"
+  initialPath:                 "/",
+  topicTestVersion:          null
 };
 
 const sefariaSetup = Sefaria.setup;

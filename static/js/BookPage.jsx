@@ -1157,8 +1157,31 @@ const EditTextInfo = function({initTitle, close}) {
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
-  const [compDate, setCompDate] = useState(index.current?.compDate || "");
-  const [errorMargin, setErrorMargin] = useState(index.current?.errorMargin || "");
+  const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
+  const getYearAsStr = (initCompDate) => {
+    if (typeof initCompDate === 'undefined') {
+      return "";
+    }
+    else {
+      initCompDate = String(initCompDate);
+      let pattern = /(-?\d+)(-?)(-?\d*)/;  // this may occur if it is a range.  Some books, such as Genesis store compDate as a range
+      let result = initCompDate.match(pattern);
+      if (result[2] === "-") {
+        return initCompDate;
+      }
+      else {
+        initCompDate = Number(initCompDate);
+        if (errorMargin === 0) {
+          return `${initCompDate}`;
+        } else {
+          const start = initCompDate - errorMargin;
+          const end = initCompDate + errorMargin;
+          return `${start}-${end}`;
+        }
+      }
+    }
+  }
+  const [compDate, setCompDate] = useState(getYearAsStr(index.current?.compDate));
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
@@ -1202,10 +1225,15 @@ const EditTextInfo = function({initTitle, close}) {
     return true;
   }
   const validateCompDate = (newValue) => {
-    if ("-" in newValue) {
-      const range = newValue.split("-");
-      const start = Number.parseInt(range[0]);
-      const end = Number.parseInt(range[1]);
+    let pattern = /(-?\d+)(-?)(-?\d*)/;
+    let result = newValue.match(pattern);
+    if (!result) {
+      setErrorMargin(0);
+      setCompDate(0);
+    }
+    else if (result[2] === "-") {
+      const start = Number.parseInt(result[1]);
+      const end = Number.parseInt(result[3]);
       if (Number.isNaN(start) || Number.isNaN(end)) {
         alert("Year must be an integer or range of integers.");
       }
@@ -1242,8 +1270,8 @@ const EditTextInfo = function({initTitle, close}) {
       postIndex.oldTitle = oldTitle;
     }
     if (compDate !== "") {
-      postIndex.errorMargin = errorMargin === "" ? 0 : errorMargin;
       postIndex.compDate = compDate;
+      postIndex.errorMargin = errorMargin;
     }
     let postJSON = JSON.stringify(postIndex);
     let title = enTitle.replace(/ /g, "_");
@@ -1272,8 +1300,8 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const addAuthor = function (newAuthor) {
     const lowerCaseName = newAuthor.name.toLowerCase();
-    Sefaria.getName(newAuthor.name, false, 10).then(d => {
-      const matches = d.completion_objects.filter((t) => t.type === 'AuthorTopic');
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
+      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
       const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
       if (!exactMatch) {
         const closestMatches = matches.map((t) => t.title);
@@ -1285,6 +1313,7 @@ const EditTextInfo = function({initTitle, close}) {
       }
     });
   }
+
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
@@ -1303,7 +1332,7 @@ const EditTextInfo = function({initTitle, close}) {
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <input id="textTitle" type="text" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
                 </div> : null}
 
             <div className="section">
@@ -1347,7 +1376,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">

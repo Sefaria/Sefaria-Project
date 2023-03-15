@@ -466,7 +466,7 @@ Sefaria = extend(Sefaria, {
     }
     paramStr = paramStr.replace(/&/,'?');
 
-    // Split into multipe requests if URL length goes above limit
+    // Split into multiple requests if URL length goes above limit
     let refStrs = [""];
     refs.map(ref => {
       let last = refStrs[refStrs.length-1];
@@ -2265,6 +2265,32 @@ _media: {},
           return d;
         });
   },
+  sortTopicsCompareFn: function(a, b) {
+    // a compare function that is useful for sorting topics
+    // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
+    const [aDisplayOrder, bDisplayOrder] = [a, b].map(x => Sefaria.isTopicTopLevel(x.slug) ? 10000 : x.displayOrder);
+
+    // Sort alphabetically according to interface lang in absense of display order
+    if (aDisplayOrder === bDisplayOrder) {
+      const stripInitialPunctuation = str => str.replace(/^["#]/, "");
+      const [aAlpha, bAlpha] = [a, b].map(x => {
+        if (Sefaria.interfaceLang === "hebrew") {
+          return (x.he.length) ?
+            stripInitialPunctuation(x.he) :
+           "תתת" + stripInitialPunctuation(x.en);
+        } else {
+          return (x.en.length) ?
+            stripInitialPunctuation(x.en) :
+            stripInitialPunctuation(x.he)
+        }
+      });
+
+      return aAlpha < bAlpha ? -1 : 1;
+    }
+
+    return aDisplayOrder - bDisplayOrder;
+
+  },
   _tableOfContentsDedications: {},
   _inAppAds: null,
   _stories: {
@@ -2318,15 +2344,15 @@ _media: {},
     for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
-        if (tabKey == 'about') {
+        if (tabKey === 'about') {
           tabKey = refObj.is_sheet ? 'sheets' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey == 'sheets') {
+          if (tabKey === 'sheets') {
             title = {en: 'Sheets', he: Sefaria._('Sheets')};
           }
-          if (tabKey == 'sources') {
+          if (tabKey === 'sources') {
             title = {en: 'Sources', he: Sefaria._('Sources')};
           }
           tabs[tabKey] = {
@@ -2336,7 +2362,7 @@ _media: {},
           };
         }
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
-        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
     for (let tabObj of Object.values(tabs)) {

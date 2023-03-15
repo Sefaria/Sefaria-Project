@@ -29,8 +29,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'subclass',  # str which indicates which subclass of `Topic` this instance is
         'alt_ids',
         'properties',
-        'description',
-        'categoryDescription',
+        'description',  # dictionary, keys are 2-letter language codes
+        'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
         'numSources',
@@ -76,8 +76,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.titles = self.title_group.titles
         slug_field = self.slug_fields[0]
         slug = getattr(self, slug_field)
-        if IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"}):
+        childOfAuthors = IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"})
+        if childOfAuthors:
             self.subclass = "author"
+        elif getattr(self, "subclass", "") == "author":
+            del self.subclass
 
     def _sanitize(self):
         super()._sanitize()
@@ -712,8 +715,41 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+
+    # is_sheet and expandedRef: defaulted automatically in normalize
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+
+    # unambiguousToTopic: used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+    # descriptions: Titles and learning prompts for this Ref in this Topic context.  Structured as follows:
+    # descriptions: {
+    #     en: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     },
+    #     he: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     }
+    # }
+    optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic', 'descriptions']
+
+    def set_description(self, lang, title, prompt):
+        d = getattr(self, "descriptions", {})
+        d[lang] = {
+            "title": title,
+            "prompt": prompt,
+        }
+        self.descriptions = d
+        return self
+
+    def _sanitize(self):
+        super()._sanitize()
+        for lang, d in getattr(self, "descriptions", {}).items():
+            for k, v in d.items():
+                if isinstance(v, str):
+                    self.descriptions[lang][k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
 
     def load(self, query, proj=None):
         query = TopicLinkSetHelper.init_query(query, 'refTopic')

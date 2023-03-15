@@ -2389,8 +2389,6 @@ def tag_category_api(request, path=None):
         return jsonResponse(category_names)
 
 
-
-
 @catch_error_as_json
 @csrf_exempt
 def category_api(request, path=None):
@@ -2401,7 +2399,7 @@ def category_api(request, path=None):
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Parent of category must exist.
+    POST can take the argument 'reorder' on the URL and if provided, its children will be reordered.  Takes complete category as payload.  Parent of category must exist.
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
@@ -3064,8 +3062,11 @@ def topics_page(request):
     })
 
 
+def topic_page_b(request, topic):
+    return topic_page(request, topic, test_version="b")
+
 @sanitize_get_params
-def topic_page(request, topic):
+def topic_page(request, topic, test_version=None):
     """
     Page of an individual Topic
     """
@@ -3076,6 +3077,7 @@ def topic_page(request, topic):
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
+
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
@@ -3087,13 +3089,16 @@ def topic_page(request, topic):
         "topicData": _topic_page_data(topic),
     }
 
+    if test_version is not None:
+        props["topicTestVersion"] = test_version
+
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    return render_template(request,'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
@@ -3129,9 +3134,11 @@ def add_new_topic_api(request):
         t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
+        library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
+
 
         def protected_index_post(request):
             return jsonResponse(t.contents())
@@ -3144,6 +3151,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            library.build_topic_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3175,9 +3183,12 @@ def topics_api(request, topic, v2=False):
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
+        author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         if topic_data["category"] == topic_data["origCategory"]:
             topic_data.pop("category")  # no need to check category in update_topic
         topic_obj = update_topic(topic_obj, **topic_data)
+        if author_status_changed:
+            library.build_topic_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
@@ -3201,6 +3212,18 @@ def topic_graph_api(request, topic):
             "links": [l.contents() for l in links]
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@staff_member_required
+def reorder_topics(request):
+    topics = json.loads(request.POST["json"]).get("topics", [])
+    results = []
+    for display_order, t in enumerate(topics):
+        topic = Topic().load({'slug': t['slug']})
+        topic.displayOrder = display_order*10
+        topic.save()
+        results.append(topic.contents())
+    return jsonResponse({"topics": results})
 
 
 @catch_error_as_json
