@@ -17,7 +17,6 @@ parameters:
 
 
 def add_nationbuilder_id_to_correct_profile(first, second):
-    pass
     to_update = db.profiles.find_one({"_id": first['_id']})
     to_update['nationbuilder_id'] = second['nationbuilder_id']
     db.profile.save(to_update)
@@ -46,7 +45,7 @@ def dedupe(profile, dry_run):
         fields['_id_remaining'] = first['_id']
     else:
         fields['_id_deleted'] = 'FAILED TO DELETE'
-    csv_writer.writerow(fields)
+    return fields
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -61,12 +60,12 @@ if __name__ == '__main__':
         fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
-        for profile in db.profiles.aggregate([
+        for p in db.profiles.aggregate([
             {"$group": {"_id": "$id", "count": {"$sum": 1}}},
             {"$match": {"_id": {"$ne": None}, "count": {"$gt": 1}}},
             {"$project": {"_id": 1}}
         ]):  # get profiles that are duplicated
-            dedupe(profile, parser.d)
+            csv_writer.writerow(dedupe(p, parser.d))
 
 # old code -- does not work because all profiles have slugs, including duplicate profiles
 # for p in db.profiles.find({}):
