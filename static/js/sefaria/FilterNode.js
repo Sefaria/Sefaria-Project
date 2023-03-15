@@ -166,7 +166,7 @@ class FilterNode {
      */
   clone(prepareForSerialization) {
     const cloned = new FilterNode(this);
-    cloned.children.map( c => c.clone(prepareForSerialization));
+    cloned.children = cloned.children.map( c => c.clone(prepareForSerialization));
     return cloned;
   }
 }
