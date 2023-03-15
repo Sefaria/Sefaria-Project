@@ -147,14 +147,27 @@ class FilterNode {
       }
       return results;
   }
-  clone() {
-    const cloned = new FilterNode({ ...this });
-    const children = this.children.map( c => {
-      const cloned_child = c.clone();
-      cloned_child.parent = cloned;
-      return cloned_child;
+  checkParentChildRelationship(prefix) {
+      if (this.parent && !this.parent.children.some(c => c === this)) {
+          console.log(prefix, "1");
+      }
+      if (this.children?.length && this.children[0].parent !== this) {
+          console.log(prefix, "2");
+      }
+  }
+
+    /**
+     * Returns a clone of this FilterNode
+     * @param prepareForSerialization: bool, if true, sets `parent` field to null. This field is an issue when serializing FilterNode because it recursively refers to existing FilterNodes.
+     * @returns {FilterNode}
+     */
+  clone(prepareForSerialization) {
+    this.checkParentChildRelationship("this");
+    const cloned = new FilterNode(this);
+    cloned.children.map( c => {
+        return c.clone(prepareForSerialization);
     });
-    cloned.children = children;
+    cloned.checkParentChildRelationship("cloned");
     return cloned;
   }
 }
