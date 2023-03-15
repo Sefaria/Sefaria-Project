@@ -2466,6 +2466,7 @@ def category_api(request, path=None):
         reorder = request.GET.get("reorder", False)
         last_path = j.get("sharedTitle", "")
         he_last_path = j.get("heSharedTitle", "")
+
         if new_category is not None and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
             # this case occurs when moving Tanakh's Rashi category into
             # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
