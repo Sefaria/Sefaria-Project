@@ -5636,7 +5636,9 @@ class Library(object):
     def get_term(self, term_name):
         if not self._full_term_mapping:
             self.build_term_mappings()
-        return self._full_term_mapping.get(term_name)
+        return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
+
+
 
     def get_topic(self, slug):
         return self._topic_mapping[slug]
