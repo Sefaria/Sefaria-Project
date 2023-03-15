@@ -298,6 +298,7 @@ class WebSite(abst.AbstractMongoRecord):
         "num_webpages",
         "exclude_from_tracking",
         "whitelist_selectors",
+        'lastUpdated',
     ]
 
     def __key(self):
