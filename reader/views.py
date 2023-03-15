@@ -2501,6 +2501,7 @@ def category_api(request, path=None):
 
         if reorder or ("origPath" not in j) or (j.get('origPath') != j.get('path')):
             # if we reorder the children, or create a new category, or if we update a category's path
+            logger.info("Category API rebuilding TOC...")
             library.rebuild(include_toc=True)
         return jsonResponse(results)
 
