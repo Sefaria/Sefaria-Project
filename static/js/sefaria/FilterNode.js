@@ -7,14 +7,25 @@ class FilterNode {
       this.aggKey = aggKey;
       this.aggType = aggType;
       this.children = typeof children === 'undefined' ? [] :
-        children.map(c => {
-          const ret = c instanceof FilterNode ? c : new FilterNode(c);
-          ret.parent = this;
-          return ret;
+        children.map(child => {
+            if (child instanceof FilterNode) { return child; }
+            return this.restoreFromSerialization(child);
         }
       );
       this.parent = typeof parent === 'undefined' ? null : parent;
       this.selected = (typeof selected === 'undefined') ? 0 : selected; //0 - not selected, 1 - selected, 2 - partially selected
+  }
+
+    /**
+     * FilterNodes get serialized when stored in browser history
+     * We need to recreate them and make sure they fit into the FilterNode tree
+     * @param serializedFilterNode - plain JS object with the fields of a FilterNode
+     * @returns {FilterNode}
+     */
+  restoreFromSerialization(serializedFilterNode) {
+      const fullFilterNode = new FilterNode(serializedFilterNode);
+      fullFilterNode.parent = this;
+      return fullFilterNode;
   }
   sumDocs() {
       if (!this.hasChildren()) {
@@ -147,14 +158,6 @@ class FilterNode {
       }
       return results;
   }
-  checkParentChildRelationship(prefix) {
-      if (this.parent && !this.parent.children.some(c => c === this)) {
-          console.log(prefix, "1");
-      }
-      if (this.children?.length && this.children[0].parent !== this) {
-          console.log(prefix, "2");
-      }
-  }
 
     /**
      * Returns a clone of this FilterNode
@@ -162,12 +165,8 @@ class FilterNode {
      * @returns {FilterNode}
      */
   clone(prepareForSerialization) {
-    this.checkParentChildRelationship("this");
     const cloned = new FilterNode(this);
-    cloned.children.map( c => {
-        return c.clone(prepareForSerialization);
-    });
-    cloned.checkParentChildRelationship("cloned");
+    cloned.children.map( c => c.clone(prepareForSerialization));
     return cloned;
   }
 }
