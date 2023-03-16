@@ -4,7 +4,6 @@ import csv
 import sys
 import argparse
 
-
 """
 Deletes duplicate profiles in the database and produces an output file documenting
 which profiles were deleted.
@@ -12,8 +11,9 @@ which profiles were deleted.
 
 Notes:
 "Duplicate profiles" are defined as mongo profile documents that have the same profile id, but a different slug and a
-different _id.
+different _id. They were created by the bug identified here: https://trello.com/c/pUEf6Awr/2828-user-accounts-are-duplicated
 """
+
 
 def dedupe(profile_id, dry_run):
     """
