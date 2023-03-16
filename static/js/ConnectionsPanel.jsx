@@ -38,6 +38,7 @@ import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
+import WebPage from './WebPage'
 
 
 class ConnectionsPanel extends Component {
@@ -1261,52 +1262,6 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
   );
 }
 
-class WebPage extends Component {
-  render() {
-    const authorsNum = this.props.authors?.length;
-    const author = authorsNum > 1 ? 'Authors' : 'Author';
-    function getAuthorsString(lang, authors) {
-      const finalJoiner = (lang === 'he') ? ' ו' : ' and ';
-      function arrangeAuthorName(authorName) {
-        return authorName.split(', ').reverse().join(' ');
-      }
-      function addAuthorToString(accumulator, author, i) {
-        let joiner = i === 0 ? '' : i === authorsNum - 1 ? finalJoiner : ', ';
-        return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
-      }
-      return authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
-    }
-    const authorsNames = getAuthorsString(this.props.isHebrew ? 'he' : 'en', this.props.authors);
-    return (<div className={"webpage" + (this.props.isHebrew ? " hebrew" : "")} key={this.props.url}>
-      <img className="icon" src={this.props.favicon} />
-      <a className="title" href={this.props.url} target="_blank">{this.props.title}</a>
-      <div className="domain">{this.props.domain}</div>
-      {this.props.description ? <div className="description">{this.props.description}</div> : null}
-      <div className="webpageMetadata">
-        {authorsNames ? <div className="authors">
-          <InterfaceText>{author}</InterfaceText>: {authorsNames}
-        </div> : null}
-        {this.props.articleSource ? <div className="articleSource">
-          <InterfaceText>Source</InterfaceText>: {this.props.articleSource.title}{this.props.articleSource.related_parts ? ` ${this.props.articleSource.related_parts}`: ''}
-        </div> : null}
-        <div className="citing">
-          <InterfaceText>Citing</InterfaceText>: {Sefaria._r(this.props.anchorRef)}
-        </div>
-      </div>
-    </div>)
-  }
-}
-WebPage.propTypes = {
-  authors: PropTypes.array, //array of strings
-  isHebrew: PropTypes.bool,
-  favicon: PropTypes.string,
-  url: PropTypes.string,
-  domain: PropTypes.string,
-  title: PropTypes.string,
-  articleSource: PropTypes.object,
-  anchorRef: PropTypes.string,
-};
-
 class WebPagesList extends Component {
   // List of web pages for a ref in the sidebar
   setFilter(filter) {
@@ -1343,16 +1298,7 @@ class WebPagesList extends Component {
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
       content = webpages.map((webpage, i) => {
-        return (<WebPage
-          authors={webpage.authors}
-          isHebrew={webpage.isHebrew}
-          favicon={webpage.favicon}
-          url={webpage.url}
-          domain={webpage.domain}
-          title={webpage.title}
-          articleSource={webpage.articleSource}
-          anchorRef={webpage.anchorRef}
-          key={i}/>);
+        return (<WebPage {...webpage} key={i} />);
       });
     }
 
