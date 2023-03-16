@@ -101,7 +101,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
     const [savingStatus, setSavingStatus] = useState(false);
     const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
     const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []));
-    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState(origSubcategoriesAndBooks.current);
+    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState([...origSubcategoriesAndBooks.current]);
 
     const handlePrimaryClick = function(type, status) {
         setIsPrimary(status);
