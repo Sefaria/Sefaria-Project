@@ -402,13 +402,13 @@ class ReaderApp extends Component {
     }
     return false;
   }
-  clonePanel(panel, trimFilters) {
-    return Sefaria.util.clone(panel, trimFilters);
+  clonePanel(panel, prepareForSerialization) {
+    return Sefaria.util.clone(panel, prepareForSerialization);
   }
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
-    var states = this.state.panels;
+    const states = this.state.panels.map(panel => this.clonePanel(panel, true));
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
     const shortLang = Sefaria.interfaceLang === 'hebrew' ? 'he' : 'en';
 
@@ -424,7 +424,6 @@ class ReaderApp extends Component {
     }
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      states[i] = this.clonePanel(states[i], true);
       if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
@@ -2022,7 +2021,7 @@ class ReaderApp extends Component {
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
-      var panel                    = this.clonePanel(panelStates[i]);
+      const panel                        = panelStates[i];
       if (!("settings" in panel )) { debugger; }
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
