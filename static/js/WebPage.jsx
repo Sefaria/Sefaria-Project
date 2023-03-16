@@ -4,7 +4,7 @@ import Sefaria from "./sefaria/sefaria";
 import React from "react";
 
 
-const AuthorString = (authors, isHebrew) => {
+const AuthorString = ({authors, isHebrew}) => {
   const authorsNum = authors?.length;
   function getAuthorsAsString(lang, authors) {
     const finalJoiner = (lang === 'he') ? ' ו' : ' and ';
@@ -37,7 +37,7 @@ const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, a
     <div className="domain">{domain}</div>
     {description ? <div className="description">{description}</div> : null}
     <div className="webpageMetadata">
-      {AuthorString(authors, isHebrew)}
+      <AuthorString authors={authors} isHebrew={isHebrew} />
       {articleSource ? <div className="articleSource">
         <InterfaceText>Source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
       </div> : null}
