@@ -3,7 +3,9 @@ import {InterfaceText} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import React from "react";
 
-const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef}) => {
+
+const AuthorString = (authors, isHebrew) => {
+  const authorsNum = authors?.length;
   function getAuthorsAsString(lang, authors) {
     const finalJoiner = (lang === 'he') ? ' ו' : ' and ';
     function arrangeAuthorName(authorName) {
@@ -15,23 +17,27 @@ const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, a
     }
     return authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
   }
-  function getAuthorString(authors) {
-    const authorsNum = authors?.length;
-    const author = authorsNum > 1 ? 'Authors' : 'Author';
-    const authorsNames = getAuthorsAsString(isHebrew ? 'he' : 'en', authors);
-    return (
-       authorsNames ? <div className="authors">
-               <InterfaceText>{author}</InterfaceText>: {authorsNames}
-           </div> : null
-    );
-  }
+  const author = authorsNum > 1 ? 'Authors' : 'Author';
+  const authorsNames = getAuthorsAsString(isHebrew ? 'he' : 'en', authors);
+  return (
+     authorsNames ? <div className="authors">
+             <InterfaceText>{author}</InterfaceText>: {authorsNames}
+         </div> : null
+  );
+}
+AuthorString.propTypes = {
+  authors: PropTypes.array, //array of strings
+  isHebrew: PropTypes.bool,
+};
+
+const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef}) => {
   return (<div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
     <img className="icon" src={favicon} />
     <a className="title" href={url} target="_blank">{title}</a>
     <div className="domain">{domain}</div>
     {description ? <div className="description">{description}</div> : null}
     <div className="webpageMetadata">
-      {getAuthorString(authors)}
+      {AuthorString(authors, isHebrew)}
       {articleSource ? <div className="articleSource">
         <InterfaceText>Source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
       </div> : null}
