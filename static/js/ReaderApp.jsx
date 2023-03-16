@@ -993,7 +993,7 @@ class ReaderApp extends Component {
     parent = target,
     outmost = event.currentTarget;
     while (parent) {
-      if(parent.nodeName == 'A'){
+      if(parent.nodeName === 'A'){
         return parent
       }
       else if (parent.parentNode === outmost) {
