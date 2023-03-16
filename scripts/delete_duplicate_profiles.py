@@ -59,7 +59,8 @@ def profiles_empty(non_primary_profiles):
     non_primaries_empty = True
     for non_primary_profile in non_primary_profiles:
         # Check that non-primary profiles do not have any important info
-        # Note: We don't check profile_pic_url because this was populated in the duplicate profile by a script
+        # Note: We don't check profile_pic_url or nationbuilder_id because
+        # these were populated in the duplicate profile by a script
         non_primaries_empty = non_primary_profile.get('bio', '') == '' \
                               and non_primary_profile.get('gauth_email') is None \
                               and non_primary_profile.get('public_email', '') == '' \
