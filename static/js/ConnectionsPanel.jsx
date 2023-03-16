@@ -1186,7 +1186,7 @@ class PublicSheetsList extends Component {
       // Then by number of views
       return b.views - a.views;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />);
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
