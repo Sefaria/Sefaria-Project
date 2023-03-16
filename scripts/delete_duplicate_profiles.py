@@ -7,45 +7,82 @@ import argparse
 
 """
 Deletes duplicate profiles in the database and produces an output file documenting
-which profiles were deleted
+which profiles were deleted.
+:flag --dry-run, -d: produce output file without actually deleting any profiles
 
-usage: python delete_duplicate_profiles.py
-
-parameters:
---dry-run: produce output file without actually deleting any profiles
+Notes:
+"Duplicate profiles" are defined as mongo profile documents that have the same profile id, but a different slug and a
+different _id.
 """
 
+def dedupe(profile_id, dry_run):
+    """
+    Returns a dictionary with information about id attempted to delete.
 
-def add_nationbuilder_id_to_correct_profile(first, second):
-    to_update = db.profiles.find_one({"_id": first['_id']})
-    to_update['nationbuilder_id'] = second['nationbuilder_id']
-    db.profile.save(to_update)
+    Current profile accessor functions pull by id and do not have a mechanism for determining the 'primary' profile.
+    Values are read from and written to the "first" profile match (based on insertion order -- Mongo's default)
+    Therefore, we too make the "assumption" that the first profile pulled is the "main" profile.
+    """
+    duplicates = db.profiles.find({"id": profile_id})
+    profiles = [profile for profile in duplicates]
+    if len(profiles) < 2:
+        return dict(id=profile_id,
+                    notes="2 profiles not found: database change error",
+                    dry_run=dry_run)
+    try:
+        output_log = dict(id=profiles[0]['id'],
+                          _id_deleted='',
+                          _id_remaining='',
+                          copied_nb_slug=False,
+                          dry_run=dry_run)
+
+        if profiles_empty(profiles[1:]):
+            if not dry_run:
+                output_log['copied_nb_slug'] = add_nationbuilder_id_to_correct_profile(profiles)
+            output_log['_id_remaining'] = profiles[0]['_id']
+            for profile in profiles[1:]:
+                if not dry_run:
+                    db.profiles.delete_one({'_id': profile['_id']})
+                output_log['_id_deleted'] = output_log['_id_deleted'] + ',' + profile['_id'] if \
+                    output_log['_id_deleted'] != '' else profile['_id']  # comma separate if multiple ids
+        else:
+            output_log['notes'] = 'DID NOT DELETE DUPLICATE: not empty'
+    except Exception as e:
+        output_log['notes'] = e
+    return output_log
 
 
-def dedupe(profile, dry_run):
-    duplicates = db.profiles.find({"id": profile['_id']})
-    first = next(duplicates)
-    second = next(duplicates)
-    fields = dict(id=first['id'],
-                  _id_deleted='',
-                  _id_remaining='',
-                  copied_nb_id=False,
-                  dry_run=dry_run
-                  )
+def profiles_empty(non_primary_profiles):
+    """
+    Ensure that non-primary profiles do not have anything useful in them
+    """
+    non_primaries_empty = True
+    for non_primary_profile in non_primary_profiles:
+        # Check that non-primary profiles do not have any important info
+        # Note: We don't check profile_pic_url because this was populated in the duplicate profile by a script
+        non_primaries_empty = non_primary_profile.get('bio', '') == '' \
+                              and non_primary_profile.get('gauth_email') is None \
+                              and non_primary_profile.get('public_email', '') == '' \
+                              and non_primary_profile.get('position', '') == ''
+    return non_primaries_empty
 
-    if first.get('nationbuilder_id') is None and second.get('nationbuilder_id') is not None:
-        if not dry_run:
-            add_nationbuilder_id_to_correct_profile(first, second)
-        fields['copied_nb_id'] = True
-    if second.get('bio', '') == '' and second.get('gauth_email') is None and second.get('public_email', '') == '':
-        if not dry_run:
-            pass
-            db.profiles.delete_one({'_id': second['_id']})
-        fields['_id_deleted'] = second['_id']
-        fields['_id_remaining'] = first['_id']
-    else:
-        fields['_id_deleted'] = 'FAILED TO DELETE'
-    return fields
+
+def add_nationbuilder_id_to_correct_profile(profiles):
+    """
+    Adds nationbuilder id to the primary profile if the primary profile does not have one.
+    Returns False if not updated.
+    Returns the slug of the profile the nationbuilder_id was taken from if updated.
+    """
+
+    if profiles[0].get('nationbuilder_id', '') != '' and profiles[0].get('nationbuilder_id', '') is not None:
+        return False
+    to_update = db.profiles.find_one({"_id": profiles[0]['_id']})
+    for profile in profiles[1:]:
+        if profile.get('nationbuilder_id', '') != '' and profile.get('nationbuilder_id', '') is not None:
+            to_update['nationbuilder_id'] = profile['nationbuilder_id']
+            db.profile.save(to_update)
+            return profile['slug']
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -57,7 +94,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open("duplicate_profiles_outf.csv", "w+") as outf:
-        fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_id", "dry_run"]
+        fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_slug", "notes", "dry_run"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for p in db.profiles.aggregate([
