@@ -119,6 +119,9 @@ data:
         }
 
         location / {
+            {{- if .Values.instrumentation.enabled }}
+            opentelemetry_trust_incoming_spans on;
+            {{- end }}
             proxy_send_timeout  300;
             proxy_read_timeout  300;
             proxy_set_header Host $host;
