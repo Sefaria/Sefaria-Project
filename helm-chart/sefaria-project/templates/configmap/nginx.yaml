@@ -6,7 +6,18 @@ metadata:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
 data:
+  {{- if .Values.instrumentation.enabled }}
+  opentelemetry_module.conf: |-
+    NginxModuleEnabled ON;
+    NginxModuleOtelSpanExporter otlp;
+    NginxModuleOtelExporterEndpoint {{ .Values.instrumentation.endpoint }};
+    NginxModuleServiceName nginx-{{ .Values.deployEnv }};
+  {{- end }}
   nginx.template.conf: |-
+    {{- if .Values.instrumentation.enabled }}
+    load_module /opt/opentelemetry-webserver-sdk/WebServerModule/Nginx/ngx_http_opentelemetry_module.so;
+    {{- end }}
+
     user www-data;
     worker_processes 8;
     error_log  /var/log/nginx/error.log warn;

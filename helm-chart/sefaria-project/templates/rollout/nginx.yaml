@@ -72,9 +72,15 @@ spec:
           periodSeconds: 30
         resources: {{ toYaml .Values.nginx.resources | nindent 10 }}
         volumeMounts:
-          - mountPath: /conf
+          - mountPath: /conf/nginx.template.conf
             name: nginx-conf
+            subPath: nginx.template.conf
             readOnly: true
+          {{- if .Values.instrumentation.enabled }}
+          - mountPath: /etc/nginx/conf.d/opentelemetry_module.conf
+            name: nginx-conf
+            subPath: opentelemetry_module.conf
+          {{- end }}
           - mountPath: /app/robots.txt
             name: robots-txt
             readOnly: true
