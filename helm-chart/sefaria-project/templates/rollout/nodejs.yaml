@@ -31,6 +31,9 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: nodejs
         releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Vales.instrumentation.enabled }}
+        instrumentation.opentelemetry.io/inject-nodejs: "true" 
+        {{- end }}
     spec:
       affinity:
         podAntiAffinity:
