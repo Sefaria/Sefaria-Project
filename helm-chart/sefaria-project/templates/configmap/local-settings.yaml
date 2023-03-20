@@ -22,3 +22,4 @@ data:
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
+  MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
