@@ -59,7 +59,7 @@
     "findandreplacedomtext": "^0.4.6",
     "humanize-duration": "^3.27.0",
     "is-hotkey": "^0.1.6",
-    "jquery": "^2.2.0",
+    "jquery": "^3.5.0",
     "jquery-ui": "1.12.1",
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
