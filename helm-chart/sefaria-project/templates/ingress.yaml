@@ -6,6 +6,12 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: nginx-ingress
+    {{- if .Values.instrumentation.enabled }}
+    nginx.ingress.kubernetes.io/enable-opentracing: "true"
+    nginx.ingress.kubernetes.io/jaeger-service-name: ingress-{{ .Values.deployEnv }}
+    nginx.ingress.kubernetes.io/jaeger-collector-endpoint: {{ .Values.instrumentation.endpoint }}
+    nginx.ingress.kubernetes.io/jaeger-propagation-format: w3c
+    {{- end }}
 spec:
   tls:
     - secretName: {{ template "sefaria.secrets.originTls" . }}

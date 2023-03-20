@@ -83,6 +83,26 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
+          {{- if .Values.instrumentation.enabled }}
+          - name: OTEL_SERVICE_NAME
+            value: {{ .Values.deployEnv }}-web
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: {{ .Values.instrumentation.endpoint }} 
+          - name: OTEL_PROPAGATORS
+            value: tracecontext,baggage,b3,jaeger
+          - name: OTEL_RESOURCE_ATTRIBUTES_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OTEL_RESOURCE_ATTRIBUTES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: k8s.container.name=app,k8s.deployment.name=nstrumentation-web,k8s.namespace.name=default,k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}

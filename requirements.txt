@@ -64,3 +64,5 @@ python-bidi
 
 opentelemetry-distro
 opentelemetry-exporter-otlp
+opentelemetry-propagator-b3
+opentelemetry-propagator-jaeger
