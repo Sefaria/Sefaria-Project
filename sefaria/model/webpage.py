@@ -15,6 +15,7 @@ from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
+from sefaria.model import *
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -471,13 +472,13 @@ def clean_webpages(test=True):
 
 
 def webpages_stats():
-    webpages = WebPageSet()
+    webpages = WebPageSet(proj={"expandedRefs": False})
     total_pages  = webpages.count()
     total_links  = []
     websites = {}
     year_data = Counter()
 
-    for webpage in webpages:
+    for webpage in tqdm(webpages):
         website = webpage.get_website()
         if website:
             if website not in websites:
@@ -528,7 +529,7 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
         if site not in new_active_sites.keys():  # if True, site has not been updated recently
             print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
             for webpage in unactive_unacknowledged_sites[site]:
-                if test:
+                if not test:
                     webpage.delete()
 
     return sites_added
@@ -632,7 +633,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
+                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
@@ -640,6 +641,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                 if keep:
                     assert domain not in sites_to_delete
                     sites_to_keep[domain] = True
+
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete

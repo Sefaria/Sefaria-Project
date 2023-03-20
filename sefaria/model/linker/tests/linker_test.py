@@ -168,6 +168,13 @@ crrd = create_raw_ref_data
     [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
     [crrd(['@ספר החינוך', '#ב']), ['Sefer HaChinukh 2']],
+
+    #ben yehuda project
+    [crrd(["@בראש'", '#א', '#ב']), ["Genesis 1:2"]],
+    [crrd(['@רש"י', "@כתוב'", '#י:']), ["Rashi on Ketubot 10b"]],
+    [crrd(["@מקוא'", '#א', '#ב']), ["Mishnah Mikvaot 1:2"]],
+    [crrd(['@תוספתא', "@יומ'", '#א', '#א']), ["Tosefta Yoma 1:1", 'Tosefta Yoma (Lieberman) 1:1']],
+
     # pytest.param(crrd(None, 'he', 'החינוך, כי תבא, עשה תר"ו', [0, slice(2, 4), 5, slice(6, 9)], [RPT.NAMED, RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Sefer HaChinukh 3'], marks=pytest.mark.xfail(reason="Don't support Aseh as address type yet")),
     # [crrd(None, 'he', 'מכילתא מסכתא דעמלק', [0, slice(1, 3)], [RPT.NAMED, RPT.NAMED]), ["Mekhilta d'Rabbi Yishmael 17:8-18:27"]],
     # [crrd(None, 'he', 'מכילתא שמות כא ג', [slice(0, 2), 2, 3], [RPT.NAMED, RPT.NUMBERED, RPT.NUMBERED]), ["Mekhilta d'Rabbi Yishmael 21:3"]],

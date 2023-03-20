@@ -74,7 +74,9 @@ class BookPage extends Component {
 
     if (this.isBookToc() && !this.props.compare) {
       if(!this.state.versionsLoaded){
-        Sefaria.getVersions(this.props.title, false, null, false).then(this.onVersionsLoad);
+        Sefaria.getVersions(this.props.title).then(result => {
+          this.onVersionsLoad(Object.values(result).flat());
+        })
       }
     }
   }
@@ -967,7 +969,9 @@ DictionaryNode.propTypes = {
 
 class VersionsList extends Component {
   componentDidMount() {
-    Sefaria.getVersions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+    Sefaria.getVersions(this.props.currentRef).then((result) => {
+          this.onVersionsLoad(Object.values(result).flat());
+        });
   }
   onVersionsLoad(versions){
     versions.sort(
@@ -1152,9 +1156,32 @@ const EditTextInfo = function({initTitle, close}) {
   const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
-  const [authors, setAuthors] = useState(index.current.authors.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})));
-  const [compDate, setCompDate] = useState(index.current?.compDate || "");
-  const [errorMargin, setErrorMargin] = useState(index.current?.errorMargin || "");
+  const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
+  const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
+  const getYearAsStr = (initCompDate) => {
+    if (typeof initCompDate === 'undefined') {
+      return "";
+    }
+    else {
+      initCompDate = String(initCompDate);
+      let pattern = /(-?\d+)(-?)(-?\d*)/;  // this may occur if it is a range.  Some books, such as Genesis store compDate as a range
+      let result = initCompDate.match(pattern);
+      if (result[2] === "-") {
+        return initCompDate;
+      }
+      else {
+        initCompDate = Number(initCompDate);
+        if (errorMargin === 0) {
+          return `${initCompDate}`;
+        } else {
+          const start = initCompDate - errorMargin;
+          const end = initCompDate + errorMargin;
+          return `${start}-${end}`;
+        }
+      }
+    }
+  }
+  const [compDate, setCompDate] = useState(getYearAsStr(index.current?.compDate));
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
@@ -1197,6 +1224,39 @@ const EditTextInfo = function({initTitle, close}) {
     }
     return true;
   }
+  const validateCompDate = (newValue) => {
+    let pattern = /(-?\d+)(-?)(-?\d*)/;
+    let result = newValue.match(pattern);
+    if (!result) {
+      setErrorMargin(0);
+      setCompDate(0);
+    }
+    else if (result[2] === "-") {
+      const start = Number.parseInt(result[1]);
+      const end = Number.parseInt(result[3]);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else if (end <= start) {
+        alert(`Invalid date format ${start} to ${end}`);
+      }
+      else {
+        const midpoint = (start + end) / 2;
+        setCompDate(midpoint);
+        setErrorMargin(midpoint - start);
+      }
+    }
+    else {
+      setErrorMargin(0);
+      const year = Number.parseInt(newValue);
+      if (Number.isNaN(year)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else {
+        setCompDate(year);
+      }
+    }
+  }
   const save = function() {
     const enTitleVariantNames = titleVariants.map(i => i.name);
     const heTitleVariantNames = heTitleVariants.map(i => i.name);
@@ -1210,8 +1270,8 @@ const EditTextInfo = function({initTitle, close}) {
       postIndex.oldTitle = oldTitle;
     }
     if (compDate !== "") {
-      postIndex.errorMargin = errorMargin === "" ? 0 : errorMargin;
       postIndex.compDate = compDate;
+      postIndex.errorMargin = errorMargin;
     }
     let postJSON = JSON.stringify(postIndex);
     let title = enTitle.replace(/ /g, "_");
@@ -1240,8 +1300,8 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const addAuthor = function (newAuthor) {
     const lowerCaseName = newAuthor.name.toLowerCase();
-    Sefaria.getName(newAuthor.name, false, 10).then(d => {
-      const matches = d.completion_objects.filter((t) => t.type === 'AuthorTopic');
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
+      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
       const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
       if (!exactMatch) {
         const closestMatches = matches.map((t) => t.title);
@@ -1253,6 +1313,7 @@ const EditTextInfo = function({initTitle, close}) {
       }
     });
   }
+
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
@@ -1263,15 +1324,15 @@ const EditTextInfo = function({initTitle, close}) {
         <div className="inner">
           {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
-            <AdminToolHeader en={"Index Editor"} he={"עריכת מאפייני אינדקס"} close={close} validate={validateThenSave}/>
+            <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
-              <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
+              <input type="text" id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <input id="textTitle" type="text" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
                 </div> : null}
 
             <div className="section">
@@ -1297,11 +1358,6 @@ const EditTextInfo = function({initTitle, close}) {
               <label><InterfaceText>Category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
-            {index.current.hasOwnProperty("sectionNames") ?
-              <div className="section">
-                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
-                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
-              </div> : null}
 
             <div className="section">
               <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
@@ -1319,15 +1375,14 @@ const EditTextInfo = function({initTitle, close}) {
                   <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
                 </div> : null}
             <div className="section">
-              <div><InterfaceText>Completion Date</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-
-              <input id="compDate" onBlur={(e) => setCompDate(e.target.value)} defaultValue={compDate}/>
+              <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
             </div>
-            <div className="section">
-              <div><InterfaceText>Error Margin</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-
-              <input id="errorMargin" onBlur={(e) => setErrorMargin(e.target.value)} defaultValue={errorMargin}/>
-            </div>
+            {index.current.hasOwnProperty("sectionNames") ?
+              <div className="section">
+                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+              </div> : null}
           </div>
         </div>
       </div>

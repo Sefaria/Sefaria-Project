@@ -1344,6 +1344,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
         "actualLanguage",
+        "isBaseText",
     ]
 
     def __str__(self):
@@ -4552,7 +4553,8 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle", "shortVersionTitleInHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle",
+                  "shortVersionTitleInHebrew", "isBaseText"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -5373,6 +5375,12 @@ class Library(object):
         self.get_toc_tree().update_title(indx, recount=True)
 
         self.rebuild_toc(skip_toc_tree=True)
+
+    def delete_category_from_toc(self, category):
+        # This is used in the case of a remotely triggered multiserver update
+        toc_node = self.get_toc_tree().lookup(category.path)
+        if toc_node:
+            self.get_toc_tree().remove_category(toc_node)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
@@ -6388,7 +6396,6 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 def reset_simple_term_mapping(o, **kwargs):
     library.get_simple_term_mapping(rebuild=True)
-
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")

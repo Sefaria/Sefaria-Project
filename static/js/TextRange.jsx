@@ -101,6 +101,8 @@ class TextRange extends Component {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
+      // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
+      firstAvailableRef: this.props.basetext ? 1 : 0,
       translationLanguagePreference: this.props.translationLanguagePreference,
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };

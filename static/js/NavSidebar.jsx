@@ -727,7 +727,8 @@ const DownloadVersions = ({sref}) => {
         Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
     }
     useEffect(() => {
-        Sefaria.getVersions(sref, false, [], false).then(data => {
+        Sefaria.getVersions(sref).then(data => {
+            data = Object.values(data).flat();
             data = data.filter(isVersionPublicDomain);
             data.sort((a, b) => a.versionTitle.localeCompare(b.versionTitle));
             setVersions(data);

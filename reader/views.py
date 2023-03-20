@@ -77,6 +77,8 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
+from sefaria.helper.topic import update_topic
+from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -982,7 +984,7 @@ def translations_page(request, slug):
         "he": {"name": "Hebrew", "nativeName": "עברית", "title": "ספריה בעברית", "desc": "הספרייה החינמית הגדולה ביותר של טקסטים יהודיים הזמינים לקריאה מקוונת בעברית ובאנגלית, לרבות תורה, תנח, תלמוד, משנה, מדרש, פירושים ועוד."},
         "it": {"name": "Italian", "nativeName": "Italiano", "title": "Testi ebraici in italiano", "desc": "La più grande libreria gratuita di testi ebraici disponibile per la lettura online in ebraico, italiano e inglese, inclusi Torah, Tanakh, Talmud, Mishnah, Midrash, commenti e altro ancora." },
         #"lad": {"name": "Ladino", "nativeName": "Judeo-español"},
-        "pl": {"name": "Polish", "nativeName": "Polskie", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
+        "pl": {"name": "Polish", "nativeName": "Polski", "title": "Teksty żydowskie w języku polskim", "desc": "Największa bezpłatna biblioteka tekstów żydowskich dostępna do czytania online w języku hebrajskim, polskim i angielskim, w tym Tora, Tanach, Talmud, Miszna, Midrasz, komentarze i wiele innych."},
         "pt": {"name": "Portuguese", "nativeName": "Português", "title": "Textos judaicos em portugues", "desc": "A maior biblioteca gratuita de textos judaicos disponível para leitura online em hebraico, português e inglês, incluindo Torá, Tanakh, Talmud, Mishnah, Midrash, comentários e muito mais."},
         "ru": {"name": "Russian", "nativeName": "Pусский", "title": "Еврейские тексты на русском языке", "desc": "Самая большая бесплатная библиотека еврейских текстов, доступных для чтения онлайн на иврите, русском и английском языках, включая Тору, Танах, Талмуд, Мишну, Мидраш, комментарии и многое другое."},
         "yi": {"name": "Yiddish", "nativeName": "יידיש", "title": "יידישע טעקסטן אויף יידיש", "desc": "די גרעסטע פרייע ביבליאָטעק פון יידישע טעקסטן צו לייענען אָנליין אין לשון קדוש ,יידיש און ענגליש. תורה, תנך, תלמוד, משנה, מדרש, פירושים און אזוי אנדערע."},
@@ -2387,20 +2389,27 @@ def tag_category_api(request, path=None):
         return jsonResponse(category_names)
 
 
-
-
 @catch_error_as_json
 @csrf_exempt
 def category_api(request, path=None):
     """
     API for looking up categories and adding Categories to the Category collection.
+    DELETE takes a category path on the URL
     GET takes a category path on the URL.  Returns the category specified.
        e.g. "api/category/Tanakh/Torah"
        If the category is not found, it will return "error" in a json object.
        It will also attempt to find the closest parent.  If found, it will include "closest_parent" alongside "error".
-    POST takes no arguments on the URL.  Takes complete category as payload.  Category must not already exist.  Parent of category must exist.
+    POST can take the argument 'reorder' on the URL and if provided, its children will be reordered.  Takes complete category as payload.  Parent of category must exist.
     """
-    if request.method == "GET":
+    if request.method == "DELETE":
+        cat = Category().load({"path": path.split("/")})
+        if cat:
+            cat.delete()
+            library.rebuild_toc()
+            return jsonResponse({"status": "OK"})
+        else:
+            return jsonResponse({"error": "Category {} doesn't exist".format(path)})
+    elif request.method == "GET":
         if not path:
             return jsonResponse({"error": "Please provide category path."})
         cats = path.split("/")
@@ -2415,8 +2424,9 @@ def category_api(request, path=None):
         return jsonResponse({"error": "Category not found"})
 
     if request.method == "POST":
-        def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, Category, cat, **kwargs).contents()
+        def _internal_do_post(request, update, cat, uid, **kwargs):
+            func = tracker.update if update else tracker.add
+            return func(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2441,16 +2451,47 @@ def category_api(request, path=None):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j = json.loads(j)
+        update = int(request.GET.get("update", False))
+        new_category = Category().load({"path": j["path"]})
         if "path" not in j:
             return jsonResponse({"error": "'path' is a required attribute"})
-        if Category().load({"path": j["path"]}):
+        if not update and new_category is not None:
             return jsonResponse({"error": "Category {} already exists.".format(", ".join(j["path"]))})
-        if not Category().load({"path": j["path"][:-1]}):
-            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
-        return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
-    if request.method == "DELETE":
-        return jsonResponse({"error": "Unsupported HTTP method."})  # TODO: support this?
+        parent = j["path"][:-1]
+        if len(parent) > 0 and not Category().load({"path": parent}):
+            # ignore len(parent) == 0 since these categories are at the root of the TOC tree and have no parent
+            return jsonResponse({"error": "No parent category found: {}".format(", ".join(j["path"][:-1]))})
+
+        reorder = request.GET.get("reorder", False)
+        last_path = j.get("sharedTitle", "")
+        he_last_path = j.get("heSharedTitle", "")
+
+        if new_category is not None and "origPath" in j and j["origPath"] != j["path"] and j["origPath"][-1] == last_path:
+            # this case occurs when moving Tanakh's Rashi category into
+            # Rishonim on Bavli where there is already a Rashi, which may mean user wants to merge the two
+            return {"error": f"Merging two categories named {last_path} is not supported."}
+        elif "heSharedTitle" in j:
+            # if heSharedTitle provided, make sure sharedTitle and heSharedTitle correspond to same Term
+            en_term = Term().load_by_title(last_path)
+            he_term = Term().load_by_title(he_last_path)
+            if en_term and en_term == he_term:
+                pass  # both titles are found in an existing Term object
+            else:
+                # titles weren't found in same Term object, so try to create a new Term
+                t = Term()
+                t.name = last_path
+                t.add_primary_titles(last_path, he_last_path)
+                t.save()
+
+        results = {}
+        if reorder:
+            orig_path = j.get('path', []) if "origPath" not in j else j.get('origPath', [])
+            results["reorder"] = update_order_of_category_children(orig_path, uid, j["subcategoriesAndBooks"])
+        if len(j['path']) > 0:  # not at root of TOC
+            results["update"] = _internal_do_post(request, update, j, uid, **kwargs)
+
+        return jsonResponse(results)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3021,8 +3062,11 @@ def topics_page(request):
     })
 
 
+def topic_page_b(request, topic):
+    return topic_page(request, topic, test_version="b")
+
 @sanitize_get_params
-def topic_page(request, topic):
+def topic_page(request, topic, test_version=None):
     """
     Page of an individual Topic
     """
@@ -3033,6 +3077,7 @@ def topic_page(request, topic):
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
+
     props = {
         "initialMenu": "topics",
         "initialTopic": topic,
@@ -3044,13 +3089,16 @@ def topic_page(request, topic):
         "topicData": _topic_page_data(topic),
     }
 
+    if test_version is not None:
+        props["topicTestVersion"] = test_version
+
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    return render_template(request,'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
@@ -3076,19 +3124,21 @@ def add_new_topic_api(request):
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
-        t.set_slug_to_primary_title()
 
         if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         t.description_published = True
-        t.change_description(data["description"], data.get("catDescription", {}))
+        t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
+        t.change_description(data["description"], data.get("catDescription", None))
         t.save()
 
+        library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
+
 
         def protected_index_post(request):
             return jsonResponse(t.contents())
@@ -3101,6 +3151,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
+            library.build_topic_auto_completer()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3131,82 +3182,13 @@ def topics_api(request, topic, v2=False):
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
-        topic_obj.data_source = "sefaria"   #any topic edited manually should display automatically in the TOC and this flag ensures this
-
-        if topic_data["origTitle"] != topic_data["title"]:
-            # rename Topic
-            topic_obj.add_title(topic_data["title"], 'en', True, True)
-            topic_obj.set_slug_to_primary_title()
-
-        if topic_data["origCategory"] != topic_data["category"]:
-            # change IntraTopicLink from old category to new category and set newSlug if it changed
-            # special casing for moving to the Main Menu, where we delete the IntraTopicLink that linked it to its previous parent
-            from_topic = topic_obj.slug
-            orig_to_topic = topic_data["origCategory"]
-            orig_link_dict = {"fromTopic": from_topic, "toTopic": orig_to_topic, "linkType": "displays-under"}
-            orig_link = IntraTopicLink().load(orig_link_dict)
-            has_link_to_itself = (from_topic == orig_to_topic) and orig_link is not None
-
-            if topic_data["category"] == "Main Menu":
-                child = IntraTopicLink().load({"linkType": "displays-under", "toTopic": topic_obj.slug})
-                if child is None:
-                    # a top-level topic won't display properly if it doesn't have children so need to set shouldDisplay flag
-                    topic_obj.shouldDisplay = True
-                    topic_obj.save()
-
-                if orig_link:  # top of the tree doesn't need an IntraTopicLink to its previous parent
-                    orig_link.delete()
-
-                link_to_itself = {"fromTopic": from_topic, "toTopic": from_topic, "dataSource": "sefaria",
-                                "linkType": "displays-under"}
-                if getattr(topic_obj, "numSources", 0) > 0 and IntraTopicLink().load(link_to_itself) is None:
-                    # if topic has sources and we dont create an IntraTopicLink to itself, they wont be accessible from the topic TOC
-                    IntraTopicLink(link_to_itself).save()
-            else:
-                # (1) create new link if existing link links topic to itself, as this means the topic
-                # functions as both a topic and category and we don't want to modify that link, or
-                # (2) create new link if topic is being moved out of main menu, as this means no current IntraTopicLink may exist
-                # (3) otherwise, modify existing link so that it has new category
-                link = IntraTopicLink() if (has_link_to_itself or orig_to_topic == "Main Menu") else orig_link
-                link.fromTopic = from_topic
-                link.toTopic = topic_data["category"]
-                link.linkType = "displays-under"
-                link.dataSource = "sefaria"
-                link.save()
-
-        topic_needs_save = False      # will get set to True if isTopLevelDisplay or description is changed
-
-        if (topic_data["category"] == "Main Menu") != getattr(topic_obj, "isTopLevelDisplay", False):    # True when topic moved to top level or moved from top level
-            topic_needs_save = True
-            topic_obj.isTopLevelDisplay = topic_data["category"] == "Main Menu"
-
-        if topic_data["origHeTitle"] != topic_data["heTitle"]:
-            topic_obj.add_title(topic_data["heTitle"], 'he', True, True)
-            topic_needs_save = True
-
-        if topic_data["origDescription"] != topic_data["description"] or topic_data.get("origCatDescription", {}) != topic_data.get("catDescription", {}):
-            topic_obj.description_published = True
-            topic_obj.change_description(topic_data["description"], topic_data.get("catDescription", {}))
-            topic_needs_save = True
-
-        if topic_needs_save:
-            topic_obj.save()
-
-        if topic_data["origCategory"] != topic_data["category"]:
-            library.get_topic_toc(rebuild=True)
-        else:
-            path = get_path_for_topic_slug(topic_data["origSlug"])
-            old_node = get_node_in_library_topic_toc(path)
-            if topic_data["origSlug"] != old_node["slug"]:
-                return jsonResponse({"error": f"Slug {topic_data['origSlug']} not found in library._topic_toc."})
-            old_node.update({"en": topic_obj.get_primary_title(), "slug": topic_obj.slug, "description": topic_obj.description})
-            if "heTitle" in topic_data:
-                old_node["he"] = topic_obj.get_primary_title('he')
-            if hasattr(topic_obj, "categoryDescription"):
-                old_node["categoryDescription"] = topic_obj.categoryDescription
-
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        topic_data["manual"] = True
+        author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
+        if topic_data["category"] == topic_data["origCategory"]:
+            topic_data.pop("category")  # no need to check category in update_topic
+        topic_obj = update_topic(topic_obj, **topic_data)
+        if author_status_changed:
+            library.build_topic_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic_obj.contents())
@@ -3230,6 +3212,18 @@ def topic_graph_api(request, topic):
             "links": [l.contents() for l in links]
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@staff_member_required
+def reorder_topics(request):
+    topics = json.loads(request.POST["json"]).get("topics", [])
+    results = []
+    for display_order, t in enumerate(topics):
+        topic = Topic().load({'slug': t['slug']})
+        topic.displayOrder = display_order*10
+        topic.save()
+        results.append(topic.contents())
+    return jsonResponse({"topics": results})
 
 
 @catch_error_as_json
@@ -4358,7 +4352,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "MidrashRabbah": {
             "title": "Midrash Rabbah",
             "heTitle": "מדרש רבה",
-            "shapeParam": "Midrash/Aggadah/Midrash Rabbah",
+            "shapeParam": "Midrash Rabbah",
             "linkCountParam": "Midrash Rabbah",
             "colorByBook": True,
         },

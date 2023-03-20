@@ -74,7 +74,6 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
 
-
 # Terms
 # TODO cascade change to Term.name.
 # TODO Current locations where we know terms are used [Index, Categories]
@@ -109,9 +108,7 @@ subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug"
 
 
 # Categories
-subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")
-subscribe(text.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
-subscribe(text.rebuild_library_after_category_change,                   category.Category, "delete")
+subscribe(category.process_category_path_change,  category.Category, "attributeChange", "path")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
 
 # Manuscripts

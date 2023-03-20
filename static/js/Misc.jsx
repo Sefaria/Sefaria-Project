@@ -13,6 +13,9 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
+import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
+import {TopicEditor} from "./TopicEditor";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -64,7 +67,7 @@ const InterfaceText = ({text, html, children, context}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
@@ -115,7 +118,7 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
-  if(languageToFilter == "bilingual"){
+  if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){
       //nifty function that sorts one array according to the order of a second array.
       renderedItems.sort(function(a, b){
@@ -1046,7 +1049,115 @@ class ToggleOption extends Component {
   }
 }
 
-        //style={this.props.style}
+         //style={this.props.style}
+
+const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
+    $.post(url, {"json": JSON.stringify(data)}, function (result) {
+            if (result.error) {
+                setSavingStatus(false);
+                alert(result.error);
+            } else {
+                redirect();
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
+}
+
+ const TopicToCategorySlug = function(topic, category=null) {
+   //helper function for AdminEditor
+   if (!category) {
+     category = Sefaria.topicTocCategory(topic.slug);
+   }
+   let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
+   // so all category topics initialized to "Main Menu"
+   if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+     // this case handles categories that are not top level but have children under them
+     const displayUnderLinks = topic.links["displays-under"]?.links;
+     if (displayUnderLinks && displayUnderLinks.length === 1) {
+       initCatSlug = displayUnderLinks[0].topic;
+     }
+   }
+   return initCatSlug;
+ }
+
+function useHiddenButtons() {
+    const [hideButtons, setHideButtons] = useState(true);
+    const handleMouseOverAdminButtons = () => {
+        setHideButtons(false);
+        setTimeout(() => setHideButtons(true), 3000);
+    }
+    return [hideButtons, handleMouseOverAdminButtons];
+}
+
+const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
+  const [editCategory, toggleEditCategory] = useEditToggle();
+  const [addCategory, toggleAddCategory] = useEditToggle();
+  const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
+
+  const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+  let adminButtonsSpan = null;
+  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(path));
+
+  if (Sefaria.is_moderator && editCategory) {
+    if (path.length === 0) {  // at /texts or /topics
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
+    } else if (type === "books") {
+      let tocObject = Sefaria.tocObjectByCategories(path);
+      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+      const origData = {
+        origEn: tocObject.category,
+        origHe: tocObject.heCategory,
+        origDesc,
+        origCategoryDesc,
+        isPrimary: tocObject.isPrimary
+      };
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+    } else if (type === "topics") {
+      if (!topicData) {
+        Sefaria.getTopic(path).then(d => {setTopicData(d);})
+      }
+      else {
+        const initCatSlug = TopicToCategorySlug(topicData);
+        const origData = {
+          origSlug: topicData.slug, origCategorySlug: initCatSlug,
+          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
+        };
+        origData.origDesc = topicData.description || {"en": "", "he": ""};
+        origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
+        const origWasCat = "displays-above" in topicData?.links;
+        adminButtonsSpan = <TopicEditor origData={origData}
+                                        origWasCat={origWasCat}
+                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                        close={toggleEditCategory}/>;
+      }
+
+    }
+  } else if (Sefaria.is_moderator && addCategory) {
+    const origData = {origEn: ""};
+    if (type === "books") {
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+    } else if (type === "topics") {
+      origData['origCategorySlug'] = path;
+      adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
+                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+    }
+  } else if (Sefaria.is_moderator) {
+    adminButtonsSpan = <span className={adminClasses}>
+                              {!editOnly ? <AdminEditorButton text="Add sub-category"
+                                                              toggleAddingTopics={toggleAddCategory}/> : null}
+      <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
+                          </span>;
+
+  }
+  const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
+  return <span className={wrapper}><span
+      onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
+}
+
+
+
 
 class SearchButton extends Component {
   render() {
@@ -1844,7 +1955,7 @@ class InterruptingMessage extends Component {
     this.settings = {
       "modal": {
         "trackingName": "Interrupting Message",
-        "showDelay": 30000,
+        "showDelay": 1000,
       },
       "banner": {
         "trackingName": "Banner Message",
@@ -2437,10 +2548,10 @@ const CategoryChooser = function({categories, update}) {
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
     if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+      return <option key={key+1} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
-      return <option key={key} value={child.category}>{child.category}</option>
+      return <option key={key+1} value={child.category}>{child.category}</option>
     }
   });
   menus.push(options);
@@ -2462,7 +2573,7 @@ const CategoryChooser = function({categories, update}) {
           {menus.map((menu, index) =>
             <div id="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
               </select>
             </div>)}
@@ -2752,6 +2863,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 export {
+  CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
   SimpleContentBlock,
@@ -2813,5 +2925,6 @@ export {
   DivineNameReplacer,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants
+  TitleVariants,
+  postWithCallBack
 };
