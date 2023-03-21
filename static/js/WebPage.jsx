@@ -4,22 +4,25 @@ import Sefaria from "./sefaria/sefaria";
 import React from "react";
 
 
-function getAuthorsAsString(lang, authors) {
-  const finalJoiner = (lang === 'he') ? ' ו' : ' and ';
-  function arrangeAuthorName(authorName) {
-    return authorName.split(', ').reverse().join(' ');
-  }
-  function addAuthorToString(accumulator, author, i) {
-    let joiner = i === 0 ? '' : i === authorsNum - 1 ? finalJoiner : ', ';
-    return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
-  }
-  return authors?.reduce(addAuthorToString, '');
+function arrangeAuthorName(authorName) {
+  return authorName.split(', ').reverse().join(' ');
+}
+
+function addAuthorToString(finalJoiner, accumulator, author, i, authors) {
+  const authorsNum = authors?.length;
+  let joiner = i === 0 ? '' : i === authorsNum - 1 ? finalJoiner : ', ';
+  return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
+}
+
+function getAuthorsAsString(isHebrew, authors) {
+  const finalJoiner = isHebrew ? ' ו' : ' and ';
+  return authors?.reduce((...reduceArgs) => addAuthorToString(finalJoiner, ...reduceArgs), '');
 }
 
 const AuthorString = ({authors, isHebrew}) => {
   const authorsNum = authors?.length;
   const author = authorsNum > 1 ? 'Authors' : 'Author';
-  const authorsNames = getAuthorsAsString(isHebrew ? 'he' : 'en', authors);
+  const authorsNames = getAuthorsAsString(isHebrew, authors);
   return (
      authorsNames ? <div className="authors">
              <InterfaceText>{author}</InterfaceText>: {authorsNames}
