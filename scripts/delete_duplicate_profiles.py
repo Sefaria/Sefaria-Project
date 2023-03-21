@@ -31,12 +31,13 @@ def dedupe(profile_id, dry_run):
         to_keep = profiles[0]
         output_log = {"id": to_keep['id'], "_id_deleted": '', "_id_remaining": '', "dry_run": dry_run,
                       '_id_remaining': to_keep['_id']}
+        deleted = []
         for profile in profiles[1:]:
             if not dry_run:
                 update_empty(to_keep, profile)
                 db.profiles.delete_one({'_id': profile['_id']})
-            output_log['_id_deleted'] = output_log['_id_deleted'] + ',' + profile['_id'] if \
-                output_log['_id_deleted'] != '' else profile['_id']  # comma separate if multiple ids
+            deleted.append(profile['_id'])
+        output_log['_id_deleted'] = '+'.join(output_log['_id_deleted'])
     except Exception as e:
         output_log['notes'] = e
     return output_log
