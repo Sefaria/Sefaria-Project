@@ -287,11 +287,6 @@ class ReusableTermCreator():
         self.create_sa_terms()
 
 
-RTM = ReusableTermManager()
-reusable_term_creator = ReusableTermCreator(RTM)
-reusable_term_creator.create_all_terms()
-
-
 class SpecificConverterManager:
 
     def __init__(self):
@@ -1351,6 +1346,10 @@ class SpecificConverterManager:
 
 
 if __name__ == '__main__':
+    RTM = ReusableTermManager()
+    reusable_term_creator = ReusableTermCreator(RTM)
+    reusable_term_creator.create_all_terms()
+
     converter_manager = SpecificConverterManager()
     converter_manager.convert_tanakh()
     converter_manager.convert_bavli()

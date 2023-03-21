@@ -40,13 +40,13 @@ class SearchState {
     return registry;
   }
 
-  clone(trimFilters) {
+  clone(prepareForSerialization) {
+    const clonedAvailableFilters = Util.clone(this.availableFilters, prepareForSerialization);
     return new SearchState({
-      appliedFilters:   Util.clone(this.appliedFilters),
-      appliedFilterAggTypes: Util.clone(this.appliedFilterAggTypes),
-      availableFilters: trimFilters ? [] : this.availableFilters,
-      filterRegistry:   trimFilters ? {} : this.filterRegistry,
-      filtersValid:     trimFilters ? false : this.filtersValid,
+      appliedFilters:   Util.clone(this.appliedFilters, prepareForSerialization),
+      appliedFilterAggTypes: Util.clone(this.appliedFilterAggTypes, prepareForSerialization),
+      availableFilters:   clonedAvailableFilters,
+      filtersValid:       this.filtersValid,
       orphanFilters:      this.orphanFilters,
       type:               this.type,
       fieldExact:         this.fieldExact,
