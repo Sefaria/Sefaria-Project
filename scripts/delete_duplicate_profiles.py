@@ -30,23 +30,15 @@ def dedupe(profile_id, dry_run):
                     notes="2 profiles not found: database change error",
                     dry_run=dry_run)
     try:
-        output_log = dict(id=profiles[0]['id'],
-                          _id_deleted='',
-                          _id_remaining='',
-                          copied_nb_slug=False,
-                          dry_run=dry_run)
-
-        if profiles_empty(profiles[1:]):
+        to_keep = profiles[0]
+        output_log = {"id": to_keep['id'], "_id_deleted": '', "_id_remaining": '', "dry_run": dry_run,
+                      '_id_remaining': to_keep['_id']}
+        for profile in profiles[1:]:
             if not dry_run:
-                output_log['copied_nb_slug'] = add_nationbuilder_id_to_correct_profile(profiles)
-            output_log['_id_remaining'] = profiles[0]['_id']
-            for profile in profiles[1:]:
-                if not dry_run:
-                    db.profiles.delete_one({'_id': profile['_id']})
-                output_log['_id_deleted'] = output_log['_id_deleted'] + ',' + profile['_id'] if \
-                    output_log['_id_deleted'] != '' else profile['_id']  # comma separate if multiple ids
-        else:
-            output_log['notes'] = 'DID NOT DELETE DUPLICATE: not empty'
+                update_empty(to_keep, profile)
+                db.profiles.delete_one({'_id': profile['_id']})
+            output_log['_id_deleted'] = output_log['_id_deleted'] + ',' + profile['_id'] if \
+                output_log['_id_deleted'] != '' else profile['_id']  # comma separate if multiple ids
     except Exception as e:
         output_log['notes'] = e
     return output_log
@@ -68,22 +60,12 @@ def profiles_empty(non_primary_profiles):
     return non_primaries_empty
 
 
-def add_nationbuilder_id_to_correct_profile(profiles):
-    """
-    Adds nationbuilder id to the primary profile if the primary profile does not have one.
-    Returns False if not updated.
-    Returns the slug of the profile the nationbuilder_id was taken from if updated.
-    """
-
-    if profiles[0].get('nationbuilder_id', '') != '' and profiles[0].get('nationbuilder_id', '') is not None:
-        return False
-    to_update = db.profiles.find_one({"_id": profiles[0]['_id']})
-    for profile in profiles[1:]:
-        if profile.get('nationbuilder_id', '') != '' and profile.get('nationbuilder_id', '') is not None:
-            to_update['nationbuilder_id'] = profile['nationbuilder_id']
-            db.profile.save(to_update)
-            return profile['slug']
-
+def update_empty(copy_into, copy_from):
+    for k, v in list(copy_from.items()):
+        if v:
+            if k not in copy_into.__dict__ or copy_into.__dict__[k] == '' or copy_into.__dict__[k] == []:
+                copy_into.__dict__[k] = v
+    db.profile.save(copy_into)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -95,7 +77,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open("duplicate_profiles_outf.csv", "w+") as outf:
-        fieldnames = ["id", "_id_deleted", "_id_remaining", "copied_nb_slug", "notes", "dry_run"]
+        fieldnames = ["id", "_id_deleted", "_id_remaining", "notes", "dry_run"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for p in db.profiles.aggregate([
