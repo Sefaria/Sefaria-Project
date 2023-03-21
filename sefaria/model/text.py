@@ -33,7 +33,7 @@ from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -1175,12 +1175,7 @@ class AbstractTextRecord(object):
                 # get target lengths
                 at_least = min_char - prev_len
                 at_most = max_char - prev_len
-
-                for bchar in ".;, ":
-                    # enumerate all places where this char is in segment
-                    for candidate in [pos for pos, char in enumerate(segment) if char == bchar][::-1]:
-                        if at_least <= candidate <= at_most:
-                            return balance(previous_state + joiner + segment[:candidate] + "…")
+                return balance(previous_state + joiner + truncate_string(segment, at_least, at_most))
 
         # We've reached the end, it's not longer than max_char, and it's what we've got.
         return accumulator

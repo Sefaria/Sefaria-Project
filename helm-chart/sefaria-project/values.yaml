@@ -396,3 +396,4 @@ localSettings:
   SITE_PACKAGE: "sites.sefaria"
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
+  MULTISERVER_ENABLED: "True"
