@@ -13,7 +13,7 @@ function getAuthorsAsString(lang, authors) {
     let joiner = i === 0 ? '' : i === authorsNum - 1 ? finalJoiner : ', ';
     return `${accumulator}${joiner}${arrangeAuthorName(author)}`;
   }
-  return authors?.reduce((accumulator, author, i) => addAuthorToString(accumulator, author, i), '');
+  return authors?.reduce(addAuthorToString, '');
 }
 
 const AuthorString = ({authors, isHebrew}) => {
