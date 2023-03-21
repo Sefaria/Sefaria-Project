@@ -26,9 +26,7 @@ def dedupe(profile_id, dry_run):
     duplicates = db.profiles.find({"id": profile_id})
     profiles = [profile for profile in duplicates]
     if len(profiles) < 2:
-        return dict(id=profile_id,
-                    notes="2 profiles not found: database change error",
-                    dry_run=dry_run)
+        return {"id": profile_id, "notes":"2 profiles not found: database change error", "dry_run": dry_run}
     try:
         to_keep = profiles[0]
         output_log = {"id": to_keep['id'], "_id_deleted": '', "_id_remaining": '', "dry_run": dry_run,
