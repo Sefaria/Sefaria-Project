@@ -187,7 +187,7 @@ def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
     for subcategoryOrBook in subcategoriesAndBooks:
         order += 5
         try:
-            obj = library.get_index(subcategoryOrBook).contents()
+            obj = library.get_index(subcategoryOrBook).contents(raw=True)
             obj['order'] = [order]
             result = tracker.update(uid, Index, obj)
         except BookNameError as e:
