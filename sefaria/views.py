@@ -514,11 +514,11 @@ def collections_image_upload(request, resize_image=True):
 def reset_cache(request):
     model.library.rebuild()
 
-    if USE_VARNISH:
-        invalidate_all()
-
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
+
+    if USE_VARNISH:
+        invalidate_all()
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
