@@ -15,7 +15,7 @@ data:
   {{- end }}
   nginx.template.conf: |-
     {{- if .Values.instrumentation.enabled }}
-    load_module /opt/opentelemetry-webserver-sdk/WebServerModule/Nginx/ngx_http_opentelemetry_module.so;
+    load_module /opt/opentelemetry-webserver-sdk/WebServerModule/Nginx/${NGINX_VERSION}/ngx_http_opentelemetry_module.so;
     {{- end }}
 
     user www-data;
