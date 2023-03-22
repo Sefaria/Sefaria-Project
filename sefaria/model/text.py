@@ -5623,7 +5623,7 @@ class Library(object):
             if not rebuild:
                 self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
             if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(rebuild=rebuild), ensure_ascii=False)
                 scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
                 self.set_last_cached_time()
         return self._simple_term_mapping_json
@@ -5631,7 +5631,9 @@ class Library(object):
     def get_term(self, term_name):
         if not self._full_term_mapping:
             self.build_term_mappings()
-        return self._full_term_mapping.get(term_name)
+        return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
+
+
 
     def get_topic(self, slug):
         return self._topic_mapping[slug]

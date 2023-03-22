@@ -5500,7 +5500,6 @@ But not to use a display block directive that might break continuous mode for ot
   bottom: 0;
   left: 0;
   position: absolute;
-  text-align: justify;
   margin: 0 auto;
   background-color: #FBFBFA;
 }
