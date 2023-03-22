@@ -170,4 +170,5 @@ localSettings:
   SEARCH_HOST: contextus-es-http.elasticsearch.svc
   DEFAULT_FROM_EMAIL: "Contextus <hello@contextus.org>"
   SERVER_EMAIL: "dev@contextus.org"
+  MULTISERVER_ENABLED: "False"
 

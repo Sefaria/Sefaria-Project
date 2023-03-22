@@ -7,14 +7,25 @@ class FilterNode {
       this.aggKey = aggKey;
       this.aggType = aggType;
       this.children = typeof children === 'undefined' ? [] :
-        children.map(c => {
-          const ret = c instanceof FilterNode ? c : new FilterNode(c);
-          ret.parent = this;
-          return ret;
+        children.map(child => {
+            if (child instanceof FilterNode) { return child; }
+            return this.restoreFromSerialization(child);
         }
       );
       this.parent = typeof parent === 'undefined' ? null : parent;
       this.selected = (typeof selected === 'undefined') ? 0 : selected; //0 - not selected, 1 - selected, 2 - partially selected
+  }
+
+    /**
+     * FilterNodes get serialized when stored in browser history
+     * We need to recreate them and make sure they fit into the FilterNode tree
+     * @param serializedFilterNode - plain JS object with the fields of a FilterNode
+     * @returns {FilterNode}
+     */
+  restoreFromSerialization(serializedFilterNode) {
+      const fullFilterNode = new FilterNode(serializedFilterNode);
+      fullFilterNode.parent = this;
+      return fullFilterNode;
   }
   sumDocs() {
       if (!this.hasChildren()) {
@@ -147,14 +158,16 @@ class FilterNode {
       }
       return results;
   }
-  clone() {
-    const cloned = new FilterNode({ ...this });
-    const children = this.children.map( c => {
-      const cloned_child = c.clone();
-      cloned_child.parent = cloned;
-      return cloned_child;
-    });
-    cloned.children = children;
+
+    /**
+     * Returns a clone of this FilterNode
+     * @param prepareForSerialization: bool, if true, sets `parent` field to null. This field is an issue when serializing FilterNode because it recursively refers to existing FilterNodes.
+     * @returns {FilterNode}
+     */
+  clone(prepareForSerialization) {
+    const cloned = new FilterNode(this);
+    cloned.children = cloned.children.map( c => c.clone(prepareForSerialization));
+    if (prepareForSerialization) { cloned.parent = null; }
     return cloned;
   }
 }

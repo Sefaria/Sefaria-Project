@@ -48,6 +48,7 @@ crrd = create_raw_ref_data
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#עמוד ב', '@במכות']), ("Makkot 2",)],
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
     [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
+    [crrd(['@שבת', '#ב', '#א']), ["Shabbat 2a", "Mishnah Shabbat 2:1"]],  # ambiguous case
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],
