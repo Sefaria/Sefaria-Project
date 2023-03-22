@@ -1333,7 +1333,11 @@ class ReaderApp extends Component {
     }
     panel.settings.language = this._getPanelLangOnVersionChange(panel, versionLanguage, panel.mode === "Connections");
     const { dependentPanel, isDependentPanelConnections } = this._getDependentPanel(n);
-    dependentPanel.currVersions = panel.currVersions;
+
+    // make sure object reference changes for setState()
+    dependentPanel.currVersions = {...panel.currVersions};
+    panel.currVersions = {...panel.currVersions};
+
     dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
     this.setState({panels: this.state.panels});
   }
