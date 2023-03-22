@@ -1469,8 +1469,8 @@ const DonatePage = () => (
                 heText=""
                 enButtonText="Email Us to Learn More"
                 heButtonText=""
-                enButtonUrl="mailto:hannah@sefaria.org"
-                heButtonUrl="mailto:hannah@sefaria.org"
+                enButtonUrl="mailto:samantha@sefaria.org"
+                heButtonUrl="mailto:samantha@sefaria.org"
                 borderColor="#7C416F"
             />
 
