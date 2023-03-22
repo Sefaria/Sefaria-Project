@@ -2403,9 +2403,9 @@ def category_api(request, path=None):
     """
     if request.method == "DELETE":
         cat = Category().load({"path": path.split("/")})
-        if cat:
+        if cat and cat.can_delete():
             cat.delete()
-            library.rebuild_toc()
+            library.rebuild(include_toc=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Category {} doesn't exist".format(path)})

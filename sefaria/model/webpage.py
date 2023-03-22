@@ -2,7 +2,7 @@
 from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
-
+from django.core.validators import URLValidator
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
@@ -12,6 +12,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
 from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
+from sefaria.utils.util import truncate_string
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
@@ -31,7 +32,10 @@ class WebPage(abst.AbstractMongoRecord):
         "description",
         "expandedRefs",
         "body",
-        "linkerHits"
+        "linkerHits",
+        'authors',
+        'articleSource',
+        'type'
     ]
 
     def load(self, url_or_query):
@@ -41,9 +45,9 @@ class WebPage(abst.AbstractMongoRecord):
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain      = WebPage.domain_for_url(self.url)
-            self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
+            self.favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else None
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
@@ -67,7 +71,26 @@ class WebPage(abst.AbstractMongoRecord):
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
+        validator = URLValidator()
+        validator(self.url)
+        if hasattr(self, 'type'):
+            assert self.type == 'article', "WebPage's type can be 'article' or not exist"
+        else:
+            assert not hasattr(self, 'articleSource'), "only WebPage of type 'article' can have 'articleSource' attribute"
+        articleSource = getattr(self, 'articleSource', None)
+        if articleSource:
+            assert 'title' in articleSource, "articleSource of WebPage should have title"
+            assert all(key in ['title', 'related_parts'] for key in articleSource), "articleSource of WebPage can have only the keys 'title' and 'related_parts'"
         super(WebPage, self)._validate()
+
+    def _sanitize(self):
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            if attr == 'url':
+                continue
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
@@ -208,7 +231,9 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.contents()
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
-        d["faviconUrl"] = self.favicon
+        d["favicon"] = self.favicon
+        d['authors'] = getattr(self, 'authors', None)
+        d['articleSource'] = getattr(self, 'articleSource', None)
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
@@ -249,7 +274,7 @@ class WebPage(abst.AbstractMongoRecord):
                 return None
         description = description.replace("&amp;", "&")
         description = description.replace("&nbsp;", " ")
-        return description
+        return truncate_string(description, 150, 170)
 
 
 class WebPageSet(abst.AbstractMongoSet):
@@ -273,6 +298,7 @@ class WebSite(abst.AbstractMongoRecord):
         "num_webpages",
         "exclude_from_tracking",
         "whitelist_selectors",
+        'lastUpdated',
     ]
 
     def __key(self):

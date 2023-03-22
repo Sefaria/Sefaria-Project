@@ -38,6 +38,7 @@ import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
+import WebPage from './WebPage'
 
 
 class ConnectionsPanel extends Component {
@@ -1284,7 +1285,7 @@ class WebPagesList extends Component {
         if (page.siteName in sites) {
           sites[page.siteName].count++;
         } else {
-          sites[page.siteName] = { name: page.siteName, faviconUrl: page.faviconUrl, count: 1 };
+          sites[page.siteName] = { name: page.siteName, faviconUrl: page.favicon, count: 1 };
         }
       });
       sites = Object.values(sites).sort(this.webSitesSort);
@@ -1296,17 +1297,8 @@ class WebPagesList extends Component {
       });
     } else {
       webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
-      content = webpages.map(webpage => {
-        return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
-          <img className="icon" src={webpage.faviconUrl} />
-          <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
-          <div className="domain">{webpage.domain}</div>
-          {webpage.description ? <div className="description">{webpage.description}</div> : null}
-          <div className="stats">
-            <span className="int-en">Citing: {webpage.anchorRef}</span>
-            <span className="int-he">מצטט: {Sefaria._r(webpage.anchorRef)}</span>
-          </div>
-        </div>)
+      content = webpages.map((webpage, i) => {
+        return (<WebPage {...webpage} key={i} />);
       });
     }
 
@@ -1321,8 +1313,7 @@ class WebPagesList extends Component {
 
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
       <div className="webpagesLinkerMessage sans-serif">
-        <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
-        <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
+        <InterfaceText>Sites that are listed here use the</InterfaceText> <a href="/linker"><InterfaceText>Sefaria Linker</InterfaceText></a>
       </div> : null;
 
     return <div className="webpageList">
