@@ -30,7 +30,7 @@ data:
   {{- end }}
   nginx.template.conf: |-
     {{- if .Values.instrumentation.enabled }}
-    load_module /etc/nginx/modules/ngx_http_opentracing_module.so
+    load_module /etc/nginx/modules/ngx_http_opentracing_module.so;
     {{- end }}
 
     user www-data;
@@ -45,7 +45,7 @@ data:
 
     http {
       {{- if .Values.instrumentation.enabled }}
-      opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json
+      opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json;
       {{- end }}
 
       # https://nginx.org/en/docs/varindex.html
@@ -140,7 +140,7 @@ data:
         location / {
             {{- if .Values.instrumentation.enabled }}
             opentracing on;
-            opentracing_propagate_context
+            opentracing_propagate_context;
             {{- end }}
             proxy_send_timeout  300;
             proxy_read_timeout  300;
