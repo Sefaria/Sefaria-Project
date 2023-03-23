@@ -863,12 +863,12 @@ class ArrayMapNode extends Component {
         }
         let [section, heSection] = Sefaria.getSectionStringByAddressType(schema.addressTypes[0], i);
         let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
-        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
-        return (
+        const linkClasses = classNames({"sectionLink": 1, "current": currentPlace});
+        return (section !== 'NaNb') ? (
           <a className={linkClasses} href={"/" + Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:section, he:heSection}}/>
           </a>
-        );
+        ) : null;
       }.bind(this));
       
       let path = this.props.refPath + ", " + schema.title;
