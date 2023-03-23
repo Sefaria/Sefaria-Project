@@ -48,6 +48,21 @@ entries:
     version: 0.13.0-mongo-connection-string.1
   - apiVersion: v2
     appVersion: v5.34.1
+    created: "2023-03-23T09:19:51.81728856Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: baa72eed438da71bbe1602be91bf10c1c7239695d2b3e16c92e308e266a37b5e
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.13.0-instrumentation.7.tgz
+    version: 0.13.0-instrumentation.7
+  - apiVersion: v2
+    appVersion: v5.34.1
     created: "2023-03-23T08:10:40.763495485Z"
     description: Chart to deploy complete Sefaria environment
     digest: 66fadf09675132b442053cdcd003ed250537a9798e73bce1fbe4b7f6f8824190
@@ -2730,4 +2745,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-03-23T08:10:40.7608594Z"
+generated: "2023-03-23T09:19:51.812815819Z"
