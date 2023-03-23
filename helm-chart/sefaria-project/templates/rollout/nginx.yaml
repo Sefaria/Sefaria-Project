@@ -77,9 +77,9 @@ spec:
             subPath: nginx.template.conf
             readOnly: true
           {{- if .Values.instrumentation.enabled }}
-          - mountPath: /etc/nginx/conf.d/opentelemetry_module.conf
+          - mountPath: /etc/nginx/opentracing.json
             name: nginx-conf
-            subPath: opentelemetry_module.conf
+            subPath: opentracing.json
           {{- end }}
           - mountPath: /app/robots.txt
             name: robots-txt
