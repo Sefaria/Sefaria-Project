@@ -140,7 +140,7 @@ data:
         location / {
             {{- if .Values.instrumentation.enabled }}
             opentracing on;
-            opentracing_propogate_context
+            opentracing_propagate_context
             {{- end }}
             proxy_send_timeout  300;
             proxy_read_timeout  300;
