@@ -2030,7 +2030,7 @@ class ReaderApp extends Component {
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
-      const panel                        = panelStates[i];
+      const panel                        = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
