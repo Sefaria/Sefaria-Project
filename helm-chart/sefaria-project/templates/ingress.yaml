@@ -9,7 +9,6 @@ metadata:
     {{- if .Values.instrumentation.enabled }}
     nginx.ingress.kubernetes.io/enable-opentracing: "true"
     nginx.ingress.kubernetes.io/jaeger-service-name: {{ .Values.deployEnv }}-ingress
-    nginx.ingress.kubernetes.io/jaeger-collector-endpoint: {{ .Values.instrumentation.endpoint }}
     nginx.ingress.kubernetes.io/jaeger-propagation-format: w3c
     {{- end }}
 spec:
