@@ -400,4 +400,5 @@ localSettings:
 
 instrumentation:
   enabled: false
-  endpoint: ""
+  otelEndpoint: ""
+  jaegerEndpoint: ""

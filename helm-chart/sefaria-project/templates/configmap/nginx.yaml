@@ -8,25 +8,25 @@ metadata:
 data:
   {{- if .Values.instrumentation.enabled }}
   opentracing.json: |-
-  {
-    "service_name": "nginx-{{ .Values.deployEnv }}",
-    "propagation_format": "jaeger",
-    "sampler": {
-      "type": "const",
-      "param": 1,
-      "samplingServerURL": "http://127.0.0.1:5778/sampling"
-    },
-    "reporter": {
-      "endpoint": "",
-      "localAgentHostPort": "{{ .Values.instrumentation.endpoint }}"
-    },
-    "headers": {
-      "TraceContextHeaderName": "",
-      "jaegerDebugHeader": "",
-      "jaegerBaggageHeader": "",
-      "traceBaggageHeaderPrefix": ""
+    {
+      "service_name": "nginx-{{ .Values.deployEnv }}",
+      "propagation_format": "jaeger",
+      "sampler": {
+        "type": "const",
+        "param": 1,
+        "samplingServerURL": "http://127.0.0.1:5778/sampling"
+      },
+      "reporter": {
+        "endpoint": "",
+        "localAgentHostPort": "{{ .Values.instrumentation.jaegerEndpoint }}"
+      },
+      "headers": {
+        "TraceContextHeaderName": "",
+        "jaegerDebugHeader": "",
+        "jaegerBaggageHeader": "",
+        "traceBaggageHeaderPrefix": ""
+      }
     }
-  }
   {{- end }}
   nginx.template.conf: |-
     {{- if .Values.instrumentation.enabled }}
