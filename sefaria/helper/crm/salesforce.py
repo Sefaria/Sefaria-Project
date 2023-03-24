@@ -10,7 +10,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
         CrmConnectionManager.__init__(self, sls.SALESFORCE_BASE_URL)
         self.version = "56.0"
-        self.resource_prefix = f"/services/data/{self.version}/sobjects/"
+        self.resource_prefix = f"services/data/v{self.version}/sobjects/"
 
     def create_endpoint(self, sobject_name):
         return f"{sls.SALESFORCE_BASE_URL}/{self.resource_prefix}{sobject_name}"
@@ -28,7 +28,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
         return self.session.get(endpoint, headers)
 
     def post(self, endpoint, **kwargs):
-        return self.session.post(endpoint, **kwargs)
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+        return self.session.post(endpoint, headers=headers, **kwargs)
 
     def _get_connection(self):
         access_token_url = "%s/services/oauth2/token?grant_type=client_credentials" % self.base_url
@@ -52,7 +53,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
         Saves CRM Access info to profile
         """
         return self.post(self.create_endpoint("Sefaria_App_User__c"),
-                  data={
+                  json={
                       "First_Name__c": first_name,
                       "Last_Name__c": last_name,
                       "Sefaria_App_Email__c": email,
