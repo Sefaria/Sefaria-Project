@@ -1153,7 +1153,15 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 first, last  = refs[0], refs[-1]
                 offset       = first.sections[-2] - 1 if first.is_segment_level() else first.sections[-1] - 1
 
-                d["refs"] = [r.normal() for r in refs]
+                refs = [r.normal() for r in refs]
+                addresses = getattr(self, 'addresses', None)
+                skipped_addresses = getattr(self, 'skipped_addresses', None)
+                if addresses:
+                    refs = [refs[i] for i in range(len(refs)) if i+offset in addresses]
+                elif skipped_addresses:
+                    refs = [refs[i] for i in range(len(refs)) if i+offset not in skipped_addresses]
+                d["refs"] = refs
+
                 d["addressTypes"] = first.index_node.addressTypes[-2:-1]
                 d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
