@@ -1213,7 +1213,7 @@ class DisplaySettingsButton extends Component {
         <EnglishText>
            <span className="textIcon">A</span>
         </EnglishText>
-    </InterfaceText>
+    </InterfaceText>;
 
     var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
       iconLetter :
