@@ -4629,6 +4629,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 22px;
   line-height: 60px;
 }
+.readerOptions .textIcon .hebrewIcon {
+  font-size: 122%;
+}
 .dark .readerOptions img {
 
 }
