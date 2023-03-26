@@ -1206,9 +1206,14 @@ class CloseButton extends Component {
 class DisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    let iconLetter = Sefaria.interfaceLang == 'hebrew' ?
-        <span className="textIcon"><span className="hebrewIcon">א</span></span>:
-        <span className="textIcon">A</span>;
+    let iconLetter = <InterfaceText>
+        <HebrewText>
+           <span className="textIcon"><span className="hebrewIcon">א</span></span>
+        </HebrewText>
+        <EnglishText>
+           <span className="textIcon">A</span>
+        </EnglishText>
+    </InterfaceText>;
 
     var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
       iconLetter :
@@ -1230,7 +1235,6 @@ DisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 };
-
 
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
