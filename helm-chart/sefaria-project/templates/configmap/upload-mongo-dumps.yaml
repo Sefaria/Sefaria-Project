@@ -42,7 +42,7 @@ data:
         echo "small private dump missing"
     fi
 
-    {{- if .Values.backup.public }}
+    {{- if .Values.backup.mongo.public }}
 
     if [ -f "dump_small.tar.gz" ]; then
         echo "uploading small public dump"
