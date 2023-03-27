@@ -376,6 +376,24 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  dailyEmailNotifications:
+    enabled: false
+  indexFromQueue:
+    enabled: false
+  metrics:
+    enabled: false
+  nationBuilderSync:
+    enabled: false
+  rambiWebpagesWeekly:
+    enabled: false
+  reindexElasticSearch:
+    enabled: false
+  topicsIndexing:
+    enabled: false
+  trello:
+    enabled: false
+  weeklyEmailNotifications:
+    enabled: false
 
 localSettings:
   DEBUG: "False"
