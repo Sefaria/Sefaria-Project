@@ -61,5 +61,4 @@ data:
     fi
 
     {{- end }}
-    curl -X POST --data-urlencode 'payload={"channel": "#engineering", "username": "Data Archiver", "text": "The {{ .Values.deployEnv }} MongoDB store was routinely dumped to cloud storage: '"$(date)"'", "icon_emoji": ":cloud:"}' ${SLACK_URL}
 {{- end }}
