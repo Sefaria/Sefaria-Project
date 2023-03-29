@@ -4481,6 +4481,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 18px;
   width: 18px;
   margin-top: 3px;
+  color: #666
 }
 .rightButtons .saveButton.tooltip-toggle::before {
   top: 47px;
@@ -4628,11 +4629,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .textIcon {
   font-size: 22px;
   line-height: 60px;
+  color: #666
 }
 .readerOptions .textIcon .hebrewIcon {
   font-size: 122%;
-  vertical-align: -7.15%;
+  vertical-align: -3.6px;
+  margin-left: -0.5px;
   line-height: normal;
+}
+.readerOptions .textIcon .englishIcon {
+  vertical-align: -1.7px;
+  line-height: normal;
+  margin-right: 11.3px;
 }
 .dark .readerOptions img {
 
@@ -5256,6 +5264,7 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel .segment .segmentNumber .en,
 .readerPanel .segment .segmentNumber .he {
   text-align: center;
+  color: #000;
 }
 .readerPanel.english .segment .segmentNumber {
   left: -48px;

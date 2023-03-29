@@ -1186,9 +1186,7 @@ class ReaderApp extends Component {
       })
     });
   }
-  updateSearchFilter(n, type, filterNode) {
-    const state = this.state.panels[n];
-    const searchState = this._getSearchState(state, type);
+  updateSearchFilter(n, type, searchState, filterNode) {
     const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
