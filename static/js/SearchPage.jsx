@@ -75,7 +75,7 @@ class SearchPage extends Component {
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props[`${this.props.tab}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab)}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab, this.props[`${this.props.tab}SearchState`])}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
