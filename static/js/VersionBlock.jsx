@@ -390,6 +390,14 @@ class VersionsBlocksList extends Component{
     );
   }
   componentDidMount() {
+    this.updateCurrentVersionKeys();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (!Sefaria.util.object_equals(this.props.currObjectVersions, prevProps.currObjectVersions)) {
+      this.updateCurrentVersionKeys();
+    }
+  }
+  updateCurrentVersionKeys() {
     this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
   }
   isVersionCurrent(version){
