@@ -33,10 +33,10 @@ def dedupe(profile_id, dry_run):
                       '_id_remaining': to_keep['_id']}
         deleted = []
         for profile in profiles[1:]:
+            deleted.append(str(profile['_id']))
             if not dry_run:
                 update_empty(to_keep, profile)
                 db.profiles.delete_one({'_id': profile['_id']})
-            deleted.append(str(profile['_id']))
         output_log['_id_deleted'] = '+'.join(deleted)
     except Exception as e:
         output_log['notes'] = e
