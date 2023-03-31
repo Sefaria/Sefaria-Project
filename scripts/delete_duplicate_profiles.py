@@ -33,10 +33,10 @@ def dedupe(profile_id, dry_run):
                       '_id_remaining': to_keep['_id']}
         deleted = []
         for profile in profiles[1:]:
+            deleted.append(str(profile['_id']))
             if not dry_run:
                 update_empty(to_keep, profile)
                 db.profiles.delete_one({'_id': profile['_id']})
-            deleted.append(str(profile['_id']))
         output_log['_id_deleted'] = '+'.join(deleted)
     except Exception as e:
         output_log['notes'] = e
@@ -62,8 +62,8 @@ def profiles_empty(non_primary_profiles):
 def update_empty(copy_into, copy_from):
     for k, v in list(copy_from.items()):
         if v:
-            if k not in copy_into.__dict__ or copy_into.__dict__[k] == '' or copy_into.__dict__[k] == []:
-                copy_into.__dict__[k] = v
+            if k not in copy_into or copy_into[k] == '' or copy_into[k] == []:
+                copy_into[k] = v
     db.profile.save(copy_into)
 
 if __name__ == '__main__':
