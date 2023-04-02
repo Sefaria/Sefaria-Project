@@ -1236,7 +1236,6 @@ DisplaySettingsButton.propTypes = {
   placeholder: PropTypes.bool,
 };
 
-
 function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);

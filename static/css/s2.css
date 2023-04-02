@@ -4642,6 +4642,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: normal;
   margin-right: 11.3px;
 }
+.readerOptions .textIcon .hebrewIcon {
+  font-size: 122%;
+  vertical-align: -7.15%;
+  line-height: normal;
+}
 .dark .readerOptions img {
 
 }
