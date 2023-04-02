@@ -658,7 +658,6 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "About") {
       content = (<AboutBox
-        key={`About-${Object.values(this.state.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
         currObjectVersions={this.state.currObjectVersions}
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
