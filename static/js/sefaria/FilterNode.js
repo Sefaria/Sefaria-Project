@@ -165,10 +165,21 @@ class FilterNode {
      * @returns {FilterNode}
      */
   clone(prepareForSerialization) {
-    const cloned = new FilterNode(this);
-    cloned.children = cloned.children.map( c => c.clone(prepareForSerialization));
-    if (prepareForSerialization) { cloned.parent = null; }
-    return cloned;
+      return this._clone(prepareForSerialization, null);
+  }
+
+    /**
+     * Internal clone function to with recursive params
+     * @param prepareForSerialization
+     * @param clonedParent
+     * @returns {FilterNode}
+     * @private
+     */
+  _clone(prepareForSerialization, clonedParent) {
+      const cloned = new FilterNode(this);
+      cloned.children = cloned.children.map( c => c._clone(prepareForSerialization, cloned));
+      cloned.parent = prepareForSerialization ? null : clonedParent;
+      return cloned;
   }
 }
 
