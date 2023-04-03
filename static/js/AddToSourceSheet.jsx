@@ -60,9 +60,25 @@ class AddToSourceSheetBox extends Component {
       }
     }
   }
+  generateContentForModal() {
+    dict = {
+        h1En: "Want to document a connection to another text?",
+        h2En: "Create a free account to do more on Sefaria",
+        h1He: "רוצים ליצור דף מקורות משלכם?",
+        h2He: "פתחו חשבון משתמש בחינם כדי להוסיף דפי מקורות משלכם - ועוד:",
+        contentList: [
+                ["star-white.png", "Build & share source sheets", "בנו ושתפו דפי מקורות"],
+                ["sheet-white.png", "Save texts", "שמרו טקסטים"],
+                ["note-white.png", "Take notes", "רשמו הערות"],
+                ["email-white.png", "Connect with other users", "התחברו עם משתמשי ספריא אחרים"]
+              ]
+    };
+    this.props.toggleSignUpModal(dict);
+  }
+
   toggleSheetList() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal()
+      this.generateContentForModal();
     } else {
       this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
@@ -71,7 +87,9 @@ class AddToSourceSheetBox extends Component {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
   }
   copyNodeToSourceSheet() {
-    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+    if (!Sefaria._uid) {
+      this.generateContentForModal();
+    }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (!this.props.nodeRef) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
@@ -84,7 +102,9 @@ class AddToSourceSheetBox extends Component {
     }
   }
   addToSourceSheet() {
-    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+    if (!Sefaria._uid) {
+      this.generateContentForModal();
+    }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
       const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
       const language = this.props.contentLanguage;

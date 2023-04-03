@@ -904,8 +904,21 @@ class ReaderApp extends Component {
       $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
-  toggleSignUpModal() {
-    this.setState({ showSignUpModal: !this.state.showSignUpModal });
+  toggleSignUpModal(modalContent={}) {
+    console.log(modalContent)
+    if (!this.state.showSignUpModal) {
+      this.setState({
+        showSignUpModal: true,
+        h1En: modalContent["h1En"],
+        h2En: modalContent["h2En"],
+        h1He: modalContent["h1He"],
+        h2He: modalContent["h2He"],
+        contentList: modalContent["contentList"],
+    });
+    }
+    else {
+      this.setState({ showSignUpModal: false });
+    }
   }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -2148,7 +2161,21 @@ class ReaderApp extends Component {
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
-      <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
+      <SignUpModal
+        onClose={this.toggleSignUpModal}
+        show={this.state.showSignUpModal}
+        h1En={this.state.h1En || "Love Learning?"}
+        h2En={this.state.h2En || "Sign up to get more from Sefaria"}
+        h1He={this.state.h1He || "אוהבים ללמוד?"}
+        h2He={this.state.h2He || "הרשמו כדי לקבל יותר מספריא"}
+
+        contentList={this.state.contentList || [
+                ["star-white.png", "Save texts", "שמרו טקסטים לקריאה חוזרת"],
+                ["sheet-white.png", "Make source sheets", "הכינו דפי מקורות"],
+                ["note-white.png", "Take notes", "שמרו הערות"],
+                ["email-white.png", "Stay in the know", "השארו מעודכנים"],
+              ]}
+      />
     );
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;

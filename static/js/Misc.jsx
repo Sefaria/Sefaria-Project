@@ -1897,15 +1897,10 @@ LoginPrompt.propTypes = {
 
 class SignUpModal extends Component {
   render() {
-    const innerContent = [
-      ["star-white.png", "Save texts"],
-      ["sheet-white.png", "Make source sheets"],
-      ["note-white.png", "Take notes"],
-      ["email-white.png", "Stay in the know"],
-    ].map(x => (
+    const innerContent = this.props.contentList.map(x => (
       <div key={x[0]}>
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        <InterfaceText>{ x[1] }</InterfaceText>
+        <InterfaceText text={{en: x[1], he: x[2]}} />
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1917,10 +1912,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText>Love Learning?</InterfaceText>
+              <InterfaceText text={{en: this.props.h1En, he: this.props.h1He}} />
             </h2>
             <h3>
-              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
+              <InterfaceText text={{en: this.props.h2En, he: this.props.h2He}} />
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
