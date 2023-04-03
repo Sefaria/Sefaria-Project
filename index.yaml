@@ -47,6 +47,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.14.0-hide-empty-refs.1.tgz
     version: 0.14.0-hide-empty-refs.1
   - apiVersion: v2
+    appVersion: v5.37.1
+    created: "2023-04-03T08:17:02.965506452Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: e3240f7a0cc377cecfeb370f97792bb63ced1ccaaa0d25e51c4f5ba5a5b986c9
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.14.0-feature-mongo-can.1.tgz
+    version: 0.14.0-feature-mongo-can.1
+  - apiVersion: v2
     appVersion: v5.35.4
     created: "2023-03-28T07:30:14.483163399Z"
     description: Chart to deploy complete Sefaria environment
@@ -2865,4 +2880,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-03-28T11:14:48.374758318Z"
+generated: "2023-04-03T08:17:02.961057036Z"
