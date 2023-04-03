@@ -79,9 +79,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
         if getattr(displays_under_link, "toTopic", "") == "authors":
             self.subclass = "author"
-        elif getattr(self, "subclass", "") == "author" and displays_under_link:
-            # has an intratopiclink to something that isn't authors, but this topic used to be an author
-            del self.subclass
 
     def _sanitize(self):
         super()._sanitize()

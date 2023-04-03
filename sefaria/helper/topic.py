@@ -1004,6 +1004,8 @@ def update_topic(topic_obj, **kwargs):
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
             topic_obj = topic_change_category(topic_obj, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+            if getattr(topic_obj, "subclass", "") == "author" and kwargs['category'] != 'authors':
+                del topic_obj.subclass
 
     if kwargs.get('manual', False):
         topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
@@ -1013,6 +1015,7 @@ def update_topic(topic_obj, **kwargs):
         topic_obj.change_description(kwargs["description"], kwargs.get("catDescription", None))
 
     topic_obj.save()
+
 
     if kwargs.get('rebuild_topic_toc', True):
         rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
