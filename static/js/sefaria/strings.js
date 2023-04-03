@@ -549,6 +549,11 @@ const Strings = {
 
     //Misc
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
+
+    //WebPage
+    'Citing': 'מצטט',
+    'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
+    'Sefaria Linker': 'במרשתת ההפניות',
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -620,6 +625,9 @@ const Strings = {
       "View": "לצפות",
       "Add": "להוסיף",
       "Edit": "לערוך",
+    },
+    "WebPageList": {
+      'Author': 'מחבר'
     }
   },
 };

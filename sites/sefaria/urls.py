@@ -44,7 +44,9 @@ static_pages = [
     "contest",
     "design-system",
     "powered-by",
-    "word-by-word"
+    "word-by-word",
+    "cloudflare_site_is_down_en",
+    "cloudflare_site_is_down_he",
 ]
 
 static_pages_by_lang = [
@@ -86,6 +88,7 @@ site_urlpatterns += [
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
+    url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
 ]
 
 

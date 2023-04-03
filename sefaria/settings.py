@@ -299,10 +299,10 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-03-05-purim",
+    "name": "2023-04-02-passover-donate-banner",
     "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
-    "is_fundraising": False,
+    "is_fundraising": True,
     "condition":  {
         "returning_only": False,
         "english_only": False,

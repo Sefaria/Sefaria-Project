@@ -113,9 +113,8 @@ class Util {
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
     }
-     static subscribeToNbList(email) {
+     static subscribeToNbList(email, lists) {
         if (Sefaria.util.isValidEmailAddress(email)) {
-            const lists = Sefaria.interfaceLang == "hebrew" ?  "ANNOUNCEMENTS_General_Hebrew" : "ANNOUNCEMENTS_General"
             $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
                 if ("error" in data) {
                     console.log(data.error);
@@ -169,38 +168,35 @@ class Util {
       // corrolary to zip in python
       return rows[0].map((_,c)=>rows.map(row=>row[c]));
     }
-    static clone(obj, trimFilters) {
+    static clone(obj, prepareForSerialization) {
         // Handle the 3 simple types, and null or undefined
-        if (null == obj || "object" != typeof obj) return obj;
+        if (null == obj || "object" != typeof obj) {
+            return obj;
+        }
 
         if (typeof obj.clone === 'function') {
           // this handles any object with a clone function which currently
           // includes SearchState and FilterNode
-          return obj.clone(trimFilters);
+          return obj.clone(prepareForSerialization);
         }
 
         // Handle Date
         if (obj instanceof Date) {
-            var copy = new Date();
+            const copy = new Date();
             copy.setTime(obj.getTime());
             return copy;
         }
 
         // Handle Array
         if (obj instanceof Array) {
-            var copy = [];
-            var len = obj.length;
-            for (var i = 0; i < len; ++i) {
-                copy[i] = this.clone(obj[i]);
-            }
-            return copy;
+            return obj.map(item => this.clone(item, prepareForSerialization));
         }
 
         // Handle Object
         if (obj instanceof Object) {
-            var copy = {};
-            for (var attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = this.clone(obj[attr]);
+            const copy = {};
+            for (const [attr, value] of Object.entries(obj)) {
+                copy[attr] = this.clone(value, prepareForSerialization);
             }
             return copy;
         }

@@ -1014,9 +1014,11 @@ def update_topic(topic_obj, **kwargs):
 
     topic_obj.save()
 
+
     if kwargs.get('rebuild_topic_toc', True):
         rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
     return topic_obj
+
 
 def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     if category_changed:

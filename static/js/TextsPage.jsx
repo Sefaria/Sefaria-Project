@@ -15,8 +15,7 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
-  CategoryHeader,
-  useHiddenButtons
+  CategoryHeader
 } from './Misc';
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
@@ -74,7 +73,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-        <CategoryHeader>
+        <CategoryHeader type="books">
             <h1><InterfaceText>Browse the Library</InterfaceText></h1>
         </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
