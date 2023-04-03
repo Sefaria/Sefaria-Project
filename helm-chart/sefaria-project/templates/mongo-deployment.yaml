@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ .Values.deployEnv }}-standalone-mongo"
+  name: "mongo-standalone-{{ .Values.deployEnv }}"
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     {{- include "sefaria.labels" . | nindent 4 }}
@@ -10,10 +10,10 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongo-{{ .Values.deployEnv }}
+      app: mongo-standalone-{{ .Values.deployEnv }}
   template:
     metadata:
-      name: "{{ .Values.deployEnv }}-standalone-mongo"
+      name: "mongo-standalone-{{ .Values.deployEnv }}"
       labels:
         app: mongo-standalone-{{ .Values.deployEnv }}
         tier: application
