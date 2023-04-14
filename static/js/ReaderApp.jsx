@@ -115,6 +115,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      h1En: "testing english",
       translationLanguagePreference: props.translationLanguagePreference,
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
@@ -904,8 +905,10 @@ class ReaderApp extends Component {
       $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
-  toggleSignUpModal(modalContent={}) {
-    console.log(modalContent)
+
+toggleSignUpModal(modalContent={}) {
+    console.log('toggling sign up modal');
+    console.log(modalContent);
     if (!this.state.showSignUpModal) {
       this.setState({
         showSignUpModal: true,
@@ -920,6 +923,7 @@ class ReaderApp extends Component {
       this.setState({ showSignUpModal: false });
     }
   }
+  
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -2160,6 +2164,7 @@ class ReaderApp extends Component {
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
+      console.log('h1En: ' + this.state.h1En);
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2168,13 +2173,14 @@ class ReaderApp extends Component {
         h2En={this.state.h2En || "Sign up to get more from Sefaria"}
         h1He={this.state.h1He || "אוהבים ללמוד?"}
         h2He={this.state.h2He || "הרשמו כדי לקבל יותר מספריא"}
-
-        contentList={this.state.contentList || [
-                ["star-white.png", "Save texts", "שמרו טקסטים לקריאה חוזרת"],
-                ["sheet-white.png", "Make source sheets", "הכינו דפי מקורות"],
-                ["note-white.png", "Take notes", "שמרו הערות"],
-                ["email-white.png", "Stay in the know", "השארו מעודכנים"],
-              ]}
+        contentList={
+          this.state.contentList || [
+            ["star-white.png", "Save texts", "שמרו טקסטים לקריאה חוזרת"],
+            ["sheet-white.png", "Make source sheets", "הכינו דפי מקורות"],
+            ["note-white.png", "Take notes", "שמרו הערות"],
+            ["email-white.png", "Stay in the know", "השארו מעודכנים"],
+          ]
+        }
       />
     );
     const communityPagePreviewControls = this.props.communityPreview ?

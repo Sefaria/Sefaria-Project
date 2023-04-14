@@ -10,6 +10,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
+import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 
 
 class AddToSourceSheetBox extends Component {
@@ -60,25 +61,11 @@ class AddToSourceSheetBox extends Component {
       }
     }
   }
-  generateContentForModal() {
-    dict = {
-        h1En: "Want to document a connection to another text?",
-        h2En: "Create a free account to do more on Sefaria",
-        h1He: "רוצים ליצור דף מקורות משלכם?",
-        h2He: "פתחו חשבון משתמש בחינם כדי להוסיף דפי מקורות משלכם - ועוד:",
-        contentList: [
-                ["star-white.png", "Build & share source sheets", "בנו ושתפו דפי מקורות"],
-                ["sheet-white.png", "Save texts", "שמרו טקסטים"],
-                ["note-white.png", "Take notes", "רשמו הערות"],
-                ["email-white.png", "Connect with other users", "התחברו עם משתמשי ספריא אחרים"]
-              ]
-    };
-    this.props.toggleSignUpModal(dict);
-  }
 
   toggleSheetList() {
+    console.log('getting here to toggleSheetList');
     if (!Sefaria._uid) {
-      this.generateContentForModal();
+      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
     } else {
       this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
@@ -88,7 +75,7 @@ class AddToSourceSheetBox extends Component {
   }
   copyNodeToSourceSheet() {
     if (!Sefaria._uid) {
-      this.generateContentForModal();
+      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
     }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (!this.props.nodeRef) {
@@ -103,7 +90,7 @@ class AddToSourceSheetBox extends Component {
   }
   addToSourceSheet() {
     if (!Sefaria._uid) {
-      this.generateContentForModal();
+      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
     }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
       const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
