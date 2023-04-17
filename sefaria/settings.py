@@ -297,7 +297,7 @@ CACHES = {
 }
 
 
-
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name": "2023-04-02-passover-donate-banner",
     "style":      "banner",  # "modal" or "banner"
@@ -310,9 +310,9 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
+"""
 
-
-# GLOBAL_INTERRUPTING_MESSAGE = None
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
