@@ -178,7 +178,7 @@ cronJobs:
     enabled: true
   trello:
     enabled: true
-   weeklyEmailNotifications:
+  weeklyEmailNotifications:
      enabled: true
 secrets:
   localSettings:
