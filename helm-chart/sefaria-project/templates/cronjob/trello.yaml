@@ -1,4 +1,4 @@
-{{- if ne .Values.sandbox "true" }}
+{{- if .Values.cronJobs.trello.enabled }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
