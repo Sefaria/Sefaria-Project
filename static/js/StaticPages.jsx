@@ -1658,7 +1658,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I made a one-time or monthly donation in error."
             heTitle=""
-            enText="<p>To cancel and/or request a refund for a donation, please follow the link in your email confirmation to view your online Classy (Sefaria's doantion processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Caitlyn Cushing, Development Operations Associate <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, for support with this process.</p>"
+            enText="<p>To cancel and/or request a refund for a donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Caitlyn Cushing, Development Operations Associate <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, for support with this process.</p>"
             heText=""
             colorBar="#5A99B7"
         />
@@ -1674,7 +1674,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to cancel my monthly donation."
             heTitle=""
-            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online Classy (Sefaria's doantion processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Ccontact Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
+            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Ccontact Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
             heText=""
             colorBar="#5A99B7"
         />
