@@ -1510,14 +1510,14 @@ const DonatePage = () => (
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Donor-Advised Fund"
                     heTitle=""
-                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-4406454</strong>. If you need additional information to make a DAF donation, please contact Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
+                    enText="<p>Sefaria accepts donations from donor-advised funds; our <strong>EIN is 46-4406454</strong>. If you need additional information to make a DAF donation, please contact Caitlyn Cushing, Development Operations Associate, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>.</p>"
                     heText=""
                     colorBar="#CCB479"
                 />,
                 <HeaderWithColorAccentBlockAndText
                     enTitle="Additional Ways to Give"
                     heTitle=""
-                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information)."
+                    enText="<p>Sefaria also accepts donations via <strong>wire transfer</strong>, <strong>stock</strong>, and <strong>Cryptocurrency</strong>. For more information, please email Caitlyn Cushing, Development Operations Associate, at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>. (For wire transfers, you can also <a href='https://sefaria.formstack.com/forms/wire_request'>click here</a> to get our account information)."
                     heText=""
                     colorBar="#97B386"
                 />
@@ -1674,7 +1674,7 @@ const DonatePage = () => (
         <Accordian
             enTitle="I want to cancel my monthly donation."
             heTitle=""
-            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Ccontact Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
+            enText="<p>We’re sorry to see you go! To cancel your sustaining donation, please follow the link in your email confirmation to view your online Classy (Sefaria's donation processor) profile where you can manually update or cancel your monthly gift. In addition, you can email Caitlyn Cushing, Development Operations Associate at <a href='mailto:donate@sefaria.org'>donate@sefaria.org</a>, or by phone at <a href='tel:+13477730077'>(347) 773-0077</a></p>"
             heText=""
             colorBar="#5A99B7"
         />
