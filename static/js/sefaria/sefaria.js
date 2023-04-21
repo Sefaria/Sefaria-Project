@@ -1363,6 +1363,7 @@ Sefaria = extend(Sefaria, {
       } else {
         category.books[link["collectiveTitle"]["en"]] = {count: 1, hasEnglish: link.sourceHasEn};
         category.books[link["collectiveTitle"]["en"]].categoryList = Sefaria.index(link["index_title"]).categories
+        category.books[link["collectiveTitle"]["en"]].fullTitle = link["index_title"]
       }
     }
     // Add Zero counts for every commentator in this section not already in list
@@ -1391,16 +1392,14 @@ Sefaria = extend(Sefaria, {
       categoryData.books = Object.keys(categoryData.books).map(function(book) {
         const bookData = categoryData.books[book];
         const index      = Sefaria.index(book);
+        const fullTitleIndex = Sefaria.index(bookData.fullTitle) ? Sefaria.index(bookData.fullTitle) : index
         bookData.book     = index.title;
         bookData.heBook   = index.heTitle;
         bookData.category = category;
-        bookData.enShortDesc = index.enShortDesc || index.enDesc;
-        bookData.heShortDesc = index.heShortDesc;
+        bookData.enShortDesc = fullTitleIndex.enShortDesc || fullTitleIndex.enDesc;
+        bookData.heShortDesc = fullTitleIndex.heShortDesc || fullTitleIndex.heDesc;
         bookData.categoryList = index.categories[0] == ['Commentary'] ? bookData.categoryList : index.categories;
-        if (bookData.categoryList == "Quoting Commentary") {
-            debugger;
-                }
-        else {
+        if (bookData.categoryList != "Quoting Commentary") {
             bookData.categoryListNew = []
             for (let i = 0; i < bookData.categoryList.length; i++) {
                 if (bookData.categoryList[i] === bookData.book || bookData.book.split(" ")[0] === bookData.categoryList[i] || bookData.book.split(" ")[0] === bookData.categoryList[i].split(" ")[0]) {
