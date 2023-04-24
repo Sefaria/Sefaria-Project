@@ -51,7 +51,7 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
@@ -67,7 +67,7 @@ class Header extends Component {
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu 
+              <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
@@ -504,7 +504,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
-        
+
         {Sefaria._uid ?
         <>
           <a href="/settings/account">
@@ -529,7 +529,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
+      <DonateLink classes={"blue"} source="MobileNavMenu">
         <img src="/static/img/heart.png" alt="donation icon" />
         <InterfaceText>Donate</InterfaceText>
       </DonateLink>

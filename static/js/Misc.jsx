@@ -146,27 +146,25 @@ const LoadingRing = () => (
 
 const DonateLink = ({children, classes, source, link}) => {
   link = link || "default";
+  source = source || "undefined";
   const linkOptions = {
     default: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+      en: "https://donate.sefaria.org/en",
+      he: "https://donate.sefaria.org/he"
     },
-    header: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+    sustainer: {
+      en: "https://donate.sefaria.org/sustainers",
+      he: "https://donate.sefaria.org/sustainershe"
     },
-    sponsor: {
-      en: "https://sefaria.nationbuilder.com/sponsor",
-      he: "https://sefaria.nationbuilder.com/sponsor",
+    dayOfLearning: {
+      en: "https://donate.sefaria.org/sponsor",
+      he: "https://donate.sefaria.org/sponsorhe",
     }
   };
-  const url = Sefaria._v(linkOptions[link]);
-  const trackClick = () => {
-    Sefaria.track.event("Donations", "Donation Click", source);
-  };
+  const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
 
   return (
-    <a href={url} className={classes} target="_blank" onClick={trackClick}>
+    <a href={url} className={classes} target="_blank">
       {children}
     </a>
   );
