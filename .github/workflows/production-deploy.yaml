@@ -25,7 +25,11 @@ jobs:
           if [[ "${{ inputs.version }}" == "" ]]; then
             echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
-            echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+            if [[ ${{ inputs.version }} == v* ]]; then
+              echo "ref={{ inputs.version }}" >> $GITHUB_OUTPUT
+            else
+              echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+            fi
           fi
   build-generic:
     needs: workflow-check
