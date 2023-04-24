@@ -17,6 +17,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.16.0-update-login-modals.1.tgz
     version: 0.16.0-update-login-modals.1
   - apiVersion: v2
+    appVersion: v5.39.3
+    created: "2023-04-24T21:09:57.378490461Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 6f15dde54e536bfc25e489d80b58012e51cf783d1dbc4e1645a2df30b0ac541a
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.16.0-sidebar-desc2.1.tgz
+    version: 0.16.0-sidebar-desc2.1
+  - apiVersion: v2
     appVersion: v5.38.3
     created: "2023-04-24T06:51:24.771608457Z"
     description: Chart to deploy complete Sefaria environment
@@ -2970,4 +2985,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-04-24T19:17:44.681618394Z"
+generated: "2023-04-24T21:09:57.375030373Z"
