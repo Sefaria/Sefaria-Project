@@ -9,7 +9,7 @@ export const SignUpModalKind = {
   Default: Symbol("Default"),
 };
 
-const signUpModalContent= {
+const signUpModalContent = {
   [SignUpModalKind.AddConnection]: {
     h2: {
       en: "Want to document a connection to another text?",
