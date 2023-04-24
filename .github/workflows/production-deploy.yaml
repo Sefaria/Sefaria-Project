@@ -26,7 +26,7 @@ jobs:
             echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
             if [[ ${{ inputs.version }} == v* ]]; then
-              echo "ref={{ inputs.version }}" >> $GITHUB_OUTPUT
+              echo "ref=${{ inputs.version }}" >> $GITHUB_OUTPUT
             else
               echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
             fi
