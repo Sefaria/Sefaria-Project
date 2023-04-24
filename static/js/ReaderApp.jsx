@@ -33,6 +33,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
+import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -115,11 +116,11 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
-      h1En: "testing english",
       translationLanguagePreference: props.translationLanguagePreference,
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
+      ...generateContentForModal()
     };
   }
   makePanelState(state) {
@@ -906,23 +907,21 @@ class ReaderApp extends Component {
     }
   }
 
-toggleSignUpModal(modalContent={}) {
-    console.log('toggling sign up modal');
-    console.log(modalContent);
-    if (!this.state.showSignUpModal) {
-      this.setState({
-        showSignUpModal: true,
-        h1En: modalContent["h1En"],
-        h2En: modalContent["h2En"],
-        h1He: modalContent["h1He"],
-        h2He: modalContent["h2He"],
-        contentList: modalContent["contentList"],
+toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
+  let modalContent = generateContentForModal(modalContentKind);
+  if (this.state.showSignUpModal) {
+    this.setState({ showSignUpModal: false });
+  } else {
+    this.setState({
+      showSignUpModal: true,
+      h1En: modalContent["h1En"],
+      h2En: modalContent["h2En"],
+      h1He: modalContent["h1He"],
+      h2He: modalContent["h2He"],
+      contentList: modalContent["contentList"],
     });
-    }
-    else {
-      this.setState({ showSignUpModal: false });
-    }
   }
+}
   
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -2169,17 +2168,12 @@ toggleSignUpModal(modalContent={}) {
       <SignUpModal
         onClose={this.toggleSignUpModal}
         show={this.state.showSignUpModal}
-        h1En={this.state.h1En || "Love Learning?"}
-        h2En={this.state.h2En || "Sign up to get more from Sefaria"}
-        h1He={this.state.h1He || "אוהבים ללמוד?"}
-        h2He={this.state.h2He || "הרשמו כדי לקבל יותר מספריא"}
+        h1En={this.state.h1En}
+        h2En={this.state.h2En}
+        h1He={this.state.h1He}
+        h2He={this.state.h2He}
         contentList={
-          this.state.contentList || [
-            ["star-white.png", "Save texts", "שמרו טקסטים לקריאה חוזרת"],
-            ["sheet-white.png", "Make source sheets", "הכינו דפי מקורות"],
-            ["note-white.png", "Take notes", "שמרו הערות"],
-            ["email-white.png", "Stay in the know", "השארו מעודכנים"],
-          ]
+          this.state.contentList
         }
       />
     );

@@ -16,6 +16,7 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -329,7 +330,7 @@ class UserProfile extends Component {
   }
   message(e) {
     e.preventDefault();
-    if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
+    if (!Sefaria._uid) { this.props.toggleSignUpModal(SignUpModalKind.Follow); return; }
     this._messageModalRef.makeVisible();
   }
   follow() {
@@ -499,7 +500,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
       <ul>
         <li><InterfaceText>Technical problems</InterfaceText></li>
         <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features </InterfaceText></li>
+        <li><InterfaceText>Missing features</InterfaceText></li>
       </ul>
 
       <p>

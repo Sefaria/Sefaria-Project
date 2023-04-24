@@ -16,7 +16,7 @@ import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
-import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1328,7 +1328,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
         .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(generateContentForModal(SignUpModalKind.Save)); }})
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
 
@@ -1390,7 +1390,7 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.Follow));
+      this.props.toggleSignUpModal(SignUpModalKind.Follow);
       return;
     }
     if (this.state.following && !this.props.disableUnfollow) {
@@ -1524,7 +1524,7 @@ const SheetListing = ({
     if (Sefaria._uid) {
       setShowCollectionsModal(!showCollectionsModal);
     } else {
-      toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
   };
 
@@ -1900,7 +1900,7 @@ class SignUpModal extends Component {
   render() {
     const innerContent = this.props.contentList.map(x => (
       <div key={x[0]}>
-        <img style={{stroke: 'white', fill: 'white'}} src={`/static/img/${x[0]}`} alt={x[1]} />
+        <img src={`/static/img/${x[0]}`} alt={x[1]} />
         <InterfaceText text={{en: x[1], he: x[2]}} />
       </div>
     ));

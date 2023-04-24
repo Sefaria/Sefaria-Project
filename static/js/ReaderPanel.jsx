@@ -40,7 +40,6 @@ import {
   CategoryAttribution,
   ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
-import { generateContentForModal, SignUpModalKind }from './sefaria/signupModalContent';
 
 
 class ReaderPanel extends Component {

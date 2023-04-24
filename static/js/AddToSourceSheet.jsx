@@ -10,7 +10,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
-import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 
 class AddToSourceSheetBox extends Component {
@@ -65,7 +65,7 @@ class AddToSourceSheetBox extends Component {
   toggleSheetList() {
     console.log('getting here to toggleSheetList');
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     } else {
       this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
@@ -75,7 +75,7 @@ class AddToSourceSheetBox extends Component {
   }
   copyNodeToSourceSheet() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (!this.props.nodeRef) {
@@ -90,7 +90,7 @@ class AddToSourceSheetBox extends Component {
   }
   addToSourceSheet() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(generateContentForModal(SignUpModalKind.AddToSheet));
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
       const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
