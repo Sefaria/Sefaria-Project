@@ -60,7 +60,8 @@ jobs:
                 ]
               }],
               ['@semantic-release/github', {
-                "successComment": false
+                "successComment": false,
+                "failTitle": false
               }]
             ]
         env:
