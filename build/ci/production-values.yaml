@@ -187,6 +187,11 @@ secrets:
     ref: backup-manager-secret-production
   slackWebhook:
     ref: slack-webhook-production
+instrumentation:
+  enabled: true
+  otelEndpoint: "http://otel-collector-collector.monitoring:4317"
+  jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+
 localSettings:
   DEBUG: false
   OFFLINE: "False"
