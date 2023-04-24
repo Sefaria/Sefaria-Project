@@ -120,7 +120,7 @@ class ReaderApp extends Component {
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
-      ...generateContentForModal()
+      ...generateContentForModal() // Set modalContent to be the default state
     };
   }
   makePanelState(state) {
@@ -908,17 +908,12 @@ class ReaderApp extends Component {
   }
 
 toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
-  let modalContent = generateContentForModal(modalContentKind);
   if (this.state.showSignUpModal) {
     this.setState({ showSignUpModal: false });
   } else {
     this.setState({
       showSignUpModal: true,
-      h1En: modalContent["h1En"],
-      h2En: modalContent["h2En"],
-      h1He: modalContent["h1He"],
-      h2He: modalContent["h2He"],
-      contentList: modalContent["contentList"],
+      ...generateContentForModal(modalContentKind),
     });
   }
 }
@@ -2163,18 +2158,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           style={Sefaria.interruptingMessage.style}
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
-      console.log('h1En: ' + this.state.h1En);
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
         show={this.state.showSignUpModal}
-        h1En={this.state.h1En}
-        h2En={this.state.h2En}
-        h1He={this.state.h1He}
-        h2He={this.state.h2He}
-        contentList={
-          this.state.contentList
-        }
+        modalContent={this.state.modalContent}
       />
     );
     const communityPagePreviewControls = this.props.communityPreview ?

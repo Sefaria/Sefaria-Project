@@ -1898,10 +1898,10 @@ LoginPrompt.propTypes = {
 
 class SignUpModal extends Component {
   render() {
-    const innerContent = this.props.contentList.map(x => (
-      <div key={x[0]}>
-        <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        <InterfaceText text={{en: x[1], he: x[2]}} />
+    const innerContent = this.props.modalContent.contentList.map(bullet => (
+      <div key={bullet.icon}>
+        <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
+        <InterfaceText text={bullet.bulletContent} />
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1913,10 +1913,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText text={{en: this.props.h1En, he: this.props.h1He}} />
+              <InterfaceText text={this.props.modalContent.h2} />
             </h2>
             <h3>
-              <InterfaceText text={{en: this.props.h2En, he: this.props.h2He}} />
+              <InterfaceText text={this.props.modalContent.h3} />
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -1937,11 +1937,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  h1En: PropTypes.string,
-  h2En: PropTypes.string,
-  h1He: PropTypes.string,
-  h2He: PropTypes.string,
-  contentList: PropTypes.array
+  modalContent: PropTypes.object.isRequired,
 };
 
 
