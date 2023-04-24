@@ -79,7 +79,7 @@ jobs:
           else
             echo "releaseVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
           fi
-      - name: Version Info:
+      - name: "Version Info:"
         run: echo "${{ steps.releaseVersion.outputs.releaseVersion }}"
   deploy:
     needs: semantic-release
