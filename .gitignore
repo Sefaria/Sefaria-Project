@@ -129,3 +129,6 @@ static/sheetrank.json
 
 # Miscellaneous #
 #################
+
+env/*
+dump/*

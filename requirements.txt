@@ -61,3 +61,8 @@ unidecode==1.1.1
 user-agents==2.2.0
 babel
 python-bidi
+
+opentelemetry-distro
+opentelemetry-exporter-otlp
+opentelemetry-propagator-b3
+opentelemetry-propagator-jaeger

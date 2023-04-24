@@ -33,7 +33,7 @@ from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -1175,12 +1175,7 @@ class AbstractTextRecord(object):
                 # get target lengths
                 at_least = min_char - prev_len
                 at_most = max_char - prev_len
-
-                for bchar in ".;, ":
-                    # enumerate all places where this char is in segment
-                    for candidate in [pos for pos, char in enumerate(segment) if char == bchar][::-1]:
-                        if at_least <= candidate <= at_most:
-                            return balance(previous_state + joiner + segment[:candidate] + "…")
+                return balance(previous_state + joiner + truncate_string(segment, at_least, at_most))
 
         # We've reached the end, it's not longer than max_char, and it's what we've got.
         return accumulator
@@ -5628,7 +5623,7 @@ class Library(object):
             if not rebuild:
                 self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
             if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(rebuild=rebuild), ensure_ascii=False)
                 scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
                 self.set_last_cached_time()
         return self._simple_term_mapping_json
@@ -5636,7 +5631,9 @@ class Library(object):
     def get_term(self, term_name):
         if not self._full_term_mapping:
             self.build_term_mappings()
-        return self._full_term_mapping.get(term_name)
+        return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
+
+
 
     def get_topic(self, slug):
         return self._topic_mapping[slug]

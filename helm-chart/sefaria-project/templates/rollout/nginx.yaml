@@ -54,7 +54,7 @@ spec:
         imagePullPolicy: Always
         command: ["bash", "-c"]
         # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf
-        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
+        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -72,9 +72,15 @@ spec:
           periodSeconds: 30
         resources: {{ toYaml .Values.nginx.resources | nindent 10 }}
         volumeMounts:
-          - mountPath: /conf
+          - mountPath: /conf/nginx.template.conf
             name: nginx-conf
+            subPath: nginx.template.conf
             readOnly: true
+          {{- if .Values.instrumentation.enabled }}
+          - mountPath: /etc/nginx/opentracing.json
+            name: nginx-conf
+            subPath: opentracing.json
+          {{- end }}
           - mountPath: /app/robots.txt
             name: robots-txt
             readOnly: true
