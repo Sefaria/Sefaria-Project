@@ -33,7 +33,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
-import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -120,7 +120,6 @@ class ReaderApp extends Component {
       beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
       beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
       inCustomBeitMidrash: !!props.customBeitMidrashId,
-      ...generateContentForModal() // Set modalContent to be the default state
     };
   }
   makePanelState(state) {
@@ -913,7 +912,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   } else {
     this.setState({
       showSignUpModal: true,
-      ...generateContentForModal(modalContentKind),
+      modalContentKind: modalContentKind,
     });
   }
 }
@@ -2162,7 +2161,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       <SignUpModal
         onClose={this.toggleSignUpModal}
         show={this.state.showSignUpModal}
-        modalContent={this.state.modalContent}
+        modalContentKind={this.state.modalContentKind}
       />
     );
     const communityPagePreviewControls = this.props.communityPreview ?

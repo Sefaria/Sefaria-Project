@@ -286,8 +286,8 @@ const signUpModalContent = {
 
 export function generateContentForModal(signUpModalKind) {
   if (signUpModalContent.hasOwnProperty(signUpModalKind)) {
-    return {modalContent: signUpModalContent[signUpModalKind]};
+    return signUpModalContent[signUpModalKind];
   } else {
-    return {modalContent: signUpModalContent[SignUpModalKind.Default]};
+    return signUpModalContent[SignUpModalKind.Default];
   }
 }

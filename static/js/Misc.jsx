@@ -16,7 +16,7 @@ import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
-import { SignUpModalKind } from './sefaria/signupModalContent';
+import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1896,7 +1896,9 @@ LoginPrompt.propTypes = {
 
 class SignUpModal extends Component {
   render() {
-    const innerContent = this.props.modalContent.contentList.map(bullet => (
+    let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
+
+    const innerContent = modalContent.contentList.map(bullet => (
       <div key={bullet.icon}>
         <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
         <InterfaceText text={bullet.bulletContent} />
@@ -1911,10 +1913,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText text={this.props.modalContent.h2} />
+              <InterfaceText text={modalContent.h2} />
             </h2>
             <h3>
-              <InterfaceText text={this.props.modalContent.h3} />
+              <InterfaceText text={modalContent.h3} />
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
