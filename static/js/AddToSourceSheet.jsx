@@ -63,7 +63,6 @@ class AddToSourceSheetBox extends Component {
   }
 
   toggleSheetList() {
-    console.log('getting here to toggleSheetList');
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     } else {
