@@ -16,4 +16,4 @@ class CrmFactory(object):
         elif self.crm_type == "NONE":
             return DummyConnectionManager()
         else:
-            raise ValueError('Unexpected CRM Type found in Settings')
+            return DummyConnectionManager()
