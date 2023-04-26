@@ -16,6 +16,7 @@ import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
+import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1325,7 +1326,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
         .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
 
@@ -1387,7 +1388,7 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal();
+      this.props.toggleSignUpModal(SignUpModalKind.Follow);
       return;
     }
     if (this.state.following && !this.props.disableUnfollow) {
@@ -1521,7 +1522,7 @@ const SheetListing = ({
     if (Sefaria._uid) {
       setShowCollectionsModal(!showCollectionsModal);
     } else {
-      toggleSignUpModal();
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
   };
 
@@ -1895,15 +1896,12 @@ LoginPrompt.propTypes = {
 
 class SignUpModal extends Component {
   render() {
-    const innerContent = [
-      ["star-white.png", "Save texts"],
-      ["sheet-white.png", "Make source sheets"],
-      ["note-white.png", "Take notes"],
-      ["email-white.png", "Stay in the know"],
-    ].map(x => (
-      <div key={x[0]}>
-        <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        <InterfaceText>{ x[1] }</InterfaceText>
+    let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
+
+    const innerContent = modalContent.contentList.map(bullet => (
+      <div key={bullet.icon}>
+        <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
+        <InterfaceText text={bullet.bulletContent} />
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1915,10 +1913,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText>Love Learning?</InterfaceText>
+              <InterfaceText text={modalContent.h2} />
             </h2>
             <h3>
-              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
+              <InterfaceText text={modalContent.h3} />
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -1939,6 +1937,7 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
+  modalContent: PropTypes.object.isRequired,
 };
 
 
