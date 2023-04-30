@@ -119,6 +119,30 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
+
+  function getImageAlt(imgTag) {
+  const imgElement = document.createElement('div');
+  imgElement.innerHTML = imgTag;
+  const img = imgElement.querySelector('img');
+  if (img) {
+    const alt = img.getAttribute('alt');
+    return alt;
+  }
+  return null;
+    }
+  renderedItems.map((x, index) => {
+  const pattern = /<img\b[^>]*>/i
+  const isImageTag = pattern.test(x[1])
+  if (isImageTag) {
+    const altText = getImageAlt(x[1])
+    x[1] = '<div class="image-in-text">' + x[1] + '<p class="image-in-text-title">' + altText + '</p></div>'
+//     console.log(x[1])
+    if (x[0] === 'he' && languageToFilter === "bilingual"){
+        x[1] = ''
+    }
+  }
+    })
+
   if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){
       //nifty function that sorts one array according to the order of a second array.
@@ -138,7 +162,6 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
           <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
   );
 };
-
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
