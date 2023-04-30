@@ -299,14 +299,14 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-04-02-passover-donate-banner",
-    "style":      "banner",  # "modal" or "banner"
-    "repetition": 1,
-    "is_fundraising": True,
+    "name": "2023-3-8-modal-newsletter",
+    "style":      "modal",  # "modal" or "banner"
+    "repetition": 2,
+    "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
-        "desktop_only": False,
+        "desktop_only": True,
         "debug": False,
     }
 }

@@ -5,7 +5,7 @@ jobs:
   semantic-release:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.semantic.outputs.release-version }}
+      version: ${{ steps.releaseVersion.outputs.releaseVersion }}
     steps:
       - uses: actions/checkout@v3
       - run: npm install conventional-changelog-conventionalcommits
@@ -60,14 +60,27 @@ jobs:
                 ]
               }],
               ['@semantic-release/github', {
-                "successComment": false
+                "successComment": false,
+                "failTitle": false
               }]
             ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: fail if no version
-        if: steps.semantic.outputs.new-release-published == 'false'
-        run: exit 1
+      - name: check version was generated
+        id: releaseVersion
+        run: |
+          if [[ -z "${{ steps.semantic.outputs.new_release_version }}" ]]; then
+            if [[ -z "$(git describe --match 'v*' --abbrev=0 HEAD --tags)" ]]; then
+              echo "No release version available"
+              exit 1
+            else
+            echo "releaseVersion=$(git describe --match 'v*' --abbrev=0 HEAD --tags)" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "releaseVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
+          fi
+      - name: "Version Info:"
+        run: echo "${{ steps.releaseVersion.outputs.releaseVersion }}"
   deploy:
     needs: semantic-release
     uses: ./.github/workflows/production-deploy.yaml
