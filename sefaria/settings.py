@@ -301,7 +301,7 @@ CACHES = {
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name": "2023-3-8-modal-newsletter",
     "style":      "modal",  # "modal" or "banner"
-    "repetition": 1,
+    "repetition": 2,
     "is_fundraising": False,
     "condition":  {
         "returning_only": False,

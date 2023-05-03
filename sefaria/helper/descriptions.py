@@ -163,7 +163,7 @@ def update_authors_data():
                 "linkType": "displays-under"
             }).save()
         except DuplicateRecordError as e:
-            error_texts.append(e)
+            error_texts.append(str(e))
 
         if p.get_property('era'):
             to_topic = isa_object_aggregate_map.get(p.slug, era_slug_map[p.get_property('era')])

@@ -41,11 +41,14 @@ class AboutBox extends Component {
       Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
-      this.setState({details: null});
-      this.setTextMetaData();
-      Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
-    }
+      if (prevProps.title !== this.props.title ||
+          prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
+          !Sefaria.util.object_equals(prevProps.currObjectVersions, this.props.currObjectVersions)
+      ) {
+          this.setState({details: null});
+          this.setTextMetaData();
+          Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
+      }
   }
   onVersionsLoad(versions) {
     //rearrange the current selected versions to be mapped by their real language,
