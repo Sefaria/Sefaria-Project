@@ -306,7 +306,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     "condition":  {
         "returning_only": False,
         "english_only": False,
-        "desktop_only": True,
+        "desktop_only": False,
         "debug": False,
     }
 }
