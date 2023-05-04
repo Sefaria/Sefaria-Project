@@ -74,7 +74,7 @@ class Header extends Component {
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu 
+              <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
@@ -524,7 +524,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <img src="/static/icons/info.svg" />
           <InterfaceText>{aboutMessage}</InterfaceText>
         </a>
-        
+
         {Sefaria._uid ?
         <>
           <a href="/settings/account">
@@ -552,7 +552,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
       </div>
       {Sefaria._siteSettings.TORAH_SPECIFIC ?
-        <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
+        <DonateLink classes={"blue"} source="MobileNavMenu">
           <img src="/static/img/heart.png" alt="donation icon" />
           <InterfaceText>Donate</InterfaceText>
         </DonateLink>
