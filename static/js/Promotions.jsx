@@ -26,7 +26,7 @@ const Promotions = ({adType, rerender}) => {
         if (newIds.length > 0) {
             for (const matchingAd of matchingAds) {
                 if (newIds.includes(matchingAd.campaignId)) {
-                    Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
+                    gtag("event", "promo_viewed", {campaignID: matchingAd.campaignId, adType: matchingAd.adType})
                 }
             }
             setPrevMatchingAdIds(newIds)
@@ -137,7 +137,7 @@ const Promotions = ({adType, rerender}) => {
 </div>
 <div id="bannerButtonBox">
 	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
-    onClick="Sefaria.track.promoClick('${matchingAd.campaignId}', '${matchingAd.adType}');"
+    onClick={gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})}
     target="_blank">
         <span>${matchingAd.buttonText}</span>
     </a>
@@ -172,7 +172,7 @@ const SidebarAd = ({matchingAd}) => {
     })
 
     function getButton() {
-        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.promoClick(matchingAd.campaignId, matchingAd.adType)}>
+        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}     onClick={gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})}>
         <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
         {matchingAd.buttonText}</a>
     }
