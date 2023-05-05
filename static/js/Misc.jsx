@@ -103,7 +103,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, placeSegmentNumbers}) => {
   /**
    * Renders content language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -120,28 +120,22 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
 
-  function getImageAlt(imgTag) {
+  function getImageAttribute(imgTag, attribute) {
   const imgElement = document.createElement('div');
   imgElement.innerHTML = imgTag;
   const img = imgElement.querySelector('img');
   if (img) {
-    const alt = img.getAttribute('alt');
-    return alt;
+    const att = img.getAttribute(attribute);
+    return att;
   }
   return null;
     }
-  renderedItems.map((x, index) => {
+
+  function isImage(textChunk) {
   const pattern = /<img\b[^>]*>/i
-  const isImageTag = pattern.test(x[1])
-  if (isImageTag) {
-    const altText = getImageAlt(x[1])
-    x[1] = '<div class="image-in-text">' + x[1] + '<p class="image-in-text-title">' + altText + '</p></div>'
-//     console.log(x[1])
-    if (x[0] === 'he' && languageToFilter === "bilingual"){
-        x[1] = ''
-    }
+  const isImageTag = pattern.test(textChunk)
+  return isImageTag
   }
-    })
 
   if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){
@@ -155,13 +149,35 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
       return lang === langShort;
     });
   }
-  return renderedItems.map( x =>
-      isDangerouslySetInnerHTML ?
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
-          :
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
-  );
+  
+  return renderedItems.map((x) => {
+
+  if (isImage(x[1])){
+    console.log("is image")
+    const altText = getImageAttribute(x[1], 'alt')
+    const srcText = getImageAttribute(x[1], 'src');
+    x[1] = (<div className="image-in-text">{<img onLoad={placeSegmentNumbers} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
+    if (x[0] === 'he' && languageToFilter === "bilingual") {x[1] = ''}
+
+    return(<span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>)
+  }
+
+
+  if (isDangerouslySetInnerHTML) {
+    return (<span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: x[1] }}/>);
+  } else {
+    return (
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}> {x[1]}</span>);}
+    });
+
+//   return renderedItems.map( x =>
+//       isDangerouslySetInnerHTML ?
+//           <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+//           :
+//           <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
+//   );
 };
+
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
