@@ -12664,11 +12664,13 @@ span.ref-link-color-3 {color: blue}
 }
 .image-in-text-title {
     margin: auto; /* English System Small */
+    margin-top: 15px;
+    text-align: center;
     font-family: 'Roboto';
     font-style: normal;
     font-weight: 400;
     font-size: 14px;
-    line-height: 40px;
+    line-height: 18px;
     color: #666666;
 
 @-webkit-keyframes load5 {
