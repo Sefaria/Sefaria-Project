@@ -38,7 +38,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText, SignUpModal,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
 
 

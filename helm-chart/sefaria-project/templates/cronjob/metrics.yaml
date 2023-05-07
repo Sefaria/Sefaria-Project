@@ -1,4 +1,4 @@
-{{- if .Values.cronJobs.metrics.enabled }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob

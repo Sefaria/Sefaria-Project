@@ -81,12 +81,8 @@ def import_descriptions(filename, lang):
 
 if __name__ == "__main__":
     set_topic_datasource()
-    en_file = os.getenv("EN")
-    if en_file:
-        import_descriptions(en_file, "en")
-    he_file = os.getenv("HE")
-    if he_file:
-        import_descriptions(he_file, "he")
+    import_descriptions(os.getenv("EN"), "en")
+    import_descriptions(os.getenv("HE"), "he")
 
     '''
     export EN='/Users/levisrael/Downloads/Learning Prompts for Spring 2023 - English - Sheet1.csv'
