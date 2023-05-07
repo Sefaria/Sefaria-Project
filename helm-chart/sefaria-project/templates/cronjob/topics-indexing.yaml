@@ -1,5 +1,5 @@
 # https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
-{{- if .Values.cronJobs.topicsIndexing.enabled }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob

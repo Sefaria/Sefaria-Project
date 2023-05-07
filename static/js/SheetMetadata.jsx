@@ -20,7 +20,6 @@ import PropTypes  from 'prop-types';
 import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class';
 import ReactTags from 'react-tag-autocomplete'
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class SheetMetadata extends Component {
   // Menu for the Table of Contents for a single text
@@ -159,7 +158,7 @@ class SheetMetadata extends Component {
 
   copySheet() {
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+        this.props.toggleSignUpModal();
     } else if (this.state.sheetCopyStatus == "Copy") {
         this.setState({sheetCopyStatus: "Copying..."});
         this.filterAndSaveCopiedSheetData(this.loadSheetData(this.props.id))
@@ -215,7 +214,7 @@ class SheetMetadata extends Component {
   }
   toggleCollectionsModal() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+      this.props.toggleSignUpModal();
     } else {
       this.setState({showCollectionsModal: !this.state.showCollectionsModal});
     }

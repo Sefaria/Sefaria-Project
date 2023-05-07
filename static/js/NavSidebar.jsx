@@ -145,9 +145,9 @@ const AboutTranslatedText = ({translationsSlug}) => {
   }
   return (
   <Module>
-    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
+    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ? 
           translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
-        { translationLookup[translationsSlug] ?
+        { translationLookup[translationsSlug] ? 
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
           <EnglishText>
@@ -207,7 +207,7 @@ const SupportSefaria = ({blue}) => (
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
-    <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
+    <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
     </DonateLink>
@@ -220,7 +220,7 @@ const SponsorADay = () => (
     <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
-    <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
+    <DonateLink classes={"button small"} link={"sponsor"} source={"NavSidebar / SponsorADay"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Sponsor A Day</InterfaceText>
     </DonateLink>
@@ -331,7 +331,7 @@ const HaftarotLinks = () => {
   const haftarot = Sefaria.calendars.filter(c => c.title.en.startsWith("Haftarah"))
   return (
     <>
-      {haftarot.map(h =>
+      {haftarot.map(h => 
       <div className="navSidebarLink ref serif" key={h.url}>
         <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
         <a href={"/" + h.url}><InterfaceText text={h.displayValue} /></a>
@@ -392,10 +392,7 @@ const LearningSchedules = () => {
         <DafLink />
       </div>
       <a href="/calendars" className="allLink">
-        <InterfaceText>
-        <EnglishText>All Learning Schedules ›</EnglishText>
-        <HebrewText>לוחות לימוד נוספים ›</HebrewText>
-        </InterfaceText>
+        <InterfaceText>All Learning Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -419,10 +416,7 @@ const WeeklyTorahPortion = () => {
         <HaftarotLinks />
       </div>
       <a href="/topics/category/torah-portions" className="allLink">
-        <InterfaceText>
-        <EnglishText>All Portions ›</EnglishText>
-        <HebrewText>פרשות השבוע ›</HebrewText>
-        </InterfaceText>
+        <InterfaceText>All Portions</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -446,16 +440,16 @@ const DafYomi = () => {
 
 const Visualizations = ({categories}) => {
   const visualizations = [
-    {en: "Tanakh & Talmud",
-      he: 'תנ"ך ותלמוד',
+    {en: "Tanakh & Talmud", 
+      he: 'תנ"ך ותלמוד', 
       url: "/explore"},
-    {en: "Talmud & Mishneh Torah",
+    {en: "Talmud & Mishneh Torah", 
       he: "תלמוד ומשנה תורה",
       url: "/explore-Bavli-and-Mishneh-Torah"},
-    {en: "Talmud & Shulchan Arukh",
+    {en: "Talmud & Shulchan Arukh", 
       he: "תלמוד ושולחן ערוך",
       url: "/explore-Bavli-and-Shulchan-Arukh"},
-    {en: "Mishneh Torah & Shulchan Arukh",
+    {en: "Mishneh Torah & Shulchan Arukh", 
       he: "משנה תורה ושולחן ערוך",
       url: "/explore-Mishneh-Torah-and-Shulchan-Arukh"},
     {en: "Tanakh & Midrash Rabbah",
@@ -478,7 +472,7 @@ const Visualizations = ({categories}) => {
       <ModuleTitle>Visualizations</ModuleTitle>
       <InterfaceText>Explore interconnections among texts with our interactive visualizations.</InterfaceText>
       <div className="linkList">
-        {links.map((link, i) =>
+        {links.map((link, i) => 
           <div className="navSidebarLink gray" key={i}>
             <img src="/static/icons/visualization.svg" className="navSidebarIcon" alt={Sefaria._("visualization icon")} />
             <a href={link.url}><InterfaceText text={{en: link.en, he: link.he}} /></a>
@@ -486,10 +480,7 @@ const Visualizations = ({categories}) => {
         )}
       </div>
       <a href="/visualizations" className="allLink">
-        <InterfaceText>
-        <EnglishText>All Visualizations ›</EnglishText>
-        <HebrewText>תרשימים גרפיים נוספים ›</HebrewText>
-        </InterfaceText>
+        <InterfaceText>All Visualizations</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -509,7 +500,7 @@ const AboutTopics = ({hideTitle}) => (
 const TrendingTopics = () => (
   <Module>
     <ModuleTitle>Trending Topics</ModuleTitle>
-    {Sefaria.trendingTopics.map((topic, i) =>
+    {Sefaria.trendingTopics.map((topic, i) => 
       <div className="navSidebarLink ref serif" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
@@ -529,7 +520,7 @@ const RelatedTopics = ({title}) => {
   return (topics.length ?
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
-      {shownTopics.map((topic, i) =>
+      {shownTopics.map((topic, i) => 
         <div className="navSidebarLink ref serif" key={i}>
           <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
         </div>
@@ -679,7 +670,7 @@ const ExploreCollections = () => (
 const WhoToFollow = ({toggleSignUpModal}) => (
   <Module>
     <ModuleTitle>Who to Follow</ModuleTitle>
-    {Sefaria.followRecommendations.map(user =>
+    {Sefaria.followRecommendations.map(user => 
     <ProfileListing {...user} key={user.uid} toggleSignUpModal={toggleSignUpModal} />)}
   </Module>
 );
