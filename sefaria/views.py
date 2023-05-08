@@ -36,6 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_factory import CrmFactory
+from sefaria.helper.crm.crm_meditor import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
@@ -179,12 +180,12 @@ def subscribe(request, email):
     lists = lists.split("|")
     if len(lists) == 0:
         return jsonResponse({"error": "Please specify a list."})
-    connection_manager = CrmFactory().get_connection_manager()
-    if connection_manager.add_user_to_crm(lists + ["Newsletter_Sign_Up"], email):
+
+    crm_mediator = CrmMediator()
+    if crm_mediator.create_crm_user(lists + ["Newsletter_Sign_Up"], email, None, None):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})
-
 
 @login_required
 def unlink_gauth(request):

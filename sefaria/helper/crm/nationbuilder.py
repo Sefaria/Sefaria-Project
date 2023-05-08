@@ -3,14 +3,9 @@ from rauth import OAuth2Service
 import time
 import json
 
-from sefaria.system.database import db
-from sefaria.helper.trend_manager import CategoryTrendManager, SheetReaderManager, SheetCreatorManager, \
-    CustomTraitManager, ParashaLearnerManager
 from sefaria import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
-from sefaria.model.user_profile import UserProfile
 
-from django.core.mail import EmailMultiAlternatives
 
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"
 
@@ -34,8 +29,9 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         session = service.get_session(token)
         return session
 
-    def add_user_to_crm(self, lists, email, first_name=None, last_name=None):
+    def add_user_to_crm(self, lists, email, first_name=None, last_name=None, lang="en"):
         tags = lists
+        #todo: add en/he logic
         post = {
             "person": {
                 "email": email,
@@ -56,10 +52,7 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             nationbuilder_user = r.json()
             nationbuilder_id = nationbuilder_user["person"]["id"] if "person" in nationbuilder_user else \
                 nationbuilder_user["id"]
-            user_profile = UserProfile(email=email, user_registration=True)
-            if user_profile.id is not None and user_profile.nationbuilder_id != nationbuilder_id:
-                user_profile.nationbuilder_id = nationbuilder_id
-                user_profile.save()
+            return nationbuilder_id
         except:
             return False
 
@@ -86,37 +79,43 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                                                                                                       attempt + 1, e))
                     print(next_endpoint)
 
-    def sync_sustainers(self):
-        sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
-        added_count = 0
-        removed_count = 0
-        no_profile_count = 0
-        already_synced_count = 0
+    def get_sustainers(self):
         for nationbuilder_sustainer in self.nationbuilder_get_all(self.get_by_tag, ['sustainer_current_engineering']):
-
-            nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email'])
-
-            if nationbuilder_sustainer_profile.id is not None:  # has user profile
-                existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
-
-                if existing_sustainer:  # remove sustainer from dictionary; already synced
-                    del sustainers[nationbuilder_sustainer_profile.id]
-                    already_synced_count += 1
-                else:  # add new sustainer to db
-                    self.update_user_flags(nationbuilder_sustainer_profile, "is_sustainer", True)
-                    added_count += 1
-            else:
-                no_profile_count += 1
-
-        for sustainer_to_remove in sustainers:
-            profile = UserProfile(sustainer_to_remove)
-            self.update_user_flags(profile, "is_sustainer", False)
-            removed_count += 1
-
-        print("added: {}".format(added_count))
-        print("removed: {}".format(removed_count))
-        print("no_profile: {}".format(no_profile_count))
-        print("already synced: {}".format(already_synced_count))
+            yield {
+                "email": nationbuilder_sustainer["email"]
+            }
+    #
+    # def sync_sustainers(self):
+    #     sustainers = {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
+    #     added_count = 0
+    #     removed_count = 0
+    #     no_profile_count = 0
+    #     already_synced_count = 0
+    #     for nationbuilder_sustainer in self.nationbuilder_get_all(self.get_by_tag, ['sustainer_current_engineering']):
+    #
+    #         nationbuilder_sustainer_profile = UserProfile(email=nationbuilder_sustainer['email'])
+    #
+    #         if nationbuilder_sustainer_profile.id is not None:  # has user profile
+    #             existing_sustainer = sustainers.get(nationbuilder_sustainer_profile.id) is not None
+    #
+    #             if existing_sustainer:  # remove sustainer from dictionary; already synced
+    #                 del sustainers[nationbuilder_sustainer_profile.id]
+    #                 already_synced_count += 1
+    #             else:  # add new sustainer to db
+    #                 self.update_user_flags(nationbuilder_sustainer_profile, "is_sustainer", True)
+    #                 added_count += 1
+    #         else:
+    #             no_profile_count += 1
+    #
+    #     for sustainer_to_remove in sustainers:
+    #         profile = UserProfile(sustainer_to_remove)
+    #         self.update_user_flags(profile, "is_sustainer", False)
+    #         removed_count += 1
+    #
+    #     print("added: {}".format(added_count))
+    #     print("removed: {}".format(removed_count))
+    #     print("no_profile: {}".format(no_profile_count))
+    #     print("already synced: {}".format(already_synced_count))
 
     def mark_as_spam_in_crm(self, profile):
         """
@@ -149,9 +148,3 @@ class NationbuilderConnectionManager(CrmConnectionManager):
     @staticmethod
     def update_person(id):
         return f"/api/v1/people/{id}"
-
-    @staticmethod
-    def update_user_flags(profile, flag, value):
-        # updates our database user, not nb
-        profile.update({flag: value})
-        profile.save()

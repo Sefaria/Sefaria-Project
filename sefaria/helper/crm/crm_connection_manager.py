@@ -3,16 +3,19 @@ class CrmConnectionManager(object):
         self.base_url = base_url
         self.session = self._get_connection()
 
+
     def _get_connection(self):
         """
         Authenticate application & return a Requests session object
         """
         pass
 
+    # todo: add he/en
     def add_user_to_crm(self, lists, email, first_name, last_name):
         """
         Add a new Sefaria app user to the CRM.
-        Returns True if successful
+        Returns user id if successful
+        Returns false if no user added
         """
         pass
 
