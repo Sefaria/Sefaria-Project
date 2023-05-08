@@ -299,14 +299,14 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-3-8-modal-newsletter",
+    "name": "2023-05-04-shavuot",
     "style":      "modal",  # "modal" or "banner"
-    "repetition": 2,
-    "is_fundraising": False,
+    "repetition": 1,
+    "is_fundraising": True,
     "condition":  {
         "returning_only": False,
         "english_only": False,
-        "desktop_only": True,
+        "desktop_only": False,
         "debug": False,
     }
 }
