@@ -6,6 +6,6 @@ ARG SRC_IMG
 
 FROM ${SRC_IMG} AS static_source
 
-FROM opentracing/nginx-opentracing:nginx-1.23.3
+FROM nginx
 RUN mkdir /app/
 COPY --from=static_source /app/static-collected /app/static/
