@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.helper.crm.crm_info_store import CrmInfoStore
 import sys
@@ -87,3 +87,15 @@ class TestSyncSustainers(TestCase):
             mock_find.side_effect = lambda x: x
             crm_mediator.sync_sustainers()
             mock_mark.assert_any_call(5, False)
+
+
+class TestMarkAsSpam(TestCase):
+
+    def test_gets_id_marks_spam(self):
+        with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.get_crm_id') as mock_get_id:
+            mock_get_id.return_value = 6
+            crm_mediator = CrmMediator()
+            crm_mediator._crm_connection = MagicMock()
+            crm_mediator.mark_as_spam_in_crm(1, "hi@hi.com", "abc")
+            mock_get_id.assert_called_with(1, "hi@hi.com", "abc")
+            crm_mediator._crm_connection.mark_as_spam_in_crm.assert_called_with(6)

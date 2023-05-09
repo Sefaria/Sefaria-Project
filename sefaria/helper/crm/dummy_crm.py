@@ -17,7 +17,7 @@ class DummyConnectionManager(CrmConnectionManager):
     def sync_sustainers(self):
         pass
 
-    def mark_as_spam_in_crm(self, profile):
+    def mark_as_spam_in_crm(self, crm_id):
         pass
 
     def __del__(self):

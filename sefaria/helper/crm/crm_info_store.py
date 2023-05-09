@@ -1,35 +1,46 @@
-from sefaria import settings as sls
 from sefaria.model.user_profile import UserProfile
+from sefaria import settings as sls
 
 import structlog
 
 class CrmInfoStore(object):
 
     @staticmethod
-    def save_crm_id(profile_id, email):
+    def save_crm_id(profile_id, email, crm_type):
         """
         Saves CRM id to the database with the correct field
         """
-        if sls.CRM_TYPE == "NATIONBUILDER":
+        if crm_type == "NATIONBUILDER":
             user_profile = UserProfile(email=email, user_registration=True)
             if user_profile.id is not None and user_profile.nationbuilder_id != profile_id:
                 user_profile.nationbuilder_id = profile_id
                 user_profile.save()
                 return True
             return False
-        elif sls.CRM_TYPE == "SALESFORCE":
+        elif crm_type == "SALESFORCE":
             user_profile = UserProfile(email=email, user_registration=True)
             if user_profile.id is not None and user_profile.sf_app_user_id != profile_id:
                 user_profile.sf_app_user_id = profile_id
                 user_profile.save()
                 return True
             return False
-        elif sls.CRM_TYPE == "NONE":
+        elif crm_type == "NONE":
             return True
 
     @staticmethod
-    def get_crm_id():
-        pass
+    def get_crm_id(uid=None, email=None, profile=None, crm_type=sls.CRM_TYPE):
+        if profile:
+            user_profile = profile
+        elif email:
+            user_profile = UserProfile(email=email)
+        elif uid:
+            user_profile = UserProfile(id=uid)
+        if crm_type == "NATIONBUILDER":
+            return user_profile.nationbuilder_id
+        elif crm_type == "SALESFORCE":
+            return user_profile.sf_app_user_id
+        elif crm_type == "NONE":
+            return False
 
     @staticmethod
     def get_current_sustainers():

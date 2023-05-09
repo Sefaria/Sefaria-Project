@@ -1,5 +1,6 @@
 from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.helper.crm.crm_info_store import CrmInfoStore
+from sefaria import settings as sls
 
 
 # todo: task queue, async
@@ -12,7 +13,7 @@ class CrmMediator:
         try:
             crm_id = self._crm_connection.add_user_to_crm(lists, email, first_name, last_name, lang)
             if crm_id:
-                CrmInfoStore.save_crm_id(crm_id, email)
+                CrmInfoStore.save_crm_id(crm_id, email, sls.CRM_TYPE)
                 return True
             else:
                 return False
@@ -30,3 +31,7 @@ class CrmMediator:
 
         for sustainer_to_remove in current_sustainers:
             CrmInfoStore.mark_sustainer(sustainer_to_remove, False)
+
+    def mark_as_spam_in_crm(self, uid=None, email=None, profile=None):
+        crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
+        self._crm_connection.mark_as_spam_in_crm(crm_id)

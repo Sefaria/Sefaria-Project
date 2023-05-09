@@ -37,7 +37,7 @@ class CrmConnectionManager(object):
         """
         pass
 
-    def mark_as_spam_in_crm(self, profile):
+    def mark_as_spam_in_crm(self, crm_id):
         """
         Do in CRM whatever decision has been made to do about spam users.
         """

@@ -79,7 +79,6 @@ class SalesforceConnectionManager(CrmConnectionManager):
         except:
             # log
             return False
-
         return res
 
 

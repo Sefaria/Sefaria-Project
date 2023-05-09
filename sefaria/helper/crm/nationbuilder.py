@@ -116,26 +116,21 @@ class NationbuilderConnectionManager(CrmConnectionManager):
     #     print("no_profile: {}".format(no_profile_count))
     #     print("already synced: {}".format(already_synced_count))
 
-    def mark_as_spam_in_crm(self, profile):
+    def mark_as_spam_in_crm(self, nationbuilder_id):
         """
         Deletes spam users from nationbuilder if they are determined to be spam.
         """
-        user_profile_id = profile["id"]
-        if "nationbuilder_id" in profile:
-            nationbuilder_id = profile["nationbuilder_id"]
-            r = self.session.get(self.update_person(nationbuilder_id))
-            try:
-                # If user is only signed up for junk tags, delete from CRM
-                tags = [x for x in r.json()["person"]["tags"] if
-                        x.lower() not in ["announcements_general_hebrew", "announcements_general",
-                                          "announcements_edu_hebrew",
-                                          "announcements_edu", "signed_up_on_sefaria", "spam"]]
-                if len(tags) == 0:
-                    self.session.delete(self.update_person(nationbuilder_id))
-                else:  # TODO: Think through better ways to log this
-                    print(f"{user_profile_id} not deleted -- has tags {','.join(tags)}")
-            except Exception as e:
-                print(f"Failed to delete {user_profile_id}. Error: {e}")
+        r = self.session.get(self.update_person(nationbuilder_id))
+        try:
+            # If user is only signed up for junk tags, delete from CRM
+            tags = [x for x in r.json()["person"]["tags"] if
+                    x.lower() not in ["announcements_general_hebrew", "announcements_general",
+                                      "announcements_edu_hebrew",
+                                      "announcements_edu", "signed_up_on_sefaria", "spam"]]
+            if len(tags) == 0:
+                self.session.delete(self.update_person(nationbuilder_id))
+        except Exception as e:
+            print(f"Failed to delete. Error: {e}")
 
     def __del__(self):
         self.session.close()
