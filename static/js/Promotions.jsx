@@ -26,7 +26,7 @@ const Promotions = ({adType, rerender}) => {
         if (newIds.length > 0) {
             for (const matchingAd of matchingAds) {
                 if (newIds.includes(matchingAd.campaignId)) {
-                    gtag("event", "promo_viewed", {campaignID: matchingAd.campaignId, adType: matchingAd.adType})
+                    gtag("event", "promo_viewed", {campaignID: matchingAd.campaignId, adType:matchingAd.adType}) // how do we know that this is only on view? in and out?
                 }
             }
             setPrevMatchingAdIds(newIds)
@@ -136,9 +136,7 @@ const Promotions = ({adType, rerender}) => {
     </span>
 </div>
 <div id="bannerButtonBox">
-	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
-    onClick={gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})}
-    target="_blank">
+	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}" onclick='gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})' target="_blank">
         <span>${matchingAd.buttonText}</span>
     </a>
 </div>`
@@ -172,7 +170,7 @@ const SidebarAd = ({matchingAd}) => {
     })
 
     function getButton() {
-        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}     onClick={gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})}>
+        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}     onClick={() => gtag("event", "promo_clicked", {campaignID: matchingAd.campaignId, adType:matchingAd.adType})}>
         <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
         {matchingAd.buttonText}</a>
     }
