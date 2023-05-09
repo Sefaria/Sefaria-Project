@@ -1881,6 +1881,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         container.setAttribute('dir', 'rtl');
       }
 
+      // Collapse all nodes with poetry classes. This is needed for specifically pasting into Google Docs in Chrome to work.
+      const poetryElsToCollapse = container.querySelectorAll('.poetry');
+      poetryElsToCollapse.forEach(poetryEl => {
+        poetryEl.outerHTML = poetryEl.innerHTML;
+      });
+
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
         let elsToRemove = container.querySelectorAll("br");
