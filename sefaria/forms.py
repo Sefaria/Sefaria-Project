@@ -15,7 +15,7 @@ from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
 
-from sefaria.helper.crm.crm_meditor import CrmMediator
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
@@ -97,7 +97,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
             mailingLists.append("Signed_Up_on_Sefaria")
             crm_mediator = CrmMediator()
             crm_mediator.create_crm_user(mailingLists, user.email, first_name=user.first_name,
-                                         last_name=user.last_name)
+                                         last_name=user.last_name, lang=language)
 
         return user
 

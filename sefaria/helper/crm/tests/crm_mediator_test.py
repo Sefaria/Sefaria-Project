@@ -4,7 +4,7 @@ from sefaria.helper.crm.crm_factory import CrmFactory
 from sefaria.helper.crm.crm_info_store import CrmInfoStore
 import sys
 import copy
-from sefaria.helper.crm.crm_meditor import CrmMediator
+from sefaria.helper.crm.crm_mediator import CrmMediator
 
 crm_factory_stub = Mock()
 fake_connection_manager = Mock()

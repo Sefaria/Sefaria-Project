@@ -36,7 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_factory import CrmFactory
-from sefaria.helper.crm.crm_meditor import CrmMediator
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
