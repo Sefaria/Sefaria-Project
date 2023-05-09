@@ -8,7 +8,7 @@ class DummyConnectionManager(CrmConnectionManager):
     def _get_connection(self):
         return {}
 
-    def add_user_to_crm(self, lists, email, first_name=None, last_name=None):
+    def add_user_to_crm(self, lists, email, first_name=None, last_name=None, lang="en"):
         return False
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):

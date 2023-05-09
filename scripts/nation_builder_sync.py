@@ -1,6 +1,6 @@
 import django
 django.setup()
-from sefaria.helper.crm.crm_meditor import CrmMediator
+from sefaria.helper.crm.crm_mediator import CrmMediator
 
 import sys
 """

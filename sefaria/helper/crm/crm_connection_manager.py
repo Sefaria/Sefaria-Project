@@ -11,7 +11,7 @@ class CrmConnectionManager(object):
         pass
 
     # todo: add he/en
-    def add_user_to_crm(self, lists, email, first_name, last_name):
+    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en"):
         """
         Add a new Sefaria app user to the CRM.
         Returns user id if successful

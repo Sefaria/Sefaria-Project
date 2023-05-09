@@ -31,7 +31,6 @@ class NationbuilderConnectionManager(CrmConnectionManager):
 
     def add_user_to_crm(self, lists, email, first_name=None, last_name=None, lang="en"):
         tags = lists
-        #todo: add en/he logic
         post = {
             "person": {
                 "email": email,

@@ -4,6 +4,8 @@ import time
 
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class SalesforceConnectionManager(CrmConnectionManager):
@@ -31,6 +33,10 @@ class SalesforceConnectionManager(CrmConnectionManager):
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
         return self.session.post(endpoint, headers=headers, **kwargs)
 
+    def put(self, endpoint, **kwargs):
+        headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+        return self.session.post(endpoint, headers=headers, **kwargs)
+
     def _get_connection(self):
         access_token_url = "%s/services/oauth2/token?grant_type=client_credentials" % self.base_url
         base64_auth = base64.b64encode((sls.SALESFORCE_CLIENT_ID + ":" + sls.SALESFORCE_CLIENT_SECRET).encode("ascii"))\
@@ -47,21 +53,38 @@ class SalesforceConnectionManager(CrmConnectionManager):
         })
         return session
 
-    def add_user_to_crm(self, lists, email, first_name, last_name):
+    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en"):
         """
         Adds a new user to the CRM and subscribes them to the specified lists.
-        Saves CRM Access info to profile
+        Returns CRM access info
         """
-        return self.post(self.create_endpoint("Sefaria_App_User__c"),
+
+        if lang == "he":
+            language = "Hebrew"
+        else:
+            language = "English"
+
+        res = self.post(self.create_endpoint("Sefaria_App_User__c"),
                   json={
                       "First_Name__c": first_name,
                       "Last_Name__c": last_name,
                       "Sefaria_App_Email__c": email,
+                      "Hebrew_English__c": language
                   })
 
+        try:  # add salesforce id to user profile
+            nationbuilder_user = res.json() # {'id': '1234', 'success': True, 'errors': []}
+            return nationbuilder_user['id']
 
-    def test_get(self):
-        pass
+        except:
+            # log
+            return False
+
+        return res
+
+
+    def change_user_email(self, lists, email):
+        return self.put()
 
 
 
