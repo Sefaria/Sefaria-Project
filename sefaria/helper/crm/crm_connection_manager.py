@@ -10,13 +10,13 @@ class CrmConnectionManager(object):
         """
         pass
 
-    # todo: add he/en
-    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en"):
+    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en", educator=False):
         """
         Add a new Sefaria app user to the CRM.
         Returns user id if successful
         Returns false if no user added
         """
+        CrmConnectionManager.add_user_to_crm(lists, email, first_name, last_name, lang, educator)
         pass
 
     def change_user_email(self, uid, new_email):
@@ -25,7 +25,7 @@ class CrmConnectionManager(object):
         """
         pass
 
-    def add_email_to_mailing_lists(self, email, lists):
+    def add_email_to_mailing_lists(self, email, lists, first_name=None, last_name=None, lang="en"):
         """
         Add email directly to mailing list
         """

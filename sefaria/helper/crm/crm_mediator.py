@@ -9,9 +9,9 @@ class CrmMediator:
     def __init__(self):
         self._crm_connection = CrmFactory().get_connection_manager()
 
-    def create_crm_user(self, lists, email, first_name, last_name, lang="en"):
+    def create_crm_user(self, lists, email, first_name, last_name, educator=False, lang="en"):
         try:
-            crm_id = self._crm_connection.add_user_to_crm(lists, email, first_name, last_name, lang)
+            crm_id = self._crm_connection.add_user_to_crm(lists, email, first_name, last_name, educator, lang)
             if crm_id:
                 CrmInfoStore.save_crm_id(crm_id, email, sls.CRM_TYPE)
                 return True

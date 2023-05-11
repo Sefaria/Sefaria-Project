@@ -53,12 +53,12 @@ class SalesforceConnectionManager(CrmConnectionManager):
         })
         return session
 
-    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en"):
+    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en", educator=False):
         """
         Adds a new user to the CRM and subscribes them to the specified lists.
         Returns CRM access info
         """
-
+        CrmConnectionManager.add_user_to_crm(lists, email, first_name, last_name, lang, educator)
         if lang == "he":
             language = "Hebrew"
         else:
@@ -69,7 +69,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
                       "First_Name__c": first_name,
                       "Last_Name__c": last_name,
                       "Sefaria_App_Email__c": email,
-                      "Hebrew_English__c": language
+                      "Hebrew_English__c": language,
+                      "Educator__c": educator
                   })
 
         try:  # add salesforce id to user profile
@@ -80,10 +81,3 @@ class SalesforceConnectionManager(CrmConnectionManager):
             # log
             return False
         return res
-
-
-    def change_user_email(self, lists, email):
-        return self.put()
-
-
-

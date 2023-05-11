@@ -83,21 +83,9 @@ class SefariaNewUserForm(EmailUserCreationForm):
         if commit:
             user.save()
 
-        mailingLists = []
-        language = get_language()
-
-        list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
-        mailingLists.append(list_name)
-
-        if self.cleaned_data["subscribe_educator"]:
-            list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
-            mailingLists.append(list_name)
-
-        if mailingLists:
-            mailingLists.append("Signed_Up_on_Sefaria")
-            crm_mediator = CrmMediator()
-            crm_mediator.create_crm_user(mailingLists, user.email, first_name=user.first_name,
-                                         last_name=user.last_name, lang=language)
+        crm_mediator = CrmMediator()
+        crm_mediator.create_crm_user([], user.email, first_name=user.first_name,
+                                     last_name=user.last_name, lang=get_language())
 
         return user
 
