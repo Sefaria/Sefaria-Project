@@ -33,6 +33,7 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -904,9 +905,18 @@ class ReaderApp extends Component {
       $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
-  toggleSignUpModal() {
-    this.setState({ showSignUpModal: !this.state.showSignUpModal });
+
+toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
+  if (this.state.showSignUpModal) {
+    this.setState({ showSignUpModal: false });
+  } else {
+    this.setState({
+      showSignUpModal: true,
+      modalContentKind: modalContentKind,
+    });
   }
+}
+  
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -1871,6 +1881,12 @@ class ReaderApp extends Component {
         container.setAttribute('dir', 'rtl');
       }
 
+      // Collapse all nodes with poetry classes. This is needed for specifically pasting into Google Docs in Chrome to work.
+      const poetryElsToCollapse = container.querySelectorAll('.poetry');
+      poetryElsToCollapse.forEach(poetryEl => {
+        poetryEl.outerHTML = poetryEl.innerHTML;
+      });
+
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
         let elsToRemove = container.querySelectorAll("br");
@@ -2148,7 +2164,11 @@ class ReaderApp extends Component {
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
-      <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
+      <SignUpModal
+        onClose={this.toggleSignUpModal}
+        show={this.state.showSignUpModal}
+        modalContentKind={this.state.modalContentKind}
+      />
     );
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;

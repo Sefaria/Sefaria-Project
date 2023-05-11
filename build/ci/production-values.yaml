@@ -1,6 +1,6 @@
 sandbox: "false"
 contentSandbox: "false"
-deployEnv: production  
+deployEnv: production
 previousServicesCount: "3"
 restore:
   enabled: false
@@ -21,9 +21,9 @@ backup:
   sitemaps:
     enabled: true
 web:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
+    tag:
   replicaCount: 7
   resources:
     web:
@@ -60,9 +60,9 @@ redis:
       memory: "1500Mi"
       cpu: "200m"
 nodejs:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
+    tag:
   replicaCount: 4
   resources:
     requests:
@@ -95,7 +95,7 @@ varnish:
   monitoring:
     enabled: true
 ingress:
-  hosts: 
+  hosts:
     - host: "sefaria.org"
       path: /*
       serviceName: nginx
@@ -129,14 +129,14 @@ ingress:
       serviceName: nginx
       port: 80
   secrets:
-    originTls: 
+    originTls:
       ref: origin-tls-prod2
     originIlTls:
-      ref: origin-il-tls-prod2 
+      ref: origin-il-tls-prod2
 nginx:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
+    tag:
   SEARCH_HOST: elasticsearch-data
   replicaCount: 2
   resources:
@@ -147,9 +147,9 @@ nginx:
       memory: "300Mi"
       cpu: "150m"
 monitor:
-  containerImage: 
+  containerImage:
     imageRegistry:
-    tag: 
+    tag:
   replicaCount: 1
   resources:
     requests:
@@ -158,13 +158,40 @@ monitor:
     limits:
       memory: "400Mi"
       cpu: "100m"
+cronJobs:
+  # Settings for regenerating long cached data
+  regenerate:
+    enabled: true
+  dailyEmailNotifications:
+    enabled: true
+  indexFromQueue:
+    enabled: true
+  metrics:
+    enabled: true
+  nationBuilderSync:
+    enabled: true
+  rambiWebpagesWeekly:
+    enabled: true
+  reindexElasticSearch:
+    enabled: true
+  topicsIndexing:
+    enabled: true
+  trello:
+    enabled: true
+  weeklyEmailNotifications:
+     enabled: true
 secrets:
-  localSettings: 
+  localSettings:
     ref: local-settings-secrets-production
-  backupManager: 
+  backupManager:
     ref: backup-manager-secret-production
-  slackWebhook: 
+  slackWebhook:
     ref: slack-webhook-production
+instrumentation:
+  enabled: true
+  otelEndpoint: "http://otel-collector-collector.monitoring:4317"
+  jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+
 localSettings:
   DEBUG: false
   OFFLINE: "False"
@@ -177,15 +204,14 @@ localSettings:
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://www.sefaria.org" 
+  FRONT_END_URL:  "http://www.sefaria.org"
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
-  SEARCH_HOST: elasticsearch.data  
+  SEARCH_HOST: elasticsearch.data
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
-
