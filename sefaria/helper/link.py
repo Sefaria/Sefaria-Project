@@ -517,6 +517,7 @@ def add_links_from_csv(request):
     fieldnames = reader.fieldnames
     assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns'
     errors = []
+    success = 0
     for row in reader:
         refs = [row[fieldnames[0]], row[fieldnames[1]]]
         link = Link({
@@ -527,6 +528,7 @@ def add_links_from_csv(request):
         })
         try:
             link.save()
+            success += 1
         except Exception as e:
             errors.append(f'error with linking refs: {refs[0]}, {refs[1]}: {e}')
-    return errors
+    return {'message': f'{success} links succefully saved', 'errors': errors}
