@@ -1229,6 +1229,20 @@ def modtools_upload_workflowy(request):
 
     return jsonResponse({"status": "ok", "data": res})
 
+@staff_member_required
+def links_upload_api(request):
+    from sefaria.helper.link import add_links_from_csv
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    file = request.FILES['csv_file']
+    linktype = request.POST.get("type")
+    generated_by = request.POST.get("project_name") + ' csc upload'
+    try:
+        res = add_links_from_csv(file, linktype, generated_by)
+    except Exception as e:
+        raise e
+    return jsonResponse({"status": "ok", "data": res})
+
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)
     ref_array = None
