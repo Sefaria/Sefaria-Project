@@ -505,3 +505,28 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
             except Exception as e:
                 print("Exception: {}".format(e))
     return total
+
+def add_links_from_csv(request):
+    import unicodecsv as csv
+    import sys
+    csv.field_size_limit(sys.maxsize)
+    file = request.FILES['csv_file']
+    linktype = request.POST.get("type")
+    generated_by = request.POST.get("project_name") + ' csc upload'
+    reader = csv.DictReader(file.open())
+    fieldnames = reader.fieldnames
+    assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns'
+    errors = []
+    for row in reader:
+        refs = [row[fieldnames[0]], row[fieldnames[1]]]
+        link = Link({
+            'refs': refs,
+            'type': linktype,
+            'generated_by': generated_by,
+            'auto': True
+        })
+        try:
+            link.save()
+        except Exception as e:
+            errors.append(f'error with linking refs: {refs[0]}, {refs[1]}: {e}')
+    return errors
