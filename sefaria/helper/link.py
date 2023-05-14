@@ -506,13 +506,10 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
                 print("Exception: {}".format(e))
     return total
 
-def add_links_from_csv(request):
+def add_links_from_csv(file, linktype, generated_by):
     import unicodecsv as csv
     import sys
     csv.field_size_limit(sys.maxsize)
-    file = request.FILES['csv_file']
-    linktype = request.POST.get("type")
-    generated_by = request.POST.get("project_name") + ' csc upload'
     reader = csv.DictReader(file.open())
     fieldnames = reader.fieldnames
     assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns'
