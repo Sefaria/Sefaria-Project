@@ -149,11 +149,10 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
       return lang === langShort;
     });
   }
-  
+
   return renderedItems.map((x) => {
 
   if (isImage(x[1])){
-    console.log("is image")
     const altText = getImageAttribute(x[1], 'alt')
     const srcText = getImageAttribute(x[1], 'src');
     x[1] = (<div className="image-in-text">{<img onLoad={placeSegmentNumbers} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
@@ -169,13 +168,6 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
     return (
       <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}> {x[1]}</span>);}
     });
-
-//   return renderedItems.map( x =>
-//       isDangerouslySetInnerHTML ?
-//           <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
-//           :
-//           <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
-//   );
 };
 
 
