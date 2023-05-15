@@ -40,7 +40,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/parse_rambi_webpages.py"
+              "pip install pymarc==4.4.2 && /app/run /app/scripts/parse_rambi_webpages.py"
             ]
           restartPolicy: Never
           volumes:
