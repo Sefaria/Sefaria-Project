@@ -1235,8 +1235,8 @@ def links_upload_api(request):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
     file = request.FILES['csv_file']
-    linktype = request.POST.get("type")
-    generated_by = request.POST.get("project_name") + ' csc upload'
+    linktype = request.POST.get("linkType")
+    generated_by = request.POST.get("projectName") + ' csv upload'
     try:
         res = add_links_from_csv(file, linktype, generated_by)
     except Exception as e:

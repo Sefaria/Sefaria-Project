@@ -507,12 +507,13 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
     return total
 
 def add_links_from_csv(file, linktype, generated_by):
-    import unicodecsv as csv
+    import csv
     import sys
+    from io import StringIO
     csv.field_size_limit(sys.maxsize)
-    reader = csv.DictReader(file.open())
+    reader = csv.DictReader(StringIO(file.read().decode()))
     fieldnames = reader.fieldnames
-    assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns'
+    assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns rather than 2'
     errors = []
     success = 0
     for row in reader:
