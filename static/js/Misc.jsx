@@ -1092,6 +1092,7 @@ function useHiddenButtons() {
 const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
+  const [reorderCategory, toggleReorderCategory] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
@@ -1142,12 +1143,14 @@ const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
       adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
                                       onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
     }
+  } else if (Sefaria.is_moderator && reorderCategory) {
+
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                              {!editOnly ? <AdminEditorButton text="Add sub-category"
-                                                              toggleAddingTopics={toggleAddCategory}/> : null}
-      <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
-                          </span>;
+                              {!editOnly ? <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/> : null}
+                              <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
+                              {type === "topics" ? <AdminEditorButton text="Reorder Sources" toggleAddingTopics={toggleReorderCategory}/> : null}
+                      </span>;
 
   }
   const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";

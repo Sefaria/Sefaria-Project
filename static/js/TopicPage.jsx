@@ -392,9 +392,9 @@ const TopicPage = ({
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
+             topicData.refs.about.refs  // 'about' is the relevant filter in ref_link_type_filters
 
     const scrollableElement = useRef();
-
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
     
     // Initial Topic Data, updates when `topic` changes
