@@ -114,6 +114,9 @@ class SearchTextResult extends Component {
             </div>) : null;
 
         const snippetMarkup = this.get_snippet_markup(data);
+        console.log(snippetMarkup.markup)
+        console.log(snippetMarkup)
+        console.log(data)
         const snippetClasses = classNames({snippet: 1, en: snippetMarkup.lang == "en", he: snippetMarkup.lang == "he"});
         return (
             <div className="result textResult">
