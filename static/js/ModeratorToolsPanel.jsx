@@ -148,8 +148,12 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <WorkflowyModeratorTool />
       </div>);
+    const linkTools = (
+      <div className="modToolsSection">
+          <UploadLinksFromCSV />
+      </div>);
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl} </div> :
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{linkTools} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
@@ -284,6 +288,107 @@ class WorkflowyModeratorTool extends Component{
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
               <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
         </div>);
+  }
+}
+
+class UploadLinksFromCSV extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {value: '', submitDisabled: true, projectName: ''};
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  isSubmitDisabled() {
+      return !this.state.hasFile || !this.state.projectName.length;
+  }
+  handleChange(event) {
+    const target = event.target;
+    this.setState({[target.name]: target.value});
+    this.isSubmitDisabled();
+  }
+  handleFileChange(event) {
+      this.setState({hasFile: !!event.target.files[0]});
+      this.isSubmitDisabled();
+  }
+  handleSubmit(event) {
+    event.preventDefault();
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    const data = new FormData(event.target);
+    const request = new Request(
+        '/modtools/upload_links',
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      body: data
+    }).then(response => {
+        this.setState({uploading: false, uploadMessage:""});
+        if (!response.ok) {
+            response.text().then(resp_text => {
+                this.setState({uploading: false,
+                    error: true,
+                    errorIsHTML: true,
+                    uploadResult: resp_text});
+            })
+        } else {
+            response.json().then(resp_json => {
+                this.setState({uploading: false,
+                    error: false,
+                    uploadMessage: resp_json["data"]["message"],
+                    errors: resp_json["data"]["errors"],
+                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)});
+            });
+        }
+    }).catch(error => {
+        this.setState({uploading: false, error: true, errorIsHTML: false, uploadMessage:error.message});
+    });
+
+  }
+  getOptions() {
+      const options = ['Commentary', 'Quotation', 'Related', 'Mesorat hashas', 'Ein Mishpat', 'Reference'];
+      return options.map((option) => {
+          return <option value={option.toLowerCase()} key={option}>{option}</option>;
+      });
+  }
+
+  render() {
+    return (
+        <div className="uploadLinks">
+            <div className="sectionTitle">Upload links</div>
+            <form id="upload-links-form" onSubmit={this.handleSubmit}>
+                <label>
+                    Upload file:
+                    <input type="file" name="csv_file"  onChange={this.handleFileChange} />
+                    <br />
+                    Choose a csv file with two columns. First row should include titles, and the others valid refs to link
+                    <br />
+                </label>
+                <label>
+                    Select links type:
+                    <select name="linkType" value={this.state.linkType} onChange={this.handleChange}>
+                        {this.getOptions()}
+                    </select>
+                </label>
+                <label>
+                    Project name
+                    <input
+                        name="projectName"
+                        type="text"
+                        value={this.state.generatedBy}
+                        onChange={this.handleChange}
+                    />
+                </label>
+                <input type="submit" value="Submit" disabled={this.isSubmitDisabled()} />
+            </form>
+            <div>{this.state.uploadMessage || ""}</div>
+            <div>{this.state.errors?.map(e => <React.Fragment>{e}<br/></React.Fragment>) || ''}</div>
+            { (this.state.error && this.state.errorIsHTML) ?
+              <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
+              <textarea cols="80" rows="30" value={this.state.uploadResult}></textarea> }
+        </div>
+    );
   }
 }
 
