@@ -104,7 +104,7 @@ jobs:
         uses: google-github-actions/auth@v1
         with:
           token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT}}/locations/global/workloadIdentityPools/github/providers/github'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Login to GCR
         uses: docker/login-action@v1
