@@ -32,12 +32,19 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
           registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -73,7 +80,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - duplication-check
       - build-generic
     strategy:
@@ -86,12 +93,19 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
           registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -204,7 +218,7 @@ jobs:
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Wait for test sandbox to become available 
+      - name: Wait for test sandbox to become available
         # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
         run: ./build/ci/waitForSandbox.bash
         env:
@@ -254,7 +268,7 @@ jobs:
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 60
-        env: 
+        env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
       - name: Get Logs From Cluster and propogate test result
@@ -284,10 +298,10 @@ jobs:
   sandbox-cleanup:
     name: "Clean up CI Sandbox"
     if: ${{ always() && github.event_name == 'pull_request' }}
-    needs: 
+    needs:
       - pytest-job
     runs-on: ubuntu-latest
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Authenticate GHA Runner to GCP
@@ -314,6 +328,6 @@ jobs:
         env:
           NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
           NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
-      - name: Uninstall 
-        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s 
+      - name: Uninstall
+        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
         if: steps.get-helm.outputs.count > 0
