@@ -23,9 +23,9 @@ data:
 
     URI="mongodb://"
 
-    if [[ ! -z SEFARIA_DB_USER ]]; then
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
       URI="${URI}${SEFARIA_DB_USER}"
-      if [[ ! -z SEFARIA_DB_PASSWORD ]]; then
+      if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
           URI="${URI}:${SEFARIA_DB_PASSWORD}"
       fi
       URI="${URI}@"
@@ -33,8 +33,8 @@ data:
 
     URI="${URI}${MONGO_HOST}/?ssl=false"
 
-    if [[ ! -z SEFARIA_DB_USER ]]; then
-      URI+"${URI}&authSource=admin"
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+      URI="${URI}&authSource=admin"
     fi
 
     if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
