@@ -20,6 +20,9 @@ jobs:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
   build-generic:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: ubuntu-latest
     needs: duplication-check
     if: ${{ github.event_name == 'pull_request' || ( github.event_name == 'push' && needs.duplication-check.outputs.inPR == 'false' ) }}
@@ -80,6 +83,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs:
       - duplication-check
       - build-generic
@@ -169,6 +175,9 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     needs: build-derived
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -232,6 +241,9 @@ jobs:
     name: "PyTest"  # This name is referenced when slacking status
     needs:
       - sandbox-ready
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -307,6 +319,9 @@ jobs:
     needs:
       - pytest-job
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
       - name: Checkout
         uses: actions/checkout@v2

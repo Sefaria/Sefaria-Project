@@ -34,6 +34,9 @@ jobs:
   build-generic:
     needs: workflow-check
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     strategy:
       matrix:
         app: [ web, node ]
@@ -87,6 +90,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   build-derived:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs:
       - build-generic
       - workflow-check
@@ -145,6 +151,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   prod-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs:
       - build-derived
       - workflow-check
