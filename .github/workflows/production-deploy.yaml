@@ -153,10 +153,13 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
-      - name: Authenticate GHA Runner to GCP
-        uses: 'google-github-actions/auth@v1'
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.PROD_GKE_SA_KEY }}
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
