@@ -31,12 +31,15 @@ data:
       URI="${URI}@"
     fi
 
-    URI="${URI}${MONGO_HOST}/?ssl=false&authSource=admin"
+    URI="${URI}${MONGO_HOST}/?ssl=false"
+
+    if [[ ! -z SEFARIA_DB_USER ]]; then
+      URI+"${URI}&authSource=admin"
+    fi
 
     if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
       URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
-    
 
     DATADIR="/mongodumps/shared_volume"
     echo "dumping"
