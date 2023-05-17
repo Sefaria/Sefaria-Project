@@ -4,8 +4,8 @@
 "לכבוד חג השבועות הצבנו יעד לגיוס 500 תומכי ספריא חדשים.",
 "אם אתם מפיקים ערך מהספריה, אנא שקלו להעניק כעת תמורה באמצעות תמיכה חודשית"
   ],
-  "buttonLink": "https://donate.sefaria.org/give/478929/#!/donation/checkout",
-  "buttonText": "תודה על התמיכה שלכם!",
+  "buttonLink": "https://donate.sefaria.org/give/478929/#!/donation/checkout?c_src=mobile",
+  "buttonText": "הצטרפו לתומכי ספריא",
   "name": "2023-05-04-shavuot",
   "schemaVersion": 1
 }
