@@ -233,10 +233,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Authenticate GHA Runner to GCP
-        uses: 'google-github-actions/auth@v1'
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
@@ -304,10 +307,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Authenticate GHA Runner to GCP
-        uses: 'google-github-actions/auth@v1'
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
