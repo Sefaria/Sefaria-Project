@@ -4944,9 +4944,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.segment .segmentText .poetry {
+
+.segment .segmentText .poetry.indentWhenWrap {
   text-indent: -30px;
   padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.segment .segmentText .poetry.indentAll {
+  padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.segment .segmentText .poetry.indentAllDouble {
+  padding-inline-start: 60px;
   display: inline-block;
 }
 
