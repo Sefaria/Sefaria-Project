@@ -1,43 +1,20 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, AdminToolHeader} from "./Misc";
+import {postWithCallBack, AdminToolHeader, Autocompleter, InterfaceText} from "./Misc";
 import React, {useState, useRef} from "react";
 
-const SourceEditor = ({origData={}, close, origPath=[]}) => {
-    const [path, setPath] = useState(origPath);
-    const [data, setData] = useState({enTitle: origData.origEn,
-                                heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
-                                enDescription: origData?.origDesc?.en || "",
-                                enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he});
-    const [isNew, setIsNew] = useState(origData?.origEn === "");
+const SourceEditor = ({topic, close, origData={}}) => {
+    const isNew = !origData.ref;
+    const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
+                                                            (origData.heRef || "") :  (origData.ref || "") );
+    const [data, setData] = useState({enTitle: origData?.descriptions?.en?.title || "",
+                                                heTitle: origData?.descriptions?.he?.title || "",
+                                                enDescription: origData?.descriptions?.en?.prompt || "",
+                                                heDescription: origData?.descriptions?.he?.prompt || "",
+                                                displayRef});
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
-    const [isPrimary, setIsPrimary] = useState(origData.isPrimary ? 'true' : 'false');
-    const origSubcategoriesAndBooks = useRef((Sefaria.tocItemsByCategories([...origPath, origData.origEn]) || []));
-    const [subcategoriesAndBooks, setSubcategoriesAndBooks] = useState([...origSubcategoriesAndBooks.current]);
-
-    const handlePrimaryClick = function(type, status) {
-        setIsPrimary(status);
-        setChanged(true);
-    }
-
-    const populateCatMenu = (update) => (
-        <div className="section">
-            <label><InterfaceText>Parent Category</InterfaceText></label>
-            <CategoryChooser categories={path} update={update}/>
-        </div>
-    )
-
-    const updateCatMenu = function(newPath) {
-        if (newPath !== path && !changed) {
-            setChanged(true);
-        }
-        setPath(newPath);
-    }
-
-    let catMenu = populateCatMenu(updateCatMenu);
 
     const updateData = function(newData) {
         setChanged(true);
@@ -49,66 +26,70 @@ const SourceEditor = ({origData={}, close, origPath=[]}) => {
             alert("Please change one of the fields before saving.");
             return false;
         }
-
-        if (data.enTitle.length === 0) {
-          alert(Sefaria._("Title must be provided."));
+        if (displayRef.length === 0) {
+          alert(Sefaria._("Ref must be provided."));
           return false;
         }
-        await save();
+        let refInCache = Sefaria.getRefFromCache(displayRef);
+        if (!refInCache) {
+            await Sefaria.getRef(displayRef);
+            refInCache = Sefaria.getRefFromCache(displayRef);
+        }
+        if (!refInCache.ref) {
+          alert(Sefaria._("Valid ref must be provided."));
+          return false;
+        }
+        //await save();
     }
 
     const save = async function () {
         setSavingStatus(true);
-        const fullPath = [...path, data.enTitle];
-        const origFullPath = [...origPath, origData.origEn];
-        let postCategoryData = {
-            "isPrimary": isPrimary === 'true',
-            "enDesc": data.enDescription,
-            "heDesc": data.heDescription,
-            "enShortDesc": data.enCategoryDescription,
-            "heShortDesc": data.heCategoryDescription,
-            "heSharedTitle": data.heTitle,
-            "sharedTitle": data.enTitle,
-            "path": fullPath
-        };
-
-        if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-            postCategoryData["heSharedTitle"] = data.enTitle.slice(0, -1);  // there needs to be a hebrew title for the category's term
-        }
-
-        let url = `/api/category/${fullPath.join("/")}`;
-        let urlParams = []
-        if (!isNew) {
-            urlParams.push("update=1");
-            postCategoryData = {...postCategoryData, origPath: origFullPath};
-        }
-        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
-        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
-        const reordered = origSubcategoryTitles.some((val, index) => val !== newSubcategoryTitles[index]);
-        if (reordered && !isNew) {  // only reorder children when category isn't new
-            postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
-            urlParams.push("reorder=1");
-        }
-        if (urlParams.length > 0) {
-            url += `?${urlParams.join('&')}`;
-        }
-        postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        let url = '';
+        const postData =  {"enTitle": data.enTitle, "heTitle": data.heTitle, "enDescription": data.enDescription, "heDescription": data.heDescription, "ref": data.displayRef};
+        postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
+    const handleChange = (x) => {
+        setChanged(true);
+        setDisplayRef(x);
+    }
+
+    const getSuggestions = async (input) => {
+        let results = {"helperPromptText": null, "currentSuggestions": null,
+            "showAddButton": false
+        };
+        setDisplayRef(input);
+        if (input === "") {
+            return results;
+        }
+        const d = await Sefaria.getName(input, true, 5);
+        if (d.is_section || d.is_segment) {
+            results.helperPromptText = null;
+            results.currentSuggestions = null;
+            results.previewText = input;
+            return results;
+        } else {
+            results.previewText = null;
+        }
+
+        results.currentSuggestions = d.completion_objects
+            .map(suggestion => ({
+                name: suggestion.title,
+                key: suggestion.key,
+                border_color: Sefaria.palette.refColor(suggestion.key)
+            }))
+        return results;
+    }
 
     const deleteObj = function() {
-      if (subcategoriesAndBooks.length > 0) {
-          alert("Cannot delete a category with contents.");
-          return;
-      }
       $.ajax({
-        url: "/api/category/"+origPath.concat(origData.origEn).join("/"),
+        url: `/api/source/${topic}?ref=${origData.ref}`,
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
             alert(result.error);
           } else {
-            alert(Sefaria._("Category Deleted."));
+            alert(Sefaria._("Source Deleted."));
             window.location = "/texts";
           }
         }
@@ -116,27 +97,23 @@ const SourceEditor = ({origData={}, close, origPath=[]}) => {
         alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
-    const primaryOptions = [
-                          {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },
-                          {name: "false", content: Sefaria._("False"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to False") },
-                        ];
     return <div>
-        <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
+        <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
+                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={false}
                 extras={
-                    [isNew ? null :
-                        <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
-                                 updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
-                        <ToggleSet
-                          blueStyle={true}
-                          ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                          label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
-                          name="primary"
-                          separated={false}
-                          options={primaryOptions}
-                          setOption={handlePrimaryClick}
-                          currentValue={isPrimary} />,
-                    ]
+                    [<div>
+                        <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
+                        <Autocompleter
+                            selectedCallback={validate}
+                            getSuggestions={getSuggestions}
+                            inputValue={displayRef}
+                            changeInputValue={handleChange}
+                            inputPlaceholder="Search for a Text or Commentator."
+                            buttonTitle="Select Source"
+                            autocompleteClassNames="addInterfaceInput"
+                            showSuggestionsOnSelect={true}
+                        />
+                    </div>]
                 }/>
 
     </div>;

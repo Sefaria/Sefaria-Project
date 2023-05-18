@@ -170,6 +170,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
   return (
     <Passage
       key={item[0]}
+      topic={topicData.slug}
       text={text}
       afterSave={afterSave}
       toggleSignUpModal={toggleSignUpModal}
@@ -256,7 +257,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" path={topic}>
+                        <CategoryHeader type="topics" data={topic}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -309,7 +310,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" path={topic} editOnly={true}>
+            <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
@@ -392,7 +393,7 @@ const TopicPage = ({
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
-             topicData.refs.about.refs  // 'about' is the relevant filter in ref_link_type_filters
+
 
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};

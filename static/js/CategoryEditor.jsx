@@ -4,7 +4,8 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {postWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
-const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en};
+const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en,
+                        "sources": (child) => child.descriptions ? `${child?.descriptions?.en?.title || child?.descriptions?.he?.title} - ${child.ref}` : child.ref};
 const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
@@ -37,13 +38,17 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
         })
 }
 
-const ReorderEditor = ({close, type=""}) => {
+const ReorderEditor = ({close, type="", origItems = []}) => {
     const determineOrigItems = () => {
-        if (type === "books") {
-            return Sefaria.toc;
+        if (origItems.length > 0) {
+            return origItems
         }
-        else if (type === "topics") {
-            return Sefaria.topic_toc;
+        else {
+            if (type === "books") {
+                return Sefaria.toc;
+            } else if (type === "topics") {
+                return Sefaria.topic_toc;
+            }
         }
     }
     const [tocItems, setTocItems] = useState(determineOrigItems());

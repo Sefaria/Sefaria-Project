@@ -56,6 +56,7 @@ class TopicSearch extends Component {
       if (topic.name.toLowerCase() === input.toLowerCase()) {
         this.post(topic.key);
         match = true;
+        this.changeInputValue("");
       }
     })
     if (!match) {

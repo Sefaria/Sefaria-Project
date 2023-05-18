@@ -17,6 +17,7 @@ import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import {SourceEditor} from "./SourceEditor";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1089,21 +1090,35 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
+const CategoryHeader = ({children, type, data = [], edit = true,
+                          add_subcategory = true, reorder = false,
+                          add_source = false}) => {
+  /*
+  Provides an interface for using admin tools.
+  `type` is 'sources', 'books' or 'topics'
+  `data` is list when `type` === 'books' which tells us where we are in the TOC tree,
+        for `type` === 'topics' it's a string with value of topic slug
+        for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
+   */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [reorderCategory, toggleReorderCategory] = useEditToggle();
+  const [addSource, toggleAddSource] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
   let adminButtonsSpan = null;
-  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(path));
+  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(data));
 
   if (Sefaria.is_moderator && editCategory) {
-    if (path.length === 0) {  // at /texts or /topics
+    if (data.length === 0) {  // at /texts or /topics
       adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
+    } else if (type === "sources") {
+      const topicSlug = data[0];
+      const refData = data[1];
+      adminButtonsSpan = <SourceEditor topic={topicSlug} origData={refData} close={toggleEditCategory}/>;
     } else if (type === "books") {
-      let tocObject = Sefaria.tocObjectByCategories(path);
+      let tocObject = Sefaria.tocObjectByCategories(data);
       const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
       const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
       const origData = {
@@ -1113,12 +1128,13 @@ const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
         origCategoryDesc,
         isPrimary: tocObject.isPrimary
       };
-      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={path.slice(0, -1)}/>;
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
     } else if (type === "topics") {
       if (!topicData) {
-        Sefaria.getTopic(path).then(d => {setTopicData(d);})
-      }
-      else {
+        Sefaria.getTopic(data).then(d => {
+          setTopicData(d);
+        })
+      } else {
         const initCatSlug = TopicToCategorySlug(topicData);
         const origData = {
           origSlug: topicData.slug, origCategorySlug: initCatSlug,
@@ -1134,26 +1150,36 @@ const CategoryHeader = ({children, type, path = [], editOnly = false}) => {
       }
 
     }
+  } else if (Sefaria.is_moderator && addSource && type === "topics") {
+    adminButtonsSpan = <SourceEditor topic={data} close={toggleAddSource}/>;
+
   } else if (Sefaria.is_moderator && addCategory) {
     const origData = {origEn: ""};
     if (type === "books") {
-      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={path}/>;
+      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={data}/>;
     } else if (type === "topics") {
-      origData['origCategorySlug'] = path;
+      origData['origCategorySlug'] = data;
       adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
                                       onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
     }
   } else if (Sefaria.is_moderator && reorderCategory) {
-
+    if (!topicData) {
+        Sefaria.getTopic(data).then(d => {
+          setTopicData(d);
+        })
+    } else {
+      adminButtonsSpan = <ReorderEditor close={toggleReorderCategory} type={'sources'} origItems={topicData.refs?.about?.refs || []}/>;
+    }
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                              {!editOnly ? <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/> : null}
-                              <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>
-                              {type === "topics" ? <AdminEditorButton text="Reorder Sources" toggleAddingTopics={toggleReorderCategory}/> : null}
+                              { add_subcategory ? <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/> : null}
+                              { add_source ? <AdminEditorButton text="Add source" toggleAddingTopics={toggleAddSource}/> : null}
+                              { edit ? <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/> : null }
+                              { reorder ? <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/> : null}
                       </span>;
 
   }
-  const wrapper = addCategory || editCategory ? "" : "headerWithAdminButtons";
+  const wrapper = addCategory || editCategory || addSource || reorderCategory ? "" : "headerWithAdminButtons";
   return <span className={wrapper}><span
       onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
 }
@@ -2711,7 +2737,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       setShowAddButton(results.showAddButton);
       setHelperPromptText(results.helperPromptText);
       if (!!results.previewText) {
-        setPreviewText(results.previewText);
         generatePreviewText(results.previewText);
       }
       if (!!results.helperPromptText) {
@@ -2766,7 +2791,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   const handleSelection = () => {
     selectedCallback(inputValue, currentSuggestions);
-    changeInputValue("");
+    setPreviewText(null);
+    setShowAddButton(false);
   }
 
   const onKeyDown = e => {
@@ -2788,7 +2814,6 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            const segments = Sefaria.makeSegments(text, true);
-           console.log(segments)
            const previewHTML =  segments.map((segment, i) => {
             {
               const heOnly = !segment.en;
@@ -2825,9 +2850,11 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => setPreviewText(null) }
           value={inputValue}
           ref={inputEl}
           className={inputClassNames}
+
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
                     handleSelection(inputValue, currentSuggestions)
