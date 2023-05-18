@@ -44,8 +44,18 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const save = async function () {
         setSavingStatus(true);
-        let url = '';
-        const postData =  {"enTitle": data.enTitle, "heTitle": data.heTitle, "enDescription": data.enDescription, "heDescription": data.heDescription, "ref": data.displayRef};
+        let url = `/api/ref-topic-links/${data.displayRef}`;
+        let descData = {};
+        let postData = {"topic": topic, "is_new": isNew};
+        if (data.enTitle.length > 0) {
+            descData['en'] = {"title": data.enTitle, "prompt": data.enDescription};
+        }
+        if (data.heTitle.length > 0) {
+            descData['he'] = {"title": data.heTitle, "prompt": data.heDescription};
+        }
+        if (!!Object.key(descData).length) {
+            postData['descriptions'] = descData;
+        }
         postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 

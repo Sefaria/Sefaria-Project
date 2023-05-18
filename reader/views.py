@@ -3239,24 +3239,40 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
 
-        slug = json.loads(request.POST.get("json")).get("topic", None)
+        data = json.loads(request.POST.get("json"))
+        slug = data.get("topic", None)
+        creating_new_link = data.get("is_new", True)
+        descriptions = data.get("descriptions", {})
         topic_obj = Topic().load({"slug": slug})
         if topic_obj is None:
             return jsonResponse({"error": "Topic does not exist"})
 
-        ref_topic_link = {"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref}
-        if RefTopicLink().load(ref_topic_link) is None:
-            r = RefTopicLink(ref_topic_link)
-            r.save()
+        ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": tref}
+        link = RefTopicLink().load(ref_topic_link)
+        exists_already = link is not None
+            
+        if creating_new_link and exists_already:
+            return {"error": "Topic link already exists"}
+        elif not creating_new_link and not exists_already:
+            return {"error": f"Can't find link between {slug} and {tref}."}
+        
+        if creating_new_link:
+            ref_topic_link["dataSource"] = "sefaria"
+            if len(descriptions) > 0:
+                ref_topic_link['descriptions'] = descriptions
             num_sources = getattr(topic_obj, "numSources", 0)
             topic_obj.numSources = num_sources + 1
             topic_obj.save()
-            ref_topic_dict = ref_topic_link_prep(r.contents())
-            ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
-            return jsonResponse(ref_topic_dict)
+            link = RefTopicLink(ref_topic_link)
         else:
-            return {"error": "Topic link already exists"}
+            link.descriptions = descriptions
 
+        link.save()
+        ref_topic_dict = ref_topic_link_prep(link.contents())
+        ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+        return jsonResponse(ref_topic_dict)
+
+        
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],

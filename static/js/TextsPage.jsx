@@ -17,8 +17,6 @@ import {
   ContentText,
   CategoryHeader
 } from './Misc';
-import {AdminEditorButton, useEditToggle} from "./AdminEditor";
-import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,

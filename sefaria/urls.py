@@ -262,6 +262,7 @@ urlpatterns += [
     url(r'^api/topic/reorder$', reader_views.reorder_topics),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
+    url(r'^api/topic-source/(?P<topic>.+)$', reader_views.edit_topic_source_api)
 ]
 
 # History API
