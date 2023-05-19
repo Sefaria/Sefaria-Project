@@ -1,0 +1,14 @@
+{{- if .Values.standaloneMongo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-standalone-{{ .Values.deployEnv }}
+  labels:
+    app: mongo-standalone-{{ .Values.deployEnv }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  ports:
+  - port: 27017
+  selector:
+    app: mongo-standalone-{{ .Values.deployEnv }}
+{{- end }}
