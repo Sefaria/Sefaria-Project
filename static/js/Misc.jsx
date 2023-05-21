@@ -1112,7 +1112,8 @@ const CategoryHeader = ({children, type, data = [], edit = true,
 
   if (Sefaria.is_moderator && editCategory) {
     if (data.length === 0) {  // at /texts or /topics
-      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type}/>;
+      let url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} url={url}/>;
     } else if (type === "sources") {
       const topicSlug = data[0];
       const refData = data[1];
@@ -1168,7 +1169,12 @@ const CategoryHeader = ({children, type, data = [], edit = true,
           setTopicData(d);
         })
     } else {
-      adminButtonsSpan = <ReorderEditor close={toggleReorderCategory} type={'sources'} origItems={topicData.refs?.about?.refs || []}/>;
+      let url = `/api/topic/reorder-sources?topic=${topicData.slug}`;
+      let refs = topicData.refs?.about?.refs || [];
+      adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
+                                        url={url}
+                                        type={'sources'}
+                                        origItems={refs.filter((x) => !x.ref.startsWith('Sheet '))}/>;
     }
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>

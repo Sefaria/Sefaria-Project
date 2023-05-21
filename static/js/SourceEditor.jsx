@@ -12,7 +12,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
                                                 heTitle: origData?.descriptions?.he?.title || "",
                                                 enDescription: origData?.descriptions?.en?.prompt || "",
                                                 heDescription: origData?.descriptions?.he?.prompt || "",
-                                                displayRef});
+                                                });
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
 
@@ -39,21 +39,21 @@ const SourceEditor = ({topic, close, origData={}}) => {
           alert(Sefaria._("Valid ref must be provided."));
           return false;
         }
-        //await save();
+        await save();
     }
 
     const save = async function () {
         setSavingStatus(true);
-        let url = `/api/ref-topic-links/${data.displayRef}`;
+        let url = isNew ? `/api/ref-topic-links/${Sefaria.normRef(displayRef)}` : `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}`;
         let descData = {};
-        let postData = {"topic": topic, "is_new": isNew};
+        let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef};
         if (data.enTitle.length > 0) {
             descData['en'] = {"title": data.enTitle, "prompt": data.enDescription};
         }
         if (data.heTitle.length > 0) {
             descData['he'] = {"title": data.heTitle, "prompt": data.heDescription};
         }
-        if (!!Object.key(descData).length) {
+        if (!!Object.keys(descData).length) {
             postData['descriptions'] = descData;
         }
         postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
@@ -76,6 +76,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (d.is_section || d.is_segment) {
             results.helperPromptText = null;
             results.currentSuggestions = null;
+            results.showAddButton = true;
             results.previewText = input;
             return results;
         } else {
@@ -93,14 +94,14 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: `/api/source/${topic}?ref=${origData.ref}`,
+        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}`,
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
             alert(result.error);
           } else {
             alert(Sefaria._("Source Deleted."));
-            window.location = "/texts";
+            window.location = `/topics/${topic}`;
           }
         }
       }).fail(function() {
@@ -114,7 +115,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
                         <Autocompleter
-                            selectedCallback={validate}
+                            selectedCallback={() => {}}
                             getSuggestions={getSuggestions}
                             inputValue={displayRef}
                             changeInputValue={handleChange}
