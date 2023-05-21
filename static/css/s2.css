@@ -11401,6 +11401,9 @@ body .homeFeedWrapper.userStats {
   line-height: 18.75px;
   padding: 10px;
 }
+ .editTextInfo #newIndex .default::placeholder {
+   color: #666;
+ }
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
@@ -11518,11 +11521,14 @@ body .homeFeedWrapper.userStats {
   max-width: 97%;
   box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
   box-sizing: content-box;
-  background: initial;
   border-radius: 7px;
-  background-color: white;
+  background: white;
+  font-family: revert;
 }
-
+.editTextInfo #newIndex input::placeholder {
+  color: #666;
+  font-size: 16px;
+}
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
