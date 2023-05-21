@@ -518,6 +518,8 @@ def add_links_from_csv(file, linktype, generated_by):
     success = 0
     for row in reader:
         refs = [row[fieldnames[0]], row[fieldnames[1]]]
+        for ref in refs:
+            assert not Ref(ref).is_empty(), f'{ref} is an empty ref'
         link = Link({
             'refs': refs,
             'type': linktype,
