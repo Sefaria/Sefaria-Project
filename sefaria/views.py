@@ -1237,8 +1237,9 @@ def links_upload_api(request):
     file = request.FILES['csv_file']
     linktype = request.POST.get("linkType")
     generated_by = request.POST.get("projectName") + ' csv upload'
+    uid = request.user.id
     try:
-        res = add_links_from_csv(file, linktype, generated_by)
+        res = add_links_from_csv(file, linktype, generated_by, uid)
     except Exception as e:
         raise e
     return jsonResponse({"status": "ok", "data": res})

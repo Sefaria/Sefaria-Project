@@ -506,7 +506,7 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
                 print("Exception: {}".format(e))
     return total
 
-def add_links_from_csv(file, linktype, generated_by):
+def add_links_from_csv(file, linktype, generated_by, uid):
     import csv
     import sys
     from io import StringIO
@@ -518,17 +518,28 @@ def add_links_from_csv(file, linktype, generated_by):
     success = 0
     for row in reader:
         refs = [row[fieldnames[0]], row[fieldnames[1]]]
-        for ref in refs:
-            assert not Ref(ref).is_empty(), f'{ref} is an empty ref'
-        link = Link({
+        try:
+            if any(Ref(ref).is_empty() for ref in refs):
+                errors.append(f'{[r for r in refs if Ref(r).is_empty()][0]} is an empty ref')
+                continue
+        except Exception as e:
+            errors.append(f'one or more of {refs[0]} and {refs[1]} is not a valid ref')
+            continue
+        link = {
             'refs': refs,
             'type': linktype,
             'generated_by': generated_by,
             'auto': True
-        })
+        }
         try:
-            link.save()
+            tracker.add(uid, Link, link)
             success += 1
         except Exception as e:
             errors.append(f'error with linking refs: {refs[0]}, {refs[1]}: {e}')
+        try:
+            if USE_VARNISH:
+                for ref in link.refs:
+                    invalidate_ref(Ref(ref), purge=True)
+        except Exception as e:
+            logger.error(e)
     return {'message': f'{success} links succefully saved', 'errors': errors}
