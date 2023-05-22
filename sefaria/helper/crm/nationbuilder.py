@@ -6,7 +6,6 @@ import json
 from sefaria import settings as sls
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 
-
 base_url = "https://" + sls.NATIONBUILDER_SLUG + ".nationbuilder.com"
 
 
@@ -29,7 +28,21 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         session = service.get_session(token)
         return session
 
-    def add_user_to_crm(self, lists, email, first_name=None, last_name=None, lang="en"):
+    def add_user_to_crm(self, email, first_name=None, last_name=None, lang="en", educator=False, signup=True):
+        lists = []
+        if lang == "en":
+            if educator:
+                lists.append("Announcements_Edu")
+            lists.append("Announcements_General_Hebrew")
+        else:
+            if educator:
+                lists.append("Announcements_Edu_Hebrew")
+            lists.append("Announcements_General")
+        if signup:
+            lists.append("Signed_Up_on_Sefaria")
+        else:
+            lists.append("Newsletter_Sign_Up")
+
         tags = lists
         post = {
             "person": {
@@ -56,6 +69,10 @@ class NationbuilderConnectionManager(CrmConnectionManager):
             return False
 
         return True
+
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
+        CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
+        return self.add_user_to_crm(email, first_name, last_name, lang, educator, signup=False)
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):
         next_endpoint = endpoint_func(*args)

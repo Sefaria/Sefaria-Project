@@ -24,21 +24,21 @@ class TestCrmMediatorCreate(TestCase):
         crm_mediator = CrmMediator()
         crm_mediator._crm_connection = Mock()
         crm_mediator._crm_connection.add_user_to_crm.return_value = 1
-        assert crm_mediator.create_crm_user([], "fake@fake.com", "joe", "shmo") is True
+        assert crm_mediator.create_crm_user("fake@fake.com", "joe", "shmo") is True
 
     def test_stores_crm_id_if_true(self):
         with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.save_crm_id') as mock_save:
             crm_mediator = CrmMediator()
             crm_mediator._crm_connection = Mock()
             crm_mediator._crm_connection.add_user_to_crm.return_value = 1
-            crm_mediator.create_crm_user([], "fake@fake.com", "joe", "shmo") is True
+            crm_mediator.create_crm_user("fake@fake.com", "joe", "shmo") is True
             assert mock_save.called is True
 
     def test_returns_false_if_id_not_returned(self):
         crm_mediator = CrmMediator()
         crm_mediator._crm_connection = Mock()
         crm_mediator._crm_connection.add_user_to_crm.return_value = False
-        assert crm_mediator.create_crm_user([], "fake@fake.com", "joe", "shmoo") is not True
+        assert crm_mediator.create_crm_user("fake@fake.com", "joe", "shmoo") is not True
 
 
 class Sustainer():

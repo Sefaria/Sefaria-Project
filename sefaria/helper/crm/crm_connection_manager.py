@@ -1,3 +1,5 @@
+import re
+
 class CrmConnectionManager(object):
     def __init__(self, base_url):
         self.base_url = base_url
@@ -10,13 +12,12 @@ class CrmConnectionManager(object):
         """
         pass
 
-    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en", educator=False):
+    def add_user_to_crm(self, email, first_name, last_name, lang="en", educator=False):
         """
         Add a new Sefaria app user to the CRM.
         Returns user id if successful
         Returns false if no user added
         """
-        CrmConnectionManager.add_user_to_crm(lists, email, first_name, last_name, lang, educator)
         pass
 
     def change_user_email(self, uid, new_email):
@@ -42,3 +43,23 @@ class CrmConnectionManager(object):
         Do in CRM whatever decision has been made to do about spam users.
         """
         pass
+
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
+        CrmConnectionManager.validate_email(email)
+        CrmConnectionManager.validate_name(first_name)
+        CrmConnectionManager.validate_email(last_name)
+        pass
+
+    @staticmethod
+    def validate_name(name):
+        if len(name) < 20 and re.fullmatch(r"^[\w\- ]+$", name):
+            return True
+        else:
+            raise ValueError("Invalid Name")
+
+    @staticmethod
+    def validate_email(name):
+        if re.fullmatch(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', name):
+            return True
+        else:
+            raise ValueError("Invalid Email")

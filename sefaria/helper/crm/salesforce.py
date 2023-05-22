@@ -53,12 +53,12 @@ class SalesforceConnectionManager(CrmConnectionManager):
         })
         return session
 
-    def add_user_to_crm(self, lists, email, first_name, last_name, lang="en", educator=False):
+    def add_user_to_crm(self, email, first_name, last_name, lang="en", educator=False):
         """
         Adds a new user to the CRM and subscribes them to the specified lists.
         Returns CRM access info
         """
-        CrmConnectionManager.add_user_to_crm(lists, email, first_name, last_name, lang, educator)
+        CrmConnectionManager.add_user_to_crm(email, first_name, last_name, lang, educator)
         if lang == "he":
             language = "Hebrew"
         else:
@@ -81,3 +81,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
             # log
             return False
         return res
+
+    def subscribe_to_lists(self, lists, email, first_name=None, last_name=None, lang="en", educator=False):
+        # TODO: Implement once endpoint exists
+        CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
+        return
