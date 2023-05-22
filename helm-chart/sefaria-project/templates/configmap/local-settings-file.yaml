@@ -171,6 +171,7 @@ data:
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
 
+    # CRM settings
     CRM_TYPE =  os.getenv("CRM_TYPE")
 
     NATIONBUILDER = True
