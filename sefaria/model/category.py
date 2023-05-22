@@ -153,6 +153,7 @@ def process_category_path_change(changed_cat, **kwargs):
         return old_val
 
     from sefaria.model.text import library
+    from sefaria.model import Index
     tree = library.get_toc_tree()
     new_categories = kwargs["new"]
     old_toc_node = tree.lookup(kwargs["old"])
@@ -168,16 +169,19 @@ def process_category_path_change(changed_cat, **kwargs):
 
     children = old_toc_node.all_children()
     for child in children:
-        if isinstance(child, TocCategory):
-            c = child.get_category_object()
-            c.path = modify(c.path, new_categories, pos)
-            c.save(override_dependencies=True)
+        if isinstance(child, TocCategory):   # change categories first since Index changes depend on the new category existing
+            c = Category().load({'path': child.get_category_object().path}) # load directly from the DB to avoid a situation where the category was deleted but was still in TocTree cache
+            if c is not None:
+                c.path = modify(c.path, new_categories, pos)
+                c.save(override_dependencies=True)
 
     for child in children:
         if isinstance(child, TocTextIndex):
-            i = child.get_index_object()
-            i.categories = modify(i.categories, new_categories, pos)
-            i.save(override_dependencies=True)
+            i = Index().load({"title": child.get_primary_title('en')})  # load directly from the DB to avoid a situation where the book was deleted but was still in TocTree cache
+            if i is not None:
+                i.categories = modify(i.categories, new_categories, pos)
+                i.save(override_dependencies=True)
+
 
 
 """ Object Oriented TOC """
