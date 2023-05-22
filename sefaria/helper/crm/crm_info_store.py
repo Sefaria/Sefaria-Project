@@ -35,6 +35,9 @@ class CrmInfoStore(object):
             user_profile = UserProfile(email=email)
         elif uid:
             user_profile = UserProfile(id=uid)
+        else:
+            raise RuntimeError("Expected a uid, email, or profile to be provided")
+
         if crm_type == "NATIONBUILDER":
             return user_profile.nationbuilder_id
         elif crm_type == "SALESFORCE":
