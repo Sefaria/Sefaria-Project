@@ -84,7 +84,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
             user.save()
 
         crm_mediator = CrmMediator()
-        crm_mediator.create_crm_user([], user.email, first_name=user.first_name,
+        crm_mediator.create_crm_user(user.email, first_name=user.first_name,
                                      last_name=user.last_name, lang=get_language())
 
         return user
