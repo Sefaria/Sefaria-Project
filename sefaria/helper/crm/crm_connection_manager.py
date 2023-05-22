@@ -47,7 +47,7 @@ class CrmConnectionManager(object):
     def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
         CrmConnectionManager.validate_email(email)
         CrmConnectionManager.validate_name(first_name)
-        CrmConnectionManager.validate_email(last_name)
+        CrmConnectionManager.validate_name(last_name)
         pass
 
     @staticmethod

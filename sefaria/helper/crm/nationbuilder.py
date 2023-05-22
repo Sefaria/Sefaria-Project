@@ -33,11 +33,11 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         if lang == "en":
             if educator:
                 lists.append("Announcements_Edu")
-            lists.append("Announcements_General_Hebrew")
+            lists.append("Announcements_General")
         else:
             if educator:
                 lists.append("Announcements_Edu_Hebrew")
-            lists.append("Announcements_General")
+            lists.append("Announcements_General_Hebrew")
         if signup:
             lists.append("Signed_Up_on_Sefaria")
         else:
