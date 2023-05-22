@@ -189,27 +189,27 @@ def subscribe(request, email):
     except ValueError as e:
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
-def subscribe_old(request, email):
-    """
-    API for subscribing to mailing lists, in `lists` url param.
-    Currently active lists are:
-    "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
-    """
-    lists = request.GET.get("lists", "")
-    lists = lists.split("|")
-    # TODO: Decouple list names from frontend
-    if "Hebrew" in any(lists):
-        language = "he"
-    else:
-        language = "en"
-    if len(lists) == 0:
-        return jsonResponse({"error": "Please specify a list."})
-
-    crm_mediator = CrmMediator()
-    if crm_mediator.create_crm_user(lists + ["Newsletter_Sign_Up"], email, None, None, lang=language):
-        return jsonResponse({"status": "ok"})
-    else:
-        return jsonResponse({"error": _("Sorry, there was an error.")})
+# def subscribe_old(request, email):
+#     """
+#     API for subscribing to mailing lists, in `lists` url param.
+#     Currently active lists are:
+#     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+#     """
+#     lists = request.GET.get("lists", "")
+#     lists = lists.split("|")
+#     # TODO: Decouple list names from frontend
+#     if "Hebrew" in any(lists):
+#         language = "he"
+#     else:
+#         language = "en"
+#     if len(lists) == 0:
+#         return jsonResponse({"error": "Please specify a list."})
+#
+#     crm_mediator = CrmMediator()
+#     if crm_mediator.create_crm_user(lists + ["Newsletter_Sign_Up"], email, None, None, lang=language):
+#         return jsonResponse({"status": "ok"})
+#     else:
+#         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 @login_required
 def unlink_gauth(request):
