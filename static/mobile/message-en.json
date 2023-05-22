@@ -1,10 +1,13 @@
 {
-  "title": "",
+  "title": "Friends,",
   "text": [
-"Celebrate the Jewish textual tradition this Passover by becoming a Sefaria Sustainer! Your monthly gift fuels Jewish learning."
+"We’re so close to our goal of signing up 500 new Sustainers by Shavuot! Thank you to all who have already signed up to make a monthly donation, and to all who support Sefaria in any way that they can.",
+"Please become a Sustainer today to help Sefaria continue expanding access to the Jewish canon and transforming your learning experience. We need and value your support.",
+"Chag Shavuot Sameach,",
+"Team Sefaria"
   ],
-  "buttonLink": "https://sefaria.nationbuilder.com/sustainers_b",
-  "buttonText": "BECOME A SUSTAINER",
-  "name": "2023-04-02-passover-donate-banner",
+  "buttonLink": "https://donate.sefaria.org/give/487265/#!/donation/checkout?recurring=1&c_src=mobile",
+  "buttonText": "Become a Sustainer",
+  "name": "2023-05-22-shavuot3",
   "schemaVersion": 1
 }
