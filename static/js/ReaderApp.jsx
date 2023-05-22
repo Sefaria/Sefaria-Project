@@ -1856,6 +1856,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
+    if (!Sefaria.util.isHtml(textOnly)) {
+      // If the selection is not HTML, don't do anything special
+      return
+    }
+
     const selection = document.getSelection()
     const closestReaderPanel = this.state.panels.length > 0 && e.target.closest('.readerPanel') || null
     let textOnly = selection.toString();

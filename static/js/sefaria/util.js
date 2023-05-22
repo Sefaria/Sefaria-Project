@@ -309,6 +309,11 @@ class Util {
       return (res !== null)
     }
 
+    static isHtml(str) {
+      // returns true if str contains html tags
+      return /<[a-z][\s\S]*>/i.test(str);
+    }
+
     static parseUrl(url) {
       var a =  document.createElement('a');
       a.href = url;
