@@ -1857,7 +1857,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
     if (e.srcElement.tagName === "INPUT") {
-      // If the selection is not HTML, don't do anything special
+      // If the selection is from an input tag, don't do anything special
       return
     }
     const selection = document.getSelection()
