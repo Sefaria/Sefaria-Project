@@ -304,11 +304,6 @@ class Util {
                 window.location.pathname + window.location.search;
     }
 
-    static isHtml(str) {
-      // returns true if str contains html tags
-      return /<[a-z][\s\S]*>/i.test(str);
-    }
-
     static isUrl(string) {
       var res = string.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
       return (res !== null)
