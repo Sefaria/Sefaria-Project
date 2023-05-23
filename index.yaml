@@ -18,6 +18,21 @@ entries:
     version: 0.17.0-salesforce-connected-app.1
   - apiVersion: v2
     appVersion: v5.41.2
+    created: "2023-05-23T08:38:32.114134901Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 40a195defd9d32c8e247ac6e1236e766aab5276eb715271fb0b45c9b6a577443
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.17.0-fix-crobjob-api.1.tgz
+    version: 0.17.0-fix-crobjob-api.1
+  - apiVersion: v2
+    appVersion: v5.41.2
     created: "2023-05-22T21:17:43.707567128Z"
     description: Chart to deploy complete Sefaria environment
     digest: 4ae43e8b5c411d006c423684ae5f0ced06bdaf553a9b6de2c652a6a278ccf508
@@ -3150,4 +3165,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-05-22T21:17:43.704614768Z"
+generated: "2023-05-23T08:38:32.110902866Z"
