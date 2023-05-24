@@ -334,9 +334,9 @@ class UploadLinksFromCSV extends Component{
             response.json().then(resp_json => {
                 this.setState({uploading: false,
                     error: false,
-                    uploadMessage: resp_json["data"]["message"],
-                    errors: resp_json["data"]["errors"],
-                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)});
+                    uploadMessage: resp_json.data.message,
+                    errors: resp_json.data.errors,
+                    uploadResult: JSON.stringify(resp_json.data.index, undefined, 4)});
             });
         }
     }).catch(error => {
