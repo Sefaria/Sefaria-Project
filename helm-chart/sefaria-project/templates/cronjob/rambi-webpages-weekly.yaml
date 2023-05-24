@@ -44,12 +44,8 @@ spec:
             ]
             resources:
               requests:
-                memory: "2Gi"
-                cpu: "100m"
                 nvidia.com/gpu: 1
               limits:
-                memory: "3Gi"
-                cpu: "1000m"
                 nvidia.com/gpu: 1
           restartPolicy: Never
           volumes:
