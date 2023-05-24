@@ -4285,6 +4285,7 @@ def annual_report(request, report_year):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
+        '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
     }
     if report_year not in pdfs:
         raise Http404

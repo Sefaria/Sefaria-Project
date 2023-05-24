@@ -1,13 +1,13 @@
 {
-  "title": "",
+  "title": "Friends,",
   "text": [
-"Friend,",
-"On this upcoming Shavuot, we will celebrate the beginning of the conversation that is Torah — and at Sefaria, we celebrate the conversation all year long.",
-"Celebrate the gift of Torah by supporting Sefaria’s mission to bring it into the digital age. We’ve set a goal for 500 new Sefaria Sustainers before Shavuot. Will you become a monthly donor right now?",
-"We're grateful for your support."
+"We’re so close to our goal of signing up 500 new Sustainers by Shavuot! Thank you to all who have already signed up to make a monthly donation, and to all who support Sefaria in any way that they can.",
+"Please become a Sustainer today to help Sefaria continue expanding access to the Jewish canon and transforming your learning experience. We need and value your support.",
+"Chag Shavuot Sameach,",
+"Team Sefaria"
   ],
-  "buttonLink": "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+  "buttonLink": "https://donate.sefaria.org/give/487265/#!/donation/checkout?recurring=1&c_src=mobile",
   "buttonText": "Become a Sustainer",
-  "name": "2023-05-04-shavuot",
+  "name": "2023-05-22-shavuot3",
   "schemaVersion": 1
 }
