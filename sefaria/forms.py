@@ -85,9 +85,12 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
         crm_mediator = CrmMediator()
         #TODO: Add educator field
-        crm_mediator.create_crm_user(user.email, first_name=user.first_name,
+        try:
+            crm_mediator.create_crm_user(user.email, first_name=user.first_name,
                                      last_name=user.last_name, lang=get_language(),
                                      educator=self.cleaned_data["subscribe_educator"])
+        except Exception as e:
+            print(f"failed to add user to salesforce: {e}")
 
         return user
 
