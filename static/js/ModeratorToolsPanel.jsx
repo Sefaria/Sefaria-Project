@@ -389,7 +389,6 @@ class UploadLinksFromCSV extends Component{
                 <input type="submit" value="Submit" disabled={this.isSubmitDisabled()} />
             </form>
             { this.state.uploadMessage && <div>{this.state.uploadMessage}</div> }
-            {/*{ this.state.errors && <div>{this.state.errors?.map(e => <>{e}<br/></>)}</div> }*/}
             { (this.state.errorIsHTML) && <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> }
         </div>
     );
