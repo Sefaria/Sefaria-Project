@@ -121,13 +121,14 @@ class SearchTextResult extends Component {
                     <div className="result-title">
                         <InterfaceText text={{en: s.ref, he: s.heRef}} />
                     </div>
+                </a>
                     <ColorBarBox tref={s.ref}>
                         <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup} ></div>
                     </ColorBarBox>
                     <div className="version">
                         {Sefaria.interfaceLang==='hebrew' && s.hebrew_version_title || s.version}
                     </div>
-                </a>
+
                 {more_results_indicator}
                 {shown_duplicates}
             </div>

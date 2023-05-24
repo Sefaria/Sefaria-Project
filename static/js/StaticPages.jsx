@@ -1743,7 +1743,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/annualreport/2021"
+                        href="/static/files/Sefaria_AnnualImpactReport_R14.pdf"
                         he_href=""
                         he=""
                         en="Read Here"
@@ -2650,3 +2650,4 @@ export {
     DonatePage,
     WordByWordPage
 }
+
