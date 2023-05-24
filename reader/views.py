@@ -3272,6 +3272,9 @@ def topic_ref_api(request, tref):
                     num_sources = getattr(topic_obj, "numSources", 0)
                     topic_obj.numSources = num_sources + 1
                     topic_obj.save()
+                    num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about"}))
+                    ref_topic_link['order'] = {}
+                    ref_topic_link['order']['curatedPrimacy'] = {'en': num_curr_links, 'he': num_curr_links}   #  this sets the new source at the top of the topic page, because otherwise it can be hard to find
                     link = RefTopicLink(ref_topic_link)
 
                 link.dataSource = "sefaria"
@@ -3286,12 +3289,9 @@ def topic_ref_api(request, tref):
 @staff_member_required
 def reorder_sources(request):
     sources = json.loads(request.POST["json"]).get("sources", [])
-    topic = request.GET.get('topic')
+    slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
-    if Topic().init(topic) is None:
-        return jsonResponse({"error": f"Topic {topic} doesn't exist."})
-
-    return update_order_of_topic_sources(sources, request.user.id, lang=lang)
+    return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
 
 
 

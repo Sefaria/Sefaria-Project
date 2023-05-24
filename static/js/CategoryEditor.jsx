@@ -50,7 +50,7 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
         })
 }
 
-const ReorderEditor = ({close, type="", url="", origItems = []}) => {
+const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}) => {
     const determineOrigItems = () => {
         if (origItems.length > 0) {
             return origItems
@@ -80,20 +80,17 @@ const ReorderEditor = ({close, type="", url="", origItems = []}) => {
     }
     const save = () => {
         let postCategoryData = {};
-
         if (type === "books") {
             // use displayOptions to map toc objects to titles of category/book
             postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
-            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"});
         }
         else if (type === "topics") {
              postCategoryData = {topics: tocItems};
-             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
         }
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
-            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"})
         }
+        postWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
     }
     return <div className="editTextInfo">
             <div className="static">

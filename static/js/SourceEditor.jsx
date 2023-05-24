@@ -32,8 +32,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         }
         let refInCache = Sefaria.getRefFromCache(displayRef);
         if (!refInCache) {
-            await Sefaria.getRef(displayRef);
-            refInCache = Sefaria.getRefFromCache(displayRef);
+            refInCache = await Sefaria.getRef(displayRef);
         }
         if (!refInCache?.ref) {
           alert(Sefaria._("Valid ref must be provided."));

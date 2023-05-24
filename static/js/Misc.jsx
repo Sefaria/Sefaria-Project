@@ -1113,8 +1113,9 @@ const CategoryHeader = ({children, type, data = [], edit = true,
 
   if (Sefaria.is_moderator && editCategory) {
     if (data.length === 0) {  // at /texts or /topics
-      let url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
-      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} url={url}/>;
+      const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
+      const redirect = type === 'topics' ? '/topics' : '/texts';
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} postURL={url} redirect={redirect}/>;
     } else if (type === "sources") {
       const topicSlug = data[0];
       const refData = data[1];
@@ -1177,9 +1178,10 @@ const CategoryHeader = ({children, type, data = [], edit = true,
         refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
       }
       adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
-                                        url={url}
+                                        postURL={url}
                                         type={'sources'}
-                                        origItems={refs}/>;
+                                        origItems={refs}
+                                        redirect={`/topics/${topicData.slug}`}/>;
     }
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>

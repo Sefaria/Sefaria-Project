@@ -1036,13 +1036,16 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
-def update_order_of_topic_sources(sources, uid, lang='en'):
+def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     """
     Used by ReorderEditor.  Reorders sources of topics.
-    :param sources: (List) A list of topic sources with ref and order fields
+    :param topic: (str) Slug of topic
+    :param sources: (List) A list of topic sources with ref and order fields.  The first source in the list will have
+    its order field modified so that it appears first on the relevant Topic Page
     :param uid: (int) UID of user modifying categories and/or books
     :param lang: (str) 'en' or 'he'
     """
+    assert Topic.init(topic), f"Topic {topic} doesn't exist."
     results = []
     ref_to_link = {}
 
@@ -1055,16 +1058,16 @@ def update_order_of_topic_sources(sources, uid, lang='en'):
         link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
         if link is None:
             return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
-        ref_to_link[s['ref']] = link.contents(for_db=True)
+        ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
     for display_order, s in enumerate(sources[::-1]):
         link = ref_to_link[s['ref']]
-        order = link.get('order', {})
+        order = getattr(link, 'order', {})
         curatedPrimacy = order.get('curatedPrimacy', {})
-        curatedPrimacy[lang] = display_order * 10
+        curatedPrimacy[lang] = display_order
         order['curatedPrimacy'] = curatedPrimacy
-        link['order'] = order
-        result = tracker.update(uid, RefTopicLink, link)
-        results.append(result.contents())
+        link.order = order
+        link.save()
+        results.append(link.contents())
     return {"sources": results}
