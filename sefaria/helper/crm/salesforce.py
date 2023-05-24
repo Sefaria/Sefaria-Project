@@ -98,6 +98,19 @@ class SalesforceConnectionManager(CrmConnectionManager):
             return False
         return res
 
+    def mark_as_spam_in_crm(self, uid):
+        CrmConnectionManager.mark_as_spam_in_crm(self, uid)
+        res = self.patch(self.create_endpoint("Sefaria_App_User__c", uid),
+                         json={
+                             "Manual_Review_Required__c": True
+                         })
+        try:  # add salesforce id to user profile
+            return res.status_code == 204
+        except:
+            # log
+            return False
+        return res
+
     def subscribe_to_lists(self, lists, email, first_name=None, last_name=None, lang="en", educator=False):
         # TODO: Implement once endpoint exists
         CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
