@@ -335,8 +335,16 @@ class UploadLinksFromCSV extends Component{
                 this.setState({uploading: false,
                     error: false,
                     uploadMessage: resp_json.data.message,
-                    errors: resp_json.data.errors,
                     uploadResult: JSON.stringify(resp_json.data.index, undefined, 4)});
+                if (resp_json.data.errors) {
+                    let element = document.createElement('a');
+                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(resp_json.data.errors));
+                    element.setAttribute('download', 'errors.csv');
+                    element.style.display = 'none';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                }
             });
         }
     }).catch(error => {
@@ -381,7 +389,7 @@ class UploadLinksFromCSV extends Component{
                 <input type="submit" value="Submit" disabled={this.isSubmitDisabled()} />
             </form>
             { this.state.uploadMessage && <div>{this.state.uploadMessage}</div> }
-            { this.state.errors && <div>{this.state.errors?.map(e => <>{e}<br/></>)}</div> }
+            {/*{ this.state.errors && <div>{this.state.errors?.map(e => <>{e}<br/></>)}</div> }*/}
             { (this.state.errorIsHTML) && <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> }
         </div>
     );
