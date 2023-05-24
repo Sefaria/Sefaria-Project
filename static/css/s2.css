@@ -8921,6 +8921,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 6px;
   color: #333;
 }
+.newsletterSignUpBox .educatorNewsletterInput {
+  padding: 10px;
+  -webkit-appearance: auto
+}
 .newsletterSignUpBox img {
   height: 18px;
   width: 18px;
