@@ -26,18 +26,6 @@ class CrmConnectionManager(object):
         """
         CrmConnectionManager.validate_email(new_email)
 
-    def add_email_to_mailing_lists(self, email, lists, first_name=None, last_name=None, lang="en"):
-        """
-        Add email directly to mailing list
-        """
-        pass
-
-    def sync_sustainers(self):
-        """
-        Updates users' sustainer status in the database
-        """
-        pass
-
     def mark_as_spam_in_crm(self, crm_id):
         """
         Do in CRM whatever decision has been made to do about spam users.
