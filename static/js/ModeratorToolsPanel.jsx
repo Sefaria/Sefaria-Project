@@ -304,11 +304,9 @@ class UploadLinksFromCSV extends Component{
   handleChange(event) {
     const target = event.target;
     this.setState({[target.name]: target.value});
-    this.isSubmitDisabled();
   }
   handleFileChange(event) {
       this.setState({hasFile: !!event.target.files[0]});
-      this.isSubmitDisabled();
   }
   handleSubmit(event) {
     event.preventDefault();
