@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import csv
+import sys
+from io import StringIO
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -507,9 +510,6 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
     return total
 
 def add_links_from_csv(file, linktype, generated_by, uid):
-    import csv
-    import sys
-    from io import StringIO
     csv.field_size_limit(sys.maxsize)
     reader = csv.DictReader(StringIO(file.read().decode()))
     fieldnames = reader.fieldnames
