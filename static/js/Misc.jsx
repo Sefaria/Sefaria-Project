@@ -15,6 +15,7 @@ import {Editor} from "slate";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
+import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
@@ -1169,17 +1170,21 @@ const CategoryHeader = ({children, type, data = [], edit = true,
           setTopicData(d);
         })
     } else {
-      let url = `/api/topic/reorder-sources?topic=${topicData.slug}`;
+      let url = `/api/topic/reorder-sources?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = topicData.refs?.about?.refs || [];
+      if (refs.length) {
+        refs = refs.filter((x) => !x.ref.startsWith('Sheet ')).slice(0, Sefaria._topicPageSize);
+        refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
+      }
       adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
                                         url={url}
                                         type={'sources'}
-                                        origItems={refs.filter((x) => !x.ref.startsWith('Sheet '))}/>;
+                                        origItems={refs}/>;
     }
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
                               { add_subcategory ? <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/> : null}
-                              { add_source ? <AdminEditorButton text="Add source" toggleAddingTopics={toggleAddSource}/> : null}
+                              { add_source ? <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/> : null}
                               { edit ? <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/> : null }
                               { reorder ? <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/> : null}
                       </span>;

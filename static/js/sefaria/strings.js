@@ -92,6 +92,8 @@ const Strings = {
     "Add Topic": "הוספת נושא",
     "Create a new topic: ": "יצירת נושא: ",
     "Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')": "הכניסו מראה מקום, לדוגמא שבת פח א:ו",
+    "Add sub-category": "הוסף קטגוריה",
+    "Reorder sources": "סַדַּר המקורות",
 
 
     // All Topics

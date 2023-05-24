@@ -2313,6 +2313,7 @@ _media: {},
     });
   },
   _topics: {},
+  _topicPageSize: 70, // how many sources should show when incrementally loading sources
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },

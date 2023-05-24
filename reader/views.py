@@ -61,7 +61,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, ref_topic_link_prep, annotate_topic_link, \
-                                get_node_in_library_topic_toc, get_path_for_topic_slug
+                                update_order_of_topic_sources
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3225,22 +3225,6 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
-@staff_member_required
-def reorder_sources(request):
-    sources = json.loads(request.POST["json"]).get("sources", [])
-    topic = request.GET.get('topic')
-    assert Topic().init(topic), jsonResponse({"error": f"Topic {topic} doesn't exist."})
-    results = []
-    for display_order, s in enumerate(sources):
-        link = RefTopicLink({"toTopic": topic, "linkType": "about", "ref": s['ref']})
-        assert link, jsonResponse({"error": f"Link between {topic} and {s['ref']} doesn't exist."})
-        order = getattr(link, 'order', {})
-        order['curatedPrimacy'] = display_order*10
-        link.order = order
-        link.save()
-        results.append(link.contents())
-    return jsonResponse({"topics": results})
-
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
@@ -3254,13 +3238,14 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
         else:
+            slug = request.GET.get('topic') if request.method == "DELETE" else json.loads(request.POST.get('json')).get('topic', '')
+            topic_obj = Topic.init(slug)
+            if topic_obj is None:
+                return jsonResponse({"error": "Topic does not exist"})
+            ref = Ref(tref).normal()
+            ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": ref}
+            link = RefTopicLink().load(ref_topic_link)
             if request.method == "DELETE":
-                slug = request.GET.get('topic')
-                topic_obj = Topic().load({"slug": slug})
-                if topic_obj is None:
-                    return jsonResponse({"error": "Topic does not exist"})
-                ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": tref}
-                link = RefTopicLink().load(ref_topic_link)
                 if link is None:
                     return jsonResponse({"error": f"Link between {slug} and {tref} doesn't exist."})
                 if link.can_delete():
@@ -3270,21 +3255,13 @@ def topic_ref_api(request, tref):
                     return jsonResponse({"error": f"Cannot delete link between {slug} and {tref}."})
             elif request.method == "POST":
                 data = json.loads(request.POST.get("json"))
-                slug = data.get("topic", None)
-                topic_obj = Topic().load({"slug": slug})
-                creating_new_link = data.get("is_new", True)
                 descriptions = data.get("descriptions", {})
-                ref = Ref(tref).normal()
-                ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": ref}
-                link = RefTopicLink().load(ref_topic_link)
-                exists_already = link is not None
-                new_ref = data.get("new_ref", link.ref) # `new_ref` is only present when not creating_new_link
+                creating_new_link = data.get("is_new", True)
+                new_ref = data.get("new_ref", ref)   # `new_ref` is only present when editing (`creating_new_link` is False)
 
-                if topic_obj is None:
-                    return jsonResponse({"error": "Topic does not exist"})
-                if creating_new_link and exists_already:
+                if creating_new_link and link:
                     return jsonResponse({"error": "Topic link already exists"})
-                elif not creating_new_link and not exists_already:
+                elif not creating_new_link and link is None:
                     return jsonResponse({"error": f"Can't edit link because link does not currently exist between {slug} and {ref}."})
                 elif not creating_new_link and new_ref != link.ref:
                     new_link = RefTopicLink().load({"toTopic": slug, "linkType": "about", "ref": new_ref})
@@ -3306,7 +3283,17 @@ def topic_ref_api(request, tref):
                 ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
                 return jsonResponse(ref_topic_dict)
 
-        
+@staff_member_required
+def reorder_sources(request):
+    sources = json.loads(request.POST["json"]).get("sources", [])
+    topic = request.GET.get('topic')
+    lang = 'en' if request.GET.get('lang') == 'english' else 'he'
+    if Topic().init(topic) is None:
+        return jsonResponse({"error": f"Topic {topic} doesn't exist."})
+
+    return update_order_of_topic_sources(sources, request.user.id, lang=lang)
+
+
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],

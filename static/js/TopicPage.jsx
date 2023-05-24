@@ -22,7 +22,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    CategoryHeader,
+    CategoryHeader, ContentText,
 
 } from './Misc';
 
@@ -432,7 +432,7 @@ const TopicPage = ({
       useIncrementalLoad(
         tabObj.fetcher,
         refsToFetchByTab[key] || false,
-        70,
+        Sefaria._topicPageSize,
         data => setLoadedData(prev => {
           const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
           if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
@@ -795,5 +795,6 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
 
 export {
   TopicPage,
-  TopicCategory
+  TopicCategory,
+  refSort
 }

@@ -1,8 +1,8 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, AdminToolHeader, Autocompleter, InterfaceText} from "./Misc";
-import React, {useState, useRef} from "react";
+import {postWithCallBack, Autocompleter, InterfaceText} from "./Misc";
+import React, {useState} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
@@ -35,7 +35,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
             await Sefaria.getRef(displayRef);
             refInCache = Sefaria.getRefFromCache(displayRef);
         }
-        if (!refInCache.ref) {
+        if (!refInCache?.ref) {
           alert(Sefaria._("Valid ref must be provided."));
           return false;
         }

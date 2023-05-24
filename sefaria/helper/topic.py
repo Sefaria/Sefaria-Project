@@ -11,7 +11,7 @@ from sefaria.system.database import db
 from sefaria.system.cache import django_cache
 
 import structlog
-
+from sefaria import tracker
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -1035,3 +1035,36 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
             old_node["categoryDescription"] = topic_obj.categoryDescription
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
+
+def update_order_of_topic_sources(sources, uid, lang='en'):
+    """
+    Used by ReorderEditor.  Reorders sources of topics.
+    :param sources: (List) A list of topic sources with ref and order fields
+    :param uid: (int) UID of user modifying categories and/or books
+    :param lang: (str) 'en' or 'he'
+    """
+    results = []
+    ref_to_link = {}
+
+    # first validate data
+    for s in sources:
+        try:
+            assert Ref(s['ref']) is not None
+        except AssertionError:
+            return {"error": f"Invalid ref {s['ref']}"}
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
+        if link is None:
+            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+        ref_to_link[s['ref']] = link.contents(for_db=True)
+
+    # now update curatedPrimacy data
+    for display_order, s in enumerate(sources[::-1]):
+        link = ref_to_link[s['ref']]
+        order = link.get('order', {})
+        curatedPrimacy = order.get('curatedPrimacy', {})
+        curatedPrimacy[lang] = display_order * 10
+        order['curatedPrimacy'] = curatedPrimacy
+        link['order'] = order
+        result = tracker.update(uid, RefTopicLink, link)
+        results.append(result.contents())
+    return {"sources": results}

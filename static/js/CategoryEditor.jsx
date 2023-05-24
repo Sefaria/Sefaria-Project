@@ -4,8 +4,20 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {postWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
-const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en,
-                        "sources": (child) => child.descriptions ? `${child?.descriptions?.en?.title || child?.descriptions?.he?.title} - ${child.ref}` : child.ref};
+
+const displayOptionForSources = (child) => {
+    if (Sefaria.interfaceLang === 'english') {
+        return child?.descriptions?.en ? `${child?.descriptions?.en?.title} - ${child.ref}` : child.ref;
+    }
+    else {
+        const refInCache = Sefaria.getRefFromCache(child.ref);
+        const displayRef = refInCache ? refInCache.heRef : child.ref;
+        return child?.descriptions?.he ? `${child?.descriptions?.he?.title} - ${displayRef}` : displayRef;
+    }
+}
+const displayOptions = {"books": (child) => child.title || child.category,
+                        "topics": (child) => child.en,
+                        "sources": (child) => displayOptionForSources(child)};
 const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
