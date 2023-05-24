@@ -3580,7 +3580,7 @@ def account_user_update(request):
                     logger.warning("failed to add user to salesforce")
 
             except Exception as e:
-                logger.warning("failed to add user to salesforce")
+                logger.warning(f"failed to add user to salesforce: {e}")
                 pass
 
         if not error:
