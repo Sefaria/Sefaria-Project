@@ -4017,6 +4017,43 @@ def daf_yomi_redirect(request):
     daf_yomi = calendars["Daf Yomi"]
     return redirect(iri_to_uri("/" + daf_yomi["url"]), permanent=False)
 
+def multi_trans_redirect(request, tref):
+
+    ref = Ref(tref)
+    ref_he = ref.he_normal()
+    ref_str = ref.normal()
+    translations = request.GET.get('translations', '').split('|')
+    print("")
+    print("")
+    print("")
+    print("")
+    print(len(translations))
+    print(translations)
+    print("")
+    print("")
+    print("")
+
+    if len(translations) == 1 and translations[0] == '':
+        translations = [
+            'The_Contemporary_Torah,_Jewish_Publication_Society,_2006',
+            'The_Five_Books_of_Moses,_by_Everett_Fox._New_York,_Schocken_Books,_1995',
+            'The_Koren_Jerusalem_Bible',
+            'The_Rashi_chumash_by_Rabbi_Shraga_Silverstein',
+            'The_Holy_Scriptures:_A_New_Translation_(JPS_1917)',
+            'Metsudah_Chumash,_Metsudah_Publications,_2009_[with_Onkelos_translation]'
+        ]
+
+    url = f"/{ref_str}?vhe=Tanach_with_Nikkud&lang=he&aliyot=0"
+
+
+    for i, title in enumerate(translations, start=2):
+        url = url + f"&p{i}={ref_str}&ven{i}={title}&lang{i}=en&aliyot=0"
+
+    print(url)
+
+
+    return redirect(url)
+
 
 def random_ref(categories=None, titles=None):
     """
