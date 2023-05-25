@@ -113,5 +113,25 @@ class SalesforceConnectionManager(CrmConnectionManager):
 
     def subscribe_to_lists(self, lists, email, first_name=None, last_name=None, lang="en", educator=False):
         # TODO: Implement once endpoint exists
-        CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
-        return
+        CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
+        if lang == "he":
+            language = "Hebrew"
+        else:
+            language = "English"
+        res = self.post(self.create_endpoint("Sefaria_App_Data__c"),
+                  json={
+                      "Action": "Newsletter",
+                      "First_Name__c": first_name,
+                      "Last_Name__c": last_name,
+                      "Sefaria_App_Email__c": email,
+                      "Hebrew_English__c": language,
+                      "Educator__c": educator
+                  })
+        print(res)
+        print(res.text)
+        try:
+            return res.status_code == 204
+        except:
+            # log
+            return False
+        return res
