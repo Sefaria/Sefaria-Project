@@ -1,6 +1,6 @@
 {{- if .Values.cronJobs.nationBuilderSync.enabled }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-nation-builder-sync
