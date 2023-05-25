@@ -1,7 +1,7 @@
 # https://sefaria.slack.com/archives/DNAHQ11V0/p1594892722002100
 {{- if .Values.cronJobs.topicsIndexing.enabled }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-topics-indexing
