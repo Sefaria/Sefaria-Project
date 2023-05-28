@@ -295,7 +295,7 @@ class WorkflowyModeratorTool extends Component{
 class UploadLinksFromCSV extends Component{
   constructor(props) {
     super(props);
-    this.state = {value: '', submitDisabled: true, projectName: ''};
+    this.state = {projectName: ''};
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -323,10 +323,10 @@ class UploadLinksFromCSV extends Component{
       credentials: 'same-origin',
       body: data
     }).then(response => {
-        this.setState({uploading: false, uploadMessage:""});
         if (!response.ok) {
             response.text().then(resp_text => {
                 this.setState({uploading: false,
+                    uploadMessage: "",
                     error: true,
                     errorIsHTML: true,
                     uploadResult: resp_text});
@@ -390,6 +390,5 @@ class UploadLinksFromCSV extends Component{
     );
   }
 }
-
 
 export default ModeratorToolsPanel;
