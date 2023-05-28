@@ -4,6 +4,7 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import Cookies from 'js-cookie';
+import { saveAs } from 'file-saver';
 
 
 class ModeratorToolsPanel extends Component {
@@ -337,13 +338,8 @@ class UploadLinksFromCSV extends Component{
                     uploadMessage: resp_json.data.message,
                     uploadResult: JSON.stringify(resp_json.data.index, undefined, 4)});
                 if (resp_json.data.errors) {
-                    let element = document.createElement('a');
-                    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(resp_json.data.errors));
-                    element.setAttribute('download', 'errors.csv');
-                    element.style.display = 'none';
-                    document.body.appendChild(element);
-                    element.click();
-                    document.body.removeChild(element);
+                    let blob = new Blob([resp_json.data.errors], {type: "text/plain;charset=utf-8"});
+                    saveAs(blob, 'errors.csv');
                 }
             });
         }
