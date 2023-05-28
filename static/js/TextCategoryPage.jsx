@@ -5,8 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import {useEditToggle, AdminEditorButton} from "./AdminEditor";
-import {CategoryEditor} from "./CategoryEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,

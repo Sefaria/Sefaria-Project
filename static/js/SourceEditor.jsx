@@ -45,7 +45,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         setSavingStatus(true);
         let url = isNew ? `/api/ref-topic-links/${Sefaria.normRef(displayRef)}` : `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}`;
         let descData = {};
-        let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef};
+        let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
         if (data.enTitle.length > 0) {
             descData['en'] = {"title": data.enTitle, "prompt": data.enDescription};
         }
@@ -93,7 +93,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}`,
+        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}&lang=${Sefaria.interfaceLang}`,
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
