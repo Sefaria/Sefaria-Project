@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: rambi-update
-            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
