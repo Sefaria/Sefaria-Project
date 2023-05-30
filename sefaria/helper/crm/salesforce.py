@@ -58,7 +58,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
         Adds a new user to the CRM and subscribes them to the specified lists.
         Returns CRM access info
         """
-        CrmConnectionManager.add_user_to_crm(email, first_name, last_name, lang, educator)
+        CrmConnectionManager.add_user_to_crm(self, email, first_name, last_name, lang, educator)
         if lang == "he":
             language = "Hebrew"
         else:
