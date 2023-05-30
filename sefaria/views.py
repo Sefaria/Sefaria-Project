@@ -44,7 +44,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew, strip_nikkud
@@ -384,9 +384,9 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                 he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference, vtitle=hebrew_version)
                 en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
-                  raise ValueError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
-                  raise ValueError(f"{oref.normal()} does not have the English version: {english_version}")
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the English version: {english_version}")
 
                 if as_sized_string:
                     kwargs = {}
