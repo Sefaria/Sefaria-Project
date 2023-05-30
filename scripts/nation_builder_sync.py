@@ -1,7 +1,8 @@
 import django
 django.setup()
+from sefaria.helper.crm.crm_mediator import CrmMediator
+
 import sys
-from sefaria.helper.crm.crm_factory import CrmFactory
 """
 Mutiple "only" flags can be run at once. If none are run, everything will be run.
 Flags:
@@ -34,8 +35,8 @@ while(i < len(sys.argv)):
         gt = int(sys.argv[i][5:])
     i+=1
 
-connection_manager = CrmFactory().get_connection_manager()
-connection_manager.sync_sustainers()
+    crm_mediator = CrmMediator()
+    crm_mediator.sync_sustainers()
 
 # if sustainers_only:
 #     connection_manager = CrmFactory().get_connection_manager()

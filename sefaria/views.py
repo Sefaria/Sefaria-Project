@@ -36,6 +36,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_factory import CrmFactory
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
@@ -175,16 +176,40 @@ def subscribe(request, email):
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
-    lists = request.GET.get("lists", "")
-    lists = lists.split("|")
-    if len(lists) == 0:
-        return jsonResponse({"error": "Please specify a list."})
-    connection_manager = CrmFactory().get_connection_manager()
-    if connection_manager.add_user_to_crm(lists + ["Newsletter_Sign_Up"], email):
-        return jsonResponse({"status": "ok"})
-    else:
+    language = request.GET.get("language", "")
+    educator = request.GET.get("educator", False)
+    first_name = request.GET.get("firstName", None)
+    last_name = request.GET.get("lastName", None)
+    crm_mediator = CrmMediator()
+    try:
+        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
+            return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
+# def subscribe_old(request, email):
+#     """
+#     API for subscribing to mailing lists, in `lists` url param.
+#     Currently active lists are:
+#     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
+#     """
+#     lists = request.GET.get("lists", "")
+#     lists = lists.split("|")
+#     # TODO: Decouple list names from frontend
+#     if "Hebrew" in any(lists):
+#         language = "he"
+#     else:
+#         language = "en"
+#     if len(lists) == 0:
+#         return jsonResponse({"error": "Please specify a list."})
+#
+#     crm_mediator = CrmMediator()
+#     if crm_mediator.create_crm_user(lists + ["Newsletter_Sign_Up"], email, None, None, lang=language):
+#         return jsonResponse({"status": "ok"})
+#     else:
+#         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 @login_required
 def unlink_gauth(request):
@@ -948,7 +973,7 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
     # Delete from Nationbuilder
     profile = db.profiles.find_one({"id": spammer_id})
     if delete_from_crm:
-        crm_connection_manager = CrmFactory().get_connection_manager()
+        crm_connection_manager = CrmMediator().get_connection_manager()
         crm_connection_manager.mark_as_spam_in_crm(profile)
     sheets = db.sheets.find({"owner": spammer_id})
     for sheet in sheets:

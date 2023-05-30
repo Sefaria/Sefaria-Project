@@ -8,7 +8,8 @@ class DummyConnectionManager(CrmConnectionManager):
     def _get_connection(self):
         return {}
 
-    def add_user_to_crm(self, lists, email, first_name=None, last_name=None):
+    def add_user_to_crm(self, email, first_name=None, last_name=None, lang="en", educator=False):
+        CrmConnectionManager.add_user_to_crm(email, first_name, last_name, lang, educator)
         return False
 
     def nationbuilder_get_all(self, endpoint_func, args=[]):
@@ -17,7 +18,11 @@ class DummyConnectionManager(CrmConnectionManager):
     def sync_sustainers(self):
         pass
 
-    def mark_as_spam_in_crm(self, profile):
+    def mark_as_spam_in_crm(self, crm_id):
+        pass
+
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
+        CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
         pass
 
     def __del__(self):

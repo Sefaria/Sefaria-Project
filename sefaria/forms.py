@@ -15,11 +15,10 @@ from emailusernames.utils import get_user, user_exists
 from captcha.fields import ReCaptchaField
 from captcha.widgets import ReCaptchaV2Checkbox
 
-from sefaria.helper.crm.crm_factory import CrmFactory
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
-
 
 SEED_GROUP = "User Seeds"
 
@@ -30,20 +29,22 @@ class SefariaLoginForm(EmailAuthenticationForm):
 
 
 class SefariaNewUserForm(EmailUserCreationForm):
-    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    email = forms.EmailField(max_length=75,
+                             widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
     password1 = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password"), 'autocomplete': 'off'}))
-    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False, required=False)
+    subscribe_educator = forms.BooleanField(label=_("I am an educator"), help_text=_("I am an educator"), initial=False,
+                                            required=False)
 
     captcha_lang = "iw" if get_language() == 'he' else "en"
     captcha = ReCaptchaField(
         widget=ReCaptchaV2Checkbox(
             attrs={
                 'data-theme': 'white'
-                #'data-size': 'compact',
+                # 'data-size': 'compact',
             },
-            #api_params={'hl': captcha_lang}
+            # api_params={'hl': captcha_lang}
         )
     )
 
@@ -82,29 +83,15 @@ class SefariaNewUserForm(EmailUserCreationForm):
         if commit:
             user.save()
 
-        mailingLists = []
-        language = get_language()
-
-        list_name = "Announcements_General_Hebrew" if language == "he" else "Announcements_General"
-        mailingLists.append(list_name)
-
-        if self.cleaned_data["subscribe_educator"]:
-            list_name = "Announcements_Edu_Hebrew" if language == "he" else "Announcements_Edu"
-            mailingLists.append(list_name)
-
-        if mailingLists:
-            mailingLists.append("Signed_Up_on_Sefaria")
-            try:
-                connection_manager = CrmFactory().get_connection_manager()
-                connection_manager.add_user_to_crm(mailingLists, user.email, first_name=user.first_name,
-                                                   last_name=user.last_name)
-            except:
-                pass
+        crm_mediator = CrmMediator()
+        #TODO: Add educator field
+        crm_mediator.create_crm_user(user.email, first_name=user.first_name,
+                                     last_name=user.last_name, lang=get_language())
 
         return user
 
-class SefariaNewUserFormAPI(SefariaNewUserForm):
 
+class SefariaNewUserFormAPI(SefariaNewUserForm):
     mobile_app_key = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
@@ -118,12 +105,15 @@ class SefariaNewUserFormAPI(SefariaNewUserForm):
         if mobile_app_key != MOBILE_APP_KEY:
             raise forms.ValidationError(_("Incorrect mobile_app_key provided"))
 
+
 # TODO: Check back on me
 # This class doesn't seem to be getting called at all -- it's referenced in urls.py,
 # but I'm not 100% convinced anything coded here actually sends the email template outside of the django defaults (rmn)
 #
 class SefariaPasswordResetForm(PasswordResetForm):
-    email = forms.EmailField(max_length=75, widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+    email = forms.EmailField(max_length=75,
+                             widget=forms.TextInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
+
 
 class SefariaSetPasswordForm(SetPasswordForm):
     new_password1 = forms.CharField(
