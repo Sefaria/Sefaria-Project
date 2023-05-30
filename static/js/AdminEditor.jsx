@@ -42,7 +42,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                     </div>;
     }
     const options_for_form = {
-        "Title": item("English Title", "enTitle", "Add a title."),
+        "Title": item("Title", "enTitle", "Add a title."),
         "Hebrew Title": Sefaria._siteSettings.TORAH_SPECIFIC ?
             item("Hebrew Title", 'heTitle', 'Add a title.') : null,
         "Category Menu": catMenu,
