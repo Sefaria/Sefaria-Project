@@ -36,6 +36,11 @@ class CrmConnectionManager(object):
         CrmConnectionManager.validate_email(email)
         CrmConnectionManager.validate_name(first_name)
         CrmConnectionManager.validate_name(last_name)
+
+    def find_crm_id(self, email=None):
+        """
+        Find CRM ID in CRM given certain information
+        """
         pass
 
     @staticmethod
