@@ -1830,8 +1830,8 @@ function NewsletterSignUpForm(props) {
               })
             }
         ).then(res => {
-          if ("error" in data) {
-            setSubscribeMessage(data.error);
+          if ("error" in res) {
+            setSubscribeMessage(res.error);
             setShowNameInputs(false);
           } else {
           setSubscribeMessage("Subscribed! Welcome to our list.");
