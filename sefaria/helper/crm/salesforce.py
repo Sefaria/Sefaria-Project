@@ -1,6 +1,7 @@
 import base64
 import requests
 import time
+import json
 
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
@@ -130,8 +131,8 @@ class SalesforceConnectionManager(CrmConnectionManager):
             language = "Hebrew"
         else:
             language = "English"
-        res = self.post(self.create_endpoint("Sefaria_App_Data__c"),
-                  json={
+
+        json_string = json.dumps({
                       "Action": "Newsletter",
                       "First_Name__c": first_name,
                       "Last_Name__c": last_name,
@@ -139,11 +140,12 @@ class SalesforceConnectionManager(CrmConnectionManager):
                       "Hebrew_English__c": language,
                       "Educator__c": educator
                   })
-        print(res)
-        print(res.text)
+        res = self.post(self.create_endpoint("Sefaria_App_Data__c"),
+                        json={
+                            "JSON_STRING__c": json_string
+                        })
         try:
-            return res.status_code == 204
+            return res.status_code == 201
         except:
-            # log
             return False
         return res
