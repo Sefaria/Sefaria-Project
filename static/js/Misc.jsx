@@ -17,6 +17,7 @@ import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import Cookies from "js-cookie";
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -1811,20 +1812,32 @@ function NewsletterSignUpForm(props) {
     if (showNameInputs === true) { // submit
       if (firstName.length > 0 & lastName.length > 0) {
         setSubscribeMessage("Subscribing...");
-        $.post("/api/subscribe/" + email, {
-          language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-          educator: educatorCheck,
-          firstName: firstName,
-          lastName: lastName
-        }, function (data) {
+        const request = new Request(
+        '/api/subscribe/'+email,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')},
+        'Content-Type': 'application/json'}
+        );
+        fetch(request,
+            {
+              method: "POST",
+              mode: 'same-origin',
+              credentials: 'same-origin',
+              body: JSON.stringify({
+                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+                educator: educatorCheck,
+                firstName: firstName,
+                lastName: lastName
+              })
+            }
+        ).then(res => {
           if ("error" in data) {
             setSubscribeMessage(data.error);
+            setShowNameInputs(false);
           } else {
-            setSubscribeMessage("Subscribed! Welcome to our list.");
-            Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
-          }
-
-        }).error(data => {
+          setSubscribeMessage("Subscribed! Welcome to our list.");
+          Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+        }
+        }).catch(data => {
           setSubscribeMessage("Sorry, there was an error.");
           setShowNameInputs(false);
         });

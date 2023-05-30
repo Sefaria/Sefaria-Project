@@ -175,10 +175,11 @@ def subscribe(request, email):
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
-    language = request.GET.get("language", "")
-    educator = request.GET.get("educator", False)
-    first_name = request.GET.get("firstName", None)
-    last_name = request.GET.get("lastName", None)
+    body = json.loads(request.body)
+    language = body.get("language", "")
+    educator = body.get("educator", False)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
     try:
         crm_mediator = CrmMediator()
         if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
