@@ -5,6 +5,8 @@ Override of Django forms for new users and password reset.
 Includes logic for subscribing to mailing list on register and for
 "User Seeds" -- pre-creating accounts that may already be in a Group.
 """
+import structlog
+
 from django import forms
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.forms import *
@@ -19,6 +21,7 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
 from django.utils.translation import get_language
+logger = structlog.get_logger(__name__)
 
 SEED_GROUP = "User Seeds"
 
@@ -89,7 +92,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
                                      last_name=user.last_name, lang=get_language(),
                                      educator=self.cleaned_data["subscribe_educator"])
         except Exception as e:
-            print(f"failed to add user to salesforce: {e}")
+            logger.error(f"failed to add user to salesforce: {e}")
 
         return user
 
