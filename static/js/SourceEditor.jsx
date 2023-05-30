@@ -8,10 +8,10 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
-    const [data, setData] = useState({enTitle: origData?.descriptions?.en?.title || "",
-                                                heTitle: origData?.descriptions?.he?.title || "",
-                                                enDescription: origData?.descriptions?.en?.prompt || "",
-                                                heDescription: origData?.descriptions?.he?.prompt || "",
+    const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title);
+    const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt);
+    const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
+                                                prompt: prompt,
                                                 });
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -43,17 +43,11 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const save = async function () {
         setSavingStatus(true);
-        let url = isNew ? `/api/ref-topic-links/${Sefaria.normRef(displayRef)}` : `/api/ref-topic-links/${Sefaria.normRef(origData.ref)}`;
-        let descData = {};
+        let refInUrl = isNew ? displayRef : origData.ref;
+        let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
         let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
         if (data.enTitle.length > 0) {
-            descData['en'] = {"title": data.enTitle, "prompt": data.enDescription};
-        }
-        if (data.heTitle.length > 0) {
-            descData['he'] = {"title": data.heTitle, "prompt": data.heDescription};
-        }
-        if (!!Object.keys(descData).length) {
-            postData['descriptions'] = descData;
+            postData['description'] = {"title": data.enTitle, "prompt": data.prompt};
         }
         postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
@@ -93,7 +87,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const deleteObj = function() {
       $.ajax({
-        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}&lang=${Sefaria.interfaceLang}`,
+        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`,
         type: "DELETE",
         success: function(result) {
           if ("error" in result) {
@@ -109,7 +103,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={false}
+                validate={validate} items={["Title", "Prompt"]} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>

@@ -3120,12 +3120,13 @@ def topics_list_api(request):
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
-        t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
+        isTopLevelDisplay = data["category"] in ["Main Menu", "", []]
+        t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
 
-        if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
+        if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
@@ -3238,17 +3239,14 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect refs to topics."})
         else:
-            data = {}
-            if request.method == "POST":
-                data = request.POST.get('json')
-            slug = request.GET.get('topic') if request.method == "DELETE" else json.loads(data).get('topic', '')
+            data = json.loads(request.POST.get('json')) if request.method == "POST" else request.GET
+            slug = data.get('topic', '')
             topic_obj = Topic.init(slug)
             if topic_obj is None:
                 return jsonResponse({"error": "Topic does not exist"})
-            interface_lang_long = data.get('interface_lang') if request.method == "POST" else request.GET.get('lang')
-            interface_lang = 'en' if interface_lang_long == 'english' else 'he'
+            interface_lang = 'en' if data.get('interface_lang', '') == 'english' else 'he'
             ref = Ref(tref).normal()
-            ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": ref, 'order.availableLangs': interface_lang}
+            ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": ref}
             link = RefTopicLink().load(ref_topic_link)
 
             if request.method == "DELETE":
@@ -3261,7 +3259,7 @@ def topic_ref_api(request, tref):
                     return jsonResponse({"error": f"Cannot delete link between {slug} and {tref}."})
             elif request.method == "POST":
                 data = json.loads(request.POST.get("json"))
-                descriptions = data.get("descriptions", {})
+                description = data.get("description", {})
                 creating_new_link = data.get("is_new", True)
                 new_ref = data.get("new_ref", ref)   # `new_ref` is only present when editing (`creating_new_link` is False)
 
@@ -3272,16 +3270,18 @@ def topic_ref_api(request, tref):
                     new_link = RefTopicLink().load({"toTopic": slug, "linkType": "about", "ref": new_ref, "order.availableLangs": interface_lang})
                     if new_link:
                         return jsonResponse({"error": f"Can't change source's ref to {new_ref} as that source already exists.  Please edit that source directly."})
-                elif creating_new_link and link:
-                    # the only reason we would allow creating a new link when there is a link
-                    # is if the user is adding a source in one language when we currently have the source in a different language
+                elif link:
                     existing_langs = getattr(link, 'order', {}).get('availableLangs', [])
-                    if interface_lang in existing_langs:
+                    if interface_lang in existing_langs and creating_new_link:
+                        # When the source already is linked to the topic, and is in a different interface language
+                        # than the existing source, they are essentially editing the source
                         return jsonResponse({"error": "Topic link already exists"})
                     else:
                         if not hasattr(link, 'order'):
                             link.order = {}
                         link.order['availableLangs'] += [interface_lang]
+                        num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about", 'order.availableLangs': interface_lang}))
+                        link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
                 elif creating_new_link and link is None:
                     # check link is None to avoid incrementing topic's numSources count
                     num_sources = getattr(topic_obj, "numSources", 0)
@@ -3295,9 +3295,13 @@ def topic_ref_api(request, tref):
 
                 link.dataSource = "sefaria"
                 link.ref = new_ref
-                if len(descriptions) > 0:
-                    link.descriptions = descriptions
+                if len(description) > 0:
+                    if not hasattr(link, 'descriptions'):
+                         link.descriptions = {}
+                    link.descriptions[interface_lang] = description
                 link.save()
+
+                # process link for client-side, especially relevant in TopicSearch.jsx
                 ref_topic_dict = ref_topic_link_prep(link.contents())
                 ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
                 return jsonResponse(ref_topic_dict)

@@ -77,6 +77,7 @@ const Strings = {
     "Create a Topic": "ליצירת נושא חדש",
     "Edit Topic": "עריכת נושא",
     "English Title": "כותרת אנגלית",
+    "Title": "כותרת",
     "English Description": "תיאור אנגלית",
     "Hebrew Description": "תיאור עברית",
     "Topic Deleted": "הנושא נמחק",

@@ -61,7 +61,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        if (sortedSubtopics.length > 0) {
+        if (sortedSubtopics.length > 0 && !isNew) {
             await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
         }
         saveTopic();
@@ -123,10 +123,13 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         alert(Sefaria._("Something went wrong. Sorry!"));
       });
     }
-
+    let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
+    if (isCategory) {
+        items.push("Short Descriptions");
+    }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew}
-                        shortDescBool={isCategory} extras={
+                        items={items} extras={
                             [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
