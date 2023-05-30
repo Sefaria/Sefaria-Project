@@ -55,3 +55,9 @@ class CrmMediator:
         else:
             return False
 
+    def get_and_save_crm_id(self, email=None):
+        crm_id = self._crm_connection.find_crm_id(email)
+        if crm_id:
+            CrmInfoStore.save_crm_id(crm_id, email)
+        else:
+            return False
