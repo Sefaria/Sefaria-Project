@@ -1,26 +1,27 @@
 from sefaria.model.user_profile import UserProfile
 from sefaria import settings as sls
+from sefaria.system.database import db
 
 import structlog
 
 class CrmInfoStore(object):
 
     @staticmethod
-    def save_crm_id(profile_id, email, crm_type):
+    def save_crm_id(crm_id, email, crm_type):
         """
         Saves CRM id to the database with the correct field
         """
         if crm_type == "NATIONBUILDER":
             user_profile = UserProfile(email=email, user_registration=True)
-            if user_profile.id is not None and user_profile.nationbuilder_id != profile_id:
-                user_profile.nationbuilder_id = profile_id
+            if user_profile.id is not None and user_profile.nationbuilder_id != crm_id:
+                user_profile.nationbuilder_id = crm_id
                 user_profile.save()
                 return True
             return False
         elif crm_type == "SALESFORCE":
             user_profile = UserProfile(email=email, user_registration=True)
-            if user_profile.id is not None and user_profile.sf_app_user_id != profile_id:
-                user_profile.sf_app_user_id = profile_id
+            if user_profile.id is not None and user_profile.sf_app_user_id != crm_id:
+                user_profile.sf_app_user_id = crm_id
                 user_profile.save()
                 return True
             return False

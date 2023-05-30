@@ -91,14 +91,7 @@ flowchart TD
     A1[Sefaria is connected to Nationbuilder]
     A2[Engineers create Sefaria interface for<br>CRM connection with option to switch write<br>location by updating environment variable]
     A3{Works on sandbox?}
-    A3.1{Will we write<br>interim data to log<br>or Salesforce Prod?}
-    A3.2[Update Sefaria to write to Log]
-    Interim[Interim writing solution complete]
-    A3.3[Update Sefaria settings to write to Salesforce]
-    Load[Load log data to salesforce]
     A4[Update Sefaria to write to Salesforce ]
-    A4.1[Resolve interim period App Users & Contacts]
-    A5{Interim Data in Log<br>or Production?}
     Done
     end
     subgraph MMG 
@@ -106,25 +99,17 @@ flowchart TD
     B1.1{Data is validated?}
     B3[Create Salesforce Production]
     B4[Load Final Data into Production]
+    Resolve[Resolve App Users in Sefaria App with<br>App Users in CRM]
     end 
     B1-.->B1.1
-    B1.1-.Yes.->A3.1
-      B1.1-.No.->B1.1
+    B1.1-.Yes.->A3
     A1-->A2
     A2-->A3
-    A3-.Yes.->A3.1
-    A3.1-.Log.->A3.2
-    A3.1-.Salesforce Prod.->A4
-    A3.2-->Interim
-    A4-->Interim
-    Interim-->B4
-    B4-->A5 
-    A5-.Log.->A3.3
-    A5-.Salesforce Prod.->A4.1
-    B3-->B4
-    A3.3-->Load
-    Load-->Done
-    A4.1-->Done
+    A3-->A4
+    B3-->A4 
+    A4-->B4
+    B4-->Resolve
+    Resolve-->Done
 ```
 
 ## CRM Interfaces
@@ -169,7 +154,7 @@ sequenceDiagram
     Sefaria->>Db: Create profile (Mongo)
     Db-->>Sefaria: OK
     Sefaria-->>User: OK
-    Sefaria->>CRM: PUT app user: Name, email, mailing lists
+    Sefaria->>CRM: PUT app user: Name, email, info (i.e. educator, language)
     CRM-->>Sefaria: OK
     Sefaria-->>Db: Save CRM [app user] ID
     Db-->>Sefaria: OK
@@ -236,17 +221,15 @@ sequenceDiagram
     Participant CRM
     Participant 3rd as 3rd Party Email<br>Subscription Manager
     User->>Sefaria: Sign up for mailing list
-    Sefaria->>CRM: PUT Email ONLY
+    Sefaria->>CRM: PUT Email + Name + Info (subscriber endpoint)
     CRM-->>Sefaria: OK
+    Sefaria-->>User: OK
     3rd->>CRM: GET: Contacts on<br>mailing lists
     CRM-->>3rd: OK
 ```
 
 ## User marked as spam
 
-For Nationbuilder, this *deletes* the user.
-
-When we move to Salesforce, we will want to implement something different. We still need spec.
 
 This corresponds with the `CrmConnectionManager.mark_as_spam_in_crm` method.
 
@@ -256,7 +239,7 @@ sequenceDiagram
     participant Sefaria
     Participant CRM
     Administrator->>Sefaria: Mark user as Spam
-    Sefaria->>CRM: Mark User as Spam (or delete)
+    Sefaria->>CRM: Mark User as Spam
     CRM-->>Sefaria: OK
     Sefaria-->>Administrator: Ok
 ```

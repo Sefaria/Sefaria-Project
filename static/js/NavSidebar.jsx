@@ -579,7 +579,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => {
+const StayConnected = () => { // TODO: remove? looks like we are not using this
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (

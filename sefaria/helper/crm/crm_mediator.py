@@ -38,3 +38,8 @@ class CrmMediator:
     def mark_as_spam_in_crm(self, uid=None, email=None, profile=None):
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
         self._crm_connection.mark_as_spam_in_crm(crm_id)
+
+    def update_user_email(self, new_email, uid=None, email=None, profile=None):
+        crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
+        return self._crm_connection.change_user_email(crm_id, new_email)
+
