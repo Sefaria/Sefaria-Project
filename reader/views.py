@@ -3270,17 +3270,22 @@ def topic_ref_api(request, tref):
                     if new_link:
                         return jsonResponse({"error": f"Can't change source's ref to {new_ref} as that source already exists.  Please edit that source directly."})
                 elif link:
-                    existing_langs = getattr(link, 'order', {}).get('availableLangs', [])
+                    if not hasattr(link, 'order'):
+                        link.order = {}
+                    if 'availableLangs' not in link.order:
+                        link.order['availableLangs'] = []
+                    if 'curatedPrimacy' not in link.order:
+                        link.order['curatedPrimacy'] = {}
+                    existing_langs = link.order['availableLangs']
                     if interface_lang in existing_langs and creating_new_link:
                         # When the source already is linked to the topic, and is in a different interface language
                         # than the existing source, they are essentially editing the source
                         return jsonResponse({"error": "Topic link already exists"})
                     else:
-                        if not hasattr(link, 'order'):
-                            link.order = {}
                         link.order['availableLangs'] += [interface_lang]
-                        num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about", 'order.availableLangs': interface_lang}))
-                        link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+                        if interface_lang not in link.order['curatedPrimacy']:
+                            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about", 'order.availableLangs': interface_lang}))
+                            link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
                 elif creating_new_link and link is None:
                     # check link is None to avoid incrementing topic's numSources count
                     num_sources = getattr(topic_obj, "numSources", 0)

@@ -46,12 +46,14 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         "Hebrew Title": Sefaria._siteSettings.TORAH_SPECIFIC ?
             item("Hebrew Title", 'heTitle', 'Add a title.') : null,
         "Category Menu": catMenu,
-        "English Description": item("English Description", "enDescription", "Add a description."),
+        "English Description": item("English Description", "enDescription", "Add a description.", true),
         "Hebrew Description": Sefaria._siteSettings.TORAH_SPECIFIC ?
-            item("Hebrew Description", "heDescription", "Add a description.") : null,
-        "Prompt": item("Prompt", "prompt", "Add a prompt."),
-        "English Short Description": item("English Short Description for Table of Contents", "enCategoryDescription", "Add a short description."),
-        "Hebrew Short Description": item("Hebrew Short Description for Table of Contents", "heCategoryDescription", "Add a short description."),
+            item("Hebrew Description", "heDescription", "Add a description.", true) : null,
+        "Prompt": item("Prompt", "prompt", "Add a prompt.", true),
+        "English Short Description": item("English Short Description for Table of Contents", "enCategoryDescription",
+            "Add a short description.", true),
+        "Hebrew Short Description": item("Hebrew Short Description for Table of Contents",
+            "heCategoryDescription", "Add a short description.", true),
 
     }
     return <div className="editTextInfo">
