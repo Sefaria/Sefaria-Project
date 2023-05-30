@@ -654,6 +654,7 @@ input.noselect {
 .mobileNavMenu a.blue {
   background-color: #18345D;
   color: white;
+  border-bottom: unset;
 }
 .mobileNavMenu a.blue img {
   filter: invert(1);
