@@ -15,14 +15,15 @@ class DummyConnectionManager(CrmConnectionManager):
     def nationbuilder_get_all(self, endpoint_func, args=[]):
         pass
 
-    def sync_sustainers(self):
-        pass
-
     def mark_as_spam_in_crm(self, crm_id):
         pass
 
     def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
         CrmConnectionManager.subscribe_to_lists(email, first_name, last_name, lang, educator)
+        pass
+
+    def find_crm_id(self, email=None):
+        CrmConnectionManager.find_crm_id(self, email=email)
         pass
 
     def __del__(self):

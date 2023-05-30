@@ -117,6 +117,11 @@ class NationbuilderConnectionManager(CrmConnectionManager):
         except Exception as e:
             print(f"Failed to delete. Error: {e}")
 
+    def find_crm_id(self, email=None):
+        # This will not be implemented for NB because it will never be used
+        CrmConnectionManager.find_crm_id(self, email=email)
+        pass
+
     def __del__(self):
         self.session.close()
 

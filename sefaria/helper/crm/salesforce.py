@@ -84,14 +84,14 @@ class SalesforceConnectionManager(CrmConnectionManager):
 
     def change_user_email(self, uid, new_email):
         """
-
+        Changes user email and returns true if successful
         """
         CrmConnectionManager.change_user_email(self, uid, new_email)
         res = self.patch(self.create_endpoint("Sefaria_App_User__c", uid),
                  json={
                      "Sefaria_App_Email__c": new_email
                  })
-        try:  # add salesforce id to user profile
+        try:
             return res.status_code == 204
         except:
             # log
@@ -104,14 +104,26 @@ class SalesforceConnectionManager(CrmConnectionManager):
                          json={
                              "Manual_Review_Required__c": True
                          })
-        try:  # add salesforce id to user profile
+        try:
             return res.status_code == 204
         except:
             # log
             return False
         return res
 
-    def subscribe_to_lists(self, lists, email, first_name=None, last_name=None, lang="en", educator=False):
+    def find_crm_id(self, email=None):
+        if email:
+            CrmConnectionManager.validate_email(email)
+        CrmConnectionManager.find_crm_id(self, email=email)
+        res = self.get(self.create_endpoint(f"query?=SELECT+id+FROM+Sefaria_App_User__c+WHERE+Sefaria_App_Email__c='{email}'"))
+        try:
+            print(res)
+            print(res.json())
+            return res.json()["records"][0]["Id"]
+        except:
+            return False
+
+    def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
         # TODO: Implement once endpoint exists
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
         if lang == "he":

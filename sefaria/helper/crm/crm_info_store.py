@@ -44,7 +44,7 @@ class CrmInfoStore(object):
         elif crm_type == "SALESFORCE":
             return user_profile.sf_app_user_id
         elif crm_type == "NONE":
-            return False
+            return True
 
     @staticmethod
     def get_current_sustainers():

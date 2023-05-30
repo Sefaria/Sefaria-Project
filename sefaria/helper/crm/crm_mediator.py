@@ -36,10 +36,28 @@ class CrmMediator:
             CrmInfoStore.mark_sustainer(sustainer_to_remove, False)
 
     def mark_as_spam_in_crm(self, uid=None, email=None, profile=None):
+        """
+        Marks user as spam in CRM if user exists
+        """
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
-        self._crm_connection.mark_as_spam_in_crm(crm_id)
+        if crm_id:
+            self._crm_connection.mark_as_spam_in_crm(crm_id)
+        else:
+            return False
 
     def update_user_email(self, new_email, uid=None, email=None, profile=None):
+        """
+        Updates user CRM if user exists
+        """
         crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
-        return self._crm_connection.change_user_email(crm_id, new_email)
+        if crm_id:
+            return self._crm_connection.change_user_email(crm_id, new_email)
+        else:
+            return False
 
+    def get_and_save_crm_id(self, email=None):
+        crm_id = self._crm_connection.find_crm_id(email)
+        if crm_id:
+            CrmInfoStore.save_crm_id(crm_id, email)
+        else:
+            return False
