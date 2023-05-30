@@ -179,8 +179,8 @@ def subscribe(request, email):
     educator = request.GET.get("educator", False)
     first_name = request.GET.get("firstName", None)
     last_name = request.GET.get("lastName", None)
-    crm_mediator = CrmMediator()
     try:
+        crm_mediator = CrmMediator()
         if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
             return jsonResponse({"status": "ok"})
         else:
