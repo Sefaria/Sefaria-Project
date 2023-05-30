@@ -3581,7 +3581,6 @@ def account_user_update(request):
 
             except Exception as e:
                 logger.warning(f"failed to add user to salesforce: {e}")
-                pass
 
         if not error:
             return jsonResponse({"status": "ok"})
