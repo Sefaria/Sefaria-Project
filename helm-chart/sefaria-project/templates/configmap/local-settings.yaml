@@ -23,3 +23,4 @@ data:
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
   MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
+  CRM_TYPE: "{{ .Values.localSettings.GLOBAL_WARNING_MESSAGE }}"
