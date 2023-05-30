@@ -3261,8 +3261,7 @@ def topic_ref_api(request, tref):
                 data = json.loads(request.POST.get("json"))
                 description = data.get("description", {})
                 creating_new_link = data.get("is_new", True)
-                new_ref = data.get("new_ref", ref)   # `new_ref` is only present when editing (`creating_new_link` is False)
-
+                new_ref = Ref(data.get("new_ref", tref)).normal()   # `new_ref` is only present when editing (`creating_new_link` is False)
                 if not creating_new_link and link is None:
                     return jsonResponse({"error": f"Can't edit link because link does not currently exist between {slug} and {ref}."})
                 elif not creating_new_link and new_ref != link.ref:

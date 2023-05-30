@@ -221,8 +221,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },
                           {name: "false", content: Sefaria._("False"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to False") },
                         ];
-    const items = ["Title", "Hebrew Title", "English Description", "Category Menu", "Hebrew Description", "English Short Description",
-                    "Hebrew Short Description"];
+    const items = ["Title", "Hebrew Title", "English Description", "Hebrew Description",
+                    "Category Menu", "English Short Description", "Hebrew Short Description"];
     return <div>
         <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                 validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items} path={path}
