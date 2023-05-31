@@ -18,6 +18,21 @@ entries:
     version: 0.18.0
   - apiVersion: v2
     appVersion: v5.41.2
+    created: "2023-05-31T13:13:01.49860112Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 2219aed2e0c35ae54a9b6875355680d478369efcb913919d70a8d83c45fec39f
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.18.0-salesforce-connected-app.2.tgz
+    version: 0.18.0-salesforce-connected-app.2
+  - apiVersion: v2
+    appVersion: v5.41.2
     created: "2023-05-25T14:24:29.526132627Z"
     description: Chart to deploy complete Sefaria environment
     digest: caddcd78aad3f50de735c7ddc9dc7bffc9b01112a305e417685563569c5a16b6
@@ -3315,4 +3330,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-05-31T07:46:19.575422983Z"
+generated: "2023-05-31T13:13:01.495549938Z"
