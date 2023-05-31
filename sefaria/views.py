@@ -12,7 +12,7 @@ from random import choice
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -1239,7 +1239,7 @@ def links_upload_api(request):
     try:
         res = add_links_from_csv(file, linktype, generated_by, uid)
     except Exception as e:
-        raise e
+        return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):

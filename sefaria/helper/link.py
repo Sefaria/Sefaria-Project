@@ -513,7 +513,8 @@ def add_links_from_csv(file, linktype, generated_by, uid):
     csv.field_size_limit(sys.maxsize)
     reader = csv.DictReader(StringIO(file.read().decode()))
     fieldnames = reader.fieldnames
-    assert len(fieldnames) == 2, f'file has {len(fieldnames)} collumns rather than 2'
+    if len(fieldnames) != 2:
+        raise ValueError(f'file has {len(fieldnames)} columns rather than 2')
     output = StringIO()
     errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2', 'error'])
     errors_writer.writeheader()
