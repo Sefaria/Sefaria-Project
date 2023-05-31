@@ -45,7 +45,7 @@ class CrmConnectionManager(object):
 
     @staticmethod
     def validate_name(name):
-        if len(name) < 20 and re.fullmatch(r"^[\w\- ]+$", name):
+        if len(name) < 20 and re.fullmatch(r"^[\w\- \u0590-\u05fe]+$", name):
             return True
         else:
             raise ValueError("Invalid Name")
