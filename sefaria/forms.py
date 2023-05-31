@@ -92,7 +92,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
                                      last_name=user.last_name, lang=get_language(),
                                      educator=self.cleaned_data["subscribe_educator"])
         except Exception as e:
-            logger.error(f"failed to add user to salesforce: {e}")
+            logger.error(f"failed to add user to CRM: {e}")
 
         return user
 

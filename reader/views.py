@@ -3577,7 +3577,7 @@ def account_user_update(request):
             try:
                 crm_mediator = CrmMediator()
                 if not crm_mediator.update_user_email(accountUpdate["email"], uid=request.user.id):
-                    logger.warning("failed to add user to salesforce")
+                    logger.warning("failed to add user to CRM")
 
             except Exception as e:
                 logger.warning(f"failed to add user to salesforce: {e}")

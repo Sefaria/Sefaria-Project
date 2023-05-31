@@ -10,21 +10,18 @@ class DummyConnectionManager(CrmConnectionManager):
 
     def add_user_to_crm(self, email, first_name=None, last_name=None, lang="en", educator=False):
         CrmConnectionManager.add_user_to_crm(self, email, first_name, last_name, lang, educator)
-        return False
-
-    def nationbuilder_get_all(self, endpoint_func, args=[]):
-        pass
+        return True
 
     def mark_as_spam_in_crm(self, crm_id):
-        pass
+        return True
+
+    def change_user_email(self, uid, new_email):
+        return True
 
     def subscribe_to_lists(self, email, first_name=None, last_name=None, lang="en", educator=False):
         CrmConnectionManager.subscribe_to_lists(self, email, first_name, last_name, lang, educator)
-        pass
+        return True
 
     def find_crm_id(self, email=None):
         CrmConnectionManager.find_crm_id(self, email=email)
-        pass
-
-    def __del__(self):
-        pass
+        return True
