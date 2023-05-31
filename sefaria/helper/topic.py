@@ -1045,7 +1045,11 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     :param uid: (int) UID of user modifying categories and/or books
     :param lang: (str) 'en' or 'he'
     """
-    assert Topic.init(topic), f"Topic {topic} doesn't exist."
+
+    if AuthorTopic.init(topic):
+        return {"error": "Author topic sources can't be reordered as they have a customized order."}
+    if Topic.init(topic) is None:
+        return {"error": f"Topic {topic} doesn't exist."}
     results = []
     ref_to_link = {}
 

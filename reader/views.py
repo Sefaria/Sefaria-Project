@@ -3246,7 +3246,8 @@ def topic_ref_api(request, tref):
                 return jsonResponse({"error": "Topic does not exist"})
             interface_lang = 'en' if data.get('interface_lang', '') == 'english' else 'he'
             ref = Ref(tref).normal()
-            ref_topic_link = {"toTopic": slug, "linkType": "about", "ref": ref}
+            linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+            ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": ref}
             link = RefTopicLink().load(ref_topic_link)
 
             if request.method == "DELETE":
@@ -3266,7 +3267,7 @@ def topic_ref_api(request, tref):
                     return jsonResponse({"error": f"Can't edit link because link does not currently exist between {slug} and {ref}."})
                 elif not creating_new_link and new_ref != link.ref:
                     # attempting to change ref of an existing link
-                    new_link = RefTopicLink().load({"toTopic": slug, "linkType": "about", "ref": new_ref, "order.availableLangs": interface_lang})
+                    new_link = RefTopicLink().load({"toTopic": slug, "linkType": linkType, "ref": new_ref, "order.availableLangs": interface_lang})
                     if new_link:
                         return jsonResponse({"error": f"Can't change source's ref to {new_ref} as that source already exists.  Please edit that source directly."})
                 elif link:
@@ -3274,7 +3275,7 @@ def topic_ref_api(request, tref):
                         link.order = {}
                     if 'availableLangs' not in link.order:
                         link.order['availableLangs'] = []
-                    if 'curatedPrimacy' not in link.order:
+                    if 'curatedPrimacy' not in link.order and linkType == 'about':
                         link.order['curatedPrimacy'] = {}
                     existing_langs = link.order['availableLangs']
                     if interface_lang in existing_langs and creating_new_link:
@@ -3283,18 +3284,19 @@ def topic_ref_api(request, tref):
                         return jsonResponse({"error": "Topic link already exists"})
                     else:
                         link.order['availableLangs'] += [interface_lang]
-                        if interface_lang not in link.order['curatedPrimacy']:
-                            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about", 'order.availableLangs': interface_lang}))
+                        if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':  # author sources sorted by custom order not curated primacy
+                            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
                             link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
                 elif creating_new_link and link is None:
                     # check link is None to avoid incrementing topic's numSources count
                     num_sources = getattr(topic_obj, "numSources", 0)
                     topic_obj.numSources = num_sources + 1
                     topic_obj.save()
-                    num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": "about", 'order.availableLangs': interface_lang}))
                     ref_topic_link['order'] = {}
                     ref_topic_link['order']['availableLangs'] = [interface_lang]
-                    ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}   #  this sets the new source at the top of the topic page, because otherwise it can be hard to find
+                    if linkType == 'about':
+                        num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+                        ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}   #  this sets the new source at the top of the topic page, because otherwise it can be hard to find
                     link = RefTopicLink(ref_topic_link)
 
                 link.dataSource = "sefaria"
