@@ -25,7 +25,7 @@ class CrmInfoStore(object):
                 user_profile.save()
                 return True
             return False
-        elif crm_type == "NONE":
+        elif crm_type == "NONE" or not crm_type:
             return True
 
     @staticmethod

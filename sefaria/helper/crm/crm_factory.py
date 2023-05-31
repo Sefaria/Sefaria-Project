@@ -13,7 +13,7 @@ class CrmFactory(object):
             return NationbuilderConnectionManager()
         elif self.crm_type == "SALESFORCE":
             return SalesforceConnectionManager()
-        elif self.crm_type == "NONE":
+        elif self.crm_type == "NONE" or not self.crm_type:
             return DummyConnectionManager()
         else:
             return DummyConnectionManager()
