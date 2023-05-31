@@ -93,6 +93,21 @@ entries:
     version: 0.18.0-fix-rerun-version-logic.1
   - apiVersion: v2
     appVersion: v5.41.2
+    created: "2023-05-31T13:43:28.844672473Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 4c546d29acd76e584e8b0eb3ed8000d57b1b5ab4c77d67caaef4292078393622
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.18.0-decouple-mailing-lists.2.tgz
+    version: 0.18.0-decouple-mailing-lists.2
+  - apiVersion: v2
+    appVersion: v5.41.2
     created: "2023-05-24T15:07:46.555313656Z"
     description: Chart to deploy complete Sefaria environment
     digest: ee2090351a986f04f42f314860658f9ae8d9cb7acab0192448256bf8eb750744
@@ -3330,4 +3345,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-05-31T13:13:01.495549938Z"
+generated: "2023-05-31T13:43:28.840764961Z"
