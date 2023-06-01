@@ -185,8 +185,10 @@ def subscribe(request, email):
         if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
             return jsonResponse({"status": "ok"})
         else:
+            logger.error("Failed to subscribe to list")
             return jsonResponse({"error": _("Sorry, there was an error.")})
     except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 @login_required

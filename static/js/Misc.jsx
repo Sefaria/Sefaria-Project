@@ -1792,7 +1792,6 @@ MessageModal.propTypes = {
   uid:  PropTypes.number.isRequired,
 };
 
-
 function NewsletterSignUpForm(props) {
   const {contextName, includeEducatorOption} = props;
   const [email, setEmail] = useState('');
