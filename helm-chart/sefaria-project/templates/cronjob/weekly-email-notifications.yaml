@@ -1,6 +1,6 @@
 {{- if .Values.cronJobs.weeklyEmailNotifications.enabled }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-weekly-email-notifications
