@@ -16,7 +16,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
 
-    const updateData = function(newData) {
+    const updateData = (newData) => {
         setChanged(true);
         setData(newData);
     }
@@ -85,7 +85,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         return results;
     }
 
-    const deleteObj = function() {
+    const deleteTopicSource = function() {
       $.ajax({
         url: `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`,
         type: "DELETE",
@@ -103,7 +103,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} items={["Title", "Prompt"]} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
+                validate={validate} items={["Title", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>

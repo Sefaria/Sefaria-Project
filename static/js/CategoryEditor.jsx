@@ -51,19 +51,12 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
 }
 
 const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}) => {
-    const determineOrigItems = () => {
-        if (origItems.length > 0) {
-            return origItems
-        }
-        else {
-            if (type === "books") {
-                return Sefaria.toc;
-            } else if (type === "topics") {
-                return Sefaria.topic_toc;
-            }
-        }
-    }
-    const [tocItems, setTocItems] = useState(determineOrigItems());
+    /*
+    Wrapper for Reorder that allows a full-screen view of `origItems` elements to be reordered.
+    This is currently used when admin edits the root of the topic TOC or category TOC, as well
+    as when an admin reorders sources.
+     */
+    const [tocItems, setTocItems] = useState(origItems);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isChanged, setIsChanged] = useState(false);
     const update = (newTocItems) => {
