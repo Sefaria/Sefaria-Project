@@ -1,7 +1,9 @@
 import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
-import $ from "./sefaria/sefariaJquery";
 import {AdminToolHeader, InterfaceText} from "./Misc";
+import sanitizeHtml  from 'sanitize-html';
+import MDEditor from '@uiw/react-md-editor';
+
 
 const AdminEditorButton = ({toggleAddingTopics, text}) => {
     return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
@@ -33,36 +35,58 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         }
         updateData(data);
     }
-    const item = (label, id, placeholder, textarea=false) => {
+    const item = ({label, field, placeholder, textarea}) => {
         return  <div className="section">
                         <label><InterfaceText>{label}</InterfaceText></label>
                         {textarea ?
-                            <textarea id={id} onBlur={setValues} className="default" defaultValue={data[id]} placeholder={Sefaria._(placeholder)}/>
-                           : <input type='text' id={id} onBlur={setValues} defaultValue={data[id]} placeholder={Sefaria._(placeholder)}/>}
+                            <MDEditor id={field} value={Sefaria._(placeholder)} onChange={setTextareaValue} />
+                           : <input type='text' id={field} onBlur={setValues} defaultValue={data[field]} placeholder={Sefaria._(placeholder)}/>}
                     </div>;
     }
     const options_for_form = {
-        "Title": item("Title", "enTitle", "Add a title."),
-        "Hebrew Title": Sefaria._siteSettings.TORAH_SPECIFIC ?
-            item("Hebrew Title", 'heTitle', 'Add a title.') : null,
-        "Category Menu": catMenu,
-        "English Description": item("English Description", "enDescription", "Add a description.", true),
-        "Hebrew Description": Sefaria._siteSettings.TORAH_SPECIFIC ?
-            item("Hebrew Description", "heDescription", "Add a description.", true) : null,
-        "Prompt": item("Prompt", "prompt", "Add a prompt.", true),
-        "English Short Description": item("English Short Description for Table of Contents", "enCategoryDescription",
-            "Add a short description.", true),
-        "Hebrew Short Description": item("Hebrew Short Description for Table of Contents",
-            "heCategoryDescription", "Add a short description.", true),
+        "Title": {label: "Title", field: "enTitle", placeholder: "Add a title.", textarea: false},
+        "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title.", textarea: false},
+        "English Description": {label: "English Description", field: "enDescription", placeholder: "Add a description.", textarea: true},
+        "Hebrew Description": {label: "Hebrew Description", field: "heDescription", placeholder: "Add a description.", textarea: true},
+        "Prompt": {label: "Prompt", field: "prompt", placeholder:"Add a prompt.", textarea: true},
+        "English Short Description": {label: "English Short Description for Table of Contents", field: "enCategoryDescription",
+            placeholder: "Add a short description.", textarea: true},
+        "Hebrew Short Description": {label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
+            placeholder: "Add a short description.", textarea: true},
+    }
+    const preprocess = () => {
+        // first look for markdown boxes and update data
 
+
+        // sanitize markdown boxes
+        items.map((x) => {
+            if (options_for_form[x].textarea) {
+                const field = options_for_form[x].field;
+                data[field] = sanitizeHtml(data[field], {
+                    allowedTags: [],
+                    disallowedTagsMode: 'discard',
+                });
+            }
+        });
+        validate();
     }
     return <div className="editTextInfo">
             <div className="static">
                 <div className="inner">
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
-                        <AdminToolHeader title={title} close={close} validate={() => validate()}/>
-                        {items.map((x) => options_for_form[x])}
+                        <AdminToolHeader title={title} close={close} validate={() => preprocess()}/>
+                        {items.map((x) => {
+                            if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                                return null;
+                            }
+                            else if (x === "Category Menu") {
+                                return catMenu;
+                            }
+                            else {
+                                return item({...options_for_form[x]});
+                            }
+                        })}
                         {extras}
                         {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
