@@ -90,12 +90,19 @@ RTC_SERVER = '' # Root URL/IP of the server
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
+# Determine which CRM connection implementations to use
+CRM_TYPE = "NONE"  # "SALESFORCE" || "NATIONBUILDER" || "NONE"
+
 # Integration with a NationBuilder list
-NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
 NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
+
+# Integration with Salesforce
+SALESFORCE_BASE_URL = ""
+SALESFORCE_CLIENT_ID = ""
+SALESFORCE_CLIENT_SECRET = ""
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False

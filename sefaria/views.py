@@ -35,8 +35,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email, read_webpack_bundle
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
@@ -58,7 +59,6 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
 
 
 if USE_VARNISH:
@@ -175,15 +175,19 @@ def subscribe(request, email):
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
-    lists = request.GET.get("lists", "")
-    lists = lists.split("|")
-    if len(lists) == 0:
-        return jsonResponse({"error": "Please specify a list."})
-    if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
-        return jsonResponse({"status": "ok"})
-    else:
+    body = json.loads(request.body)
+    language = body.get("language", "")
+    educator = body.get("educator", False)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
+    try:
+        crm_mediator = CrmMediator()
+        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
+            return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
         return jsonResponse({"error": _("Sorry, there was an error.")})
-
 
 @login_required
 def unlink_gauth(request):
@@ -942,12 +946,16 @@ def profile_spam_dashboard(request):
         })
 
 
-def purge_spammer_account_data(spammer_id, delete_from_nationbuilder=True):
+def purge_spammer_account_data(spammer_id, delete_from_crm=True):
     from django.contrib.auth.models import User
     # Delete from Nationbuilder
     profile = db.profiles.find_one({"id": spammer_id})
-    if delete_from_nationbuilder and "nationbuilder_id" in profile:
-        delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
+    if delete_from_crm:
+        try:
+            crm_connection_manager = CrmMediator().get_connection_manager()
+            crm_connection_manager.mark_as_spam_in_crm(profile)
+        except Exception as e:
+            logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
