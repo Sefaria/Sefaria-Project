@@ -48,6 +48,12 @@ jobs:
           registry: gcr.io
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -64,6 +70,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -112,6 +119,12 @@ jobs:
           registry: gcr.io
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get branch name
         id: branch-raw
         uses: tj-actions/branch-names@v5.1
@@ -128,6 +141,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
