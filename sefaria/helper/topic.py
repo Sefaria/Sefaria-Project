@@ -1036,6 +1036,58 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
+def edit_topic_source(topic_obj, new_tref, link=None, creating_new_link=True,
+                      interface_lang=True, linkType='about', description={}):
+    """
+    API helper function used by SourceEditor for editing sources associated with topics which are stored as RefTopicLink
+    :param topic_obj: (Topic) Topic whose source we are editing
+    :param new_tref: (str) String representation of new reference of source
+    :param link: (RefTopicLink) If not None, the source
+    """
+    if topic_obj is None:
+        return {"error": "Topic does not exist."}
+    slug = topic_obj.slug
+    if link:
+        if not hasattr(link, 'order'):
+            link.order = {}
+        if 'availableLangs' not in link.order:
+            link.order['availableLangs'] = []
+        if 'curatedPrimacy' not in link.order and linkType == 'about':
+            link.order['curatedPrimacy'] = {}
+        existing_langs = link.order['availableLangs']
+        if interface_lang in existing_langs and creating_new_link:
+            # When the source already is linked to the topic, and is in a different interface language
+            # than the existing source, they are essentially editing the source
+            return {"error": "Topic link already exists"}
+        else:
+            link.order['availableLangs'] += [interface_lang]
+            if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':  # author sources sorted by custom order not curated primacy
+                num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+                link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+    elif creating_new_link and link is None:
+        # check link is None to avoid incrementing topic's numSources count
+        num_sources = getattr(topic_obj, "numSources", 0)
+        topic_obj.numSources = num_sources + 1
+        topic_obj.save()
+        ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": new_tref, 'order': {}}
+        ref_topic_link['order']['availableLangs'] = [interface_lang]
+        if linkType == 'about':
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+            ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+        link = RefTopicLink(ref_topic_link)
+
+    link.dataSource = "sefaria"
+    link.ref = new_tref
+    if len(description) > 0:
+        if not hasattr(link, 'descriptions'):
+            link.descriptions = {}
+        link.descriptions[interface_lang] = description
+    link.save()
+
+    # process link for client-side, especially relevant in TopicSearch.jsx
+    ref_topic_dict = ref_topic_link_prep(link.contents())
+    return annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+
 def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     """
     Used by ReorderEditor.  Reorders sources of topics.
@@ -1056,10 +1108,10 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     # first validate data
     for s in sources:
         try:
-            assert Ref(s['ref']) is not None
-        except AssertionError:
+             ref = Ref(s['ref']).normal()
+        except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": s['ref']})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
         if link is None:
             return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         ref_to_link[s['ref']] = link

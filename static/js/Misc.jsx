@@ -1115,10 +1115,11 @@ const CategoryHeader = ({children, type, data = [], edit = true,
     if (data.length === 0) {  // at /texts or /topics
       const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
       const redirect = type === 'topics' ? '/topics' : '/texts';
-      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} postURL={url} redirect={redirect}/>;
+      const origItems = type === 'topics' ? Sefaria.topic_toc : Sefaria.toc;
+      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} origItems={origItems}
+                                        postURL={url} redirect={redirect}/>;
     } else if (type === "sources") {
-      const topicSlug = data[0];
-      const refData = data[1];
+      const [topicSlug, refData] = data;
       adminButtonsSpan = <SourceEditor topic={topicSlug} origData={refData} close={toggleEditCategory}/>;
     } else if (type === "books") {
       let tocObject = Sefaria.tocObjectByCategories(data);
