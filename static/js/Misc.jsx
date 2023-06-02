@@ -1186,10 +1186,10 @@ const CategoryHeader = ({children, type, data = [], edit = true,
     }
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                              { add_subcategory ? <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/> : null}
-                              { add_source ? <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/> : null}
-                              { edit ? <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/> : null }
-                              { reorder ? <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/> : null}
+                              { add_subcategory && <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
+                              { add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
+                              { edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
+                              { reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
                       </span>;
 
   }

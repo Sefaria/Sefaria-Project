@@ -64,9 +64,9 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                         <AdminToolHeader title={title} close={close} validate={() => validate()}/>
                         {items.map((x) => options_for_form[x])}
                         {extras}
-                        {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                        {!isNew && <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
-                                    </div> : null}
+                                    </div>}
 
                     </div>
                 </div>
