@@ -215,3 +215,4 @@ localSettings:
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
+  CRM_TYPE: "SALESFORCE"
