@@ -23,7 +23,39 @@ function useEditToggle() {
   return [editingBool, toggleAddingTopics];
 }
 
+const MarkdownWrapper = ({field, data, placeholder, updateData}) => {
+    const [links, setLinks] = useState([]);
+    const validate = async (element, i, parent) => {
+        if (element.tagName === 'a') {
+            if (links.indexOf(element.properties.href) >= 0) {
+                return true;
+            } else {
+                const name = element.properties.href.split("/").slice(-1)[0];
+                let d;
+                d = element.properties.href.startsWith("/topics") ?
+                    await Sefaria.getTopicCompletions(name, (x) => x[1])
+                    : await Sefaria.getName(name, false).completion_objects;
+                const namesFound = d.map((x) => x.key);
+                const validLink = namesFound.indexOf(name) > 0 ? true :
+                    confirm(`${name} not found in Sefaria database.  Did you mean to write ${element.properties.href} be in the description?`);
+                if (validLink) {
+                    const newLinks =  [...links];
+                    newLinks.push(element.properties.href);
+                    setLinks(newLinks);
+                }
+            }
 
+        }
+    }
+    const setTextareaValue = (newVal, e) => {
+        data[e.target.id] = newVal;
+        updateData({...data});
+    }
+    return <MDEditor textareaProps={{id: field, placeholder: Sefaria._(placeholder)}}
+                                      commands={[commands.bold, commands.italic, commands.link]}
+                                      previewOptions={{allowElement: validate}}
+                                      value={data[field]} onChange={setTextareaValue} />
+}
 
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                          validate, deleteObj, items=[], isNew=true, extras=[], path=[]}) => {
@@ -34,17 +66,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         }
         updateData({...data});
     }
-    const setTextareaValue = (newVal, e) => {
-        data[e.target.id] = newVal;
-        updateData({...data});
-    }
     const item = ({label, field, placeholder, textarea}) => {
         return  <div className="section">
                         <label><InterfaceText>{label}</InterfaceText></label>
                         {textarea ?
-                            <MDEditor textareaProps={{id: field, placeholder: Sefaria._(placeholder)}}
-                                      commands={[commands.bold, commands.italic, commands.link]}
-                                      value={data[field]} onChange={setTextareaValue} />
+                            <MarkdownWrapper field={field} placeholder={placeholder} data={data} updateData={updateData}/>
                            : <input type='text' id={field} onBlur={setInputValue} defaultValue={data[field]} placeholder={Sefaria._(placeholder)}/>}
                     </div>;
     }
