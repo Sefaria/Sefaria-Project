@@ -77,7 +77,7 @@ const ModuleTitle = ({children, en, he, h1}) => {
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
   return <Module>
     <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText text={{en: enText, he: heText}} />
+    <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
 

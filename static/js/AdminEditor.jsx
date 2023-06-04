@@ -2,8 +2,7 @@ import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
-import MDEditor from '@uiw/react-md-editor';
-
+import MDEditor, { commands } from '@uiw/react-md-editor';
 
 const AdminEditorButton = ({toggleAddingTopics, text}) => {
     return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
@@ -29,23 +28,29 @@ function useEditToggle() {
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                          validate, deleteObj, items=[], isNew=true, extras=[], path=[]}) => {
 
-    const setValues = function(e) {
+    const setInputValue = (e) => {
         if (data.hasOwnProperty(e.target.id)) {
             data[e.target.id] = e.target.value;
         }
-        updateData(data);
+        updateData({...data});
+    }
+    const setTextareaValue = (newVal, e) => {
+        data[e.target.id] = newVal;
+        updateData({...data});
     }
     const item = ({label, field, placeholder, textarea}) => {
         return  <div className="section">
                         <label><InterfaceText>{label}</InterfaceText></label>
                         {textarea ?
-                            <MDEditor id={field} value={Sefaria._(placeholder)} onChange={setTextareaValue} />
-                           : <input type='text' id={field} onBlur={setValues} defaultValue={data[field]} placeholder={Sefaria._(placeholder)}/>}
+                            <MDEditor textareaProps={{id: field, placeholder: Sefaria._(placeholder)}}
+                                      commands={[commands.bold, commands.italic, commands.link]}
+                                      value={data[field]} onChange={setTextareaValue} />
+                           : <input type='text' id={field} onBlur={setInputValue} defaultValue={data[field]} placeholder={Sefaria._(placeholder)}/>}
                     </div>;
     }
     const options_for_form = {
-        "Title": {label: "Title", field: "enTitle", placeholder: "Add a title.", textarea: false},
-        "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title.", textarea: false},
+        "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
+        "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
         "English Description": {label: "English Description", field: "enDescription", placeholder: "Add a description.", textarea: true},
         "Hebrew Description": {label: "Hebrew Description", field: "heDescription", placeholder: "Add a description.", textarea: true},
         "Prompt": {label: "Prompt", field: "prompt", placeholder:"Add a prompt.", textarea: true},
@@ -60,7 +65,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
 
         // sanitize markdown boxes
         items.map((x) => {
-            if (options_for_form[x].textarea) {
+            if (options_for_form[x]?.textarea) {
                 const field = options_for_form[x].field;
                 data[field] = sanitizeHtml(data[field], {
                     allowedTags: [],

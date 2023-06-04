@@ -11579,10 +11579,9 @@ body .homeFeedWrapper.userStats {
 .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.editTextInfo #newIndex a {
+.editTextInfo #newIndex .headerWithButtons a {
     color: #666;
 }
-
 .editTextInfo .nodeTemplate {
 	display: none;
 }
