@@ -59,7 +59,6 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text
 
 if USE_VARNISH:
