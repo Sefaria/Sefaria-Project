@@ -191,17 +191,22 @@ class Test_parse_he_ref(object):
         assert m.Ref('תהלים פד:ג') == m.Ref("Psalms 84:3")  # dont strip peh when no quotation
 
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_volume_address(self):
-        assert m.Ref('Zohar,_Introduction.4.12-15') == m.Ref('ספר הזהר, הקדמה ד׳:י״ב-ט״ו')
-        assert m.Ref('Zohar,_Vayishlach.11.136-143') == m.Ref('ספר הזהר, וישלח י״א:קל״ו-קמ״ג')
-        assert m.Ref('Zohar,_Vayigash.3.26-31') == m.Ref('ספר הזהר, ויגש ג׳:כ״ו-ל״א')
-        assert m.Ref('Zohar,_Sifra_DiTzniuta.2.13') == m.Ref('ספר הזהר, ספרא דצניעותא ב׳:יג')
-        assert m.Ref('Zohar,_Vayakhel.25.342-353') == m.Ref('ספר הזהר, ויקהל כ״ה:שמ״ב-שנ״ג')
-        assert m.Ref('Zohar,_Tazria.7.29') == m.Ref('ספר הזהר, תזריע ז׳:כט')
-        assert m.Ref('Zohar,_Bechukotai.7.26-29') == m.Ref('ספר הזהר, בחקותי ז׳:כ״ו-כ״ט')
-        assert m.Ref('Zohar,_Balak.43.424-426') == m.Ref('ספר הזהר, בלק מ״ג:תכ״ד-תכ״ו')
-        assert m.Ref('Zohar,_Addenda,_Volume_III.1') == m.Ref('ספר הזהר, תוספות, כרך ג א׳')
-        assert m.Ref("Zohar,_Ha'Azinu.5.20-22") == m.Ref('ספר הזהר, האזינו ה׳:כ׳-כ״ב')
+        assert m.Ref("זוהר, ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר, א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר א נד ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר א נד ע״ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר חלק א, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref("זוהר חלק א׳, נד, ב") == m.Ref("Zohar 1:54b")
+        assert m.Ref('זוהר ח"א, נד, ב') == m.Ref("Zohar 1:54b")
+        assert m.Ref('זוהר ח"ב, נד, ב') == m.Ref("Zohar 2:54b")
+        assert m.Ref('זוהר ח"א, נד:') == m.Ref("Zohar 1:54b")
+        assert m.Ref('זוהר ח"א נד:') == m.Ref("Zohar 1:54b")
+
+        assert m.Ref("Zohar, Volume 2, 23b") == m.Ref("Zohar 2:23b")
 
     def test_two_single_quotes(self):
         r = m.Ref("שמות כ''ב")

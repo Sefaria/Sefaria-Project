@@ -627,16 +627,19 @@ class Test_normal_forms(object):
         assert Ref("Berakhot 2a") == Ref("Berakhot 2A")
         assert Ref("Berakhot 2B") == Ref("Berakhot 2B")
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_volume_range(self):
-        oref = Ref("Zohar,_Ha'Azinu.1-2")
-        assert oref.normal() == "Zohar, Ha'Azinu 1-2"
-        assert oref.he_normal() == 'ספר הזהר, האזינו א׳-ב׳'
+        oref = Ref("Zohar 1-2")
+        assert oref.normal() == "Zohar 1-2"
+        assert oref.he_normal() == "ספר הזהר א׳-ב׳"
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_daf_range(self):
         oref = Ref("Zohar 1:25a-27b")
         assert oref.normal() == "Zohar 1:25-27"
         assert oref.he_normal() == "ספר הזהר א׳:כ״ה-כ״ז"
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_volume_daf_range(self):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
