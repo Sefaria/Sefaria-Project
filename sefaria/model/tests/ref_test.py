@@ -537,7 +537,6 @@ class Test_Ref(object):
     def test_word_to(self):
         assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
 
-@pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
 class Test_Cache(object):
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
