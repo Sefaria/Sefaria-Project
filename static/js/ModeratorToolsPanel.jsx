@@ -4,6 +4,7 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import Cookies from 'js-cookie';
+import { saveAs } from 'file-saver';
 
 
 class ModeratorToolsPanel extends Component {
@@ -148,8 +149,12 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <WorkflowyModeratorTool />
       </div>);
+    const linkTools = (
+      <div className="modToolsSection">
+          <UploadLinksFromCSV />
+      </div>);
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl} </div> :
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{linkTools} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
@@ -287,5 +292,103 @@ class WorkflowyModeratorTool extends Component{
   }
 }
 
+class UploadLinksFromCSV extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {projectName: ''};
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  isSubmitDisabled() {
+      return !this.state.hasFile || !this.state.projectName.length;
+  }
+  handleChange(event) {
+    const target = event.target;
+    this.setState({[target.name]: target.value});
+  }
+  handleFileChange(event) {
+      this.setState({hasFile: !!event.target.files[0]});
+  }
+  handleSubmit(event) {
+    event.preventDefault();
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    const data = new FormData(event.target);
+    const request = new Request(
+        '/modtools/upload_links',
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      body: data
+    }).then(response => {
+        if (!response.ok) {
+            response.text().then(resp_text => {
+                this.setState({uploading: false,
+                    uploadMessage: "",
+                    error: true,
+                    errorIsHTML: true,
+                    uploadResult: resp_text});
+            })
+        } else {
+            response.json().then(resp_json => {
+                this.setState({uploading: false,
+                    error: false,
+                    uploadMessage: resp_json.data.message,
+                    uploadResult: JSON.stringify(resp_json.data.index, undefined, 4)});
+                if (resp_json.data.errors) {
+                    let blob = new Blob([resp_json.data.errors], {type: "text/plain;charset=utf-8"});
+                    saveAs(blob, 'errors.csv');
+                }
+            });
+        }
+    }).catch(error => {
+        this.setState({uploading: false, error: true, errorIsHTML: false, uploadMessage:error.message});
+    });
+
+  }
+  getOptions() {
+      const options = ['Commentary', 'Quotation', 'Related', 'Mesorat hashas', 'Ein Mishpat', 'Reference'];
+      return options.map((option) => {
+          return <option value={option.toLowerCase()} key={option}>{option}</option>;
+      });
+  }
+
+  render() {
+    return (
+        <div className="uploadLinks">
+            <div className="sectionTitle">Upload links</div>
+            <form id="upload-links-form" onSubmit={this.handleSubmit}>
+                <label>
+                    Upload file:
+                    <input type="file" name="csv_file"  onChange={this.handleFileChange} />
+                    <br />
+                    Choose a csv file with two columns. First row should include titles, and the others valid refs to link
+                    <br />
+                </label>
+                <label>
+                    Select links type:
+                    <select name="linkType" value={this.state.linkType} onChange={this.handleChange}>
+                        {this.getOptions()}
+                    </select>
+                </label>
+                <label>
+                    Project name
+                    <input
+                        name="projectName"
+                        type="text"
+                        value={this.state.generatedBy}
+                        onChange={this.handleChange}
+                    />
+                </label>
+                <input type="submit" value="Submit" disabled={this.isSubmitDisabled()} />
+            </form>
+            { this.state.uploadMessage && <div>{this.state.uploadMessage}</div> }
+            { (this.state.errorIsHTML) && <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> }
+        </div>
+    );
+  }
+}
 
 export default ModeratorToolsPanel;

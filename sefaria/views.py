@@ -12,7 +12,7 @@ from random import choice
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -59,7 +59,8 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-
+from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -714,7 +715,6 @@ def rebuild_citation_links(request, title):
 
 @staff_member_required
 def delete_citation_links(request, title):
-    from sefaria.helper.link import delete_links_from_text
     delete_links_from_text(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
 
@@ -1244,6 +1244,20 @@ def modtools_upload_workflowy(request):
     except Exception as e:
         raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
+    return jsonResponse({"status": "ok", "data": res})
+
+@staff_member_required
+def links_upload_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    file = request.FILES['csv_file']
+    linktype = request.POST.get("linkType")
+    generated_by = request.POST.get("projectName") + ' csv upload'
+    uid = request.user.id
+    try:
+        res = add_links_from_csv(file, linktype, generated_by, uid)
+    except Exception as e:
+        return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
