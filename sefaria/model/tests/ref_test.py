@@ -179,7 +179,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
         assert Ref("Mekhilta_DeRabbi_Yishmael.35.3").next_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta_DeRabbi_Yishmael.23.19").next_section_ref().normal() == "Mekhilta_DeRabbi_Yishmael.31.12"
+        assert Ref("Mekhilta_DeRabbi_Yishmael.23.19").next_section_ref().normal() == "Mekhilta DeRabbi Yishmael 31:12"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
@@ -199,7 +199,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
         assert Ref("Mekhilta 12:1").prev_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta_DeRabbi_Yishmael.31.12").prev_section_ref().normal() == "Mekhilta_DeRabbi_Yishmael.23.19"
+        assert Ref("Mekhilta_DeRabbi_Yishmael.31.12").prev_section_ref().normal() == "Mekhilta DeRabbi Yishmael 23:19"
 
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
