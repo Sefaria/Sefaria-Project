@@ -12,8 +12,6 @@ from random import randint
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
-from sefaria.utils.user import delete_user_account
-
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
