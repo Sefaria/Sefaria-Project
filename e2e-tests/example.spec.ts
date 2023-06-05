@@ -1,51 +1,23 @@
+import { test, expect } from '@playwright/test';
 
+test('has title', async ({ page }) => {
+  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
 
+  // Expect a title "to contain" a substring.
+  await expect(page).toHaveTitle(/ברכות/);
+});
 
-const { chromium } = require('playwright');
+test('verify translations', async ({ page }) => {
+  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
 
-describe('Main sefaria', () => {
-  let page;
-  let browser;
+  // Click second .contentSpan
+  await page.click('.contentSpan:nth-child(2)');
 
-  beforeAll(async () => {
-    browser = await chromium.launch();
-  });
+  // click second .connectionsCount
+  await page.click('.connectionsCount:nth-child(2)');
 
-  afterAll(async () => {
-    await browser.close();
-  });
-
-  beforeEach(async () => {
-    page = await browser.newPage();
-    await page.goto('https://sefaria.org.il/Mishnah_Peah.6?lang=bi');
-    
-    // if interruptingMessageClose is visible, click it
-    if(await page.$('#interruptingMessageClose') !== null) {
-      await page.click('#interruptingMessageClose');
-    }
-  });
-
-  afterEach(async () => {
-    await page.close();
-  });
-
-  it('Open translations', async () => {
-    // wait for the page to load
-    await page.waitForSelector('.contentSpan.he');
-    // click first element
-    await page.click('.contentSpan.he');
-    // click copy button
-    await page.click('.categoryFilter');
-    // go back with fa-chevron-right
-    await page.click('.fa-chevron-right');
-    // get third toolsButtonText
-    await page.click(':nth-match(.toolsButtonText, 3)');
-    // get first text
-    await page.click('.segment');
-    // execute manual javascript document.getElementsByClassName('selectButton')[1].click()
-    await page.evaluate(() => {
-      document.getElementsByClassName('selectButton')[1].click();
-    });
-  });
+  // execute document.getElementsByClassName("versionSelect").length > 1 in the browser and return the result to the test
+  const versionSelectLength = await page.evaluate(() => document.getElementsByClassName("versionSelect").length > 1);
+  expect(versionSelectLength).toBeTruthy();
 
 });
