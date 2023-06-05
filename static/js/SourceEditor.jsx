@@ -62,7 +62,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
             "showAddButton": false
         };
         setDisplayRef(input);
-        if (input === "") {
+        if (input === "") {  // this occurs when there was text in the inputbox and user just erased it
             return results;
         }
         const d = await Sefaria.getName(input, true, 5);

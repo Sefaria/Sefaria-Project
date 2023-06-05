@@ -119,9 +119,9 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                             }
                         })}
                         {extras}
-                        {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                        {!isNew && <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
                                       <InterfaceText>Delete</InterfaceText>
-                                    </div> : null}
+                                    </div>}
 
                     </div>
                 </div>

@@ -135,7 +135,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
     let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
     if (isCategory) {
-        items.push("Short Descriptions");
+        items.push("English Short Description");
+        items.push("Hebrew Short Description");
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}

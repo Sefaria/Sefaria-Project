@@ -62,7 +62,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources
+                                update_order_of_topic_sources, delete_ref_topic_link
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3230,50 +3230,30 @@ def reorder_topics(request):
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
-    API to get RefTopicLinks
+    API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
+
+    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    slug = data.get('topic')
+    interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
+    tref = Ref(tref).normal()  # normalize input
+    linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+    annotate = bool(int(data.get("annotate", False)))
+
     if request.method == "GET":
-        annotate = bool(int(request.GET.get("annotate", False)))
         response = get_topics_for_ref(tref, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
-    else:
-        if not request.user.is_staff:
-            return jsonResponse({"error": "Only moderators can connect refs to topics."})
-        else:
-            data = request.GET if request.method == "DELETE" else json.loads(request.POST.get('json')) # django uses GET for delete
-            slug = data.get('topic')
-            topic_obj = Topic.init(slug) if slug else None
-            if topic_obj is None:
-                return jsonResponse({"error": "Topic does not exist"})
-            interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
-            ref = Ref(tref).normal()
-            linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
-            ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": ref}
-            link = RefTopicLink().load(ref_topic_link)
-
-            if request.method == "DELETE":
-                if link is None:
-                    return jsonResponse({"error": f"Link between {slug} and {tref} doesn't exist."})
-                if link.can_delete():
-                    link.delete()
-                    return jsonResponse({"status": "ok"})
-                else:
-                    return jsonResponse({"error": f"Cannot delete link between {slug} and {tref}."})
-            elif request.method == "POST":
-                description = data.get("description", {})
-                creating_new_link = data.get("is_new", True)
-                new_tref = Ref(data.get("new_tref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
-                if not creating_new_link and link is None:
-                    return jsonResponse({"error": f"Can't edit link because link does not currently exist between {slug} and {ref}."})
-                elif not creating_new_link and new_tref != link.ref:
-                    # attempting to change ref of an existing link
-                    new_link = RefTopicLink().load({"toTopic": slug, "linkType": linkType, "ref": new_tref, "order.availableLangs": interface_lang})
-                    if new_link:
-                        return jsonResponse({"error": f"Can't change source's ref to {new_tref} as that source already exists.  Please edit that source directly."})
-
-                ref_topic_dict = edit_topic_source(topic_obj, new_tref, link=link, creating_new_link=creating_new_link,
-                                    linkType=linkType, description=description, interface_lang=interface_lang)
-                return jsonResponse(ref_topic_dict)
+    elif not request.user.is_staff:
+        return jsonResponse({"error": "Only moderators can connect edit topic sources."})
+    elif request.method == "DELETE":
+        return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
+    elif request.method == "POST":
+        description = data.get("description", {})
+        creating_new_link = data.get("is_new", True)
+        new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
+        ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
+                            linkType=linkType, description=description, interface_lang=interface_lang)
+        return jsonResponse(ref_topic_dict)
 
 @staff_member_required
 def reorder_sources(request):
@@ -3281,8 +3261,6 @@ def reorder_sources(request):
     slug = request.GET.get('topic')
     lang = 'en' if request.GET.get('lang') == 'english' else 'he'
     return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
-
-
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],
