@@ -132,3 +132,6 @@ static/sheetrank.json
 
 env/*
 dump/*
+/test-results/
+/playwright-report/
+/playwright/.cache/
