@@ -250,11 +250,13 @@
       <!-- End Google tag -->
     {% endif %}
 
-    {% if CLIENT_ROLLBAR %}
       <script>
-        const rollbarConfig = {{CLIENT_ROLLBAR|safe}};
+        {% if CLIENT_ROLLBAR %}
+          const rollbarConfig = {{CLIENT_ROLLBAR|safe}};
+        {% else %}
+          const rollbarConfig = null;
+        {% endif %}
       </script>
-    {% endif %}
 
 
     <script>
