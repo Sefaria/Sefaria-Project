@@ -314,7 +314,7 @@ class UploadLinksFromCSV extends Component{
     this.setState({uploading: true, uploadMessage:"Uploading..."});
     const data = new FormData(event.target);
     const request = new Request(
-        '/modtools/upload_links',
+        '/modtools/links',
         {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
     );
     fetch(request, {
