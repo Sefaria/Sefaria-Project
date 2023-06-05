@@ -110,7 +110,9 @@ class SalesforceConnectionManager(CrmConnectionManager):
         except:
             # log
             return False
-        return res
+
+    def mark_for_review_in_crm(self, crm_id):
+        return self.mark_as_spam_in_crm(crm_id)
 
     def find_crm_id(self, email=None):
         if email:

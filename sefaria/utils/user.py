@@ -4,9 +4,13 @@ user.py - helper functions related to users
 Uses MongoDB collections: apikeys, sheets, notes, profiles, notifications
 """
 from django.contrib.auth.models import User
+import structlog
 
 import sefaria.model as model
 from sefaria.system.database import db
+from sefaria.helper.crm.crm_mediator import CrmMediator
+
+logger = structlog.get_logger(__name__)
 
 
 def delete_user_account(uid, confirm=True):
@@ -17,6 +21,13 @@ def delete_user_account(uid, confirm=True):
         if input("Type 'DELETE' to confirm: ") != "DELETE":
             print("Canceled.")
             return
+
+    try:
+        crm_mediator = CrmMediator()
+        if not crm_mediator.mark_for_review_in_crm(profile=user):
+            logger.error("Failed to mark user for review in CRM")
+    except Exception as e:
+        logger.error("Failed to mark user for review in CRM")
 
     # Delete user's reading history
     user.delete_user_history(exclude_saved=False, exclude_last_place=False)
