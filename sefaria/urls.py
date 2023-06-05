@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
+    url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
 

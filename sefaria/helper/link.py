@@ -552,3 +552,27 @@ def add_links_from_csv(file, linktype, generated_by, uid):
         except Exception as e:
             logger.error(e)
     return {'message': f'{success} links succefully saved', 'errors': output.getvalue()}
+
+def get_links_by_refs(trefs, **additional_query):
+    query = additional_query
+    query['$and'] = []
+    for tref in trefs:
+        regex_list = Ref(tref).regex(as_list=True)
+        ref_clauses = [{"expandedRefs0": {"$regex": r}} for r in regex_list]
+        ref_clauses += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
+        query['$and'].append({"$or": ref_clauses})
+    return LinkSet(query)
+
+def get_csv_links_by_refs(trefs, **additional_query):
+    links = get_links_by_refs(trefs, **additional_query)
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2', 'type', 'generated_by'])
+    writer.writeheader()
+    for link in links:
+        writer.writerow({
+            'ref1': link.refs[0],
+            'ref2': link.refs[1],
+            'type': link.type,
+            'generated_by': getattr(link, 'generated_by', '')
+        })
+    return output.getvalue()
