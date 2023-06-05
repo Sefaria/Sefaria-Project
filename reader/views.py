@@ -61,7 +61,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_topic_link
+                                update_order_of_topic_sources, delete_ref_topic_link
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3229,15 +3229,15 @@ def reorder_topics(request):
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
-    API to get RefTopicLinks
+    API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
 
-    data = request.GET if request.method == "DELETE" else json.loads(request.POST.get('json'))  # django uses GET for delete
+    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input
     linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
-    annotate = bool(int(request.GET.get("annotate", False)))
+    annotate = bool(int(data.get("annotate", False)))
 
     if request.method == "GET":
         response = get_topics_for_ref(tref, annotate)
@@ -3245,11 +3245,11 @@ def topic_ref_api(request, tref):
     elif not request.user.is_staff:
         return jsonResponse({"error": "Only moderators can connect edit topic sources."})
     elif request.method == "DELETE":
-        delete_topic_link(link, tref, slug)
+        return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
     elif request.method == "POST":
         description = data.get("description", {})
         creating_new_link = data.get("is_new", True)
-        new_tref = Ref(data.get("new_tref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
+        new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
         ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
                             linkType=linkType, description=description, interface_lang=interface_lang)
         return jsonResponse(ref_topic_dict)

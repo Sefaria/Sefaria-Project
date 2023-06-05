@@ -1048,6 +1048,9 @@ def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link
     :param linkType: (str) 'about' is used for most topics, except for 'authors' case
     :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
     """
+    topic_obj = Topic.init(slug)
+    if topic_obj is None:
+        return {"error": "Topic does not exist."}
     ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
     link = RefTopicLink().load(ref_topic_link)
     if not creating_new_link and link is None:
@@ -1064,21 +1067,14 @@ def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link
             link.order['availableLangs'] = []
         if 'curatedPrimacy' not in link.order and linkType == 'about':
             link.order['curatedPrimacy'] = {}
-        existing_langs = link.order['availableLangs']
-        if interface_lang in existing_langs and creating_new_link:
-            # When the source already is linked to the topic, and is in a different interface language
-            # than the existing source, they are essentially editing the source
-            return {"error": "Topic link already exists"}
-        else:
+        if interface_lang not in link.order['availableLangs']:
             link.order['availableLangs'] += [interface_lang]
-            if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':  # author sources sorted by custom order not curated primacy
-                num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
-                link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+        if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
+            # author sources sorted by custom order not curated primacy so check linkType
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+            link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
     elif creating_new_link and link is None:
         # check link is None to avoid unjustifiably incrementing topic's numSources
-        topic_obj = Topic.init(slug)
-        if topic_obj is None:
-            return {"error": "Topic does not exist."}
         num_sources = getattr(topic_obj, "numSources", 0)
         topic_obj.numSources = num_sources + 1
         topic_obj.save()
@@ -1090,7 +1086,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link
             ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
         link = RefTopicLink(ref_topic_link)
 
-    link.dataSource = "edit-topic-source"
+    link.dataSource = "sefaria"
     link.ref = new_tref
     if len(description) > 0:
         if not hasattr(link, 'descriptions'):
@@ -1143,22 +1139,21 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     return {"sources": results}
 
 
-def delete_topic_link(from_topic, to_topic, link_type, type='ref'):
+def delete_ref_topic_link(tref, to_topic, link_type):
     """
     :param type: (str) Can be 'ref' or 'intra'
-    :param from_topic: (str) Slug of topic, or in case of ref topic, the tref
+    :param tref: (str) tref of source
     :param to_topic: (str) Slug of topic
     """
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
 
-    topic_link = {"toTopic": to_topic, "linkType": link_type}
-    field = 'ref' if type == 'ref' else 'fromTopic'
-    topic_link[field] = from_topic
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    link = RefTopicLink().load(topic_link)
     if link is None:
-        return {"error": f"Link between {from_topic} and {to_topic} doesn't exist."}
+        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
     if link.can_delete():
         link.delete()
         return {"status": "ok"}
     else:
-        return {"error": f"Cannot delete link between {from_topic} and {to_topic}."}
+        return {"error": f"Cannot delete link between {tref} and {to_topic}."}
