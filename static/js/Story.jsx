@@ -135,7 +135,7 @@ const IntroducedTextPassage = ({text, afterSave, toggleSignUpModal, bodyTextIsLi
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
     let innerContent = (<ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> :
-    {innerContent}
+    {innerContent};
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
@@ -176,7 +176,7 @@ const TextPassage = ({text, afterSave, toggleSignUpModal, bodyTextIsLink=false})
   const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
   let innerContent = (<ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
   const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> :
-  {innerContent}
+  {innerContent};
 
   return (
     <StoryFrame cls="textPassageStory">
