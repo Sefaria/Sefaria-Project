@@ -1252,7 +1252,7 @@ def links_upload_api(request):
 
 def get_csv_links_by_refs_api(request, tref1, tref2):
     try:
-        file = get_csv_links_by_refs([tref1, tref2], **{k: v[0] for k, v in request.GET.items()})
+        file = get_csv_links_by_refs([tref1, tref2], **{k: v for k, v in request.GET.items()})
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")
