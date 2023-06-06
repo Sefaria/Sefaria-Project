@@ -5,7 +5,8 @@ import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
-
+import qs from 'qs';
+import { useState } from 'react';
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
@@ -394,100 +395,111 @@ class UploadLinksFromCSV extends Component{
     );
   }
 }
-class GetLinks extends Component{
-  constructor(props) {
-    super(props);
-    this.state = {ref1: '', ref2: '', type: '', 'generated_by': ''};
-    this.handleChange = this.handleChange.bind(this);
-    this.handleBlur = this.handleBlur.bind(this);
-  }
-  handleChange(event) {
-    const target = event.target;
-    const error = `error-${target.name}`
-    if (this.state[error]) {
-        Sefaria.getName(target.value).then((r) => this.setState({[error]: !r.is_ref}));
+
+const InputRef = ({ id, value, handleChange, handleBlur, error }) => (
+  <label>
+    Ref{id}
+    <input
+      type="text"
+      name={`ref${id}`}
+      value={value}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      style={error ? { backgroundColor: "rgba(255, 0, 0, 0.5)" } : {}}
+    />
+    <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>{(error) ? "Not a valid ref" : ""}</p>
+  </label>
+);
+InputRef.propTypes = {
+  id: PropTypes.number.isRequired,
+  value: PropTypes.string.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  handleBlur: PropTypes.func.isRequired,
+  error: PropTypes.bool,
+};
+
+const InputNonRef = ({ name, value, handleChange }) => (
+  <label>
+    {name.charAt(0).toUpperCase() + name.slice(1)}
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={handleChange}
+      placeholder="any"
+    />
+  </label>
+);
+InputNonRef.propTypes = {
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  handleChange: PropTypes.func.isRequired,
+};
+
+const DownloadButton = () => (
+  <div className="modtoolsButton">
+    <div className="modtoolsButtonInner">
+      Download
+    </div>
+  </div>
+);
+
+function GetLinks() {
+  const [refs, setRefs] = useState({ ref1: '', ref2: '' });
+  const [errors, setErrors] = useState({});
+  const [type, setType] = useState('');
+  const [generatedBy, setGeneratedBy] = useState('');
+
+  const handleChange = async (event) => {
+    const { name, value } = event.target;
+    setRefs(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      try {
+        const response = await Sefaria.getName(value);
+        setErrors(prev => ({ ...prev, [name]: !response.is_ref }));
+      } catch (error) {
+        console.error(error);
+      }
     }
-    this.setState({[target.name]: target.value});
   }
-  handleBlur(event) {
-    const error = `error_${event.target.name}`
-    if (this.state[event.target.name]) {
-        Sefaria.getName(this.state[event.target.name]).then((r) => this.setState({[error]: !r.is_ref}));
+
+  const handleBlur = async (event) => {
+    const name = event.target.name;
+    if (refs[name]) {
+      try {
+        const response = await Sefaria.getName(refs[name]);
+        setErrors(prev => ({ ...prev, [name]: !response.is_ref }));
+      } catch (error) {
+        console.error(error);
+      }
     }
   }
-  style(error) {
-    if (error) {return {backgroundColor: "rgba(255, 0, 0, 0.5)"};}
+
+  const formReady = () => {
+    return refs.ref1 && refs.ref2 && errors.ref1 === false && errors.ref2 === false;
   }
-  inputRef(i) {
-      const error = this.state[`error_ref${i}`];
-      return (
-        <label>
-            Ref{i}
-            <input
-                type="text"
-                name={`ref${i}`}
-                value={this.state[`ref${i}`]}
-                onChange={this.handleChange}
-                onBlur={this.handleBlur}
-                style={this.style(error)}
-            />
-            <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>
-                {(error) ? "Not a valid ref" : ""}
-            </p>
-        </label>
-      );
+
+  const linksDownloadLink = () => {
+    const queryParams = qs.stringify({ type: (type) ? type : null, generated_by: (generatedBy) ? generatedBy : null },
+        { addQueryPrefix: true, skipNulls: true });
+    return `modtools/links/${refs.ref1}/${refs.ref2}${queryParams}`;
   }
-  inputNonRef(name) {
-      return (
-        <label>
-            {name.charAt(0).toUpperCase() + name.slice(1)}
-            <input
-                type="text"
-                name={name}
-                value={this.state[name]}
-                onChange={this.handleChange}
-                placeholder="any"
-            />
-        </label>
-      );
-  }
-  downloadButton() {
-      return (
-          <div className="modtoolsButton">
-              <div className="modtoolsButtonInner">
-                  Download
-              </div>
-          </div>
-      );
-  }
-  formReady() {
-    return this.state.ref1 && this.state.ref2 && this.state.error_ref1 === false && this.state.error_ref2  === false;
-  }
-  linksDownloadLink() {
-    let args = [];
-    ["type", "generated_by"].forEach(element => {
-        if (this.state[element]) {args.push(`${element}=${this.state[element]}`);}
-    })
-    let argsSting = (args.length) ? "?" + args.join("&") : "";
-    return `modtools/links/${this.state.ref1}/${this.state.ref2}${argsSting}`;
-  }
-  render() {
-    return (
-        <div className="getLinks">
-            <div className="dlSectionTitle">Download links</div>
-            <form id="download-links-form">
-                {this.inputRef(1)}
-                <br/>
-                {this.inputRef(2)}
-                <br/>
-                {this.inputNonRef('type')}
-                <br/>
-                {this.inputNonRef('generated_by')}
-            </form>
-            {this.formReady() ? <a href={this.linksDownloadLink()} download>{this.downloadButton()}</a> : this.downloadButton()}
-        </div>
-    );
-  }
+
+  return (
+    <div className="getLinks">
+      <div className="dlSectionTitle">Download links</div>
+      <form id="download-links-form">
+        <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
+        <br/>
+        <InputRef id={2} value={refs.ref2} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref2} />
+        <br/>
+        <InputNonRef name='type' value={type} handleChange={(e) => setType(e.target.value)} />
+        <br/>
+        <InputNonRef name='generated_by' value={generatedBy} handleChange={(e) => setGeneratedBy(e.target.value)} />
+      </form>
+      {formReady() ? <a href={linksDownloadLink()} download><DownloadButton /></a> : <DownloadButton />}
+    </div>
+  );
 }
 
 export default ModeratorToolsPanel;
