@@ -96,8 +96,8 @@ class ModeratorToolsPanel extends Component {
   render () {
     // Bulk Download
     const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
-    const downloadButton = <div className="versionDownloadButton">
-        <div className="downloadButtonInner">
+    const downloadButton = <div className="modtoolsButton">
+        <div className="modtoolsButtonInner">
           <span className="int-en">Download</span>
           <span className="int-he">הורדה</span>
         </div>
@@ -128,7 +128,7 @@ class ModeratorToolsPanel extends Component {
 
     // Uploading
     const ulReady = (!this.state.uploading) && this.state.files.length > 0;
-    const uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
+    const uploadButton = <a><div className="modtoolsButton" onClick={this.uploadFiles}><div className="modtoolsButtonInner">
        <span className="int-en">Upload</span>
        <span className="int-he">העלאה</span>
       </div></div></a>;
@@ -149,12 +149,16 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <WorkflowyModeratorTool />
       </div>);
-    const linkTools = (
+    const uploadLinksFromCSV = (
       <div className="modToolsSection">
           <UploadLinksFromCSV />
       </div>);
+    const getLinks = (
+      <div className="modToolsSection">
+          <GetLinks/>
+      </div>);
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{linkTools} </div> :
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
@@ -279,7 +283,7 @@ class WorkflowyModeratorTool extends Component{
                 value={this.state.term_scheme}
                 onChange={this.handleInputChange} />
             </label>
-             <button className="versionDownloadButton" name="wf-submit" type="submit">
+             <button className="modtoolsButton" name="wf-submit" type="submit">
                 <span className="int-en">Upload</span>
                 <span className="int-he">Upload</span>
              </button>
@@ -357,8 +361,8 @@ class UploadLinksFromCSV extends Component{
 
   render() {
     return (
-        <div className="uploadLinks">
-            <div className="sectionTitle">Upload links</div>
+        <div className="uploadLinksFromCSV">
+            <div className="dlSectionTitle">Upload links</div>
             <form id="upload-links-form" onSubmit={this.handleSubmit}>
                 <label>
                     Upload file:
@@ -386,6 +390,101 @@ class UploadLinksFromCSV extends Component{
             </form>
             { this.state.uploadMessage && <div>{this.state.uploadMessage}</div> }
             { (this.state.errorIsHTML) && <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> }
+        </div>
+    );
+  }
+}
+class GetLinks extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {ref1: '', ref2: '', type: '', 'generated_by': ''};
+    this.handleChange = this.handleChange.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
+  }
+  handleChange(event) {
+    const target = event.target;
+    const error = `error-${target.name}`
+    if (this.state[error]) {
+        Sefaria.getName(target.value).then((r) => this.setState({[error]: !r.is_ref}));
+    }
+    this.setState({[target.name]: target.value});
+  }
+  handleBlur(event) {
+    const error = `error_${event.target.name}`
+    if (this.state[event.target.name]) {
+        Sefaria.getName(this.state[event.target.name]).then((r) => this.setState({[error]: !r.is_ref}));
+    }
+  }
+  style(error) {
+    if (error) {return {backgroundColor: "rgba(255, 0, 0, 0.5)"};}
+  }
+  inputRef(i) {
+      const error = this.state[`error_ref${i}`];
+      return (
+        <label>
+            Ref{i}
+            <input
+                type="text"
+                name={`ref${i}`}
+                value={this.state[`ref${i}`]}
+                onChange={this.handleChange}
+                onBlur={this.handleBlur}
+                style={this.style(error)}
+            />
+            <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>
+                {(error) ? "Not a valid ref" : ""}
+            </p>
+        </label>
+      );
+  }
+  inputNonRef(name) {
+      return (
+        <label>
+            {name.charAt(0).toUpperCase() + name.slice(1)}
+            <input
+                type="text"
+                name={name}
+                value={this.state[name]}
+                onChange={this.handleChange}
+                placeholder="any"
+            />
+        </label>
+      );
+  }
+  downloadButton() {
+      return (
+          <div className="modtoolsButton">
+              <div className="modtoolsButtonInner">
+                  Download
+              </div>
+          </div>
+      );
+  }
+  formReady() {
+    return this.state.ref1 && this.state.ref2 && this.state.error_ref1 === false && this.state.error_ref2  === false;
+  }
+  linksDownloadLink() {
+    let args = [];
+    ["type", "generated_by"].forEach(element => {
+        if (this.state[element]) {args.push(`${element}=${this.state[element]}`);}
+    })
+    let argsSting = (args.length) ? "?" + args.join("&") : "";
+    return `modtools/links/${this.state.ref1}/${this.state.ref2}${argsSting}`;
+  }
+  render() {
+    return (
+        <div className="getLinks">
+            <div className="dlSectionTitle">Download links</div>
+            <form id="download-links-form">
+                {this.inputRef(1)}
+                <br/>
+                {this.inputRef(2)}
+                <br/>
+                {this.inputNonRef('type')}
+                <br/>
+                {this.inputNonRef('generated_by')}
+            </form>
+            {this.formReady() ? <a href={this.linksDownloadLink()} download>{this.downloadButton()}</a> : this.downloadButton()}
         </div>
     );
   }
