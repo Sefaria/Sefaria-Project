@@ -22,7 +22,6 @@ console.log(`
 const jobKeys = [
     "Jest",
     "PyTest",
-    "Selenium",
 ];
 
 (async function() {
