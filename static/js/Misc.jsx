@@ -20,7 +20,7 @@ import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown';
 
 
 /**
@@ -74,7 +74,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
@@ -93,7 +93,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
