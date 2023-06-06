@@ -139,7 +139,7 @@ const IntroducedTextPassage = ({text, afterSave, toggleSignUpModal, bodyTextIsLi
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
-            <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title} url={url}/>
+            <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
             <div className={"systemText learningPrompt"}>
                 <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
             </div>
