@@ -1256,7 +1256,7 @@ def get_csv_links_by_refs_api(request, tref1, tref2):
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")
-    response['headers'] = {'Content-Disposition': 'attachment'}
+    response['Content-Disposition'] = f'attachment; filename="{tref1}-{tref2} links.csv"'
     return response
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
