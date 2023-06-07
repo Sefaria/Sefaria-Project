@@ -67,21 +67,34 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     const validateMarkdownTags = async (input) => {
         const regexp = /\[.*?\]\((.*?)\)/g;
         const matches = [...input.matchAll(regexp)];
-        let is_valid = true;
-        for (const match of matches) {
-            const url = `${Sefaria.apiHost}${match[1]}`
+        const matches_without_duplicates = Array.from(new Set(matches));
+        for (const match of matches_without_duplicates) {
+            const url = match[1];
             const name = url.split("/").slice(-1)[0];
-            let d;
-            d = url.startsWith("/topics") ?
-                await Sefaria.getTopicCompletions(name, (x) => x[1])
-                : await Sefaria.getName(name, false).completion_objects;
-            const namesFound = d.map((x) => x?.key);
+            let namesFound = [];
+            let d = [];
+            if (url.startsWith("/topics")) {
+                d = await Sefaria.getTopicCompletions(name, (x) => x[1]);
+            }
+            else {
+                d = await Sefaria.getName(name, false);
+                if (d.is_ref) {
+                    continue;
+                }
+                d = d.completion_objects;
+            }
+            d.forEach((x) => {
+                Array.isArray(x.key) ?  // the key is an array when getName returns a TocCategory
+                    x.key.forEach((y) => namesFound.push(y))
+                    : namesFound.push(x);
+            });
             const validLink = namesFound.includes(name) > 0 ? true :
                 confirm(`${name} not found in Sefaria database.  Please confirm that you meant to write '${url}' in the description.`);
-            is_valid = validLink && is_valid;
+            if (!validLink) {
+                return false;
+            }
         }
-        ;
-        return is_valid;
+        return true;
     }
     const item = ({label, field, placeholder, is_textarea}) => {
         return <div className="section">
