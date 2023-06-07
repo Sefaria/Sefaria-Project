@@ -555,12 +555,12 @@ def add_links_from_csv(file, linktype, generated_by, uid):
 
 def get_links_by_refs(trefs, **additional_query):
     query = additional_query
-    query['$and'] = []
-    for tref in trefs:
-        regex_list = Ref(tref).regex(as_list=True)
-        ref_clauses = [{"expandedRefs0": {"$regex": r}} for r in regex_list]
-        ref_clauses += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
-        query['$and'].append({"$or": ref_clauses})
+    regex_lists = [Ref(tref).regex(as_list=True) for tref in trefs]
+    query['$or'] = []
+    for i in range(2):
+        ref_clauses0 = {'$or': [{"expandedRefs0": {"$regex": r}} for r in regex_lists[i]]}
+        ref_clauses1 = {'$or': [{"expandedRefs1": {"$regex": r}} for r in regex_lists[1-i]]}
+        query['$or'].append({"$and": [ref_clauses0, ref_clauses1]})
     return LinkSet(query)
 
 def get_csv_links_by_refs(trefs, **additional_query):
