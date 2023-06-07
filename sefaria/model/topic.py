@@ -20,6 +20,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
+    pkeys = ["description"]
+    track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
@@ -912,3 +914,30 @@ def process_topic_delete(topic):
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
+
+def process_topic_description_change(topic, **kwargs):
+    for lang, val in kwargs['new'].items():
+        for markdown_link in re.findall('\[.*?\]\((.*?)\)', val):
+            if markdown_link.startswith("/topics"):
+                other_slug = markdown_link.split("/")[-1]
+                other_topic = Topic.init(other_slug)
+                intra_topic_dict = {"toTopic": other_slug, "fromTopic": topic.slug, "linkType": 'related-to'}
+                link = IntraTopicLink().load(intra_topic_dict)
+                if other_topic and link is None:
+                    intra_topic_dict['dataSource'] = 'markdown-tool'
+                    IntraTopicLink(intra_topic_dict).save()
+            else:
+                try:
+                    ref = Ref(markdown_link[1:]).normal()
+                    ref_topic_dict = {"ref": ref, "toTopic": topic.slug, "linkType": 'related-to'}
+                    link = RefTopicLink().load(ref_topic_dict)
+                    if link is None:
+                        ref_topic_dict['dataSource'] = 'markdown-tool'
+                        RefTopicLink(ref_topic_dict).save()
+
+
+                except InputError as e:
+                    pass
+
+
+
