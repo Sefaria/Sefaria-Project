@@ -2,6 +2,7 @@
 
 import csv
 import sys
+import re
 from io import StringIO
 import structlog
 logger = structlog.get_logger(__name__)
@@ -564,14 +565,15 @@ def get_links_by_refs(trefs, **additional_query):
     return LinkSet(query)
 
 def get_csv_links_by_refs(trefs, **additional_query):
-    links = get_links_by_refs(trefs, **additional_query)
     output = StringIO()
-    writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2', 'type', 'generated_by'])
+    writer = csv.DictWriter(output, fieldnames=[trefs[0], trefs[1], 'type', 'generated_by'])
     writer.writeheader()
+    trefs.sort()
+    links = get_links_by_refs(trefs, **additional_query)
     for link in links:
         writer.writerow({
-            'ref1': link.refs[0],
-            'ref2': link.refs[1],
+            trefs[0]: link.refs[0],
+            trefs[1]: link.refs[1],
             'type': link.type,
             'generated_by': getattr(link, 'generated_by', '')
         })
