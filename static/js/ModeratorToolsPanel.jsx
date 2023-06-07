@@ -406,6 +406,7 @@ const InputRef = ({ id, value, handleChange, handleBlur, error }) => (
       onChange={handleChange}
       onBlur={handleBlur}
       style={error ? { backgroundColor: "rgba(255, 0, 0, 0.5)" } : {}}
+      placeholder={id === 2 ? 'all library, limited to 15k links' : null}
     />
     <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>{(error) ? "Not a valid ref" : ""}</p>
   </label>
@@ -446,7 +447,7 @@ const DownloadButton = () => (
 
 function GetLinks() {
   const [refs, setRefs] = useState({ ref1: '', ref2: '' });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({ref2: false});
   const [type, setType] = useState('');
   const [generatedBy, setGeneratedBy] = useState('');
 
@@ -454,14 +455,20 @@ function GetLinks() {
     const { name, value } = event.target;
     setRefs(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      try {
-        const response = await Sefaria.getName(value);
-        setErrors(prev => ({ ...prev, [name]: !response.is_ref }));
-      } catch (error) {
-        console.error(error);
+      if (!value) {
+          setErrors(prev => ({...prev, [name]: false}));
+      }
+      else {
+          try {
+              const response = await Sefaria.getName(value);
+              setErrors(prev => ({...prev, [name]: !response.is_ref}));
+          } catch (error) {
+              console.error(error);
+          }
       }
     }
   }
+
 
   const handleBlur = async (event) => {
     const name = event.target.name;
@@ -476,13 +483,13 @@ function GetLinks() {
   }
 
   const formReady = () => {
-    return refs.ref1 && refs.ref2 && errors.ref1 === false && errors.ref2 === false;
+    return refs.ref1 && errors.ref1 === false && errors.ref2 === false;
   }
 
   const linksDownloadLink = () => {
     const queryParams = qs.stringify({ type: (type) ? type : null, generated_by: (generatedBy) ? generatedBy : null },
         { addQueryPrefix: true, skipNulls: true });
-    return `modtools/links/${refs.ref1}/${refs.ref2}${queryParams}`;
+    return `modtools/links/${refs.ref1}/${refs.ref2 || 'all'}${queryParams}`;
   }
 
   return (
