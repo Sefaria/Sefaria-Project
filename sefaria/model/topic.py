@@ -42,9 +42,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
     ]
-    # The below is to support HTML markup in the description
-    ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
-    ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
 
@@ -85,7 +82,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for attr in ['description', 'categoryDescription']:
             p = getattr(self, attr, {})
             for k, v in p.items():
-                p[k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
 
     def set_titles(self, titles):
