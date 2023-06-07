@@ -108,21 +108,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     const deleteObj = function() {
-      $.ajax({
-        url: "/api/topic/delete/"+data.origSlug,
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Topic Deleted."));
-            window.location = "/topics";
-          }
-        }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/topic/delete/${data.origSlug}`;
+        postWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
+
     let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
     if (isCategory) {
         items.push("English Short Description");

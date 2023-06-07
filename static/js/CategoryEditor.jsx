@@ -191,24 +191,12 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
 
 
     const deleteObj = function() {
-      if (subcategoriesAndBooks.length > 0) {
-          alert("Cannot delete a category with contents.");
-          return;
-      }
-      $.ajax({
-        url: "/api/category/"+origPath.concat(origData.origEn).join("/"),
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Category Deleted."));
-            window.location = "/texts";
-          }
+        if (subcategoriesAndBooks.length > 0) {
+            alert("Cannot delete a category with contents.");
+            return;
         }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
+        postWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
     }
     const primaryOptions = [
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },

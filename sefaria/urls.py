@@ -260,7 +260,7 @@ urlpatterns += [
     url(r'^api/topic/new$', reader_views.add_new_topic_api),
     url(r'^api/topic/delete/(?P<topic>.+)$', reader_views.delete_topic),
     url(r'^api/topic/reorder$', reader_views.reorder_topics),
-    url(r'^api/topic/reorder-sources$', reader_views.reorder_sources),
+    url(r'^api/source/reorder$', reader_views.reorder_sources),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]

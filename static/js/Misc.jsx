@@ -1052,17 +1052,26 @@ class ToggleOption extends Component {
 
          //style={this.props.style}
 
-const postWithCallBack = ({url, data, setSavingStatus, redirect}) => {
-    $.post(url, {"json": JSON.stringify(data)}, function (result) {
-            if (result.error) {
-                setSavingStatus(false);
-                alert(result.error);
-            } else {
-                redirect();
-            }
-        }).fail(function (xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-        });
+const postWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}}) => {
+    let ajaxPayload = {url, type};
+    if (type === "POST") {
+      ajaxPayload.data = {json: JSON.stringify(data)};
+    }
+    $.ajax({
+      ...ajaxPayload,
+      success: function(result) {
+        if ("error" in result) {
+          if (setSavingStatus) {
+            setSavingStatus(false);
+          }
+          alert(result.error);
+        } else {
+          redirect();
+        }
+      }
+    }).fail(function() {
+      alert(Sefaria._("Something went wrong. Sorry!"));
+    });
 }
 
  const TopicToCategorySlug = function(topic, category=null) {
@@ -1172,7 +1181,7 @@ const CategoryHeader = ({children, type, data = [], edit = true,
           setTopicData(d);
         })
     } else {
-      let url = `/api/topic/reorder-sources?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
+      let url = `/api/source/reorder?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = topicData.refs?.about?.refs || [];
       if (refs.length) {
         refs = refs.filter((x) => !x.ref.startsWith('Sheet ')).slice(0, Sefaria._topicPageSize);
