@@ -126,7 +126,7 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
-const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
+const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
     const versions = text.versions || {}
     const params = Sefaria.util.getUrlVersionsParams(versions);
@@ -134,11 +134,14 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
     const heOnly = !text.en;
     const enOnly = !text.he;
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+    let innerContent = (<ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
+    const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> :
+    {innerContent};
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
             <CategoryHeader type="sources" data={[topic, text]} add_subcategory={false}>
-                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title} url={url}/>
+                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
             </CategoryHeader>
             <div className={"systemText learningPrompt"}>
                 <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
@@ -153,7 +156,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
             </SaveLine>
             <ColorBarBox tref={text.ref}>
                 <StoryBodyBlock>
-                    <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
+                    {content}
                 </StoryBodyBlock>
             </ColorBarBox>
         </StoryFrame>
@@ -166,7 +169,7 @@ IntroducedTextPassage.propTypes = {
     toggleSignUpModal:  PropTypes.func
 };
 
-const TextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
+const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
   if (!text.ref) { return null; }
   const versions = text.versions || {}
   const params = Sefaria.util.getUrlVersionsParams(versions);
@@ -174,6 +177,9 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
   const heOnly = !text.en;
   const enOnly = !text.he;
   const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+  let innerContent = (<ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
+  const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> :
+  {innerContent};
 
   return (
     <StoryFrame cls="textPassageStory">
@@ -189,7 +195,7 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal}) => {
       </CategoryHeader>
       <ColorBarBox tref={text.ref}>
           <StoryBodyBlock>
-            <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />
+            {content}
           </StoryBodyBlock>
       </ColorBarBox>
     </StoryFrame>

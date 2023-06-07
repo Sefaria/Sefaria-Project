@@ -61,6 +61,12 @@ jobs:
           registry: gcr.io
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -70,6 +76,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -120,6 +127,12 @@ jobs:
           registry: gcr.io
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -129,6 +142,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -189,4 +203,4 @@ jobs:
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
-          CHART_VERSION: 0.19.0
+          CHART_VERSION: 0.20.0

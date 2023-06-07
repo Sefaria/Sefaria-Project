@@ -12,7 +12,7 @@ from random import choice
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -45,7 +45,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew, strip_nikkud
@@ -59,7 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -185,8 +185,10 @@ def subscribe(request, email):
         if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
             return jsonResponse({"status": "ok"})
         else:
+            logger.error("Failed to subscribe to list")
             return jsonResponse({"error": _("Sorry, there was an error.")})
     except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 @login_required
@@ -363,14 +365,16 @@ def title_regex_api(request, titles, json_response=True):
         return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
-def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None):
+def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
             if useTextFamily:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True)
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                                            lang="he", version=hebrew_version,
+                                            lang2="en", version2=english_version)
                 he = text_fam.he
                 en = text_fam.text
                 res[tref] = {
@@ -383,8 +387,13 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference)
+                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference, vtitle=hebrew_version)
+                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                if hebrew_version and he_tc.is_empty():
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
+                if english_version and en_tc.is_empty():
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the English version: {english_version}")
+
                 if as_sized_string:
                     kwargs = {}
                     if min_char:
@@ -429,7 +438,7 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"))
+        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
         resp = jsonResponse(res, cb)
         return resp
 
@@ -705,7 +714,6 @@ def rebuild_citation_links(request, title):
 
 @staff_member_required
 def delete_citation_links(request, title):
-    from sefaria.helper.link import delete_links_from_text
     delete_links_from_text(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
 
@@ -1235,6 +1243,20 @@ def modtools_upload_workflowy(request):
     except Exception as e:
         raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
+    return jsonResponse({"status": "ok", "data": res})
+
+@staff_member_required
+def links_upload_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    file = request.FILES['csv_file']
+    linktype = request.POST.get("linkType")
+    generated_by = request.POST.get("projectName") + ' csv upload'
+    uid = request.user.id
+    try:
+        res = add_links_from_csv(file, linktype, generated_by, uid)
+    except Exception as e:
+        return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
