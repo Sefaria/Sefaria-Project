@@ -90,3 +90,10 @@ jobs:
           chart_version: ${{ steps.semantic.outputs.new_release_version }}
           app_version: ${{ steps.appVersion.outputs.appVersion }}
           charts_dir: helm-chart
+      - name: Update workflow default chart
+        if: github.ref == 'refs/heads/master'
+        run: |
+          ./yq -i e '.on.workflow_dispatch.inputs.chart_version.default="${{ steps.chartVersion.outputs.chartVersion }}"' .github/workflows/release.yml
+          ./yq -i e '.on.workflow_call.inputs.chart_version.default="${{ steps.chartVersion.outputs.chartVersion }}"' .github/workflows/production-deploy.yaml
+          git commit -am "ci: update default chart version to ${{ steps.chartVersion.outputs.chartVersion }}"
+          git push
