@@ -9,6 +9,10 @@ on:
       version:
         type: string
         required: true
+      chart_version:
+        type: string
+        required: true
+        default: 0.20.0
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -203,4 +207,4 @@ jobs:
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
-          CHART_VERSION: 0.20.0
+          CHART_VERSION: "${{ inputs.chart_version }}"
