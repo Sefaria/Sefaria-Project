@@ -1,7 +1,7 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, Autocompleter, InterfaceText} from "./Misc";
+import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
@@ -49,7 +49,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (data.enTitle.length > 0) {
             postData['description'] = {"title": data.enTitle, "prompt": data.prompt};
         }
-        postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
+        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
     const handleChange = (x) => {
@@ -87,7 +87,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
 
     const deleteTopicSource = function() {
         const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
-        postWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
 
     return <div>

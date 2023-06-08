@@ -2,7 +2,7 @@ import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, AdminToolHeader} from "./Misc";
+import {requestWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
 
 const displayOptionForSources = (child) => {
@@ -83,7 +83,7 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        postWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
+        requestWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -186,7 +186,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
 
 
@@ -196,7 +196,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             return;
         }
         const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
-        postWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
     }
     const primaryOptions = [
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },

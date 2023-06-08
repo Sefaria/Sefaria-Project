@@ -1052,7 +1052,7 @@ class ToggleOption extends Component {
 
          //style={this.props.style}
 
-const postWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}}) => {
+const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}}) => {
     let ajaxPayload = {url, type};
     if (type === "POST") {
       ajaxPayload.data = {json: JSON.stringify(data)};
@@ -2976,5 +2976,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  postWithCallBack
+  requestWithCallBack
 };

@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, postWithCallBack, ToggleSet} from "./Misc";
+import {InterfaceText, requestWithCallBack, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -69,7 +69,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveReorderedSubtopics = function () {
          const url = `/api/topic/reorder`;
          const postCategoryData = {topics: sortedSubtopics};
-         postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+         requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
     }
     const saveTopic = function () {
         toggle();
@@ -109,7 +109,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
-        postWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
 
     let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
