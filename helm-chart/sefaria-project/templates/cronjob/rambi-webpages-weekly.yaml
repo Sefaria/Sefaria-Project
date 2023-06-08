@@ -1,6 +1,6 @@
 {{- if .Values.cronJobs.rambiWebpagesWeekly.enabled }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Values.deployEnv }}-rambi-update
@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: rambi-update
-            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
@@ -23,6 +23,14 @@ spec:
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: ENABLE_LINKER
+              value: "True"
+            - name: DISABLE_AUTOCOMPLETER
+              value: "True"
+            - name: RAW_REF_MODEL_BY_LANG_FILEPATH
+              value: '{{ toJson .Values.linker.model_paths }}'
+            - name: RAW_REF_PART_MODEL_BY_LANG_FILEPATH
+              value: '{{ toJson .Values.linker.part_model_paths }}'
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
@@ -40,8 +48,13 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/parse_rambi_webpages.py"
+              "pip install pymarc==4.2.2 && /app/run /app/scripts/parse_rambi_webpages.py"
             ]
+            resources:
+              requests:
+                nvidia.com/gpu: 1
+              limits:
+                nvidia.com/gpu: 1
           restartPolicy: Never
           volumes:
           - name: local-settings

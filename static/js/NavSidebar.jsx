@@ -335,7 +335,7 @@ const Translations = () => {
         Access key works from the library in several languages.
       </EnglishText>
       <HebrewText>
-        תרגומים
+        יצירות נבחרות מהספרייה בתרגומים לשפות שונות.
       </HebrewText>
     </InterfaceText>
     <TranslationLinks />
@@ -579,7 +579,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => {
+const StayConnected = () => { // TODO: remove? looks like we are not using this
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (

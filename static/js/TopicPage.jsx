@@ -174,6 +174,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
       text={text}
       afterSave={afterSave}
       toggleSignUpModal={toggleSignUpModal}
+      bodyTextIsLink= {true}
     />
   );
 };

@@ -483,6 +483,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Collections</InterfaceText>
       </a>
 
+      <DonateLink classes={"blue"} source="MobileNavMenu">
+        <img src="/static/img/heart.png" alt="donation icon" />
+        <InterfaceText>Donate</InterfaceText>
+      </DonateLink>
+
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
         <>
@@ -529,10 +534,6 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <DonateLink classes={"blue"} source="MobileNavMenu">
-        <img src="/static/img/heart.png" alt="donation icon" />
-        <InterfaceText>Donate</InterfaceText>
-      </DonateLink>
     </div>
   );
 };

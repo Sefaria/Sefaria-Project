@@ -5,7 +5,7 @@ from sefaria.model.linker.ref_resolver import AmbiguousResolvedRef
 from sefaria.model.webpage import WebSite
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import gematria
-from data_utilities.XML_to_JaggedArray import roman_to_int
+from roman import fromRoman as roman_to_int
 import re
 import json
 import datetime
@@ -72,7 +72,7 @@ class Record():
     def get_abstract(self):
         if not self.description:
             try:
-                if self.marc['520']['a']:
+                if self.marc['520'] and 'a' in self.marc['520']:
                     self.description = self.marc['520']['a']
             except TypeError:
                 pass
