@@ -916,28 +916,51 @@ def process_topic_delete(topic):
         db.sheets.save(sheet)
 
 def process_topic_description_change(topic, **kwargs):
-    for lang, val in kwargs['new'].items():
-        for markdown_link in re.findall('\[.*?\]\((.*?)\)', val):
-            if markdown_link.startswith("/topics"):
-                other_slug = markdown_link.split("/")[-1]
-                other_topic = Topic.init(other_slug)
-                intra_topic_dict = {"toTopic": other_slug, "fromTopic": topic.slug, "linkType": 'related-to'}
-                link = IntraTopicLink().load(intra_topic_dict)
-                if other_topic and link is None:
-                    intra_topic_dict['dataSource'] = 'markdown-tool'
-                    IntraTopicLink(intra_topic_dict).save()
+    """
+    Upon topic description change, get rid of old markdown links and save any new ones
+    """
+    topic_link_dict = {"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}
+    # need to delete currently existing links but dont want to delete link if its still in the description
+    # so load up a dictionary of relevant data -> link
+    existing_link_slugs = {x.fromTopic: x for x in IntraTopicLinkSet(topic_link_dict)}
+    existing_link_refs = {x.ref: x for x in RefTopicLinkSet(topic_link_dict)}
+
+    markdown_links = set()
+    for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
+        for m in re.findall('\[.*?\]\((.*?)\)', val):
+            markdown_links.add(m)
+
+    for markdown_link in markdown_links:
+        if markdown_link.startswith("/topics"):
+            other_slug = markdown_link.split("/")[-1]
+            other_topic = Topic.init(other_slug)
+            if other_slug in existing_link_slugs:
+                existing_link_slugs.pop(other_slug)    # do not create duplicate or delete it
+            elif other_topic:
+                intra_topic_dict = topic_link_dict.copy()
+                intra_topic_dict['fromTopic'] = other_slug
+                IntraTopicLink(intra_topic_dict).save()
+        else:
+            markdown_link = markdown_link[1:]  # assume link starts with a '/'
+            ref_topic_dict = topic_link_dict.copy()
+            try:
+                ref = Ref(markdown_link[1:]).normal()
+            except InputError as e:
+                continue
+            if ref in existing_link_refs:
+                existing_link_refs.pop(ref)  # do not create duplicate or delete it
             else:
-                try:
-                    ref = Ref(markdown_link[1:]).normal()
-                    ref_topic_dict = {"ref": ref, "toTopic": topic.slug, "linkType": 'related-to'}
-                    link = RefTopicLink().load(ref_topic_dict)
-                    if link is None:
-                        ref_topic_dict['dataSource'] = 'markdown-tool'
-                        RefTopicLink(ref_topic_dict).save()
+                ref_topic_dict['ref'] = ref
+                RefTopicLink(ref_topic_dict).save()
+
+    for link in existing_link_slugs.values():
+        link.delete()
+
+    for link in existing_link_refs.values():
+        link.delete()
 
 
-                except InputError as e:
-                    pass
+
 
 
 

@@ -84,9 +84,9 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                 d = d.completion_objects;
             }
             d.forEach((x) => {
-                Array.isArray(x.key) ?  // the key is an array when getName returns a TocCategory
-                    x.key.forEach((y) => namesFound.push(y))
-                    : namesFound.push(x);
+                Array.isArray(x.key) ?
+                    x.key.forEach((y) => namesFound.push(y)) // the key is an array when getName returns a TocCategory
+                    : namesFound.push(x.key);
             });
             const validLink = namesFound.includes(name) > 0 ? true :
                 confirm(`${name} not found in Sefaria database.  Please confirm that you meant to write '${url}' in the description.`);
