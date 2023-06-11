@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from functools import partial
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
@@ -44,12 +45,14 @@ urlpatterns = [
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
+    url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
 
 # People Pages
 urlpatterns += [
     url(r'^person/(?P<name>.+)$', reader_views.person_page_redirect),
+
     url(r'^people/Talmud/?$', reader_views.talmud_person_index_redirect),
     url(r'^people/?$', reader_views.person_index_redirect),
 ]
