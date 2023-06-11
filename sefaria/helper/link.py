@@ -2,6 +2,7 @@
 
 import csv
 import sys
+import re
 from io import StringIO
 import structlog
 logger = structlog.get_logger(__name__)
@@ -552,3 +553,40 @@ def add_links_from_csv(file, linktype, generated_by, uid):
         except Exception as e:
             logger.error(e)
     return {'message': f'{success} links succefully saved', 'errors': output.getvalue()}
+
+def get_links_by_refs(trefs, page=0, limit=0, **additional_query):
+    query = additional_query
+    if trefs[1] == 'all':
+        regex_list = Ref(trefs[0]).regex(as_list=True)
+        query['$or'] = [{"expandedRefs0": {"$regex": r}} for r in regex_list]
+        query['$or'] += [{"expandedRefs1": {"$regex": r}} for r in regex_list]
+    else:
+        query['$or'] = []
+        regex_lists = [Ref(tref).regex(as_list=True) for tref in trefs]
+        for i in range(2):
+            ref_clauses0 = {'$or': [{"expandedRefs0": {"$regex": r}} for r in regex_lists[i]]}
+            ref_clauses1 = {'$or': [{"expandedRefs1": {"$regex": r}} for r in regex_lists[1-i]]}
+            query['$or'].append({"$and": [ref_clauses0, ref_clauses1]})
+    return LinkSet(query, page, limit)
+
+def get_csv_links_by_refs(trefs, **additional_query):
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=[trefs[0], trefs[1], 'type', 'generated_by'])
+    writer.writeheader()
+    ref0 = trefs[0]
+    trefs.sort()
+    limit = 15000 if trefs[1] == 'all' else 0
+    links = get_links_by_refs(trefs, limit=limit, **additional_query)
+    for link in links:
+        linkrefs = link.refs[:]
+        if 'all' in trefs:
+            expanded_refs = link.expandedRefs0 if trefs[0] == 'all' else link.expandedRefs1
+            if any(re.search(Ref(ref0).regex(), expanded_ref) for expanded_ref in expanded_refs):
+                linkrefs.reverse()
+        writer.writerow({
+            trefs[0]: linkrefs[0],
+            trefs[1]: linkrefs[1],
+            'type': link.type,
+            'generated_by': getattr(link, 'generated_by', '')
+        })
+    return output.getvalue()
