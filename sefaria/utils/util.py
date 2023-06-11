@@ -7,6 +7,7 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
+from sefaria.model import constants
 
 """
 Time utils
@@ -453,14 +454,27 @@ def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to
         return s, chars_to_wrap
     return s
 
+def find_all_html_elements_indices(input_string: str) -> dict:
+    tags = constants.allowed_tags_in_abstract_text_record
+    tags_regex = f'(?:{"|".join(tags)})'
+    html_element_indices = {}
+    for m in re.finditer(f'</?{tags_regex}(?: [^>]*)?>', input_string):
+        html_element_indices[m.end()-1] = m.start()
+    return html_element_indices
+
 def truncate_string(string, min_length, max_length):
     if len(string) < max_length:
         return string
+    html_element_indices = find_all_html_elements_indices(string)
+    next_html_closing_tag_index = string.find('>', max_length)
     for break_char in ".;, ":
-        # enumerate all places where this char is in segment
-        for pos, char in reversed(list(enumerate(string))):
-            if char == break_char and min_length <= pos <= max_length:
+        pos = next_html_closing_tag_index if next_html_closing_tag_index != -1 else max_length
+        while min_length <= pos:
+            while pos in html_element_indices:
+                pos = html_element_indices[pos] - 1
+            if string[pos] == break_char:
                 return string[:pos] + "…"
+            pos -= 1
     return string
 
 '''
