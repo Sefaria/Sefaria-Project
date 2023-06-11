@@ -106,7 +106,7 @@ def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):
 		new_tree = library.get_topic_toc_json_recursive(other_root)
 		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
 		assert root.get_primary_title('en') != orig_titles[i]
-		update_topic(root, title=orig_titles[i], category="Main Menu")  # move it back to the main menu
+		update_topic(root, title=orig_titles[i], category=Topic.ROOT)  # move it back to the main menu
 		assert root.get_primary_title('en') == orig_titles[i]
 
 	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])

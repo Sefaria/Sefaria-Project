@@ -5105,6 +5105,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
 .sheetContent .textPreviewSegment.highlight,
+.editTextInfo .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -11258,6 +11259,9 @@ body .homeFeedWrapper.userStats {
   line-height: 18.75px;
   padding: 10px;
 }
+ .editTextInfo #newIndex .default::placeholder {
+   color: #666;
+ }
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
@@ -11373,8 +11377,16 @@ body .homeFeedWrapper.userStats {
   font-size: 16px;
   margin: 0 0 10px 0;
   max-width: 97%;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  box-sizing: content-box;
+  border-radius: 7px;
+  background: white;
+  font-family: revert;
 }
-
+.editTextInfo #newIndex input::placeholder {
+  color: #666;
+  font-size: 16px;
+}
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
