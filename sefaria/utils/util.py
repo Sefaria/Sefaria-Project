@@ -7,7 +7,7 @@ from html.parser import HTMLParser
 import re
 from functools import wraps
 from itertools import zip_longest
-from sefaria.model import constants
+from sefaria.constants.model import allowed_tags_in_abstract_text_record
 
 """
 Time utils
@@ -455,7 +455,7 @@ def wrap_chars_with_overlaps(s, chars_to_wrap, get_wrapped_text, return_chars_to
     return s
 
 def find_all_html_elements_indices(input_string: str) -> dict:
-    tags = constants.allowed_tags_in_abstract_text_record
+    tags = allowed_tags_in_abstract_text_record
     tags_regex = f'(?:{"|".join(tags)})'
     html_element_indices = {}
     for m in re.finditer(f'</?{tags_regex}(?: [^>]*)?>', input_string):
