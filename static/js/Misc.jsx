@@ -104,12 +104,13 @@ InterfaceText.propTypes = {
 };
 
 const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, placeSegmentNumbers}) => {
-
+  console.log("VersionContent")
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
+  
 
   function getImageAttribute(imgTag, attribute) {
   const imgElement = document.createElement('div');
