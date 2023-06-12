@@ -587,7 +587,7 @@ def get_csv_links_by_refs(trefs, by_segment=False, **additional_query):
     writer = csv.DictWriter(output, fieldnames=[trefs[0], trefs[1], 'type', 'generated_by'])
     writer.writeheader()
     if by_segment:
-        links = get_links_per_segment_by_refs(trefs[:], **additional_query)
+        links = get_links_per_segment_by_refs(trefs[:], **additional_query) #copy of trefs for trefs will be sorted and get_links_per_segment_by_refs is generator
     else:
         limit = 15000 if trefs[1] == 'all' else 0
         links = LinkSet(make_link_query(trefs, **additional_query), limit=limit)
