@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cat << EOF > helm-chart/.releaserc
-tagFormat: helm-chart-${version}
+tagFormat: helm-chart-\${version}
 plugins:
   - - "@semantic-release/commit-analyzer"
     - preset: "conventionalcommits"

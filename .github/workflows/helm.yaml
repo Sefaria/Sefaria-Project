@@ -45,6 +45,8 @@ jobs:
           fetch-depth: 0
       - name: fetch head of branch to ensure semantic can run
         run: git pull origin $GITHUB_REF
+        name: install semantic dependecies
+      - run: npm install conventional-changelog-conventionalcommits
       - name: create release rules
         run: helm-chart/release-rules.sh 
       - uses: cycjimmy/semantic-release-action@v3
