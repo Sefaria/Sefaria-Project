@@ -103,17 +103,8 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, placeSegmentNumbers}) => {
-  /**
-   * Renders content language throughout the site (content that comes from the database and is not interface language)
-   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
-   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
-   */
+const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, placeSegmentNumbers}) => {
+
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
@@ -151,23 +142,68 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   }
 
   return renderedItems.map((x) => {
+      if (isImage(x[1])){
+        const altText = getImageAttribute(x[1], 'alt');
+        const srcText = getImageAttribute(x[1], 'src');
+        return(<VersionImage renderedItem={x} altText={altText} srcText={srcText} languageToFilter={languageToFilter} placeSegmentNumbers={placeSegmentNumbers}/>)
+      }
 
-  if (isImage(x[1])){
-    const altText = getImageAttribute(x[1], 'alt')
-    const srcText = getImageAttribute(x[1], 'src');
-    x[1] = (<div className="image-in-text">{<img onLoad={placeSegmentNumbers} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
-    if (x[0] === 'he' && languageToFilter === "bilingual") {x[1] = ''}
+      return (<VersionText renderedItem={x} isDangerouslySetInnerHTML={isDangerouslySetInnerHTML}/>)
+  })
+}
 
-    return(<span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>)
-  }
+const VersionImage = ({renderedItem, altText, srcText, languageToFilter, placeSegmentNumbers}) => {
+    renderedItem[1] = (<div className="image-in-text">{<img onLoad={placeSegmentNumbers} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
+    if (renderedItem[0] === 'he' && languageToFilter === "bilingual") {renderedItem[1] = ''}
 
+    return(<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}>{renderedItem[1]}</span>)
+};
 
-  if (isDangerouslySetInnerHTML) {
-    return (<span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: x[1] }}/>);
+const VersionText = ({renderedItem, isDangerouslySetInnerHTML}) => {
+    console.log("render text")
+    console.log(isDangerouslySetInnerHTML)
+     if (isDangerouslySetInnerHTML) {
+     console.log("render isDangerouslySetInnerHTML")
+    return (<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]} dangerouslySetInnerHTML={{ __html: renderedItem[1] }}/>);
   } else {
-    return (
-      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}> {x[1]}</span>);}
+    return (<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}> {renderedItem[1]}</span>)
+    }
+};
+
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
+  /**
+   * Renders content language throughout the site (content that comes from the database and is not interface language)
+   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
+   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
+   */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0,2);
+  let renderedItems = Object.entries(contentVariable);
+  if(languageToFilter === "bilingual"){
+    if(bilingualOrder !== null){
+      //nifty function that sorts one array according to the order of a second array.
+      renderedItems.sort(function(a, b){
+        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
+      });
+    }
+  }else{
+    renderedItems = renderedItems.filter(([lang, _])=>{
+      return lang === langShort;
     });
+  }
+  return renderedItems.map( x =>
+      isDangerouslySetInnerHTML ?
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          :
+          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
+  );
 };
 
 
@@ -2914,6 +2950,7 @@ export {
   InterruptingMessage,
   InterfaceText,
   ContentText,
+  VersionContent,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,
