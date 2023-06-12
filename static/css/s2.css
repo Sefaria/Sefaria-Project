@@ -3536,7 +3536,7 @@ select {
 .bookPage .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
-.modTools .versionDownloadButton,
+.modTools .modtoolsButton,
 .bookPage .content .versionDownloadButton {
   width: 60%;
   margin: 10px auto;
@@ -3548,18 +3548,18 @@ select {
   color: #ccc;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.modTools .versionDownloadButton .downloadButtonInner,
+.modTools .modtoolsButton .modtoolsButtonInner,
 .bookPage .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
-.modTools .versionDownloadButton .he,
+.modTools .modtoolsButton .he,
 .bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
-.modTools a .versionDownloadButton,
+.modTools a .modtoolsButton,
 .bookPage .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
@@ -3571,10 +3571,10 @@ select {
 .modTools .workflowy-tool .dlSectionTitle{
   width: unset;
 }
-.modTools .workflowy-tool .versionDownloadButton{
+.modTools .workflowy-tool .modtoolsButton{
   color: black;
 }
-.modTools .workflowy-tool .versionDownloadButton:hover{
+.modTools .workflowy-tool .modtoolsButton:hover{
   background-color: #999;
 }
 .modTools .workflowy-tool textarea {

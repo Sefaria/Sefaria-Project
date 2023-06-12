@@ -3243,17 +3243,18 @@ def topic_ref_api(request, tref):
     if request.method == "GET":
         response = get_topics_for_ref(tref, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
-    elif not request.user.is_staff:
-        return jsonResponse({"error": "Only moderators can connect edit topic sources."})
-    elif request.method == "DELETE":
-        return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
-    elif request.method == "POST":
-        description = data.get("description", {})
-        creating_new_link = data.get("is_new", True)
-        new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
-        ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
-                            linkType=linkType, description=description, interface_lang=interface_lang)
-        return jsonResponse(ref_topic_dict)
+    else:
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Only moderators can connect edit topic sources."})
+        elif request.method == "DELETE":
+            return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
+        elif request.method == "POST":
+            description = data.get("description", {})
+            creating_new_link = data.get("is_new", True)
+            new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
+                                linkType=linkType, description=description, interface_lang=interface_lang)
+            return jsonResponse(ref_topic_dict)
 
 @staff_member_required
 def reorder_sources(request):

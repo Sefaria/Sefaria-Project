@@ -1,7 +1,7 @@
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, Autocompleter, InterfaceText} from "./Misc";
+import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
@@ -49,7 +49,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         if (data.enTitle.length > 0) {
             postData['description'] = {"title": data.enTitle, "prompt": data.prompt};
         }
-        postWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
+        requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
     const handleChange = (x) => {
@@ -86,21 +86,10 @@ const SourceEditor = ({topic, close, origData={}}) => {
     }
 
     const deleteTopicSource = function() {
-      $.ajax({
-        url: `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`,
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Source Deleted."));
-            window.location = `/topics/${topic}`;
-          }
-        }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
+
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
                 validate={validate} items={["Title", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}

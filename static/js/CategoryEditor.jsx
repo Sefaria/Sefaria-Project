@@ -2,7 +2,7 @@ import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, AdminToolHeader} from "./Misc";
+import {requestWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
 
 const displayOptionForSources = (child) => {
@@ -84,7 +84,7 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         else if (type === 'sources') {
             postCategoryData = {sources: tocItems};
         }
-        postWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
+        requestWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -187,29 +187,17 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
 
 
     const deleteObj = function() {
-      if (subcategoriesAndBooks.length > 0) {
-          alert("Cannot delete a category with contents.");
-          return;
-      }
-      $.ajax({
-        url: "/api/category/"+origPath.concat(origData.origEn).join("/"),
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Category Deleted."));
-            window.location = "/texts";
-          }
+        if (subcategoriesAndBooks.length > 0) {
+            alert("Cannot delete a category with contents.");
+            return;
         }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
     }
     const primaryOptions = [
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },

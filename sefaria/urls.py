@@ -42,7 +42,8 @@ urlpatterns = [
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
-    url(r'^modtools/upload_links$', sefaria_views.links_upload_api),
+    url(r'^modtools/links$', sefaria_views.links_upload_api),
+    url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
 
@@ -261,7 +262,7 @@ urlpatterns += [
     url(r'^api/topic/new$', reader_views.add_new_topic_api),
     url(r'^api/topic/delete/(?P<topic>.+)$', reader_views.delete_topic),
     url(r'^api/topic/reorder$', reader_views.reorder_topics),
-    url(r'^api/topic/reorder-sources$', reader_views.reorder_sources),
+    url(r'^api/source/reorder$', reader_views.reorder_sources),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
