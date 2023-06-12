@@ -2,8 +2,6 @@ import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
-import MDEditor, { commands } from '@uiw/react-md-editor';
-import ReactMarkdown from 'react-markdown';
 
 const AdminEditorButton = ({toggleAddingTopics, text}) => {
     return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
