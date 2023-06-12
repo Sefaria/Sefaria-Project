@@ -570,10 +570,11 @@ def make_link_query(trefs, **additional_query):
     return query
 
 def get_links_per_segment_by_refs(trefs, **additional_query):
-    if isinstance(Ref(trefs[0]).index_node, JaggedArrayNode):
-        segments = Ref(trefs[0]).all_segment_refs()
+    oref = Ref(trefs[0])
+    if isinstance(oref.index_node, JaggedArrayNode):
+        segments = oref.all_segment_refs()
     else:
-        segments = library.get_index(trefs[0]).all_segment_refs()
+        segments = oref.index.all_segment_refs()
     for segment in segments:
         links = LinkSet(make_link_query([segment.normal(), trefs[1]], **additional_query))
         for link in links:
