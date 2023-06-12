@@ -68,11 +68,11 @@ jobs:
         id: chartVersion
         run: |
           if [[ -z "${{ steps.semantic.outputs.new_release_version }}" ]]; then
-            if [[ -z "$(git describe --match 'helm*' --abbrev=0 HEAD --tags)" ]]; then
+            if [[ -z "$(git tag --points-at HEAD -l 'helm*')" ]]; then
               echo "No chart version available"
               exit 1
             else
-              echo "chartVersion=$(git describe --match 'helm*' --abbrev=0 HEAD --tags | sed 's/helm-chart-//' )" >> $GITHUB_OUTPUT
+              echo "chartVersion=$(git tag --points-at HEAD -l 'helm*' | sed 's/helm-chart-//' )" >> $GITHUB_OUTPUT
             fi
           else
             echo "chartVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT

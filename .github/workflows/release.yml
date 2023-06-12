@@ -56,11 +56,11 @@ jobs:
         id: releaseVersion
         run: |
           if [[ -z "${{ steps.semantic.outputs.new_release_version }}" ]]; then
-            if [[ -z "$(git describe --match 'v*' --abbrev=0 HEAD --tags)" ]]; then
+            if [[ -z "$(git tag --points-at HEAD -l 'v*')" ]]; then
               echo "No release version available"
               exit 1
             else
-            echo "releaseVersion=$(git describe --match 'v*' --abbrev=0 HEAD --tags)" >> $GITHUB_OUTPUT
+            echo "releaseVersion=$(git tag --points-at HEAD -l 'v*')" >> $GITHUB_OUTPUT
             fi
           else
             echo "releaseVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
