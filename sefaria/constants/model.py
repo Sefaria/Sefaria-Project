@@ -1,5 +1,5 @@
-allowed_tags_in_abstract_text_record = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
-allowed_attrs_in_abstract_text_record = {
+ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD = {
     'sup': ['class'],
     'span': ['class', 'dir'],
     # There are three uses of i tags.
