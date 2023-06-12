@@ -2,7 +2,9 @@
 
 # This regular expression represents the conventional commit format, including
 # support for custom semantic commits message parts, e.g., 'feat(custom-prefix-123): ...'.
-CONVENTIONAL_COMMIT_REGEX="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)(\([a-zA-Z0-9-_]*\))?(\!)?: .+)|(Merge .+)|(Revert .+)$"
+#CONVENTIONAL_COMMIT_REGEX_SCOPE="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)(\([a-zA-Z0-9-_]*\))?(\!)?: .+)|(Merge .+)|(Revert .+)$"
+#CONVENTIONAL_COMMIT_REGEX="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)((\([a-zA-Z0-9-_]*\))|(:))?(\!)?: .+)|(Merge .+)|(Revert .+)$"
+CONVENTIONAL_COMMIT_REGEX="^((build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test|static|helm)((\([a-zA-Z0-9\-_]*\))|(:))?(\!)?: .+)|(Merge .+)|(Revert .+)$"
 
 COMMIT_MSG=$(cat "$1")
 
@@ -11,7 +13,9 @@ then
     echo >&2 "Aborting commit. Your commit message does not follow the conventional commit format or allowed custom semantic commits."
     echo >&2 "Valid types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test"
     echo >&2 "Valid custom Sefaria types: static, helm"
-    echo >&2 "Example: feat(user): add user authentication"
-    echo >&2 "Example, custom semantic: static(team page): Update Team page"
+    echo >&2 "Example: 'feat(user): add user authentication'"
+    echo >&2 "Example, custom semantic: 'static(team page): Update Team page'"
+    echo >&2 "Example, no scope: 'feat: resolve broken API'"
+
     exit 1
 fi
