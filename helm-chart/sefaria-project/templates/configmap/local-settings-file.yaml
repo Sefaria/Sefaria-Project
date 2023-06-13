@@ -225,7 +225,7 @@ data:
     RAW_REF_PART_MODEL_BY_LANG_FILEPATH = json.loads(os.getenv("RAW_REF_PART_MODEL_BY_LANG_FILEPATH", '{ "en": null, "he": null }'))
 
     ROLLBAR = {
-        'access_token': os.getenv("ROLLBAR_ACCESS_TOKEN")),
+        'access_token': os.getenv("ROLLBAR_ACCESS_TOKEN"),
         'environment': os.getenv("ROLLBAR_ENVIRONMENT"),
         'code_version': os.getenv("ROLLBAR_CODE_VERSION"),
         'root': BASE_DIR,
