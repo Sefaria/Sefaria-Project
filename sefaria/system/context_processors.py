@@ -74,7 +74,6 @@ def global_settings(request):
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        "CLIENT_ROLLBAR":         CLIENT_ROLLBAR if CLIENT_ROLLBAR else None,
     }
 
 
