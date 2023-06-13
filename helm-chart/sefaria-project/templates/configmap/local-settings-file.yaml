@@ -231,7 +231,7 @@ data:
         'root': BASE_DIR,
     } 
     CLIENT_ROLLBAR = {
-        'accessToken': os.getenv("ROLLBAR_ACCESS_TOKEN")),
+        'accessToken': os.getenv("ROLLBAR_ACCESS_TOKEN"),
         'environment': os.getenv("ROLLBAR_ENVIRONMENT"),
         'server': {
           'code_version': os.getenv("ROLLBAR_CODE_VERSION"),
