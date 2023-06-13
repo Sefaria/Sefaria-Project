@@ -158,7 +158,7 @@ class TestTopics(object):
         t.slug = "sdfsdg<script/>"
         t.description={"en":"<b>Foo</b> <script>balrg</script>", "he": "snurg <script> gdgf </script>"}
         t._sanitize()
-        assert "<b>" in t.description["en"]
+        assert "<b>" not in t.description["en"]
         assert "<script>" not in t.description["en"]
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug

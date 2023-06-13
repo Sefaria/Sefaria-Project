@@ -52,7 +52,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         for (const x of items) {
             if (options_for_form[x]?.is_textarea) {
                 const field = options_for_form[x].field;
-                const valid_tags = await validateMarkdownTags(data[field]);
+                const valid_tags = await validateMarkdownLinks(data[field]);
                 if (!valid_tags) {
                     setValidatingLinks(false);
                     return false;
@@ -62,7 +62,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         validate();
         setValidatingLinks(false);
     }
-    const validateMarkdownTags = async (input) => {
+    const validateMarkdownLinks = async (input) => {
         const regexp = /\[.*?\]\((.*?)\)/g;
         const matches = [...input.matchAll(regexp)];
         const matches_without_duplicates = Array.from(new Set(matches));
