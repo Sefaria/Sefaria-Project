@@ -5,11 +5,6 @@ from django.utils.translation import ugettext_lazy as _
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
-
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -126,7 +121,6 @@ MIDDLEWARE = [
     'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -360,3 +354,4 @@ WEBPACK_LOADER = {
 }
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))

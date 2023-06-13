@@ -250,14 +250,6 @@
       <!-- End Google tag -->
     {% endif %}
 
-      <script>
-        {% if CLIENT_ROLLBAR %}
-          const rollbarConfig = {{CLIENT_ROLLBAR|safe}};
-        {% else %}
-          const rollbarConfig = null;
-        {% endif %}
-      </script>
-
 
     <script>
       {% autoescape off %}

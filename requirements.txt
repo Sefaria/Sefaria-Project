@@ -59,7 +59,6 @@ undecorated==0.3.0
 unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
-rollbar==0.16.3
 babel
 python-bidi
 

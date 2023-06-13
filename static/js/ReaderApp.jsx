@@ -10,7 +10,6 @@ import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ContentLanguageContext, AdContext} from './context';
-import { Provider, ErrorBoundary } from '@rollbar/react';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -2093,7 +2092,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var key   = i + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
-        
                     <ReaderPanel
                       panelPosition={i}
                       initialState={panel}
@@ -2198,24 +2196,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
 
-    // rollbarConfig is a global variable defined in the Django template
-
     return (
       <AdContext.Provider value={this.getUserContext()}>
       <div id="readerAppWrap">
         {interruptingMessage}
-        <Provider config={rollbarConfig}>
-          <ErrorBoundary>
-            <div className={classes} onClick={this.handleInAppLinkClick}>
-              {header}
-              {panels}
-              {sefariaModal}
-              {communityPagePreviewControls}
-              {beitMidrashPanel}
-              <CookiesNotification />
-            </div>
-          </ErrorBoundary>
-        </Provider>
+        <div className={classes} onClick={this.handleInAppLinkClick}>
+          {header}
+          {panels}
+          {sefariaModal}
+          {communityPagePreviewControls}
+          {beitMidrashPanel}
+          <CookiesNotification />
+        </div>
       </div>
       </AdContext.Provider>
     );
