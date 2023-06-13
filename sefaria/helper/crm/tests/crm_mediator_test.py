@@ -90,7 +90,6 @@ class TestSyncSustainers(TestCase):
 
 
 class TestMarkAsSpam(TestCase):
-
     def test_gets_id_marks_spam(self):
         with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.get_crm_id') as mock_get_id:
             mock_get_id.return_value = 6
@@ -99,3 +98,35 @@ class TestMarkAsSpam(TestCase):
             crm_mediator.mark_as_spam_in_crm(1, "hi@hi.com", "abc")
             mock_get_id.assert_called_with(1, "hi@hi.com", "abc")
             crm_mediator._crm_connection.mark_as_spam_in_crm.assert_called_with(6)
+
+
+class TestMarkForReview(TestCase):
+    def test_gets_id_marks_for_review(self):
+        with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.get_crm_id') as mock_get_id:
+            mock_get_id.return_value = 6
+            crm_mediator = CrmMediator()
+            crm_mediator._crm_connection = MagicMock()
+            marked_for_review = crm_mediator.mark_for_review_in_crm(1, "hi@hi.com", "abc")
+            mock_get_id.assert_called_with(1, "hi@hi.com", "abc")
+            crm_mediator._crm_connection.mark_for_review_in_crm.assert_called_with(6)
+            assert marked_for_review is True
+
+    def test_returns_false_doesnt_call_mark_for_review_if_no_crm_id(self):
+        with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.get_crm_id') as mock_get_id:
+            mock_get_id.return_value = False
+            crm_mediator = CrmMediator()
+            crm_mediator._crm_connection = MagicMock()
+            marked_for_review = crm_mediator.mark_for_review_in_crm(1, "hi@hi.com", "abc")
+            mock_get_id.assert_called_with(1, "hi@hi.com", "abc")
+            crm_mediator._crm_connection.mark_for_review_in_crm.assert_not_called()
+            assert marked_for_review is False
+
+    def test_returns_false_if_crm_mark_as_spam_returns_false(self):
+        with patch('sefaria.helper.crm.crm_info_store.CrmInfoStore.get_crm_id') as mock_get_id:
+            mock_get_id.return_value = 6
+            crm_mediator = CrmMediator()
+            crm_mediator._crm_connection = MagicMock()
+            crm_mediator._crm_connection.mark_for_review_in_crm.return_value = False
+            marked_for_review = crm_mediator.mark_for_review_in_crm(1, "hi@hi.com", "abc")
+            mock_get_id.assert_called_with(1, "hi@hi.com", "abc")
+            assert marked_for_review is False
