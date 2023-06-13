@@ -7,7 +7,6 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 # Local time zone for this installation. Choices can be found here:
