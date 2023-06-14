@@ -4604,10 +4604,10 @@ class Ref(object, metaclass=RefCacheType):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
+        fields = ["title", "versionTitle", "versionSource", "language", 'actualLanguage', "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
                   "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle",
-                  "shortVersionTitleInHebrew", "isBaseText"]
+                  "shortVersionTitleInHebrew", "isBaseText", 'isSource', 'formatAsPoetry']
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

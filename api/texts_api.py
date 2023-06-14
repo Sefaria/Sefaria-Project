@@ -8,27 +8,26 @@ class APITextsHandler():
     def __init__(self, oref, versions_params):
         self.versions_params = versions_params
         self.oref = oref
-        self.required_versions = []
         self.handled_version_params = []
-        self.all_versions = self.oref.versionset()
+        self.all_versions = self.oref.version_list()
         self.return_obj = {'versions': []}
 
     def append_required_versions(self, lang, vtitle=None):
         if lang == 'base':
-            lang_condition = lambda v: getattr(v, 'isBaseText', False)
+            lang_condition = lambda v: v['isBaseText']
         elif lang == 'source':
-            lang_condition = lambda v: getattr(v, 'isSource', False)
+            lang_condition = lambda v: v['isSource']
         else:
-            lang_condition = lambda v: v.actualLanguage == lang
+            lang_condition = lambda v: v['actualLanguage'] == lang
         if vtitle and vtitle != 'all':
-            versions = [v for v in self.all_versions if lang_condition(v) and v.versionTitle == vtitle]
+            versions = [v for v in self.all_versions if lang_condition(v) and v['versionTitle'] == vtitle]
         else:
             versions = [v for v in self.all_versions if lang_condition(v)]
             if vtitle != 'all' and versions:
-                versions = [min(versions, key=lambda v: getattr(v, 'proiority', 100))]
+                versions = [max(versions, key=lambda v: int(v['proiority'] or 0))]
         for version in versions:
-            if version not in self.required_versions:
-                self.required_versions.append(version)
+            if version not in self.return_obj['versions']:
+                self.return_obj['versions'].append(version)
 
     def handle_version_params(self, version_params):
         if version_params in self.handled_version_params:
@@ -41,31 +40,10 @@ class APITextsHandler():
         self.append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
-    def add_versions_to_obj(self):
-        for version in self.required_versions:
-            self.return_obj['versions'].append({
-                "versionTitle": version.versionTitle,
-                "versionSource": version.versionSource,
-                "language": version.actualLanguage, #TODO - why do we need this? why in the server?
-                "languageCode": version.actualLanguage,
-                #TODO - do we need also direction?
-                "status": getattr(version, 'status', None),
-                "license": getattr(version, 'license', None),
-                "versionNotes": getattr(version, 'versionNotes', None),
-                "digitizedBySefaria": getattr(version, 'digitizedBySefaria', None),
-                "priority":getattr(version, 'priority', None),
-                "versionTitleInHebrew": getattr(version, 'versionTitleInHebrew', None),
-                "versionNotesInHebrew": getattr(version, 'versionNotesInHebrew', None),
-                "extendedNotes": getattr(version, 'extendedNotes', None),
-                "extendedNotesHebrew": getattr(version, 'extendedNotesHebrew', None),
-                "purchaseInformationImage": getattr(version, 'purchaseInformationImage', None),
-                "purchaseInformationURL": getattr(version, 'purchaseInformationURL', None),
-                "shortVersionTitle": getattr(version, 'shortVersionTitle', None),
-                "shortVersionTitleInHebrew": getattr(version, 'shortVersionTitleInHebrew', None),
-                "isBaseText": getattr(version, 'isBaseText', False),
-                "formatAsPoetry": getattr(version, 'formatAsPoetry', False),
-                "text": TextRange(self.oref, version.actualLanguage, version.versionTitle).text #TODO - current api returns text for sections. dowe want it?
-            })
+    def add_text_to_versions(self):
+        for version in self.return_obj['versions']:
+            version['text'] = TextRange(self.oref, version.actualLanguage, version.versionTitle).text
+            #TODO - current api returns text for sections. do we want it?
 
     def add_ref_data(self):
         oref = self.oref
@@ -149,6 +127,7 @@ class APITextsHandler():
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
             # TODO - alts are reduced fron the index. I guess here we can't give the client to do the job but have to check
+            #
             'alts': self.reduce_alts_to_ref(),
         })
 
@@ -176,7 +155,7 @@ class APITextsHandler():
     def get_versions_for_query(self):
         for version_params in self.versions_params:
             self.handle_version_params(version_params)
-        self.add_versions_to_obj()
+        self.add_text_to_versions()
         self.add_ref_data()
         self.add_index_data()
         self.add_node_data()
