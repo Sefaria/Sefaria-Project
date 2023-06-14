@@ -1,4 +1,4 @@
-from django.http import Http404, QueryDict, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
