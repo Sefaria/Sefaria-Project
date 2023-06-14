@@ -12,4 +12,4 @@ echo "Target file: $GIT_DEFAULT_HOOK_DIR/$HOOK_NAME"
 
 # Symlink the hooks from the .githooks directory to the .git/hooks directory
 ln -s -f "$HOOK_DIR/$HOOK_NAME" "$GIT_DEFAULT_HOOK_DIR/$HOOK_NAME"
-chmod +x "$GIT_DEFAULT_HOOK_DIR/commit-msg"
+chmod +x "$GIT_DEFAULT_HOOK_DIR/$HOOK_NAME"
