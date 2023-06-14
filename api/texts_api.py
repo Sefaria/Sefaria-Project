@@ -6,7 +6,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 class APITextsHandler():
 
     def __init__(self, oref, versions_params):
-        self.versions_params = versions_params if versions_params else 'base'
+        self.versions_params = versions_params
         self.oref = oref
         self.required_versions = []
         self.handled_version_params = []
@@ -24,7 +24,7 @@ class APITextsHandler():
             versions = [v for v in self.all_versions if lang_condition(v) and v.versionTitle == vtitle]
         else:
             versions = [v for v in self.all_versions if lang_condition(v)]
-            if vtitle != 'all':
+            if vtitle != 'all' and versions:
                 versions = [min(versions, key=lambda v: getattr(v, 'proiority', 100))]
         for version in versions:
             if version not in self.required_versions:
