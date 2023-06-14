@@ -211,7 +211,7 @@ jobs:
       - name: Update workflow default chart
         if: github.ref == 'refs/heads/master'
         run: |
-          ./yq -i e '.on.workflow_dispatch.inputs.chart_version.default="${{ inputs_.chart_version }}"' .github/workflows/release.yml
+          ./yq -i e '.on.workflow_dispatch.inputs.chart_version.default="${{ inputs.chart_version }}"' .github/workflows/release.yml
           ./yq -i e '.on.workflow_call.inputs.chart_version.default="${{ inputs.chart_version }}"' .github/workflows/production-deploy.yaml
           git commit -am "ci: update default chart version to ${{ inputs.chart_version }}"
           git push
