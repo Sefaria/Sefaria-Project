@@ -53,7 +53,7 @@ def get_texts(request, tref):
     if request.method == "GET":
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
-            versions_params = ['base'] #TODO - or base?
+            versions_params = ['base']
         handler = APITextsHandler(oref, versions_params)
         data = handler.get_versions_for_query()
         return jsonResponse(data, cb)
