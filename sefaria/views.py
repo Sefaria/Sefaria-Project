@@ -38,7 +38,7 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
@@ -952,6 +952,14 @@ def profile_spam_dashboard(request):
             "profiles": profiles_list,
             "type": "profile",
         })
+
+@staff_member_required
+def delete_user_by_email(request):
+    if request.method == 'GET':
+        form = SefariaDeleteUserForm()
+        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
+    elif request.method == 'POST':
+        pass
 
 
 def purge_spammer_account_data(spammer_id, delete_from_crm=True):

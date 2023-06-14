@@ -406,6 +406,7 @@ urlpatterns += [
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
+    url(r'^admin/delete/user-account', sefaria_views.delete_user_by_email, name="delete/user-account"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),
