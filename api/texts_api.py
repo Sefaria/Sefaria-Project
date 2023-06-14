@@ -14,10 +14,12 @@ class APITextsHandler():
         self.return_obj = {'versions': []}
 
     def append_required_versions(self, lang, vtitle=None):
-        if vtitle:
+        if vtitle and vtitle != 'all':
             versions = [v for v in self.all_versions if v.actualLanguage == lang and v.versionTitle == vtitle]
         else:
             versions = [v for v in self.all_versions if v.actualLanguage == lang]
+            if vtitle != 'all':
+                versions = [min(versions, key=lambda v: getattr(v, 'proiority', 100))]
         for version in versions:
             if version not in self.required_versions:
                 self.required_versions.append(version)
