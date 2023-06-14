@@ -6,7 +6,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 class APITextsHandler():
 
     def __init__(self, oref, versions_params):
-        self.versions_params = versions_params
+        self.versions_params = versions_params if versions_params else 'base'
         self.oref = oref
         self.required_versions = []
         self.handled_version_params = []
@@ -14,10 +14,16 @@ class APITextsHandler():
         self.return_obj = {'versions': []}
 
     def append_required_versions(self, lang, vtitle=None):
-        if vtitle and vtitle != 'all':
-            versions = [v for v in self.all_versions if v.actualLanguage == lang and v.versionTitle == vtitle]
+        if lang == 'base':
+            lang_condition = lambda v: getattr(v, 'isBaseText', False) == True
+        elif lang == 'source':
+            lang_condition = lambda v: getattr(v, 'isSource', False) == True
         else:
-            versions = [v for v in self.all_versions if v.actualLanguage == lang]
+            lang_condition = lambda v: v.actualLanguage == lang
+        if vtitle and vtitle != 'all':
+            versions = [v for v in self.all_versions if lang_condition(v) and v.versionTitle == vtitle]
+        else:
+            versions = [v for v in self.all_versions if lang_condition(v)]
             if vtitle != 'all':
                 versions = [min(versions, key=lambda v: getattr(v, 'proiority', 100))]
         for version in versions:
@@ -32,10 +38,7 @@ class APITextsHandler():
         else:
             lang, vtitle = version_params.split('|', 1)
             vtitle = vtitle.replace('_', ' ')
-        if vtitle == 'all':
-            self.append_required_versions(lang)
-        else:
-            self.append_required_versions(lang, vtitle)
+        self.append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
     def add_versions_to_obj(self):
