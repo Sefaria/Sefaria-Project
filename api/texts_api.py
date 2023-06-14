@@ -24,7 +24,7 @@ class APITextsHandler():
         else:
             versions = [v for v in self.all_versions if lang_condition(v)]
             if vtitle != 'all' and versions:
-                versions = [max(versions, key=lambda v: int(v['proiority'] or 0))]
+                versions = [max(versions, key=lambda v: v['proiority'] or 0)]
         for version in versions:
             if version not in self.return_obj['versions']:
                 self.return_obj['versions'].append(version)
