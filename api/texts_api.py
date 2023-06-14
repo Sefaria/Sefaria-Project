@@ -15,9 +15,9 @@ class APITextsHandler():
 
     def append_required_versions(self, lang, vtitle=None):
         if lang == 'base':
-            lang_condition = lambda v: getattr(v, 'isBaseText', False) == True
+            lang_condition = lambda v: getattr(v, 'isBaseText', False)
         elif lang == 'source':
-            lang_condition = lambda v: getattr(v, 'isSource', False) == True
+            lang_condition = lambda v: getattr(v, 'isSource', False)
         else:
             lang_condition = lambda v: v.actualLanguage == lang
         if vtitle and vtitle != 'all':
