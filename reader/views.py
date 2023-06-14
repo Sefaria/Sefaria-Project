@@ -61,8 +61,8 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
-                                get_random_topic_source, ref_topic_link_prep, annotate_topic_link, \
-                                get_node_in_library_topic_toc, get_path_for_topic_slug
+                                get_random_topic_source, edit_topic_source, \
+                                update_order_of_topic_sources, delete_ref_topic_link
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3121,12 +3121,13 @@ def topics_list_api(request):
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
-        t = Topic({'slug': "", "isTopLevelDisplay": data["category"] == "Main Menu", "data_source": "sefaria", "numSources": 0})
+        isTopLevelDisplay = data["category"] == Topic.ROOT
+        t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         t.add_title(data["title"], 'en', True, True)
         if "heTitle" in data:
             t.add_title(data["heTitle"], "he", True, True)
 
-        if data["category"] != "Main Menu":  # not Top Level so create an IntraTopicLink to category
+        if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
@@ -3226,38 +3227,41 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
-
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
-    API to get RefTopicLinks
+    API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
+
+    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    slug = data.get('topic')
+    interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
+    tref = Ref(tref).normal()  # normalize input
+    linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+    annotate = bool(int(data.get("annotate", False)))
+
     if request.method == "GET":
-        annotate = bool(int(request.GET.get("annotate", False)))
         response = get_topics_for_ref(tref, annotate)
         return jsonResponse(response, callback=request.GET.get("callback", None))
-    elif request.method == "POST":
+    else:
         if not request.user.is_staff:
-            return jsonResponse({"error": "Only moderators can connect refs to topics."})
-
-        slug = json.loads(request.POST.get("json")).get("topic", None)
-        topic_obj = Topic().load({"slug": slug})
-        if topic_obj is None:
-            return jsonResponse({"error": "Topic does not exist"})
-
-        ref_topic_link = {"toTopic": slug, "linkType": "about", "dataSource": "sefaria", "ref": tref}
-        if RefTopicLink().load(ref_topic_link) is None:
-            r = RefTopicLink(ref_topic_link)
-            r.save()
-            num_sources = getattr(topic_obj, "numSources", 0)
-            topic_obj.numSources = num_sources + 1
-            topic_obj.save()
-            ref_topic_dict = ref_topic_link_prep(r.contents())
-            ref_topic_dict = annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+            return jsonResponse({"error": "Only moderators can connect edit topic sources."})
+        elif request.method == "DELETE":
+            return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
+        elif request.method == "POST":
+            description = data.get("description", {})
+            creating_new_link = data.get("is_new", True)
+            new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
+                                linkType=linkType, description=description, interface_lang=interface_lang)
             return jsonResponse(ref_topic_dict)
-        else:
-            return {"error": "Topic link already exists"}
 
+@staff_member_required
+def reorder_sources(request):
+    sources = json.loads(request.POST["json"]).get("sources", [])
+    slug = request.GET.get('topic')
+    lang = 'en' if request.GET.get('lang') == 'english' else 'he'
+    return jsonResponse(update_order_of_topic_sources(slug, sources, request.user.id, lang=lang))
 
 _CAT_REF_LINK_TYPE_FILTER_MAP = {
     'authors': ['popular-writing-of'],

@@ -56,6 +56,7 @@ class TopicSearch extends Component {
       if (topic.name.toLowerCase() === input.toLowerCase()) {
         this.post(topic.key);
         match = true;
+        this.changeInputValue("");
       }
     })
     if (!match) {
@@ -64,7 +65,7 @@ class TopicSearch extends Component {
   }
 
   post(slug) {
-      const postJSON = JSON.stringify({"topic": slug});
+      const postJSON = JSON.stringify({"topic": slug, 'interface_lang': Sefaria.interfaceLang});
       const srefs = this.props.srefs;
       const update = this.props.update;
       const reset = this.reset;

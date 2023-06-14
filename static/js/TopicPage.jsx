@@ -22,7 +22,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    CategoryHeader,
+    CategoryHeader, ContentText,
 
 } from './Misc';
 
@@ -170,9 +170,11 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
   return (
     <Passage
       key={item[0]}
+      topic={topicData.slug}
       text={text}
       afterSave={afterSave}
       toggleSignUpModal={toggleSignUpModal}
+      bodyTextIsLink= {true}
     />
   );
 };
@@ -256,7 +258,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" path={topic}>
+                        <CategoryHeader type="topics" data={topic}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -309,7 +311,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" path={topic} editOnly={true}>
+            <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
@@ -393,8 +395,8 @@ const TopicPage = ({
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
-    const scrollableElement = useRef();
 
+    const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
     
     // Initial Topic Data, updates when `topic` changes
@@ -431,7 +433,7 @@ const TopicPage = ({
       useIncrementalLoad(
         tabObj.fetcher,
         refsToFetchByTab[key] || false,
-        70,
+        Sefaria._topicPageSize,
         data => setLoadedData(prev => {
           const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
           if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
@@ -794,5 +796,6 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
 
 export {
   TopicPage,
-  TopicCategory
+  TopicCategory,
+  refSort
 }

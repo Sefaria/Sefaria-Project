@@ -1467,10 +1467,10 @@ const DonatePage = () => (
                 heTitle=""
                 enText="There are many opportunities to sponsor a text or translation in Sefaria's ever growing library and receive a personal dedication. "
                 heText=""
-                enButtonText="Email Us to Learn More"
+                enButtonText="Learn More"
                 heButtonText=""
-                enButtonUrl="mailto:samantha@sefaria.org"
-                heButtonUrl="mailto:samantha@sefaria.org"
+                enButtonUrl="https://drive.google.com/file/d/1FU8bHy7jZz86aywF7_kYMV0N3_h-k0nM/view"
+                heButtonUrl=""
                 borderColor="#7C416F"
             />
 
@@ -2650,4 +2650,3 @@ export {
     DonatePage,
     WordByWordPage
 }
-

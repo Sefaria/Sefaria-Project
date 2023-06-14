@@ -2,9 +2,22 @@ import {CategoryChooser, InterfaceText, ToggleSet} from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
-import {postWithCallBack, AdminToolHeader} from "./Misc";
+import {requestWithCallBack, AdminToolHeader} from "./Misc";
 import React, {useState, useRef} from "react";
-const displayOptions = {"books": (child) => child.title || child.category, "topics": (child) => child.en};
+
+const displayOptionForSources = (child) => {
+    if (Sefaria.interfaceLang === 'english') {
+        return child?.descriptions?.en ? `${child?.descriptions?.en?.title} - ${child.ref}` : child.ref;
+    }
+    else {
+        const refInCache = Sefaria.getRefFromCache(child.ref);
+        const displayRef = refInCache ? refInCache.heRef : child.ref;
+        return child?.descriptions?.he ? `${child?.descriptions?.he?.title} - ${displayRef}` : displayRef;
+    }
+}
+const displayOptions = {"books": (child) => child.title || child.category,
+                        "topics": (child) => child.en,
+                        "sources": (child) => displayOptionForSources(child)};
 const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
@@ -37,16 +50,13 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
         })
 }
 
-const ReorderEditor = ({close, type=""}) => {
-    const determineOrigItems = () => {
-        if (type === "books") {
-            return Sefaria.toc;
-        }
-        else if (type === "topics") {
-            return Sefaria.topic_toc;
-        }
-    }
-    const [tocItems, setTocItems] = useState(determineOrigItems());
+const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}) => {
+    /*
+    Wrapper for Reorder that allows a full-screen view of `origItems` elements to be reordered.
+    This is currently used when admin edits the root of the topic TOC or category TOC, as well
+    as when an admin reorders sources.
+     */
+    const [tocItems, setTocItems] = useState(origItems);
     const [savingStatus, setSavingStatus] = useState(false);
     const [isChanged, setIsChanged] = useState(false);
     const update = (newTocItems) => {
@@ -63,18 +73,17 @@ const ReorderEditor = ({close, type=""}) => {
     }
     const save = () => {
         let postCategoryData = {};
-        let url = "";
-        if (type !== "topics") {
+        if (type === "books") {
             // use displayOptions to map toc objects to titles of category/book
             postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
-            url = `/api/category?reorder=1`;
-            postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"});
         }
-        else {
-             url = `/api/topic/reorder`;
+        else if (type === "topics") {
              postCategoryData = {topics: tocItems};
-             postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
         }
+        else if (type === 'sources') {
+            postCategoryData = {sources: tocItems};
+        }
+        requestWithCallBack({url: postURL, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = redirect})
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -177,37 +186,27 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
         if (urlParams.length > 0) {
             url += `?${urlParams.join('&')}`;
         }
-        postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
+        requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/texts/"+fullPath});
     }
 
 
     const deleteObj = function() {
-      if (subcategoriesAndBooks.length > 0) {
-          alert("Cannot delete a category with contents.");
-          return;
-      }
-      $.ajax({
-        url: "/api/category/"+origPath.concat(origData.origEn).join("/"),
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Category Deleted."));
-            window.location = "/texts";
-          }
+        if (subcategoriesAndBooks.length > 0) {
+            alert("Cannot delete a category with contents.");
+            return;
         }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/category/${origPath.concat(origData.origEn).join("/")}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
     }
     const primaryOptions = [
                           {name: "true",   content: Sefaria._("True"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to True") },
                           {name: "false", content: Sefaria._("False"), role: "radio", ariaLabel: Sefaria._("Set Primary Status to False") },
                         ];
+    const items = ["Title", "Hebrew Title", "English Description", "Hebrew Description",
+                    "Category Menu", "English Short Description", "Hebrew Short Description"];
     return <div>
         <AdminEditor title="Category Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} shortDescBool={true} path={path}
+                validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items} path={path}
                 extras={
                     [isNew ? null :
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}

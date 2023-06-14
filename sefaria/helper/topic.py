@@ -11,7 +11,7 @@ from sefaria.system.database import db
 from sefaria.system.cache import django_cache
 
 import structlog
-
+from sefaria import tracker
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -1035,3 +1035,125 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
             old_node["categoryDescription"] = topic_obj.categoryDescription
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
+
+def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link=True,
+                      interface_lang='en', linkType='about', description={}):
+    """
+    API helper function used by SourceEditor for editing sources associated with topics which are stored as RefTopicLink
+    Slug, orig_tref, and linkType define the original RefTopicLink if one existed.
+    :param slug: (str) String of topic whose source we are editing
+    :param orig_tref (str) String representation of original reference of source.
+    :param new_tref: (str) String representation of new reference of source.
+    :param link: (RefTopicLink) If not None, the source
+    :param linkType: (str) 'about' is used for most topics, except for 'authors' case
+    :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
+    """
+    topic_obj = Topic.init(slug)
+    if topic_obj is None:
+        return {"error": "Topic does not exist."}
+    ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
+    link = RefTopicLink().load(ref_topic_link)
+    if not creating_new_link and link is None:
+        return {"error": f"Can't edit link because link does not currently exist."}
+    elif not creating_new_link and new_tref != link.ref:
+        new_link = RefTopicLink().load({"toTopic": slug, "linkType": linkType, "ref": new_tref, "order.availableLangs": interface_lang})
+        if new_link:
+            # attempting to change ref of an existing link
+            return {"error": f"Can't change source's ref to {new_tref} as that source already exists.  Please edit that source directly."}
+    elif link:
+        if not hasattr(link, 'order'):
+            link.order = {}
+        if 'availableLangs' not in link.order:
+            link.order['availableLangs'] = []
+        if 'curatedPrimacy' not in link.order and linkType == 'about':
+            link.order['curatedPrimacy'] = {}
+        if interface_lang not in link.order['availableLangs']:
+            link.order['availableLangs'] += [interface_lang]
+        if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
+            # author sources sorted by custom order not curated primacy so check linkType
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+            link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+    elif creating_new_link and link is None:
+        # check link is None to avoid unjustifiably incrementing topic's numSources
+        num_sources = getattr(topic_obj, "numSources", 0)
+        topic_obj.numSources = num_sources + 1
+        topic_obj.save()
+        ref_topic_link['ref'] = new_tref
+        ref_topic_link['order'] = {}
+        ref_topic_link['order']['availableLangs'] = [interface_lang]
+        if linkType == 'about':
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
+            ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
+        link = RefTopicLink(ref_topic_link)
+
+    link.dataSource = "sefaria"
+    link.ref = new_tref
+    if len(description) > 0:
+        if not hasattr(link, 'descriptions'):
+            link.descriptions = {}
+        link.descriptions[interface_lang] = description
+    link.save()
+
+    # process link for client-side, especially relevant in TopicSearch.jsx
+    ref_topic_dict = ref_topic_link_prep(link.contents())
+    return annotate_topic_link(ref_topic_dict, {slug: topic_obj})
+
+def update_order_of_topic_sources(topic, sources, uid, lang='en'):
+    """
+    Used by ReorderEditor.  Reorders sources of topics.
+    :param topic: (str) Slug of topic
+    :param sources: (List) A list of topic sources with ref and order fields.  The first source in the list will have
+    its order field modified so that it appears first on the relevant Topic Page
+    :param uid: (int) UID of user modifying categories and/or books
+    :param lang: (str) 'en' or 'he'
+    """
+
+    if AuthorTopic.init(topic):
+        return {"error": "Author topic sources can't be reordered as they have a customized order."}
+    if Topic.init(topic) is None:
+        return {"error": f"Topic {topic} doesn't exist."}
+    results = []
+    ref_to_link = {}
+
+    # first validate data
+    for s in sources:
+        try:
+             ref = Ref(s['ref']).normal()
+        except InputError as e:
+            return {"error": f"Invalid ref {s['ref']}"}
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
+        if link is None:
+            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+        ref_to_link[s['ref']] = link
+
+    # now update curatedPrimacy data
+    for display_order, s in enumerate(sources[::-1]):
+        link = ref_to_link[s['ref']]
+        order = getattr(link, 'order', {})
+        curatedPrimacy = order.get('curatedPrimacy', {})
+        curatedPrimacy[lang] = display_order
+        order['curatedPrimacy'] = curatedPrimacy
+        link.order = order
+        link.save()
+        results.append(link.contents())
+    return {"sources": results}
+
+
+def delete_ref_topic_link(tref, to_topic, link_type):
+    """
+    :param type: (str) Can be 'ref' or 'intra'
+    :param tref: (str) tref of source
+    :param to_topic: (str) Slug of topic
+    """
+    if Topic.init(to_topic) is None:
+        return {"error": f"Topic {to_topic} doesn't exist."}
+
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    link = RefTopicLink().load(topic_link)
+    if link is None:
+        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
+    if link.can_delete():
+        link.delete()
+        return {"status": "ok"}
+    else:
+        return {"error": f"Cannot delete link between {tref} and {to_topic}."}
