@@ -127,7 +127,7 @@ class APITextsHandler():
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
             # TODO - alts are reduced fron the index. I guess here we can't give the client to do the job but have to check
-            #
+            #TODO - also this did them for sections while this code for now returns the text according to segment refs
             'alts': self.reduce_alts_to_ref(),
         })
 
@@ -148,7 +148,7 @@ class APITextsHandler():
             'titleVariants': inode.all_tree_titles("en"),
             'heTitleVariants': inode.all_tree_titles("he"),
             # TODO - offsets are reduced fron the node. I guess here we can't give the client to do the job but have to check
-            # TODO - also this them for sections while this code for now returns the text according to segment refs
+            # TODO - also this did them for sections while this code for now returns the text according to segment refs
             'index_offsets_by_depth': inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections),
         })
 
