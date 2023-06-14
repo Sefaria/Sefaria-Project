@@ -759,6 +759,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
+            self.ref = Ref(self.ref).normal()
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _validate(self):
@@ -919,11 +920,11 @@ def process_topic_description_change(topic, **kwargs):
     """
     Upon topic description change, get rid of old markdown links and save any new ones
     """
-    topic_link_dict = {"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}
     # need to delete currently existing links but dont want to delete link if its still in the description
     # so load up a dictionary of relevant data -> link
-    existing_link_slugs = {x.fromTopic: x for x in IntraTopicLinkSet(topic_link_dict)}
-    existing_link_refs = {x.ref: x for x in RefTopicLinkSet(topic_link_dict)}
+    IntraTopicLinkSet({"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
+    refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
+    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
 
     markdown_links = set()
     for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
@@ -933,31 +934,21 @@ def process_topic_description_change(topic, **kwargs):
     for markdown_link in markdown_links:
         if markdown_link.startswith("/topics"):
             other_slug = markdown_link.split("/")[-1]
-            other_topic = Topic.init(other_slug)
-            if other_slug in existing_link_slugs:
-                existing_link_slugs.pop(other_slug)    # do not create duplicate or delete it
-            elif other_topic:
-                intra_topic_dict = topic_link_dict.copy()
-                intra_topic_dict['fromTopic'] = other_slug
+            intra_topic_dict = {"toTopic": topic.slug, "linkType": "related-to",
+                                "dataSource": "learning-team-editing-tool", 'fromTopic': other_slug}
+            try:
                 IntraTopicLink(intra_topic_dict).save()
+            except DuplicateRecordError as e:  # there may be identical IntraTopicLinks with a different dataSource or inverted fromTopic and toTopic
+                pass
         else:
             markdown_link = markdown_link[1:]  # assume link starts with a '/'
-            ref_topic_dict = topic_link_dict.copy()
             try:
-                ref = Ref(markdown_link[1:]).normal()
+                ref = Ref(markdown_link).normal()
             except InputError as e:
                 continue
-            if ref in existing_link_refs:
-                existing_link_refs.pop(ref)  # do not create duplicate or delete it
-            else:
-                ref_topic_dict['ref'] = ref
-                RefTopicLink(ref_topic_dict).save()
-
-    for link in existing_link_slugs.values():
-        link.delete()
-
-    for link in existing_link_refs.values():
-        link.delete()
+            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
+                              'ref': ref}
+            RefTopicLink(ref_topic_dict).save()
 
 
 
