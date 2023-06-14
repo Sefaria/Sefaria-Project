@@ -74,7 +74,7 @@ def global_settings(request):
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        "CLIENT_ROLLBAR":         CLIENT_ROLLBAR if CLIENT_ROLLBAR else None,
+        "CLIENT_ROLLBAR":         json.dumps(CLIENT_ROLLBAR) if CLIENT_ROLLBAR else None,
     }
 
 
