@@ -42,6 +42,7 @@ class APITextsHandler():
 
     def add_text_to_versions(self):
         for version in self.return_obj['versions']:
+            version.pop('title')
             version['text'] = TextRange(self.oref, version.actualLanguage, version.versionTitle).text
             #TODO - current api returns text for sections. do we want it?
 
