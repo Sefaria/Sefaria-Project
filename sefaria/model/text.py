@@ -1690,7 +1690,7 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
     text_attr = "text"
 
-    def __init__(self, oref, actual_lang=None, vtitle=None, **kwargs):
+    def __init__(self, oref, actual_lang='en', vtitle=None, **kwargs):
         #kwargs are only for supporting old TextChunck. should be removed after merging
         if isinstance(oref.index_node, JaggedArrayNode):
             self._oref = oref
