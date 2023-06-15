@@ -2,15 +2,38 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
+from enum import Enum
 
 class APITextsHandler():
 
+    Direction = Enum('direction', ['rtl', 'ltr'])
+
     def __init__(self, oref, versions_params):
         self.versions_params = versions_params
+        self.current_params = ''
         self.oref = oref
         self.handled_version_params = []
         self.all_versions = self.oref.version_list()
-        self.return_obj = {'versions': []}
+        self.return_obj = {'versions': [], 'errors': []}
+
+    def handle_errors(self, lang, vtitle):
+        print(f'"{self.current_params}", "{lang}", "{vtitle}"')
+        if lang == 'source':
+            code = 103
+            message = f'We do not have the source text for {self.oref}'
+        elif vtitle and vtitle != 'all':
+            code = 101
+            message = f'We do not have version named {vtitle} with language code {lang} for {self.oref}'
+        else:
+            code = 102
+            availabe_langs = {v['actualLanguage'] for v in self.all_versions}
+            message = f'We do not have the code language you asked for {self.oref}. Available codes are {availabe_langs}'
+        self.return_obj['errors'].append({
+            self.current_params: {
+                'error_code': code,
+                'message': message,
+            }
+        })
 
     def append_required_versions(self, lang, vtitle=None):
         if lang == 'base':
@@ -28,6 +51,8 @@ class APITextsHandler():
         for version in versions:
             if version not in self.return_obj['versions']:
                 self.return_obj['versions'].append(version)
+        if not versions:
+            self.handle_errors(lang, vtitle)
 
     def handle_version_params(self, version_params):
         if version_params in self.handled_version_params:
@@ -43,16 +68,14 @@ class APITextsHandler():
     def add_text_to_versions(self):
         for version in self.return_obj['versions']:
             version.pop('title')
-            version['direction'] = 'ltr' if version['language'] == 'en' else 'he'
+            version['direction'] = self.Direction.ltr.value if version['language'] == 'en' else self.Direction.rtl.value
             version.pop('language')
-            version['text'] = TextRange(self.oref, version.actualLanguage, version.versionTitle).text
-            #TODO - current api returns text for sections. do we want it?
+            version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
 
     def add_ref_data(self):
         oref = self.oref
         self.return_obj.update({
             'ref': oref.normal(),
-            #TODO - why do we need all of those?
             'heRef': oref.he_normal(),
             'sections': oref.sections,
             'toSections': oref.toSections,
@@ -61,10 +84,10 @@ class APITextsHandler():
             'firstAvailableSectionRef': oref.first_available_section_ref().normal(),
             'isSpanning': oref.is_spanning(),
             'spanningRefs': [r.normal() for r in oref.split_spanning_ref()],
-           'next': oref.next_section_ref().normal(), #TODO - change names like 'next_section_ref'? the question is how much cilent code use this name
+            'next': oref.next_section_ref().normal(),
             'prev': oref.prev_section_ref().normal(),
             'title': oref.context_ref().normal(),
-            'book': oref.book, #TODO - isnt it the same as title?
+            'book': oref.book,
             'heTitle': oref.context_ref().he_normal(),
             'primary_category': oref.primary_category,
             'type': oref.primary_category, #same as primary category
@@ -123,20 +146,16 @@ class APITextsHandler():
         index = self.oref.index
         self.return_obj.update({
             'indexTitle': index.title,
-            #TODO - those are attrs of index. it seems client can take them from there
             'categories': index.categories,
             'heIndexTitle': index.get_title('he'),
             'isComplex': index.is_complex(),
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
-            # TODO - alts are reduced fron the index. I guess here we can't give the client to do the job but have to check
-            #TODO - also this did them for sections while this code for now returns the text according to segment refs
             'alts': self.reduce_alts_to_ref(),
         })
 
     def add_node_data(self):
         inode = self.oref.index_node
-        # TODO - all those are attrs of node, so they are available also in the index. can the client take them from there?
         if getattr(inode, "lengths", None):
             self.return_obj["lengths"] = getattr(inode, "lengths")
             if len(self.return_obj["lengths"]):
@@ -147,16 +166,15 @@ class APITextsHandler():
             'textDepth': getattr(inode, "depth", None),
             'sectionNames': getattr(inode, "sectionNames", None),
             'addressTypes': getattr(inode, "addressTypes", None),
-            'heTitle': inode.full_title("he"), #TODO - is there use in this and the nexts?
+            'heTitle': inode.full_title("he"),
             'titleVariants': inode.all_tree_titles("en"),
             'heTitleVariants': inode.all_tree_titles("he"),
-            # TODO - offsets are reduced fron the node. I guess here we can't give the client to do the job but have to check
-            # TODO - also this did them for sections while this code for now returns the text according to segment refs
             'index_offsets_by_depth': inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections),
         })
 
     def get_versions_for_query(self):
         for version_params in self.versions_params:
+            self.current_params = version_params
             self.handle_version_params(version_params)
         self.add_text_to_versions()
         self.add_ref_data()
