@@ -955,11 +955,27 @@ def profile_spam_dashboard(request):
 
 @staff_member_required
 def delete_user_by_email(request):
+    from django.contrib.auth.models import User
+    from sefaria.utils.user import delete_user_account
     if request.method == 'GET':
         form = SefariaDeleteUserForm()
         return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
     elif request.method == 'POST':
-        pass
+        user = User.objects.get(id=request.user.id)
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        try:
+            user.check_password(password)
+        except:
+            return jsonResponse({"failure": "incorrect password"})
+        try:
+            id_to_delete = UserProfile(email=email)
+            delete_user_account(id_to_delete.id, False)
+            return jsonResponse({"success": f"deleted user {email}"})
+        except:
+            return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+
+
 
 
 def purge_spammer_account_data(spammer_id, delete_from_crm=True):
