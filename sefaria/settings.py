@@ -299,14 +299,14 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-05-22-shavuot3",
+    "name": "2023-06-16-help-center",
     "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
     "condition":  {
         "returning_only": False,
         "english_only": False,
-        "desktop_only": False,
+        "desktop_only": True,
         "debug": False,
     }
 }
