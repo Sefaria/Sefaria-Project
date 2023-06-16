@@ -1148,11 +1148,16 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     link = RefTopicLink().load(topic_link)
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
-    link.order['availableLangs'].remove(lang)
-    link.order['curatedPrimacy'].pop(lang)
+
+    if lang in link.order['availableLangs']:   
+        link.order['availableLangs'].remove(lang)
+    if lang in link.order['curatedPrimacy']:
+        link.order['curatedPrimacy'].pop(lang)
+
     if len(link.order['availableLangs']) > 0:
+        link.save()
         return {"status": "ok"}
-    else:
+    else:   # deleted in both hebrew and english so delete link object
         if link.can_delete():
             link.delete()
             return {"status": "ok"}
