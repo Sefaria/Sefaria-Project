@@ -329,7 +329,6 @@ import {LinkExcluder} from "./excluder";
             with_text: 1,
             debug: 0 + ns.debug,
             max_segments: ns.maxParagraphs,
-            ...(ns.versionTitlePreference ? { version_title_preference: ns.versionTitlePreference } : {}),
         }
         const queryString = Object.entries(params)
             .map(([key, value]) => `${key}=${value}`)
@@ -354,6 +353,7 @@ import {LinkExcluder} from "./excluder";
                 description: getPageDescription(),
                 title: document.title,
             },
+            version_preferences_by_corpus: ns.versionPreferencesByCorpus,
             text: {
                 ...ns.normalizedInputText,
             },
@@ -417,7 +417,7 @@ import {LinkExcluder} from "./excluder";
             dynamic: false,
             hidePopupsOnMobile: true,
             debug: false,
-            versionTitlePreference: null,
+            versionPreferencesByCorpus: null,
 
             // Deprecated options
             selector: null,           // CSS Selector
@@ -437,7 +437,7 @@ import {LinkExcluder} from "./excluder";
         ns.excludeFromLinking = options.excludeFromLinking;
         ns.dynamic = options.dynamic;
         ns.debug = options.debug;
-        ns.versionTitlePreference = options.versionTitlePreference;
+        ns.versionPreferencesByCorpus = options.versionPreferencesByCorpus;
         ns.maxParagraphs = 20;
         // useful to remove sefaria links for now but I think when released we only want this to run in debug mode
         if (options.debug || true) { removeExistingSefariaLinks(); }
