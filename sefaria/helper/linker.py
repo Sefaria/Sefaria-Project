@@ -13,7 +13,7 @@ logger = structlog.get_logger(__name__)
 
 
 @dataclasses.dataclass
-class FindRefsTextOptions:
+class _FindRefsTextOptions:
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
     @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
@@ -27,7 +27,7 @@ class FindRefsTextOptions:
 
 
 @dataclasses.dataclass
-class FindRefsText:
+class _FindRefsText:
     title: str
     body: str
 
@@ -42,21 +42,21 @@ def _unpack_find_refs_request(request):
     return _create_find_refs_text(post_body), _create_find_refs_options(request.GET, post_body), meta_data
 
 
-def _create_find_refs_text(post_body) -> FindRefsText:
+def _create_find_refs_text(post_body) -> _FindRefsText:
     title = post_body['text']['title']
     body = post_body['text']['body']
-    return FindRefsText(title, body)
+    return _FindRefsText(title, body)
 
 
-def _create_find_refs_options(get_body, post_body) -> FindRefsTextOptions:
+def _create_find_refs_options(get_body, post_body) -> _FindRefsTextOptions:
     with_text = bool(int(get_body.get("with_text", False)))
     debug = bool(int(get_body.get("debug", False)))
     max_segments = int(get_body.get("max_segments", 0))
     version_preferences_by_corpus = post_body.get("version_preferences_by_corpus")
-    return FindRefsTextOptions(with_text, debug, max_segments, version_preferences_by_corpus)
+    return _FindRefsTextOptions(with_text, debug, max_segments, version_preferences_by_corpus)
 
 
-def add_webpage_hit_for_url(url):
+def _add_webpage_hit_for_url(url):
     if url is None: return
     webpage = WebPage().load(url)
     if not webpage: return
@@ -67,7 +67,7 @@ def add_webpage_hit_for_url(url):
 def make_find_refs_response(request):
     request_text, options, meta_data = _unpack_find_refs_request(request)
     if meta_data:
-        add_webpage_hit_for_url(meta_data.get("url", None))
+        _add_webpage_hit_for_url(meta_data.get("url", None))
     return _make_find_refs_response_with_cache(request_text, options, meta_data)
 
 
@@ -83,28 +83,28 @@ def _make_find_refs_response_with_cache(request_text, options, meta_data):
             "url": meta_data['url'],
             "title": meta_data['title'],
             "description": meta_data['description'],
-            "refs": get_trefs_from_response(response),
+            "refs": _get_trefs_from_response(response),
         }, add_hit=False)
         if webpage:
             response['url'] = webpage.url
     return response
 
 
-def _make_find_refs_response_linker_v3(request_text: FindRefsText, options: FindRefsTextOptions):
+def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions):
     resolver = library.get_ref_resolver()
     resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
     resolved_body = resolver.bulk_resolve_refs(request_text.lang, [context_ref], [request_text.body], with_failures=True)
 
     response = {
-        "title": make_find_refs_response_inner(resolved_title, options),
-        "body": make_find_refs_response_inner(resolved_body, options),
+        "title": _make_find_refs_response_inner(resolved_title, options),
+        "body": _make_find_refs_response_inner(resolved_body, options),
     }
 
     return response
 
 
-def _make_find_refs_response_linker_v2(request_text: FindRefsText, options: FindRefsTextOptions):
+def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions):
     response = {
         "title": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.title, options),
         "body": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.body, options),
@@ -112,7 +112,7 @@ def _make_find_refs_response_linker_v2(request_text: FindRefsText, options: Find
     return response
 
 
-def _make_find_refs_response_inner_linker_v2(lang, text, options: FindRefsTextOptions):
+def _make_find_refs_response_inner_linker_v2(lang, text, options: _FindRefsTextOptions):
     import re
     ref_results = []
     ref_data = {}
@@ -127,7 +127,7 @@ def _make_find_refs_response_inner_linker_v2(lang, text, options: FindRefsTextOp
             "linkFailed": False,
             "refs": [tref]
         }]
-        ref_data[tref] = make_ref_response_for_linker(ref, options)
+        ref_data[tref] = _make_ref_response_for_linker(ref, options)
 
     library.apply_action_for_all_refs_in_string(text, _find_refs_action, lang, citing_only=True)
     response = {
@@ -141,7 +141,7 @@ def _make_find_refs_response_inner_linker_v2(lang, text, options: FindRefsTextOp
     return response
 
 
-def get_trefs_from_response(response):
+def _get_trefs_from_response(response):
     trefs = []
     for key, value in response.items():
         if isinstance(value, dict) and 'refData' in value:
@@ -149,7 +149,7 @@ def get_trefs_from_response(response):
     return trefs
 
 
-def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: FindRefsTextOptions):
+def _make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: _FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -171,9 +171,9 @@ def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef
             if rr.ref is None: continue
             tref = rr.ref.normal()
             if tref in ref_data: continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, options)
+            ref_data[tref] = _make_ref_response_for_linker(rr.ref, options)
         if options.debug:
-            debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
+            debug_data += [[_make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
@@ -185,14 +185,14 @@ def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, options: FindRefsTextOptions) -> dict:
+def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", options)
-    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", options)
+    he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+    en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
     if options.with_text:
         res.update({
             'he': he,
@@ -211,7 +211,7 @@ def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corp
     return vprefs[corpus][lang]
 
 
-def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: FindRefsTextOptions):
+def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions):
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
     chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
@@ -219,7 +219,7 @@ def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: FindRefs
     return as_array[:options.max_segments or None], was_truncated
 
 
-def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
+def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
     debug_data = {
         "orig_part_strs": [p.text for p in resolved_ref.raw_ref.raw_ref_parts],
         "orig_part_types": [p.type.name for p in resolved_ref.raw_ref.raw_ref_parts],
