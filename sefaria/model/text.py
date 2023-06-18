@@ -1340,6 +1340,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
         "actualLanguage",
         "isBaseText",
+        'isSource',
+        'isBaseText2' #temp
     ]
 
     def __str__(self):
@@ -4604,10 +4606,8 @@ class Ref(object, metaclass=RefCacheType):
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["title", "versionTitle", "versionSource", "language", 'actualLanguage', "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle",
-                  "shortVersionTitleInHebrew", "isBaseText", 'isSource', 'formatAsPoetry']
+        fields = Version.optional_attrs + Version.required_attrs
+        fields.remove('chapter')
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
