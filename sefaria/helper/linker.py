@@ -12,6 +12,38 @@ from typing import List, Union, Optional
 logger = structlog.get_logger(__name__)
 
 
+def load_spacy_model(path: str) -> spacy.Language:
+    import re, tarfile
+    from tempfile import TemporaryDirectory
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
+
+    using_gpu = spacy.prefer_gpu()
+    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
+
+    if path.startswith("gs://"):
+        # file is located in Google Cloud
+        # file is expected to be a tar.gz of the model folder
+        match = re.match(r"gs://([^/]+)/(.+)$", path)
+        bucket_name = match.group(1)
+        blob_name = match.group(2)
+        model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
+        tar_buffer = tarfile.open(fileobj=model_buffer)
+        with TemporaryDirectory() as tempdir:
+            tar_buffer.extractall(tempdir)
+            nlp = spacy.load(tempdir)
+    else:
+        nlp = spacy.load(path)
+    return nlp
+
+
+def make_find_refs_response(request):
+    request_text, options, meta_data = _unpack_find_refs_request(request)
+    if meta_data:
+        _add_webpage_hit_for_url(meta_data.get("url", None))
+    return _make_find_refs_response_with_cache(request_text, options, meta_data)
+
+
 @dataclasses.dataclass
 class _FindRefsTextOptions:
     """
@@ -64,11 +96,6 @@ def _add_webpage_hit_for_url(url):
     webpage.save()
 
 
-def make_find_refs_response(request):
-    request_text, options, meta_data = _unpack_find_refs_request(request)
-    if meta_data:
-        _add_webpage_hit_for_url(meta_data.get("url", None))
-    return _make_find_refs_response_with_cache(request_text, options, meta_data)
 
 
 @django_cache(cache_type="persistent")
@@ -240,26 +267,3 @@ def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
     return debug_data
 
 
-def load_spacy_model(path: str) -> spacy.Language:
-    import re, tarfile
-    from tempfile import TemporaryDirectory
-    from sefaria.google_storage_manager import GoogleStorageManager
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
-
-    using_gpu = spacy.prefer_gpu()
-    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
-
-    if path.startswith("gs://"):
-        # file is located in Google Cloud
-        # file is expected to be a tar.gz of the model folder
-        match = re.match(r"gs://([^/]+)/(.+)$", path)
-        bucket_name = match.group(1)
-        blob_name = match.group(2)
-        model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
-        tar_buffer = tarfile.open(fileobj=model_buffer)
-        with TemporaryDirectory() as tempdir:
-            tar_buffer.extractall(tempdir)
-            nlp = spacy.load(tempdir)
-    else:
-        nlp = spacy.load(path)
-    return nlp
