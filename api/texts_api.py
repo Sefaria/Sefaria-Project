@@ -2,6 +2,7 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
+from sefaria.utils.hebrew import hebrew_term
 from enum import Enum
 
 class APITextsHandler():
@@ -77,16 +78,16 @@ class APITextsHandler():
         self.return_obj.update({
             'ref': oref.normal(),
             'heRef': oref.he_normal(),
-            'sections': oref.sections,
-            'toSections': oref.toSections,
+            'sections': oref.normal_sections(), #that means it will be string. in the previous api talmud sections were strings while integers remained integets. this is more consistent but we should check it works
+            'toSections': oref.normal_toSections(),
             'sectionRef': oref.section_ref().normal(),
             'heSectionRef': oref.section_ref().he_normal(),
             'firstAvailableSectionRef': oref.first_available_section_ref().normal(),
             'isSpanning': oref.is_spanning(),
             'spanningRefs': [r.normal() for r in oref.split_spanning_ref()],
             'next': oref.next_section_ref().normal(),
-            'prev': oref.prev_section_ref().normal(),
-            'title': oref.context_ref().normal(),
+            'prev': oref.prev_section_ref().normal() if oref.prev_section_ref() else None,
+            'title': oref.context_ref().normal() if oref.next_section_ref() else None,
             'book': oref.book,
             'heTitle': oref.context_ref().he_normal(),
             'primary_category': oref.primary_category,
@@ -151,6 +152,8 @@ class APITextsHandler():
             'isComplex': index.is_complex(),
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
+            'collectiveTitle': getattr(index, 'collective_title', ''),
+            'heCollectiveTitle': hebrew_term(getattr(index, 'collective_title', '')),
             'alts': self._reduce_alts_to_ref(),
         })
 
