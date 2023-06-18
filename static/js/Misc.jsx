@@ -1187,7 +1187,8 @@ const CategoryHeader = ({children, type, data = [], edit = true,
       let url = `/api/source/reorder?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = topicData.refs?.about?.refs || [];
       if (refs.length) {
-        refs = refs.filter((x) => !x.ref.startsWith('Sheet ')).slice(0, Sefaria._topicPageSize);
+        const filter_func = (x) => !x.ref.startsWith('Sheet ') && x?.order?.availableLangs.includes(Sefaria.interfaceLang.slice(0,2));
+        refs = refs.filter(filter_func).slice(0, Sefaria._topicPageSize);
         refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
       }
       adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
