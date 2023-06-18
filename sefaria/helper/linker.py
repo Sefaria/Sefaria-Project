@@ -213,7 +213,7 @@ def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corp
 
 def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: FindRefsTextOptions):
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
-    chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle)
+    chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
     was_truncated = 0 < options.max_segments < len(as_array)
     return as_array[:options.max_segments or None], was_truncated
