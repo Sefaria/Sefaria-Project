@@ -16,7 +16,7 @@ class APITextsHandler():
         self.all_versions = self.oref.version_list()
         self.return_obj = {'versions': [], 'errors': []}
 
-    def handle_errors(self, lang, vtitle):
+    def _handle_errors(self, lang, vtitle):
         print(f'"{self.current_params}", "{lang}", "{vtitle}"')
         if lang == 'source':
             code = 103
@@ -35,7 +35,7 @@ class APITextsHandler():
             }
         })
 
-    def append_required_versions(self, lang, vtitle=None):
+    def _append_required_versions(self, lang, vtitle=None):
         if lang == 'base':
             lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == 'source':
@@ -54,7 +54,7 @@ class APITextsHandler():
         if not versions:
             self.handle_errors(lang, vtitle)
 
-    def handle_version_params(self, version_params):
+    def _handle_version_params(self, version_params):
         if version_params in self.handled_version_params:
             return
         if '|' not in version_params:
@@ -65,14 +65,14 @@ class APITextsHandler():
         self.append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
-    def add_text_to_versions(self):
+    def _add_text_to_versions(self):
         for version in self.return_obj['versions']:
             version.pop('title')
             version['direction'] = self.Direction.ltr.value if version['language'] == 'en' else self.Direction.rtl.value
             version.pop('language')
             version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
 
-    def add_ref_data(self):
+    def _add_ref_data(self):
         oref = self.oref
         self.return_obj.update({
             'ref': oref.normal(),
@@ -93,7 +93,7 @@ class APITextsHandler():
             'type': oref.primary_category, #same as primary category
         })
 
-    def reduce_alts_to_ref(self): #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
+    def _reduce_alts_to_ref(self): #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
         oref = self.oref
         # Set up empty Array that mirrors text structure
         alts_ja = JaggedArray()
@@ -142,7 +142,7 @@ class APITextsHandler():
 
         return alts_ja.array()
 
-    def add_index_data(self):
+    def _add_index_data(self):
         index = self.oref.index
         self.return_obj.update({
             'indexTitle': index.title,
@@ -154,7 +154,7 @@ class APITextsHandler():
             'alts': self.reduce_alts_to_ref(),
         })
 
-    def add_node_data(self):
+    def _add_node_data(self):
         inode = self.oref.index_node
         if getattr(inode, "lengths", None):
             self.return_obj["lengths"] = getattr(inode, "lengths")
