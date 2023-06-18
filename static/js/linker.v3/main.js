@@ -329,6 +329,7 @@ import {LinkExcluder} from "./excluder";
             with_text: 1,
             debug: 0 + ns.debug,
             max_segments: ns.maxParagraphs,
+            ...(ns.versionTitlePreference ? { versionTitlePreference: ns.versionTitlePreference } : {}),
         }
         const queryString = Object.entries(params)
             .map(([key, value]) => `${key}=${value}`)
