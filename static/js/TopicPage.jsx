@@ -311,11 +311,12 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
+            {!!topicData && !topicData.isLoading &&
+                <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
-            </CategoryHeader>
+                </CategoryHeader>}
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

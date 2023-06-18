@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cat << EOF > helm-chart/.releaserc
-tagFormat: helm-chart-${version}
+tagFormat: helm-chart-\${version}
 plugins:
   - - "@semantic-release/commit-analyzer"
     - preset: "conventionalcommits"
@@ -34,6 +34,8 @@ plugins:
           - {"type": "perf", "hidden": true}
           - {"type": "test", "hidden": true}
           - {"type": "static", "hidden": true}
+  - - "@semantic-release/github"
+    - "successComment": false
 EOF
 export branch=$(git branch --show-current)
 if [[ $branch != "master" ]]; then

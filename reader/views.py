@@ -3247,7 +3247,7 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect edit topic sources."})
         elif request.method == "DELETE":
-            return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
+            return jsonResponse(delete_ref_topic_link(tref, slug, linkType, interface_lang))
         elif request.method == "POST":
             description = data.get("description", {})
             creating_new_link = data.get("is_new", True)

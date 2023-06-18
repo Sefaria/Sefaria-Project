@@ -1055,11 +1055,6 @@ def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link
     link = RefTopicLink().load(ref_topic_link)
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
-    elif not creating_new_link and new_tref != link.ref:
-        new_link = RefTopicLink().load({"toTopic": slug, "linkType": linkType, "ref": new_tref, "order.availableLangs": interface_lang})
-        if new_link:
-            # attempting to change ref of an existing link
-            return {"error": f"Can't change source's ref to {new_tref} as that source already exists.  Please edit that source directly."}
     elif link:
         if not hasattr(link, 'order'):
             link.order = {}
@@ -1139,11 +1134,12 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     return {"sources": results}
 
 
-def delete_ref_topic_link(tref, to_topic, link_type):
+def delete_ref_topic_link(tref, to_topic, link_type, lang):
     """
     :param type: (str) Can be 'ref' or 'intra'
     :param tref: (str) tref of source
     :param to_topic: (str) Slug of topic
+    :param lang: (str) 'he' or 'en'
     """
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
@@ -1152,8 +1148,13 @@ def delete_ref_topic_link(tref, to_topic, link_type):
     link = RefTopicLink().load(topic_link)
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
-    if link.can_delete():
-        link.delete()
+    link.order['availableLangs'].remove(lang)
+    link.order['curatedPrimacy'].pop(lang)
+    if len(link.order['availableLangs']) > 0:
         return {"status": "ok"}
     else:
-        return {"error": f"Cannot delete link between {tref} and {to_topic}."}
+        if link.can_delete():
+            link.delete()
+            return {"status": "ok"}
+        else:
+            return {"error": f"Cannot delete link between {tref} and {to_topic}."}
