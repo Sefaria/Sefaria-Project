@@ -1,3 +1,5 @@
+import dataclasses
+import json
 import spacy
 import structlog
 from sefaria.model.linker.ref_part import TermContext, RefPartType
@@ -10,6 +12,48 @@ from typing import List, Union
 logger = structlog.get_logger(__name__)
 
 
+@dataclasses.dataclass
+class FindRefsTextOptions:
+    """
+    @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
+    @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
+    """
+
+    debug: bool = False
+    with_text: bool = False
+    max_segments: int = 0
+
+
+@dataclasses.dataclass
+class FindRefsText:
+    title: str
+    body: str
+
+    def __post_init__(self):
+        from sefaria.utils.hebrew import is_hebrew
+        self.lang = 'he' if is_hebrew(self.body) else 'en'
+
+
+def unpack_find_refs_request(request):
+    post_body = json.loads(request.body)
+    meta_data = post_body.get('metaDataForTracking')
+    return _create_find_refs_text(post_body), _create_find_refs_options(request), meta_data
+
+
+def _create_find_refs_text(post_body) -> FindRefsText:
+    title = post_body['text']['title']
+    body = post_body['text']['body']
+    return FindRefsText(title, body)
+
+
+def _create_find_refs_options(request) -> FindRefsTextOptions:
+    with_text = bool(int(request.GET.get("with_text", False)))
+    debug = bool(int(request.GET.get("debug", False)))
+    max_segments = int(request.GET.get("max_segments", 0))
+    version_title_preference = request.GET.get("version_title_preference")
+    return FindRefsTextOptions(with_text, debug, max_segments, version_title_preference)
+
+
 def add_webpage_hit_for_url(url):
     if url is None: return
     webpage = WebPage().load(url)
@@ -18,19 +62,21 @@ def add_webpage_hit_for_url(url):
     webpage.save()
 
 
-@django_cache(cache_type="persistent")
-def make_find_refs_response(post_body, with_text, debug, max_segments):
-    from sefaria.utils.hebrew import is_hebrew
-    title_text = post_body['text']['title']
-    body_text = post_body['text']['body']
-    lang = 'he' if is_hebrew(body_text) else 'en'
-    if lang == 'he':
-        response = _make_find_refs_response_linker_v3(title_text, body_text, with_text, debug, max_segments, lang)
-    else:
-        response = _make_find_refs_response_linker_v2(title_text, body_text, with_text, debug, max_segments, lang)
+def make_find_refs_response(request):
+    request_text, options, meta_data = unpack_find_refs_request(request)
+    if meta_data:
+        add_webpage_hit_for_url(meta_data.get("url", None))
+    return _make_find_refs_response_with_cache(request_text, options, meta_data)
 
-    if 'metaDataForTracking' in post_body:
-        meta_data = post_body['metaDataForTracking']
+
+@django_cache(cache_type="persistent")
+def _make_find_refs_response_with_cache(request_text, options, meta_data):
+    if request_text.lang == 'he':
+        response = _make_find_refs_response_linker_v3(request_text, options)
+    else:
+        response = _make_find_refs_response_linker_v2(request_text, options)
+
+    if meta_data:
         _, webpage = WebPage.add_or_update_from_linker({
             "url": meta_data['url'],
             "title": meta_data['title'],
@@ -39,33 +85,32 @@ def make_find_refs_response(post_body, with_text, debug, max_segments):
         }, add_hit=False)
         if webpage:
             response['url'] = webpage.url
-
     return response
 
 
-def _make_find_refs_response_linker_v3(title_text, body_text, with_text, debug, max_segments, lang):
+def _make_find_refs_response_linker_v3(request_text: FindRefsText, options: FindRefsTextOptions):
     resolver = library.get_ref_resolver()
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [title_text])
+    resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [body_text], with_failures=True)
+    resolved_body = resolver.bulk_resolve_refs(request_text.lang, [context_ref], [request_text.body], with_failures=True)
 
     response = {
-        "title": make_find_refs_response_inner(resolved_title, with_text, debug, max_segments),
-        "body": make_find_refs_response_inner(resolved, with_text, debug, max_segments),
+        "title": make_find_refs_response_inner(resolved_title, options),
+        "body": make_find_refs_response_inner(resolved_body, options),
     }
 
     return response
 
 
-def _make_find_refs_response_linker_v2(title_text, body_text, with_text, debug, max_segments, lang):
+def _make_find_refs_response_linker_v2(request_text: FindRefsText, options: FindRefsTextOptions):
     response = {
-        "title": _make_find_refs_response_inner_linker_v2(lang, title_text, with_text, max_segments, debug),
-        "body": _make_find_refs_response_inner_linker_v2(lang, body_text, with_text, max_segments, debug),
+        "title": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.title, options),
+        "body": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.body, options),
     }
     return response
 
 
-def _make_find_refs_response_inner_linker_v2(lang, text, with_text, max_segments, debug):
+def _make_find_refs_response_inner_linker_v2(lang, text, options: FindRefsTextOptions):
     import re
     ref_results = []
     ref_data = {}
@@ -80,14 +125,14 @@ def _make_find_refs_response_inner_linker_v2(lang, text, with_text, max_segments
             "linkFailed": False,
             "refs": [tref]
         }]
-        ref_data[tref] = make_ref_response_for_linker(ref, with_text, max_segments)
+        ref_data[tref] = make_ref_response_for_linker(ref, options)
 
     library.apply_action_for_all_refs_in_string(text, _find_refs_action, lang, citing_only=True)
     response = {
         "results": ref_results,
         "refData": ref_data
     }
-    if debug:
+    if options.debug:
         # debugData has no meaning for linker v2 since there are no ref parts
         response['debugData'] = []
 
@@ -102,15 +147,7 @@ def get_trefs_from_response(response):
     return trefs
 
 
-def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
-    """
-
-    @param resolved:
-    @param with_text:
-    @param debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
-    @param max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
-    @return:
-    """
+def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -132,29 +169,29 @@ def make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef
             if rr.ref is None: continue
             tref = rr.ref.normal()
             if tref in ref_data: continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text, max_segments)
-        if debug:
+            ref_data[tref] = make_ref_response_for_linker(rr.ref, options)
+        if options.debug:
             debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
         "refData": ref_data
     }
-    if debug:
+    if options.debug:
         response['debugData'] = debug_data
 
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0) -> dict:
+def make_ref_response_for_linker(oref: text.Ref, options: FindRefsTextOptions) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", max_segments)
-    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", max_segments)
-    if with_text:
+    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", options)
+    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", options)
+    if options.with_text:
         res.update({
             'he': he,
             'en': en,
@@ -164,11 +201,11 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0
     return res
 
 
-def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
+def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: FindRefsTextOptions):
     chunk = text.TextChunk(oref, lang=lang)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
-    was_truncated = 0 < max_segments < len(as_array)
-    return as_array[:max_segments or None], was_truncated
+    was_truncated = 0 < options.max_segments < len(as_array)
+    return as_array[:options.max_segments or None], was_truncated
 
 
 def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
