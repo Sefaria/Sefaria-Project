@@ -22,25 +22,43 @@ function useEditToggle() {
   return [editingBool, toggleAddingTopics];
 }
 
+const validateMarkdownLinks = async (input) => {
+    const regexp = /\[.*?\]\((.*?)\)/g;
+    const matches = [...input.matchAll(regexp)];
+    const matches_without_duplicates = Array.from(new Set(matches));
+    for (const match of matches_without_duplicates) {
+        const url = match[1];
+        const name = url.split("/").slice(-1)[0];
+        let namesFound = [];
+        let d = [];
+        if (url.startsWith("/topics")) {
+            d = await Sefaria.getTopicCompletions(name, (x) => x[1]);
+        }
+        else {
+            d = await Sefaria.getName(name, false);
+            if (d.is_ref) {
+                continue;
+            }
+            d = d.completion_objects;
+        }
+        d.forEach((x) => {
+            Array.isArray(x.key) ?
+                x.key.forEach((y) => namesFound.push(y)) // the key is an array when getName returns a TocCategory
+                : namesFound.push(x.key);
+        });
+        const validLink = namesFound.includes(name) > 0 ? true :
+            confirm(`${name} not found in Sefaria database.  Please confirm that you meant to write '${url}' in the description.`);
+        if (!validLink) {
+            return false;
+        }
+    }
+    return true;
+}
+
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                              validate, deleteObj, items = [], isNew = true,
                              extras = [], path = []}) => {
     const [validatingLinks, setValidatingLinks] = useState(false);
-    const checkForLinks = (element, i, parent) => {
-        if (element?.tagName === 'a') {
-            if (links.indexOf(element.properties.href) === -1) {
-                const newLinks = [...links];
-                newLinks.push(element);
-                setLinks(newLinks);
-            }
-        }
-        return true;
-    }
-    const setTextareaValue = (newVal, e) => {
-        data[e.target.id] = sanitizeHtml(newVal, {allowedTags: [], disallowedTagsMode: 'discard'});
-        data[e.target.id] = newVal;
-        updateData({...data});
-    }
     const setInputValue = (e) => {
         if (data.hasOwnProperty(e.target.id)) {
             data[e.target.id] = sanitizeHtml(e.target.value, {allowedTags: [], disallowedTagsMode: 'discard'});
@@ -61,38 +79,6 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         }
         validate();
         setValidatingLinks(false);
-    }
-    const validateMarkdownLinks = async (input) => {
-        const regexp = /\[.*?\]\((.*?)\)/g;
-        const matches = [...input.matchAll(regexp)];
-        const matches_without_duplicates = Array.from(new Set(matches));
-        for (const match of matches_without_duplicates) {
-            const url = match[1];
-            const name = url.split("/").slice(-1)[0];
-            let namesFound = [];
-            let d = [];
-            if (url.startsWith("/topics")) {
-                d = await Sefaria.getTopicCompletions(name, (x) => x[1]);
-            }
-            else {
-                d = await Sefaria.getName(name, false);
-                if (d.is_ref) {
-                    continue;
-                }
-                d = d.completion_objects;
-            }
-            d.forEach((x) => {
-                Array.isArray(x.key) ?
-                    x.key.forEach((y) => namesFound.push(y)) // the key is an array when getName returns a TocCategory
-                    : namesFound.push(x.key);
-            });
-            const validLink = namesFound.includes(name) > 0 ? true :
-                confirm(`${name} not found in Sefaria database.  Please confirm that you meant to write '${url}' in the description.`);
-            if (!validLink) {
-                return false;
-            }
-        }
-        return true;
     }
     const item = ({label, field, placeholder, is_textarea}) => {
         return <div className="section">
@@ -125,11 +111,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
         "English Short Description": {
             label: "English Short Description for Table of Contents", field: "enCategoryDescription",
-            placeholder: "Add a short description.", is_textarea: true
+            placeholder: "Add a short description.", is_textarea: false
         },
         "Hebrew Short Description": {
             label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
-            placeholder: "Add a short description.", is_textarea: true
+            placeholder: "Add a short description.", is_textarea: false
         },
     }
     return <div className="editTextInfo">
@@ -160,4 +146,4 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     </div>
 }
 
-export {AdminEditor, AdminEditorButton, useEditToggle};
+export {AdminEditor, AdminEditorButton, useEditToggle, validateMarkdownLinks};

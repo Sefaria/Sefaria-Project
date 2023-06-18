@@ -215,7 +215,7 @@ const AboutTextCategory = ({cats}) => {
   return (
     <Module>
       <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
-      <InterfaceText text={{en: tocObject.enDesc, he: tocObject.heDesc}} />
+      <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
 };
