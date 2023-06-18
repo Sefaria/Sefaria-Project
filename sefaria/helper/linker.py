@@ -7,7 +7,7 @@ from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
-from typing import List, Union
+from typing import List, Union, Optional
 
 logger = structlog.get_logger(__name__)
 
@@ -17,11 +17,13 @@ class FindRefsTextOptions:
     """
     @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
     @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
+    @attr version_preferences_by_corpus: dict of dicts of the form { <corpus>: { <lang>: <vtitle> }}
     """
 
     debug: bool = False
     with_text: bool = False
     max_segments: int = 0
+    version_preferences_by_corpus: dict = None
 
 
 @dataclasses.dataclass
@@ -37,7 +39,7 @@ class FindRefsText:
 def _unpack_find_refs_request(request):
     post_body = json.loads(request.body)
     meta_data = post_body.get('metaDataForTracking')
-    return _create_find_refs_text(post_body), _create_find_refs_options(request), meta_data
+    return _create_find_refs_text(post_body), _create_find_refs_options(request.GET, post_body), meta_data
 
 
 def _create_find_refs_text(post_body) -> FindRefsText:
@@ -46,11 +48,12 @@ def _create_find_refs_text(post_body) -> FindRefsText:
     return FindRefsText(title, body)
 
 
-def _create_find_refs_options(request) -> FindRefsTextOptions:
-    with_text = bool(int(request.GET.get("with_text", False)))
-    debug = bool(int(request.GET.get("debug", False)))
-    max_segments = int(request.GET.get("max_segments", 0))
-    return FindRefsTextOptions(with_text, debug, max_segments)
+def _create_find_refs_options(get_body, post_body) -> FindRefsTextOptions:
+    with_text = bool(int(get_body.get("with_text", False)))
+    debug = bool(int(get_body.get("debug", False)))
+    max_segments = int(get_body.get("max_segments", 0))
+    version_preferences_by_corpus = post_body.get("version_preferences_by_corpus")
+    return FindRefsTextOptions(with_text, debug, max_segments, version_preferences_by_corpus)
 
 
 def add_webpage_hit_for_url(url):
@@ -200,8 +203,17 @@ def make_ref_response_for_linker(oref: text.Ref, options: FindRefsTextOptions) -
     return res
 
 
+def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corpus: dict) -> Optional[str]:
+    vprefs = version_preferences_by_corpus
+    corpus = oref.index.get_primary_corpus()
+    if vprefs is None or corpus not in vprefs or lang not in vprefs[corpus]:
+        return
+    return vprefs[corpus][lang]
+
+
 def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: FindRefsTextOptions):
-    chunk = text.TextChunk(oref, lang=lang)
+    vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
+    chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
     was_truncated = 0 < options.max_segments < len(as_array)
     return as_array[:options.max_segments or None], was_truncated
