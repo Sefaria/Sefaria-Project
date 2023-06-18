@@ -62,7 +62,7 @@ def add_webpage_hit_for_url(url):
 
 
 def make_find_refs_response(request):
-    request_text, options, meta_data = unpack_find_refs_request(request)
+    request_text, options, meta_data = _unpack_find_refs_request(request)
     if meta_data:
         add_webpage_hit_for_url(meta_data.get("url", None))
     return _make_find_refs_response_with_cache(request_text, options, meta_data)
