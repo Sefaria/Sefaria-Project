@@ -96,8 +96,6 @@ def _add_webpage_hit_for_url(url):
     webpage.save()
 
 
-
-
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text, options, meta_data):
     if request_text.lang == 'he':
