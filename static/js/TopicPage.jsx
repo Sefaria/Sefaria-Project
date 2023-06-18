@@ -258,7 +258,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" data={topic}>
+                        <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -311,12 +311,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            {!!topicData && !topicData.isLoading &&
-                <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
+                <CategoryHeader type="topics" data={topicData} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
-                </CategoryHeader>}
+                </CategoryHeader>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

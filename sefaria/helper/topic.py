@@ -1119,6 +1119,9 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
         link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
         if link is None:
             return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+        order = getattr(link, 'order', {})
+        if lang not in getattr(order, 'availableLangs', []):
+            return {"error": f"Link between {topic} and {s['ref']} does not exist in '{lang}'."}
         ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
