@@ -50,8 +50,7 @@ def _create_find_refs_options(request) -> FindRefsTextOptions:
     with_text = bool(int(request.GET.get("with_text", False)))
     debug = bool(int(request.GET.get("debug", False)))
     max_segments = int(request.GET.get("max_segments", 0))
-    version_title_preference = request.GET.get("version_title_preference")
-    return FindRefsTextOptions(with_text, debug, max_segments, version_title_preference)
+    return FindRefsTextOptions(with_text, debug, max_segments)
 
 
 def add_webpage_hit_for_url(url):
