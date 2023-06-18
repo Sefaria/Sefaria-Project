@@ -34,7 +34,7 @@ class FindRefsText:
         self.lang = 'he' if is_hebrew(self.body) else 'en'
 
 
-def unpack_find_refs_request(request):
+def _unpack_find_refs_request(request):
     post_body = json.loads(request.body)
     meta_data = post_body.get('metaDataForTracking')
     return _create_find_refs_text(post_body), _create_find_refs_options(request), meta_data
