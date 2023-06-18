@@ -37,7 +37,7 @@ class APITextsHandler():
 
     def append_required_versions(self, lang, vtitle=None):
         if lang == 'base':
-            lang_condition = lambda v: v['isBaseText']
+            lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == 'source':
             lang_condition = lambda v: v['isSource']
         else:
