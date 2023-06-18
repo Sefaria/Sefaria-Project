@@ -52,7 +52,7 @@ class APITextsHandler():
             if version not in self.return_obj['versions']:
                 self.return_obj['versions'].append(version)
         if not versions:
-            self.handle_errors(lang, vtitle)
+            self._handle_errors(lang, vtitle)
 
     def _handle_version_params(self, version_params):
         if version_params in self.handled_version_params:
@@ -62,7 +62,7 @@ class APITextsHandler():
         else:
             lang, vtitle = version_params.split('|', 1)
             vtitle = vtitle.replace('_', ' ')
-        self.append_required_versions(lang, vtitle)
+        self._append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
     def _add_text_to_versions(self):
@@ -151,7 +151,7 @@ class APITextsHandler():
             'isComplex': index.is_complex(),
             'isDependant': index.is_dependant_text(),
             'order': getattr(index, 'order', ''),
-            'alts': self.reduce_alts_to_ref(),
+            'alts': self._reduce_alts_to_ref(),
         })
 
     def _add_node_data(self):
@@ -175,9 +175,9 @@ class APITextsHandler():
     def get_versions_for_query(self):
         for version_params in self.versions_params:
             self.current_params = version_params
-            self.handle_version_params(version_params)
-        self.add_text_to_versions()
-        self.add_ref_data()
-        self.add_index_data()
-        self.add_node_data()
+            self._handle_version_params(version_params)
+        self._add_text_to_versions()
+        self._add_ref_data()
+        self._add_index_data()
+        self._add_node_data()
         return self.return_obj
