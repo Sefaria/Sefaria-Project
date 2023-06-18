@@ -38,11 +38,13 @@ const SourceEditor = ({topic, close, origData={}}) => {
           alert(Sefaria._("Valid ref must be provided."));
           return false;
         }
-        let currLinks = await Sefaria._ApiPromise(`/api/ref-topic-links/${refInCache.ref}`);
-        currLinks = currLinks.filter((x) => x.topic === topic && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0,2)));
-        if (currLinks.length > 0) {
-            if (!confirm("There is already a link to this ref.  Do you want to overwrite its data?")) {
-                return false;
+        if (isNew) {  // if not in edit mode, make sure to check that user wants to overwrite any existing reftopiclinks
+            let currLinks = await Sefaria._ApiPromise(`/api/ref-topic-links/${refInCache.ref}`);
+            currLinks = currLinks.filter((x) => x.topic === topic && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+            if (currLinks.length > 0) {
+                if (!confirm("There is already a link to this ref.  Do you want to overwrite its data?")) {
+                    return false;
+                }
             }
         }
         await save();
