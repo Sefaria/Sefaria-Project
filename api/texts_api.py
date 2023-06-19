@@ -9,6 +9,9 @@ from .api_errors import *
 class APITextsHandler():
 
     Direction = Enum('direction', ['rtl', 'ltr'])
+    ALL = 'all'
+    BASE = 'base'
+    SOURCE = 'source'
 
     def __init__(self, oref, versions_params):
         self.versions_params = versions_params
@@ -21,9 +24,9 @@ class APITextsHandler():
     def _handle_errors(self, lang, vtitle):
         if self.oref.is_empty():
             error = RefIsEmptyError(self.oref)
-        elif lang == 'source':
+        elif lang == self.SOURCE:
             error = NoSourceTextError(self.oref)
-        elif vtitle and vtitle != 'all':
+        elif vtitle and vtitle != self.ALL:
             error = NoVersionError(self.oref, vtitle, lang)
         else:
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
@@ -33,17 +36,17 @@ class APITextsHandler():
         })
 
     def _append_required_versions(self, lang, vtitle=None):
-        if lang == 'base':
+        if lang == self.BASE:
             lang_condition = lambda v: v['isBaseText2'] #temporal name
-        elif lang == 'source':
+        elif lang == self.SOURCE:
             lang_condition = lambda v: v['isSource']
         else:
             lang_condition = lambda v: v['actualLanguage'] == lang
-        if vtitle and vtitle != 'all':
+        if vtitle and vtitle != self.ALL:
             versions = [v for v in self.all_versions if lang_condition(v) and v['versionTitle'] == vtitle]
         else:
             versions = [v for v in self.all_versions if lang_condition(v)]
-            if vtitle != 'all' and versions:
+            if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: v['priority'] or 0)]
         for version in versions:
             if version not in self.return_obj['versions']:
