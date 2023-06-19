@@ -18,7 +18,10 @@ class APITextsHandler():
         self.return_obj = {'versions': [], 'errors': []}
 
     def _handle_errors(self, lang, vtitle):
-        if lang == 'source':
+        if self.oref.is_empty():
+            code = 104
+            message = f'The ref {self.oref} is empty'
+        elif lang == 'source':
             code = 103
             message = f'We do not have the source text for {self.oref}'
         elif vtitle and vtitle != 'all':
@@ -27,7 +30,7 @@ class APITextsHandler():
         else:
             code = 102
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
-            message = f'We do not have the code language you asked for {self.oref}. Available codes are {availabe_langs}'
+            message = f'We do not have the code language you asked for {self.oref}. Available codes are {sorted(availabe_langs)}'
         self.return_obj['errors'].append({
             self.current_params: {
                 'error_code': code,
