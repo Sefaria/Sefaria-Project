@@ -10,7 +10,7 @@ class APIError():
         self.error_code = error_code
         self.message = message
 
-    def get_dict(self):
+    def get_dict(self) -> dict:
         return {'error_code': self.error_code,
                 'message': self.message}
 

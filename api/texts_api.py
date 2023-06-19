@@ -1,10 +1,12 @@
 import django
 django.setup()
+from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from enum import Enum
 from .api_errors import *
 from .helper import split_at_pipe_with_default
+from typing import List
 
 class APITextsHandler():
 
@@ -13,7 +15,7 @@ class APITextsHandler():
     BASE = 'base'
     SOURCE = 'source'
 
-    def __init__(self, oref, versions_params):
+    def __init__(self, oref: Ref, versions_params: List[str]):
         self.versions_params = versions_params
         self.current_params = ''
         self.oref = oref
@@ -21,7 +23,7 @@ class APITextsHandler():
         self.all_versions = self.oref.version_list()
         self.return_obj = {'versions': [], 'errors': []}
 
-    def _handle_errors(self, lang, vtitle):
+    def _handle_errors(self, lang: str, vtitle: str) -> None:
         if self.oref.is_empty():
             error = RefIsEmptyError(self.oref)
         elif lang == self.SOURCE:
@@ -35,7 +37,7 @@ class APITextsHandler():
             self.current_params: error.get_dict()
         })
 
-    def _append_required_versions(self, lang, vtitle=None):
+    def _append_required_versions(self, lang: str, vtitle=None) -> None:
         if lang == self.BASE:
             lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == self.SOURCE:
@@ -54,7 +56,7 @@ class APITextsHandler():
         if not versions:
             self._handle_errors(lang, vtitle)
 
-    def _handle_version_params(self, version_params):
+    def _handle_version_params(self, version_params: str) -> None:
         if version_params in self.handled_version_params:
             return
         lang, vtitle = split_at_pipe_with_default(version_params, 2, [''])
@@ -62,14 +64,14 @@ class APITextsHandler():
         self._append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
-    def _add_text_to_versions(self):
+    def _add_text_to_versions(self) -> None:
         for version in self.return_obj['versions']:
             version.pop('title')
             version['direction'] = self.Direction.ltr.value if version['language'] == 'en' else self.Direction.rtl.value
             version.pop('language')
             version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
 
-    def _add_ref_data(self):
+    def _add_ref_data(self) -> None:
         oref = self.oref
         self.return_obj.update({
             'ref': oref.normal(),
@@ -90,7 +92,7 @@ class APITextsHandler():
             'type': oref.primary_category, #same as primary category
         })
 
-    def _reduce_alts_to_ref(self): #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
+    def _reduce_alts_to_ref(self) -> dict: #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
         oref = self.oref
         # Set up empty Array that mirrors text structure
         alts_ja = JaggedArray()
@@ -139,7 +141,7 @@ class APITextsHandler():
 
         return alts_ja.array()
 
-    def _add_index_data(self):
+    def _add_index_data(self) -> None:
         index = self.oref.index
         self.return_obj.update({
             'indexTitle': index.title,
@@ -153,7 +155,7 @@ class APITextsHandler():
             'alts': self._reduce_alts_to_ref(),
         })
 
-    def _add_node_data(self):
+    def _add_node_data(self) -> None:
         inode = self.oref.index_node
         if getattr(inode, "lengths", None):
             self.return_obj["lengths"] = getattr(inode, "lengths")
@@ -171,7 +173,7 @@ class APITextsHandler():
             'index_offsets_by_depth': inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections),
         })
 
-    def get_versions_for_query(self):
+    def get_versions_for_query(self) -> dict:
         for version_params in self.versions_params:
             self.current_params = version_params
             self._handle_version_params(version_params)
