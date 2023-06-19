@@ -4,6 +4,7 @@ from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from enum import Enum
 from .api_errors import *
+from .helper import split_at_pipe_with_default
 
 class APITextsHandler():
 
@@ -56,11 +57,8 @@ class APITextsHandler():
     def _handle_version_params(self, version_params):
         if version_params in self.handled_version_params:
             return
-        if '|' not in version_params:
-            lang, vtitle = version_params, ''
-        else:
-            lang, vtitle = version_params.split('|', 1)
-            vtitle = vtitle.replace('_', ' ')
+        lang, vtitle = split_at_pipe_with_default(version_params, 2, [''])
+        vtitle = vtitle.replace('_', ' ')
         self._append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
 
