@@ -18,7 +18,6 @@ class APITextsHandler():
         self.return_obj = {'versions': [], 'errors': []}
 
     def _handle_errors(self, lang, vtitle):
-        print(f'"{self.current_params}", "{lang}", "{vtitle}"')
         if lang == 'source':
             code = 103
             message = f'We do not have the source text for {self.oref}'
