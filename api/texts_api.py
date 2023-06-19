@@ -9,6 +9,21 @@ from .helper import split_at_pipe_with_default
 from typing import List
 
 class APITextsHandler():
+    """
+    process api calls for text
+    an api call contains ref and list of version_params
+    a version params is string divided by pipe as 'lang|vtitle'
+    lang is our code language. special values are:
+        source - for versions in the source language of the text
+        base - as source but with falling to the 'nearest' to source, or what we have defined as such
+    vtitle is the exact versionTitle. special values are:
+        no vtitle - the version with the max priority attr of the specified language
+        all - all versions of the specified language
+    return_obj is dict that includes in its root:
+        ref and index data
+        'versions' - list of versions details and text
+        'errors' - for any version_params that had an error
+    """
 
     Direction = Enum('direction', ['rtl', 'ltr'])
     ALL = 'all'
@@ -93,6 +108,10 @@ class APITextsHandler():
         })
 
     def _reduce_alts_to_ref(self) -> dict: #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
+        """
+        this function takes the index's alt_structs and reduce it to the relevant ref
+        it is necessary for the client side
+        """
         oref = self.oref
         # Set up empty Array that mirrors text structure
         alts_ja = JaggedArray()
