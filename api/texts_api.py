@@ -1,6 +1,5 @@
 import django
 django.setup()
-from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from enum import Enum
