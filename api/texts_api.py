@@ -4,6 +4,7 @@ from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from enum import Enum
+from .api_errors import *
 
 class APITextsHandler():
 
@@ -19,23 +20,16 @@ class APITextsHandler():
 
     def _handle_errors(self, lang, vtitle):
         if self.oref.is_empty():
-            code = 104
-            message = f'The ref {self.oref} is empty'
+            error = RefIsEmptyError(self.oref)
         elif lang == 'source':
-            code = 103
-            message = f'We do not have the source text for {self.oref}'
+            error = NoSourceTextError(self.oref)
         elif vtitle and vtitle != 'all':
-            code = 101
-            message = f'We do not have version named {vtitle} with language code {lang} for {self.oref}'
+            error = NoVersionError(self.oref, vtitle, lang)
         else:
-            code = 102
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
-            message = f'We do not have the code language you asked for {self.oref}. Available codes are {sorted(availabe_langs)}'
+            error = NoLanguageVersionError(self.oref, sorted(availabe_langs))
         self.return_obj['errors'].append({
-            self.current_params: {
-                'error_code': code,
-                'message': message,
-            }
+            self.current_params: error.get_dict()
         })
 
     def _append_required_versions(self, lang, vtitle=None):
