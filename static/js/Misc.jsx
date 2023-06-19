@@ -1171,6 +1171,7 @@ const CategoryHeader = ({children, type, data = [], edit = true,
      let url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = data.refs?.about?.refs || [];
       if (refs.length) {
+        // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang and limit it to 20 b/c no need to reorder more than that
         const filter_func = (x) => !x.ref.startsWith('Sheet ') && x?.order?.availableLangs.includes(Sefaria.interfaceLang.slice(0,2));
         refs = refs.filter(filter_func).slice(0, 20);
         refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
