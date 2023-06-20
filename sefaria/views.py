@@ -58,7 +58,7 @@ from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
-from reader.views import base_props, render_template 
+from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
 
 if USE_VARNISH:
@@ -202,7 +202,7 @@ def unlink_gauth(request):
             return redirect(f"/profile/{profile.slug}")
         else:
             return jsonResponse({"status": "ok"})
-    except: 
+    except:
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
@@ -367,7 +367,7 @@ def title_regex_api(request, titles, json_response=True):
 
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
-    for tref in refs:
+    for tref in refs: 
         try:
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
