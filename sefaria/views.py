@@ -59,7 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-from sefaria.helper.link import add_links_from_csv, delete_links_from_text
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -1258,6 +1258,15 @@ def links_upload_api(request):
     except Exception as e:
         return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
+
+def get_csv_links_by_refs_api(request, tref1, tref2):
+    try:
+        file = get_csv_links_by_refs([tref1, tref2], **{k: v for k, v in request.GET.items()})
+    except Exception as e:
+        return HttpResponseBadRequest(e)
+    response = HttpResponse(file, content_type="text/csv; charset=utf-8")
+    response['Content-Disposition'] = f'attachment; filename="{tref1}-{tref2} links.csv"'
+    return response
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)

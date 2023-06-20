@@ -5,8 +5,6 @@ import Sefaria  from './sefaria/sefaria';
 import { ContentLanguageContext } from './context';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import {useEditToggle, AdminEditorButton} from "./AdminEditor";
-import {CategoryEditor} from "./CategoryEditor";
 import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
@@ -60,7 +58,7 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
   const title = compare ? categoryToggle :
     <div className="navTitle">
-        <CategoryHeader path={cats} type="books">
+        <CategoryHeader data={cats} type="books">
             <h1>
             <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
             </h1>
@@ -177,7 +175,7 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <CategoryHeader path={newCats} type="books">
+            <CategoryHeader data={newCats} type="books">
                  <h2>
                  <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
                  {hasDesc && !longDesc ?

@@ -15,6 +15,9 @@ class DummyConnectionManager(CrmConnectionManager):
     def mark_as_spam_in_crm(self, crm_id):
         return True
 
+    def mark_for_review_in_crm(self, crm_id):
+        return True
+
     def change_user_email(self, uid, new_email):
         return True
 

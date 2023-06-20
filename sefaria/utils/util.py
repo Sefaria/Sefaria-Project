@@ -458,6 +458,7 @@ def truncate_string(string, min_length, max_length):
         return string
     for break_char in ".;, ":
         # enumerate all places where this char is in segment
+        #Note: this code was reverted to because the change that was made to it affected the related api while fetching webpages. 
         for pos, char in reversed(list(enumerate(string))):
             if char == break_char and min_length <= pos <= max_length:
                 return string[:pos] + "…"

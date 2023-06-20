@@ -212,8 +212,16 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          # set all characters lowercase
+          | awk '{print tolower($0)}'
+          # select 'b' from a/b/c if branchname is in sc format, else select entire string
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          # replace any remaining non-standard characters
+          # '_' can be in image names but can't be in kube names, so we drop those too
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT

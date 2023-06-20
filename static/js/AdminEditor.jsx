@@ -25,28 +25,36 @@ function useEditToggle() {
 
 
 const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
-                         validate, deleteObj, isNew=true, shortDescBool=false, extras=[], path=[]}) => {
+                         validate, deleteObj, items=[], isNew=true, extras=[], path=[]}) => {
 
     const setValues = function(e) {
-        if (e.target.id === "topicTitle") {
-            data.enTitle = e.target.value;
-        }
-        else if (e.target.id === "topicDesc") {
-            data.enDescription = e.target.value;
-        }
-        else if (e.target.id === "topicCatDesc") {
-            data.enCategoryDescription = e.target.value;
-        }
-        else if (e.target.id === "topicHeTitle") {
-            data.heTitle = e.target.value;
-        }
-        else if (e.target.id === "topicHeDesc") {
-            data.heDescription = e.target.value;
-        }
-        else if (e.target.id === "topicHeCatDesc") {
-            data.heCategoryDescription = e.target.value;
+        if (data.hasOwnProperty(e.target.id)) {
+            data[e.target.id] = e.target.value;
         }
         updateData(data);
+    }
+    const item = (label, id, placeholder, textarea=false) => {
+        return  <div className="section">
+                        <label><InterfaceText>{label}</InterfaceText></label>
+                        {textarea ?
+                            <textarea id={id} onBlur={setValues} className="default" defaultValue={data[id]} placeholder={Sefaria._(placeholder)}/>
+                           : <input type='text' id={id} onBlur={setValues} defaultValue={data[id]} placeholder={Sefaria._(placeholder)}/>}
+                    </div>;
+    }
+    const options_for_form = {
+        "Title": item("Title", "enTitle", "Add a title."),
+        "Hebrew Title": Sefaria._siteSettings.TORAH_SPECIFIC ?
+            item("Hebrew Title", 'heTitle', 'Add a title.') : null,
+        "Category Menu": catMenu,
+        "English Description": item("English Description", "enDescription", "Add a description.", true),
+        "Hebrew Description": Sefaria._siteSettings.TORAH_SPECIFIC ?
+            item("Hebrew Description", "heDescription", "Add a description.", true) : null,
+        "Prompt": item("Prompt", "prompt", "Add a prompt.", true),
+        "English Short Description": item("English Short Description for Table of Contents", "enCategoryDescription",
+            "Add a short description.", true),
+        "Hebrew Short Description": item("Hebrew Short Description for Table of Contents",
+            "heCategoryDescription", "Add a short description.", true),
+
     }
     return <div className="editTextInfo">
             <div className="static">
@@ -54,51 +62,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                     {savingStatus ?  <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
                     <div id="newIndex">
                         <AdminToolHeader title={title} close={close} validate={() => validate()}/>
-                        <div className="section">
-                            <label><InterfaceText>English Title</InterfaceText></label>
-                            <input type='text' id="topicTitle" onBlur={setValues} defaultValue={data.enTitle} placeholder={Sefaria._("Add a title.")}/>
-                        </div>
-                        {Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            <div className="section">
-                                <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                                <input type='text' id="topicHeTitle" onBlur={setValues} defaultValue={data.heTitle} placeholder={Sefaria._("Add a title.")}/>
-                            </div> : null}
-                        {catMenu}
-                        <div className="section">
-                            <label><InterfaceText>English Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={setValues} className="default"
-                                   defaultValue={data.enDescription} placeholder={Sefaria._("Add a description.")}/>
-                        </div>
-                        {Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            <div className="section">
-                                <label><InterfaceText>Hebrew Description</InterfaceText></label>
-                                <textarea id="topicHeDesc" onBlur={setValues} className="default"
-                                       defaultValue={data.heDescription} placeholder={Sefaria._("Add a description.")}/>
-                            </div> : null}
-                       {shortDescBool ?  <div> <div className="section">
-                                                     <label><InterfaceText>English Short Description for Table of Contents</InterfaceText></label>
-                                                     <textarea
-                                                         className="default"
-                                                         id="topicCatDesc"
-                                                         onBlur={setValues}
-                                                         defaultValue={data.enCategoryDescription}
-                                                         placeholder={Sefaria._("Add a short description.")}/>
-                                            </div>
-                                            {Sefaria._siteSettings.TORAH_SPECIFIC ? <div className="section">
-                                                    <label><InterfaceText>Hebrew Short Description for Table of Contents</InterfaceText></label>
-                                                    <textarea
-                                                        className="default"
-                                                        id="topicHeCatDesc"
-                                                        onBlur={setValues}
-                                                        defaultValue={data.heCategoryDescription}
-                                                        placeholder={Sefaria._("Add a short description.")}/>
-                                            </div> : null}
-                                      </div> :
-                       null}
-                      {extras}
-                      {!isNew ? <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                                  <InterfaceText>Delete</InterfaceText>
-                                </div> : null}
+                        {items.map((x) => options_for_form[x])}
+                        {extras}
+                        {!isNew && <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                                      <InterfaceText>Delete</InterfaceText>
+                                    </div>}
 
                     </div>
                 </div>
