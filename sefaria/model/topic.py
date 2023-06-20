@@ -941,7 +941,8 @@ def process_topic_description_change(topic, **kwargs):
             except DuplicateRecordError as e:  # there may be identical IntraTopicLinks with a different dataSource or inverted fromTopic and toTopic
                 pass
         else:
-            markdown_link = markdown_link[1:]  # assume link starts with a '/'
+            if markdown_link.startswith("/"):
+                markdown_link = markdown_link[1:]  # assume link starts with a '/'
             try:
                 ref = Ref(markdown_link).normal()
             except InputError as e:

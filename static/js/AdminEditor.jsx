@@ -121,7 +121,8 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     return <div className="editTextInfo">
         <div className="static">
             <div className="inner">
-                {savingStatus || validatingLinks ? <div className="collectionsWidget">{Sefaria._("Saving...")}</div> : null}
+                {(savingStatus || validatingLinks) &&
+                <div className="collectionsWidget">{Sefaria._("Saving...")}</div>}
                 <div id="newIndex">
                     <AdminToolHeader title={title} close={close} validate={preprocess}/>
                     {items.map((x) => {
