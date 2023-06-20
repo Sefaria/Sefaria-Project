@@ -25,7 +25,6 @@ class APITextsHandler():
         'errors' - for any version_params that had an error
     """
 
-    Direction = Enum('direction', ['rtl', 'ltr'])
     ALL = 'all'
     BASE = 'base'
     SOURCE = 'source'
@@ -82,8 +81,7 @@ class APITextsHandler():
     def _add_text_to_versions(self) -> None:
         for version in self.return_obj['versions']:
             version.pop('title')
-            version['direction'] = self.Direction.ltr.value if version['language'] == 'en' else self.Direction.rtl.value
-            version.pop('language')
+            version.pop('language') #should be removed after language is removed from attrs
             version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
 
     def _add_ref_data(self) -> None:
