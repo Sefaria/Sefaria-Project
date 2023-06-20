@@ -37,7 +37,6 @@ from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.constants import model as constants
 
 """
                 ----------------------------------
@@ -1038,8 +1037,18 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-    ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
+    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+    ALLOWED_ATTRS   = {
+        'sup': ['class'],
+        'span':['class', 'dir'],
+        # There are three uses of i tags.
+        # footnotes: uses content internal to <i> tag.
+        # commentary placement: uses 'data-commentator', 'data-order', 'data-label'
+        # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
+        'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
+        'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
+        'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
+    }
 
     def word_count(self):
         """ Returns the number of words in this text """
