@@ -37,11 +37,29 @@ const Promotions = ({adType, rerender}) => {
     }, [matchingAds])
 
     function getAds() {
-        const url = 
+        const url =
         'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
         const query = new google.visualization.Query(url);
         query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
         query.send(processSheetsData);
+
+        // PROOF OF CONCEPT that you can make a call to Strapi GraphQL API
+        /* TODO: Refactor so that each component does not have to make a call to the API; instead, ReaderApp will make
+        API call when it is first rendered, and then pass the data retrieved as part of AdContext. Likely you want to
+        make the results of this part of ReaderApp's state, and then pass that to AdContext */
+
+        // fetch("http://localhost:{PORT}/graphql", {
+        // method: "POST", // *GET, POST, PUT, DELETE, etc.
+        // mode: "cors", // no-cors, *cors, same-origin
+        // cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        // credentials: "same-origin", // include, *same-origin, omit
+        // headers: {
+        // "Content-Type": "application/json",
+        // },
+        // redirect: "follow", // manual, *follow, error
+        // referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        // body: '{"query":"# Write your query or mutation here\\nquery {\\n  sidebarAds(\\n    filters: {\\n      startTime: { gte: \\"2023-06-19T04:00:00.000Z\\" }\\n      and: [{ endTime: { lte: \\"2023-06-29T04:00:00.000Z\\" } }]\\n    }\\n  ) {\\n    data {\\n      id\\n      attributes {\\n        ButtonAboveOrBelow\\n        Title\\n        bodyText\\n        buttonText\\n        buttonUrl\\n        createdAt\\n        debug\\n        endTime\\n        hasBlueBackground\\n        internalCampaignId\\n        keywords\\n        locale\\n        publishedAt\\n        showTo\\n        startTime\\n        updatedAt\\n      }\\n    }\\n  }\\n}\\n"}'
+        // }).then(x => x);
     }
 
     function showToUser(ad) {
