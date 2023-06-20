@@ -24,3 +24,5 @@ data:
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
   MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
+  ROLLBAR_ENVIRONMENT: {{ .Values.deployEnv | quote }}
+  ROLLBAR_CODE_VERSION: {{ .Values.web.containerImage.tag }}
