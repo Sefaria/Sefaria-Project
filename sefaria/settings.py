@@ -124,6 +124,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
