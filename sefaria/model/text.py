@@ -2870,6 +2870,9 @@ class Ref(object, metaclass=RefCacheType):
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
+            if l != len(base) and base[l] not in ' ,.:_':
+                continue #do not stop in the middle of a word
+
             self.index_node = tndict.get(base[0:l])
 
             if self.index_node:
