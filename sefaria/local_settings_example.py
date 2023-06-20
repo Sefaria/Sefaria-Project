@@ -260,9 +260,6 @@ SIMPLE_JWT = {
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
-ROLLBAR= None
-CLIENT_ROLLBAR = None
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
