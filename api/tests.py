@@ -97,6 +97,12 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Couldn't understand text sections: 'Job.6-X'.")
 
+    def test_api_get_text_empty_ref(self):
+        response = c.get("/api/v3/texts/Berakhot.1a")
+        self.assertEqual(400, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(data["error"], "We have no text for Berakhot 1a.")
+
     def test_api_get_text_no_source(self):
         response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=source")
         self.assertEqual(200, response.status_code)
@@ -122,11 +128,3 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data['errors'][0]['he|Kishkoosh']['error_code'], 101)
         self.assertEqual(data['errors'][0]['he|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')
-
-
-    def test_api_get_text_empty_ref(self):
-        response = c.get("/api/v3/texts/Berakhot.1a")
-        self.assertEqual(200, response.status_code)
-        data = json.loads(response.content)
-        self.assertEqual(data['errors'][0]['base']['error_code'], 104)
-        self.assertEqual(data['errors'][0]['base']['message'], 'The ref Berakhot 1a is empty')

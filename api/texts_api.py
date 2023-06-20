@@ -1,9 +1,7 @@
 import django
 django.setup()
-from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
-from enum import Enum
 from .api_errors import *
 from .helper import split_at_pipe_with_default
 from typing import List
@@ -38,9 +36,7 @@ class APITextsHandler():
         self.return_obj = {'versions': [], 'errors': []}
 
     def _handle_errors(self, lang: str, vtitle: str) -> None:
-        if self.oref.is_empty():
-            error = RefIsEmptyError(self.oref)
-        elif lang == self.SOURCE:
+        if lang == self.SOURCE:
             error = NoSourceTextError(self.oref)
         elif vtitle and vtitle != self.ALL:
             error = NoVersionError(self.oref, vtitle, lang)

@@ -34,11 +34,3 @@ class NoSourceTextError(APIError):
     def __init__(self, oref: Ref):
         self.error_code = 103
         self.message = f'We do not have the source text for {oref}'
-
-
-
-class RefIsEmptyError(APIError):
-
-    def __init__(self, oref: Ref):
-        self.error_code = 104
-        self.message = f'The ref {oref} is empty'
