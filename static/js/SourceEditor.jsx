@@ -3,6 +3,7 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
+import {refSort} from "./TopicPage";
 
 const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
@@ -38,10 +39,17 @@ const SourceEditor = ({topic, close, origData={}}) => {
           alert(Sefaria._("Valid ref must be provided."));
           return false;
         }
-        if (isNew) {  // if not in edit mode, make sure to check that user wants to overwrite any existing reftopiclinks
-            let currLinks = await Sefaria._ApiPromise(`/api/ref-topic-links/${refInCache.ref}`);
-            currLinks = currLinks.filter((x) => x.topic === topic && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
-            if (currLinks.length > 0) {
+        if (isNew) {
+            // if not in edit mode, make sure to check that user wants to overwrite any existing reftopiclinks
+            let topicData = Sefaria.getTopicFromCache(topic);
+            if (!topicData) {
+              topicData = await Sefaria.getTopic(topic);
+            }
+            const callback = (y) => y.filter((x) => x.ref === refInCache.ref &&
+                            (Object.keys(x.dataSources).includes('learning-team') || Object.keys(x.dataSources).includes('sefaria')));
+                            // a ref that was manually added has dataSource value of 'sefaria' or 'learning-team'
+            const refs = Sefaria.getRefsForSourceEditor(topicData, callback);
+            if (refs.length > 0) {
                 if (!confirm("There is already a link to this ref.  Do you want to overwrite its data?")) {
                     return false;
                 }

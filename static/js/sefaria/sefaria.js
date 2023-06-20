@@ -1751,6 +1751,19 @@ _media: {},
     this._refTopicLinks[ref] = data;
     return split;
   },
+  getRefsForSourceEditor: function (topic, callback=None) {
+      // used by the SourceEditor and ReorderEditor (when reordering sources)
+      let refs = topic.refs?.about?.refs || [];
+      // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+      refs = refs.filter((x) => {
+          const relevantLang = x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2));
+          return !x.is_sheet && relevantLang;
+      });
+      if (callback) {
+          refs = callback(refs);
+      }
+      return refs;
+  },
   topicsByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     const topicsObj = {};
