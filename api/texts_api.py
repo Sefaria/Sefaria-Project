@@ -37,12 +37,12 @@ class APITextsHandler():
 
     def _handle_errors(self, lang: str, vtitle: str) -> None:
         if lang == self.SOURCE:
-            error = NoSourceTextError(self.oref)
+            error = APINoSourceText(self.oref)
         elif vtitle and vtitle != self.ALL:
-            error = NoVersionError(self.oref, vtitle, lang)
+            error = APINoVersion(self.oref, vtitle, lang)
         else:
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
-            error = NoLanguageVersionError(self.oref, sorted(availabe_langs))
+            error = APINoLanguageVersion(self.oref, sorted(availabe_langs))
         self.return_obj['errors'].append({
             self.current_params: error.get_dict()
         })
