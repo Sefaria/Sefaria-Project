@@ -103,7 +103,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, placeSegmentNumbers}) => {
+const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, textImageLoadCallback}) => {
 
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
@@ -111,21 +111,10 @@ const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilin
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable);
 
-  function getImageAttribute(imgTag, attribute) {
-  const imgElement = document.createElement('div');
-  imgElement.innerHTML = imgTag;
-  const img = imgElement.querySelector('img');
-  if (img) {
-    const att = img.getAttribute(attribute);
-    return att;
-  }
-  return null;
-    }
-
   function isImage(textChunk) {
-  const pattern = /<img\b[^>]*>/i
-  const isImageTag = pattern.test(textChunk)
-  return isImageTag
+      const pattern = /<img\b[^>]*>/i
+      const isImageTag = pattern.test(textChunk)
+      return isImageTag
   }
 
   if(languageToFilter === "bilingual"){
@@ -143,17 +132,29 @@ const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilin
 
   return renderedItems.map((x) => {
       if (isImage(x[1])){
-        const altText = getImageAttribute(x[1], 'alt');
-        const srcText = getImageAttribute(x[1], 'src');
-        return(<VersionImage renderedItem={x} altText={altText} srcText={srcText} languageToFilter={languageToFilter} placeSegmentNumbers={placeSegmentNumbers}/>)
+        return(<VersionImage renderedItem={x} languageToFilter={languageToFilter} textImageLoadCallback={textImageLoadCallback}/>)
       }
 
       return (<VersionText renderedItem={x} isDangerouslySetInnerHTML={isDangerouslySetInnerHTML}/>)
   })
 }
 
-const VersionImage = ({renderedItem, altText, srcText, languageToFilter, placeSegmentNumbers}) => {
-    renderedItem[1] = (<div className="image-in-text">{<img onLoad={placeSegmentNumbers} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
+const VersionImage = ({renderedItem, languageToFilter, textImageLoadCallback}) => {
+
+    function getImageAttribute(imgTag, attribute) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(imgTag, 'text/html');
+      const imgElement = doc.querySelector('img');
+
+      if (imgElement) {
+        return imgElement.getAttribute(attribute);
+      }
+
+      return null;
+    }
+    const altText = getImageAttribute(renderedItem[1], 'alt');
+    const srcText = getImageAttribute(renderedItem[1], 'src');
+    renderedItem[1] = (<div className="image-in-text">{<img onLoad={textImageLoadCallback} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
     if (renderedItem[0] === 'he' && languageToFilter === "bilingual") {renderedItem[1] = ''}
 
     return(<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}>{renderedItem[1]}</span>)
