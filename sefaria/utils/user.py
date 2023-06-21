@@ -14,7 +14,9 @@ logger = structlog.get_logger(__name__)
 
 
 def delete_user_account(uid, confirm=True):
-    """ Deletes the account of `uid` as well as all ownded data """
+    """ Deletes the account of `uid` as well as all owned data
+    Returns True if user is successfully deleted from Mongo & User DB
+    """
     user = model.UserProfile(id=uid)
     if confirm:
         print("Are you sure you want to delete the account of '%s' (%s)?" % (user.full_name, user.email))
@@ -51,6 +53,7 @@ def delete_user_account(uid, confirm=True):
     # History is left for posterity, but will no longer be tied to a user profile
 
     print("User %d deleted." % uid)
+    return True
 
 
 def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_profile_data=False):
