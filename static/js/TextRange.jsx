@@ -610,7 +610,7 @@ class TextSegment extends Component {
           <span className="segmentNumberInner">
              <ContentText
                  text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
-                 defaultToInterfaceOnBilingual={true} placeSegmentNumbers={this.props.placeSegmentNumbers}
+                 defaultToInterfaceOnBilingual={true}
              />
           </span>
         </div>
@@ -637,7 +637,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <VersionContent overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]} placeSegmentNumbers={this.props.placeSegmentNumbers}/>
+          <VersionContent overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]} textImageLoadCallback={this.props.placeSegmentNumbers}/>
         </p>
 
         <div className="clearFix"></div>
