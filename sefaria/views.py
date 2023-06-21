@@ -965,7 +965,8 @@ def delete_user_by_email(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
         try:
-            user.check_password(password)
+            if not user.check_password(password):
+                return jsonResponse({"failure": "incorrect password"})
         except:
             return jsonResponse({"failure": "incorrect password"})
         try:
