@@ -6,6 +6,13 @@ from sefaria.client.util import jsonResponse
 
 
 def get_texts(request, tref):
+    """
+    handle text request based on ref and query params
+    status codes:
+    400 - for invalid ref or empty ref (i.e. has no text in any language)
+    405 - unsuppored method
+    200 - any other case. when requested version doesn't exist the returned object will include the message
+    """
     try:
         oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     except Exception as e:
@@ -20,4 +27,4 @@ def get_texts(request, tref):
         handler = APITextsHandler(oref, versions_params)
         data = handler.get_versions_for_query()
         return jsonResponse(data, cb)
-    return jsonResponse({"error": "Unsupported HTTP method."}, cb)
+    return jsonResponse({"error": "Unsupported HTTP method."}, cbdocs)
