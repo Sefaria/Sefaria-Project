@@ -61,7 +61,7 @@ class APITextsHandler():
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: v['priority'] or 0)]
         for version in versions:
-            if version not in self.return_obj['versions']:
+            if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
                 self.return_obj['versions'].append(version)
         if not versions:
             self._handle_errors(lang, vtitle)
