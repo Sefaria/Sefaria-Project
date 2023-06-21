@@ -494,7 +494,7 @@ function GetLinks() {
   const linksDownloadLink = () => {
     const queryParams = qs.stringify({ type: (type) ? type : null, generated_by: (generatedBy) ? generatedBy : null },
         { addQueryPrefix: true, skipNulls: true });
-    const tool = (bySegment) ? 'index_links' : 'links;'
+    const tool = (bySegment) ? 'index_links' : 'links';
     return `modtools/${tool}/${refs.ref1}/${refs.ref2 || 'all'}${queryParams}`;
   }
 
