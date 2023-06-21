@@ -4605,13 +4605,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref.
+        A list of available text versions metadata matching this ref.
         If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
         fields = Version.optional_attrs + Version.required_attrs
-        fields.remove('chapter')
+        fields.remove('chapter') # not metadata
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
