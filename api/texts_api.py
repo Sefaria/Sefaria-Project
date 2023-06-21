@@ -80,7 +80,7 @@ class APITextsHandler():
             version.pop('language') #should be removed after language is removed from attrs
             version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
 
-    def _add_ref_data(self) -> None:
+    def _add_ref_data_to_return_obj(self) -> None:
         oref = self.oref
         self.return_obj.update({
             'ref': oref.normal(),
@@ -154,7 +154,7 @@ class APITextsHandler():
 
         return alts_ja.array()
 
-    def _add_index_data(self) -> None:
+    def _add_index_data_to_return_obj(self) -> None:
         index = self.oref.index
         self.return_obj.update({
             'indexTitle': index.title,
@@ -168,7 +168,7 @@ class APITextsHandler():
             'alts': self._reduce_alts_to_ref(),
         })
 
-    def _add_node_data(self) -> None:
+    def _add_node_data_to_return_obj(self) -> None:
         inode = self.oref.index_node
         if getattr(inode, "lengths", None):
             self.return_obj["lengths"] = getattr(inode, "lengths")
@@ -191,7 +191,7 @@ class APITextsHandler():
             self.current_params = version_params
             self._handle_version_params(version_params)
         self._add_text_to_versions()
-        self._add_ref_data()
-        self._add_index_data()
-        self._add_node_data()
+        self._add_ref_data_to_return_obj()
+        self._add_index_data_to_return_obj()
+        self._add_node_data_to_return_obj()
         return self.return_obj
