@@ -16,9 +16,9 @@ def get_texts(request, tref):
     try:
         oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
     except Exception as e:
-        return HttpResponseBadRequest(json.dumps({'error': getattr(e, 'message', str(e))}, ensure_ascii=False))
+        return jsonResponse({'error': getattr(e, 'message', str(e))}, 400)
     if oref.is_empty():
-        return HttpResponseBadRequest(json.dumps({'error': f'We have no text for {oref}.'}, ensure_ascii=False))
+        return jsonResponse({'error': f'We have no text for {oref}.'}, 400)
     cb = request.GET.get("callback", None)
     if request.method == "GET":
         versions_params = request.GET.getlist('version', [])
