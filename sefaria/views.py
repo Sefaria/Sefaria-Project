@@ -1259,9 +1259,9 @@ def links_upload_api(request):
         return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
 
-def get_csv_links_by_refs_api(request, tref1, tref2):
+def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
-        file = get_csv_links_by_refs([tref1, tref2], **{k: v for k, v in request.GET.items()})
+        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")

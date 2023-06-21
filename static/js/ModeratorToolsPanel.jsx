@@ -450,6 +450,11 @@ function GetLinks() {
   const [errors, setErrors] = useState({ref2: false});
   const [type, setType] = useState('');
   const [generatedBy, setGeneratedBy] = useState('');
+  const [bySegment, setBySegment] = useState(false)
+
+  const handleCheck = () => {
+    setBySegment(!bySegment)
+  }
 
   const handleChange = async (event) => {
     const { name, value } = event.target;
@@ -489,14 +494,25 @@ function GetLinks() {
   const linksDownloadLink = () => {
     const queryParams = qs.stringify({ type: (type) ? type : null, generated_by: (generatedBy) ? generatedBy : null },
         { addQueryPrefix: true, skipNulls: true });
-    return `modtools/links/${refs.ref1}/${refs.ref2 || 'all'}${queryParams}`;
+    const tool = (bySegment) ? 'index_links' : 'links;'
+    return `modtools/${tool}/${refs.ref1}/${refs.ref2 || 'all'}${queryParams}`;
   }
 
   return (
     <div className="getLinks">
       <div className="dlSectionTitle">Download links</div>
       <form id="download-links-form">
-        <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
+        <fieldset>
+            <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
+            <label>
+                <input
+                    type="checkbox"
+                    checked={bySegment}
+                    onChange={handleCheck}
+                />
+                iterate by segments (include empties)
+            </label>
+        </fieldset>
         <br/>
         <InputRef id={2} value={refs.ref2} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref2} />
         <br/>
