@@ -101,59 +101,6 @@ class APITextsHandler():
             'type': oref.primary_category, #same as primary category
         })
 
-    def _reduce_alts_to_ref(self) -> dict: #TODO - copied from TextFamily. if we won't remove it, we should find some place for that
-        """
-        this function takes the index's alt_structs and reduce it to the relevant ref
-        it is necessary for the client side
-        """
-        oref = self.oref
-        # Set up empty Array that mirrors text structure
-        alts_ja = JaggedArray()
-        for key, struct in oref.index.get_alt_structures().items():
-            # Assuming these are in order, continue if it is before ours, break if we see one after
-            for n in struct.get_leaf_nodes():
-                wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
-                if wholeRef.ending_ref().precedes(oref):
-                    continue
-                if wholeRef.starting_ref().follows(oref):
-                    break
-
-                # It's in our territory
-                wholeRefStart = wholeRef.starting_ref()
-                if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
-                    indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
-                    val = {"en": [], "he": []}
-                    try:
-                        val = alts_ja.get_element(indxs) or val
-                    except IndexError:
-                        pass
-                    val["en"] += [n.primary_title("en")]
-                    val["he"] += [n.primary_title("he")]
-                    val["whole"] = True
-                    alts_ja.set_element(indxs, val)
-
-                if getattr(n, "refs", None):
-                    for i, r in enumerate(n.refs):
-                        # hack to skip Rishon, skip empty refs
-                        if i == 0 or not r:
-                            continue
-                        subRef = Ref(r)
-                        subRefStart = subRef.starting_ref()
-                        if oref.contains(subRefStart) and not subRefStart.contains(oref):
-                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                            val = {"en": [], "he": []}
-                            try:
-                                val = alts_ja.get_element(indxs) or val
-                            except IndexError:
-                                pass
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
-                            alts_ja.set_element(indxs, val)
-                        elif subRefStart.follows(oref):
-                            break
-
-        return alts_ja.array()
-
     def _add_index_data_to_return_obj(self) -> None:
         index = self.oref.index
         self.return_obj.update({
@@ -165,7 +112,7 @@ class APITextsHandler():
             'order': getattr(index, 'order', ''),
             'collectiveTitle': getattr(index, 'collective_title', ''),
             'heCollectiveTitle': hebrew_term(getattr(index, 'collective_title', '')),
-            'alts': self._reduce_alts_to_ref(),
+            'alts': index.get_trimmed_alt_structs_for_ref(self.oref),
         })
 
     def _add_node_data_to_return_obj(self) -> None:
