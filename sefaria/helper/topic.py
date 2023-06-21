@@ -1044,7 +1044,6 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     :param slug: (str) String of topic whose source we are editing
     :param orig_tref (str) String representation of original reference of source.
     :param new_tref: (str) String representation of new reference of source.
-    :param learning_team_link: (RefTopicLink) If not None, the source
     :param linkType: (str) 'about' is used for most topics, except for 'authors' case
     :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
     """
@@ -1053,20 +1052,9 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         return {"error": "Topic does not exist."}
     ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
     link = RefTopicLink().load(ref_topic_dict)
-
-    if not creating_new_link and link is None:
-        return {"error": f"Can't edit link because link does not currently exist."}
-    elif creating_new_link:
-        if linkType == 'about':
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1  # curatedPrimacy value of 0 is default for all links
-            ref_topic_dict['order'] = {}
-            ref_topic_dict['order']['curatedPrimacy'] = {interface_lang: num_curr_links}  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
-        if link is None:
-            # check link is None to avoid unjustifiably incrementing topic's numSources
-            num_sources = getattr(topic_obj, "numSources", 0)
-            topic_obj.numSources = num_sources + 1
-            topic_obj.save()
-            link = RefTopicLink(ref_topic_dict)
+    link_already_existed = link is not None
+    if not link_already_existed:
+        link = RefTopicLink(ref_topic_dict)
 
     if not hasattr(link, 'order'):
         link.order = {}
@@ -1076,13 +1064,35 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         link.order['availableLangs'] += [interface_lang]
     link.dataSource = 'learning-team'
     link.ref = new_tref
-    if len(description) > 0:
-        if not hasattr(link, 'descriptions'):
-            link.descriptions = {}
-        link.descriptions[interface_lang] = description
-    link.save()
 
-    # process learning_team_link for client-side, especially relevant in TopicSearch.jsx
+    current_descriptions = getattr(link, 'descriptions', {})
+    if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
+        current_descriptions[interface_lang] = description
+        link.descriptions = current_descriptions
+
+    if not creating_new_link and link is None:
+        return {"error": f"Can't edit link because link does not currently exist."}
+    elif creating_new_link:
+        if not link_already_existed:
+            # check link was None to avoid unjustifiably incrementing topic's numSources
+            num_sources = getattr(topic_obj, "numSources", 0)
+            topic_obj.numSources = num_sources + 1
+            topic_obj.save()
+            link.order['tfidf'] = 1
+            link.order['pr'] = 0
+            link.order['numDatasource'] = 1
+        if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
+            # this will evaluate to false when (1) creating a new link though the link already exists and has a curated primacy
+            # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
+            # this code sets the new source at the top of the topic page, because otherwise it can be hard to find.
+            # curated primacy's default value for all links is 0 so set it to 1 + num of links in this language
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1
+            if 'curatedPrimacy' not in link.order:
+                link.order['curatedPrimacy'] = {}
+            link.order['curatedPrimacy'][interface_lang] = num_curr_links
+
+    link.save()
+    # process link for client-side, especially relevant in TopicSearch.jsx
     ref_topic_dict = ref_topic_link_prep(link.contents())
     return annotate_topic_link(ref_topic_dict, {slug: topic_obj})
 

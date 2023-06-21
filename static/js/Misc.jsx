@@ -1168,9 +1168,11 @@ const CategoryHeader =  ({children, type, data = [], edit = true,
     }
   } else if (Sefaria.is_moderator && reorderCategory) {
     const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
-    // callback sorts the refs and then takes only first 30 sources because admins don't want to reorder hundreds of sources
-    const callback = (x) => x.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
-    const refs = Sefaria.getRefsForSourceEditor(data, callback);
+    let refs = data.refs?.about?.refs || [];
+    // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+    refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+    // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+    refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
                                       postURL={url}
                                       type={'sources'}
