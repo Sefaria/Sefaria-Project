@@ -27,4 +27,4 @@ def get_texts(request, tref):
         handler = APITextsHandler(oref, versions_params)
         data = handler.get_versions_for_query()
         return jsonResponse(data, cb)
-    return jsonResponse({"error": "Unsupported HTTP method."}, cbdocs)
+    return jsonResponse({"error": "Unsupported HTTP method."}, cb, 405)
