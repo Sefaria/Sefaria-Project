@@ -231,6 +231,8 @@ def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions)
 def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corpus: dict) -> Optional[str]:
     vprefs = version_preferences_by_corpus
     corpus = oref.index.get_primary_corpus()
+    # Make sure ref's corpus and current lang are specified in version_preferences_by_corpus.
+    # If not, use default version
     if vprefs is None or corpus not in vprefs or lang not in vprefs[corpus]:
         return
     return vprefs[corpus][lang]
