@@ -21,3 +21,13 @@ test('verify translations', async ({ page }) => {
   expect(versionSelectLength).toBeTruthy();
 
 });
+
+test('go to sources page', async ({ page }) => {
+  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
+
+  await page.getByRole('link', { name: 'מקורות' }).click();
+
+  await page.getByRole('link', { name: 'תנ"ך' }).isVisible();
+
+});
+
