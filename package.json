@@ -42,6 +42,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@sentry/react": "^7.56.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",
