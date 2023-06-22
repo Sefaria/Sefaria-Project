@@ -7,7 +7,7 @@ from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 
 logger = structlog.get_logger(__name__)
 
@@ -81,10 +81,10 @@ def _create_find_refs_text(post_body) -> _FindRefsText:
 
 
 def _create_find_refs_options(get_body, post_body) -> _FindRefsTextOptions:
-    with_text = bool(int(get_body.get("with_text", False)))
-    debug = bool(int(get_body.get("debug", False)))
-    max_segments = int(get_body.get("max_segments", 0))
-    version_preferences_by_corpus = post_body.get("version_preferences_by_corpus")
+    with_text: bool = bool(int(get_body.get("with_text", False)))
+    debug: bool = bool(int(get_body.get("debug", False)))
+    max_segments: int = int(get_body.get("max_segments", 0))
+    version_preferences_by_corpus: dict = post_body.get("version_preferences_by_corpus")
     return _FindRefsTextOptions(with_text, debug, max_segments, version_preferences_by_corpus)
 
 
@@ -97,7 +97,7 @@ def _add_webpage_hit_for_url(url):
 
 
 @django_cache(cache_type="persistent")
-def _make_find_refs_response_with_cache(request_text, options, meta_data):
+def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
     if request_text.lang == 'he':
         response = _make_find_refs_response_linker_v3(request_text, options)
     else:
@@ -115,7 +115,7 @@ def _make_find_refs_response_with_cache(request_text, options, meta_data):
     return response
 
 
-def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions):
+def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
     resolver = library.get_ref_resolver()
     resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
@@ -129,7 +129,7 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
     return response
 
 
-def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions):
+def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
     response = {
         "title": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.title, options),
         "body": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.body, options),
@@ -238,7 +238,7 @@ def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corp
     return vprefs[corpus][lang]
 
 
-def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions):
+def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions) -> Tuple[List[str], bool]:
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
     chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
