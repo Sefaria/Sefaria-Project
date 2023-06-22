@@ -1074,11 +1074,12 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         return {"error": f"Can't edit link because link does not currently exist."}
     elif creating_new_link:
         if not link_already_existed:
-            # check link was None to avoid unjustifiably incrementing topic's numSources
+            # all values below will be calculated by topics-indexing cronjob, but incrementing numSources now is necessary
+            # for TopicSearch.jsx, and setting tfidf, pr, and numDatasource need to have default values until the next cronjob for reordering to work right
             num_sources = getattr(topic_obj, "numSources", 0)
             topic_obj.numSources = num_sources + 1
             topic_obj.save()
-            link.order['tfidf'] = 1
+            link.order['tfidf'] = 1    #  need to give default values for 'tfidf', 'pr', and 'numDatasources
             link.order['pr'] = 0
             link.order['numDatasource'] = 1
         if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
