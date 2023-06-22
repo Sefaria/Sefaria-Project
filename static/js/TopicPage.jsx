@@ -100,14 +100,14 @@ const refSort = (currSortOption, a, b) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    const aAvailLangs = a.order.availableLangs || [];
-    const bAvailLangs = b.order.availableLangs || [];
+    const aAvailLangs = a.order.availableLangs;
+    const bAvailLangs = b.order.availableLangs;
     if ((Sefaria.interfaceLang === 'english') &&
-      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
-      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+      (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
+      return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
     else if ((Sefaria.interfaceLang === 'hebrew') &&
-      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
-      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0);
+      (a.order.curatedPrimacy.he || b.order.curatedPrimacy.he > 0)) {
+      return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
     }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
