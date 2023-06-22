@@ -92,7 +92,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
