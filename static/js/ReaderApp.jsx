@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext, AdContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -2175,18 +2175,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-      <div id="readerAppWrap">
-        {interruptingMessage}
-        <div className={classes} onClick={this.handleInAppLinkClick}>
-          {header}
-          {panels}
-          {sefariaModal}
-          {communityPagePreviewControls}
-          <CookiesNotification />
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+        <div id="readerAppWrap">
+          {interruptingMessage}
+          <div className={classes} onClick={this.handleInAppLinkClick}>
+            {header}
+            {panels}
+            {sefariaModal}
+            {communityPagePreviewControls}
+            {beitMidrashPanel}
+            <CookiesNotification />
+            {/* <ExampleComponent /> */}
+          </div>
         </div>
-      </div>
-      </AdContext.Provider>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
