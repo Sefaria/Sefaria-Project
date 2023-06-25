@@ -1101,14 +1101,14 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader = ({children, type, data = [], edit = true,
-                          add_subcategory = true, reorder = false,
-                          add_source = false}) => {
+const CategoryHeader =  ({children, type, data = [], edit = true,
+                            add_subcategory = true, reorder = false,
+                            add_source = false}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'books' or 'topics'
   `data` is list when `type` === 'books' which tells us where we are in the TOC tree,
-        for `type` === 'topics' it's a string with value of topic slug
+        for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
@@ -1119,8 +1119,6 @@ const CategoryHeader = ({children, type, data = [], edit = true,
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
   let adminButtonsSpan = null;
-  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(data));
-
   if (Sefaria.is_moderator && editCategory) {
     if (data.length === 0) {  // at /texts or /topics
       const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
@@ -1144,29 +1142,21 @@ const CategoryHeader = ({children, type, data = [], edit = true,
       };
       adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
     } else if (type === "topics") {
-      if (!topicData) {
-        Sefaria.getTopic(data).then(d => {
-          setTopicData(d);
-        })
-      } else {
-        const initCatSlug = TopicToCategorySlug(topicData);
-        const origData = {
-          origSlug: topicData.slug, origCategorySlug: initCatSlug,
-          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
-        };
-        origData.origDesc = topicData.description || {"en": "", "he": ""};
-        origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-        const origWasCat = "displays-above" in topicData?.links;
-        adminButtonsSpan = <TopicEditor origData={origData}
-                                        origWasCat={origWasCat}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                        close={toggleEditCategory}/>;
-      }
-
+      const initCatSlug = TopicToCategorySlug(data);
+      const origData = {
+        origSlug: data.slug, origCategorySlug: initCatSlug,
+        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
+      };
+      origData.origDesc = data.description || {"en": "", "he": ""};
+      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
+      const origWasCat = "displays-above" in data?.links;
+      adminButtonsSpan = <TopicEditor origData={origData}
+                                      origWasCat={origWasCat}
+                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                      close={toggleEditCategory}/>;
     }
   } else if (Sefaria.is_moderator && addSource && type === "topics") {
-    adminButtonsSpan = <SourceEditor topic={data} close={toggleAddSource}/>;
-
+    adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
   } else if (Sefaria.is_moderator && addCategory) {
     const origData = {origEn: ""};
     if (type === "books") {
@@ -1177,29 +1167,24 @@ const CategoryHeader = ({children, type, data = [], edit = true,
                                       onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
     }
   } else if (Sefaria.is_moderator && reorderCategory) {
-    if (!topicData) {
-        Sefaria.getTopic(data).then(d => {
-          setTopicData(d);
-        })
-    } else {
-      let url = `/api/source/reorder?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
-      let refs = topicData.refs?.about?.refs || [];
-      if (refs.length) {
-        refs = refs.filter((x) => !x.ref.startsWith('Sheet ')).slice(0, Sefaria._topicPageSize);
-        refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
-      }
-      adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
-                                        postURL={url}
-                                        type={'sources'}
-                                        origItems={refs}
-                                        redirect={`/topics/${topicData.slug}`}/>;
-    }
+    const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
+    let refs = data.refs?.about?.refs || [];
+    // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+    refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+    // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+    refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
+    adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
+                                      postURL={url}
+                                      type={'sources'}
+                                      origItems={refs}
+                                      redirect={`/topics/${data.slug}`}/>;
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                              { add_subcategory && <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
-                              { add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
-                              { edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
-                              { reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
+                              {add_subcategory &&
+                              <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
+      {add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
+      {edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
+      {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
                       </span>;
 
   }

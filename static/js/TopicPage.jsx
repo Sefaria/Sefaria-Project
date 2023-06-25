@@ -100,21 +100,24 @@ const refSort = (currSortOption, a, b) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    const aAvailLangs = a.order.availableLangs || [];
-    const bAvailLangs = b.order.availableLangs || [];
+    const aAvailLangs = a.order.availableLangs;
+    const bAvailLangs = b.order.availableLangs;
     if ((Sefaria.interfaceLang === 'english') &&
-      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
-      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+      (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
+      return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
     else if ((Sefaria.interfaceLang === 'hebrew') &&
-      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
-      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0); }
+      (a.order.curatedPrimacy.he || b.order.curatedPrimacy.he > 0)) {
+      return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
+    }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
     else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
-    else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
+    else if (a.order.pr !== b.order.pr) {
+        return b.order.pr - a.order.pr;
+    }
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
   }
 };
@@ -258,7 +261,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" data={topic}>
+                        <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -311,11 +314,11 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" data={topic} add_subcategory={false} reorder={true} add_source={true}>
+                <CategoryHeader type="topics" data={topicData} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
-            </CategoryHeader>
+                </CategoryHeader>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

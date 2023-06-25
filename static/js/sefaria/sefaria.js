@@ -2362,6 +2362,12 @@ _media: {},
           };
         }
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
+        if (refObj.order) {
+            refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
+                                numDatasource: refObj?.order?.numDatasource || 1,
+                                tfidf: refObj?.order?.tfidf || 0,
+                                pr: refObj?.order?.pr || 0,
+                                curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
         tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }
