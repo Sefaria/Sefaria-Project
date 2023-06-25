@@ -104,7 +104,7 @@ const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
             <StoryBodyBlock>
-{/*                 <ContentText html={{en: text.en, he: text.he}} /> */}
+{/*                  <ContentText html={{en: text.en, he: text.he}} /> */}
                <VersionContent html={{en: text.en, he: text.he}}/>
             </StoryBodyBlock>
         </ColorBarBox>
