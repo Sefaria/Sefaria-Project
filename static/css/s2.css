@@ -7388,7 +7388,7 @@ a .button:hover {
   text-decoration: none;
 }
 .reactMarkdown a {
-  color: revert;
+  color: var(--commentary-blue);
 }
 .button.small {
   padding: 10px 14px;
