@@ -7421,7 +7421,7 @@ a .button:hover {
 .adminButtons {
   display: flex;
   flex-direction: column;
-  margin-left: 240px;
+  margin: 0 150px 0 170px;
   width: 147px;
   position: absolute;
   height: 90px;
@@ -11265,6 +11265,7 @@ body .homeFeedWrapper.userStats {
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
+  margin-top: 30px;
   background-color: var(--lightest-grey);
 }
 .button.small.addTopic {

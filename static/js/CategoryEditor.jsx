@@ -211,16 +211,21 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                     [isNew ? null :
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
                                  updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
-                        <ToggleSet
-                          blueStyle={true}
-                          ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                          label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
-                          name="primary"
-                          separated={false}
-                          options={primaryOptions}
-                          setOption={handlePrimaryClick}
-                          currentValue={isPrimary} />,
-                    ]
+                         <div className="section">
+                            <label>
+                            <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
+                            </label>
+                            <ToggleSet
+                              blueStyle={true}
+                              ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                              label=""
+                              name="primary"
+                              separated={false}
+                              options={primaryOptions}
+                              setOption={handlePrimaryClick}
+                              currentValue={isPrimary} />
+                         </div>,
+                        ]
                 }/>
 
     </div>;
