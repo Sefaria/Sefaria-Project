@@ -2291,6 +2291,7 @@ _media: {},
 
   },
   _tableOfContentsDedications: {},
+    _strapiContent: null,
   _inAppAds: null,
   _stories: {
     stories: [],
