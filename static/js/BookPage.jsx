@@ -5,14 +5,13 @@ import {
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
-  NBox,
-  ResponsiveNBox,
   TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants
+  TitleVariants,
+  CategoryHeader
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';

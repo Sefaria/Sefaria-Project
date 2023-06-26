@@ -3,8 +3,18 @@ import Sefaria from "./sefaria/sefaria";
 import $ from "./sefaria/sefariaJquery";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 
-const AdminEditorButton = ({toggleAddingTopics, text}) => {
-    return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
+const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) => {
+    const topBorderRadius = top ? "6px" : "0";
+    const bottomBorderRadius = bottom ? "6px" : 0;
+    const style = {'border-radius': `${topBorderRadius} ${topBorderRadius} ${bottomBorderRadius} ${bottomBorderRadius}`};
+    if (!bottom) {
+        style['border-bottom'] = '1px solid #ccc';
+    }
+    return <div onClick={toggleAddingTopics}
+                style={style}
+                id="editTopic"
+                className="button extraSmall topic"
+                role="button">
         <InterfaceText>{text}</InterfaceText>
     </div>;
 }

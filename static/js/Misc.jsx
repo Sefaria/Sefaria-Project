@@ -1179,18 +1179,17 @@ const CategoryHeader =  ({children, type, data = [], edit = true,
                                       origItems={refs}
                                       redirect={`/topics/${data.slug}`}/>;
   } else if (Sefaria.is_moderator) {
+    const onlyEditing = !(add_subcategory || add_source || reorder);
     adminButtonsSpan = <span className={adminClasses}>
-                              {add_subcategory &&
-                              <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
-      {add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
-      {edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
-      {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
-                      </span>;
+                              {add_subcategory && <AdminEditorButton text="Add sub-category" top={true} toggleAddingTopics={toggleAddCategory}/>}
+                              {add_source && <AdminEditorButton text="Add a source" top={true} toggleAddingTopics={toggleAddSource}/>}
+                              {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
+                              {edit && <AdminEditorButton text="Edit" bottom={true} top={onlyEditing} toggleAddingTopics={toggleEditCategory}/>}
+                    </span>;
 
   }
   const wrapper = addCategory || editCategory || addSource || reorderCategory ? "" : "headerWithAdminButtons";
-  return <span className={wrapper}><span
-      onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
+  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
 
 

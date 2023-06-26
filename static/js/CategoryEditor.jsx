@@ -212,6 +212,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
                                  updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
                          <div className="section">
+                             <br/>
                             <label>
                             <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
                             </label>
