@@ -8,7 +8,7 @@ import {
     SimpleContentBlock,
     SimpleLinkedBlock,
     ProfileListing,
-    ContentText, InterfaceText,
+    ContentText, InterfaceText, VersionContent
 } from './Misc';
 
 // Much of Stories was removed November 2022.
@@ -104,7 +104,8 @@ const StoryTextListItem = ({text, toggleSignUpModal}) => (
     <div className="storyTextListItem">
         <ColorBarBox tref={text.ref} >
             <StoryBodyBlock>
-                <ContentText html={{en: text.en, he: text.he}} />
+{/*                  <ContentText html={{en: text.en, he: text.he}} /> */}
+               <VersionContent html={{en: text.en, he: text.he}}/>
             </StoryBodyBlock>
         </ColorBarBox>
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal}>
