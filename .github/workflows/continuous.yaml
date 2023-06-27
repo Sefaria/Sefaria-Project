@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Check if push is in PR
         id: check
-        uses: 8BitJonny/gh-get-current-pr@1.4.0
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
         with:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
