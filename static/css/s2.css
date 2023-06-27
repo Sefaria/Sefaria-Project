@@ -12463,6 +12463,88 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  display: inline-block;
+  text-align: left;
+  top: 8px;
+}
+
+.toggle-switch-checkbox {
+  display: none;
+}
+
+.toggle-switch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  float: left;
+  width: 50%;
+  height: 24px;
+  padding: 0;
+  line-height: 24px;
+  color: #fff;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.toggle-switch-inner:before {
+  content: "";
+  padding-left: 10px;
+  background-color: #060;
+  color: #fff;
+}
+
+.toggle-switch-inner:after {
+  content: "";
+  padding-right: 10px;
+  background-color: #bbb;
+  color: #fff;
+  text-align: right;
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  right: 26px;
+  border: 0 solid #bbb;
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+  transform: translateY(-50%);
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+  right: 0px;
+}
+
+.toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
+  background-color: blue;
+}
+
 #currentlyReadingContainer {
   margin: 5px 30px;
   flex-grow: 1;
