@@ -633,10 +633,10 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               following={Sefaria.following.indexOf(p.id) > -1}
               toggleSignUpModal={toggleSignUpModal}
             />
-            <a href="#" className="resourcesLink sans-serif" onClick={message}>
-              <span className="int-en">Message</span>
-              <span className="int-he">שליחת הודעה</span>
-            </a>
+            {/*<a href="#" className="resourcesLink sans-serif" onClick={message}>*/}
+            {/*  <span className="int-en">Message</span>*/}
+            {/*  <span className="int-he">שליחת הודעה</span>*/}
+            {/*</a>*/}
           </div>)
         }
         <div className="follow">
