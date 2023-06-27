@@ -12463,13 +12463,16 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+.toggle-switch-container {
+  align-items: center;
+  display: flex;
+}
 
 .toggle-switch {
   position: relative;
   width: 46px;
   display: inline-block;
   text-align: left;
-  top: 8px;
 }
 
 .toggle-switch-checkbox {
@@ -12480,7 +12483,7 @@ span.ref-link-color-3 {color: blue}
   display: block;
   overflow: hidden;
   cursor: pointer;
-  border: 0 solid #bbb;
+  border: 0 solid var(--light-grey);
   border-radius: 20px;
 }
 
@@ -12498,7 +12501,7 @@ span.ref-link-color-3 {color: blue}
   height: 24px;
   padding: 0;
   line-height: 24px;
-  color: #fff;
+  color: white;
   font-weight: bold;
   box-sizing: border-box;
 }
@@ -12506,15 +12509,15 @@ span.ref-link-color-3 {color: blue}
 .toggle-switch-inner:before {
   content: "";
   padding-left: 10px;
-  background-color: #060;
-  color: #fff;
+  background-color: var(--sefaria-blue);
+  color: white;
 }
 
 .toggle-switch-inner:after {
   content: "";
   padding-right: 10px;
-  background-color: #bbb;
-  color: #fff;
+  background-color: var(--light-grey);
+  color: white;
   text-align: right;
 }
 
@@ -12522,12 +12525,12 @@ span.ref-link-color-3 {color: blue}
   display: block;
   width: 20px;
   height: 20px;
-  background: #fff;
+  background: white;
   position: absolute;
   top: 50%;
   bottom: 0;
   right: 26px;
-  border: 0 solid #bbb;
+  border: 0 solid var(--light-grey);
   border-radius: 20px;
   transition: all 0.3s ease-in 0s;
   transform: translateY(-50%);
@@ -12542,8 +12545,27 @@ span.ref-link-color-3 {color: blue}
 }
 
 .toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
-  background-color: blue;
+  background-color: var(--lighter-grey);
 }
+
+.toggle-switch-line {
+  display: flex;
+  width: 256px;
+  height: 49px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch-line .int-en,
+.toggle-switch-line .int-he {
+  height: 18px;
+}
+
+.toggle-switch-line:is(.disabled) .int-en,
+.toggle-switch-line:is(.disabled) .int-he {
+  color: var(--light-grey);
+}
+
 
 #currentlyReadingContainer {
   margin: 5px 30px;

@@ -24,5 +24,5 @@ function ToggleSwitch(props) {
 ToggleSwitch.proptypes = {
     name: PropTypes.string,
     disabled: PropTypes.bool,
-}
+};
 export default ToggleSwitch;
