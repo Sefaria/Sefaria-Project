@@ -563,7 +563,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -633,10 +633,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               following={Sefaria.following.indexOf(p.id) > -1}
               toggleSignUpModal={toggleSignUpModal}
             />
-            {/*<a href="#" className="resourcesLink sans-serif" onClick={message}>*/}
-            {/*  <span className="int-en">Message</span>*/}
-            {/*  <span className="int-he">שליחת הודעה</span>*/}
-            {/*</a>*/}
           </div>)
         }
         <div className="follow">
@@ -665,7 +661,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
 };
 ProfileSummary.propTypes = {
   profile:       PropTypes.object.isRequired,
-  message:       PropTypes.func.isRequired,
   follow:        PropTypes.func.isRequired,
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,

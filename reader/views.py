@@ -2905,27 +2905,6 @@ def notifications_read_api(request):
 
 
 @catch_error_as_json
-def messages_api(request):
-    """
-    API for posting user to user messages
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to access your messages."})
-
-    if request.method == "POST":
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
-        return jsonResponse({"status": "ok"})
-
-    elif request.method == "GET":
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
