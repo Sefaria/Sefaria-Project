@@ -59,6 +59,7 @@ undecorated==0.3.0
 unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
+sentry-sdk==1.25.1
 babel
 python-bidi
 
