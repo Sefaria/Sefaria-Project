@@ -11,7 +11,7 @@ import {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  CategoryHeader
+  CategoryHeader, requestWithCallBack
 } from './Misc';
 
 import React, { useState, useRef }  from 'react';
@@ -1224,6 +1224,11 @@ const EditTextInfo = function({initTitle, close}) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
   }
+  const deleteObj = () => {
+    setSavingStatus(true);
+    const url = "/api/v2/index/" + enTitle;
+    requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1289,6 +1294,9 @@ const EditTextInfo = function({initTitle, close}) {
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
                 <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
               </div> : null}
+            <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                <InterfaceText>Delete</InterfaceText>
+            </div>
           </div>
         </div>
       </div>
