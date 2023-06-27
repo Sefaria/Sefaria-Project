@@ -11,7 +11,7 @@ function ToggleSwitch(props) {
                 className="toggle-switch-checkbox"
                 name={name}
                 id={name}
-                disabled={!props.disabled}
+                disabled={props.disabled}
             />
             <label className="toggle-switch-label" htmlFor={name}>
               <span className="toggle-switch-inner" />
@@ -25,4 +25,4 @@ ToggleSwitch.proptypes = {
     name: PropTypes.string,
     disabled: PropTypes.bool,
 }
-export default ToggleSwitchButton;
+export default ToggleSwitch;
