@@ -80,7 +80,7 @@ def _create_find_refs_text(post_body) -> _FindRefsText:
     return _FindRefsText(title, body)
 
 
-def _create_find_refs_options(get_body, post_body) -> _FindRefsTextOptions:
+def _create_find_refs_options(get_body: dict, post_body: dict) -> _FindRefsTextOptions:
     with_text: bool = bool(int(get_body.get("with_text", False)))
     debug: bool = bool(int(get_body.get("debug", False)))
     max_segments: int = int(get_body.get("max_segments", 0))
