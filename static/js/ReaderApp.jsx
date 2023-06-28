@@ -31,7 +31,6 @@ import {
 } from './Misc';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
-import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
