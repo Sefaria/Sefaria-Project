@@ -1,7 +1,9 @@
-from sefaria.helper.linker import _FindRefsText, _create_find_refs_text, _FindRefsTextOptions, load_spacy_model
+from sefaria.helper import linker
+import json
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from sefaria.google_storage_manager import GoogleStorageManager
+from django.test import RequestFactory
 import spacy
 import tarfile
 import io
@@ -27,7 +29,7 @@ class TestLoadSpacyModel:
     @patch('spacy.load')
     def test_load_spacy_model_local(spacy_load_mock, spacy_model):
         spacy_load_mock.return_value = spacy_model
-        assert load_spacy_model('local/path') == spacy_model
+        assert linker.load_spacy_model('local/path') == spacy_model
 
     @staticmethod
     @patch('spacy.load')
@@ -35,7 +37,7 @@ class TestLoadSpacyModel:
     def test_load_spacy_model_cloud(get_filename_mock, spacy_load_mock, spacy_model, tarfile_buffer):
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.return_value = spacy_model
-        assert load_spacy_model('gs://bucket_name/blob_name') == spacy_model
+        assert linker.load_spacy_model('gs://bucket_name/blob_name') == spacy_model
 
     @staticmethod
     @patch('spacy.load')
@@ -44,4 +46,115 @@ class TestLoadSpacyModel:
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.side_effect = OSError
         with pytest.raises(OSError):
-            load_spacy_model('invalid_path')
+            linker.load_spacy_model('invalid_path')
+
+
+@pytest.fixture
+def mock_request_post_data():
+    return {
+        'text': {'title': 'title', 'body': 'body'},
+        'version_preferences_by_corpus': {},
+        'metaDataForTracking': {'url': 'https://test.com', 'title': 'title', 'description': 'description'}
+    }
+
+
+@pytest.fixture
+def mock_request_post_data_without_meta_data(mock_request_post_data):
+    del mock_request_post_data['metaDataForTracking']
+    return mock_request_post_data
+
+
+def make_mock_request(post_data):
+    factory = RequestFactory()
+    request = factory.post('/api/find-refs', data=json.dumps(post_data), content_type='application/json')
+    request.GET = {'with_text': '1', 'debug': '1', 'max_segments': '10'}
+    return request
+
+
+@pytest.fixture
+def mock_request(mock_request_post_data):
+    return make_mock_request(mock_request_post_data)
+
+
+@pytest.fixture
+def mock_request_without_meta_data(mock_request_post_data_without_meta_data):
+    return make_mock_request(mock_request_post_data_without_meta_data)
+
+
+@pytest.fixture
+def mock_webpage():
+    with patch('sefaria.helper.linker.WebPage') as MockWebPage:
+        mock_webpage = MockWebPage.return_value
+        loaded_webpage = Mock()
+        mock_webpage.load.return_value = loaded_webpage
+        loaded_webpage.url = "test url"
+        MockWebPage.add_or_update_from_linker.return_value = (None, loaded_webpage)
+        yield loaded_webpage
+
+
+class TestFindRefsHelperClasses:
+
+    @patch('sefaria.utils.hebrew.is_hebrew', return_value=False)
+    def test_find_refs_text(self, mock_is_hebrew):
+        find_refs_text = linker._FindRefsText('title', 'body')
+        mock_is_hebrew.assert_called_once_with('body')
+        assert find_refs_text.lang == 'en'
+
+    def test_find_refs_text_options(self):
+        find_refs_text_options = linker._FindRefsTextOptions(True, True, 10, {})
+        assert find_refs_text_options.debug
+        assert find_refs_text_options.with_text
+        assert find_refs_text_options.max_segments == 10
+        assert find_refs_text_options.version_preferences_by_corpus == {}
+
+    def test_create_find_refs_text(self, mock_request):
+        post_body = json.loads(mock_request.body)
+        find_refs_text = linker._create_find_refs_text(post_body)
+        assert find_refs_text.title == 'title'
+        assert find_refs_text.body == 'body'
+
+    def test_create_find_refs_options(self, mock_request):
+        post_body = json.loads(mock_request.body)
+        find_refs_options = linker._create_find_refs_options(mock_request.GET, post_body)
+        assert find_refs_options.with_text
+        assert find_refs_options.debug
+        assert find_refs_options.max_segments == 10
+        assert find_refs_options.version_preferences_by_corpus == {}
+
+
+class TestMakeFindRefsResponse:
+    def test_make_find_refs_response_with_meta_data(self, mock_request, mock_webpage):
+        response = linker.make_find_refs_response(mock_request)
+        mock_webpage.add_hit.assert_called_once()
+        mock_webpage.save.assert_called_once()
+
+    def test_make_find_refs_response_without_meta_data(self, mock_request_without_meta_data, mock_webpage):
+        response = linker.make_find_refs_response(mock_request_without_meta_data)
+        mock_webpage.add_hit.assert_not_called()
+        mock_webpage.save.assert_not_called()
+
+
+class TestUnpackFindRefsRequest:
+    def test_unpack_find_refs_request(self, mock_request):
+        text, options, meta_data = linker._unpack_find_refs_request(mock_request)
+        assert isinstance(text, linker._FindRefsText)
+        assert isinstance(options, linker._FindRefsTextOptions)
+        assert meta_data == {'url': 'https://test.com', 'description': 'description', 'title': 'title'}
+
+    def test_unpack_find_refs_request_without_meta_data(self, mock_request_without_meta_data):
+        text, options, meta_data = linker._unpack_find_refs_request(mock_request_without_meta_data)
+        assert isinstance(text, linker._FindRefsText)
+        assert isinstance(options, linker._FindRefsTextOptions)
+        assert meta_data is None
+
+
+class TestAddWebpageHitForUrl:
+    def test_add_webpage_hit_for_url(self, mock_webpage):
+        linker._add_webpage_hit_for_url('https://test.com')
+        mock_webpage.add_hit.assert_called_once()
+        mock_webpage.save.assert_called_once()
+
+    def test_add_webpage_hit_for_url_no_url(self, mock_webpage):
+        linker._add_webpage_hit_for_url(None)
+        mock_webpage.add_hit.assert_not_called()
+        mock_webpage.save.assert_not_called()
