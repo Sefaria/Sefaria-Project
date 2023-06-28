@@ -230,21 +230,26 @@ class TestPreferredVtitle:
 
 class TestRefTextByLangForLinker:
 
+    @pytest.fixture
+    def mock_ja(self):
+        return Mock()
+
+    @pytest.fixture
+    def mock_text_chunk(self, mock_ja):
+        with patch('sefaria.model.text.TextChunk') as MockTC:
+            mock_tc = MockTC.return_value
+            mock_tc.ja.return_value = mock_ja
+            mock_tc.strip_itags.side_effect = lambda x: x
+            yield mock_tc
+
     @pytest.mark.parametrize(('options', 'text_array', 'expected_text_array', 'expected_was_truncated'), [
         ({"max_segments": 4}, ['a'], ['a'], False),
         ({"max_segments": 2}, ['a', 'b'], ['a', 'b'], False),
         ({"max_segments": 2}, ['a', 'b', 'c'], ['a', 'b'], True),
     ])
-    def test_get_ref_text_by_lang_for_linker(self, mock_oref, options, text_array, expected_text_array, expected_was_truncated):
+    def test_get_ref_text_by_lang_for_linker(self, mock_text_chunk, mock_ja, mock_oref, options, text_array, expected_text_array, expected_was_truncated):
+        mock_ja.flatten_to_array.return_value = text_array
         find_refs_options = linker._FindRefsTextOptions(**options)
-        with patch('sefaria.model.text.TextChunk') as MockedTC:
-            mocked_tc = MockedTC.return_value
-            mocked_ja = Mock()
-            mocked_ja.flatten_to_array.return_value = text_array
-            mocked_tc.ja.return_value = mocked_ja
-            mocked_tc.strip_itags.side_effect = lambda x: x
-
-            # test
-            actual_text_array, actual_was_truncated = linker._get_ref_text_by_lang_for_linker(mock_oref, 'en', find_refs_options)
-            assert actual_text_array == expected_text_array
-            assert actual_was_truncated == expected_was_truncated
+        actual_text_array, actual_was_truncated = linker._get_ref_text_by_lang_for_linker(mock_oref, 'en', find_refs_options)
+        assert actual_text_array == expected_text_array
+        assert actual_was_truncated == expected_was_truncated
