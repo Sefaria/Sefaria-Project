@@ -22,66 +22,26 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	webpages_without_websites_days = sites_that_may_have_removed_linker_days # same timeline is relevant
 
 	print("Original webpage stats...")
-	orig_total_pages, orig_total_links, year_data = webpages_stats()
-
+	orig_count = WebPageSet().count()
+	skip = 0
+	limit = 500
 	print("Cleaning webpages...")
 	clean_webpages(test=test)
-	dedupe_webpages(test=test)
-	total_pages, total_links, year_data = webpages_stats()
 
-	post_object = {
-		"username": "Webpage Cronjob",
-		"channel": "#engineering-signal",
-		"blocks": [
-			{
-				"type": "header",
-				"text": {
-					"type": "plain_text",
-					"text": "Webpage Cronjob",
-					"emoji": True
-				}
-			},
-			{
-				"type": "section",
-				"fields": [
-					{
-						"type": "mrkdwn",
-						"text": f"*Original webpage total:*\n{orig_total_pages}"
-					},
-					{
-						"type": "mrkdwn",
-						"text": f"*Webpage total after running cronjob:*\n{total_pages}"
-					}
-				]
-			},
-			{
-				"type": "section",
-				"fields": [
-					{
-						"type": "mrkdwn",
-						"text": f"*Original link total:*\n{orig_total_links}"
-					},
-					{
-						"type": "mrkdwn",
-						"text": f"*Link total after running cronjob:*\n{total_links}"
-					}
-				]
-			},
-		]
-	}
-	requests.post(SLACK_URL, json=post_object)
-	print("Find sites that no longer have linker...")
-	sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
-	print("Looking for webpages that have no corresponding website.  If WebPages have been accessed in last 20 days, create a new WebSite for them.  Otherwise, delete them.")
-	sites["Site uses linker but is not whitelisted"] = find_webpages_without_websites(test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
-
-	#
-	# flag = 500
-	# print("Looking for websites where the same Ref appears in at least {} pages...".format(flag))
-	# sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(relative_percent=3)
-
+	while (skip + limit) < orig_count:
+		webpages = WebPageSet(limit=limit, skip=skip)
+		print("Deduping...")
+		dedupe_webpages(webpages, test=test)
+		print("Find sites that no longer have linker...")
+		sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
+		print("Looking for webpages that have no corresponding website.  If WebPages have been accessed in last 20 days, create a new WebSite for them.  Otherwise, delete them.")
+		sites["Site uses linker but is not whitelisted"] = find_webpages_without_websites(webpages, test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
+		sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(webpages, relative_percent=3)
+		skip += limit
+	sites["Webpages removed"] = orig_count - WebPageSet().count()
 
 	# given list type and site, either create new card or update existing card with message of site object
+	assert 3 == 4
 	print("****")
 	print(sites)
 	for kind, sites_to_handle in sites.items():
