@@ -2605,12 +2605,9 @@ const AdminToolHeader = function({title, validate, close}) {
   /*
   Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
-  const titleCase = (x) => {
-    return x.split(" ").map(word => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`).join(" ");
-  }
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
-                <InterfaceText>{titleCase(title)}</InterfaceText>
+                <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">

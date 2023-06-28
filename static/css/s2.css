@@ -11806,6 +11806,7 @@ a.topicLexiconTitle.contentText {
 .headerWithButtons h1,
 .static .headerWithButtons h1 {
   margin: 0;
+  text-transform: capitalize;
 }
 .headerWithButtons .start,
 .headerWithButtons .end {

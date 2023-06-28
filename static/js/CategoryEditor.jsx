@@ -15,7 +15,7 @@ const displayOptionForSources = (child) => {
         return child?.descriptions?.he ? `${child?.descriptions?.he?.title} - ${displayRef}` : displayRef;
     }
 }
-const displayOptions = {"books": (child) => child.title || child.category,
+const displayOptions = {"cats": (child) => child.title || child.category,
                         "topics": (child) => child.en,
                         "sources": (child) => displayOptionForSources(child)};
 const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
@@ -73,9 +73,9 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
     }
     const save = () => {
         let postCategoryData = {};
-        if (type === "books") {
+        if (type === "cats") {
             // use displayOptions to map toc objects to titles of category/book
-            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
+            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["cats"](x)), path: []};
         }
         else if (type === "topics") {
              postCategoryData = {topics: tocItems};
@@ -176,8 +176,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             urlParams.push("update=1");
             postCategoryData = {...postCategoryData, origPath: origFullPath};
         }
-        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
-        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
+        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["cats"]);
+        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["cats"]);
         const reordered = origSubcategoryTitles.some((val, index) => val !== newSubcategoryTitles[index]);
         if (reordered && !isNew) {  // only reorder children when category isn't new
             postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
@@ -210,7 +210,7 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 extras={
                     [isNew ? null :
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
-                                 updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
+                                 updateOrder={setSubcategoriesAndBooks} displayType="cats"/>,
                          <div className="section">
                              <br/>
                             <label>
