@@ -12356,34 +12356,8 @@ span.ref-link-color-3 {color: blue}
   flex-grow: 1;
 }
 
-.chavrutaFooter {
-  font-size: 13px;
-  font-weight: 400;
-  color: #CCCCCC;
-  margin: 20px;
-}
-
-.beitMidrashHomeFooter {
-  font-size: 13px;
-  font-weight: 400;
-  color: #CCCCCC;
-  margin: 0 30px;
-}
-
-.beitMidrashHomeFooter p {
-  margin-top: 0;
-}
-
 .blockButton {
   cursor: pointer;
-}
-
-#openBeitMidrashButton {
-  transform: rotate(45deg);
-  margin-top: 20px;
-  height: 18px;
-  width: 18px;
-  margin-inline-start: 6px;
 }
 
 @-webkit-keyframes load5 {

@@ -554,11 +554,6 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
             hist.mode = "history";
-            break;
-          case "beit_midrash":
-            hist.title = Sefaria._("Sefaria Beit Midrash");
-            hist.url = "beit-midrash";
-            hist.mode = "beit-midrash";
         }
         hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {

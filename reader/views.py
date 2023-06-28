@@ -632,7 +632,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
-        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -3461,40 +3460,6 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
-@catch_error_as_json
-def chat_message_api(request):
-    if request.method == "POST":
-        messageJSON = request.POST.get("json")
-        messageJSON = json.loads(messageJSON)
-
-        room_id = messageJSON["roomId"]
-        uids = room_id.split("-")
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can post to it."})
-
-
-        message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"],
-                        "timestamp": messageJSON["timestamp"],
-                        "message": messageJSON["messageContent"]})
-        message.save()
-        return jsonResponse({"status": "ok"})
-
-    if request.method == "GET":
-        room_id = request.GET.get("room_id")
-        uids = room_id.split("-")
-
-
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can view it."})
-
-        skip = int(request.GET.get("skip", 0))
-        limit = int(request.GET.get("limit", 10))
-
-        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
-        return jsonResponse(messages)
-
-    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -4629,16 +4594,3 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-@login_required
-def beit_midrash(request, slug):
-    chavrutaId = request.GET.get("cid", None)
-    starting_ref = request.GET.get("ref", None)
-
-    if starting_ref:
-        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
-
-    else:
-        props = {"customBeitMidrashId": slug,}
-        title = _("Sefaria Beit Midrash")
-        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-        return menu_page(request, props, "navigation", title, desc)
