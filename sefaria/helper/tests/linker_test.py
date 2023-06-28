@@ -9,6 +9,7 @@ import tarfile
 import io
 from sefaria.model.text import Ref
 
+
 @pytest.fixture
 def mock_oref():
     return Ref("Job 17")
@@ -247,7 +248,8 @@ class TestRefTextByLangForLinker:
         ({"max_segments": 2}, ['a', 'b'], ['a', 'b'], False),
         ({"max_segments": 2}, ['a', 'b', 'c'], ['a', 'b'], True),
     ])
-    def test_get_ref_text_by_lang_for_linker(self, mock_text_chunk, mock_ja, mock_oref, options, text_array, expected_text_array, expected_was_truncated):
+    def test_get_ref_text_by_lang_for_linker(self, mock_text_chunk, mock_ja, mock_oref, options, text_array,
+                                             expected_text_array, expected_was_truncated):
         mock_ja.flatten_to_array.return_value = text_array
         find_refs_options = linker._FindRefsTextOptions(**options)
         actual_text_array, actual_was_truncated = linker._get_ref_text_by_lang_for_linker(mock_oref, 'en', find_refs_options)
