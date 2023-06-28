@@ -7,14 +7,19 @@ from django.test import RequestFactory
 import spacy
 import tarfile
 import io
+from sefaria.model.text import Ref
+
+@pytest.fixture
+def mock_oref():
+    return Ref("Job 17")
+
+
+@pytest.fixture
+def spacy_model():
+    return spacy.blank('en')
 
 
 class TestLoadSpacyModel:
-
-    @staticmethod
-    @pytest.fixture
-    def spacy_model():
-        return spacy.blank('en')
 
     @staticmethod
     @pytest.fixture
@@ -74,6 +79,18 @@ def make_mock_request(post_data):
 @pytest.fixture
 def mock_request(mock_request_post_data):
     return make_mock_request(mock_request_post_data)
+
+
+@pytest.fixture
+def mock_find_refs_text(mock_request):
+    post_body = json.loads(mock_request.body)
+    return linker._create_find_refs_text(post_body)
+
+
+@pytest.fixture
+def mock_find_refs_options(mock_request):
+    post_body = json.loads(mock_request.body)
+    return linker._create_find_refs_options(mock_request.GET, post_body)
 
 
 @pytest.fixture
@@ -158,3 +175,76 @@ class TestAddWebpageHitForUrl:
         linker._add_webpage_hit_for_url(None)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
+
+
+class TestFindRefsResponseLinkerV3:
+
+    @pytest.fixture
+    def mock_get_ref_resolver(self, spacy_model):
+        from sefaria.model.text import library
+        with patch.object(library, 'get_ref_resolver') as mock_get_ref_resolver:
+            mock_ref_resolver = Mock()
+            mock_ref_resolver._raw_ref_model_by_lang = {"en": spacy_model}
+            mock_get_ref_resolver.return_value = mock_ref_resolver
+            mock_ref_resolver.bulk_resolve_refs.return_value = [[]]
+            yield mock_get_ref_resolver
+
+    def test_make_find_refs_response_linker_v3(self, mock_get_ref_resolver, mock_find_refs_text, mock_find_refs_options):
+        response = linker._make_find_refs_response_linker_v3(mock_find_refs_text, mock_find_refs_options)
+        assert 'title' in response
+        assert 'body' in response
+
+
+class TestFindRefsResponseInner:
+    @pytest.fixture
+    def mock_resolved(self):
+        return [[]]
+
+    def test_make_find_refs_response_inner(self, mock_resolved, mock_find_refs_options):
+        response = linker._make_find_refs_response_inner(mock_resolved, mock_find_refs_options)
+        assert 'results' in response
+        assert 'refData' in response
+
+
+class TestRefResponseForLinker:
+
+    def test_make_ref_response_for_linker(self, mock_oref, mock_find_refs_options):
+        response = linker._make_ref_response_for_linker(mock_oref, mock_find_refs_options)
+        assert 'heRef' in response
+        assert 'url' in response
+        assert 'primaryCategory' in response
+
+
+class TestPreferredVtitle:
+    @pytest.mark.parametrize(('oref', 'vprefs_by_corpus', 'expected_vpref'), [
+        [Ref("Job 17"), None, None],
+        [Ref("Job 17"), {"Tanakh": {"en": "vtitle1"}}, "vtitle1"],
+        [Ref("Shabbat 2a"), {"Tanakh": {"en": "vtitle1"}}, None],
+        [Ref("Shabbat 2a"), {"Bavli": {"en": "vtitle1"}}, "vtitle1"],
+        [Ref("Shabbat 2a"), {"Bavli": {"he": "vtitle1"}}, None],
+    ])
+    def test_get_preferred_vtitle(self, oref, vprefs_by_corpus, expected_vpref):
+        vpref = linker._get_preferred_vtitle(oref, 'en', vprefs_by_corpus)
+        assert vpref == expected_vpref
+
+
+class TestRefTextByLangForLinker:
+
+    @pytest.mark.parametrize(('options', 'text_array', 'expected_text_array', 'expected_was_truncated'), [
+        ({"max_segments": 4}, ['a'], ['a'], False),
+        ({"max_segments": 2}, ['a', 'b'], ['a', 'b'], False),
+        ({"max_segments": 2}, ['a', 'b', 'c'], ['a', 'b'], True),
+    ])
+    def test_get_ref_text_by_lang_for_linker(self, mock_oref, options, text_array, expected_text_array, expected_was_truncated):
+        find_refs_options = linker._FindRefsTextOptions(**options)
+        with patch('sefaria.model.text.TextChunk') as MockedTC:
+            mocked_tc = MockedTC.return_value
+            mocked_ja = Mock()
+            mocked_ja.flatten_to_array.return_value = text_array
+            mocked_tc.ja.return_value = mocked_ja
+            mocked_tc.strip_itags.side_effect = lambda x: x
+
+            # test
+            actual_text_array, actual_was_truncated = linker._get_ref_text_by_lang_for_linker(mock_oref, 'en', find_refs_options)
+            assert actual_text_array == expected_text_array
+            assert actual_was_truncated == expected_was_truncated
