@@ -6,6 +6,7 @@ from unittest.mock import patch, Mock
 from sefaria.google_storage_manager import GoogleStorageManager
 from django.test import RequestFactory
 from django.core.handlers.wsgi import WSGIRequest
+import spacy
 import tarfile
 import io
 from sefaria.model.text import Ref, TextChunk
@@ -18,8 +19,8 @@ def mock_oref() -> Ref:
 
 
 @pytest.fixture
-def spacy_model():
-    return Mock()
+def spacy_model() -> spacy.Language:
+    return spacy.blank('en')
 
 
 class TestLoadSpacyModel:
@@ -35,14 +36,14 @@ class TestLoadSpacyModel:
 
     @staticmethod
     @patch('spacy.load')
-    def test_load_spacy_model_local(spacy_load_mock: Callable, spacy_model):
+    def test_load_spacy_model_local(spacy_load_mock: Callable, spacy_model: spacy.Language):
         spacy_load_mock.return_value = spacy_model
         assert linker.load_spacy_model('local/path') == spacy_model
 
     @staticmethod
     @patch('spacy.load')
     @patch.object(GoogleStorageManager, 'get_filename')
-    def test_load_spacy_model_cloud(get_filename_mock: Callable, spacy_load_mock: Callable, spacy_model,
+    def test_load_spacy_model_cloud(get_filename_mock: Callable, spacy_load_mock: Callable, spacy_model: spacy.Language,
                                     tarfile_buffer: io.BytesIO):
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.return_value = spacy_model
@@ -52,7 +53,7 @@ class TestLoadSpacyModel:
     @patch('spacy.load')
     @patch.object(GoogleStorageManager, 'get_filename')
     def test_load_spacy_model_cloud_invalid_path(get_filename_mock: Callable, spacy_load_mock: Callable,
-                                                 spacy_model, tarfile_buffer: io.BytesIO):
+                                                 spacy_model: spacy.Language, tarfile_buffer: io.BytesIO):
         get_filename_mock.return_value = tarfile_buffer
         spacy_load_mock.side_effect = OSError
         with pytest.raises(OSError):
@@ -119,7 +120,7 @@ def mock_webpage() -> WebPage:
 class TestFindRefsHelperClasses:
 
     @patch('sefaria.utils.hebrew.is_hebrew', return_value=False)
-    def test_find_refs_text(self, mock_is_hebrew: Mock):
+    def test_find_refs_text(self, mock_is_hebrew: Mock[Callable]):
         find_refs_text = linker._FindRefsText('title', 'body')
         mock_is_hebrew.assert_called_once_with('body')
         assert find_refs_text.lang == 'en'
@@ -147,13 +148,13 @@ class TestFindRefsHelperClasses:
 
 
 class TestMakeFindRefsResponse:
-    def test_make_find_refs_response_with_meta_data(self, mock_request: WSGIRequest, mock_webpage: Mock):
+    def test_make_find_refs_response_with_meta_data(self, mock_request: WSGIRequest, mock_webpage: Mock[WebPage]):
         response = linker.make_find_refs_response(mock_request)
         mock_webpage.add_hit.assert_called_once()
         mock_webpage.save.assert_called_once()
 
     def test_make_find_refs_response_without_meta_data(self, mock_request_without_meta_data: dict,
-                                                       mock_webpage: Mock):
+                                                       mock_webpage: Mock[WebPage]):
         response = linker.make_find_refs_response(mock_request_without_meta_data)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
@@ -174,12 +175,12 @@ class TestUnpackFindRefsRequest:
 
 
 class TestAddWebpageHitForUrl:
-    def test_add_webpage_hit_for_url(self, mock_webpage: Mock):
+    def test_add_webpage_hit_for_url(self, mock_webpage: Mock[WebPage]):
         linker._add_webpage_hit_for_url('https://test.com')
         mock_webpage.add_hit.assert_called_once()
         mock_webpage.save.assert_called_once()
 
-    def test_add_webpage_hit_for_url_no_url(self, mock_webpage: Mock):
+    def test_add_webpage_hit_for_url_no_url(self, mock_webpage: Mock[WebPage]):
         linker._add_webpage_hit_for_url(None)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
@@ -188,7 +189,7 @@ class TestAddWebpageHitForUrl:
 class TestFindRefsResponseLinkerV3:
 
     @pytest.fixture
-    def mock_get_ref_resolver(self, spacy_model):
+    def mock_get_ref_resolver(self, spacy_model: spacy.Language):
         from sefaria.model.text import library
         with patch.object(library, 'get_ref_resolver') as mock_get_ref_resolver:
             mock_ref_resolver = Mock()
