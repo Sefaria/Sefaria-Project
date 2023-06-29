@@ -316,8 +316,6 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 # GLOBAL_INTERRUPTING_MESSAGE = None
 
 
-SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-
 # Grab environment specific settings from a file which
 # is left out of the repo.
 try:

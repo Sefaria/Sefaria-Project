@@ -174,8 +174,8 @@
 
     <!--Sentry error reporting config-->
     <script>
-      {% if SENTRY_DSN %}
-        const sentryDSN = "{{SENTRY_DSN}}";
+      {% if CLIENT_SENTRY_DSN %}
+        const sentryDSN = "{{CLIENT_SENTRY_DSN}}";
       {% else %}
         const sentryDSN = null;
       {% endif %}

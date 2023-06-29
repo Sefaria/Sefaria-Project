@@ -74,7 +74,7 @@ def global_settings(request):
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        "SENTRY_DSN":             SENTRY_DSN,
+        "CLIENT_SENTRY_DSN":      CLIENT_SENTRY_DSN,
     }
 
 
