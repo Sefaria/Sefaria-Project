@@ -255,6 +255,10 @@ data:
         }
     }
 
+    # Sentry
+    SENTRY_DSN = os.getenv("SENTRY_DSN", None)
+    CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
+
     # TODO: Make the logging format more configurable based on specific objects being defined.
     # LOGGING = {
     #     'version': 1,
