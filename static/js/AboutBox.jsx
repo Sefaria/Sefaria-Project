@@ -170,7 +170,7 @@ class AboutBox extends Component {
             </div> : null
           }
           <div className="aboutDesc">
-            <ContentText text={{en: d?.enDesc, he: d?.heDesc}} />
+            <InterfaceText markdown={{en: d?.enDesc, he: d?.heDesc}}/>
           </div>
 
           { !!placeTextEn || !!dateTextEn ?

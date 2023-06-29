@@ -13,7 +13,7 @@ import {
   TitleVariants,
   CategoryHeader, requestWithCallBack
 } from './Misc';
-
+import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -1092,7 +1092,7 @@ const EditTextInfo = function({initTitle, close}) {
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
-  const validate = function () {
+  const validate = async function () {
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
@@ -1127,6 +1127,12 @@ const EditTextInfo = function({initTitle, close}) {
     if (Hebrew.containsHebrew(enTitle)) {
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
+    }
+    for (const x of [enDesc, heDesc]) {
+      const valid_tags = await validateMarkdownLinks(x);
+      if (!valid_tags) {
+        return false;
+      }
     }
     return true;
   }

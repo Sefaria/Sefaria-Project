@@ -231,7 +231,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText text={{en: description.en, he: description.he}} />
+                <InterfaceText markdown={{en: description.en, he: description.he}} />
               </div>
               : null }
             </div>
@@ -324,8 +324,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        {!isCat && category ?
            <div className="topicCategory sectionTitleText">
              <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
-              <span className="int-en">{category.en}</span>
-              <span className="int-he">{category.he}</span>
+               <InterfaceText text={{en: category.en, he: category.he}}/>
              </a>
            </div>
        : null}
@@ -334,8 +333,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: topicData.description.en} } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: topicData.description.he} } />
+              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}}/>
             </div>
        : null}
        {topicData && topicData.ref ?
