@@ -7387,6 +7387,9 @@ a.button.mini {
 a .button:hover {
   text-decoration: none;
 }
+.reactMarkdown a {
+  color: var(--commentary-blue);
+}
 .button.small {
   padding: 10px 14px;
   width: -moz-fit-content;
@@ -11420,10 +11423,9 @@ body .homeFeedWrapper.userStats {
 .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.editTextInfo #newIndex a {
+.editTextInfo #newIndex .headerWithButtons a {
     color: #666;
 }
-
 .editTextInfo .nodeTemplate {
 	display: none;
 }
