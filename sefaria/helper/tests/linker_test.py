@@ -120,7 +120,7 @@ def mock_webpage() -> WebPage:
 class TestFindRefsHelperClasses:
 
     @patch('sefaria.utils.hebrew.is_hebrew', return_value=False)
-    def test_find_refs_text(self, mock_is_hebrew: Mock[Callable]):
+    def test_find_refs_text(self, mock_is_hebrew: Mock):
         find_refs_text = linker._FindRefsText('title', 'body')
         mock_is_hebrew.assert_called_once_with('body')
         assert find_refs_text.lang == 'en'
@@ -148,13 +148,13 @@ class TestFindRefsHelperClasses:
 
 
 class TestMakeFindRefsResponse:
-    def test_make_find_refs_response_with_meta_data(self, mock_request: WSGIRequest, mock_webpage: Mock[WebPage]):
+    def test_make_find_refs_response_with_meta_data(self, mock_request: WSGIRequest, mock_webpage: Mock):
         response = linker.make_find_refs_response(mock_request)
         mock_webpage.add_hit.assert_called_once()
         mock_webpage.save.assert_called_once()
 
     def test_make_find_refs_response_without_meta_data(self, mock_request_without_meta_data: dict,
-                                                       mock_webpage: Mock[WebPage]):
+                                                       mock_webpage: Mock):
         response = linker.make_find_refs_response(mock_request_without_meta_data)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
@@ -175,12 +175,12 @@ class TestUnpackFindRefsRequest:
 
 
 class TestAddWebpageHitForUrl:
-    def test_add_webpage_hit_for_url(self, mock_webpage: Mock[WebPage]):
+    def test_add_webpage_hit_for_url(self, mock_webpage: Mock):
         linker._add_webpage_hit_for_url('https://test.com')
         mock_webpage.add_hit.assert_called_once()
         mock_webpage.save.assert_called_once()
 
-    def test_add_webpage_hit_for_url_no_url(self, mock_webpage: Mock[WebPage]):
+    def test_add_webpage_hit_for_url_no_url(self, mock_webpage: Mock):
         linker._add_webpage_hit_for_url(None)
         mock_webpage.add_hit.assert_not_called()
         mock_webpage.save.assert_not_called()
