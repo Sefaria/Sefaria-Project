@@ -657,6 +657,8 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
+                            if getattr(website, 'num_webpages', None) is None:
+                                website.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
                             sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
