@@ -1,16 +1,21 @@
 from typing import Callable
-from sefaria.helper import linker
 import json
 import pytest
 from unittest.mock import patch, Mock
 from sefaria.google_storage_manager import GoogleStorageManager
 from django.test import RequestFactory
 from django.core.handlers.wsgi import WSGIRequest
-import spacy
 import tarfile
 import io
 from sefaria.model.text import Ref, TextChunk
 from sefaria.model.webpage import WebPage
+from sefaria.settings import ENABLE_LINKER
+
+if not ENABLE_LINKER:
+    pytest.skip("Linker not enabled", allow_module_level=True)
+
+from sefaria.helper import linker
+import spacy
 
 
 @pytest.fixture
