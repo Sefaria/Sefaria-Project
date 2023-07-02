@@ -12,6 +12,7 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
+from typing import Self
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -687,7 +688,7 @@ class JaggedTextArray(JaggedArray):
         return joiner.join(self.flatten_to_array())
 
     # warning, writes!
-    def trim_ending_whitespace(self):
+    def trim_ending_whitespace(self) -> Self:
         """
         Removes ending whitespace items from _cur.
         These include empty string, None or items that are entirely whitespace.
