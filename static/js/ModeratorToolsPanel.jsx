@@ -7,6 +7,8 @@ import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import qs from 'qs';
 import { useState } from 'react';
+import TextsPropertiesMenu from "./TextsPropertiesMenu";
+
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
@@ -158,8 +160,16 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <GetLinks/>
       </div>);
+    const boo=<TextsPropertiesMenu
+        sourceDir="rtl"
+        translationDir="ltr"
+        hasAliyot={true}
+        hasCantilation={true}
+        hasVowels={true}
+        hasPunctuation={true}
+    />
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks} </div> :
+        <div className="modTools"> <br/>{boo}<br/>{downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }

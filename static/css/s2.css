@@ -12481,12 +12481,9 @@ span.ref-link-color-3 {color: blue}
   background-color: white;
 }
 
-.interface-hebrew .texts-properties-menu {
-  left: 0;
-}
-
-.interface-english .texts-properties-menu {
-  right: 0;
+.popover-button {
+  background-color: white;
+  border: none;
 }
 
 .texts-properties-menu .int-en,
@@ -12560,7 +12557,7 @@ span.ref-link-color-3 {color: blue}
   position: absolute;
   top: 50%;
   bottom: 0;
-  right: 26px;
+  right: 24px;
   border: 0 solid var(--light-grey);
   border-radius: 20px;
   transition: all 0.3s ease-in 0s;
@@ -12572,7 +12569,7 @@ span.ref-link-color-3 {color: blue}
 }
 
 .toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
-  right: 0px;
+  right: 2px;
 }
 
 .toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
