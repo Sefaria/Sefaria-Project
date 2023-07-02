@@ -686,27 +686,42 @@ class JaggedTextArray(JaggedArray):
     def flatten_to_string(self, joiner=" "):
         return joiner.join(self.flatten_to_array())
 
-    #warning, writes!
-    def trim_ending_whitespace(self, _cur=None):
-        if _cur == None:
-            self._store = self.trim_ending_whitespace(self._store)
-            return self
+    # warning, writes!
+    def trim_ending_whitespace(self):
+        """
+        Removes ending whitespace items from _cur.
+        These include empty string, None or items that are entirely whitespace.
+        Performs process recursively on nested lists
+        @return: list
+        """
+        self._store = self._trim_ending_whitespace_recursive(self._store)
+        return self
+
+    def _trim_ending_whitespace_recursive(self, _cur) -> list:
         if not isinstance(_cur, list):  # shouldn't get here
             return _cur
-        if not len(_cur):
-            return _cur
-        if all([isinstance(sub_cur, list) for sub_cur in _cur if bool(sub_cur) and len(sub_cur) > 0]):  # sometimes there the JA is ["", [...more content here]]. need to check if all non-empty elements are arrays
-            return [self.trim_ending_whitespace(part) for part in _cur]
-        else: # depth 1
-            final_index = len(_cur) - 1
-            for i in range(final_index, -1, -1):
-                if not _cur[i] or re.match(r"^\s*$", _cur[i]):
-                    final_index = i - 1
-                else:
-                    break
-            if not final_index == len(_cur) - 1:
-                _cur = _cur[0:final_index + 1]
-            return _cur
+
+        # recursive step
+        _cur = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in _cur]
+        return self._trim_ending_whitespace_list_of_strs(_cur)
+
+    @staticmethod
+    def _trim_ending_whitespace_list_of_strs(_cur: list) -> list:
+        """
+        Removes ending whitespace items from _cur. See docs for `trim_ending_whitespace()` for details.
+        Doesn't recurse on any nested lists.
+        @param _cur: list with items that are either lists, strs or None
+        @return: list
+        """
+        # base case, trim ending whitespace
+        final_index = len(_cur)
+        for i in range(final_index - 1, -1, -1):
+            if isinstance(_cur[i], list) or _cur[i] is None or len(_cur[i].strip()) > 0:
+                break
+            final_index = i
+        if final_index != len(_cur):
+            _cur = _cur[:final_index]
+        return _cur
 
     def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
         """
