@@ -26,6 +26,11 @@ logger = structlog.get_logger(__name__)
 SEED_GROUP = "User Seeds"
 
 
+class SefariaDeleteUserForm(EmailAuthenticationForm):
+    email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address to delete")}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Admin Password")}))
+
+
 class SefariaLoginForm(EmailAuthenticationForm):
     email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address")}))
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
