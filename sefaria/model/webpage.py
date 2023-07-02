@@ -312,6 +312,12 @@ class WebSite(abst.AbstractMongoRecord):
             return self.__key() == other.__key()
         return NotImplemented
 
+    def get_num_webpages(self):
+        if getattr(self, 'num_webpages', None) is None:
+            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
+            self.save()
+        return self.num_webpages
+
 
 class WebSiteSet(abst.AbstractMongoSet):
     recordClass = WebSite
@@ -583,10 +589,10 @@ def find_sites_to_be_excluded_absolute(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
-def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
+def find_sites_to_be_excluded_relative(webpages, flag=25, relative_percent=3):
     # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
     sites_to_exclude = defaultdict(list)
-    all_sites = find_sites_to_be_excluded()
+    all_sites = find_sites_to_be_excluded(webpages)
     for website in all_sites:
         total = sum(all_sites[website].values())
         top_10 = all_sites[website].most_common(10)
@@ -657,9 +663,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            if getattr(website, 'num_webpages', None) is None:
-                                website.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
-                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
+                            sites_to_delete[domain] = f"{domain} has {website.get_num_webpages()} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
