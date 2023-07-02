@@ -689,7 +689,7 @@ class JaggedTextArray(JaggedArray):
     # warning, writes!
     def trim_ending_whitespace(self):
         """
-        Removes ending whitespace items from _cur.
+        Removes ending whitespace items from jagged array.
         These include empty string, None or items that are entirely whitespace.
         Performs process recursively on nested lists
         @return: list
