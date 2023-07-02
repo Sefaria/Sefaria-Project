@@ -12,6 +12,8 @@ function ToggleSwitch(props) {
                 name={name}
                 id={name}
                 disabled={props.disabled}
+                onChange={props.onChange}
+                checked={props.isChecked && !props.disabled}
             />
             <label className="toggle-switch-label" htmlFor={name}>
               <span className="toggle-switch-inner" />
@@ -24,5 +26,7 @@ function ToggleSwitch(props) {
 ToggleSwitch.proptypes = {
     name: PropTypes.string,
     disabled: PropTypes.bool,
+    onChange: PropTypes.func.isRequired,
+    isChecked: PropTypes.bool.isRequired,
 };
 export default ToggleSwitch;
