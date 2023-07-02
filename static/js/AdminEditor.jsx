@@ -6,9 +6,9 @@ import sanitizeHtml  from 'sanitize-html';
 const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) => {
     const topBorderRadius = top ? "6px" : "0";
     const bottomBorderRadius = bottom ? "6px" : 0;
-    const style = {'border-radius': `${topBorderRadius} ${topBorderRadius} ${bottomBorderRadius} ${bottomBorderRadius}`};
+    const style = {'borderRadius': `${topBorderRadius} ${topBorderRadius} ${bottomBorderRadius} ${bottomBorderRadius}`};
     if (!bottom) {
-        style['border-bottom'] = '1px solid #ccc';
+        style['borderBottom'] = '1px solid #ccc';
     }
     return <div onClick={toggleAddingTopics}
                 style={style}

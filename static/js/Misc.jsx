@@ -1106,7 +1106,7 @@ function useHiddenButtons() {
 
 const CategoryHeader =  ({children, type, data = [], edit = true,
                             add_subcategory = true, reorder = false,
-                            add_source = false}) => {
+                            add_source = false, add_section = false}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1119,6 +1119,7 @@ const CategoryHeader =  ({children, type, data = [], edit = true,
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [reorderCategory, toggleReorderCategory] = useEditToggle();
   const [addSource, toggleAddSource] = useEditToggle();
+  const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
@@ -1172,6 +1173,8 @@ const CategoryHeader =  ({children, type, data = [], edit = true,
         adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
                                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
       }
+  } else if (Sefaria.is_moderator && addSection && type === 'books') {
+      window.location = `/add/${data}`;
   } else if (Sefaria.is_moderator && reorderCategory) {
       const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = data.refs?.about?.refs || [];
@@ -1185,10 +1188,11 @@ const CategoryHeader =  ({children, type, data = [], edit = true,
                                         origItems={refs}
                                         redirect={`/topics/${data.slug}`}/>;
   } else if (Sefaria.is_moderator) {
-      const onlyEditing = !(add_subcategory || add_source || reorder);
+      const onlyEditing = !(add_subcategory || add_source || reorder || add_section);
       adminButtonsSpan = <span className={adminClasses}>
                                 {add_subcategory && <AdminEditorButton text="Add sub-category" top={true} toggleAddingTopics={toggleAddCategory}/>}
                                 {add_source && <AdminEditorButton text="Add a source" top={true} toggleAddingTopics={toggleAddSource}/>}
+                                {add_section && <AdminEditorButton text="Add section" top={true} toggleAddingTopics={toggleAddSection}/>}
                                 {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
                                 {edit && <AdminEditorButton text="Edit" bottom={true} top={onlyEditing} toggleAddingTopics={toggleEditCategory}/>}
                       </span>;

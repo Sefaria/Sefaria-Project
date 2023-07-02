@@ -242,7 +242,8 @@ class BookPage extends Component {
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
-                    <CategoryHeader type="books" add_subcategory={false} data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
+                    <CategoryHeader type="books" add_subcategory={false} add_section={true}
+                                    data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                   <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
