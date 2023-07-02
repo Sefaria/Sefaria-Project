@@ -12463,6 +12463,37 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+.popover-menu {
+  position: relative;
+}
+
+.texts-properties-menu {
+  width: 256px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px var(--lighter-grey);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 100%;
+  background-color: white;
+}
+
+.interface-hebrew .texts-properties-menu {
+  left: 0;
+}
+
+.interface-english .texts-properties-menu {
+  right: 0;
+}
+
+.texts-properties-menu .int-en,
+.texts-properties-menu .int-he {
+  height: 18px;
+}
+
 .toggle-switch-container {
   align-items: center;
   display: flex;
@@ -12550,15 +12581,10 @@ span.ref-link-color-3 {color: blue}
 
 .toggle-switch-line {
   display: flex;
-  width: 256px;
+  width: 216px;
   height: 49px;
   justify-content: space-between;
   align-items: center;
-}
-
-.toggle-switch-line .int-en,
-.toggle-switch-line .int-he {
-  height: 18px;
 }
 
 .toggle-switch-line:is(.disabled) .int-en,
@@ -12566,6 +12592,58 @@ span.ref-link-color-3 {color: blue}
   color: var(--light-grey);
 }
 
+.interface-hebrew .toggle-switch-line,
+.interface-hebrew .layout-options,
+.interface-hebrew .layout-button-line {
+  flex-direction: row-reverse;
+}
+
+.font-size-line {
+  width: 230px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.font-size-button {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: none;
+}
+
+.layout-button-line {
+  height: 57px;
+  width: 216px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout-options {
+  display: flex;
+}
+
+.layout-button {
+  background-color: white;
+  border: none;
+}
+
+.layout-button img {
+  height: 24px;
+  width: 28px;
+}
+
+.layout-button.checked img {
+  fill: var(--sefaria-blue);
+}
+
+.text-menu-border {
+  width: 100%;
+  height: 1px;
+  background-color: var(--lighter-grey);
+}
 
 #currentlyReadingContainer {
   margin: 5px 30px;
