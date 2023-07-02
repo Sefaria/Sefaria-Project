@@ -601,6 +601,9 @@ class JaggedArray(object):
     def __len__(self):
         return self.sub_array_length()
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._store})"
+
     def length(self):
         return self.__len__()
 
