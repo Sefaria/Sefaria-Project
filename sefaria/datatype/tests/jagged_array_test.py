@@ -221,7 +221,6 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby).shape() == [[3, 3, 3],[3, 3, 3],[3, 3, 3]]
         assert ja.JaggedTextArray(["a","b","c"]).shape() == 3
 
-    @pytest.mark.xfail(reason="unknown")
     def test_trim_ending_whitespace(self):
         # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
         # See warning at top of jagged_array.py
@@ -252,6 +251,9 @@ class Test_Jagged_Text_Array(object):
             ],
         ]
         assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
+        assert ja.JaggedTextArray(["","","","",""]).trim_ending_whitespace() == ja.JaggedTextArray([])
+        assert ja.JaggedTextArray(["", ["a"]]).trim_ending_whitespace() == ja.JaggedTextArray(["", ["a"]])
+        assert ja.JaggedTextArray([[""], "a"]).trim_ending_whitespace() == ja.JaggedTextArray([[], "a"])
         assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
         assert ja.JaggedTextArray(threeby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
 
