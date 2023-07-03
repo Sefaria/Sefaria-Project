@@ -27,22 +27,20 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	limit = 500
 	print("Cleaning webpages...")
 	clean_webpages(test=test)
-
+	print("Find sites that no longer have linker...")
+	sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
 	while (skip + limit) < orig_count:
 		webpages = WebPageSet(limit=limit, skip=skip)
 		print("Deduping...")
 		dedupe_webpages(webpages, test=test)
-		print("Find sites that no longer have linker...")
-		sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
 		print("Looking for webpages that have no corresponding website.  If WebPages have been accessed in last 20 days, create a new WebSite for them.  Otherwise, delete them.")
 		sites["Site uses linker but is not whitelisted"] = find_webpages_without_websites(webpages, test=test, hit_threshold=50, last_linker_activity_day=webpages_without_websites_days)
 		sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(webpages, relative_percent=3)
 		skip += limit
-	sites["Webpages removed"] = orig_count - WebPageSet().count()
+
+	print(f"Removed {WebPageSet().count - orig_count} pages")
 
 	# given list type and site, either create new card or update existing card with message of site object
-	assert 3 == 4
-	print("****")
 	print(sites)
 	for kind, sites_to_handle in sites.items():
 		print(f"{kind} -> {sites_to_handle}")
@@ -54,11 +52,12 @@ def run_job(test=True, board_id="", idList_mapping={}):
 					site_name_on_trello = site_on_trello['name']
 					if site_name_in_DB == site_name_on_trello:
 						already_on_trello = True
-						board.add_comment(site_on_trello, comment)
+						if not test:
+							board.add_comment(site_on_trello, comment)
 						break
-				if not already_on_trello:
-					card = board.create_card(site_name_in_DB, idList_mapping[kind])
-					board.add_comment(card, comment)
+				if not already_on_trello and not test:
+						card = board.create_card(site_name_in_DB, idList_mapping[kind])
+						board.add_comment(card, comment)
 
 
 class TrelloBoard:

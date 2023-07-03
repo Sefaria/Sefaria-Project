@@ -567,7 +567,7 @@ def find_webpages_without_websites(webpages, test=True, hit_threshold=50, last_l
 def find_sites_to_be_excluded(webpages):
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in tqdm(webpages):
+    for webpage in tqdm(webpages):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
