@@ -134,7 +134,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     const heOnly = !text.en;
     const enOnly = !text.he;
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
-    let innerContent = (<VersionContent html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
+    let innerContent =  (<VersionContent html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />);
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 
     return (
