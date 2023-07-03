@@ -251,7 +251,7 @@ class Test_Jagged_Text_Array(object):
             ],
         ]
         assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
-        assert ja.JaggedTextArray(["","","","",""]).trim_ending_whitespace() == ja.JaggedTextArray([])
+        assert ja.JaggedTextArray(["",None,"\t\n ","",""]).trim_ending_whitespace() == ja.JaggedTextArray([])
         assert ja.JaggedTextArray(["", ["a"]]).trim_ending_whitespace() == ja.JaggedTextArray(["", ["a"]])
         assert ja.JaggedTextArray([[""], "a"]).trim_ending_whitespace() == ja.JaggedTextArray([[], "a"])
         assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
