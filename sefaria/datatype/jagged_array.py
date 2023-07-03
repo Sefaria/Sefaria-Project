@@ -713,7 +713,6 @@ class JaggedTextArray(JaggedArray):
         @param curr_ja: list with items that are either lists, strs or None
         @return: list
         """
-        # base case, trim ending whitespace
         final_index = len(curr_ja)
         for i in range(final_index - 1, -1, -1):
             item = curr_ja[i]
