@@ -1036,6 +1036,7 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
+
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
@@ -1068,6 +1069,13 @@ Sefaria = extend(Sefaria, {
       });
   },
   _topicCompletions: {},
+  getTopicCompletions: function (word, callback) {
+       return this._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/topic/completion/${word}`, key: word,
+          store: Sefaria._topicCompletions,
+          processor: callback
+      });   // this API is used instead of api/name because when we want all topics. api/name only gets topics with a minimum amount of sources
+  },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
     // Returns Promise which resolve to a list of lexicon entries for the given words
@@ -2313,6 +2321,7 @@ _media: {},
     });
   },
   _topics: {},
+  _topicPageSize: 70, // how many sources should show when incrementally loading sources
   _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
@@ -2361,6 +2370,12 @@ _media: {},
           };
         }
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
+        if (refObj.order) {
+            refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
+                                numDatasource: refObj?.order?.numDatasource || 1,
+                                tfidf: refObj?.order?.tfidf || 0,
+                                pr: refObj?.order?.pr || 0,
+                                curatedPrimacy: {he: refObj?.order?.curatedPrimacy?.he || 0, en: refObj?.order?.curatedPrimacy?.en || 0}}}
         tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources, descriptions: refObj.descriptions};
       }
     }

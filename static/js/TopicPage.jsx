@@ -22,7 +22,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    CategoryHeader,
+    CategoryHeader, ContentText,
 
 } from './Misc';
 
@@ -100,21 +100,24 @@ const refSort = (currSortOption, a, b) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    const aAvailLangs = a.order.availableLangs || [];
-    const bAvailLangs = b.order.availableLangs || [];
+    const aAvailLangs = a.order.availableLangs;
+    const bAvailLangs = b.order.availableLangs;
     if ((Sefaria.interfaceLang === 'english') &&
-      (a?.order?.curatedPrimacy?.en || b?.order?.curatedPrimacy?.en)) {
-      return (b?.order?.curatedPrimacy?.en || 0) - (a?.order?.curatedPrimacy?.en || 0); }
+      (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
+      return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
     else if ((Sefaria.interfaceLang === 'hebrew') &&
-      (a?.order?.curatedPrimacy?.he || b?.order?.curatedPrimacy?.he)) {
-      return (b?.order?.curatedPrimacy?.he || 0) - (a?.order?.curatedPrimacy?.he || 0); }
+      (a.order.curatedPrimacy.he || b.order.curatedPrimacy.he > 0)) {
+      return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
+    }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
       if (aAvailLangs.indexOf('en') > -1) { return -1; }
       if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
     else if (a.order.custom_order !== b.order.custom_order) { return b.order.custom_order - a.order.custom_order; }  // custom_order, when present, should trump other data
-    else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
+    else if (a.order.pr !== b.order.pr) {
+        return b.order.pr - a.order.pr;
+    }
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
   }
 };
@@ -170,9 +173,11 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
   return (
     <Passage
       key={item[0]}
+      topic={topicData.slug}
       text={text}
       afterSave={afterSave}
       toggleSignUpModal={toggleSignUpModal}
+      bodyTextIsLink= {true}
     />
   );
 };
@@ -226,7 +231,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText text={{en: description.en, he: description.he}} />
+                <InterfaceText markdown={{en: description.en, he: description.he}} />
               </div>
               : null }
             </div>
@@ -256,7 +261,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <div className="navTitle tight">
-                        <CategoryHeader type="topics" path={topic}>
+                        <CategoryHeader type="topics" data={topicData}>
                             <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                         </CategoryHeader>
                       </div>
@@ -309,18 +314,17 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-            <CategoryHeader type="topics" path={topic} editOnly={true}>
+                <CategoryHeader type="topics" data={topicData} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
-            </CategoryHeader>
+                </CategoryHeader>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?
            <div className="topicCategory sectionTitleText">
              <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
-              <span className="int-en">{category.en}</span>
-              <span className="int-he">{category.he}</span>
+               <InterfaceText text={{en: category.en, he: category.he}}/>
              </a>
            </div>
        : null}
@@ -329,8 +333,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
        : null }
        {topicData && topicData.description ?
            <div className="topicDescription systemText">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: topicData.description.en} } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: topicData.description.he} } />
+              <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}}/>
             </div>
        : null}
        {topicData && topicData.ref ?
@@ -393,8 +396,8 @@ const TopicPage = ({
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
-    const scrollableElement = useRef();
 
+    const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
     
     // Initial Topic Data, updates when `topic` changes
@@ -431,7 +434,7 @@ const TopicPage = ({
       useIncrementalLoad(
         tabObj.fetcher,
         refsToFetchByTab[key] || false,
-        70,
+        Sefaria._topicPageSize,
         data => setLoadedData(prev => {
           const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
           if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
@@ -794,5 +797,6 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
 
 export {
   TopicPage,
-  TopicCategory
+  TopicCategory,
+  refSort
 }

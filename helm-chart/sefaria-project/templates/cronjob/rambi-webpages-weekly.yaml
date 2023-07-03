@@ -45,10 +45,13 @@ spec:
                 name: local-settings
                 subPath: local_settings.py
                 readOnly: true
+              - mountPath: /google-cloud-secret
+                name: backup-manager-secret
+                readOnly: true
             command: ["bash"]
             args: [
               "-c",
-              "pip install pymarc==4.4.2 && /app/run /app/scripts/parse_rambi_webpages.py"
+              "pip install pymarc==4.2.2 && /app/run /app/scripts/parse_rambi_webpages.py"
             ]
             resources:
               requests:
@@ -63,6 +66,9 @@ spec:
               items:
                 - key: local_settings.py
                   path: local_settings.py
+          - name: backup-manager-secret  # used to access google cloud
+            secret:
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}
