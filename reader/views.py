@@ -57,6 +57,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
@@ -3573,6 +3574,14 @@ def account_user_update(request):
             except Exception as e:
                 error = uuser.errors()
 
+            try:
+                crm_mediator = CrmMediator()
+                if not crm_mediator.update_user_email(accountUpdate["email"], uid=request.user.id):
+                    logger.warning("failed to add user to CRM")
+
+            except Exception as e:
+                logger.warning(f"failed to add user to salesforce: {e}")
+
         if not error:
             return jsonResponse({"status": "ok"})
         else:
@@ -4285,6 +4294,7 @@ def annual_report(request, report_year):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
+        '2022': STATIC_URL + 'files/Sefaria_AnnualImpactReport_R14.pdf',
     }
     if report_year not in pdfs:
         raise Http404

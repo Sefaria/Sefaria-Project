@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import csv
+import sys
+from io import StringIO
 import structlog
 logger = structlog.get_logger(__name__)
 
@@ -505,3 +508,47 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
             except Exception as e:
                 print("Exception: {}".format(e))
     return total
+
+def add_links_from_csv(file, linktype, generated_by, uid):
+    csv.field_size_limit(sys.maxsize)
+    reader = csv.DictReader(StringIO(file.read().decode()))
+    fieldnames = reader.fieldnames
+    if len(fieldnames) != 2:
+        raise ValueError(f'file has {len(fieldnames)} columns rather than 2')
+    output = StringIO()
+    errors_writer = csv.DictWriter(output, fieldnames=['ref1', 'ref2', 'error'])
+    errors_writer.writeheader()
+    success = 0
+    for row in reader:
+        refs = [row[fieldnames[0]], row[fieldnames[1]]]
+        try:
+            if any(Ref(ref).is_empty() for ref in refs):
+                errors_writer.writerow({'ref1': refs[0],
+                               'ref2': refs[1],
+                               'error': f'{[r for r in refs if Ref(r).is_empty()][0]} is an empty ref'})
+                continue
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0],
+                               'ref2': refs[1],
+                               'error': f'one or more of {refs[0]} and {refs[1]} is not a valid ref'})
+            continue
+        link = {
+            'refs': refs,
+            'type': linktype,
+            'generated_by': generated_by,
+            'auto': True
+        }
+        try:
+            tracker.add(uid, Link, link)
+            success += 1
+        except Exception as e:
+            errors_writer.writerow({'ref1': refs[0],
+                           'ref2': refs[1],
+                           'error': f'error with linking refs: {refs[0]}, {refs[1]}: {e}'})
+        try:
+            if USE_VARNISH:
+                for ref in link.refs:
+                    invalidate_ref(Ref(ref), purge=True)
+        except Exception as e:
+            logger.error(e)
+    return {'message': f'{success} links succefully saved', 'errors': output.getvalue()}

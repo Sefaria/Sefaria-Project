@@ -1856,6 +1856,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
+    if (e.srcElement.tagName === "INPUT") {
+      // If the selection is from an input tag, don't do anything special
+      return
+    }
     const selection = document.getSelection()
     const closestReaderPanel = this.state.panels.length > 0 && e.target.closest('.readerPanel') || null
     let textOnly = selection.toString();
@@ -1880,6 +1884,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       if (closestReaderPanel && closestReaderPanel.classList.contains('hebrew')) {
         container.setAttribute('dir', 'rtl');
       }
+
+      // Collapse all nodes with poetry classes. This is needed for specifically pasting into Google Docs in Chrome to work.
+      const poetryElsToCollapse = container.querySelectorAll('.poetry');
+      poetryElsToCollapse.forEach(poetryEl => {
+        poetryEl.outerHTML = poetryEl.innerHTML;
+      });
 
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {

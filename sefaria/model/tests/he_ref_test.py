@@ -190,22 +190,15 @@ class Test_parse_he_ref(object):
 
         assert m.Ref('תהלים פד:ג') == m.Ref("Psalms 84:3")  # dont strip peh when no quotation
 
-
     def test_volume_address(self):
-        assert m.Ref("זוהר, ח״א, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר, א, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר א נד ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר א נד ע״ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר ח״א, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר חלק א, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref("זוהר חלק א׳, נד, ב") == m.Ref("Zohar 1:54b")
-        assert m.Ref('זוהר ח"א, נד, ב') == m.Ref("Zohar 1:54b")
-        assert m.Ref('זוהר ח"ב, נד, ב') == m.Ref("Zohar 2:54b")
-        assert m.Ref('זוהר ח"א, נד:') == m.Ref("Zohar 1:54b")
-        assert m.Ref('זוהר ח"א נד:') == m.Ref("Zohar 1:54b")
+        assert m.Ref("אורות הקודש, ח״א, א, א") == m.Ref("Orot HaKodesh 1:1:1")
+        assert m.Ref("אורות הקודש, א, א, א") == m.Ref("Orot HaKodesh 1:1:1")
+        assert m.Ref("אורות הקודש א א א") == m.Ref("Orot HaKodesh 1:1:1")
+        assert m.Ref("אורות הקודש ח״א, א, א") == m.Ref("Orot HaKodesh 1:1:1")
+        assert m.Ref("אורות הקודש חלק א, א, א") == m.Ref("Orot HaKodesh 1:1:1")
+        assert m.Ref('אורות הקודש ח"ג, א, א') == m.Ref("Orot HaKodesh 3:1:1")
 
-        assert m.Ref("Zohar, Volume 2, 23b") == m.Ref("Zohar 2:23b")
+        assert m.Ref("Orot HaKodesh, Volume 1, 1 1") == m.Ref("Orot HaKodesh 1:1:1")
 
     def test_two_single_quotes(self):
         r = m.Ref("שמות כ''ב")

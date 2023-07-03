@@ -70,7 +70,7 @@ jobs:
               echo "No chart version available"
               exit 1
             else
-              echo "chartVersion=$(git describe --match 'helm*' --abbrev=0 HEAD --tags)" >> $GITHUB_OUTPUT
+              echo "chartVersion=$(git describe --match 'helm*' --abbrev=0 HEAD --tags | sed 's/helm-chart-//' )" >> $GITHUB_OUTPUT
             fi
           else
             echo "chartVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT

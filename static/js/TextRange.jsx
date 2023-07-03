@@ -569,7 +569,7 @@ class TextSegment extends Component {
   }
 
   addPoetrySpans(text) {
-    const textArray = text.split("<br>").map(t => (`<span class='poetry'>${t}</span>`) ).join("<br>")
+    const textArray = text.split("<br>").map(t => (`<span class='poetry indentWhenWrap'>${t}</span>`) ).join("<br>")
     return(textArray)
   }
 

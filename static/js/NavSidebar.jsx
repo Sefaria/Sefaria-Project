@@ -335,7 +335,7 @@ const Translations = () => {
         Access key works from the library in several languages.
       </EnglishText>
       <HebrewText>
-        תרגומים
+        יצירות נבחרות מהספרייה בתרגומים לשפות שונות.
       </HebrewText>
     </InterfaceText>
     <TranslationLinks />
@@ -366,7 +366,10 @@ const LearningSchedules = () => {
         <DafLink />
       </div>
       <a href="/calendars" className="allLink">
-        <InterfaceText>All Learning Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Learning Schedules ›</EnglishText>
+        <HebrewText>לוחות לימוד נוספים ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -390,7 +393,10 @@ const WeeklyTorahPortion = () => {
         <HaftarotLinks />
       </div>
       <a href="/topics/category/torah-portions" className="allLink">
-        <InterfaceText>All Portions</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Portions ›</EnglishText>
+        <HebrewText>פרשות השבוע ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -454,7 +460,10 @@ const Visualizations = ({categories}) => {
         )}
       </div>
       <a href="/visualizations" className="allLink">
-        <InterfaceText>All Visualizations</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Visualizations ›</EnglishText>
+        <HebrewText>תרשימים גרפיים נוספים ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -570,7 +579,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => {
+const StayConnected = () => { // TODO: remove? looks like we are not using this
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
