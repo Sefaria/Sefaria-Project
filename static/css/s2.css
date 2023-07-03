@@ -7409,8 +7409,18 @@ a .button:hover {
   background-color: var(--lighter-grey);
   white-space: nowrap;
 }
+.adminButtons .button.extraSmall.topic.top {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.adminButtons .button.extraSmall.topic.bottom {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-bottom: 1px solid var(--light-grey);
+}
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  border-radius: revert;
   color: #666666;
 }
 .headerWithAdminButtons {

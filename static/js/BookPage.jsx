@@ -242,7 +242,7 @@ class BookPage extends Component {
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
-                    <CategoryHeader type="books" add_subcategory={false} add_section={true}
+                    <CategoryHeader type="books" buttonsToDisplay={["section", "edit"]}
                                     data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -1233,7 +1233,7 @@ const EditTextInfo = function({initTitle, close}) {
   }
   const deleteObj = () => {
     setSavingStatus(true);
-    const url = "/api/v2/index/" + enTitle;
+    const url = `/api/v2/index/${enTitle}`;
     requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
   }
   return (

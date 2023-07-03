@@ -2,18 +2,13 @@ import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
+import classNames from "classnames";
 
 const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) => {
-    const topBorderRadius = top ? "6px" : "0";
-    const bottomBorderRadius = bottom ? "6px" : 0;
-    const style = {'borderRadius': `${topBorderRadius} ${topBorderRadius} ${bottomBorderRadius} ${bottomBorderRadius}`};
-    if (!bottom) {
-        style['borderBottom'] = '1px solid #ccc';
-    }
+    const classes = classNames({button: 1, extraSmall: 1, topic: 1, top, bottom});
     return <div onClick={toggleAddingTopics}
-                style={style}
                 id="editTopic"
-                className="button extraSmall topic"
+                className={classes}
                 role="button">
         <InterfaceText>{text}</InterfaceText>
     </div>;
