@@ -10,6 +10,7 @@ jagged_array.py: a sparse array of arrays
 # Potentially problematic methods marked with '#warning, writes!'
 
 import re
+from typing import Callable, List
 from functools import reduce
 from itertools import zip_longest
 import structlog
@@ -667,6 +668,19 @@ class JaggedTextArray(JaggedArray):
         elif isinstance(_cur, list):
             return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
+    def modify_subarrays_by_function(self, func: Callable[[List], List]):
+        """
+        Modify subarrays at any level of jagged array.
+        @param func: function of form `(list) -> list`. Input is lowest level array, output is that array modified
+        @return: self
+        """
+        self._store = self._modify_subarrays_by_function_recursive(func, self._store)
+        return self
+
+    def _modify_subarrays_by_function_recursive(self, func, _cur):
+        _cur = [self._modify_subarrays_by_function_recursive(func, item) if isinstance(item, list) else item for item in _cur]
+        return func(_cur)
+
     def flatten_to_array(self, _cur=None):
         # Flatten deep jagged array to flat array
 
@@ -694,26 +708,17 @@ class JaggedTextArray(JaggedArray):
         Performs process recursively on nested lists
         @return: list
         """
-        self._store = self._trim_ending_whitespace_recursive(self._store)
+        self.modify_subarrays_by_function(self._trim_ending_whitespace_base_case)
         return self
 
-    def _trim_ending_whitespace_recursive(self, _cur) -> list:
-        if not isinstance(_cur, list):  # shouldn't get here
-            return _cur
-
-        # recursive step
-        _cur = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in _cur]
-        return self._trim_ending_whitespace_list_of_strs(_cur)
-
     @staticmethod
-    def _trim_ending_whitespace_list_of_strs(_cur: list) -> list:
+    def _trim_ending_whitespace_base_case(_cur: list) -> list:
         """
         Removes ending whitespace items from _cur. See docs for `trim_ending_whitespace()` for details.
         Doesn't recurse on any nested lists.
         @param _cur: list with items that are either lists, strs or None
         @return: list
         """
-        # base case, trim ending whitespace
         final_index = len(_cur)
         for i in range(final_index - 1, -1, -1):
             if isinstance(_cur[i], list) or _cur[i] is None or len(_cur[i].strip()) > 0:
