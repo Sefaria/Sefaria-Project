@@ -1126,55 +1126,59 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "reorder": ["Reorder sources", toggleReorderCategory],
                           "edit": ["Edit", toggleEditCategory]};     
 
-  const getButtonForEditingCategory = () => {
+  const getSpanForEditingCategory = () => {
       if (data.length === 0) {  // at /texts or /topics
           const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
           const redirect = type === 'topics' ? '/topics' : '/texts';
           const origItems = type === 'topics' ? Sefaria.topic_toc : Sefaria.toc;
           return <ReorderEditor close={toggleEditCategory} type={type} origItems={origItems} postURL={url} redirect={redirect}/>;
-      } else if (type === 'books') {
+      }
+      let origData = {};
+      switch (type) {
+        case 'books':
           return <EditTextInfo initTitle={data} close={toggleEditCategory}/>;
-      } else if (type === "sources") {
-          const [topicSlug, refData] = data;
-          return <SourceEditor topic={topicSlug} origData={refData} close={toggleEditCategory}/>;
-      } else if (type === "cats") {
-          let tocObject = Sefaria.tocObjectByCategories(data);
-          const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-          const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-          const origData = {
-            origEn: tocObject.category,
-            origHe: tocObject.heCategory,
-            origDesc,
-            origCategoryDesc,
-            isPrimary: tocObject.isPrimary
-          };
-          return <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
-      } else if (type === "topics") {
-          const initCatSlug = TopicToCategorySlug(data);
-          const origData = {
-            origSlug: data.slug, origCategorySlug: initCatSlug,
-            origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
-          };
-          origData.origDesc = data.description || {"en": "", "he": ""};
-          origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
-          const origWasCat = "displays-above" in data?.links;
-          return <TopicEditor origData={origData}
-                                        origWasCat={origWasCat}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                        close={toggleEditCategory}/>;
+        case "sources":
+            const [topicSlug, refData] = data;
+            return <SourceEditor topic={topicSlug} origData={refData} close={toggleEditCategory}/>;
+        case "cats":
+            let tocObject = Sefaria.tocObjectByCategories(data);
+            const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+            const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+            origData = {
+              origEn: tocObject.category,
+              origHe: tocObject.heCategory,
+              origDesc,
+              origCategoryDesc,
+              isPrimary: tocObject.isPrimary
+            };
+            return <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
+        case "topics":
+            const initCatSlug = TopicToCategorySlug(data);
+            origData = {
+              origSlug: data.slug, origCategorySlug: initCatSlug,
+              origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
+            };
+            origData.origDesc = data.description || {"en": "", "he": ""};
+            origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
+            const origWasCat = "displays-above" in data?.links;
+            return <TopicEditor origData={origData}
+                                          origWasCat={origWasCat}
+                                          onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                          close={toggleEditCategory}/>;
       }
   }
-  const getButtonForAddingCategory = () => {
+  const getSpanForAddingCategory = () => {
       const origData = {origEn: ""};
-      if (type === "cats") {
+      switch (type) {
+        case "cats":
           return <CategoryEditor origData={origData} close={toggleAddCategory} origPath={data}/>;
-      } else if (type === "topics") {
+        case "topics":
           origData['origCategorySlug'] = data;
           return <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
                                         onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
       }
   }
-  const getButtonForReorderingCategory = () => {
+  const getSpanForReorderingCategory = () => {
       const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
       let refs = data.refs?.about?.refs || [];
       // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
@@ -1187,29 +1191,35 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                                         origItems={refs}
                                         redirect={`/topics/${data.slug}`}/>;
   }
+  const getButtons = () => {
+    wrapper = "headerWithAdminButtons";
+    return  <span className={adminClasses}>
+              {buttonsToDisplay.map((x, i) => {
+                const top = i === 0;
+                const bottom = i === buttonsToDisplay.length - 1;
+                return <AdminEditorButton text={buttonOptions[x][0]} top={top} bottom={bottom}
+                                          toggleAddingTopics={buttonOptions[x][1]}/>
+              })}
+          </span>;
+  }
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
   let wrapper = "";
   let adminButtonsSpan = null;
-  if (Sefaria.is_moderator && editCategory) {
-      adminButtonsSpan = getButtonForEditingCategory();
-  } else if (Sefaria.is_moderator && addSource) {
+  if (Sefaria.is_moderator) {
+    if (editCategory) {
+      adminButtonsSpan = getSpanForEditingCategory();
+    } else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
-  } else if (Sefaria.is_moderator && addCategory) {
-      adminButtonsSpan = getButtonForAddingCategory();
-  } else if (Sefaria.is_moderator && addSection) {
+    } else if (addCategory) {
+      adminButtonsSpan = getSpanForAddingCategory();
+    } else if (addSection) {
       window.location = `/add/${data}`;
-  } else if (Sefaria.is_moderator && reorderCategory) {
-      adminButtonsSpan = getButtonForReorderingCategory();
-  } else if (Sefaria.is_moderator) {
-      adminButtonsSpan = <span className={adminClasses}>
-                            {buttonsToDisplay.map((x, i) => {
-                              const top = i === 0;
-                              const bottom = i === buttonsToDisplay.length-1;
-                              return <AdminEditorButton text={buttonOptions[x][0]} top={top} bottom={bottom} toggleAddingTopics={buttonOptions[x][1]}/>
-                            })}
-                        </span>;
-      wrapper = "headerWithAdminButtons";
+    } else if (reorderCategory) {
+      adminButtonsSpan = getSpanForReorderingCategory();
+    } else {
+      adminButtonsSpan = getButtons();
+    }
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
