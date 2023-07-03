@@ -713,14 +713,13 @@ class JaggedTextArray(JaggedArray):
         @param curr_ja: list with items that are either lists, strs or None
         @return: list
         """
-        final_index = len(curr_ja)
-        for i in range(final_index - 1, -1, -1):
+        final_index = len(curr_ja) - 1
+        for i in range(final_index, -1, -1):
             item = curr_ja[i]
             if isinstance(item, list) or (isinstance(item, str) and len(item.strip()) > 0):
                 break
-            final_index = i
-        if final_index != len(curr_ja):
-            curr_ja = curr_ja[:final_index]
+            final_index -= 1
+        del curr_ja[final_index+1:]
         return curr_ja
 
     def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
