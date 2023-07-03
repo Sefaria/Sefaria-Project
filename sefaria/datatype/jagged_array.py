@@ -714,8 +714,7 @@ class JaggedTextArray(JaggedArray):
         @return: list
         """
         final_index = len(curr_ja) - 1
-        for i in range(final_index, -1, -1):
-            item = curr_ja[i]
+        for item in reversed(curr_ja):
             if isinstance(item, list) or (isinstance(item, str) and len(item.strip()) > 0):
                 break
             final_index -= 1
