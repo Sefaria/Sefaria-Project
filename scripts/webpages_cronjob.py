@@ -38,7 +38,7 @@ def run_job(test=True, board_id="", idList_mapping={}):
 		sites["Websites that may need exclusions set"] = find_sites_to_be_excluded_relative(webpages, relative_percent=3)
 		skip += limit
 
-	print(f"Removed {WebPageSet().count - orig_count} pages")
+	print(f"Removed {WebPageSet().count() - orig_count} pages")
 
 	# given list type and site, either create new card or update existing card with message of site object
 	print(sites)
