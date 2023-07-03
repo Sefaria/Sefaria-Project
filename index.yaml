@@ -17,6 +17,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.26.0-trellojob.1.tgz
     version: 0.26.0-trellojob.1
   - apiVersion: v2
+    appVersion: v5.53.1
+    created: "2023-07-03T09:05:15.940706834Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 37380a7c0b68af7122739afc7b8ea11df899e71e932d616c020fad3c4bf25c4e
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.26.0-completion-message.1.tgz
+    version: 0.26.0-completion-message.1
+  - apiVersion: v2
     appVersion: v5.49.1
     created: "2023-06-21T14:43:30.621722553Z"
     description: Chart to deploy complete Sefaria environment
@@ -3645,4 +3660,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-06-27T12:19:54.408487042Z"
+generated: "2023-07-03T09:05:15.934926952Z"
