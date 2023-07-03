@@ -716,7 +716,7 @@ class JaggedTextArray(JaggedArray):
         # base case, trim ending whitespace
         final_index = len(curr_ja)
         for i in range(final_index - 1, -1, -1):
-            if isinstance(curr_ja[i], list) or curr_ja[i] is None or len(curr_ja[i].strip()) > 0:
+            if isinstance(curr_ja[i], list) or (isinstance(curr_ja, str) and len(curr_ja[i].strip())) > 0:
                 break
             final_index = i
         if final_index != len(curr_ja):
