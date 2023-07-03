@@ -697,31 +697,31 @@ class JaggedTextArray(JaggedArray):
         self._store = self._trim_ending_whitespace_recursive(self._store)
         return self
 
-    def _trim_ending_whitespace_recursive(self, _cur) -> list:
-        if not isinstance(_cur, list):  # shouldn't get here
-            return _cur
+    def _trim_ending_whitespace_recursive(self, curr_ja: list) -> list:
+        if not isinstance(curr_ja, list):  # shouldn't get here
+            return curr_ja
 
         # recursive step
-        _cur = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in _cur]
-        return self._trim_ending_whitespace_list_of_strs(_cur)
+        curr_ja = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in curr_ja]
+        return self._trim_ending_whitespace_list_of_strs(curr_ja)
 
     @staticmethod
-    def _trim_ending_whitespace_list_of_strs(_cur: list) -> list:
+    def _trim_ending_whitespace_list_of_strs(curr_ja: list) -> list:
         """
         Removes ending whitespace items from _cur. See docs for `trim_ending_whitespace()` for details.
         Doesn't recurse on any nested lists.
-        @param _cur: list with items that are either lists, strs or None
+        @param curr_ja: list with items that are either lists, strs or None
         @return: list
         """
         # base case, trim ending whitespace
-        final_index = len(_cur)
+        final_index = len(curr_ja)
         for i in range(final_index - 1, -1, -1):
-            if isinstance(_cur[i], list) or _cur[i] is None or len(_cur[i].strip()) > 0:
+            if isinstance(curr_ja[i], list) or curr_ja[i] is None or len(curr_ja[i].strip()) > 0:
                 break
             final_index = i
-        if final_index != len(_cur):
-            _cur = _cur[:final_index]
-        return _cur
+        if final_index != len(curr_ja):
+            curr_ja = curr_ja[:final_index]
+        return curr_ja
 
     def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
         """
