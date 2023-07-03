@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, postWithCallBack, ToggleSet} from "./Misc";
+import {InterfaceText, requestWithCallBack, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -21,6 +21,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const [sortedSubtopics, setSortedSubtopics] = useState(subtopics?.sort(Sefaria.sortTopicsCompareFn)
                                                                                 .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
                                                                                 || []);
+    const [isChanged, setIsChanged] = useState(false);
+
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -52,7 +54,15 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                             </div>
                                     </div>);
 
+    const updateData = function(newData) {
+        setIsChanged(true);
+        setData(newData);
+    }
     const validate = async function () {
+        if (!isChanged) {
+            alert("You haven't changed any of the fields.");
+            return false;
+        }
         if (data.catSlug === "") {
           alert(Sefaria._("Please choose a category."));
           return false;
@@ -61,7 +71,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        if (sortedSubtopics.length > 0) {
+        if (sortedSubtopics.length > 0 && !isNew) {
             await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
         }
         saveTopic();
@@ -69,7 +79,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveReorderedSubtopics = function () {
          const url = `/api/topic/reorder`;
          const postCategoryData = {topics: sortedSubtopics};
-         postWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+         requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
     }
     const saveTopic = function () {
         toggle();
@@ -108,25 +118,18 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     const deleteObj = function() {
-      $.ajax({
-        url: "/api/topic/delete/"+data.origSlug,
-        type: "DELETE",
-        success: function(result) {
-          if ("error" in result) {
-            alert(result.error);
-          } else {
-            alert(Sefaria._("Topic Deleted."));
-            window.location = "/topics";
-          }
-        }
-      }).fail(function() {
-        alert(Sefaria._("Something went wrong. Sorry!"));
-      });
+        const url = `/api/topic/delete/${data.origSlug}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
 
+    let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
+    if (isCategory) {
+        items.push("English Short Description");
+        items.push("Hebrew Short Description");
+    }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                        validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew}
-                        shortDescBool={isCategory} extras={
+                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
+                        items={items} extras={
                             [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}

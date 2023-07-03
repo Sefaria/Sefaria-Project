@@ -114,8 +114,13 @@ class NationbuilderConnectionManager(CrmConnectionManager):
                                       "announcements_edu", "signed_up_on_sefaria", "spam"]]
             if len(tags) == 0:
                 self.session.delete(self.update_person(nationbuilder_id))
+            return True
         except Exception as e:
             print(f"Failed to delete. Error: {e}")
+            return False
+
+    def mark_for_review_in_crm(self, crm_id):
+        return True
 
     def find_crm_id(self, email=None):
         # This will not be implemented for NB because it will never be used

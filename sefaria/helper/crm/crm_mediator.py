@@ -45,6 +45,16 @@ class CrmMediator:
         else:
             return False
 
+    def mark_for_review_in_crm(self, uid=None, email=None, profile=None):
+        """
+        Marks user as spam in CRM if user exists
+        """
+        crm_id = CrmInfoStore.get_crm_id(uid, email, profile)
+        if crm_id:
+            if self._crm_connection.mark_for_review_in_crm(crm_id):
+                return True
+        return False
+
     def update_user_email(self, new_email, uid=None, email=None, profile=None):
         """
         Updates user CRM if user exists

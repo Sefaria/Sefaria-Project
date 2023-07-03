@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Check if push is in PR
         id: check
-        uses: 8BitJonny/gh-get-current-pr@1.4.0
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
         with:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -212,8 +212,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Set outputs
         id: get-sha
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
