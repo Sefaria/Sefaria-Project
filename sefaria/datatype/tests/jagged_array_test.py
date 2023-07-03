@@ -222,40 +222,21 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(["a","b","c"]).shape() == 3
 
     def test_trim_ending_whitespace(self):
-        # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
-        # See warning at top of jagged_array.py
-        #do no harm
-        assert ja.JaggedTextArray(twoby).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
-        assert ja.JaggedTextArray(threeby).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+        depth_two = [["a", "b"], ["a"], ["d"]]
+        depth_two_with_space = [["a", "b", ""], ["a", ""], ["d"]]
+        depth_three = [[["a"], []], [["a", "", "b"], ["", "a", "b", "c"]]]
+        depth_three_with_space = [[["a", ""], [""]], [["a", "", "b"], ["", "a", "b", "c"]]]
+        # do no harm
+        assert ja.JaggedTextArray(depth_two).trim_ending_whitespace() == ja.JaggedTextArray(depth_two)
+        assert ja.JaggedTextArray(depth_three).trim_ending_whitespace() == ja.JaggedTextArray(depth_three)
 
-        twoby_with_space = [
-            ["Line 1:1", "This is the first second", "First third","","",""],
-            ["Chapter 2, Verse 1", "2:2", "2:3", ""],
-            ["Third first", "Third second", "Third third"]
-        ]
-        threeby_with_space = [
-            [
-                ["Part 1 Line 1:1", "This is the first second", "First third","","",""],
-                ["Chapter 2, Verse 1", "2:2", "2:3", "", ""],
-                ["Third first", "Third second", "Third third",""]
-            ],
-            [
-                ["Part 2 Line 1:1", "This is the first second", "First third"],
-                ["Chapter 2, Verse 1", "2:2", "2:3","","",""],
-                ["Third first", "Third second", "Third third"]
-            ],
-            [
-                ["Part 3 Line 1:1", "This is the first second", "First third"],
-                ["Chapter 2, Verse 1", "2:2", "2:3"],
-                ["Third first", "Third second", "Third third",""]
-            ],
-        ]
+        # trim
         assert ja.JaggedTextArray(["a","b","c","",""]).trim_ending_whitespace() == ja.JaggedTextArray(["a","b","c"])
         assert ja.JaggedTextArray(["",None,"\t\n ","",""]).trim_ending_whitespace() == ja.JaggedTextArray([])
         assert ja.JaggedTextArray(["", ["a"]]).trim_ending_whitespace() == ja.JaggedTextArray(["", ["a"]])
         assert ja.JaggedTextArray([[""], "a"]).trim_ending_whitespace() == ja.JaggedTextArray([[], "a"])
-        assert ja.JaggedTextArray(twoby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(twoby)
-        assert ja.JaggedTextArray(threeby_with_space).trim_ending_whitespace() == ja.JaggedTextArray(threeby)
+        assert ja.JaggedTextArray(depth_two_with_space).trim_ending_whitespace() == ja.JaggedTextArray(depth_two)
+        assert ja.JaggedTextArray(depth_three_with_space).trim_ending_whitespace() == ja.JaggedTextArray(depth_three)
 
     def test_overlap(self):
         a = ja.JaggedTextArray([["","b",""],["d","","f"],["","h",""]])
