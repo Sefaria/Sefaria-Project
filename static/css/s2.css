@@ -12503,7 +12503,6 @@ span.ref-link-color-3 {color: blue}
 .image-in-text {
     display: flex;
     justify-content: center;
-    align-items: center;
     margin: 0 auto;
     max-width: 100%;
     height: auto;
