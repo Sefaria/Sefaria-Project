@@ -12620,20 +12620,25 @@ span.ref-link-color-3 {color: blue}
 
 .layout-options {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
 .layout-button {
-  background-color: white;
   border: none;
-}
-
-.layout-button img {
-  height: 24px;
   width: 28px;
+  height: 24px;
+  -webkit-mask: var(--url) no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  background-color: var(--medium-grey);
 }
 
-.layout-button.checked img {
-  fill: var(--sefaria-blue);
+.layout-button.checked {
+  background-color: var(--sefaria-blue);
 }
 
 .text-menu-border {
