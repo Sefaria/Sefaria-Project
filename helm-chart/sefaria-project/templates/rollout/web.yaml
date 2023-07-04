@@ -29,7 +29,7 @@ spec:
           - templateName: rollout-complete
         args:
           - name: revision
-            value: {{ .Release.Revision }}
+            value: "{{ .Release.Revision }}"
           - name: deployEnv
             value: {{ .Values.deployEnv }}
           - name: version
