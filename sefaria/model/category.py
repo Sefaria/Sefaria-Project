@@ -318,7 +318,7 @@ class TocTree(object):
             parent.append(tc)
             self._path_hash[tuple(cat.path)] = tc
         except KeyError:
-            logger.warning("Failed to find parent category for {}".format("/".join(cat.path)))
+            logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
 
     def get_root(self):
         return self._root
