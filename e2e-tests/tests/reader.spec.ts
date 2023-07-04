@@ -1,10 +1,16 @@
 import { test, expect } from '@playwright/test';
+import {goToPageWithLang} from '../utils';
 
-test('has title', async ({ page }) => {
-  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/ברכות/);
+test('Navigate to bereshit', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/texts');
+  await page.getByRole('link', { name: 'Tanakh' }).click();
+  await page.getByRole('link', { name: 'Genesis' }).click();
+  await page.waitForSelector('text=Loading...', { state: 'detached' });
+  await page.locator('.sectionLink').first().click();
+  await expect(page).toHaveTitle(/Genesis 1/);
+  // wait until Bereshit is visible
+  await page.waitForSelector('text=Bereshit', { state: 'visible' });
+  await page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃').isVisible();
 });
 
 test('verify translations', async ({ page }) => {
