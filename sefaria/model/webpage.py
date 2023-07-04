@@ -312,6 +312,12 @@ class WebSite(abst.AbstractMongoRecord):
             return self.__key() == other.__key()
         return NotImplemented
 
+    def get_num_webpages(self):
+        if getattr(self, 'num_webpages', None) is None:
+            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
+            self.save()
+        return self.num_webpages
+
 
 class WebSiteSet(abst.AbstractMongoSet):
     recordClass = WebSite
@@ -373,11 +379,10 @@ def test_normalization():
     print("{} pages normalized".format(count))
 
 
-def dedupe_webpages(test=True):
+def dedupe_webpages(webpages, test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet()
     for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
@@ -429,7 +434,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ], allowDiskUse=True);
+    ], allowDiskUse=True)
 
     url_count = 0
     removed_count = 0
@@ -523,9 +528,8 @@ def webpages_stats():
     return (total_pages, total_links, year_data)
 
 
-def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
+def find_webpages_without_websites(webpages, test=True, hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
-    webpages = WebPageSet()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
 
@@ -560,10 +564,10 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
 
     return sites_added
 
-def find_sites_to_be_excluded():
+def find_sites_to_be_excluded(webpages):
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in tqdm(enumerate(WebPageSet())):
+    for webpage in tqdm(webpages):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
@@ -585,10 +589,10 @@ def find_sites_to_be_excluded_absolute(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
-def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
+def find_sites_to_be_excluded_relative(webpages, flag=25, relative_percent=3):
     # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
     sites_to_exclude = defaultdict(list)
-    all_sites = find_sites_to_be_excluded()
+    all_sites = find_sites_to_be_excluded(webpages)
     for website in all_sites:
         total = sum(all_sites[website].values())
         top_10 = all_sites[website].most_common(10)
@@ -659,7 +663,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
+                            sites_to_delete[domain] = f"{domain} has {website.get_num_webpages()} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
