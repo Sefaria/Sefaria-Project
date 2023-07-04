@@ -6,7 +6,9 @@ metadata:
     deployEnv: "{{ .Values.deployEnv }}"
 spec:
   args:
-    - name: healthcheck-hostname
+    - name: revision
+    - name: deployment
+    - name: version
   metrics:
     - name: healthcheck-ready
       provider:
