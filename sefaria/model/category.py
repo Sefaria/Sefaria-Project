@@ -312,10 +312,13 @@ class TocTree(object):
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
-        tc = TocCategory(category_object=cat)
-        parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
-        parent.append(tc)
-        self._path_hash[tuple(cat.path)] = tc
+        try:
+            tc = TocCategory(category_object=cat)
+            parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+            parent.append(tc)
+            self._path_hash[tuple(cat.path)] = tc
+        except KeyError:
+            logger.warning("Failed to find parent category for {}".format("/".join(cat.path)))
 
     def get_root(self):
         return self._root
