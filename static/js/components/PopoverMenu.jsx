@@ -8,7 +8,7 @@ const PopoverMenu = (props) => {
   };
   return (
     <div className="popover-menu">
-      <button onClick={() => setIsOpen(!isOpen)}>{props.button}</button>
+      <button className="popover-button" onClick={() => setIsOpen(!isOpen)}>{props.button}</button>
       {isOpen && props.menu}
     </div>
   );

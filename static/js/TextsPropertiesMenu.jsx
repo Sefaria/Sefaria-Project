@@ -5,12 +5,17 @@ import LayoutButtonLine from './LayoutButtonLine'
 import FontSizeButton from "./FontSizeButton";
 import {getLayoutOptions} from './constants';
 import PopoverMenu from "./components/PopoverMenu";
+import SourceTranslationsButtons from "./SourceTranslationsButtons";
 
 function TextsPropertiesMenu(props) {
     const sourceDir = props.sourceDir;
     const translationDir = props.translationDir;
     const [showSource, setShowSource] = useState(props.showSource === undefined || props.showSource);
     const [showTranslation, setShowTranslation] = useState(props.showTranslation || false);
+    const setShowTexts = (source, translation) => {
+        setShowSource(source);
+        setShowTranslation(translation);
+    }
 
     const layoutOptions = getLayoutOptions(sourceDir);
     const calculateLayoutState = (showSource, sourceDir, showTranslation, translationDir) => {
@@ -50,19 +55,13 @@ function TextsPropertiesMenu(props) {
 
     const menu = (
         <div className="texts-properties-menu">
-            <ToggleSwitchLine
-                name="showSorce"
-                text="Show Source"
-                onChange={() => setShowSource(!showSource)}
-                isChecked={showSource}
+            <SourceTranslationsButtons
+                showSource={showSource}
+                showTranslation={showTranslation}
+                setShowTexts={setShowTexts}
             />
-            <ToggleSwitchLine
-                name="showTranslation"
-                text="Show Translation"
-                onChange={() => setShowTranslation(!showTranslation)}
-                isChecked={showTranslation}
-            />
-            <LayoutButtonLine
+            <div className="text-menu-border"/>
+           <LayoutButtonLine
                 layoutState={layoutsState}
                 layout={layout}
                 onClick={ (newLayout) => {

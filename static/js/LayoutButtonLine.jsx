@@ -7,14 +7,14 @@ function LayoutButtonLine(props) {
     const layoutState = props.layoutState;
     const layoutOptions = getLayoutOptions(props.sourceDir)[layoutState];
     const layoutButton = (layoutOption) => {
+        const path = `/static/icons/${layoutState}-${layoutOption}.svg`;
         return (
-        <button
-            key={layoutOption}
-            className={`layout-button ${props.layout === layoutOption ? 'checked' : ''}`}
-            onClick={() => props.onClick(layoutOption)}
-        >
-            <img src={`/static/icons/${layoutState}-${layoutOption}.svg`} />
-        </button>
+            <button
+                key={layoutOption}
+                className={`layout-button ${props.layout === layoutOption ? 'checked' : ''}`}
+                onClick={() => props.onClick(layoutOption)}
+                style={{"--url": `url(${path})`}}
+            />
         );
     };
     return (
