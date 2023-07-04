@@ -116,9 +116,6 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
-      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
-      beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
-      inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
   }
   makePanelState(state) {
@@ -169,7 +166,6 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
-      beitMidrashId:           state.beitMidrashId           || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null
@@ -2187,7 +2183,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           {panels}
           {sefariaModal}
           {communityPagePreviewControls}
-          {beitMidrashPanel}
           <CookiesNotification />
         </div>
       </div>
