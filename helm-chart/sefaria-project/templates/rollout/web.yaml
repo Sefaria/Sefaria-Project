@@ -26,11 +26,11 @@ spec:
       {{- if eq .Values.sandbox "false" }} 
       postPromotionAnalysis:
         templates: 
-          - templateName: rollout-complete
+          - templateName: rollout-complete-{{ .Values.deployEnv }}
         args:
           - name: revision
             value: "{{ .Release.Revision }}"
-          - name: deployEnv
+          - name: deployment
             value: {{ .Values.deployEnv }}
           - name: version
             value: {{ .Values.web.containerImage.tag }}
