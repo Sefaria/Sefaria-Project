@@ -249,7 +249,6 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "message":        "sender",
             "sheet like":     "liker",
             "sheet publish":  "publisher",
             "follow":         "follower",
@@ -306,9 +305,6 @@ class Notification(abst.AbstractMongoRecord):
         elif n["type"] == "sheet publish":
             annotate_sheet(n, n["content"]["sheet_id"])
             annotate_user(n, n["content"]["publisher"])
-
-        elif n["type"] == "message":
-            annotate_user(n, n["content"]["sender"])
 
         elif n["type"] == "follow":
             annotate_user(n, n["content"]["follower"])
