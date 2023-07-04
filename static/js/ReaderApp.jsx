@@ -2172,19 +2172,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
-    const beitMidrashPanel = this.state.beitMidrashStatus ? (
-      <div id='beitMidrash' style={{width: 330,
-                                    marginInlineStart: "auto",
-                                    marginInlineEnd: 0,
-                                    height: `calc(100% - 60px)`,
-                                    marginTop: 60}}>
-          <BeitMidrash
-            socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
-            beitMidrashId = {this.state.beitMidrashId}
-            currentlyReading = {this.generateCurrentlyReading()}
-          />
-      </div>
-    ) : null
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
