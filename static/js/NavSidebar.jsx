@@ -77,7 +77,7 @@ const ModuleTitle = ({children, en, he, h1}) => {
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
   return <Module>
     <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText text={{en: enText, he: heText}} />
+    <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
 
@@ -215,7 +215,7 @@ const AboutTextCategory = ({cats}) => {
   return (
     <Module>
       <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
-      <InterfaceText text={{en: tocObject.enDesc, he: tocObject.heDesc}} />
+      <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
 };
@@ -235,8 +235,9 @@ const AboutText = ({index, hideTitle}) => {
   let authors   = index?.authors || [];
   authors = authors.filter(a => !!a[lang]).map(a => <a href={"/topics/" + a.slug} key={a.slug}><InterfaceText>{a[lang]}</InterfaceText></a>);
   authors = [].concat(...authors.map(x => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
-
-  const description = lang === "he" ? (index.heDesc || index.heShortDesc) : (index.enDesc || index.enShortDesc);
+  const heDesc = index.heDesc || index.heShortDesc;
+  const enDesc = index.enDesc || index.enShortDesc;
+  const description = lang === "he" ? heDesc : enDesc;
 
   if (!authors.length && !composed && !description) { return null; }
 
@@ -267,7 +268,8 @@ const AboutText = ({index, hideTitle}) => {
 
       </div> : null}
       {description ?
-      <InterfaceText>{description}</InterfaceText> : null}
+      <InterfaceText markdown={{en: enDesc, he: heDesc}}/> : null}
+
     </Module>
   );
 };

@@ -8,8 +8,8 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
-    const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title);
-    const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt);
+    const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title || '');
+    const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt || '');
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
                                                 prompt: prompt,
                                                 });

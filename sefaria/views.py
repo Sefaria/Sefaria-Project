@@ -298,17 +298,8 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response, add_webpage_hit_for_url
-
-    with_text = bool(int(request.GET.get("with_text", False)))
-    debug = bool(int(request.GET.get("debug", False)))
-    max_segments = int(request.GET.get("max_segments", 0))
-    post_body = json.loads(request.body)
-
-    response = make_find_refs_response(post_body, with_text, debug, max_segments)
-    add_webpage_hit_for_url(post_body.get("metaDataForTracking", {}).get("url", None))
-
-    return jsonResponse(response)
+    from sefaria.helper.linker import make_find_refs_response
+    return jsonResponse(make_find_refs_response(request))
 
 
 @api_view(["GET"])
