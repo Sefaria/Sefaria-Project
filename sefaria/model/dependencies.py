@@ -72,6 +72,7 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 
 # Topic
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
+subscribe(topic.process_topic_description_change,                       topic.Topic, "attributeChange", "description")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
 
 # Terms

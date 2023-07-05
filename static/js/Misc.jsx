@@ -20,6 +20,7 @@ import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
+import ReactMarkdown from 'react-markdown';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -58,7 +59,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -67,11 +68,12 @@ const InterfaceText = ({text, html, children, context}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentVariable = html ?
+                          html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
@@ -88,10 +90,10 @@ const InterfaceText = ({text, html, children, context}) => {
     }
   }
   return (
-    isDangerouslySetInnerHTML ?
+    html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-      :
-      <span className={elemclasses}>{textResponse}</span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+                    : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {

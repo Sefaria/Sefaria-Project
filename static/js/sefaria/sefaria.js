@@ -1036,6 +1036,7 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
+
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
@@ -1068,6 +1069,13 @@ Sefaria = extend(Sefaria, {
       });
   },
   _topicCompletions: {},
+  getTopicCompletions: function (word, callback) {
+       return this._cachedApiPromise({
+          url: `${Sefaria.apiHost}/api/topic/completion/${word}`, key: word,
+          store: Sefaria._topicCompletions,
+          processor: callback
+      });   // this API is used instead of api/name because when we want all topics. api/name only gets topics with a minimum amount of sources
+  },
   _lexiconLookups: {},
   getLexiconWords: function(words, ref) {
     // Returns Promise which resolve to a list of lexicon entries for the given words
