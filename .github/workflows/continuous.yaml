@@ -59,8 +59,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -130,8 +134,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
