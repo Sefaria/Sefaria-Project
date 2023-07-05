@@ -12479,6 +12479,8 @@ span.ref-link-color-3 {color: blue}
   position: absolute;
   top: 100%;
   background-color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
 .popover-button {
