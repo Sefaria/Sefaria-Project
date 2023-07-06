@@ -65,7 +65,7 @@ class Header extends Component {
             <LoggedInButtons headerMode={this.props.headerMode}/>
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
+          { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
