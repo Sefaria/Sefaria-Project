@@ -2,7 +2,7 @@
 
 This is a fork of Sefaria for Buddhist texts.
 
-Check out https://github.com/Sefaria/Contextus, an instance of the platform with a different content. 
+Check out [Contextus](https://github.com/Sefaria/Contextus), an instance of the platform with a different content. 
 
 ---------------------------
 [Sefaria](https://www.sefaria.org) is creating interfaces, apps (like a source sheet builder), and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
