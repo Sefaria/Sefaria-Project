@@ -8,7 +8,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
@@ -2056,108 +2056,336 @@ SignUpModal.propTypes = {
 };
 
 
-class InterruptingMessage extends Component {
-  constructor(props) {
-    super(props);
-    this.displayName = 'InterruptingMessage';
-    this.state = {
-      timesUp: false,
-      animationStarted: false
+// class InterruptingMessage extends Component {
+//   constructor(props) {
+//     super(props);
+//     this.displayName = 'InterruptingMessage';
+//     this.state = {
+//       timesUp: false,
+//       animationStarted: false
+//     };
+//     this.settings = {
+//       "modal": {
+//         "trackingName": "Interrupting Message",
+//         "showDelay": 10000,
+//       },
+//       "banner": {
+//         "trackingName": "Banner Message",
+//         "showDelay": 1,
+//       }
+//     }[this.props.style];
+//   }
+//   componentDidMount() {
+//     if (this.shouldShow()) {
+//       this.delayedShow();
+//     }
+//   }
+//   shouldShow() {
+//     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+//     return excludedPaths.indexOf(window.location.pathname) === -1;
+//   }
+//   delayedShow() {
+//     setTimeout(function() {
+//       this.setState({timesUp: true});
+//       $("#interruptingMessage .button").click(this.close);
+//       $("#interruptingMessage .trackedAction").click(this.trackAction);
+//       this.showAorB();
+//       this.animateOpen();
+//     }.bind(this), this.settings.showDelay);
+//   }
+//   animateOpen() {
+//     setTimeout(function() {
+//       if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
+//       this.setState({animationStarted: true});
+//       this.trackOpen();
+//     }.bind(this), 50);
+//   }
+//   showAorB() {
+//     // Allow random A/B testing if items are tagged ".optionA", ".optionB"
+//     const $message = $(ReactDOM.findDOMNode(this));
+//     if ($message.find(".optionA").length) {
+//       console.log("rand show")
+//       Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
+//     }
+//   }
+//   close() {
+//     this.markAsRead();
+//     this.props.onClose();
+// //   if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
+//   }
+//   trackOpen() {
+//     Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
+//   }
+//   trackAction() {
+//     Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
+//   }
+//   markAsRead() {
+//     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
+//     var cookieName = this.props.messageName + "_" + this.props.repetition;
+//     $.cookie(cookieName, true, { path: "/", expires: 14 });
+//     Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
+//     Sefaria.interruptingMessage = null;
+//   }
+//   render() {
+//     if (!this.state.timesUp) { return null; }
+
+//     if (this.props.style === "banner") {
+//       return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
+//                 <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+//                 <div id="bannerMessageClose" onClick={this.close}>×</div>
+//               </div>;
+
+//     } else if (this.props.style === "modal") {
+//       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+//           <div id="interruptingMessageOverlay"></div>
+//           <div id="interruptingMessage">
+//             <div className="colorLine"></div>
+//             <div id="interruptingMessageContentBox" className="hasColorLine">
+//               <div id="interruptingMessageClose" onClick={this.close}>×</div>
+//               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+//               {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.strapi.interruptingMessageModal ? interruptingMessageModal.modalText : null } }></div> */}
+//               <div className="colorLine"></div>
+//             </div>
+//           </div>
+//         </div>;
+//     }
+//     return null;
+//   }
+// }
+// InterruptingMessage.propTypes = {
+//   messageName: PropTypes.string.isRequired,
+//   messageHTML: PropTypes.string.isRequired,
+//   style:       PropTypes.string.isRequired,
+//   repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
+//   onClose:     PropTypes.func.isRequired
+// };
+
+export function useIsVisible(ref) {
+  const [isIntersecting, setIntersecting] = useState(false);
+  console.log(ref);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIntersecting(entry.isIntersecting),
+      { threshhold: 1.0 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => {
+      observer.disconnect();
     };
-    this.settings = {
-      "modal": {
-        "trackingName": "Interrupting Message",
-        "showDelay": 1000,
+  }, [ref]);
+
+  return isIntersecting;
+}
+
+function OnInView({ children, onVisible }) {
+  const elementRef = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          onVisible();
+        }
       },
-      "banner": {
-        "trackingName": "Banner Message",
-        "showDelay": 1,
-      }
-    }[this.props.style];
-  }
-  componentDidMount() {
-    if (this.shouldShow()) {
-      this.delayedShow();
+      { threshold: 1 }
+      );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
     }
-  }
-  shouldShow() {
+
+    return () => {
+      if (elementRef.current) {
+        observer.unobserve(elementRef.current);
+      }
+    };
+    }, [onVisible]);
+
+  return <div ref={elementRef}>{children}</div>;
+}
+
+
+const InterruptingMessage = ({
+  messageName,
+  messageHTML,
+  style,
+  repetition,
+  onClose,
+}) => {
+  const [timesUp, setTimesUp] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false);
+  const [hasSeenModal, setHasSeenModal] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+
+  const ref = useRef();
+  const isVisible = useIsVisible(ref);
+
+  const settings = {
+    trackingName: "Interrupting Message",
+    showDelay: 5000,
+  };
+
+  // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
+  // Use user context to determine whether this is valid for a user?
+  // Maybe user context should be used to find if there's a compatible modal
+  const shouldShow = () => {
+    if (!strapi.interruptingMessageModal) return false;
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeModal = () => {
+    if (onClose) onClose();
+    // Mark as read with cookies and track closing actions
+    setHasSeenModal(true); // should be acknolwedge instead of seen because there was an interaction
+    // Sefaria.interruptingMessageModal = null;
   }
-  delayedShow() {
-    setTimeout(function() {
-      this.setState({timesUp: true});
-      $("#interruptingMessage .button").click(this.close);
-      $("#interruptingMessage .trackedAction").click(this.trackAction);
-      this.showAorB();
-      this.animateOpen();
-    }.bind(this), this.settings.showDelay);
+
+  const trackImpression = () => {
+    console.log("We've got visibility!");
+    // track impression here
   }
-  animateOpen() {
-    setTimeout(function() {
-      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
-      this.setState({animationStarted: true});
-      this.trackOpen();
-    }.bind(this), 50);
-  }
-  showAorB() {
-    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
-    const $message = $(ReactDOM.findDOMNode(this));
-    if ($message.find(".optionA").length) {
-      console.log("rand show")
-      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
+
+  useEffect(() => {
+    if (shouldShow()) {
+      const timeoutId = setTimeout(() => {
+        setTimesUp(true);
+        // Other stuff here
+      }, settings.showDelay);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }
-  close() {
-    this.markAsRead();
-    this.props.onClose();
-    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
-  }
-  trackOpen() {
-    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
-  }
-  trackAction() {
-    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
-  }
-  markAsRead() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    var cookieName = this.props.messageName + "_" + this.props.repetition;
-    $.cookie(cookieName, true, { path: "/", expires: 14 });
-    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
-    Sefaria.interruptingMessage = null;
-  }
-  render() {
-    if (!this.state.timesUp) { return null; }
+  }, [strapi.interruptingMessageModal, settings.showDelay]); // execute useEffect when the modal or showDelay changes
 
-    if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
-                <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-                <div id="bannerMessageClose" onClick={this.close}>×</div>
-              </div>;
+  // useEffect(() => {
+  //   if (timesUp) {
+  //     const timeoutId = setTimeout(() => {
+  //       // Track open action
+  //       setAnimationStarted(true);
+  //     }, 50);
+  //     return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+  //   }
+  // }, [timesUp]); // execute useEffect when timesUp changes
 
-    } else if (this.props.style === "modal") {
-      return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-          <div id="interruptingMessageOverlay"></div>
-          <div id="interruptingMessage">
-            <div className="colorLine"></div>
-            <div id="interruptingMessageContentBox" className="hasColorLine">
-              <div id="interruptingMessageClose" onClick={this.close}>×</div>
-              <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-              <div className="colorLine"></div>
+  if (!timesUp) return null;
+  console.log("data for the component");
+  console.log(strapi.interruptingMessageModal);
+
+  if (!hasSeenModal) {
+    console.log("rendering component")
+    return (
+      <OnInView onVisible={trackImpression}>
+      <div
+        id="interruptingMessageBox"
+        className={timesUp ? "" : "hidden"}
+      >
+        <div id="interruptingMessageOverlay"></div>
+        <div id="interruptingMessage">
+          <div className="colorLine"></div>
+          <div id="interruptingMessageContentBox" className="hasColorLine">
+            <div id="interruptingMessageClose" onClick={closeModal}>
+              ×
             </div>
+            {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.interruptingMessageModal ? strapi.interruptingMessageModal.modalText : null } }></div> */}
+            <div id="interruptingMessageContent">
+              <style>
+                {
+                  `#highHolidayDonation {
+                      width: 410px;
+                      max-height: 100%;
+                      max-width: 100%;
+                  }
+                  .interface-english #highHolidayDonation {
+                      text-align: left;
+                  }
+                  .interface-hebrew #highHolidayDonation {
+                      text-align: right;
+                      direction: rtl;
+                  }
+                  #highHolidayDonation p {
+                      color: #555;
+                  }
+                  .interface-hebrew p.int-en {
+                      display: none;
+                  }
+                  #highHolidayDonation p .int-en {
+                      font-family: "adobe-garamond-pro", Georgia, serif;
+                  }
+                  #highHolidayDonation p .int-he {
+                      font-family: "adobe-garamond-pro", Georgia, serif;
+                      /* font-family: "Heebo", sans-serif; */
+                  }
+                  #highHolidayDonation p.sub {
+                      color: #999;
+                      font-size: 12px;
+                      font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+                  }
+                  #highHolidayDonation p {
+                      margin-top: 0;
+                  }
+                  #highHolidayDonation .button {
+                      margin-bottom: 20px;
+                  }
+                  #highHolidayDonation img {
+                      max-width: 100%;
+                  }
+                  #highHolidayDonation .buttons{
+                      text-align: right;
+                  }
+                  .leader {
+                      font-weight: bold;
+                  }
+                  .center{
+                      text-align: center;
+                  }
+                  #email-input-wrapper {
+                      display: flex;
+                      align-items: flex-start;
+                      flex-direction: column;
+                  }
+                  .newsletterInput#email-input {
+                      width: 300px;
+                      padding: 10px;
+                      margin-bottom: 20px;
+                      border-radius: 7px;
+                      border: 1px solid #EEE;
+                      color: #333;
+                  }`
+                }
+              </style>
+              <div id="highHolidayDonation">
+                <p>
+                  <span className="int-en">
+                    {strapi.interruptingMessageModal.modalText}
+                  </span>
+                </p>
+                <div className="buttons">
+                  <a className="button int-en" target="_blank" href={strapi.interruptingMessageModal.buttonURL} onClick={closeModal}>
+                    <span className="int-en">{strapi.interruptingMessageModal.buttonText}</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="colorLine"></div>
           </div>
-        </div>;
-    }
+        </div>
+      </div>
+      </OnInView>
+    );
+  } else {
     return null;
   }
-}
-InterruptingMessage.propTypes = {
-  messageName: PropTypes.string.isRequired,
-  messageHTML: PropTypes.string.isRequired,
-  style:       PropTypes.string.isRequired,
-  repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
-  onClose:     PropTypes.func.isRequired
 };
+
+// InterruptingMessage.propTypes = {
+//   messageName: PropTypes.string.isRequired,
+//   messageHTML: PropTypes.string.isRequired,
+//   style: PropTypes.string.isRequired,
+//   repetition: PropTypes.number.isRequired,
+//   onClose: PropTypes.func.isRequired
+// };
 
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
