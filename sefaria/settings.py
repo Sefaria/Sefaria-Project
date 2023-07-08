@@ -124,6 +124,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
+
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
@@ -297,20 +298,21 @@ CACHES = {
 }
 
 
-'''
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-09-16-elul-modal",
-    "style":      "modal",  # "modal" or "banner"
-    "repetition": 1,
-    "is_fundraising": True,
-    "condition":  {
-        "returning_only": False,
-        "english_only": False,
-        "desktop_only": False,
-        "debug": False,
-    }
-}
-'''
+
+# GLOBAL_INTERRUPTING_MESSAGE = {
+#     "name": "2023-06-16-help-center",
+#     "style":      "banner",  # "modal" or "banner"
+#     "repetition": 1,
+#     "is_fundraising": False,
+#     "condition":  {
+#         "returning_only": False,
+#         "english_only": False,
+#         "desktop_only": True,
+#         "debug": False,
+#     }
+# }
+
+
 GLOBAL_INTERRUPTING_MESSAGE = None
 
 
@@ -338,6 +340,13 @@ WEBPACK_LOADER = {
     'SEFARIA_JS': {
         'BUNDLE_DIR_NAME': 'bundles/sefaria/',  # must end with slash
         'STATS_FILE': relative_to_abs_path('../node/webpack-stats.sefaria.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
+    'LINKER': {
+        'BUNDLE_DIR_NAME': 'bundles/linker.v3/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.linker.v3.json'),
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,

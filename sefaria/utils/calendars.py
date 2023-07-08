@@ -171,6 +171,7 @@ def tanakh_yomi(datetime_obj):
     })
     return tanakh_items
 
+
 @graceful_exception(logger=logger, return_value=[])
 def tikkunei_yomi(datetime_obj):
     tikkunei_items = []
@@ -283,7 +284,7 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
 
 def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
-    
+
     parashiot = db_parasha["parasha"].split("-") # Could be a double parashah
     p_en, p_he = [], []
     for p in parashiot:
@@ -378,6 +379,51 @@ def hok_leyisrael(datetime_obj, diaspora=True):
         "category": 'Tanakh'
     }]
 
+
+@graceful_exception(logger=logger, return_value=[])
+def tanya_yomi(datetime_obj):
+    tanya_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.tanya_yomi.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tanya_items.append({
+        "title": {"en": "Tanya Yomi", "he": 'תניא יומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 15,
+        "category": rf.index.get_primary_category()
+    })
+    return tanya_items
+
+
+@graceful_exception(logger=logger, return_value=[])
+def yerushalmi_yomi(datetime_obj):
+    yerushalmi_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.yerushalmi_yomi.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    yerushalmi_items.append({
+        "title": {"en": "Yerushalmi Yomi", "he": 'ירושלמי יומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 16,
+        "category": rf.index.get_primary_category()
+    })
+    return yerushalmi_items
+
+
 def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
@@ -394,6 +440,8 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += tanakh_yomi(datetime_obj)
     cal_items += tikkunei_yomi(datetime_obj)
     cal_items += hok_leyisrael(datetime_obj, diaspora=diaspora)
+    cal_items += tanya_yomi(datetime_obj)
+    cal_items += yerushalmi_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 

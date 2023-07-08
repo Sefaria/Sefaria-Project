@@ -15,12 +15,12 @@ import {
   LanguageToggleButton,
   InterfaceText,
   ContentText,
+  CategoryHeader
 } from './Misc';
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
   toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
-
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -71,8 +71,9 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-      <h1><InterfaceText>Browse the Library</InterfaceText></h1>
-
+        <CategoryHeader type="books">
+            <h1><InterfaceText>Browse the Library</InterfaceText></h1>
+        </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
@@ -97,7 +98,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
-
   return (
     <div className={classes} key="0">
       {comparePanelHeader}
@@ -168,11 +168,11 @@ const Dedication = () => {
     }, []);
 
     return (
-        dedicationData && dedicationData.en && dedicationData.he ?
+        dedicationData && (dedicationData.en || dedicationData.he) ?
         <div className="dedication">
           <span>
-              <span className="int-en">{dedicationData.en}</span>
-              <span className="int-he">{dedicationData.he}</span>
+              <span className="int-en">{dedicationData?.en}</span>
+              <span className="int-he">{dedicationData?.he}</span>
           </span>
         </div>
         : null

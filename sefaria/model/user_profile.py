@@ -12,8 +12,6 @@ from random import randint
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
-from sefaria.utils.user import delete_user_account
-
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
@@ -390,8 +388,11 @@ class UserProfile(object):
 
         # Google API token
         self.gauth_token = None
-        self.nationbuilder_id = None
         self.gauth_email = None
+
+        # CRM
+        self.nationbuilder_id = None
+        self.sf_app_user_id = None
 
         # new editor
         self.show_editor_toggle = False
@@ -687,6 +688,7 @@ class UserProfile(object):
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
             "nationbuilder_id":      self.nationbuilder_id,
+            "sf_app_user_id":        self.sf_app_user_id,
             "gauth_email":           self.gauth_email,
             "show_editor_toggle":    self.show_editor_toggle,
             "uses_new_editor":       self.uses_new_editor,

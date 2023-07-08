@@ -14,11 +14,11 @@ if USE_VARNISH:
 
 def regenerate_version_status_tree():
     for lang in [None, "he", "en"]:
-        django_cache(action="set", cache_prefix='version_status_tree_api')(library.simplify_toc)(lang=lang if lang else "")
+        django_cache(action="set", cache_type="persistent", cache_prefix='version_status_tree_api', decorate_data_with_key=True)(library.simplify_toc)(lang=lang if lang else "")
     if USE_VARNISH:
         for lang in ["he", "en"]:
-            purge_url("{}/api/texts/version-status/tree/{}".format(FRONT_END_URL, lang))
-        purge_url("{}/api/texts/version-status/tree/".format(FRONT_END_URL))
+            purge_url(f"{FRONT_END_URL}/api/texts/version-status/tree/{lang}")
+        purge_url(f"{FRONT_END_URL}/api/texts/version-status/tree/")
 
 
 def regenerate_bare_links_api(cat1, cat2):
@@ -26,15 +26,21 @@ def regenerate_bare_links_api(cat1, cat2):
     cat2idxs = library.get_indexes_in_corpus(cat2) or library.get_indexes_in_category(cat2)
     for c1idx in cat1idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c1idx, cat2))
-        django_cache(action="set", cache_prefix='bare_link_api')(get_book_link_collection)(book=c1idx, cat=cat2)
+        django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c1idx, cat=cat2)
+        if USE_VARNISH:
+            purge_url(f"{FRONT_END_URL}/api/links/bare/{c1idx}/{cat2}")
     for c2idx in cat2idxs:
         print("bare_link_api:, Book: {}, Category: {}".format(c2idx, cat1))
-        django_cache(action="set", cache_prefix='bare_link_api')(get_book_link_collection)(book=c2idx, cat=cat1)
+        django_cache(action="set", cache_type="persistent", cache_prefix='bare_link_api', decorate_data_with_key=True)(get_book_link_collection)(book=c2idx, cat=cat1)
+        if USE_VARNISH:
+            purge_url(f"{FRONT_END_URL}/api/links/bare/{c2idx}/{cat1}")
 
 
 def regenerate_link_count_api(cat1, cat2):
     print("link_count_api:, Category1: {}, Category2: {}".format(cat1, cat2))
-    django_cache(action="set", cache_prefix='link_count_api')(get_link_counts)(cat1=cat1, cat2=cat2)
+    django_cache(action="set", cache_type="persistent", cache_prefix='link_count_api', decorate_data_with_key=True)(get_link_counts)(cat1=cat1, cat2=cat2)
+    if USE_VARNISH:
+        purge_url(f"{FRONT_END_URL}/api/counts/links/{cat1}/{cat2}")
 
 
 def regenerate_all_used():

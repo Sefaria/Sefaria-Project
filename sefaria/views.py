@@ -9,11 +9,10 @@ from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
-from webpack_loader import utils as webpack_utils
 
 from django.utils.translation import ugettext as _
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
@@ -36,16 +35,17 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 import sefaria.model as model
 import sefaria.system.cache as scache
+from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
-from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
 from sefaria.utils.hebrew import is_hebrew, strip_nikkud
@@ -59,8 +59,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
 from reader.views import base_props, render_template 
-from sefaria.helper.nationbuilder import delete_from_nationbuilder_if_spam
-
+from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -172,19 +171,25 @@ def accounts(request):
 
 def subscribe(request, email):
     """
-    API for subscribg is mailing lists, in `lists` url param.
+    API for subscribing to mailing lists, in `lists` url param.
     Currently active lists are:
     "Announcements_General", "Announcements_General_Hebrew", "Announcements_Edu", "Announcements_Edu_Hebrew"
     """
-    lists = request.GET.get("lists", "")
-    lists = lists.split("|")
-    if len(lists) == 0:
-        return jsonResponse({"error": "Please specifiy a list."})
-    if subscribe_to_list(lists + ["Newsletter_Sign_Up"], email, direct_sign_up=True):
-        return jsonResponse({"status": "ok"})
-    else:
+    body = json.loads(request.body)
+    language = body.get("language", "")
+    educator = body.get("educator", False)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
+    try:
+        crm_mediator = CrmMediator()
+        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
+            return jsonResponse({"status": "ok"})
+        else:
+            logger.error("Failed to subscribe to list")
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
         return jsonResponse({"error": _("Sorry, there was an error.")})
-
 
 @login_required
 def unlink_gauth(request):
@@ -253,10 +258,7 @@ def sefaria_js(request):
     Packaged Sefaria.js.
     """
     data_js = render_to_string("js/data.js", context={}, request=request)
-    webpack_files = webpack_utils.get_files('main', config="SEFARIA_JS")
-    bundle_path = relative_to_abs_path('..' + webpack_files[0]["url"])
-    with open(bundle_path, 'r') as file:
-        sefaria_js=file.read()
+    sefaria_js = read_webpack_bundle("SEFARIA_JS")
     attrs = {
         "data_js": data_js,
         "sefaria_js": sefaria_js,
@@ -271,6 +273,11 @@ def linker_js(request, linker_version=None):
     """
     CURRENT_LINKER_VERSION = "2"
     linker_version = linker_version or CURRENT_LINKER_VERSION
+
+    if linker_version == "3":
+        # linker.v3 is bundled using webpack as opposed to previous versions which are django templates
+        return HttpResponse(read_webpack_bundle("LINKER"), content_type="text/javascript; charset=utf-8")
+
     linker_link = "js/linker.v" + linker_version + ".js"
 
     attrs = {
@@ -291,24 +298,17 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_html, make_find_refs_response
-    from sefaria.utils.hebrew import is_hebrew
-    with_text = bool(int(request.GET.get("with_text", False)))
-    debug = bool(int(request.GET.get("debug", False)))
-    max_segments = int(request.GET.get("max_segments", 0))
+    from sefaria.helper.linker import make_find_refs_response
+    return jsonResponse(make_find_refs_response(request))
 
-    post = json.loads(request.body)
-    resolver = library.get_ref_resolver()
-    lang = 'he' if is_hebrew(post['text']) else 'en'
-    resolved_title = resolver.bulk_resolve_refs(lang, [None], [post['title']])
-    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved = resolver.bulk_resolve_refs(lang, [context_ref], [post['text']], with_failures=True)
-    # make_html([resolved_title, resolved], [[post['title']], [post['text']]], f'data/private/linker_results/linker_result.html')
 
-    return jsonResponse({
-        "title": make_find_refs_response(resolved_title, with_text, debug, max_segments),
-        "text": make_find_refs_response(resolved, with_text, debug, max_segments),
-    })
+@api_view(["GET"])
+def websites_api(request, domain):
+    cb = request.GET.get("callback", None)
+    website = WebSite().load({"domains": domain})
+    if website is None:
+        return jsonResponse({"error": f"no website found with domain: '{domain}'"})
+    return jsonResponse(website.contents(), cb)
 
 
 def linker_data_api(request, titles):
@@ -356,14 +356,16 @@ def title_regex_api(request, titles, json_response=True):
         return jsonResponse({"error": "Unsupported HTTP method."}) if json_response else {"error": "Unsupported HTTP method."}
 
 
-def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None):
+def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None, translation_language_preference=None, english_version=None, hebrew_version=None):
     res = {}
     for tref in refs:
         try:
             oref = model.Ref(tref)
             lang = "he" if is_hebrew(tref) else "en"
             if useTextFamily:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True)
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                                            lang="he", version=hebrew_version,
+                                            lang2="en", version2=english_version)
                 he = text_fam.he
                 en = text_fam.text
                 res[tref] = {
@@ -376,8 +378,13 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference)
+                he_tc = model.TextChunk(oref, "he", actual_lang=translation_language_preference, vtitle=hebrew_version)
+                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                if hebrew_version and he_tc.is_empty():
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
+                if english_version and en_tc.is_empty():
+                  raise NoVersionFoundError(f"{oref.normal()} does not have the English version: {english_version}")
+
                 if as_sized_string:
                     kwargs = {}
                     if min_char:
@@ -422,7 +429,7 @@ def bulktext_api(request, refs):
         g = lambda x: request.GET.get(x, None)
         min_char = int(g("minChar")) if g("minChar") else None
         max_char = int(g("maxChar")) if g("maxChar") else None
-        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"))
+        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char, g("transLangPref"), g("ven"), g("vhe"))
         resp = jsonResponse(res, cb)
         return resp
 
@@ -440,7 +447,7 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    status = WebPage.add_or_update_from_linker(data)
+    status, webpage = WebPage.add_or_update_from_linker(data)
 
     return jsonResponse({"status": status})
 
@@ -628,6 +635,7 @@ def rebuild_auto_completer(request):
     library.build_ref_auto_completer()
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
+    library.build_topic_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
@@ -697,7 +705,6 @@ def rebuild_citation_links(request, title):
 
 @staff_member_required
 def delete_citation_links(request, title):
-    from sefaria.helper.link import delete_links_from_text
     delete_links_from_text(title, request.user.id)
     return HttpResponseRedirect("/?m=Citation-Links-Deleted-on-%s" % title)
 
@@ -937,36 +944,68 @@ def profile_spam_dashboard(request):
             "type": "profile",
         })
 
+@staff_member_required
+def delete_user_by_email(request):
+    from django.contrib.auth.models import User
+    from sefaria.utils.user import delete_user_account
+    if request.method == 'GET':
+        form = SefariaDeleteUserForm()
+        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
+    elif request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        try:
+            if not user.check_password(password):
+                return jsonResponse({"failure": "incorrect password"})
+        except:
+            return jsonResponse({"failure": "incorrect password"})
+        try:
+            id_to_delete = UserProfile(email=email)
+            if delete_user_account(id_to_delete.id, False):
+                return jsonResponse({"success": f"deleted user {email}"})
+            else:
+                return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+        except:
+            return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
 
+
+
+
+def purge_spammer_account_data(spammer_id, delete_from_crm=True):
+    from django.contrib.auth.models import User
+    # Delete from Nationbuilder
+    profile = db.profiles.find_one({"id": spammer_id})
+    if delete_from_crm:
+        try:
+            crm_connection_manager = CrmMediator().get_connection_manager()
+            crm_connection_manager.mark_as_spam_in_crm(profile)
+        except Exception as e:
+            logger.error(f'Failed to mark user as spam: {e}')
+    sheets = db.sheets.find({"owner": spammer_id})
+    for sheet in sheets:
+        sheet["spam_sheet_quarantine"] = datetime.now()
+        sheet["datePublished"] = None
+        sheet["status"] = "unlisted"
+        sheet["displayedCollection"] = None
+        db.sheets.save(sheet)
+    # Delete Notes
+    db.notes.delete_many({"owner": spammer_id})
+    # Delete Notifcations
+    db.notifications.delete_many({"uid": spammer_id})
+    # Delete Following Relationships
+    db.following.delete_many({"follower": spammer_id})
+    db.following.delete_many({"followee": spammer_id})
+    # Delete Profile
+    db.profiles.delete_one({"id": spammer_id})
+    # Set account inactive
+    spammer_account = User.objects.get(id=spammer_id)
+    spammer_account.is_active = False
+    spammer_account.save()
 
 
 @staff_member_required
 def spam_dashboard(request):
-    from django.contrib.auth.models import User
-
-
-    def purge_spammer_account_data(spammer_id):
-        # Delete from Nationbuilder
-        profile = db.profiles.find_one({"id": spammer_id})
-        if "nationbuilder_id" in profile:
-            delete_from_nationbuilder_if_spam(spammer_id, profile["nationbuilder_id"])
-        # Delete Sheets
-        db.sheets.delete_many({"owner": spammer_id})
-        # Delete Notes
-        db.notes.delete_many({"owner": spammer_id})
-        # Delete Notifcations
-        db.notifications.delete_many({"uid": spammer_id})
-        # Delete Following Relationships
-        db.following.delete_many({"follower": spammer_id})
-        db.following.delete_many({"followee": spammer_id})
-        # Delete Profile
-        db.profiles.delete_one({"id": spammer_id})
-        # Set account inactive
-        spammer_account = User.objects.get(id=spammer_id)
-        spammer_account.is_active = False
-        spammer_account.save()
-
-
     if request.method == 'POST':
         req_type = request.POST.get("type")
 
@@ -1223,6 +1262,29 @@ def modtools_upload_workflowy(request):
         raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
     return jsonResponse({"status": "ok", "data": res})
+
+@staff_member_required
+def links_upload_api(request):
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+    file = request.FILES['csv_file']
+    linktype = request.POST.get("linkType")
+    generated_by = request.POST.get("projectName") + ' csv upload'
+    uid = request.user.id
+    try:
+        res = add_links_from_csv(file, linktype, generated_by, uid)
+    except Exception as e:
+        return HttpResponseBadRequest(e)
+    return jsonResponse({"status": "ok", "data": res})
+
+def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
+    try:
+        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
+    except Exception as e:
+        return HttpResponseBadRequest(e)
+    response = HttpResponse(file, content_type="text/csv; charset=utf-8")
+    response['Content-Disposition'] = f'attachment; filename="{tref1}-{tref2} links.csv"'
+    return response
 
 def compare(request, comp_ref=None, lang=None, v1=None, v2=None):
     print(comp_ref)

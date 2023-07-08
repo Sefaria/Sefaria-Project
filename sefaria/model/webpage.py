@@ -2,7 +2,7 @@
 from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
-
+from django.core.validators import URLValidator
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
@@ -12,9 +12,13 @@ import structlog
 logger = structlog.get_logger(__name__)
 from collections import Counter
 from sefaria.utils.calendars import daf_yomi, parashat_hashavua_and_haftara
+from sefaria.utils.util import truncate_string
 from datetime import datetime, timedelta
 from sefaria.system.exceptions import InputError
 from tqdm import tqdm
+from sefaria.model import *
+
+
 class WebPage(abst.AbstractMongoRecord):
     collection = 'webpages'
 
@@ -28,7 +32,10 @@ class WebPage(abst.AbstractMongoRecord):
         "description",
         "expandedRefs",
         "body",
-        "linkerHits"
+        "linkerHits",
+        'authors',
+        'articleSource',
+        'type'
     ]
 
     def load(self, url_or_query):
@@ -38,27 +45,52 @@ class WebPage(abst.AbstractMongoRecord):
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain      = WebPage.domain_for_url(self.url)
-            self.favicon     = "https://www.google.com/s2/favicons?domain={}".format(self.domain)
             self._site_data  = WebPage.site_data_for_domain(self.domain)
             self.site_name   = self._site_data["name"] if self._site_data else self.domain
+            self.favicon = f"https://www.google.com/s2/favicons?domain={self._site_data['domains'][0]}" if self._site_data else None
             self.whitelisted = self._site_data["is_whitelisted"] if self._site_data else False
 
     def _init_defaults(self):
         self.linkerHits = 0
+        self.lastUpdated = datetime.now()
+
+    def _normalize_data_sent_from_linker(self):
+        self.url = self.normalize_url(self.url)
+        self.refs = self._normalize_refs(getattr(self, "refs", []))
+        self.title = self.clean_title(getattr(self, "title", ""), getattr(self, "_site_data", {}), getattr(self, "site_name", ""))
+        self.description = self.clean_description(getattr(self, "description", ""))
 
     @staticmethod
     def _normalize_refs(refs):
-        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref) and not text.Ref(ref).is_empty()}
+        refs = {text.Ref(ref).normal() for ref in refs if text.Ref.is_ref(ref)}
         return list(refs)
 
     def _normalize(self):
         super(WebPage, self)._normalize()
-        self.url = WebPage.normalize_url(self.url)
+        self._normalize_data_sent_from_linker()
         self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
+        validator = URLValidator()
+        validator(self.url)
+        if hasattr(self, 'type'):
+            assert self.type == 'article', "WebPage's type can be 'article' or not exist"
+        else:
+            assert not hasattr(self, 'articleSource'), "only WebPage of type 'article' can have 'articleSource' attribute"
+        articleSource = getattr(self, 'articleSource', None)
+        if articleSource:
+            assert 'title' in articleSource, "articleSource of WebPage should have title"
+            assert all(key in ['title', 'related_parts'] for key in articleSource), "articleSource of WebPage can have only the keys 'title' and 'related_parts'"
         super(WebPage, self)._validate()
 
+    def _sanitize(self):
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            if attr == 'url':
+                continue
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def get_website(self, dict_only=False):
         # returns the corresponding WebSite.  If dict_only is True, grabs the dictionary of the WebSite from cache
@@ -117,6 +149,17 @@ class WebPage(abst.AbstractMongoRecord):
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(url_match) or re.search(title_regex, self.title)
 
+    def delete_if_should_be_excluded(self):
+        if not self.should_be_excluded():
+            return False
+        if not self.is_new():
+            self.delete()
+        return True
+
+    def add_hit(self):
+        self.linkerHits += 1
+        self.lastUpdated = datetime.now()
+
     @staticmethod
     def excluded_pages_url_regex(looking_for_domain=None):
         bad_urls = []
@@ -128,7 +171,7 @@ class WebPage(abst.AbstractMongoRecord):
                     if site["is_whitelisted"]:
                         bad_urls += [re.escape(domain_in_site)+"/search.*?$"]
 
-        if len(bad_urls) is 0:
+        if len(bad_urls) == 0:
             return None
         else:
             return "({})".format("|".join(bad_urls))
@@ -151,49 +194,52 @@ class WebPage(abst.AbstractMongoRecord):
                     return site
         return None
 
-
     @staticmethod
-    def add_or_update_from_linker(data):
-        """Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
-        Returns True is data was saved, False if data was determined to be exluded"""
-        data["url"] = WebPage.normalize_url(data["url"])
-        webpage = WebPage().load(data["url"])
-        data["refs"] = WebPage._normalize_refs(data["refs"])  # remove bad refs so pages with empty refs won't get saved
-        data["title"] = WebPage.clean_title(data["title"], getattr(webpage, "_site_data", {}),
-                                            getattr(webpage, "site_name", ""))
-        data["description"] = WebPage.clean_description(data.get("description", ""))
+    def add_or_update_from_linker(webpage_contents: dict, add_hit=True):
+        """
+        Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        Returns True is data was saved, False if data was determined to be excluded
 
+        @param webpage_contents: a dict representing the contents of a `WebPage`
+        @param add_hit: True if you want to add hit to webpage in webpages collection
+        """
+        temp_webpage = WebPage(webpage_contents)
+        temp_webpage._normalize_data_sent_from_linker()
+        webpage = WebPage().load(temp_webpage.url)
         if webpage:
-            existing = True
-            if data["title"] == webpage.title and data["description"] == getattr(webpage, "description", "") and set(data["refs"]) == set(webpage.refs):
-                return "excluded"  # no new data
-            if data["title"] == "":
-                data["title"] = webpage.title  # dont save an empty title if title exists
-            webpage.load_from_dict(data)
+            if temp_webpage.title == webpage.title and temp_webpage.description == getattr(webpage, "description", "") and set(webpage_contents["refs"]) == set(webpage.refs):
+                return "excluded", webpage  # no new data
+            contents_to_overwrite = {
+                "url": temp_webpage.url,
+                "title": temp_webpage.title or webpage.title,
+                "refs": temp_webpage.refs,
+                "description": temp_webpage.description,
+            }
+            webpage.load_from_dict(contents_to_overwrite)
         else:
-            webpage = WebPage(data)
-            existing = False
+            webpage = temp_webpage
 
-        if webpage.should_be_excluded():
-            if existing:
-                webpage.delete()
-            return "excluded"
+        if webpage.delete_if_should_be_excluded():
+            return "excluded", None
 
-        webpage.linkerHits += 1
-        webpage.lastUpdated = datetime.now()
+        if add_hit:
+            webpage.add_hit()
         webpage.save()
-        return "saved"
+        return "saved", webpage
 
     def client_contents(self):
         d = self.contents()
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
-        d["faviconUrl"] = self.favicon
+        d["favicon"] = self.favicon
+        d['authors'] = getattr(self, 'authors', None)
+        d['articleSource'] = getattr(self, 'articleSource', None)
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
 
-    def clean_client_contents(self, d):
+    @staticmethod
+    def clean_client_contents(d):
         d["title"]       = WebPage.clean_title(d["title"], d.get("_site_data", {}), d.get("site_name", ""))
         d["description"] = WebPage.clean_description(d.get("description", ""))
         return d
@@ -228,7 +274,7 @@ class WebPage(abst.AbstractMongoRecord):
                 return None
         description = description.replace("&amp;", "&")
         description = description.replace("&nbsp;", " ")
-        return description
+        return truncate_string(description, 150, 170)
 
 
 class WebPageSet(abst.AbstractMongoSet):
@@ -250,7 +296,9 @@ class WebSite(abst.AbstractMongoRecord):
         "initial_title_branding",
         "linker_installed",
         "num_webpages",
-        "exclude_from_tracking"
+        "exclude_from_tracking",
+        "whitelist_selectors",
+        'lastUpdated',
     ]
 
     def __key(self):
@@ -263,6 +311,12 @@ class WebSite(abst.AbstractMongoRecord):
         if isinstance(other, WebSite):
             return self.__key() == other.__key()
         return NotImplemented
+
+    def get_num_webpages(self):
+        if getattr(self, 'num_webpages', None) is None:
+            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
+            self.save()
+        return self.num_webpages
 
 
 class WebSiteSet(abst.AbstractMongoSet):
@@ -325,11 +379,10 @@ def test_normalization():
     print("{} pages normalized".format(count))
 
 
-def dedupe_webpages(test=True):
+def dedupe_webpages(webpages, test=True):
     """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
-    webpages = WebPageSet()
     for i, webpage in tqdm(enumerate(webpages)):
         norm = WebPage.normalize_url(webpage.url)
         if webpage.url != norm:
@@ -381,7 +434,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ], allowDiskUse=True);
+    ], allowDiskUse=True)
 
     url_count = 0
     removed_count = 0
@@ -450,13 +503,13 @@ def clean_webpages(test=True):
 
 
 def webpages_stats():
-    webpages = WebPageSet()
+    webpages = WebPageSet(proj={"expandedRefs": False})
     total_pages  = webpages.count()
     total_links  = []
     websites = {}
     year_data = Counter()
 
-    for webpage in webpages:
+    for webpage in tqdm(webpages):
         website = webpage.get_website()
         if website:
             if website not in websites:
@@ -475,9 +528,8 @@ def webpages_stats():
     return (total_pages, total_links, year_data)
 
 
-def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_activity_day=20):
+def find_webpages_without_websites(webpages, test=True, hit_threshold=50, last_linker_activity_day=20):
     from datetime import datetime, timedelta
-    webpages = WebPageSet()
     new_active_sites = Counter()   # WebSites we don't yet have in DB, but we have corresponding WebPages accessed recently
     unactive_unacknowledged_sites = {}  # WebSites we don't yet have in DB, and we have correpsonding WebPages but they have not been accessed recently
 
@@ -507,15 +559,15 @@ def find_webpages_without_websites(test=True, hit_threshold=50, last_linker_acti
         if site not in new_active_sites.keys():  # if True, site has not been updated recently
             print("Deleting {} with {} pages".format(site, len(unactive_unacknowledged_sites[site])))
             for webpage in unactive_unacknowledged_sites[site]:
-                if test:
+                if not test:
                     webpage.delete()
 
     return sites_added
 
-def find_sites_to_be_excluded():
+def find_sites_to_be_excluded(webpages):
     # returns all sites dictionary and each entry has a Counter of refs
     all_sites = {}
-    for i, webpage in tqdm(enumerate(WebPageSet())):
+    for webpage in tqdm(webpages):
         website = webpage.get_website(dict_only=True)
         if website != {}:
             if website["name"] not in all_sites:
@@ -537,10 +589,10 @@ def find_sites_to_be_excluded_absolute(flag=100):
                     sites_to_exclude[website] += f"{website} may need exclusions set due to Ref {common[0]} with {common[1]} pages.\n"
     return sites_to_exclude
 
-def find_sites_to_be_excluded_relative(flag=25, relative_percent=3):
+def find_sites_to_be_excluded_relative(webpages, flag=25, relative_percent=3):
     # this function looks for any website which has more webpages than 'flag' of any ref AND the amount of pages of this ref is a significant percentage of site's total refs
     sites_to_exclude = defaultdict(list)
-    all_sites = find_sites_to_be_excluded()
+    all_sites = find_sites_to_be_excluded(webpages)
     for website in all_sites:
         total = sum(all_sites[website].values())
         top_10 = all_sites[website].most_common(10)
@@ -611,7 +663,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                         if not website.linker_installed:
                             keep = False
                             print(f"Alert! {domain} has removed the linker!")
-                            sites_to_delete[domain] = f"{domain} has {website.num_webpages} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the oldest page."
+                            sites_to_delete[domain] = f"{domain} has {website.get_num_webpages()} pages, but has not used the linker in {last_linker_activity_day} days. {webpage.url} is the newest page."
                     else:
                         print("Alert! Can't find website {} corresponding to webpage {}".format(data["name"], webpage.url))
                         webpages_without_websites += 1
@@ -619,6 +671,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
                 if keep:
                     assert domain not in sites_to_delete
                     sites_to_keep[domain] = True
+
     if webpages_without_websites > 0:
         print("Found {} webpages without websites".format(webpages_without_websites))
     return sites_to_delete

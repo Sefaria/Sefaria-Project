@@ -71,14 +71,7 @@ class LexiconBox extends Component {
   }
 
   getNamedEntity(slug) {
-    Sefaria.getTopic(slug, {
-      with_links: false,
-      annotate_links: false,
-      with_refs: false,
-      group_related: false,
-      annotate_time_period: true,
-      with_indexes: false,
-    }).then(data => {
+    Sefaria.getTopic(slug, {annotated: false}).then(data => {
       this.setState({
         loaded: true,
         namedEntity: data,
@@ -238,7 +231,7 @@ class LexiconEntry extends Component {
           return <span>, {ahw}{aocc}</span>
         })
         .reduce((prev, curr) => [prev, curr]) : '';
-    const allHeadwords = entry.headword_suffix ? <span>[{hw}{entry['headword_suffix']}]{occurrences}</span>:
+    const allHeadwords = entry.headword_suffix ? <span>[{hw}<span className="headword-suffix" dangerouslySetInnerHTML={ {__html: entry['headword_suffix']}} />]{occurrences}</span>:
         (entry['brackets'] == 'all') ? <span>[{hw}{occurrences}{alts}]</span> :
         (entry['brackets'] == 'first_word') ? <span>[{hw}{occurrences}]{alts}</span> :
             <span>{hw}{occurrences}{alts}</span>;

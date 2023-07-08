@@ -1,4 +1,4 @@
-# NB: This assumes an already-functioning mongo instance. 
+# NB: This assumes an already-functioning mongo instance.
 # Parameters:
 # MONGO_HOST: Mongo hostname
 # SANDBOX_NAME: The name of the table created by this job
@@ -11,7 +11,7 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-  annotations: 
+  annotations:
     helm.sh/hook: post-delete
     helm.sh/hook-delete-policy: hook-succeeded
     helm.sh/hook-weight: "10"
@@ -25,7 +25,7 @@ spec:
           - name: MONGO_HOST
             value: {{ .Values.localSettings.MONGO_HOST | quote }}
           - name: SANDBOX_NAME
-            value: {{ .Values.deployEnv }} 
+            value: {{ .Values.deployEnv }}
         command: ["/script/destroy-mongo.sh"]
         volumeMounts:
         - name: script

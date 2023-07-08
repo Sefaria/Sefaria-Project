@@ -245,6 +245,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
 }
+.readerPanel span.mediumGrey {
+  color: var(--medium-grey);
+}
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
@@ -273,7 +276,9 @@ Legacy Style Guide Font Hierarchy -- the below should be refactored away in favo
 }
 .systemText .int-en,
 .systemText .int-he.enInHe {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  /* font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif; */
   font-size: 16px;
   font-weight: normal;
   color: #000;
@@ -649,6 +654,7 @@ input.noselect {
 .mobileNavMenu a.blue {
   background-color: #18345D;
   color: white;
+  border-bottom: unset;
 }
 .mobileNavMenu a.blue img {
   filter: invert(1);
@@ -1256,6 +1262,11 @@ div.interfaceLinks-row a {
   z-index: 1000 !important;
 }
 .ui-autocomplete .ui-menu-item {
+  display: flex;
+  padding: 6px 12px;
+}
+.ui-autocomplete .ui-menu-last-item {
+  border-top:  1px solid var(--lighter-grey);
   display: flex;
   padding: 6px 12px;
 }
@@ -2133,7 +2144,8 @@ div.interfaceLinks-row a {
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
 }
-.topicPanel .topicDescription span {
+.topicPanel .topicDescription a {
+  color: var(--commentary-blue);
 }
 .topicPanel .resourcesLink.blue {
   padding: 8px 16px;
@@ -3524,7 +3536,7 @@ select {
 .bookPage .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
-.modTools .versionDownloadButton,
+.modTools .modtoolsButton,
 .bookPage .content .versionDownloadButton {
   width: 60%;
   margin: 10px auto;
@@ -3536,18 +3548,18 @@ select {
   color: #ccc;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.modTools .versionDownloadButton .downloadButtonInner,
+.modTools .modtoolsButton .modtoolsButtonInner,
 .bookPage .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
-.modTools .versionDownloadButton .he,
+.modTools .modtoolsButton .he,
 .bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
-.modTools a .versionDownloadButton,
+.modTools a .modtoolsButton,
 .bookPage .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
@@ -3559,10 +3571,10 @@ select {
 .modTools .workflowy-tool .dlSectionTitle{
   width: unset;
 }
-.modTools .workflowy-tool .versionDownloadButton{
+.modTools .workflowy-tool .modtoolsButton{
   color: black;
 }
-.modTools .workflowy-tool .versionDownloadButton:hover{
+.modTools .workflowy-tool .modtoolsButton:hover{
   background-color: #999;
 }
 .modTools .workflowy-tool textarea {
@@ -4481,7 +4493,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
-  margin-bottom: 13px;
   padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
   height: 22px;
   display: flex;
@@ -4497,7 +4508,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
   margin-left: 10px;
   margin-right: 0;
-  margin-bottom: 13px;
   padding-bottom: 0;
 }
 .interface-hebrew .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
@@ -4675,6 +4685,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display:  flex;
 }
 .toggleOption {
+  font-size: 26px;
   box-sizing: border-box;
   text-align: center;
   border: 1px solid #ccc;
@@ -4686,6 +4697,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: #FBFBFA;
   vertical-align: middle;
 }
+
 .toggleSet.aliyotTorah .toggleOption,
 .toggleSet.punctuationTalmud .toggleOption {
   font-size: 14px;
@@ -4743,11 +4755,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .color .dark, .color .dark.on {
   background-color: #333331;
 }
-.toggleOption {
-  font-size: 26px;
-  line-height: 34px;
-  vertical-align: middle;
-}
+
 .toggleSet .toggleOption .he,
 .toggleSet .toggleOption .en {
   display: inline;
@@ -4775,6 +4783,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   border-radius: 6px;
+}
+
+.toggleSet.blueStyle.primary {
+  width: 100%;
+}
+.toggleSet.blueStyle.primary .toggleOption {
+  background-color: revert;
 }
 .toggleSet.blueStyle .toggleOption {
   border: none;
@@ -4930,9 +4945,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .basetext .segment {
   margin-bottom: 26px;
 }
-.segment .segmentText .poetry {
+
+.segment .segmentText .poetry.indentWhenWrap {
   text-indent: -30px;
   padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.segment .segmentText .poetry.indentAll {
+  padding-inline-start: 30px;
+  display: inline-block;
+}
+
+.segment .segmentText .poetry.indentAllDouble {
+  padding-inline-start: 60px;
   display: inline-block;
 }
 
@@ -5079,6 +5105,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
 .sheetContent .textPreviewSegment.highlight,
+.editTextInfo .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -5486,7 +5513,6 @@ But not to use a display block directive that might break continuous mode for ot
   bottom: 0;
   left: 0;
   position: absolute;
-  text-align: justify;
   margin: 0 auto;
   background-color: #FBFBFA;
 }
@@ -5694,14 +5720,13 @@ But not to use a display block directive that might break continuous mode for ot
   color: #666666;
 }
 .connectionsPanel .toolsButton.seeLess{
-  margin-inline-start: 60px;
+  margin-inline-start: 33px;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
   line-height: 18px;
   color: #999999;
   align-items: center;
-  margin-top: 15px;
 }
 .connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
   height: 10px;
@@ -6166,12 +6191,20 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats,
+.webpageList .webpage .webpageMetadata,
 .mediaList .media .meta,
 .manuscript .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
+}
+.interface-hebrew .webpageList .webpage .webpageMetadata {
+  text-align: right;
+  direction: rtl;
+}
+.interface-english .webpageList .webpage .webpageMetadata {
+  text-align: left;
+  direction: ltr;
 }
 
 .webpageList .website .siteName {
@@ -6451,6 +6484,9 @@ But not to use a display block directive that might break continuous mode for ot
   border-top: 1px solid #E5E5E5;
   padding: 20px 34px;
   margin: initial;
+}
+.topicList #topicItem-0 {
+  border-top: none;
 }
 .topicButton:hover {
   text-decoration: none;
@@ -7351,6 +7387,9 @@ a.button.mini {
 a .button:hover {
   text-decoration: none;
 }
+.reactMarkdown a {
+  color: var(--commentary-blue);
+}
 .button.small {
   padding: 10px 14px;
   width: -moz-fit-content;
@@ -7369,6 +7408,26 @@ a .button:hover {
   color: #000000;
   background-color: var(--lighter-grey);
   white-space: nowrap;
+}
+.adminButtons .button.extraSmall.topic {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  color: #666666;
+}
+.headerWithAdminButtons {
+  display: flex;
+  position: relative;
+  flex: 1;
+}
+.adminButtons.hiddenButtons {
+  display: none;
+}
+.adminButtons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 240px;
+  width: 147px;
+  position: absolute;
+  height: 90px;
 }
 
 .button .buttonIcon {
@@ -8492,6 +8551,24 @@ div.aboutSheetMetadata span:not(:first-child)::before{
     position: initial;
     vertical-align: 0px;
 }
+.searchBox.TopicSearchBox {
+  margin: 30px 0px 20px 30px;
+}
+.searchBox.TopicSearchBox input {
+  padding: 15px;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+  height: 40px;
+  width: 209px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  border-radius: 6px;
+  font-size: 18px;
+  color: #000000;
+}
+.searchBox.TopicSearchBox input.selected {
+  color: var(--commentary-blue);
+}
 .header .searchBox .keyboardInputInitiator {
     display: none;
 }
@@ -8848,6 +8925,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #EEE;
   margin-bottom: 6px;
   color: #333;
+}
+.newsletterSignUpBox .educatorNewsletterInput {
+  padding: 10px;
+  -webkit-appearance: auto
 }
 .newsletterSignUpBox img {
   height: 18px;
@@ -9599,9 +9680,6 @@ background-color: white;
 .addInterfaceInput button,
 .addInterfaceInput .suggestion {
   pointer-events: auto;
-}
-.addInterfaceInput button,
-.addInterfaceInput .suggestion {
   cursor: pointer;
 }
 
@@ -9631,6 +9709,38 @@ background-color: white;
   margin-inline-end: 20px;
   background: url("/static/icons/iconmonstr-magnifier-2-240.svg") no-repeat scroll left 7px top 7px;
   background-color: var(--lighter-grey);
+}
+.topicSearch.addInterfaceInput {
+  display: flex;
+  margin-left: 30px;
+  margin-right: 30px;
+  justify-content: space-between;
+}
+
+.topicSearch.addInterfaceInput input {
+  margin-top: 30px;
+  height: 30px;
+  max-width: 250px;
+  min-width: 250px;
+  padding-inline-end: 30px;
+  margin-left:  0;
+  margin-right: 0;
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput input.selected {
+  color: #4B71B7;
+}
+
+.topicSearch.addInterfaceInput .button {
+  margin-top: 30px;
+  position: relative;
+  white-space: nowrap;
+}
+.addInterfaceInput .suggestion {
+  font-size: 20px;
+}
+.topicSearch.addInterfaceInput select.suggestionBox {
+  margin-top: 60px;
 }
 .addInterfaceInput.mediaInput input {
   background: url("/static/icons/link_grey.svg") no-repeat scroll left 7px top 7px;
@@ -10802,59 +10912,6 @@ body .homeFeedWrapper {
 body .homeFeedWrapper .content {
   padding: 0;
 }
-.homeFeedWrapper #homeCover {
-  height: 240px;
-  padding: 50px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-  left: -20px;
-  width: calc(100% + 20px);
-}
-.interface-hebrew .homeFeedWrapper #homeCover {
-  left: auto;
-}
-.homeFeedWrapper #homeVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  width: 100%;
-  min-width: 1200px;
-  z-index: 0;
-}
-.homeFeedWrapper #homeCover h1.featureTitle {
-  color: white;
-  margin-bottom: 20px;
-  position: relative;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en,
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  color: white;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en {
-  font-size: 36px;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  font-size: 44px;
-}
-.homeFeedWrapper #homeCover .sub {
-  color: white;
-  font-size: 16px;
-  margin: 0;
-  position: relative;
-}
-.homeFeedWrapper #homeCover .sub a {
-  font-size: 16px;
-}
-.homeFeedWrapper #homeCover .sub .int-en {
-}
-.homeFeedWrapper #homeCover a {
-  color: white;
-  font-style: normal;
-  position: relative;
-}
 .columnLayout {
   display: flex;
   flex-direction: row;
@@ -10920,32 +10977,14 @@ body .homeFeedWrapper .content {
 .sideColumn .inlineButtonBox a .button {
   width: 100%;
 }
-.sideColumn #homeLearn .refLink {
-  display: block;
-  height: 56px;
-  line-height: 56px;
-  border-top: 4px solid;
-  color: #000;
-  font-size: 20px;
-}
-.sideColumn #homeLearn .refLink .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  text-transform: uppercase;
-}
+
 .sideColumn .button {
   letter-spacing: 0;
 }
 .sideColumn h2 {
   font-weight: 400;
 }
-.sideColumn .sideCatLink .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 22px;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #333;
-}
+
 .sideColumn .newsletterInput {
   height: 53px;
 }
@@ -10976,39 +11015,7 @@ body .homeFeedWrapper .content {
 .interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
-.sideColumn #homeSocialButtons {
-  margin-top: 15px;
-}
-.sideColumn #homeSocialButtons .fa {
-  font-size: 18px;
-  color: white;
-  background-color: #aaa;
-  display: inline-block;
-  height: 30px;
-  width: 30px;
-  line-height: 30px;
-  text-align: center;
-  border-radius: 15px;
-  margin-right: 5px;
-}
-.interface-hebrew .sideColumn #homeSocialButtons .fa {
-  margin: 0 0 0 5px;
-}
-.sideColumn #homeSocialButtons .fa:hover {
-  text-decoration: none;
-  background-color: #999;
-}
-.sideColumn #homeFeedback {
-  background-color: #EDEDED;
-  margin: 0 -50px;
-  padding: 30px 50px;
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0;
-}
-.sideColumn #homeFeedback .button {
-  margin-bottom: 10px;
-}
+
 .sideColumn .feedbackBoxOverlay.open {
   position: fixed;
   width: 100%;
@@ -11050,6 +11057,13 @@ body .homeFeedWrapper .content {
 .mainColumn .story {
   padding: 0 0 60px 0;
 }
+
+.story .subHeading .int-en, .story .subHeading .int-he  {
+  color: #666;
+}
+.story .learningPrompt {
+  padding: 10px 0 20px;
+}
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
@@ -11083,48 +11097,16 @@ body .homeFeedWrapper .content {
 }
 .mainColumn .saveLine.storyTitleWrapper .saveButton,
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
-  margin-top: 13px;
+  margin-top: 2px;
 }
-.story.publishSheetStory .storyTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle .int-en,
-.mainColumn .story .storySubTitle .int-he {
-  color: #666;
-}
-img.smallProfileImage {
-  height: 40px;
-  width: 40px;
-  margin: 0;
-  border-radius: 20px;
-}
-.mainColumn .story img.mediumProfileImage {
-  height: 64px;
-  width: 64px;
-  margin: 0;
-  border-radius: 32px;
-}
+
 .interface-english .mainColumn .story .storyTypeBlock {
   float: left;
 }
 .interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
-.interface-english .mainColumn .story .topTailBlock {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .topTailBlock {
-  float: left;
-}
-.interface-english .mainColumn .story .mediumProfileImage {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .mediumProfileImage {
-  float: left;
-}
+
 .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -11160,7 +11142,7 @@ img.smallProfileImage {
 }
 .story .saveLine {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   clear: both;
   margin-bottom: 10px;
 }
@@ -11174,13 +11156,6 @@ img.smallProfileImage {
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
   color: #999;
-}
-.story .authorText {
-  display: inline-block;
-  padding: 0 10px;
-  line-height: 22px;
-  width: 100%;
-  letter-spacing: 2px;
 }
 .authorByLine {
   display: flex;
@@ -11211,25 +11186,11 @@ img.smallProfileImage {
   font-size: 14px;
   width: max-content;
 }
-.mainColumn a:not(.button) {
+/* .mainColumn a:not(.button) {
   color: #000;
-}
+} */
 .storyBody a {
   text-decoration: underline;
-}
-.storyEditBar {
-  padding-bottom: 30px;
-}
-.storyEditorTag {
-  display: inline-block;
-  float: right;
-}
-.storyEditorTag.mustHave {
-  color: #66aa66;
-  padding: 0 10px;
-}
-.storyEditorTag.cantHave {
-  color: #aa6666;
 }
 .learnMoreLink a {
   text-decoration: none;
@@ -11244,7 +11205,6 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
-
 .editTextInfo {
   top: 0px;
   right: 0px;
@@ -11257,8 +11217,6 @@ body .homeFeedWrapper.userStats {
   background-color:  var(--lighter-grey);
 
 }
-
-
 .editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
@@ -11294,7 +11252,7 @@ body .homeFeedWrapper.userStats {
   font-weight: normal;
   color: #000;
 }
-.editTextInfo #newIndex #topicDesc, .editTextInfo #newIndex #topicCatDesc {
+.editTextInfo #newIndex .default {
   height: 200px;
   width: 97%;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
@@ -11304,24 +11262,51 @@ body .homeFeedWrapper.userStats {
   line-height: 18.75px;
   padding: 10px;
 }
+ .editTextInfo #newIndex .default::placeholder {
+   color: #666;
+ }
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
   background-color: var(--lightest-grey);
 }
+.button.small.addTopic {
+  background-color: #212E50;
+  color: #FFFFFF;
+  float: right;
+  margin-right: 30px;
+}
 #categoryChooserMenu {
   overflow: hidden;
-  background: url("/static/img/arrow-down.png") 640px 20px/10px 10px no-repeat #ffffff;
-  width: 660px;
+  background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
+  width: 100%;
   height: 50px;
   margin: 0 0 10px 0;
   border-radius: 7px;
   box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
   border: none;
 }
-#categoryChooserMenu select option:first-child {
-  color: var(--lighter-grey);
+
+.reorderTool {
+  height: 50px;
+  margin: 0 0 10px 0;
+  border-radius: 7px;
+  box-shadow: 0px 1px 3px rgb(0 0 0 / 20%);
+  border: none;
 }
+
+.reorderTool #title {
+  margin: 10px;
+  display: inline-block;
+  width: 85%;
+}
+
+.reorderTool #up, .reorderTool #down {
+  width: 10px;
+  margin: 0 4% 0 0;
+  display: inline-block;
+}
+
 #categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
@@ -11331,6 +11316,37 @@ body .homeFeedWrapper.userStats {
   padding: 4px 25px 4px 10px;
 }
 
+.connectionsPanel .editTextInfo #categoryChooserMenu {
+  width: 102%;
+}
+
+.connectionsPanel .editTextInfo .collectionsWidget {
+  width: 70%;
+}
+.connectionsPanel .editTextInfo #categoryChooserMenu select {
+  width: 98.5%;
+}
+
+.searchBox .editTextInfo .collectionsWidget {
+  width: 280px;
+}
+
+.searchBox .editTextInfo #newIndex {
+  margin: 50px auto;
+}
+.searchBox #categoryChooserMenu {
+  width: 97%;
+  background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
+}
+.searchBox #categoryChooserMenu select {
+  width: 100%;
+}
+.searchBox .editTextInfo #newIndex input {
+  width: 97%;
+}
+.searchBox .editTextInfo #newIndex #topicDesc {
+  width: 92%;
+}
 #categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
@@ -11357,15 +11373,23 @@ body .homeFeedWrapper.userStats {
   font: var(--english-sans-serif-font-family);
 }
 
-.editTextInfo #newIndex input {
+.editTextInfo #newIndex input[type="text"] {
   padding: 4px 10px 4px 10px;
   width: 640px;
   height: 50px;
   font-size: 16px;
   margin: 0 0 10px 0;
-  max-width: 100%;
+  max-width: 97%;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  box-sizing: content-box;
+  border-radius: 7px;
+  background: white;
+  font-family: revert;
 }
-
+.editTextInfo #newIndex input::placeholder {
+  color: #666;
+  font-size: 16px;
+}
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
@@ -11399,14 +11423,14 @@ body .homeFeedWrapper.userStats {
 .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.editTextInfo #newIndex a {
+.editTextInfo #newIndex .headerWithButtons a {
     color: #666;
 }
-
 .editTextInfo .nodeTemplate {
 	display: none;
 }
 @media screen and (max-width: 680px) {
+
   #categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
@@ -11446,7 +11470,7 @@ body .homeFeedWrapper.userStats {
   z-index: 1;
 }
 .editTextInfo .collectionsWidget {
-  width: 580px;
+  width: 39%;
   box-shadow: 0 1px 8px rgba(0, 0, 0, .2);
   height: 100px;
   position: absolute;

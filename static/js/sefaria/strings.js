@@ -20,8 +20,8 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
-    "Log in": "התחבר",
-    "Sign up": "הרשם",
+    "Log in": "התחברות",
+    "Sign up": "הרשמה",
 
     // Texts Page
     "Learn More": "לקריאה נוספת",
@@ -56,16 +56,46 @@ const Strings = {
     "All Visualizations": "תרשימים גרפיים נוספים",
     "Daily Study": "לימוד יומי",
 
-    // Topics
+    // Topics and Category Admin tools
+    "English Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים אנגלית",
+    "Hebrew Short Description for Table of Contents": "תיאור קצר עבור עמוד מפתח תוכן העניינים עברית",
+    "Choose a Category": "בחר קטגוריה",
+    "Main Menu": "תפריט ראשי",
+    "Saving topic information.": "מעדכן נתוני נושא",
+    "Processing title changes may take some time.": "עדכון השינויים עלול להמשך זמן מה",
+    "Add a short description.": "הוסף תיאור קצר",
+    "Add a description.": "הוסף תיאור",
+    "Add a title.": "הוסף שם כותר",
     "Explore Jewish Texts by Topic": "עיון בארון הספרים היהודי לפי נושא",
     "Explore by Topic": "לימוד לפי נושאים",
     "About Topics": "אודות \"נושאים\"",
-    "Topic pages bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.",
     "Trending Topics": "נושאים נפוצים",
     "More": "עוד",
     "Less": "פחות",
     "All Topics A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics.": "חיפוש ברשימת הנושאים.",
+    "Create a Topic": "ליצירת נושא חדש",
+    "Edit Topic": "עריכת נושא",
+    "English Title": "כותרת אנגלית",
+    "Title": "כותרת",
+    "English Description": "תיאור אנגלית",
+    "Hebrew Description": "תיאור עברית",
+    "Topic Deleted": "הנושא נמחק",
+    "Topic Editor": "עריכת נושאים",
+    "Please choose a category.": "אנא בחרו קטגוריה",
+    "Title must be provided": "יש לספק כותרת",
+    "Unfortunately, there may have been an error saving this topic information": "הודעת שגיאה: נראה כי חלה שגיאה במהלך שמירת הנתונים",
+    "Something went wrong. Sorry!": "מצטערים, משהו השתבש",
+
+
+    // Topics Tool
+    "Search for a Topic.": "חפש נושא",
+    "Add Topic": "הוספת נושא",
+    "Create a new topic: ": "יצירת נושא: ",
+    "Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')": "הכניסו מראה מקום, לדוגמא שבת פח א:ו",
+    "Add sub-category": "הוסף קטגוריה",
+    "Reorder sources": "סַדַּר המקורות",
+
 
     // All Topics
     "All Topics": "כל הנושאים",
@@ -212,6 +242,7 @@ const Strings = {
     "Current Translation": "תרגום נוכחי",
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
+    "View in Sidebar": "פתיחת תרגום",
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
     "Sources": "מקורות",
@@ -521,6 +552,11 @@ const Strings = {
 
     //Misc
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam arcu felis, molestie sed mauris a, hendrerit vestibulum augue." : "בראיט ולחת צורק מונחף, בגורמי מג׳מש. תרבנך וסתעד לכנו סתשם השמה – לתכי מורגם בורק? לתיג ישבעס",
+
+    //WebPage
+    'Citing': 'מצטט',
+    'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
+    'Sefaria Linker': 'במרשתת ההפניות',
   },
 
   _i18nInterfaceStringsWithContext: {
@@ -582,6 +618,7 @@ const Strings = {
       "Texts": "מקורות",
       "Topics": "נושאים",
       "Collections": "באסופות",
+      "See More": "עוד",
     },
     "CalendarListing": {
       "Tanakh": "",
@@ -591,6 +628,9 @@ const Strings = {
       "View": "לצפות",
       "Add": "להוסיף",
       "Edit": "לערוך",
+    },
+    "WebPageList": {
+      'Author': 'מחבר'
     }
   },
 };

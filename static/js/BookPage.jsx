@@ -14,7 +14,7 @@ import {
   CategoryChooser,
   TitleVariants
 } from './Misc';
-
+import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -74,7 +74,9 @@ class BookPage extends Component {
 
     if (this.isBookToc() && !this.props.compare) {
       if(!this.state.versionsLoaded){
-        Sefaria.getVersions(this.props.title, false, null, false).then(this.onVersionsLoad);
+        Sefaria.getVersions(this.props.title).then(result => {
+          this.onVersionsLoad(Object.values(result).flat());
+        })
       }
     }
   }
@@ -153,9 +155,12 @@ class BookPage extends Component {
     let currObjectVersions = this.state.currObjectVersions;
     let catUrl;
     if (category == "Commentary") {
-      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
-    } else if (category == "Targum") {
-      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+      const baseCategory = index.categories[0];
+      const commCategory = index.categories.find(x => x === "Commentary" || x.includes(` on ${baseCategory}`)); //this finds commentary categories in Mishnah, Talmud and Tanakh such as "Rishonim on Tanakh"
+      const urlCategories = index.categories.slice(0, index.categories.indexOf(commCategory || baseCategory) + 1);
+      catUrl = `/texts/${urlCategories.join("/")}`
+    } else if (category == "Targum" || category == "Guides") {
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf(category) + 1).join("/");
     } else if (category == "Talmud") {
       catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Talmud") + 2).join("/");
     } else {
@@ -701,6 +706,7 @@ SchemaNode.propTypes = {
 
 class JaggedArrayNode extends Component {
   render() {
+    const offset = this.props.schema?.index_offsets_by_depth?.['1'] || 0;
     if ("toc_zoom" in this.props.schema) {
       let zoom = this.props.schema.toc_zoom - 1;
       return (<JaggedArrayNodeSection
@@ -711,6 +717,7 @@ class JaggedArrayNode extends Component {
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                offset={offset}
               />);
     }
     const specialHeaderText = this.props.topLevelHeader || this.props.schema?.sectionNames[0] || "Chapters";
@@ -733,6 +740,7 @@ class JaggedArrayNode extends Component {
                 refPath={this.props.refPath}
                 currentlyVisibleRef={this.props.currentlyVisibleRef}
                 currentlyVisibleSectionRef={this.props.currentlyVisibleSectionRef}
+                offset={offset}
           />
         </>
     );
@@ -769,21 +777,9 @@ class JaggedArrayNodeSection extends Component {
   render() {
     if (this.props.depth > 2) {
       let content = [];
-      let enSection, heSection;
       for (let i = 0; i < this.props.contentCounts.length; i++) {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
-        if (this.props.addressTypes[0] === "Talmud") {
-          enSection = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
-        } else if (this.props.addressTypes[0] === "Year") {
-          enSection = i + 1241;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
-        }
-        else {
-          enSection = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+        let [enSection, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i);
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
@@ -803,21 +799,9 @@ class JaggedArrayNodeSection extends Component {
     }
     let contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
     let sectionLinks = [];
-    let section, heSection;
     for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
-      if (this.props.addressTypes[0] === "Talmud") {
-          section = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (this.props.addressTypes[0] === "Year") {
-          section = i + 1241;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-          heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
-        }
-        else {
-          section = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+      let [section, heSection] = Sefaria.getSectionStringByAddressType(this.props.addressTypes[0], i, this.props.offset);
       let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       let currentPlace = ref == this.props?.currentlyVisibleSectionRef || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(this.props?.currentlyVisibleSectionRef, ref); //the second clause is for depth 1 texts
       const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
@@ -860,22 +844,24 @@ class ArrayMapNode extends Component {
     const schema = this.props.schema;
     const includeSections = schema?.includeSections ?? true; //either undefined or explicitly true
     if ("refs" in schema && schema.refs.length && includeSections) {
-      let section, heSection;
+      let skip = 0;
       let sectionLinks = schema.refs.map(function(ref, i) {
-        i += schema.offset || 0;
+        if ('addresses' in schema) {
+          i = schema.addresses[i] - 1;
+        } else {
+          i += schema.offset || 0;
+          if ('skipped_addresses' in schema) {
+            i += skip;
+            while (schema.skipped_addresses.includes(i+1)) {
+              skip++;
+              i++;
+            }
+          }
+        }
         if (ref === "") {
           return null;
         }
-        if (schema.addressTypes[0] === "Talmud") {
-          section = Sefaria.hebrew.intToDaf(i);
-          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
-        } else if (schema.addressTypes[0] === "Folio") {
-          section = Sefaria.hebrew.intToFolio(i);
-          heSection = Sefaria.hebrew.encodeHebrewFolio(section);
-        } else {
-          section = i+1;
-          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
-        }
+        let [section, heSection] = Sefaria.getSectionStringByAddressType(schema.addressTypes[0], i);
         let currentPlace = ref == this.props?.currentlyVisibleSectionRef  || ref == this.props?.currentlyVisibleRef || Sefaria.refContains(ref, this.props?.currentlyVisibleRef);
         const linkClasses = classNames({"sectionLink": 1, "current": currentPlace}); 
         return (
@@ -983,7 +969,9 @@ DictionaryNode.propTypes = {
 
 class VersionsList extends Component {
   componentDidMount() {
-    Sefaria.getVersions(this.props.currentRef, false, [], true).then(this.onVersionsLoad);
+    Sefaria.getVersions(this.props.currentRef).then((result) => {
+          this.onVersionsLoad(Object.values(result).flat());
+        });
   }
   onVersionsLoad(versions){
     versions.sort(
@@ -1164,16 +1152,48 @@ const EditTextInfo = function({initTitle, close}) {
   const [categories, setCategories] = useState(index.current.categories);
   const [savingStatus, setSavingStatus] = useState(false);
   const [sections, setSections] = useState(index.current.sectionNames);
+  const [enDesc, setEnDesc] = useState(index.current?.enDesc || "");
+  const [enShortDesc, setEnShortDesc] = useState(index.current?.enShortDesc || "");
+  const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
+  const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
+  const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
+  const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
+  const getYearAsStr = (initCompDate) => {
+    if (typeof initCompDate === 'undefined') {
+      return "";
+    }
+    else {
+      initCompDate = String(initCompDate);
+      let pattern = /(-?\d+)(-?)(-?\d*)/;  // this may occur if it is a range.  Some books, such as Genesis store compDate as a range
+      let result = initCompDate.match(pattern);
+      if (result[2] === "-") {
+        return initCompDate;
+      }
+      else {
+        initCompDate = Number(initCompDate);
+        if (errorMargin === 0) {
+          return `${initCompDate}`;
+        } else {
+          const start = initCompDate - errorMargin;
+          const end = initCompDate + errorMargin;
+          return `${start}-${end}`;
+        }
+      }
+    }
+  }
+  const [compDate, setCompDate] = useState(index.current?.compDate);
+  const [compDateStr, setCompDateStr] = useState(getYearAsStr(compDate));
+
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
-  const validate = function () {
+  const validate = async function () {
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
     }
 
-    if (!heTitle) {
+    if (!heTitle && Sefaria._siteSettings.TORAH_SPECIFIC) {
       alert("Please give a Hebrew text title.");
       return false;
     }
@@ -1203,22 +1223,62 @@ const EditTextInfo = function({initTitle, close}) {
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
     }
+    for (const x of [enDesc, heDesc]) {
+      const valid_tags = await validateMarkdownLinks(x);
+      if (!valid_tags) {
+        return false;
+      }
+    }
     return true;
   }
+  const validateCompDate = (newValue) => {
+    let pattern = /(-?\d+)(-?)(-?\d*)/;
+    let result = newValue.match(pattern);
+    if (!result) {
+      setErrorMargin(0);
+      setCompDate(0);
+    }
+    else if (result[2] === "-") {
+      const start = Number.parseInt(result[1]);
+      const end = Number.parseInt(result[3]);
+      if (Number.isNaN(start) || Number.isNaN(end)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else if (end <= start) {
+        alert(`Invalid date format ${start} to ${end}`);
+      }
+      else {
+        const midpoint = (start + end) / 2;
+        setCompDate(midpoint);
+        setErrorMargin(midpoint - start);
+      }
+    }
+    else {
+      setErrorMargin(0);
+      const year = Number.parseInt(newValue);
+      if (Number.isNaN(year)) {
+        alert("Year must be an integer or range of integers.");
+      }
+      else {
+        setCompDate(year);
+      }
+    }
+  }
   const save = function() {
-    const enTitleVariantNames = titleVariants.map(i => i["name"]);
-    const heTitleVariantNames = heTitleVariants.map(i => i["name"]);
-    let postIndex = {}
-    postIndex.title = enTitle;
-    postIndex.heTitle = heTitle;
-    postIndex.titleVariants = enTitleVariantNames;
-    postIndex.heTitleVariants = heTitleVariantNames;
-    postIndex.categories = categories;
+    const enTitleVariantNames = titleVariants.map(i => i.name);
+    const heTitleVariantNames = heTitleVariants.map(i => i.name);
+    const authorSlugs = authors.map(i => i.slug);
+    let postIndex = {title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
+                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc}
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
     if (enTitle !== oldTitle) {
       postIndex.oldTitle = oldTitle;
+    }
+    if (compDateStr !== "") {
+      postIndex.compDate = compDate;
+      postIndex.errorMargin = errorMargin;
     }
     let postJSON = JSON.stringify(postIndex);
     let title = enTitle.replace(/ /g, "_");
@@ -1245,43 +1305,91 @@ const EditTextInfo = function({initTitle, close}) {
       save();
     }
   }
+  const addAuthor = function (newAuthor) {
+    const lowerCaseName = newAuthor.name.toLowerCase();
+    Sefaria._ApiPromise(Sefaria.apiHost + "/api/topic/completion/" + newAuthor.name).then(d => {
+      const matches = d[1].filter((t) => t.type === 'AuthorTopic');
+      const exactMatch = matches.find((t) => t.title.toLowerCase() === lowerCaseName);
+      if (!exactMatch) {
+        const closestMatches = matches.map((t) => t.title);
+        const closestMatchMsg = matches.length > 0 ? `The closest match(es) found were: ${closestMatches.join(', ')}` : "";
+        alert(`Invalid author.  Make sure it is listed under the 'Authors' category in the Topic Table of Contents. ${closestMatchMsg}`);
+      } else {
+        const newAuthor = [{"id": authors.length, "name": exactMatch.title, "slug": exactMatch.key}];
+        setAuthors([].concat(authors, newAuthor));
+      }
+    });
+  }
+
+  const removeAuthor = function (authorIDtoRemove) {
+    let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
+    setAuthors(newAuthors);
+  }
   return (
       <div className="editTextInfo">
       <div className="static">
         <div className="inner">
           {savingStatus ? <div className="collectionsWidget">Saving text information...<br/><br/>(processing title changes may take some time)</div> : null}
           <div id="newIndex">
-            <AdminToolHeader en={"Index Editor"} he={"עריכת מאפייני אינדקס"} close={close} validate={validateThenSave}/>
+            <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
-              <input id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
+              <input type="text" id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="section">
+                <label><InterfaceText>Hebrew Title</InterfaceText></label>
+                <input id="textTitle" type="text" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                </div> : null}
 
             <div className="section">
-              <label><InterfaceText>Hebrew Title</InterfaceText></label>
-              <input id="heTitle" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <label><InterfaceText>English Description</InterfaceText></label>
+              <textarea className="default" onBlur={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
             </div>
+            <div className="section">
+                <label><InterfaceText>Short English Description</InterfaceText></label>
+              <textarea className="default" onBlur={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
+            </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <div className="section">
+                  <label><InterfaceText>Hebrew Description</InterfaceText></label>
+                <textarea className="default" onBlur={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
+              </div> : null}
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+              <div className="section">
+                  <label><InterfaceText>Short Hebrew Description</InterfaceText></label>
+                <textarea className="default" onBlur={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
+              </div> : null}
 
             <div className="section">
               <label><InterfaceText>Category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
-            {index.current.hasOwnProperty("sectionNames") ?
-            <div className="section">
-              <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
-              <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
-            </div> : null}
 
+            <div className="section">
+              <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <TitleVariants titles={authors} options={{'onTitleAddition': addAuthor, 'onTitleDelete': removeAuthor}}/>
+            </div>
             <div className="section">
               <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
 
               <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
 
+            {Sefaria._siteSettings.TORAH_SPECIFIC ?
+                <div className="section">
+                  <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
+                </div> : null}
             <div className="section">
-              <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-              <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
+              <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDateStr}/>
             </div>
+            {index.current.hasOwnProperty("sectionNames") ?
+              <div className="section">
+                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
+              </div> : null}
           </div>
         </div>
       </div>
