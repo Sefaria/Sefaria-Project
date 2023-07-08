@@ -18,13 +18,13 @@ class TranslationsBox extends Component {
     };
   }
   componentDidMount() {
-    if(!this.isSheet()){
-      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+    if(!this.isSheet()) {
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   componentDidUpdate(prevProps, prevState) {
     if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -35,7 +35,7 @@ class TranslationsBox extends Component {
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
       if (!this._excludedLangs.includes(lang)) {
         versionsByLang[lang].sort((a, b) => {
-          return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;
+          return a.versionTitle === ver.versionTitle ? -1 : b.versionTitle === ver.versionTitle ? 1 : 0;
         });
       }
     }
@@ -56,7 +56,7 @@ class TranslationsBox extends Component {
           </div>
       );
     }
-    if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
+    if (this.props.mode === "Translation Open") { // A single translation open in the sidebar
       return (
         <VersionsTextList
           srefs={this.props.srefs}
@@ -69,7 +69,7 @@ class TranslationsBox extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
         />
       );
-    }else if(this.props.mode == "Translations"){
+    }else if(this.props.mode === "Translations"){
       if (!this.state.versionLangMap) {
         return (
           <div className="versionsBox">
@@ -78,7 +78,7 @@ class TranslationsBox extends Component {
         );
       }
       return (
-        <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
+        <VersionsBlocksList
           versionsByLanguages={this.state.versionLangMap}
           currObjectVersions={this.props.currObjectVersions}
           sortPrioritizeLanugage={"en"}
@@ -86,6 +86,7 @@ class TranslationsBox extends Component {
           openVersionInReader={this.props.openVersionInReader}
           openVersionInSidebar={this.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
+          inTranslationBox={true}
         />
       );
     }
@@ -104,6 +105,7 @@ TranslationsBox.propTypes = {
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  inTranslationBox:            PropTypes.bool,
 };
 
 

@@ -8,10 +8,10 @@ import { Promotions } from './Promotions'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
-    {modules.map((m, i) => 
-      <Modules 
-        type={m.type} 
-        props={m.props || {}} 
+    {modules.map((m, i) =>
+      <Modules
+        type={m.type}
+        props={m.props || {}}
         key={i} />
     )}
   </div>
@@ -77,7 +77,7 @@ const ModuleTitle = ({children, en, he, h1}) => {
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
   return <Module>
     <ModuleTitle en={enTitle} he={heTitle} />
-    <InterfaceText text={{en: enText, he: heText}} />
+    <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
 
@@ -115,6 +115,7 @@ const AboutSefaria = ({hideTitle}) => (
 const AboutTranslatedText = ({translationsSlug}) => {
 
   const translationLookup = {
+    "ar": {title: "نصوص يهودية بالعربية", body: "سفاريا هي موطن 3000 سنة من النصوص اليهودية. نحن منظمة غير ربحية تقدم وصولاً مجانيًا إلى النصوص والترجمات والتعليقات حتى يتمكن الجميع من المشاركة في العملية المستمرة لدراسة التوراة وتفسيرها وخلقها."},
     "de": {title: "Eine lebendige Bibliothek der Tora", body: "Sefaria ist eine Bibliothek für jüdische Texte aus 3.000 Jahren. Wir sind eine gemeinnützige Organisation, die freien Zugang zu Texten, Übersetzungen und Kommentaren bietet, damit jede und jeder am fortlaufenden Prozess des Studierens, Interpretierens und der Entwicklung der Tora teilnehmen kann."},
     "eo": {title: "Vivanta Biblioteko de Torao", body: "Sefaria estas hejmo de 3,000 jaroj da judaj tekstoj. Ni estas neprofitcela organizo ofertanta senpagan aliron al tekstoj, tradukoj kaj komentaĵoj por ke ĉiuj povu partopreni en la daŭra procezo de studado, interpretado kaj kreado de Torao."},
     "es": {title: "Una biblioteca viva de la Torá", body: "Sefaria alberga 3.000 años de textos judíos. Somos una organización sin fines de lucro que ofrece acceso gratuito a textos, traducciones y comentarios para que todos puedan participar en el proceso continuo de estudio, interpretación y creación de la Torá."},
@@ -129,9 +130,9 @@ const AboutTranslatedText = ({translationsSlug}) => {
   }
   return (
   <Module>
-    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ? 
+    <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
-        { translationLookup[translationsSlug] ? 
+        { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
           <EnglishText>
@@ -180,7 +181,7 @@ const SupportSefaria = ({blue}) => (
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
-    <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportSefaria"}>
+    <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
     </DonateLink>
@@ -193,7 +194,7 @@ const SponsorADay = () => (
     <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
-    <DonateLink classes={"button small"} link={"sponsor"} source={"NavSidebar / SponsorADay"}>
+    <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Sponsor A Day</InterfaceText>
     </DonateLink>
@@ -214,7 +215,7 @@ const AboutTextCategory = ({cats}) => {
   return (
     <Module>
       <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
-      <InterfaceText text={{en: tocObject.enDesc, he: tocObject.heDesc}} />
+      <InterfaceText markdown={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
 };
@@ -234,8 +235,9 @@ const AboutText = ({index, hideTitle}) => {
   let authors   = index?.authors || [];
   authors = authors.filter(a => !!a[lang]).map(a => <a href={"/topics/" + a.slug} key={a.slug}><InterfaceText>{a[lang]}</InterfaceText></a>);
   authors = [].concat(...authors.map(x => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
-
-  const description = lang === "he" ? (index.heDesc || index.heShortDesc) : (index.enDesc || index.enShortDesc);
+  const heDesc = index.heDesc || index.heShortDesc;
+  const enDesc = index.enDesc || index.enShortDesc;
+  const description = lang === "he" ? heDesc : enDesc;
 
   if (!authors.length && !composed && !description) { return null; }
 
@@ -266,7 +268,8 @@ const AboutText = ({index, hideTitle}) => {
 
       </div> : null}
       {description ?
-      <InterfaceText>{description}</InterfaceText> : null}
+      <InterfaceText markdown={{en: enDesc, he: heDesc}}/> : null}
+
     </Module>
   );
 };
@@ -304,7 +307,7 @@ const HaftarotLinks = () => {
   const haftarot = Sefaria.calendars.filter(c => c.title.en.startsWith("Haftarah"))
   return (
     <>
-      {haftarot.map(h => 
+      {haftarot.map(h =>
       <div className="navSidebarLink ref serif" key={h.url}>
         <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
         <a href={"/" + h.url}><InterfaceText text={h.displayValue} /></a>
@@ -334,7 +337,7 @@ const Translations = () => {
         Access key works from the library in several languages.
       </EnglishText>
       <HebrewText>
-        תרגומים
+        יצירות נבחרות מהספרייה בתרגומים לשפות שונות.
       </HebrewText>
     </InterfaceText>
     <TranslationLinks />
@@ -365,7 +368,10 @@ const LearningSchedules = () => {
         <DafLink />
       </div>
       <a href="/calendars" className="allLink">
-        <InterfaceText>All Learning Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Learning Schedules ›</EnglishText>
+        <HebrewText>לוחות לימוד נוספים ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -389,7 +395,10 @@ const WeeklyTorahPortion = () => {
         <HaftarotLinks />
       </div>
       <a href="/topics/category/torah-portions" className="allLink">
-        <InterfaceText>All Portions</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Portions ›</EnglishText>
+        <HebrewText>פרשות השבוע ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -413,16 +422,16 @@ const DafYomi = () => {
 
 const Visualizations = ({categories}) => {
   const visualizations = [
-    {en: "Tanakh & Talmud", 
-      he: 'תנ"ך ותלמוד', 
+    {en: "Tanakh & Talmud",
+      he: 'תנ"ך ותלמוד',
       url: "/explore"},
-    {en: "Talmud & Mishneh Torah", 
+    {en: "Talmud & Mishneh Torah",
       he: "תלמוד ומשנה תורה",
       url: "/explore-Bavli-and-Mishneh-Torah"},
-    {en: "Talmud & Shulchan Arukh", 
+    {en: "Talmud & Shulchan Arukh",
       he: "תלמוד ושולחן ערוך",
       url: "/explore-Bavli-and-Shulchan-Arukh"},
-    {en: "Mishneh Torah & Shulchan Arukh", 
+    {en: "Mishneh Torah & Shulchan Arukh",
       he: "משנה תורה ושולחן ערוך",
       url: "/explore-Mishneh-Torah-and-Shulchan-Arukh"},
     {en: "Tanakh & Midrash Rabbah",
@@ -445,7 +454,7 @@ const Visualizations = ({categories}) => {
       <ModuleTitle>Visualizations</ModuleTitle>
       <InterfaceText>Explore interconnections among texts with our interactive visualizations.</InterfaceText>
       <div className="linkList">
-        {links.map((link, i) => 
+        {links.map((link, i) =>
           <div className="navSidebarLink gray" key={i}>
             <img src="/static/icons/visualization.svg" className="navSidebarIcon" alt={Sefaria._("visualization icon")} />
             <a href={link.url}><InterfaceText text={{en: link.en, he: link.he}} /></a>
@@ -453,7 +462,10 @@ const Visualizations = ({categories}) => {
         )}
       </div>
       <a href="/visualizations" className="allLink">
-        <InterfaceText>All Visualizations</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+        <InterfaceText>
+        <EnglishText>All Visualizations ›</EnglishText>
+        <HebrewText>תרשימים גרפיים נוספים ›</HebrewText>
+        </InterfaceText>
       </a>
     </Module>
   );
@@ -464,7 +476,15 @@ const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle>About Topics</ModuleTitle> }
-    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</InterfaceText>
+    <InterfaceText>
+        <HebrewText>
+בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
+        </HebrewText>
+        <EnglishText>
+            Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.
+        </EnglishText>
+
+    </InterfaceText>
   </Module>
 );
 
@@ -472,7 +492,7 @@ const AboutTopics = ({hideTitle}) => (
 const TrendingTopics = () => (
   <Module>
     <ModuleTitle>Trending Topics</ModuleTitle>
-    {Sefaria.trendingTopics.map((topic, i) => 
+    {Sefaria.trendingTopics.map((topic, i) =>
       <div className="navSidebarLink ref serif" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
@@ -492,7 +512,7 @@ const RelatedTopics = ({title}) => {
   return (topics.length ?
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
-      {shownTopics.map((topic, i) => 
+      {shownTopics.map((topic, i) =>
         <div className="navSidebarLink ref serif" key={i}>
           <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
         </div>
@@ -561,7 +581,7 @@ const GetTheApp = () => (
 );
 
 
-const StayConnected = () => {
+const StayConnected = () => { // TODO: remove? looks like we are not using this
   const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
 
   return (
@@ -642,7 +662,7 @@ const ExploreCollections = () => (
 const WhoToFollow = ({toggleSignUpModal}) => (
   <Module>
     <ModuleTitle>Who to Follow</ModuleTitle>
-    {Sefaria.followRecommendations.map(user => 
+    {Sefaria.followRecommendations.map(user =>
     <ProfileListing {...user} key={user.uid} toggleSignUpModal={toggleSignUpModal} />)}
   </Module>
 );
@@ -718,7 +738,8 @@ const DownloadVersions = ({sref}) => {
         Sefaria.track.event("Reader", "Version Download", `${sref} / ${downloadSelected.dlVersionTitle} / ${downloadSelected.dlVersionLanguage} / ${downloadSelected.dlVersionFormat}`);
     }
     useEffect(() => {
-        Sefaria.getVersions(sref, false, [], false).then(data => {
+        Sefaria.getVersions(sref).then(data => {
+            data = Object.values(data).flat();
             data = data.filter(isVersionPublicDomain);
             data.sort((a, b) => a.versionTitle.localeCompare(b.versionTitle));
             setVersions(data);

@@ -6,7 +6,7 @@ metadata:
   name: {{ .Values.deployEnv }}-varnish
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
-  annotations: 
+  annotations:
     rollout.argoproj.io/revision: "{{ .Release.Revision }}"
 spec:
   strategy:
@@ -57,7 +57,7 @@ spec:
         imagePullPolicy: Always
         args:
           - -F
-          - -f 
+          - -f
           - /etc/varnish/sefaria.vcl
           - -S
           - /etc/varnish-secret/varnish-secret
@@ -124,6 +124,6 @@ spec:
             secretName: {{ template "sefaria.secrets.varnish" . }}
         - name:  varnish-config
           configMap:
-            name: {{ .Values.deployEnv }}-varnish-config
+            name: {{ .Values.deployEnv }}-varnish-config-{{ .Release.Revision }}
         - emptyDir: {}
           name: workdir

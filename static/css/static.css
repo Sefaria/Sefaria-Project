@@ -1115,8 +1115,8 @@ p.registration-links a:hover{
   color: #000;
   font-size: 18px;
 }
-#peoplePage .author a .int-en, 
-#talmudicPeoplePage .author a .int-en, 
+#peoplePage .author a .int-en,
+#talmudicPeoplePage .author a .int-en,
 #personPage a .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -1294,7 +1294,7 @@ p.registration-links a:hover{
 #jobsPage li {
   margin: 14px 0;
 }
-#jobsPage .job{
+#jobsPage .job, #jobsPage .job details summary{
   margin-bottom: 15px;
   scroll-margin-top: 5em;
   --english-font: var(--english-serif-font-family);
@@ -1305,6 +1305,21 @@ p.registration-links a:hover{
   line-height: 29px;
   color: #000000;
 }
+#jobsPage .job details {
+  margin-bottom: 15px;
+  scroll-margin-top: 5em;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: normal;
+  color: #000000;
+}
+#jobsPage .job details p {
+  margin-bottom: 15px;
+}
+
 #jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
   margin-top: 80px;
   font-style: normal;
@@ -2865,6 +2880,15 @@ display: none;
   padding: 70px 0 30px;
   background-position: bottom right;
 }
+
+.staticPage .staticPageHeader.wordbyword {
+  background-image: url("/static/img/word-by-word-bg.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding: 70px 0 30px;
+  background-position: bottom right;
+}
+
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
@@ -2986,6 +3010,11 @@ display: none;
 .staticPage .msgToSupporters {
   margin-top: -40px;
   width: 100%;
+}
+.staticPage .msgToSupportersEven {
+    margin-top: -40px;
+    margin-bottom: -40px;
+    width: 100%;
 }
 .staticPage .msgToSupporters h1 {
   font-weight: 500;
@@ -3140,6 +3169,20 @@ display: none;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   border-radius: 6px;
 }
+.staticPage.wordbyword .feature .featureText {
+  width: 57%;
+}
+.staticPage.wordbyword .feature .featureImage {
+  width: 35%;
+}
+
+.staticPage.wordbyword .feature .featureImage img {
+  width: initial;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+
 .staticPage .feature {
   padding: 40px 0;
   background-color: #FBFBFA;
@@ -3160,6 +3203,10 @@ display: none;
   margin-top: 20px;
   width: 100%;
 }
+.staticPage.donate.wordbyword .simpleButtonWrapper {
+  width: 33%;
+}
+
 .staticPage.donate .finStewardBox {
   display: flex;
   flex-direction: column;
@@ -3225,6 +3272,15 @@ display: none;
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
   }
+
+  .staticPage.donate.wordbyword .simpleButtonWrapper,
+  .staticPage.donate.wordbyword .feature .featureText,
+  .staticPage.donate.wordbyword .feature .featureImage,
+  .staticPage.donate.wordbyword .feature .featureImage img,
+  .staticPage.donate.wordbyword .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+
   .staticPage .staticPageCallToActionFooter .callToActionText {
     padding-bottom: 20px;
   }

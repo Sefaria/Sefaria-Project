@@ -26,6 +26,12 @@ class Sheet extends Component {
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
     this.ensureData();
+    const params = {
+       content_type: "Sheet",
+       item_id: this.props.id
+     }
+    gtag("event", "select_content", params)
+
   }
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
@@ -140,7 +146,7 @@ class Sheet extends Component {
             divineNameReplacement={this.props.divineNameReplacement}
           />
         </div>
-        : 
+        :
         content }
       </div>
     );
@@ -337,7 +343,7 @@ class SheetContent extends Component {
         {this.props.sheetNotice ? <SheetNotice /> : null}
         <SheetMetaDataBox>
           <SheetTitle title={this.props.title} />
-          
+
           <SheetAuthorStatement
             authorUrl={this.props.authorUrl}
             authorStatement={this.props.authorStatement} >
@@ -352,13 +358,13 @@ class SheetContent extends Component {
               <InterfaceText>{this.props.authorStatement}</InterfaceText>
             </a>
           </SheetAuthorStatement>
-          
+
           <CollectionStatement
             name={this.props.collectionName}
             slug={this.props.collectionSlug}
             image={this.props.collectionImage}
           />
-        
+
         </SheetMetaDataBox>
 
         <div className="text">
@@ -397,7 +403,7 @@ class SheetSource extends Component {
 
     return (
       <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
-        <div className={containerClasses} 
+        <div className={containerClasses}
           onClick={this.props.sheetSourceClick}
           data-node={this.props.source.node}
           aria-label={"Click to see connections to this source"}
@@ -405,11 +411,11 @@ class SheetSource extends Component {
           onKeyPress={function(e) {
             e.charCode === 13 ? this.props.sheetSourceClick(e):null}.bind(this)
           } >
-          {this.props.source.title ? 
+          {this.props.source.title ?
           <div className="customSourceTitle" role="heading" aria-level="3">
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
           </div> : null}
-          
+
           {this.props.source.text && this.props.source.text.he && this.props.source.text.he !== "" ?
           <div className="he">
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
@@ -461,7 +467,7 @@ class SheetComment extends Component {
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
 
           <div className={lang}>
-              <div 
+              <div
                 className="sourceContentText"
                 dangerouslySetInnerHTML={{__html: Sefaria.util.cleanHTML(this.props.source.comment)}}></div>
           </div>

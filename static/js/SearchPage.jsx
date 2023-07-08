@@ -42,9 +42,9 @@ class SearchPage extends Component {
               <div className="searchTopLine">
                 <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
                   <InterfaceText>Results for</InterfaceText>&nbsp;
-                  <InterfaceText html={{en: "&ldquo;", he: "&rdquo;"}} />
+                  <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
                   { this.props.query }
-                  <InterfaceText html={{en: "&rdquo;", he: "&ldquo;"}} />
+                  <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
                 </h1>
                 {this.state.totalResults ?
                 <div className="searchResultCount sans-serif">
@@ -75,7 +75,7 @@ class SearchPage extends Component {
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props[`${this.props.tab}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab)}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab, this.props[`${this.props.tab}SearchState`])}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}

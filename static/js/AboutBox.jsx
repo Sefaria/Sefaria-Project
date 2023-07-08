@@ -38,14 +38,17 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
-      this.setState({details: null});
-      this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
-    }
+      if (prevProps.title !== this.props.title ||
+          prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
+          !Sefaria.util.object_equals(prevProps.currObjectVersions, this.props.currObjectVersions)
+      ) {
+          this.setState({details: null});
+          this.setTextMetaData();
+          Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
+      }
   }
   onVersionsLoad(versions) {
     //rearrange the current selected versions to be mapped by their real language,
@@ -167,7 +170,7 @@ class AboutBox extends Component {
             </div> : null
           }
           <div className="aboutDesc">
-            <ContentText text={{en: d?.enDesc, he: d?.heDesc}} />
+            <InterfaceText markdown={{en: d?.enDesc, he: d?.heDesc}}/>
           </div>
 
           { !!placeTextEn || !!dateTextEn ?

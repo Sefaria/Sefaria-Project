@@ -51,7 +51,7 @@ class Header extends Component {
           <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
           <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
           <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
-          <DonateLink classes={"textLink donate"} link={"header"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
+          <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
         <div className="headerLinksSection">
@@ -67,7 +67,7 @@ class Header extends Component {
           }
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <InterfaceLanguageMenu 
+              <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
                 translationLanguagePreference={this.props.translationLanguagePreference}
                 setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} /> : null}
@@ -483,6 +483,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Collections</InterfaceText>
       </a>
 
+      <DonateLink classes={"blue"} source="MobileNavMenu">
+        <img src="/static/img/heart.png" alt="donation icon" />
+        <InterfaceText>Donate</InterfaceText>
+      </DonateLink>
+
       <div className="mobileAccountLinks">
         {Sefaria._uid ?
         <>
@@ -505,6 +510,14 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
 
+        {Sefaria._uid ?
+        <>
+          <a href="/settings/account">
+          <img src="/static/icons/settings.svg" />
+          <InterfaceText>Account Settings</InterfaceText>
+        </a>
+        </> : null }
+
         <MobileInterfaceLanguageToggle />
 
         <a href="/help">
@@ -521,10 +534,6 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
       </div>
-      <DonateLink classes={"blue"} source="MobileNavMenu" link={"header"}>
-        <img src="/static/img/heart.png" alt="donation icon" />
-        <InterfaceText>Donate</InterfaceText>
-      </DonateLink>
     </div>
   );
 };

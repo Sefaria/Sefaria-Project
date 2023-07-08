@@ -49,7 +49,8 @@ class AutoCompleter(object):
     It instantiates objects that provide string completion according to different algorithms.
     """
     def __init__(self, lang, lib, include_titles=True, include_categories=False,
-                 include_parasha=False, include_lexicons=False, include_users=False, include_collections=False, include_topics=False, *args, **kwargs):
+                 include_parasha=False, include_lexicons=False, include_users=False, include_collections=False,
+                 include_topics=False, min_topics=10, *args, **kwargs):
         """
 
         :param lang:
@@ -97,7 +98,7 @@ class AutoCompleter(object):
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
-            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}, "subclass": {"$ne": "author"}})
+            ts_gte10 = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":min_topics}, "subclass": {"$ne": "author"}})
             authors = AuthorTopicSet()  # include all authors
             ts = ts_gte10.array() + authors.array()
             tnames = [name for t in ts for name in t.get_titles(lang)]

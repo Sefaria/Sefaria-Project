@@ -26,7 +26,10 @@ const Promotions = ({adType, rerender}) => {
         if (newIds.length > 0) {
             for (const matchingAd of matchingAds) {
                 if (newIds.includes(matchingAd.campaignId)) {
-                    Sefaria.track.promoView(matchingAd.campaignId, matchingAd.adType)
+                    gtag("event", "promo_viewed", {
+                        campaignID: matchingAd.campaignId,
+                        adType:matchingAd.adType
+                    })
                 }
             }
             setPrevMatchingAdIds(newIds)
@@ -95,7 +98,7 @@ const Promotions = ({adType, rerender}) => {
         for (let c = 0; c < columns; c++) {
           row.push(data.getFormattedValue(r, c));
         }
-        let keywordTargetsArray = row[5].split(",").map(x => x.trim());
+        let keywordTargetsArray = row[5].split(",").map(x => x.trim().toLowerCase());
         let excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
         excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
         keywordTargetsArray = keywordTargetsArray.filter(x => x.indexOf("!") !== 0)
@@ -136,9 +139,12 @@ const Promotions = ({adType, rerender}) => {
     </span>
 </div>
 <div id="bannerButtonBox">
-	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" href="${matchingAd.buttonUrl}"
-    onClick="Sefaria.track.promoClick('${matchingAd.campaignId}', '${matchingAd.adType}');"
-    target="_blank">
+	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" 
+	    href="${matchingAd.buttonUrl}"   
+	    onclick='gtag("event", "promo_clicked", {  
+            campaignID: matchingAd.campaignId, adType:matchingAd.adType
+            })' 
+        target="_blank">
         <span>${matchingAd.buttonText}</span>
     </a>
 </div>`
@@ -172,7 +178,11 @@ const SidebarAd = ({matchingAd}) => {
     })
 
     function getButton() {
-        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl} onClick={() => Sefaria.track.promoClick(matchingAd.campaignId, matchingAd.adType)}>
+        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}
+                  onClick={() => gtag("event", "promo_clicked", {
+                              campaignID: matchingAd.campaignId,
+                              adType:matchingAd.adType
+                            })}>
         <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
         {matchingAd.buttonText}</a>
     }

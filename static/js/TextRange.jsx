@@ -101,6 +101,8 @@ class TextRange extends Component {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null,
+      // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
+      firstAvailableRef: this.props.basetext ? 1 : 0,
       translationLanguagePreference: this.props.translationLanguagePreference,
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
@@ -310,7 +312,7 @@ class TextRange extends Component {
     const strip_punctuation_re = (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual") && this.props.settings?.punctuationTalmud === "punctuationOff" && data?.type === "Talmud" ? punctuationre : null;
     const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g; // cantillation
     const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g; // cantillation and nikud
-    
+
     let strip_vowels_re = null;
 
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
@@ -346,7 +348,7 @@ class TextRange extends Component {
       segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
 
       return (
-        <span key={i + segment.ref}>
+        <span className="rangeSpan" key={i + segment.ref}>
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
@@ -567,7 +569,7 @@ class TextSegment extends Component {
   }
 
   addPoetrySpans(text) {
-    const textArray = text.split("<br>").map(t => (`<span class='poetry'>${t}</span>`) ).join("<br>")
+    const textArray = text.split("<br>").map(t => (`<span class='poetry indentWhenWrap'>${t}</span>`) ).join("<br>")
     return(textArray)
   }
 

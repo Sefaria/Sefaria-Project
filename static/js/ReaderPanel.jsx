@@ -27,7 +27,6 @@ import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
-import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
@@ -39,7 +38,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 
 
@@ -53,8 +52,6 @@ class ReaderPanel extends Component {
     this.state = state;
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
-
-    return;
   }
   componentDidMount() {
     window.addEventListener("resize", this.setWidth);
@@ -90,8 +87,9 @@ class ReaderPanel extends Component {
     }
   }
   conditionalSetState(state) {
-    // Set state either in the central app or in the local component,
-    // depending on whether a setCentralState function was given.
+    // Set state either in the central app or in the local component.
+    // If setCentralState function is present, then this ReaderPanel's state is managed from within the ReaderApp component.
+    // If it is not present, then the state for this ReaderPanel is managed from the component itself.
     if (this.props.setCentralState) {
       this.props.setCentralState(state, this.replaceHistory);
       this.replaceHistory = false;
@@ -111,7 +109,7 @@ class ReaderPanel extends Component {
     // Because it's called in the constructor, assume state isnt necessarily defined and pass
     // variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (["topics", "allTopics", "story_editor", "calendars", "community", "collection" ].includes(menuOpen)) {
+    if (["topics", "allTopics", "calendars", "community", "collection" ].includes(menuOpen)) {   //  "story_editor",
       // Always bilingual for English interface, always Hebrew for Hebrew interface
       contentLangOverride = (Sefaria.interfaceLang === "english") ? "bilingual" : "hebrew";
 
@@ -231,13 +229,13 @@ class ReaderPanel extends Component {
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
     // console.log("showBaseText", ref, replaceHistory);
-    if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
+    if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
     let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor == Array) {
+    if (ref.constructor === Array) {
       // When called with an array, set highlight for the whole spanning range
       refs = ref;
       currentlyVisibleRef = Sefaria.humanRef(ref);
@@ -418,6 +416,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       menuOpen: "topics",
       navigationTopicCategory: null,
+      topicTestVersion: this.props.topicTestVersion,
       navigationTopic,
       topicTitle
     });
@@ -515,8 +514,16 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
-  setTab(tab, replaceHistory=false) {
-    this.replaceHistory = replaceHistory;
+  setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
+    // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
+    // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
+    // before the previous page's history state has been pushed to the history object. If this happens, we want
+    // this.replaceHistory to be false so that we don't override the previous page's history.
+    // If history.state.panels[0].mode is undefined, we know that conditionalSetState has been called already, and we
+    // can replace the history state. Otherwise, we want to push the history state, so we set replaceHistory to false.
+    this.replaceHistory = replaceHistoryIfReaderAppUpdated ?
+        history.state ? !history.state.panels[0].mode : true // on page load history state may not yet exist -- in that case force update
+        : false
     this.conditionalSetState({tab: tab})
   }
   currentMode() {
@@ -721,6 +728,8 @@ class ReaderPanel extends Component {
           allOpenRefs={this.props.allOpenRefs}
           canEditText={canEditText}
           setFilter={this.setFilter}
+          scrollPosition={this.state.sideScrollPosition || 0}
+          setSideScrollPosition={this.props.setSideScrollPosition}
           toggleSignUpModal={this.props.toggleSignUpModal}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
@@ -761,7 +770,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    if (this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen === "navigation") {
 
       const openNav     = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
@@ -923,6 +932,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
             translationLanguagePreference={this.props.translationLanguagePreference}
+            topicTestVersion={this.props.topicTestVersion}
             key={"TopicPage"}
           />
         );
@@ -998,13 +1008,6 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           initialWidth={this.state.width} />
-      );
-
-    } else if (this.state.menuOpen === "story_editor") {
-      menu = (
-        <StoryEditor
-          toggleSignUpModal={this.props.toggleSignUpModal}
-          interfaceLang={this.props.interfaceLang} />
       );
 
     } else if (this.state.menuOpen === "updates") {
@@ -1155,6 +1158,7 @@ ReaderPanel.propTypes = {
   closePanel:                  PropTypes.func,
   closeMenus:                  PropTypes.func,
   setConnectionsFilter:        PropTypes.func,
+  setSideScrollPosition:       PropTypes.func,
   setDefaultOption:            PropTypes.func,
   selectVersion:               PropTypes.func,
   viewExtendedNotes:           PropTypes.func,
@@ -1190,6 +1194,7 @@ ReaderPanel.propTypes = {
   masterPanelSheetId:          PropTypes.number,
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
+  topicTestVersion:            PropTypes.string,
 };
 
 
@@ -1232,14 +1237,14 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getVersions(this.props.currentRef, false, ['he'], true).then(versionList => {
+    Sefaria.getTranslations(this.props.currentRef).then(versions => {
       const enVTitle = this.props.currVersions.enAPIResult;
       if (!enVTitle) {
         // merged version from API
         this.setDisplayVersionTitle({});
         return;
       }
-      for (let version of versionList) {
+      for (let version of Object.values(versions).flat()) {
         if (version.versionTitle === enVTitle) {
           this.setDisplayVersionTitle(version);
           break;
@@ -1551,7 +1556,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
     let layoutToggle = this.props.settings.language !== "bilingual" ?
-      this.props.parentPanel == "Sheet" ? null :
+      this.props.parentPanel === "Sheet" ? null :
       (<ToggleSet
           ariaLabel="text layout toggle"
           label={Sefaria._("Layout")}

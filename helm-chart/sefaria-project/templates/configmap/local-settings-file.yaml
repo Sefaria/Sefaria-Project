@@ -5,7 +5,7 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
+data:
   local_settings.py: |-
     from socket import gethostname, gethostbyname
     from datetime import timedelta
@@ -49,6 +49,17 @@ data:
 
     MANAGERS = ADMINS
 
+    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_PORT = 27017
+    {{- if eq .Values.sandbox "true" }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
+    {{- else }}
+    SEFARIA_DB = os.getenv("SEFARIA_DB")
+    {{- end }}
+    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
+    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
+    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
+
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -78,6 +89,14 @@ data:
             },
             "TIMEOUT": 60 * 60 * 24 * 30,
         },
+        "persistent": {
+            'BACKEND': 'sefaria.system.caches.SimpleMongoDBCache',
+            "OPTIONS": {
+                "DATABASE": SEFARIA_DB,
+                "COLLECTION": "django_cache", # default: django_cache
+            },
+            "TIMEOUT": None,
+        },
     }
 
     SESSION_CACHE_ALIAS = "default"
@@ -90,7 +109,7 @@ data:
     GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
     # Multiserver
-    MULTISERVER_ENABLED = True
+    MULTISERVER_ENABLED = bool(os.getenv("MULTISERVER_ENABLED", default="True").lower() == "true")
     MULTISERVER_REDIS_SERVER = redisHost
     MULTISERVER_REDIS_PORT = 6379
     MULTISERVER_REDIS_DB = 0
@@ -114,17 +133,6 @@ data:
         "MANDRILL_API_KEY": os.getenv("MANDRILL_API_KEY"),
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
-
-    MONGO_HOST = os.getenv("MONGO_HOST")
-    MONGO_PORT = 27017
-    {{- if eq .Values.sandbox "true" }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
-    {{- else }}
-    SEFARIA_DB = os.getenv("SEFARIA_DB")
-    {{- end }}
-    SEFARIA_DB_USER = os.getenv("SEFARIA_DB_USER")
-    SEFARIA_DB_PASSWORD = os.getenv("SEFARIA_DB_PASSWORD")
-    APSCHEDULER_NAME = os.getenv("APSCHEDULER_NAME")
 
     SEARCH_HOST = "/api/search"
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
@@ -158,15 +166,24 @@ data:
     USE_CLOUDFLARE= os.getenv("USE_CLOUDFLARE").lower() == "true"
 
     GOOGLE_TAG_MANAGER_CODE = os.getenv("GOOGLE_TAG_MANAGER_CODE")
+    GOOGLE_GTAG = os.getenv("GOOGLE_GTAG")
     GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = "/google-cloud-secret/BackupManagerKey.json"
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
+
+    # CRM settings
+    CRM_TYPE =  os.getenv("CRM_TYPE")
 
     NATIONBUILDER = True
     NATIONBUILDER_SLUG = "sefaria"
     NATIONBUILDER_TOKEN = os.getenv("NATIONBUILDER_TOKEN")
     NATIONBUILDER_CLIENT_ID = os.getenv("NATIONBUILDER_CLIENT_ID")
     NATIONBUILDER_CLIENT_SECRET = os.getenv("NATIONBUILDER_CLIENT_SECRET")
+
+    # Integration with Salesforce
+    SALESFORCE_BASE_URL = os.getenv("SALESFORCE_BASE_URL")
+    SALESFORCE_CLIENT_ID = os.getenv("SALESFORCE_CLIENT_ID")
+    SALESFORCE_CLIENT_SECRET = os.getenv("SALESFORCE_CLIENT_SECRET")
 
     DISABLE_INDEX_SAVE = False
 

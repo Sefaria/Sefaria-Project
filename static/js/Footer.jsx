@@ -23,7 +23,7 @@ const Link = ({href, en, he, blank}) => (
 class Footer extends Component {
   constructor(props) {
     super(props);
-    this.state = {subscribeMessage: null};
+    this.state = {};
   }
   componentDidMount() {
     this.setState({isClient: true});
@@ -46,7 +46,7 @@ class Footer extends Component {
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
-                <Link href="/annualreport/2021" en="Annual Report" he='דו"ח שנתי' />
+                <Link href="/annualreport/2022" en="Annual Report" he='דו"ח שנתי' />
                 <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
                 <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
             </Section>
@@ -187,6 +187,4 @@ class LikeFollowButtons extends Component {
             </div>);
   }
 }
-
-
 export default Footer;

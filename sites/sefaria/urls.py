@@ -43,7 +43,10 @@ static_pages = [
     "rabbis",
     "contest",
     "design-system",
-    "powered-by"
+    "powered-by",
+    "word-by-word",
+    "cloudflare_site_is_down_en",
+    "cloudflare_site_is_down_he",
 ]
 
 static_pages_by_lang = [
@@ -72,7 +75,8 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en?c_src=mobile-app' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=mobile-app')),
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
@@ -84,6 +88,7 @@ site_urlpatterns += [
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
     url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
+    url(r'^dayoflearningcalendar/?$', lambda x: HttpResponseRedirect("https://docs.google.com/spreadsheets/d/1CUVb18QKbRcgBvBzH-x9R_Stx-_o5YkE9bi7oYBTlRw/edit#gid=0")),
 ]
 
 

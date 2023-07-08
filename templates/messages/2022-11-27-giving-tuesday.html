@@ -1,0 +1,109 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">
+Friend,
+        </span>
+        <span class="int-he">
+חברים,
+
+        </span>
+    </p>
+
+
+
+    <p>
+        <span class="int-en">
+A generous donor is matching all #GivingTuesday donations to Sefaria — right now!
+        </span>
+        <span class="int-he">
+            תורם נדיב הסכים להכפיל את כל התרומות לספריא - ממש עכשיו!
+        </span>
+    </p>
+
+
+    <p>
+        <span class="int-en">
+If Sefaria has made a difference in your life and studies, please make a donation now while it will be matched for more impact. Help us reach our #GivingTuesday goal of raising $36,000!
+        </span>
+        <span class="int-he">
+     אם ספריא השפיעה על חייכם ולימודיכם, אנא תרמו עכשיו כדי שהתרומה תוכפל ותהיה לה יותר השפעה. עזרו לנו להגיע ליעד ולגייס $36,000 עד סוף יום שלישי!
+        </span>
+    </p>
+
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/givingtuesday">
+            <span class="int-en">Double your Donation</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/il_whb">
+            <span class="int-he">לתרומה</span>
+        </a>
+    </div>
+
+
+</div>

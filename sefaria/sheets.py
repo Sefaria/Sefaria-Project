@@ -26,7 +26,6 @@ from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.collection import Collection, CollectionSet
-from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.utils.hebrew import is_hebrew
@@ -37,6 +36,7 @@ from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
 from sefaria.google_storage_manager import GoogleStorageManager
 import re
+from django.http import Http404
 
 logger = structlog.get_logger(__name__)
 
@@ -113,6 +113,8 @@ def get_sheet_node(sheet_id=None, node_id=None):
 
 def get_sheet_for_panel(id=None):
 	sheet = get_sheet(id)
+	if "spam_sheet_quarantine" in sheet and sheet["spam_sheet_quarantine"]:
+		raise Http404
 	if "error" in sheet and sheet["error"] != "Sheet updated.":
 		return sheet
 	if "assigner_id" in sheet:
@@ -229,6 +231,35 @@ def sheet_to_dict(sheet):
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
+
+
+
+def add_sheet_to_collection(sheet_id, collection, is_sheet_owner, override_displayedCollection=False):
+    sheet = db.sheets.find_one({"id": sheet_id})
+    if not sheet:
+        raise Exception("Sheet not found")
+    if sheet["id"] not in collection.sheets:
+        collection.sheets.append(sheet["id"])
+        # If a sheet's owner adds it to a collection, and the sheet is not highlighted
+        # in another collection, set it to highlight this collection.
+        if is_sheet_owner and (not sheet.get("displayedCollection", None) or override_displayedCollection):
+            sheet["displayedCollection"] = collection.slug
+            db.sheets.save(sheet)
+
+
+def change_sheet_owner(sheet_id, new_owner_id):
+    sheet = db.sheets.find_one({"id": sheet_id})
+    if not sheet:
+        raise Exception("Sheet not found")
+    sheet["owner"] = new_owner_id
+    # The following info should not be stored -- delete it so it doesn't cause issues
+    if "ownerImageUrl" in sheet:
+        del sheet["ownerImageUrl"]
+    if "ownerProfileUrl" in sheet:
+        del sheet["ownerProfileUrl"]
+    if "ownerOrganization" in sheet:
+        sheet["ownerOrganization"]
+    db.sheets.save(sheet)
 
 
 def annotate_user_collections(sheets, user_id):
@@ -352,7 +383,7 @@ def trending_topics(days=7, ntags=14):
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 
-	# For testing purposes: if nothing is trennding in specified number of days, 
+	# For testing purposes: if nothing is trennding in specified number of days,
 	# (because local data is stale) look at a bigger window
 	# ------
 	# Updated to return an empty array on 7/29/21 b/c it was causing a recursion error due to stale data on sandboxes
@@ -524,11 +555,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 				search.delete_sheet(es_index_name, sheet['id'])
 
 			delete_sheet_publication(sheet["id"], user_id)  # remove history
-			UserStorySet({"storyForm": "publishSheet",
-								"uid": user_id,
-								"data.publisher": user_id,
-								"data.sheet_id": sheet["id"]
-							}).delete()
+
 			NotificationSet({"type": "sheet publish",
 								"uid": user_id,
 								"content.publisher_id": user_id,
@@ -1115,7 +1142,6 @@ def broadcast_sheet_publication(publisher_id, sheet_id):
 		n = Notification({"uid": follower})
 		n.make_sheet_publish(publisher_id=publisher_id, sheet_id=sheet_id)
 		n.save()
-		UserStory.from_sheet_publish(follower, publisher_id, sheet_id).save()
 
 
 def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None, segment_level=False):
@@ -1196,6 +1222,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"likes",
 		"group",
 		"displayedCollection",
+		"spam_sheet_quarantine",
 		"generatedBy",
 		"zoom",
 		"visualNodes",
