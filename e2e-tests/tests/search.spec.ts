@@ -1,33 +1,28 @@
 import { test, expect } from '@playwright/test';
+import {goToPageWithLang} from '../utils';
 
-test('has title', async ({ page }) => {
-  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
-
-  // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/ברכות/);
+test('Search auto complete', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/');
+  await page.getByPlaceholder('Search').fill('אהבה');
+  await page.waitForSelector('text=אהבה', { state: 'visible' });
+  await page.getByRole('option', { name: 'אהבה', exact: true }).click();
+  await expect(page).toHaveTitle(/Love/);
 });
 
-test('verify translations', async ({ page }) => {
-  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
-
-  // Click second .contentSpan
-  await page.click('.contentSpan:nth-child(2)');
-
-  // click second .connectionsCount
-  await page.click('.connectionsCount:nth-child(2)');
-
-  // execute document.getElementsByClassName("versionSelect").length > 1 in the browser and return the result to the test
-  const versionSelectLength = await page.evaluate(() => document.getElementsByClassName("versionSelect").length > 1);
-  expect(versionSelectLength).toBeTruthy();
-
+test('Search for Deuteronomy book', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/');
+  await page.getByPlaceholder('Search').fill('Deuteronomy');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveTitle(/Deuteronomy/);
 });
 
-test('go to sources page', async ({ page }) => {
-  await page.goto('/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
-
-  await page.getByRole('link', { name: 'מקורות' }).click();
-
-  await page.getByRole('link', { name: 'תנ"ך' }).isVisible();
-
+test('Search for a common phrase', async ({ context }) => {
+  const page = await goToPageWithLang(context, '/');
+  await page.getByPlaceholder('Search').fill('ויאמר משה');
+  await page.keyboard.press('Enter');
+  // get text from the first result in class="searchResultCount"
+  const firstResult: any = await page.locator('.searchResultCount').first().innerText();
+  // extract the number of results from the text and convert 13,000 to 13000
+  const numberOfResults = firstResult.replace(/,/g, '').replace(/[^0-9]/g, '');
+  expect(parseInt(numberOfResults)).toBeGreaterThan(5000);
 });
-
