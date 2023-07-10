@@ -314,7 +314,7 @@ class WebSite(abst.AbstractMongoRecord):
 
     def get_num_webpages(self):
         if getattr(self, 'num_webpages', None) is None:
-            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
+            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(self.domains)}}).count()
             self.save()
         return self.num_webpages
 
