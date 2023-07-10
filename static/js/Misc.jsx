@@ -2173,7 +2173,7 @@ function OnInView({ children, onVisible }) {
         }
       },
       { threshold: 1 }
-      );
+    );
 
     if (elementRef.current) {
       observer.observe(elementRef.current);
@@ -2184,7 +2184,7 @@ function OnInView({ children, onVisible }) {
         observer.unobserve(elementRef.current);
       }
     };
-    }, [onVisible]);
+  }, [onVisible]);
 
   return <div ref={elementRef}>{children}</div>;
 }
@@ -2207,7 +2207,6 @@ function isReturningVisitor() {
 }
 let shouldShowModal = false;
 
-
 const InterruptingMessage = ({
   messageName,
   messageHTML,
@@ -2220,7 +2219,7 @@ const InterruptingMessage = ({
   const strapi = useContext(StrapiDataContext);
   const settings = {
     trackingName: "Interrupting Message",
-    showDelay: 500,
+    showDelay: 2000,
   };
 
   // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
@@ -2230,20 +2229,36 @@ const InterruptingMessage = ({
     if (!strapi.interruptingMessageModal) return false;
     if (!shouldShowModal) return false;
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    return !JSON.parse(sessionStorage.getItem('modal_' + strapi.interruptingMessageModal.internalModalName)) && excludedPaths.indexOf(window.location.pathname) === -1;
+    return (
+      !JSON.parse(
+        sessionStorage.getItem(
+          "modal_" + strapi.interruptingMessageModal.internalModalName
+        )
+      ) && excludedPaths.indexOf(window.location.pathname) === -1
+    );
   };
 
-  const closeModal = () => {
+  const closeModal = (eventDescription) => {
     if (onClose) onClose();
-    // Mark as read with cookies and track closing actions
-    sessionStorage.setItem('modal_' + strapi.interruptingMessageModal.internalModalName, 'true'); // maybe use modals as key and manipulate object entered
+    sessionStorage.setItem(
+      "modal_" + strapi.interruptingMessageModal.internalModalName,
+      "true"
+    ); // maybe use modals as key and manipulate object entered
+    console.log(eventDescription);
+    gtag("event", "modal_interacted_with_" + eventDescription, {
+      campaignID: strapi.interruptingMessageModal.internalModalName,
+      adType: "modal",
+    });
     setHasSeenModal(true); // should be acknolwedge instead of seen because there was an interaction
     // Sefaria.interruptingMessageModal = null;
   };
 
   const trackImpression = () => {
     console.log("We've got visibility!");
-    // track impression here
+    gtag("event", "modal_viewed", {
+      campaignID: strapi.interruptingMessageModal.internalModalName,
+      adType: "modal",
+    });
   };
 
   useEffect(() => {
@@ -2282,7 +2297,12 @@ const InterruptingMessage = ({
         }
       }
     }
-    if (strapi.interruptingMessageModal && !strapi.interruptingMessageModal.showToNewVisitors && !strapi.interruptingMessageModal.showToReturningVisitors) { // Show to everyone if there is no state passed from Strapi
+    if (
+      strapi.interruptingMessageModal &&
+      !strapi.interruptingMessageModal.showToNewVisitors &&
+      !strapi.interruptingMessageModal.showToReturningVisitors
+    ) {
+      // Show to everyone if there is no state passed from Strapi
       shouldShowModal = true;
     }
 
@@ -2308,7 +2328,12 @@ const InterruptingMessage = ({
           <div id="interruptingMessage">
             <div className="colorLine"></div>
             <div id="interruptingMessageContentBox" className="hasColorLine">
-              <div id="interruptingMessageClose" onClick={closeModal}>
+              <div
+                id="interruptingMessageClose"
+                onClick={() => {
+                  closeModal("close_clicked");
+                }}
+              >
                 ×
               </div>
               {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.interruptingMessageModal ? strapi.interruptingMessageModal.modalText : null } }></div> */}
@@ -2387,7 +2412,9 @@ const InterruptingMessage = ({
                       className="button int-en"
                       target="_blank"
                       href={strapi.interruptingMessageModal.buttonURL}
-                      onClick={closeModal}
+                      onClick={() => {
+                        closeModal("donate_button_clicked");
+                      }}
                     >
                       <span className="int-en">
                         {strapi.interruptingMessageModal.buttonText}
