@@ -149,8 +149,8 @@ class SearchResultList extends Component {
     async addRefTopic(topic) {
         const book = await Sefaria.getIndexDetails(topic.key);
         return {
-            enDesc: book.enDesc,
-            heDesc: book.heDesc,
+            enDesc: book.enDesc || book.enShortDesc,
+            heDesc: book.heDesc || book.heShortDesc,
             title: book.title,
             heTitle: book.heTitle,
             topicCat: book.categories[0],

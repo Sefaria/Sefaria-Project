@@ -601,6 +601,9 @@ class JaggedArray(object):
     def __len__(self):
         return self.sub_array_length()
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._store})"
+
     def length(self):
         return self.__len__()
 
@@ -683,27 +686,40 @@ class JaggedTextArray(JaggedArray):
     def flatten_to_string(self, joiner=" "):
         return joiner.join(self.flatten_to_array())
 
-    #warning, writes!
-    def trim_ending_whitespace(self, _cur=None):
-        if _cur == None:
-            self._store = self.trim_ending_whitespace(self._store)
-            return self
-        if not isinstance(_cur, list):  # shouldn't get here
-            return _cur
-        if not len(_cur):
-            return _cur
-        if all([isinstance(sub_cur, list) for sub_cur in _cur if bool(sub_cur) and len(sub_cur) > 0]):  # sometimes there the JA is ["", [...more content here]]. need to check if all non-empty elements are arrays
-            return [self.trim_ending_whitespace(part) for part in _cur]
-        else: # depth 1
-            final_index = len(_cur) - 1
-            for i in range(final_index, -1, -1):
-                if not _cur[i] or re.match(r"^\s*$", _cur[i]):
-                    final_index = i - 1
-                else:
-                    break
-            if not final_index == len(_cur) - 1:
-                _cur = _cur[0:final_index + 1]
-            return _cur
+    # warning, writes!
+    def trim_ending_whitespace(self):
+        """
+        Removes ending whitespace items from jagged array.
+        These include empty string, None or items that are entirely whitespace.
+        Performs process recursively on nested lists
+        @return: list
+        """
+        self._store = self._trim_ending_whitespace_recursive(self._store)
+        return self
+
+    def _trim_ending_whitespace_recursive(self, curr_ja: list) -> list:
+        if not isinstance(curr_ja, list):  # shouldn't get here
+            return curr_ja
+
+        # recursive step
+        curr_ja = [self._trim_ending_whitespace_recursive(item) if isinstance(item, list) else item for item in curr_ja]
+        return self._trim_ending_whitespace_list_of_strs(curr_ja)
+
+    @staticmethod
+    def _trim_ending_whitespace_list_of_strs(curr_ja: list) -> list:
+        """
+        Removes ending whitespace items from _cur. See docs for `trim_ending_whitespace()` for details.
+        Doesn't recurse on any nested lists.
+        @param curr_ja: list with items that are either lists, strs or None
+        @return: list
+        """
+        final_index = len(curr_ja) - 1
+        for item in reversed(curr_ja):
+            if isinstance(item, list) or (isinstance(item, str) and len(item.strip()) > 0):
+                break
+            final_index -= 1
+        del curr_ja[final_index+1:]
+        return curr_ja
 
     def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
         """
