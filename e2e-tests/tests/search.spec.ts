@@ -26,3 +26,7 @@ test('Search for a common phrase', async ({ context }) => {
   const numberOfResults = firstResult.replace(/,/g, '').replace(/[^0-9]/g, '');
   expect(parseInt(numberOfResults)).toBeGreaterThan(5000);
 });
+
+test('Search in this text', async ({ context }) => {
+  // fill in test
+});

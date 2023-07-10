@@ -2,14 +2,14 @@ import { test } from '@playwright/test';
 import {goToPageWithLang} from '../utils';
 
 
-test('go to topic page', async ({ context }) => {
+test('Go to topic page', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
   await page.getByRole('link', { name: 'Holidays' }).click();
   await page.getByRole('link', { name: 'Rosh Hashanah' }).isVisible();
 });
 
 
-test('filter topics', async ({ context }) => {
+test('Filter topics', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics/all/a');
   // wait for getByText('Loading...') to disappear
   await page.waitForSelector('text=Loading...', { state: 'detached' });
@@ -23,3 +23,6 @@ test('filter topics', async ({ context }) => {
   await page.getByRole('link', { name: 'Kiddush', exact: true }).isVisible();
 });
  
+test('Toggle sources and sheets', async ({ context }) => {
+  // fill in test
+})

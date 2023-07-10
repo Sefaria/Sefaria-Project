@@ -39,6 +39,10 @@ test('Delete source from sheet', async ({ context }) => {
   await sheetItems[0].hover();
   await page.locator('.removeSource').first().click();
   const remainingSheetItems = await page.locator('.sheetItem').count();
-  // expect 1 source to remain
   expect(sheetItems.length - remainingSheetItems).toBe(1);
+});
+
+
+test('Add comment to sheet', async ({ context }) => {
+  // fill in test
 });

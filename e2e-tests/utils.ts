@@ -1,6 +1,7 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
+import os from 'os';
 
 let langCookies: any = [];
 let loginCookies: any = [];

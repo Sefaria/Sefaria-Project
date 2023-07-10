@@ -61,5 +61,8 @@ test('Bookmark page', async ({ context }) => {
   await page.waitForSelector('text=Loading...', { state: 'detached' });
   await page.waitForSelector('text=History', { state: 'visible' });
   await page.waitForSelector('text=Genesis 1:1', { state: 'detached' });
+});
 
+test('Share link', async ({ context }) => {
+  // fill in test
 });
