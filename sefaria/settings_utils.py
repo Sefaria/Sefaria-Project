@@ -3,7 +3,7 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 import os
 
-def init_sentry(SENTRY_DSN):
+def init_sentry(sentry_dsn, sentry_code_version, sentry_environment):
 
     def before_send(event, hint):
         # Check if the event has an exception
@@ -20,12 +20,12 @@ def init_sentry(SENTRY_DSN):
         return event
 
     sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        environment=os.getenv("SENTRY_ENVIRONMENT", "unknown"),
+        dsn=sentry_dsn,
+        environment=sentry_environment,
         integrations=[DjangoIntegration()],
         traces_sample_rate=1.0,
         send_default_pii=False,
         before_send=before_send,
         max_breadcrumbs=30,
-        release=os.getenv("SENTRY_CODE_VERSION", "unknown"),        
+        release=sentry_code_version,
     )

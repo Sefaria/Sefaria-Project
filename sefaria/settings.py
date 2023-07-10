@@ -330,7 +330,9 @@ except ImportError:
 
 
 if SENTRY_DSN:
-    init_sentry(SENTRY_DSN)
+    SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
+    SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "unknown")
+    init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
 
 
 # Listed after local settings are imported so CACHE can depend on DEBUG

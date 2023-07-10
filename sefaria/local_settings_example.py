@@ -310,5 +310,5 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
+SENTRY_DSN = None
+CLIENT_SENTRY_DSN = None

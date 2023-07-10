@@ -26,3 +26,5 @@ data:
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
+  SENTRY_DSN: {{ .Values.localSettings.SENTRY_DSN | quote }}
+  CLIENT_SENTRY_DSN: {{ .Values.localSettings.CLIENT_SENTRY_DSN | quote }}
