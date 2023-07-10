@@ -107,13 +107,22 @@ def group_links_by_type(link_class, links, annotate_links, group_related):
                 grouped_links[link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
     return grouped_links
 
-def update_curated_primacy_for_similar_refs(curr_link, new_link):
-    # when grouping similar refs, make sure the maximum curatedPrimacy is used so that source displays properly in topics page
-    # in case they both dont have curated primacy, the code is fine.  in case first one has and new one doesnt, code is fine,
-    # in case second one has and first one doesnt, code is fine.
-    #
+def merge_props_for_similar_refs(curr_link, new_link):
+    # when grouping similar refs, make sure the source to display has the maximum curatedPrimacy of all the similar refs,
+    # as well as dataSource and descriptions of all the similar refs
+    if new_link.get('dataSource', None):
+        data_source = library.get_topic_data_source(new_link['dataSource'])
+        curr_link['dataSources'][new_link['dataSource']] = data_source.displayName
+        del new_link['dataSource']
+
     if curr_link['is_sheet']:
         return curr_link
+
+    new_description = new_link.get('descriptions', {})
+    if new_description != {}:
+        for lang in ['en', 'he']:
+            if lang not in curr_link['descriptions'] and lang in new_description:
+                curr_link['descriptions'][lang] = new_description[lang]
 
     new_curated_primacy = new_link.get('order', {}).get('curatedPrimacy', {})
     if new_curated_primacy != {}:
@@ -135,12 +144,8 @@ def sort_and_group_similar_refs(ref_links):
         temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
         for seg_ref in temp_subset_refs:
             for index in subset_ref_map[seg_ref]:
-                new_ref_links[index] = update_curated_primacy_for_similar_refs(new_ref_links[index], link)
                 new_ref_links[index]['similarRefs'] += [link]
-                if link.get('dataSource', None):
-                    data_source = library.get_topic_data_source(link['dataSource'])
-                    new_ref_links[index]['dataSources'][link['dataSource']] = data_source.displayName
-                    del link['dataSource']
+                new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], link)
         if len(temp_subset_refs) == 0:
             link['similarRefs'] = []
             link['dataSources'] = {}
