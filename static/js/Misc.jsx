@@ -1125,99 +1125,6 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
                           "edit": ["Edit", toggleEditCategory]};     
-  const filterAndSortRefs = (refs) => {
-      // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-      refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
-      // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
-      return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
-  }
-  const createURLs = (type, data) => {
-    switch (type) {
-      case 'topics':
-        return {
-          url: '/api/topic/reorder',
-          redirect: '/topics',
-          origItems: Sefaria.topic_toc
-        };
-      case 'sources':
-        return {
-          url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
-          redirect: `/topics/${data.slug}`,
-          origItems: filterAndSortRefs(data.refs?.about?.refs) || [],
-        };
-      case 'cats':
-        return {
-          url: '/api/category?reorder=1',
-          redirect: '/texts',
-          origItems: Sefaria.toc
-        };
-    }
-  }
-  const getEditorForReordering = (closeAction) => {
-      const {url, redirect, origItems} = createURLs(type, data);
-      return <ReorderEditor
-              close={closeAction}
-              type={type}
-              origItems={origItems}
-              postURL={url}
-              redirect={redirect}
-            />;
-  }
-  const getSpanForEditingCategory = (closeAction) => {
-      if (data.length === 0) {  // at /texts or /topics
-          return getEditorForReordering(closeAction);
-      }
-      switch (type) {
-        case 'books':
-          return <EditTextInfo initTitle={data} close={closeAction}/>;
-        case "sources":
-            const [topicSlug, refData] = data;
-            return <SourceEditor topic={topicSlug} origData={refData} close={closeAction}/>;
-        case "cats":
-            return getEditorForExistingCategory(closeAction);
-        case "topics":
-            return getEditorForExistingTopic(closeAction);
-      }
-  }
-  const getEditorForExistingTopic = (closeAction) => {
-      const initCatSlug = TopicToCategorySlug(data);
-      const origData = {
-        origSlug: data.slug, origCategorySlug: initCatSlug,
-        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
-      };
-      origData.origDesc = data.description || {"en": "", "he": ""};
-      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
-      const origWasCat = "displays-above" in data?.links;
-      return <TopicEditor origData={origData}
-                                    origWasCat={origWasCat}
-                                    onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                    close={closeAction}/>;
-  }
-  const getEditorForExistingCategory = (closeAction) => {
-      let tocObject = Sefaria.tocObjectByCategories(data);
-      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {
-        origEn: tocObject.category,
-        origHe: tocObject.heCategory,
-        origDesc,
-        origCategoryDesc,
-        isPrimary: tocObject.isPrimary
-      };
-      return <CategoryEditor origData={origData} close={closeAction} origPath={data.slice(0, -1)}/>;
-  }
-  const getSpanForAddingCategory = (closeAction) => {
-      const origData = {origEn: ""};
-      switch (type) {
-        case "cats":
-          return <CategoryEditor origData={origData} close={closeAction} origPath={data}/>;
-        case "topics":
-          origData['origCategorySlug'] = data;
-          return <TopicEditor origData={origData} close={closeAction} origWasCat={false}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
-      }
-  }
-
   const getButtons = () => {
     wrapper = "headerWithAdminButtons";
     return  <span className={adminClasses}>
@@ -1235,24 +1142,120 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
     if (editCategory) {
-      adminButtonsSpan = getSpanForEditingCategory(toggleEditCategory);
+      adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
     } else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
-      adminButtonsSpan = getSpanForAddingCategory(toggleAddCategory);
+      adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
     } else if (addSection) {
       window.location = `/add/${data}`;
     } else if (reorderCategory) {
-      adminButtonsSpan = getEditorForReordering(toggleReorderCategory);  // reordering sources on a topic page
+      adminButtonsSpan = <ReorderEditorWrapper toggle={toggleReorderCategory} data={data} type={type}/>;  // reordering sources on a topic page
     } else {
       adminButtonsSpan = getButtons();
     }
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
 }
+const ReorderEditorWrapper = ({toggle, type, data}) => {
+    /*
+    Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
+    root of the topic or category TOC, so an empty array for `data` is passed indicating these cases.  In the case of reordering sources, `data`
+    is a dictionary of the topic whose sources can be accessed via its `refs` field.
+     */
+    const reorderingSources = data.length !== 0;
+    const filterAndSortRefs = (refs) => {
+        // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+        return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
+    }
+    const createURLs = (type, data) => {
+      if (reorderingSources) {
+        return {
+          url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
+          redirect: `/topics/${data.slug}`,
+          origItems: filterAndSortRefs(data.refs?.about?.refs) || [],
+        }
+      }
+      switch (type) {  // at /texts or /topics
+        case 'topics':
+            return {
+              url: '/api/topic/reorder',
+              redirect: '/topics',
+              origItems: Sefaria.topic_toc
+            };
+        case 'cats':
+          return {
+            url: '/api/category?reorder=1',
+            redirect: '/texts',
+            origItems: Sefaria.toc
+          };
+      }
+    }
+    const {url, redirect, origItems} = createURLs(type, data);
+    return <ReorderEditor
+            close={toggle}
+            type={!reorderingSources ? type : 'sources'}
+            origItems={origItems}
+            postURL={url}
+            redirect={redirect}
+          />;
+}
 
+const CategoryEditorWrapper = ({toggle, data, type}) => {
+  const getEditorForExistingTopic = () => {
+      const initCatSlug = TopicToCategorySlug(data);
+      const origData = {
+        origSlug: data.slug, origCategorySlug: initCatSlug,
+        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
+      };
+      origData.origDesc = data.description || {"en": "", "he": ""};
+      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
+      const origWasCat = "displays-above" in data?.links;
+      return <TopicEditor origData={origData}
+                                    origWasCat={origWasCat}
+                                    onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                    close={toggle}/>;
+  }
+  const getEditorForExistingCategory = () => {
+      let tocObject = Sefaria.tocObjectByCategories(data);
+      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+      const origData = {
+        origEn: tocObject.category,
+        origHe: tocObject.heCategory,
+        origDesc,
+        origCategoryDesc,
+        isPrimary: tocObject.isPrimary
+      };
+      return <CategoryEditor origData={origData} close={toggle} origPath={data.slice(0, -1)}/>;
+  }
 
+  switch (type) {
+    case 'books':
+      return <EditTextInfo initTitle={data} close={toggle}/>;
+    case "sources":
+        const [topicSlug, refData] = data;
+        return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
+    case "cats":
+        return getEditorForExistingCategory();
+    case "topics":
+        return getEditorForExistingTopic();
+  }
+}
 
+const CategoryAdderWrapper = ({toggle, data, type}) => {
+      const origData = {origEn: ""};
+      switch (type) {
+        case "cats":
+          return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
+        case "topics":
+          origData['origCategorySlug'] = data;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}
+                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      }
+  }
 
 class SearchButton extends Component {
   render() {
