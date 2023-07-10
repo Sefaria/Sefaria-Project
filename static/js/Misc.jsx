@@ -2162,24 +2162,6 @@ SignUpModal.propTypes = {
 //   onClose:     PropTypes.func.isRequired
 // };
 
-export function useIsVisible(ref) {
-  const [isIntersecting, setIntersecting] = useState(false);
-  console.log(ref);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIntersecting(entry.isIntersecting),
-      { threshhold: 1.0 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-    return () => {
-      observer.disconnect();
-    };
-  }, [ref]);
-
-  return isIntersecting;
-}
 
 function OnInView({ children, onVisible }) {
   const elementRef = useRef();
@@ -2209,6 +2191,24 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
+// let isNewVisitor = JSON.parse(localStorage.getItem("isNewVisitor"));
+function isNewVisitor() {
+  return (
+    "isNewVisitor" in sessionStorage ||
+    ("isNewVisitor" in localStorage &&
+      JSON.parse(localStorage.getItem("isNewVisitor")))
+  );
+}
+
+function isReturningVisitor() {
+  return (
+    !isNewVisitor() &&
+    "isReturningVisitor" in localStorage &&
+    JSON.parse(localStorage.getItem("isReturningVisitor"))
+  );
+}
+let shouldShowModal = false;
+
 
 const InterruptingMessage = ({
   messageName,
@@ -2218,16 +2218,11 @@ const InterruptingMessage = ({
   onClose,
 }) => {
   const [timesUp, setTimesUp] = useState(false);
-  const [animationStarted, setAnimationStarted] = useState(false);
   const [hasSeenModal, setHasSeenModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
-
-  const ref = useRef();
-  const isVisible = useIsVisible(ref);
-
   const settings = {
     trackingName: "Interrupting Message",
-    showDelay: 5000,
+    showDelay: 500,
   };
 
   // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
@@ -2235,23 +2230,64 @@ const InterruptingMessage = ({
   // Maybe user context should be used to find if there's a compatible modal
   const shouldShow = () => {
     if (!strapi.interruptingMessageModal) return false;
+    if (!shouldShowModal) return false;
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    return excludedPaths.indexOf(window.location.pathname) === -1;
+    return !JSON.parse(sessionStorage.getItem('modal_' + strapi.interruptingMessageModal.internalModalName)) && excludedPaths.indexOf(window.location.pathname) === -1;
   };
 
   const closeModal = () => {
     if (onClose) onClose();
     // Mark as read with cookies and track closing actions
+    sessionStorage.setItem('modal_' + strapi.interruptingMessageModal.internalModalName, 'true'); // maybe use modals as key and manipulate object entered
     setHasSeenModal(true); // should be acknolwedge instead of seen because there was an interaction
     // Sefaria.interruptingMessageModal = null;
-  }
+  };
 
   const trackImpression = () => {
     console.log("We've got visibility!");
     // track impression here
-  }
+  };
 
   useEffect(() => {
+    if (Sefaria._uid) {
+      console.log("hitting logged in user");
+      try {
+        localStorage.setItem("isNewVisitor", "false");
+        sessionStorage.setItem("isNewVisitor", "false");
+        localStorage.setItem("isReturningVisitor", "true");
+      } catch {
+        shouldShowModal = true;
+      }
+      if (strapi.interruptingMessageModal?.showToReturningVisitors) {
+        shouldShowModal = true;
+      }
+    } else {
+      if (!isNewVisitor() && !isReturningVisitor()) {
+        console.log("not new visitor or returning visitor"); // first time here
+        try {
+          localStorage.setItem("isNewVisitor", "false");
+          sessionStorage.setItem("isNewVisitor", "true");
+          localStorage.setItem("isReturningVisitor", "true"); // This will make the current visitor a returning one once their session is cleared
+          // sessionStorage.setItem("isReturningVisitor", "false");
+        } catch {
+          shouldShowModal = true;
+        }
+      } else if (isReturningVisitor()) {
+        console.log("returning visitor");
+        if (strapi.interruptingMessageModal?.showToReturningVisitors) {
+          shouldShowModal = true;
+        }
+      } else if (isNewVisitor()) {
+        console.log("new visitor");
+        if (strapi.interruptingMessageModal?.showToNewVisitors) {
+          shouldShowModal = true;
+        }
+      }
+    }
+    if (strapi.interruptingMessageModal && !strapi.interruptingMessageModal.showToNewVisitors && !strapi.interruptingMessageModal.showToReturningVisitors) { // Show to everyone if there is no state passed from Strapi
+      shouldShowModal = true;
+    }
+
     if (shouldShow()) {
       const timeoutId = setTimeout(() => {
         setTimesUp(true);
@@ -2261,40 +2297,26 @@ const InterruptingMessage = ({
     }
   }, [strapi.interruptingMessageModal, settings.showDelay]); // execute useEffect when the modal or showDelay changes
 
-  // useEffect(() => {
-  //   if (timesUp) {
-  //     const timeoutId = setTimeout(() => {
-  //       // Track open action
-  //       setAnimationStarted(true);
-  //     }, 50);
-  //     return () => clearTimeout(timeoutId); // clearTimeout on component unmount
-  //   }
-  // }, [timesUp]); // execute useEffect when timesUp changes
-
   if (!timesUp) return null;
   console.log("data for the component");
   console.log(strapi.interruptingMessageModal);
 
   if (!hasSeenModal) {
-    console.log("rendering component")
+    console.log("rendering component");
     return (
       <OnInView onVisible={trackImpression}>
-      <div
-        id="interruptingMessageBox"
-        className={timesUp ? "" : "hidden"}
-      >
-        <div id="interruptingMessageOverlay"></div>
-        <div id="interruptingMessage">
-          <div className="colorLine"></div>
-          <div id="interruptingMessageContentBox" className="hasColorLine">
-            <div id="interruptingMessageClose" onClick={closeModal}>
-              ×
-            </div>
-            {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.interruptingMessageModal ? strapi.interruptingMessageModal.modalText : null } }></div> */}
-            <div id="interruptingMessageContent">
-              <style>
-                {
-                  `#highHolidayDonation {
+        <div id="interruptingMessageBox" className={timesUp ? "" : "hidden"}>
+          <div id="interruptingMessageOverlay"></div>
+          <div id="interruptingMessage">
+            <div className="colorLine"></div>
+            <div id="interruptingMessageContentBox" className="hasColorLine">
+              <div id="interruptingMessageClose" onClick={closeModal}>
+                ×
+              </div>
+              {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.interruptingMessageModal ? strapi.interruptingMessageModal.modalText : null } }></div> */}
+              <div id="interruptingMessageContent">
+                <style>
+                  {`#highHolidayDonation {
                       width: 410px;
                       max-height: 100%;
                       max-width: 100%;
@@ -2354,26 +2376,32 @@ const InterruptingMessage = ({
                       border-radius: 7px;
                       border: 1px solid #EEE;
                       color: #333;
-                  }`
-                }
-              </style>
-              <div id="highHolidayDonation">
-                <p>
-                  <span className="int-en">
-                    {strapi.interruptingMessageModal.modalText}
-                  </span>
-                </p>
-                <div className="buttons">
-                  <a className="button int-en" target="_blank" href={strapi.interruptingMessageModal.buttonURL} onClick={closeModal}>
-                    <span className="int-en">{strapi.interruptingMessageModal.buttonText}</span>
-                  </a>
+                  }`}
+                </style>
+                <div id="highHolidayDonation">
+                  <p>
+                    <span className="int-en">
+                      {strapi.interruptingMessageModal.modalText}
+                    </span>
+                  </p>
+                  <div className="buttons">
+                    <a
+                      className="button int-en"
+                      target="_blank"
+                      href={strapi.interruptingMessageModal.buttonURL}
+                      onClick={closeModal}
+                    >
+                      <span className="int-en">
+                        {strapi.interruptingMessageModal.buttonText}
+                      </span>
+                    </a>
+                  </div>
                 </div>
               </div>
+              <div className="colorLine"></div>
             </div>
-            <div className="colorLine"></div>
           </div>
         </div>
-      </div>
       </OnInView>
     );
   } else {
