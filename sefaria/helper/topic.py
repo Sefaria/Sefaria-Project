@@ -107,6 +107,24 @@ def group_links_by_type(link_class, links, annotate_links, group_related):
                 grouped_links[link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
     return grouped_links
 
+def update_curated_primacy_for_similar_refs(curr_link, new_link):
+    # when grouping similar refs, make sure the maximum curatedPrimacy is used so that source displays properly in topics page
+    # in case they both dont have curated primacy, the code is fine.  in case first one has and new one doesnt, code is fine,
+    # in case second one has and first one doesnt, code is fine.
+    #
+    if curr_link['is_sheet']:
+        return curr_link
+
+    new_curated_primacy = new_link.get('order', {}).get('curatedPrimacy', {})
+    if new_curated_primacy != {}:
+        curr_link_order = curr_link.get('order', {})
+        if curr_link_order == {}:
+            curr_link['order'] = {}
+        curr_curated_primacy = curr_link_order.get('curatedPrimacy', {})
+        curr_curated_primacy['en'] = max(curr_curated_primacy.get('en', 0), new_curated_primacy.get('en', 0))  # front-end sorting considers 0 to be default for curatedPrimacy
+        curr_curated_primacy['he'] = max(curr_curated_primacy.get('he', 0), new_curated_primacy.get('he', 0))
+        curr_link['order']['curatedPrimacy'] = curr_curated_primacy
+    return curr_link
 
 def sort_and_group_similar_refs(ref_links):
     ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
@@ -117,6 +135,7 @@ def sort_and_group_similar_refs(ref_links):
         temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
         for seg_ref in temp_subset_refs:
             for index in subset_ref_map[seg_ref]:
+                new_ref_links[index] = update_curated_primacy_for_similar_refs(new_ref_links[index], link)
                 new_ref_links[index]['similarRefs'] += [link]
                 if link.get('dataSource', None):
                     data_source = library.get_topic_data_source(link['dataSource'])
