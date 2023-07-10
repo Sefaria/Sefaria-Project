@@ -415,7 +415,6 @@ def dedupe_webpages(webpages, test=True):
     print("{} pages removed as duplicates".format(dedupe_count))
     print("{} pages normalized".format(norm_count))
 
-    dedupe_identical_urls(test=test)
 
 
 def dedupe_identical_urls(test=True):
