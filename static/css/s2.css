@@ -1590,6 +1590,12 @@ div.interfaceLinks-row a {
     flex-direction: column;
   }
 }
+@media (min-width: 2000px) {
+  .sidebarLayout {
+    max-width: 2000px;
+    margin: 0 auto;
+  }
+}
 .sidebarLayout h1 {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
