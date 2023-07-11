@@ -2249,7 +2249,7 @@ const InterruptingMessage = ({
       campaignID: strapi.interruptingMessageModal.internalModalName,
       adType: "modal",
     });
-    setHasSeenModal(true); // should be acknolwedge instead of seen because there was an interaction
+    setHasSeenModal(true); // should be interacted instead of seen because there was an interaction
     // Sefaria.interruptingMessageModal = null;
   };
 
@@ -2272,6 +2272,15 @@ const InterruptingMessage = ({
         shouldShowModal = true;
       }
       if (strapi.interruptingMessageModal?.showToReturningVisitors) {
+        shouldShowModal = true;
+      }
+      if (Sefaria.is_sustainer) {
+        console.log("we got ourselves a beautiful sustainer!");
+      }
+      if (Sefaria.is_sustainer && strapi.interruptingMessageModal?.showToSustainers) {
+        shouldShowModal = true
+      }
+      else if (!Sefaria.is_sustainer && strapi.interruptingMessageModal?.showToNonSustainers) {
         shouldShowModal = true;
       }
     } else {
