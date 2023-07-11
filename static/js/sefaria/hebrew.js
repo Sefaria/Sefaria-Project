@@ -1,5 +1,6 @@
 import Sefaria from './sefaria';
-
+const GERESH = '\u05F3';
+const GERSHAYIM = '\u05F4';
 class Hebrew {
   static decodeHebrewNumeral(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value.
@@ -38,20 +39,20 @@ class Hebrew {
 	breakIntMagnitudes(15000)
 	[10000, 5000, 0, 0, 0]
      */
-    if (n === 0) {
-      return [0];
+    if (!!start) {
+      if (!(start % 10 === 0 || start === 1)) {
+        throw new TypeError(`Argument 'start' must be 1 or divisible by 10, ${start} provided.`);
+      }
+    } else {
+      start = Math.pow(10, Math.floor(Math.log10(n)));
     }
-    if (!!start && !(start % 10 === 0 || start === 1)) {
-      throw new TypeError(`Argument 'start' must be 1 or divisible by 10, ${start} provided.`);
-    }
-
-    start = Math.pow(10, Math.floor(Math.log10(n)));
 
     if (start === 1) {
       return [n];
     } else {
+      const thisIntMagnitude = Math.floor(n / start) * start;
       const nextIntMagnitude = this.breakIntMagnitudes(n - Math.floor(n / start) * start, start = Math.floor(start / 10));
-      return [Math.floor(n / start) * start].concat(nextIntMagnitude);
+      return [thisIntMagnitude].concat(nextIntMagnitude);
     }
   }
   static getChunks (list, chunkSize) {
@@ -78,8 +79,8 @@ class Hebrew {
         // add gershayim at the end if longer than one character
         if (inputString.length > 1) {
             // if a geresh is not one of the last two items in the string
-            if (right(inputString, 2).indexOf(GERESH) < 0) {
-                inputString = inputString.substr(0, inputString.length - 1) + GERSHAYIM + right(inputString, 1);
+            if (this.right(inputString, 2).indexOf(GERESH) < 0) {
+                inputString = inputString.substr(0, inputString.length - 1) + GERSHAYIM + this.right(inputString, 1);
             }
         } else {
             inputString += GERESH;
@@ -87,7 +88,10 @@ class Hebrew {
     }
 
     return inputString;
-
+  };
+  static right(string, numChars) {
+    'use strict';
+    return string.slice(string.length - numChars);
   };
   static encodeLargeHebrewNumeral(n, punctuation=true) {
     // Break into magnitudes, then break into thousands buckets, big-endian
