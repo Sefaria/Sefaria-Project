@@ -17,62 +17,62 @@ const calculateLayoutState = (showSource, sourceDir, showTranslation, translatio
 function TextsPropertiesMenu({
         sourceDir,
         translationDir,
-        initialShowSource = true,
-        initialShowTranslation = false,
-        initialLayoutPreferences = {},
+        showSource = true,
+        showTranslation = false,
+        layoutPreferences = {},
         hasAliyot = false,
-        initialShowAliyot = true,
-        initialFontSize = 12,
+        showAliyot = true,
+        fontSize = 12,
         hasVowels = false,
-        initialShowVowels = false,
+        showVowels = false,
         hasCantilation = false,
-        initialShowCantilation = true,
+        showCantilation = true,
         hasPunctuation = false,
-        initialShowPunctuation = true
+        showPunctuation = true
     }) {
-    const [showSource, setShowSource] = useState(initialShowSource);
-    const [showTranslation, setShowTranslation] = useState(initialShowTranslation);
+    const [showSourceState, setShowSourceState] = useState(showSource);
+    const [showTranslationState, setShowTranslationState] = useState(showTranslation);
     const setShowTexts = (source, translation) => {
-        setShowSource(source);
-        setShowTranslation(translation);
+        setShowSourceState(source);
+        setShowTranslationState(translation);
     }
 
     const layoutOptions = getLayoutOptions(sourceDir);
-    const [layoutsState, setLayoutsState] = useState(calculateLayoutState(showSource, sourceDir, showTranslation, translationDir));
+    const [layoutsState, setLayoutsState] = useState(calculateLayoutState(showSourceState, sourceDir, showTranslationState, translationDir));
     useEffect(() => {
-      setLayoutsState(calculateLayoutState(showSource, sourceDir, showTranslation, translationDir));
-    }, [showSource, showTranslation]);
+      setLayoutsState(calculateLayoutState(showSourceState, sourceDir, showTranslationState, translationDir));
+    }, [showSourceState, showTranslationState]);
 
-    const [layoutPreferences, setLayoutPreferences] = useState(initialLayoutPreferences)
+    const [layoutPreferencesState, setLayoutPreferencesState] = useState(layoutPreferences)
     useEffect(() => {
-        setLayoutPreferences({
-            'mono': layoutPreferences.mono || 'continued',
-            'bi': layoutPreferences.bi || 'vertical',
-            'mixed': layoutPreferences.mixed
+        setLayoutPreferencesState({
+            'mono': layoutPreferencesState.mono || 'continued',
+            'bi': layoutPreferencesState.bi || 'vertical',
+            'mixed': layoutPreferencesState.mixed
         });
     }, []);
     const [layout, setLayout] = useState('');
     useEffect(() => {
-        setLayout(layoutPreferences[layoutsState.replace(/-(?:ltr|rtl)/, '')] || layoutOptions[layoutsState][0]);
-    }, [layoutPreferences, layoutsState]);
+        setLayout(layoutPreferencesState[layoutsState.replace(/-(?:ltr|rtl)/, '')] || layoutOptions[layoutsState][0]);
+    }, [layoutPreferencesState, layoutsState]);
     const onLayoutChange = (newLayout) => {
-        setLayoutPreferences(prevState => ({
+        setLayoutPreferencesState(prevState => ({
             ...prevState,
             [layoutsState]: newLayout
         }))}
 
-    const [fontSize, setFontSize] = useState(initialFontSize);
-    const [showAliyot, setShowAliyot] = useState(initialShowAliyot);
-    const [showVowels, setShowVowels] = useState(initialShowVowels)
-    const [showCantilation, setShowCantilation] = useState(initialShowCantilation);
-    const [showPunctuation, setShowPunctuation] = useState(initialShowPunctuation);
+    const [fontSizeState, setFontSizeState] = useState(fontSize);
+    const [showAliyotState, setShowAliyotState] = useState(showAliyot);
+    const [showVowelsState, setShowVowelsState] = useState(showVowels)
+    const [showCantilationState, setShowCantilationState] = useState(showCantilation);
+    const [showPunctuationState, setShowPunctuationState] = useState(showPunctuation);
 
 
     const menu = (
         <div className="texts-properties-menu">
             <SourceTranslationsButtons
-                showSource={showSource}
-                showTranslation={showTranslation}
+                showSource={showSourceState}
+                showTranslation={showTranslationState}
                 setShowTexts={setShowTexts}
             />
             <div className="text-menu-border"/>
@@ -85,35 +85,35 @@ function TextsPropertiesMenu({
             { hasAliyot && <ToggleSwitchLine
                 name="aliyot"
                 text="Aliyot"
-                onChange={() => setShowAliyot(!showAliyot)}
-                isChecked={showAliyot}
+                onChange={() => setShowAliyotState(!showAliyotState)}
+                isChecked={showAliyotState}
             /> }
             <div className="text-menu-border"/>
             <FontSizeButton
-                handleEnlarge={ () => {setFontSize(fontSize + 2)} }
-                handleReduce={ () => {setFontSize(fontSize - 2)} }
+                handleEnlarge={ () => {setFontSizeState(fontSizeState + 2)} }
+                handleReduce={ () => {setFontSizeState(fontSizeState - 2)} }
             />
             <div className="text-menu-border"/>
             { hasVowels && <ToggleSwitchLine
                 name="vowels"
                 text="Vowels"
-                disabled={!showSource}
-                onChange={() => setShowVowels(!showVowels)}
-                isChecked={showVowels}
+                disabled={!showSourceState}
+                onChange={() => setShowVowelsState(!showVowelsState)}
+                isChecked={showVowelsState}
             /> }
             { hasCantilation && <ToggleSwitchLine
                 name="cantilation"
                 text="Cantilation"
-                disabled={!showSource}
-                onChange={() => setShowCantilation(!showCantilation)}
-                isChecked={showCantilation}
+                disabled={!showSourceState}
+                onChange={() => setShowCantilationState(!showCantilationState)}
+                isChecked={showCantilationState}
             /> }
             { hasPunctuation && <ToggleSwitchLine
                 name="punctuation"
                 text="Punctuation"
-                disabled={!showSource}
-                onChange={() => setShowPunctuation(!showPunctuation)}
-                isChecked={showPunctuation}
+                disabled={!showSourceState}
+                onChange={() => setShowPunctuationState(!showPunctuationState)}
+                isChecked={showPunctuationState}
             /> }
         </div>
     );
@@ -129,17 +129,17 @@ function TextsPropertiesMenu({
 TextsPropertiesMenu.propTypes = {
     sourceDir: PropTypes.string.isRequired,
     translationDir: PropTypes.string.isRequired,
-    initialShowSource: PropTypes.bool,
-    initialShowTranslation: PropTypes.bool,
-    initialLayoutPreferences: PropTypes.object,
+    showSource: PropTypes.bool,
+    showTranslation: PropTypes.bool,
+    layoutPreferences: PropTypes.object,
     hasAliyot: PropTypes.bool,
-    initialShowAliyot: PropTypes.bool,
-    initialFontSize: PropTypes.number,
+    showAliyot: PropTypes.bool,
+    fontSize: PropTypes.number,
     hasVowels: PropTypes.bool,
-    initialShowVowels: PropTypes.bool,
+    showVowels: PropTypes.bool,
     hasCantilation: PropTypes.bool,
-    initialShowCantilation: PropTypes.bool,
+    showCantilation: PropTypes.bool,
     hasPunctuation: PropTypes.bool,
-    initialShowPunctuation: PropTypes.bool,
+    showPunctuation: PropTypes.bool,
 };
 export default TextsPropertiesMenu;
