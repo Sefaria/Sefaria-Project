@@ -7,29 +7,43 @@ import {getLayoutOptions} from './constants';
 import PopoverMenu from "./components/PopoverMenu";
 import SourceTranslationsButtons from "./SourceTranslationsButtons";
 
-function TextsPropertiesMenu(props) {
-    const sourceDir = props.sourceDir;
-    const translationDir = props.translationDir;
-    const [showSource, setShowSource] = useState(props.showSource === undefined || props.showSource);
-    const [showTranslation, setShowTranslation] = useState(props.showTranslation || false);
+const calculateLayoutState = (showSource, sourceDir, showTranslation, translationDir) => {
+    return (!showSource || !showTranslation) ? 'mono' //one text
+        : (sourceDir !== translationDir) ? 'mixed' //two texts with different directions
+            : (sourceDir === 'rtl') ? 'bi-rtl' //two rtl texts
+                : 'bi-ltr'; //two ltr texts
+}
+
+function TextsPropertiesMenu({
+        sourceDir,
+        translationDir,
+        initialShowSource = true,
+        initialShowTranslation = false,
+        initialLayoutPreferences = {},
+        hasAliyot = false,
+        initialShowAliyot = true,
+        initialFontSize = 12,
+        hasVowels = false,
+        initialShowVowels = false,
+        hasCantilation = false,
+        initialShowCantilation = true,
+        hasPunctuation = false,
+        initialShowPunctuation = true
+    }) {
+    const [showSource, setShowSource] = useState(initialShowSource);
+    const [showTranslation, setShowTranslation] = useState(initialShowTranslation);
     const setShowTexts = (source, translation) => {
         setShowSource(source);
         setShowTranslation(translation);
     }
 
     const layoutOptions = getLayoutOptions(sourceDir);
-    const calculateLayoutState = (showSource, sourceDir, showTranslation, translationDir) => {
-        return (!showSource || !showTranslation) ? 'mono'
-            : (sourceDir !== translationDir) ? 'mixed'
-                : (sourceDir === 'rtl') ? 'bi-rtl'
-                    : 'bi-ltr';
-    }
     const [layoutsState, setLayoutsState] = useState(calculateLayoutState(showSource, sourceDir, showTranslation, translationDir));
     useEffect(() => {
       setLayoutsState(calculateLayoutState(showSource, sourceDir, showTranslation, translationDir));
     }, [showSource, showTranslation]);
 
-    const [layoutPreferences, setLayoutPreferences] = useState(props.layoutPreferences || {})
+    const [layoutPreferences, setLayoutPreferences] = useState(initialLayoutPreferences)
     useEffect(() => {
         setLayoutPreferences({
             'mono': layoutPreferences.mono || 'continued',
@@ -41,16 +55,17 @@ function TextsPropertiesMenu(props) {
     useEffect(() => {
         setLayout(layoutPreferences[layoutsState.replace(/-(?:ltr|rtl)/, '')] || layoutOptions[layoutsState][0]);
     }, [layoutPreferences, layoutsState]);
+    const onLayoutChange = (newLayout) => {
+        setLayoutPreferences(prevState => ({
+            ...prevState,
+            [layoutsState]: newLayout
+        }))}
 
-    const [fontSize, setFontSize] = useState(props.fontSize || 12);
-    const hasAliyot = props.hasAliyot || false;
-    const [showAliyot, setShowAliyot] = useState(props.showAliyot || false);
-    const hasVowels = props.hasVowels || false;
-    const [showVowels, setShowVowels] = useState(props.showVowels || true)
-    const hasCantilation = props.hasCantilation || false;
-    const [showCantilation, setShowCantilation] = useState(props.showCantilation || true);
-    const hasPunctuation = props.hasPunctuation || false;
-    const [showPunctuation, setShowPunctuation] = useState(props.showPunctuation || true);
+    const [fontSize, setFontSize] = useState(initialFontSize);
+    const [showAliyot, setShowAliyot] = useState(initialShowAliyot);
+    const [showVowels, setShowVowels] = useState(initialShowVowels)
+    const [showCantilation, setShowCantilation] = useState(initialShowCantilation);
+    const [showPunctuation, setShowPunctuation] = useState(initialShowPunctuation);
 
 
     const menu = (
@@ -64,11 +79,7 @@ function TextsPropertiesMenu(props) {
            <LayoutButtonLine
                 layoutState={layoutsState}
                 layout={layout}
-                onClick={ (newLayout) => {
-                    setLayoutPreferences(prevState => ({
-                        ...prevState,
-                        [layoutsState]: newLayout
-                    }))} }
+                onClick={onLayoutChange}
                 sourceDir={sourceDir}
             />
             { hasAliyot && <ToggleSwitchLine
@@ -109,26 +120,26 @@ function TextsPropertiesMenu(props) {
 
     const menuImg = (Sefaria.interfaceLang === 'hebrew') ? 'alef' : 'a';
     const button = (
-        <img src={`/static/icons/${menuImg}.svg`} />
+        <img src={`/static/icons/${menuImg}.svg`} alt="Text properties menu" />
     );
 
     return <PopoverMenu button={button} menu={menu} />;
 }
 
-TextsPropertiesMenu.proptypes = {
+TextsPropertiesMenu.propTypes = {
     sourceDir: PropTypes.string.isRequired,
     translationDir: PropTypes.string.isRequired,
-    showSource: PropTypes.bool,
-    showTranslation: PropTypes.bool,
-    layoutPreferences: PropTypes.object,
+    initialShowSource: PropTypes.bool,
+    initialShowTranslation: PropTypes.bool,
+    initialLayoutPreferences: PropTypes.object,
     hasAliyot: PropTypes.bool,
-    showAliyot: PropTypes.bool,
-    fontsize: PropTypes.number,
+    initialShowAliyot: PropTypes.bool,
+    initialFontSize: PropTypes.number,
     hasVowels: PropTypes.bool,
-    showVowels: PropTypes.bool,
+    initialShowVowels: PropTypes.bool,
     hasCantilation: PropTypes.bool,
-    showCantilation: PropTypes.bool,
+    initialShowCantilation: PropTypes.bool,
     hasPunctuation: PropTypes.bool,
-    showPunctuation: PropTypes.bool,
+    initialShowPunctuation: PropTypes.bool,
 };
 export default TextsPropertiesMenu;
