@@ -25,7 +25,7 @@ function LayoutButtonLine({layoutState, sourceDir, layout, onClick}) {
         </div>
     );
 }
-LayoutButtonLine.proprtypes = {
+LayoutButtonLine.propTypes = {
     layoutState: PropTypes.string.isRequired,
     layout: PropTypes.string.isRequired,
     onClick: PropTypes.func.isRequired,

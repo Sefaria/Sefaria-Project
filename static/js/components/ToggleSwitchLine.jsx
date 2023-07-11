@@ -18,7 +18,7 @@ function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
         </div>
     );
 }
-ToggleSwitchLine.prototypes = {
+ToggleSwitchLine.propTypes = {
     name: PropTypes.string,
     disabled: PropTypes.bool,
     text: PropTypes.string,

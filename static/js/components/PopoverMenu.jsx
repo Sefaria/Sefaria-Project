@@ -13,7 +13,7 @@ const PopoverMenu = ({button, menu}) => {
     </div>
   );
 };
-PopoverMenu.prototypes = {
+PopoverMenu.propTypes = {
     button: PropTypes.elementType.isRequired,
     menu: PropTypes.elementType.isRequired,
 };

@@ -22,7 +22,7 @@ function ToggleSwitch({name, disabled, onChange, isChecked}) {
         </div>
     );
 }
-ToggleSwitch.proptypes = {
+ToggleSwitch.propTypes = {
     name: PropTypes.string,
     disabled: PropTypes.bool,
     onChange: PropTypes.func.isRequired,
