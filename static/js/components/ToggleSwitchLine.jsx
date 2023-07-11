@@ -4,17 +4,16 @@ import ToggleSwitch from "./ToggleSwitch";
 import {InterfaceText} from "../Misc";
 import Sefaria from "../sefaria/sefaria";
 
-function ToggleSwitchLine(props) {
-    const isDisabled = props.disabled || false;
+function ToggleSwitchLine({name, onChange, isChecked, text, disabled=false}) {
     return (
-        <div className={`toggle-switch-line ${isDisabled ? 'disabled' : ''}`}>
-            <InterfaceText>{props.text}</InterfaceText>
+        <div className={`toggle-switch-line ${disabled ? 'disabled' : ''}`}>
+            <InterfaceText>{text}</InterfaceText>
             <ToggleSwitch
-                name={props.name}
-                id={props.name}
-                disabled={isDisabled}
-                onChange={props.onChange}
-                isChecked={props.isChecked}
+                name={name}
+                id={name}
+                disabled={disabled}
+                onChange={onChange}
+                isChecked={isChecked}
             />
         </div>
     );

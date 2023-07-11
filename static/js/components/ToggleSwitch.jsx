@@ -1,8 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-function ToggleSwitch(props) {
-    const name = props.name;
+function ToggleSwitch({name, disabled, onChange, isChecked}) {
     return (
         <div className="toggle-switch-container">
           <div className="toggle-switch">
@@ -11,9 +10,9 @@ function ToggleSwitch(props) {
                 className="toggle-switch-checkbox"
                 name={name}
                 id={name}
-                disabled={props.disabled}
-                onChange={props.onChange}
-                checked={props.isChecked && !props.disabled}
+                disabled={disabled}
+                onChange={onChange}
+                checked={isChecked && !disabled}
             />
             <label className="toggle-switch-label" htmlFor={name}>
               <span className="toggle-switch-inner" />
