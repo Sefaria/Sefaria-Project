@@ -112,6 +112,11 @@ def merge_props_for_similar_refs(curr_link, new_link):
     # as well as dataSource and descriptions of all the similar refs
     if new_link.get('dataSource', None):
         data_source = library.get_topic_data_source(new_link['dataSource'])
+        if data_source.slug == 'learning-team':
+            # use ref of learning team; in the case when both are learning team, use whichever ref covers a smaller range
+            if 'learning-team' not in curr_link['dataSources'] or len(curr_link['expandedRefs']) > len(new_link['expandedRefs']):
+                curr_link['ref'] = new_link['ref']
+                curr_link['expandedRefs'] = new_link['expandedRefs']
         curr_link['dataSources'][new_link['dataSource']] = data_source.displayName
         del new_link['dataSource']
 
@@ -120,9 +125,11 @@ def merge_props_for_similar_refs(curr_link, new_link):
 
     new_description = new_link.get('descriptions', {})
     if new_description != {}:
+        curr_link_description = curr_link.get('descriptions', {})
         for lang in ['en', 'he']:
-            if lang not in curr_link['descriptions'] and lang in new_description:
-                curr_link['descriptions'][lang] = new_description[lang]
+            if lang not in curr_link_description and lang in new_description:
+                curr_link_description[lang] = new_description[lang]
+        curr_link['descriptions'] = curr_link_description
 
     new_curated_primacy = new_link.get('order', {}).get('curatedPrimacy', {})
     if new_curated_primacy != {}:
