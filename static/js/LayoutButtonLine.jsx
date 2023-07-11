@@ -3,16 +3,15 @@ import {InterfaceText} from "./Misc";
 import PropTypes from "prop-types";
 import {getLayoutOptions} from './constants'
 
-function LayoutButtonLine(props) {
-    const layoutState = props.layoutState;
-    const layoutOptions = getLayoutOptions(props.sourceDir)[layoutState];
+function LayoutButtonLine({layoutState, sourceDir, layout, onClick}) {
+    const layoutOptions = getLayoutOptions(sourceDir)[layoutState];
     const layoutButton = (layoutOption) => {
         const path = `/static/icons/${layoutState}-${layoutOption}.svg`;
         return (
             <button
                 key={layoutOption}
-                className={`layout-button ${props.layout === layoutOption ? 'checked' : ''}`}
-                onClick={() => props.onClick(layoutOption)}
+                className={`layout-button ${layout === layoutOption ? 'checked' : ''}`}
+                onClick={() => onClick(layoutOption)}
                 style={{"--url": `url(${path})`}}
             />
         );
