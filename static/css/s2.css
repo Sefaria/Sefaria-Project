@@ -1590,9 +1590,9 @@ div.interfaceLinks-row a {
     flex-direction: column;
   }
 }
-@media (min-width: 2000px) {
+@media (min-width: 1485px) {
   .sidebarLayout {
-    max-width: 1905px; /*assuming inner is 665 and sidebar 420*/
+    max-width: 1485px; /*assuming inner is 665 and sidebar 420*/
     margin: 0 auto;
   }
 }
