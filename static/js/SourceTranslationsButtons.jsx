@@ -1,26 +1,28 @@
-import React from "react";
+import React, {useCallback} from "react";
 import PropTypes from "prop-types";
 import {InterfaceText} from "./Misc";
 
-function SourceTranslationsButtons(props) {
-    const showSource = props.showSource;
-    const showTranslation = props.showTranslation;
-    const setShowTexts = props.setShowTexts;
+function SourceTranslationsButtons({ showSource, showTranslation, setShowTexts }) {
+    const createButton = useCallback((isSource, isTranslation, text) => {
+        const isActive = (isSource === showSource && isTranslation === showTranslation);
+        return (
+            <div
+                className={`button ${(isActive) ? "checked" : ""}`}
+                onClick={ () => setShowTexts(isSource, isTranslation) }
+            >
+                <InterfaceText>{text}</InterfaceText>
+            </div>
+        );
+    }, [showSource, showTranslation]);
     return (
       <div className="show-source-translation-buttons">
-          <div className={`button ${(showSource && !showTranslation) ? "checked" : ""}`} onClick={ () => setShowTexts(true, false) } >
-              <InterfaceText>Source</InterfaceText>
-          </div>
-          <div className={`button ${(!showSource && showTranslation) ? "checked" : ""}`} onClick={ () => setShowTexts(false, true) } >
-              <InterfaceText>Translation</InterfaceText>
-          </div>
-          <div className={`button ${(showSource && showTranslation) ? "checked" : ""}`} onClick={ () => setShowTexts(true, true) } >
-              <InterfaceText>Source with Translation</InterfaceText>
-          </div>
+          {createButton(true, false, 'Source')}
+          {createButton(false, true, 'Translation')}
+          {createButton(true, true, 'Source with Translation')}
       </div>
     );
 }
-SourceTranslationsButtons.prototypes = {
+SourceTranslationsButtons.propTypes = {
     showSource: PropTypes.bool.isRequired,
     showTranslation: PropTypes.bool.isRequired,
     setShowTexts: PropTypes.func.isRequired,
