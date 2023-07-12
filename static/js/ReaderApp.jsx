@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -204,6 +204,17 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+    // Initialize entries for first-time visitors to determine if they are new or returning
+    if (!("isNewVisitor" in localStorage) && !("isReturningVisitor" in localStorage)) {
+      sessionStorage.setItem("isNewVisitor", "true");
+      // Setting these at this time will make the current new visitor a returning one once their session is cleared
+      localStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true"); 
+    } else if (Sefaria._uid) {
+      localStorage.setItem("isNewVisitor", "false");
+      sessionStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true");
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -1970,6 +1981,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
+    // How do I get the user type?
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
@@ -2160,13 +2172,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    var interruptingMessage = Sefaria.interruptingMessage ?
-      (<InterruptingMessage
-          messageName={Sefaria.interruptingMessage.name}
-          messageHTML={Sefaria.interruptingMessage.html}
-          style={Sefaria.interruptingMessage.style}
-          repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
+    // var interruptingMessage = Sefaria.interruptingMessage ?
+    //   (<InterruptingMessage
+    //       messageName={Sefaria.interruptingMessage.name}
+    //       messageHTML={Sefaria.interruptingMessage.html}
+    //       style={Sefaria.interruptingMessage.style}
+    //       repetition={Sefaria.interruptingMessage.repetition}
+    //       onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2196,23 +2208,32 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
 
+//    const strapi = useContext(StrapiDataContext);
+//    const { interruptingMessageModal } = useContext(StrapiDataContext);
+
     return (
-      <StrapiDataProvider>
-        <AdContext.Provider value={this.getUserContext()}>
-        <div id="readerAppWrap">
-          {interruptingMessage}
-          <div className={classes} onClick={this.handleInAppLinkClick}>
-            {header}
-            {panels}
-            {sefariaModal}
-            {communityPagePreviewControls}
-            {beitMidrashPanel}
-            <CookiesNotification />
-            {/* <ExampleComponent /> */}
-          </div>
-        </div>
-        </AdContext.Provider>
-      </StrapiDataProvider>
+          <StrapiDataProvider>
+            <AdContext.Provider value={this.getUserContext()}>
+              <div id="readerAppWrap">
+                <InterruptingMessage
+                  messageName={Sefaria.interruptingMessage.name}
+                  messageHTML={Sefaria.interruptingMessage.html}
+                  style={Sefaria.interruptingMessage.style}
+                  repetition={Sefaria.interruptingMessage.repetition}
+                  // onClose={this.rerender} 
+                  />
+                <div className={classes} onClick={this.handleInAppLinkClick}>
+                  {header}
+                  {panels}
+                  {sefariaModal}
+                  {communityPagePreviewControls}
+                  {beitMidrashPanel}
+                  <CookiesNotification />
+                  {/* <ExampleComponent /> */}
+                </div>
+              </div>
+            </AdContext.Provider>
+          </StrapiDataProvider>
     );
   }
 }
