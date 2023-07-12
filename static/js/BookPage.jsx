@@ -1159,7 +1159,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
   const getYearAsStr = (initCompDate) => {
-    if (typeof initCompDate === 'undefined') {
+    if (typeof initCompDate === 'undefined' || initCompDate === '') {
       return "";
     }
     else {
