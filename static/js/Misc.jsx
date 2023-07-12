@@ -1277,9 +1277,9 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
         const [topicSlug, refData] = data;
         return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
     case "cats":
-        return <EditorForExistingCategory toggle={toggleFunction} data={dataObject} />;
+        return <EditorForExistingCategory toggle={toggle} data={data} />;
     case "topics":
-        return <EditorForExistingTopic toggle={toggleFunction} data={dataObject} />;
+        return <EditorForExistingTopic toggle={toggle} data={data} />;
   }
 }
 
