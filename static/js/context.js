@@ -14,7 +14,8 @@ function StrapiDataProvider({ children }) {
   const [dataFromStrapiHasBeenReceived, setDataFromStrapiHasBeenReceived] =
     useState(false);
   const [strapiData, setStrapiData] = useState(null);
-  const [interruptingMessageModal, setInterruptingMessageModal] = useState(null);
+  const [interruptingMessageModal, setInterruptingMessageModal] =
+    useState(null);
   useEffect(() => {
     const getStrapiData = async () => {
       try {
@@ -56,9 +57,10 @@ function StrapiDataProvider({ children }) {
             const currentDate = new Date();
             if (modals?.length) {
               // if they end up being sorted, the first one will be the compatible one
-              let modal = modals.find(modal => 
-                currentDate >= new Date(modal.attributes.modalStartDate) && 
-                currentDate <= new Date(modal.attributes.modalEndDate)
+              let modal = modals.find(
+                (modal) =>
+                  currentDate >= new Date(modal.attributes.modalStartDate) &&
+                  currentDate <= new Date(modal.attributes.modalEndDate)
               );
               console.log("found acceptable modal:");
               console.log(modal);
@@ -77,7 +79,11 @@ function StrapiDataProvider({ children }) {
 
   return (
     <StrapiDataContext.Provider
-      value={{ dataFromStrapiHasBeenReceived, strapiData, interruptingMessageModal }}
+      value={{
+        dataFromStrapiHasBeenReceived,
+        strapiData,
+        interruptingMessageModal,
+      }}
     >
       {children}
     </StrapiDataContext.Provider>

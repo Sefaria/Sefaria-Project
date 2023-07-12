@@ -2160,7 +2160,7 @@ SignUpModal.propTypes = {
 //   onClose:     PropTypes.func.isRequired
 // };
 
-
+// Write comments explaining how this works
 function OnInView({ children, onVisible }) {
   const elementRef = useRef();
 
@@ -2192,7 +2192,8 @@ function OnInView({ children, onVisible }) {
 // let isNewVisitor = JSON.parse(localStorage.getItem("isNewVisitor"));
 function isNewVisitor() {
   return (
-    "isNewVisitor" in sessionStorage ||
+    ("isNewVisitor" in sessionStorage &&
+      JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
     ("isNewVisitor" in localStorage &&
       JSON.parse(localStorage.getItem("isNewVisitor")))
   );
@@ -2205,7 +2206,6 @@ function isReturningVisitor() {
     JSON.parse(localStorage.getItem("isReturningVisitor"))
   );
 }
-let shouldShowModal = false;
 
 const InterruptingMessage = ({
   messageName,
@@ -2215,45 +2215,26 @@ const InterruptingMessage = ({
   onClose,
 }) => {
   const [timesUp, setTimesUp] = useState(false);
-  const [hasSeenModal, setHasSeenModal] = useState(false);
+  const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const settings = {
-    trackingName: "Interrupting Message",
-    showDelay: 2000,
+  const showDelay = 5000;
+
+  const markModalAsHasBeenInteractedWith = (modalName) => {
+    sessionStorage.setItem("modal_" + modalName, "true");
   };
 
-  // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
-  // Use user context to determine whether this is valid for a user?
-  // Maybe user context should be used to find if there's a compatible modal
-  const shouldShow = () => {
-    if (!strapi.interruptingMessageModal) return false;
-    if (!shouldShowModal) return false;
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    return (
-      !JSON.parse(
-        sessionStorage.getItem(
-          "modal_" + strapi.interruptingMessageModal.internalModalName
-        )
-      ) && excludedPaths.indexOf(window.location.pathname) === -1
-    );
+  const hasModalBeenInteractedWith = (modalName) => {
+    return JSON.parse(sessionStorage.getItem("modal_" + modalName));
   };
 
-  const closeModal = (eventDescription) => {
-    if (onClose) onClose();
-    sessionStorage.setItem(
-      "modal_" + strapi.interruptingMessageModal.internalModalName,
-      "true"
-    ); // maybe use modals as key and manipulate object entered
-    console.log(eventDescription);
+  const trackModalInteraction = (modalName, eventDescription) => {
     gtag("event", "modal_interacted_with_" + eventDescription, {
-      campaignID: strapi.interruptingMessageModal.internalModalName,
+      campaignID: modalName,
       adType: "modal",
     });
-    setHasSeenModal(true); // should be interacted instead of seen because there was an interaction
-    // Sefaria.interruptingMessageModal = null;
   };
 
-  const trackImpression = () => {
+  const trackModalImpression = () => {
     console.log("We've got visibility!");
     gtag("event", "modal_viewed", {
       campaignID: strapi.interruptingMessageModal.internalModalName,
@@ -2261,77 +2242,77 @@ const InterruptingMessage = ({
     });
   };
 
-  useEffect(() => {
-    if (Sefaria._uid) {
-      console.log("hitting logged in user");
-      try {
-        localStorage.setItem("isNewVisitor", "false");
-        sessionStorage.setItem("isNewVisitor", "false");
-        localStorage.setItem("isReturningVisitor", "true");
-      } catch {
-        shouldShowModal = true;
-      }
-      if (strapi.interruptingMessageModal?.showToReturningVisitors) {
-        shouldShowModal = true;
-      }
-      if (Sefaria.is_sustainer) {
-        console.log("we got ourselves a beautiful sustainer!");
-      }
-      if (Sefaria.is_sustainer && strapi.interruptingMessageModal?.showToSustainers) {
-        shouldShowModal = true
-      }
-      else if (!Sefaria.is_sustainer && strapi.interruptingMessageModal?.showToNonSustainers) {
-        shouldShowModal = true;
-      }
-    } else {
-      if (!isNewVisitor() && !isReturningVisitor()) {
-        console.log("not new visitor or returning visitor"); // first time here
-        try {
-          localStorage.setItem("isNewVisitor", "false");
-          sessionStorage.setItem("isNewVisitor", "true");
-          localStorage.setItem("isReturningVisitor", "true"); // This will make the current visitor a returning one once their session is cleared
-          // sessionStorage.setItem("isReturningVisitor", "false");
-        } catch {
-          shouldShowModal = true;
-        }
-      } else if (isReturningVisitor()) {
-        console.log("returning visitor");
-        if (strapi.interruptingMessageModal?.showToReturningVisitors) {
-          shouldShowModal = true;
-        }
-      } else if (isNewVisitor()) {
-        console.log("new visitor");
-        if (strapi.interruptingMessageModal?.showToNewVisitors) {
-          shouldShowModal = true;
-        }
-      }
-    }
+  // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
+  // Use user context to determine whether this is valid for a user?
+  // Maybe user context should be used to find if there's a compatible modal
+  const shouldShow = () => {
+    if (!strapi.interruptingMessageModal) return false;
     if (
-      strapi.interruptingMessageModal &&
-      !strapi.interruptingMessageModal.showToNewVisitors &&
-      !strapi.interruptingMessageModal.showToReturningVisitors
-    ) {
-      // Show to everyone if there is no state passed from Strapi
-      shouldShowModal = true;
-    }
+      hasModalBeenInteractedWith(
+        strapi.interruptingMessageModal.internalModalName
+      )
+    )
+      return false;
 
+    let shouldShowModal = false;
+
+    let noUserKindIsSet = ![
+      strapi.interruptingMessageModal.showToReturningVisitors,
+      strapi.interruptingMessageModal.showToNewVisitors,
+      strapi.interruptingMessageModal.showToSustainers,
+      strapi.interruptingMessageModal.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer &&
+        strapi.interruptingMessageModal.showToSustainers) ||
+        (!Sefaria.is_sustainer &&
+          strapi.interruptingMessageModal.showToNonSustainers))
+    )
+      shouldShowModal = true;
+    else if (
+      (isReturningVisitor() &&
+        strapi.interruptingMessageModal.showToReturningVisitors) ||
+      (isNewVisitor() && strapi.interruptingMessageModal.showToNewVisitors)
+    )
+      shouldShowModal = true;
+    else if (noUserKindIsSet) shouldShowModal = true;
+    if (!shouldShowModal) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeModal = (eventDescription) => {
+    if (onClose) onClose();
+    console.log(eventDescription);
+    markModalAsHasBeenInteractedWith(
+      strapi.interruptingMessageModal.internalModalName
+    );
+    setHasInteractedWithModal(true);
+    trackModalInteraction(
+      strapi.interruptingMessageModal.internalModalName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
     if (shouldShow()) {
       const timeoutId = setTimeout(() => {
         setTimesUp(true);
-        // Other stuff here
-      }, settings.showDelay);
+      }, showDelay);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }, [strapi.interruptingMessageModal, settings.showDelay]); // execute useEffect when the modal or showDelay changes
+  }, [strapi.interruptingMessageModal]); // execute useEffect when the modal changes
 
   if (!timesUp) return null;
   console.log("data for the component");
   console.log(strapi.interruptingMessageModal);
 
-  if (!hasSeenModal) {
+  if (!hasInteractedWithModal) {
     console.log("rendering component");
     return (
-      <OnInView onVisible={trackImpression}>
+      <OnInView onVisible={trackModalImpression}>
         <div id="interruptingMessageBox" className={timesUp ? "" : "hidden"}>
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
@@ -2442,6 +2423,7 @@ const InterruptingMessage = ({
     return null;
   }
 };
+InterruptingMessage.displayName = "InterruptingMessage";
 
 // InterruptingMessage.propTypes = {
 //   messageName: PropTypes.string.isRequired,
