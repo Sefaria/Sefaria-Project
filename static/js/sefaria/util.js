@@ -980,7 +980,7 @@ Util.RefValidator.prototype = {
         "";
   },
   _inlineAddSourcePreview: function(inString, ref) {
-    Sefaria.text(ref, {}, function (data) {
+    Sefaria.text(ref, {stripImgs: 1}, function (data) {
         if (this.$input.val() != inString) { return; }
         if (!this.$preview) { return; }
 

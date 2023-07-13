@@ -1239,6 +1239,12 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
+    def strip_imgs(s, sections=None):
+        tags = list(AbstractTextRecord.ALLOWED_TAGS)
+        tags.remove('img')
+        return bleach.clean(s, strip=True, tags=tags, attributes=AbstractTextRecord.ALLOWED_ATTRS)
+
+    @staticmethod
     def strip_itags(s, sections=None):
         soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
@@ -2306,7 +2312,9 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
+                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, stripImgs=False,
+                 wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
@@ -2319,6 +2327,7 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
+        :param stripImgs: whether to strip inline img tags from text
         :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
         :return:
         """
@@ -2381,6 +2390,8 @@ class TextFamily(object):
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
                 text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
+            if stripImgs:
+                text_modification_funcs += [lambda s, secs: c.strip_imgs(s)]
             if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.

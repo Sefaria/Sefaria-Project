@@ -1893,7 +1893,7 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref, {stripItags: 1}).then(text => {
+    Sefaria.getText(ref, {stripItags: 1, stripImgs: 1}).then(text => {
         const segments = Sefaria.makeSegments(text);
 
         let includeNumbers = $.inArray("Talmud", text.categories) == -1;
