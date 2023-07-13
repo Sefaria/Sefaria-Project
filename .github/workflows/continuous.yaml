@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Check if push is in PR
         id: check
-        uses: 8BitJonny/gh-get-current-pr@1.4.0
+        uses: 8BitJonny/gh-get-current-pr@2.2.0
         with:
           filterOutClosed: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -59,8 +59,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -130,8 +134,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Get current date
         id: date
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
@@ -214,12 +222,8 @@ jobs:
         id: branch-name
         run: >-
           echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          # set all characters lowercase
           | awk '{print tolower($0)}'
-          # select 'b' from a/b/c if branchname is in sc format, else select entire string
           | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          # replace any remaining non-standard characters
-          # '_' can be in image names but can't be in kube names, so we drop those too
           | sed 's/[^a-z0-9\.\-]//g')
           >> $GITHUB_OUTPUT
       - name: Set outputs
@@ -296,8 +300,12 @@ jobs:
         uses: tj-actions/branch-names@v5.1
       - name: Format branch name
         id: branch-name
-        run: |
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }} | awk '{print tolower($0)}' | sed 's/[^a-z0-9\.\-]//g') >> $GITHUB_OUTPUT
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
       - name: Start Job
         run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
