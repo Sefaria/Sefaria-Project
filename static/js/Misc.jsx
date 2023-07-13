@@ -2191,13 +2191,10 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
-// let isNewVisitor = JSON.parse(localStorage.getItem("isNewVisitor"));
 function isNewVisitor() {
   return (
-    ("isNewVisitor" in sessionStorage &&
-      JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
-    ("isNewVisitor" in localStorage &&
-      JSON.parse(localStorage.getItem("isNewVisitor")))
+    "isNewVisitor" in sessionStorage &&
+    JSON.parse(sessionStorage.getItem("isNewVisitor"))
   );
 }
 
