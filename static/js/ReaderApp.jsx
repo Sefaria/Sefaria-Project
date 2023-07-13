@@ -2190,28 +2190,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 //    const { interruptingMessageModal } = useContext(StrapiDataContext);
 
     return (
-          <StrapiDataProvider>
-            <AdContext.Provider value={this.getUserContext()}>
-              <div id="readerAppWrap">
-                <InterruptingMessage
-                  messageName={Sefaria.interruptingMessage.name}
-                  messageHTML={Sefaria.interruptingMessage.html}
-                  style={Sefaria.interruptingMessage.style}
-                  repetition={Sefaria.interruptingMessage.repetition}
-                  // onClose={this.rerender} 
-                  />
-                <div className={classes} onClick={this.handleInAppLinkClick}>
-                  {header}
-                  {panels}
-                  {sefariaModal}
-                  {communityPagePreviewControls}
-                  {beitMidrashPanel}
-                  <CookiesNotification />
-                  {/* <ExampleComponent /> */}
-                </div>
-              </div>
-            </AdContext.Provider>
-          </StrapiDataProvider>
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {sefariaModal}
+              {communityPagePreviewControls}
+              {beitMidrashPanel}
+              <CookiesNotification />
+              {/* <ExampleComponent /> */}
+            </div>
+          </div>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
