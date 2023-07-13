@@ -1240,9 +1240,11 @@ class AbstractTextRecord(object):
 
     @staticmethod
     def strip_imgs(s, sections=None):
-        tags = list(AbstractTextRecord.ALLOWED_TAGS)
-        tags.remove('img')
-        return bleach.clean(s, strip=True, tags=tags, attributes=AbstractTextRecord.ALLOWED_ATTRS)
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        imgs = soup.find_all('img')
+        for img in imgs:
+            img.decompose()
+        return soup.root.encode_contents().decode()  # remove divs added
 
     @staticmethod
     def strip_itags(s, sections=None):

@@ -1037,7 +1037,7 @@ sjs.textBrowser = {
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		Sefaria.text(ref, {}, this.buildPreviewText);
+		Sefaria.text(ref, {stripImgs: 1}, this.buildPreviewText);
 	},
 	buildPreviewText: function(data) {
 		function segmentString(he, en, section) {
