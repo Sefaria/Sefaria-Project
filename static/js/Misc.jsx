@@ -2520,9 +2520,9 @@ const Banner = ({ messageName, messageHTML, style, repetition, onClose }) => {
             <div id="bannerButtonBox">
               <a
                 className="button white int-en"
-                href="https://sefaria.nationbuilder.com/sustainers_e"
+                href={strapi.banner.buttonURL}
               >
-                <span>Sustain Sefaria</span>
+                <span>{strapi.banner.buttonText}</span>
               </a>
               <a
                 className="button white int-he"
