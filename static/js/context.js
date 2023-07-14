@@ -16,6 +16,7 @@ function StrapiDataProvider({ children }) {
   const [strapiData, setStrapiData] = useState(null);
   const [interruptingMessageModal, setInterruptingMessageModal] =
     useState(null);
+  const [banner, setBanner] = useState(null);
   useEffect(() => {
     const getStrapiData = async () => {
       try {
@@ -32,7 +33,7 @@ function StrapiDataProvider({ children }) {
         let endDate = getJSONDateStringInLocalTimeZone(oneWeekFromNow);
         console.log(startDate);
         console.log(endDate);
-        const query = `{"query":"# Write your query or mutation here\\nquery {\\n  banners(filters: {\\n      bannerStartDate: { gte: \\"${startDate}\\" }\\n      and: [{ bannerEndDate: { lte: \\"${endDate}\\" } }]\\n  } ) {\\n    data {\\n      id\\n      attributes {\\n        bannerEndDate\\n        bannerStartDate\\n        bannerText\\n        buttonText\\n        buttonURL\\n        createdAt\\n        locale\\n        publishedAt\\n        shouldDeployOnMobile\\n        showToNewVisitors\\n        showToNonSustainers\\n        showToReturningVisitors\\n        showToSustainers\\n        updatedAt\\n      }\\n    }\\n  }\\n  modals(filters: {\\n      modalStartDate: { gte: \\"${startDate}\\" }\\n      and: [{ modalEndDate: { lte: \\"${endDate}\\" } }]\\n  } ) {\\n    data {\\n      id\\n      attributes {\\n        internalModalName\\n      buttonText\\n        buttonURL\\n        createdAt\\n        locale\\n        modalEndDate\\n        modalStartDate\\n        modalText\\n        publishedAt\\n        shouldDeployOnMobile\\n        showToNewVisitors\\n        showToNonSustainers\\n        showToReturningVisitors\\n        showToSustainers\\n        updatedAt\\n      }\\n    }\\n  }\\n  sidebarAds(filters: {\\n      startTime: { gte: \\"${startDate}\\" }\\n      and: [{ endTime: { lte: \\"${endDate}\\" } }]\\n  } ){\\n    data {\\n      id\\n      attributes {\\n        ButtonAboveOrBelow\\n        Title\\n        bodyText\\n        buttonText\\n        buttonUrl\\n        createdAt\\n        debug\\n        endTime\\n        hasBlueBackground\\n        internalCampaignId\\n        keywords\\n        locale\\n        publishedAt\\n        showTo\\n        startTime\\n        updatedAt\\n      }\\n    }\\n  }\\n}"}`;
+        const query = `{"query":"# Write your query or mutation here\\nquery {\\n  banners(filters: {\\n      bannerStartDate: { gte: \\"${startDate}\\" }\\n      and: [{ bannerEndDate: { lte: \\"${endDate}\\" } }]\\n  } ) {\\n    data {\\n      id\\n      attributes {\\n        internalBannerName\\n        bannerEndDate\\n        bannerStartDate\\n        bannerText\\n        buttonText\\n        buttonURL\\n        createdAt\\n        locale\\n        publishedAt\\n        shouldDeployOnMobile\\n        showToNewVisitors\\n        showToNonSustainers\\n        showToReturningVisitors\\n        showToSustainers\\n        updatedAt\\n      }\\n    }\\n  }\\n  modals(filters: {\\n      modalStartDate: { gte: \\"${startDate}\\" }\\n      and: [{ modalEndDate: { lte: \\"${endDate}\\" } }]\\n  } ) {\\n    data {\\n      id\\n      attributes {\\n        internalModalName\\n      buttonText\\n        buttonURL\\n        createdAt\\n        locale\\n        modalEndDate\\n        modalStartDate\\n        modalText\\n        publishedAt\\n        shouldDeployOnMobile\\n        showToNewVisitors\\n        showToNonSustainers\\n        showToReturningVisitors\\n        showToSustainers\\n        updatedAt\\n      }\\n    }\\n  }\\n  sidebarAds(filters: {\\n      startTime: { gte: \\"${startDate}\\" }\\n      and: [{ endTime: { lte: \\"${endDate}\\" } }]\\n  } ){\\n    data {\\n      id\\n      attributes {\\n        ButtonAboveOrBelow\\n        Title\\n        bodyText\\n        buttonText\\n        buttonUrl\\n        createdAt\\n        debug\\n        endTime\\n        hasBlueBackground\\n        internalCampaignId\\n        keywords\\n        locale\\n        publishedAt\\n        showTo\\n        startTime\\n        updatedAt\\n      }\\n    }\\n  }\\n}"}`;
         console.log(query);
         const result = fetch("http://localhost:1337/graphql", {
           method: "POST", // *GET, POST, PUT, DELETE, etc.
@@ -54,6 +55,9 @@ function StrapiDataProvider({ children }) {
             // e.g. there are modals with overlapping time frames
             let modals = result.data?.modals?.data;
             console.log(modals);
+            let banners = result.data?.banners?.data;
+            console.log(banners);
+
             const currentDate = new Date();
             if (modals?.length) {
               // if they end up being sorted, the first one will be the compatible one
@@ -67,6 +71,21 @@ function StrapiDataProvider({ children }) {
               if (modal) {
                 console.log("setting the modal");
                 setInterruptingMessageModal(modal.attributes);
+              }
+            }
+
+            if (banners?.length) {
+              let b = banners.find(
+                (b) =>
+                  currentDate >= new Date(b.attributes.bannerStartDate) &&
+                  currentDate <= new Date(b.attributes.bannerEndDate)
+              );
+              console.log("found acceptable banner:");
+              console.log(b);
+              if (b) {
+                console.log("setting the banner");
+                setBanner(b.attributes);
+                console.log(b.attributes);
               }
             }
           });
@@ -83,6 +102,7 @@ function StrapiDataProvider({ children }) {
         dataFromStrapiHasBeenReceived,
         strapiData,
         interruptingMessageModal,
+        banner,
       }}
     >
       {children}

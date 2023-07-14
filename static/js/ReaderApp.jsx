@@ -26,6 +26,7 @@ import {
 import {
   SignUpModal,
   InterruptingMessage,
+  Banner,
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
@@ -2176,6 +2177,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         modalContentKind={this.state.modalContentKind}
       />
     );
+
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
@@ -2193,6 +2195,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
+            {/* <Banner onClose={this.setContainerMode} /> */}
+            <Banner />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}
