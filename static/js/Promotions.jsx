@@ -18,38 +18,40 @@ const Promotions = ({ adType, rerender }) => {
 
       const sidebarAds = strapi.strapiData.sidebarAds.data;
 
-      sidebarAds.forEach((sidebarAd) => {
-        sidebarAd = sidebarAd.attributes;
-        console.log(JSON.stringify(sidebarAd, null, 2));
-        let keywordTargetsArray = sidebarAd.keywords
-          .split(",")
-          .map((x) => x.trim().toLowerCase());
-        Sefaria._inAppAds.push({
-          campaignId: sidebarAd.internalCampaignId,
-          title: sidebarAd.Title,
-          bodyText: sidebarAd.bodyText,
-          buttonText: sidebarAd.buttonText,
-          buttonUrl: sidebarAd.buttonUrl,
-          buttonIcon: "",
-          buttonLocation: sidebarAd.buttonUrl,
-          adType: "sidebar",
-          hasBlueBackground: sidebarAd.hasBlueBackground,
-          repetition: 5,
-          buttonStyle: "",
-          trigger: {
-            showTo: sidebarAd.showTo,
-            interfaceLang: Sefaria.translateISOLanguageCode(
-              sidebarAd.locale
-            ).toLowerCase(),
-            dt_start: Date.parse(sidebarAd.startTime),
-            dt_end: Date.parse(sidebarAd.endTime),
-            keywordTargets: keywordTargetsArray,
-            excludeKeywordTargets: [],
-          },
-          debug: sidebarAd.debug,
+      if (sidebarAds) {
+        sidebarAds.forEach((sidebarAd) => {
+          sidebarAd = sidebarAd.attributes;
+          console.log(JSON.stringify(sidebarAd, null, 2));
+          let keywordTargetsArray = sidebarAd.keywords
+            .split(",")
+            .map((x) => x.trim().toLowerCase());
+          Sefaria._inAppAds.push({
+            campaignId: sidebarAd.internalCampaignId,
+            title: sidebarAd.Title,
+            bodyText: sidebarAd.bodyText,
+            buttonText: sidebarAd.buttonText,
+            buttonUrl: sidebarAd.buttonUrl,
+            buttonIcon: "",
+            buttonLocation: sidebarAd.buttonUrl,
+            adType: "sidebar",
+            hasBlueBackground: sidebarAd.hasBlueBackground,
+            repetition: 5,
+            buttonStyle: "",
+            trigger: {
+              showTo: sidebarAd.showTo,
+              interfaceLang: Sefaria.translateISOLanguageCode(
+                sidebarAd.locale
+              ).toLowerCase(),
+              dt_start: Date.parse(sidebarAd.startTime),
+              dt_end: Date.parse(sidebarAd.endTime),
+              keywordTargets: keywordTargetsArray,
+              excludeKeywordTargets: [],
+            },
+            debug: sidebarAd.debug,
+          });
         });
-      });
-      setInAppAds(Sefaria._inAppAds);
+        setInAppAds(Sefaria._inAppAds);
+      }
     }
   }, [strapi.dataFromStrapiHasBeenReceived]);
   // empty array happens when the page loads, equivalent of didcomponentmount

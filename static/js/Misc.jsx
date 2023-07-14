@@ -2176,6 +2176,8 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
+// User could be new visitor when there isn't anything in sessionStorage either...
+// Maybe don't check if it's in there or have extra conditional
 function isNewVisitor() {
   return (
     "isNewVisitor" in sessionStorage &&
@@ -2230,6 +2232,7 @@ const InterruptingMessage = ({
   // Use user context to determine whether this is valid for a user?
   // Maybe user context should be used to find if there's a compatible modal
   const shouldShow = () => {
+    console.log("checking whether to show modal or not");
     if (!strapi.interruptingMessageModal) return false;
     if (
       hasModalBeenInteractedWith(
@@ -2408,6 +2411,141 @@ const InterruptingMessage = ({
   }
 };
 InterruptingMessage.displayName = "InterruptingMessage";
+
+const Banner = ({ messageName, messageHTML, style, repetition, onClose }) => {
+  const [timesUp, setTimesUp] = useState(false);
+  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+  const showDelay = 5000;
+
+  const markBannerAsHasBeenInteractedWith = (bannerName) => {
+    sessionStorage.setItem("banner_" + bannerName, "true");
+  };
+
+  const hasBannerBeenInteractedWith = (bannerName) => {
+    return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+  };
+
+  const trackBannerInteraction = (bannerName, eventDescription) => {
+    gtag("event", "banner_interacted_with_" + eventDescription, {
+      campaignID: bannerName,
+      adType: "banner",
+    });
+  };
+
+  const trackBannerImpression = () => {
+    console.log("We've got visibility!");
+    gtag("event", "banner_viewed", {
+      campaignID: strapi.banner.internalBannerName,
+      adType: "banner",
+    });
+  };
+
+  const shouldShow = () => {
+    console.log("checking whether to show banner or not");
+    if (!strapi.banner) return false;
+    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+      return false;
+
+    let shouldShowBanner = false;
+
+    let noUserKindIsSet = ![
+      strapi.banner.showToReturningVisitors,
+      strapi.banner.showToNewVisitors,
+      strapi.banner.showToSustainers,
+      strapi.banner.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+    )
+      shouldShowBanner = true;
+    else if (
+      (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (isNewVisitor() && strapi.banner.showToNewVisitors)
+    )
+      shouldShowBanner = true;
+    else if (noUserKindIsSet) shouldShowBanner = true;
+    if (!shouldShowBanner) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeBanner = (eventDescription) => {
+    if (onClose) onClose();
+    console.log(eventDescription);
+    markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+    setHasInteractedWithBanner(true);
+    trackBannerInteraction(
+      strapi.banner.internalBannerName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+      console.log("reaching here...");
+
+      const timeoutId = setTimeout(() => {
+        // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+        if (document.getElementById("s2").classList.contains("headerOnly")) {
+          document.body.classList.add("hasBannerMessage");
+        }
+        setTimesUp(true);
+      }, showDelay);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+    }
+  }, [strapi.banner]); // execute useEffect when the modal changes
+
+  if (!timesUp) return null;
+  console.log("data for the component");
+  console.log(strapi.banner);
+
+  if (!hasInteractedWithBanner) {
+    console.log("rendering component");
+    return (
+      <OnInView onVisible={trackBannerImpression}>
+        <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
+          <div id="bannerMessageContent">
+            <div id="bannerTextBox">
+              <span className="int-en">{strapi.banner.bannerText}</span>
+              <span className="int-he">
+                ספריית ספריא מנגישה יותר מ-300 מיליון מלים של טקסטים יהודיים
+                ברחבי העולם. לכבוד שבועות, אנא תמכו היום בספריה שמסייעת ללימוד
+                שלכם על-ידי קבלת מעמד של ידידי ספריא.
+              </span>
+            </div>
+            <div id="bannerButtonBox">
+              <a
+                className="button white int-en"
+                href="https://sefaria.nationbuilder.com/sustainers_e"
+              >
+                <span>Sustain Sefaria</span>
+              </a>
+              <a
+                className="button white int-he"
+                href="https://sefaria.nationbuilder.com/sustainers_e"
+              >
+                <span>לתרומה חודשית</span>
+              </a>
+            </div>
+          </div>
+          <div id="bannerMessageClose">×</div>
+          <div id="bannerMessageClose" onClick={closeBanner}>
+            ×
+          </div>
+        </div>
+      </OnInView>
+    );
+  } else {
+    return null;
+  }
+};
+
+Banner.displayName = "Banner";
+
 
 // InterruptingMessage.propTypes = {
 //   messageName: PropTypes.string.isRequired,
@@ -3255,6 +3393,7 @@ export {
   FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
+  Banner,
   InterfaceText,
   ContentText,
   EnglishText,
