@@ -744,6 +744,9 @@ input.noselect {
 }
 .accountLinks .help {
   margin-inline-start: 23px;
+  margin-top: 2px;
+}
+.accountLinks.anon .help {
   margin-top: 6px;
 }
 .header .interfaceLinks {
