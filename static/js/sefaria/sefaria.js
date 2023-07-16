@@ -680,7 +680,7 @@ Sefaria = extend(Sefaria, {
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
-      stripImgs: settings.stripImgs,
+      stripImgs:  settings.stripImgs,
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad,
