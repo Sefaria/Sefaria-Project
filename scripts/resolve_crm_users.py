@@ -33,4 +33,17 @@ def find_matching_and_update(row):
 with open(""):
     pass
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        prog="ResolveCrmUsers",
+        description="Resolves CRM Users to add Sefaria app user ids (salesforce) based on Nationbuilder ID or Email"
+    )
+    parser.add_argument("-d", "--dry-run", action='store_false',
+                        help="produce output file without actually updating any profiles")
+
+    parser.add_argument("-f", "--file", action='store_const', const='',
+                        help='csv file from Salesforce with relevant information')
+
+    args = parser.parse_args()
+
 # print sefaria app emails that don't have
