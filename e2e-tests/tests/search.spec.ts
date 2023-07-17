@@ -37,8 +37,7 @@ test('Search in this text', async ({ context }) => {
   const list = page.locator('.searchResultList > .result');
   const count = await list.count();
   expect(count).toBeGreaterThan(1);
-  //await expect(list).toBeVisible();
-  //await expect(list).toHaveCount(25);
+
   
   
   
