@@ -17,8 +17,6 @@ import {
   ContentText,
   CategoryHeader
 } from './Misc';
-import {AdminEditorButton, useEditToggle} from "./AdminEditor";
-import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
@@ -170,11 +168,11 @@ const Dedication = () => {
     }, []);
 
     return (
-        dedicationData && dedicationData.en && dedicationData.he ?
+        dedicationData && (dedicationData.en || dedicationData.he) ?
         <div className="dedication">
           <span>
-              <span className="int-en">{dedicationData.en}</span>
-              <span className="int-he">{dedicationData.he}</span>
+              <span className="int-en">{dedicationData?.en}</span>
+              <span className="int-he">{dedicationData?.he}</span>
           </span>
         </div>
         : null

@@ -14,7 +14,7 @@ import {
   CategoryChooser,
   TitleVariants
 } from './Misc';
-
+import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -1159,7 +1159,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
   const getYearAsStr = (initCompDate) => {
-    if (typeof initCompDate === 'undefined') {
+    if (typeof initCompDate === 'undefined' || initCompDate === '') {
       return "";
     }
     else {
@@ -1181,12 +1181,13 @@ const EditTextInfo = function({initTitle, close}) {
       }
     }
   }
-  const [compDate, setCompDate] = useState(getYearAsStr(index.current?.compDate));
+  const [compDate, setCompDate] = useState(index.current?.compDate);
+  const [compDateStr, setCompDateStr] = useState(getYearAsStr(compDate));
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
-  const validate = function () {
+  const validate = async function () {
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
@@ -1221,6 +1222,12 @@ const EditTextInfo = function({initTitle, close}) {
     if (Hebrew.containsHebrew(enTitle)) {
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
+    }
+    for (const x of [enDesc, heDesc]) {
+      const valid_tags = await validateMarkdownLinks(x);
+      if (!valid_tags) {
+        return false;
+      }
     }
     return true;
   }
@@ -1269,7 +1276,7 @@ const EditTextInfo = function({initTitle, close}) {
     if (enTitle !== oldTitle) {
       postIndex.oldTitle = oldTitle;
     }
-    if (compDate !== "") {
+    if (compDateStr !== "") {
       postIndex.compDate = compDate;
       postIndex.errorMargin = errorMargin;
     }
@@ -1376,7 +1383,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDateStr}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">

@@ -23,7 +23,7 @@ const Link = ({href, en, he, blank}) => (
 class Footer extends Component {
   constructor(props) {
     super(props);
-    this.state = {subscribeMessage: null};
+    this.state = {};
   }
   componentDidMount() {
     this.setState({isClient: true});
@@ -187,6 +187,4 @@ class LikeFollowButtons extends Component {
             </div>);
   }
 }
-
-
 export default Footer;

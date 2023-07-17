@@ -146,8 +146,6 @@ data:
     SEARCH_INDEX_NAME_SHEET = 'sheet'
     SEARCH_INDEX_NAME_MERGED = 'merged'
 
-    # DafRoulette server
-    RTC_SERVER = 'rtc.sefaria.org'
     TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
     TURN_SECRET= os.getenv("TURN_SECRET")
     TURN_USER = os.getenv("TURN_USER")
@@ -172,11 +170,19 @@ data:
 
     HOTJAR_ID = os.getenv("HOTJAR_ID")
 
+    # CRM settings
+    CRM_TYPE =  os.getenv("CRM_TYPE")
+
     NATIONBUILDER = True
     NATIONBUILDER_SLUG = "sefaria"
     NATIONBUILDER_TOKEN = os.getenv("NATIONBUILDER_TOKEN")
     NATIONBUILDER_CLIENT_ID = os.getenv("NATIONBUILDER_CLIENT_ID")
     NATIONBUILDER_CLIENT_SECRET = os.getenv("NATIONBUILDER_CLIENT_SECRET")
+
+    # Integration with Salesforce
+    SALESFORCE_BASE_URL = os.getenv("SALESFORCE_BASE_URL")
+    SALESFORCE_CLIENT_ID = os.getenv("SALESFORCE_CLIENT_ID")
+    SALESFORCE_CLIENT_SECRET = os.getenv("SALESFORCE_CLIENT_SECRET")
 
     DISABLE_INDEX_SAVE = False
 

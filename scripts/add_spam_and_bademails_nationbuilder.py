@@ -3,7 +3,7 @@ import django
 django.setup()
 import csv
 import json
-from sefaria.helper.nationbuilder import get_nationbuilder_connection
+from sefaria.helper.crm.nationbuilder import get_nationbuilder_connection
 
 session = get_nationbuilder_connection()
 BAD_EMAIL_LIST_ID = 1527

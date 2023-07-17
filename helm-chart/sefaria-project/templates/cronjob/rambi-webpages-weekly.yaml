@@ -15,7 +15,7 @@ spec:
         spec:
           containers:
           - name: rambi-update
-            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            image: "{{ .Values.linker.containerImage.imageRegistry }}:{{ .Values.linker.containerImage.tag }}"
             env:
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
@@ -23,6 +23,14 @@ spec:
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: ENABLE_LINKER
+              value: "True"
+            - name: DISABLE_AUTOCOMPLETER
+              value: "True"
+            - name: RAW_REF_MODEL_BY_LANG_FILEPATH
+              value: '{{ toJson .Values.linker.model_paths }}'
+            - name: RAW_REF_PART_MODEL_BY_LANG_FILEPATH
+              value: '{{ toJson .Values.linker.part_model_paths }}'
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
@@ -37,11 +45,19 @@ spec:
                 name: local-settings
                 subPath: local_settings.py
                 readOnly: true
+              - mountPath: /google-cloud-secret
+                name: backup-manager-secret
+                readOnly: true
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/parse_rambi_webpages.py"
+              "pip install pymarc==4.2.2 && /app/run /app/scripts/parse_rambi_webpages.py"
             ]
+            resources:
+              requests:
+                nvidia.com/gpu: 1
+              limits:
+                nvidia.com/gpu: 1
           restartPolicy: Never
           volumes:
           - name: local-settings
@@ -50,6 +66,9 @@ spec:
               items:
                 - key: local_settings.py
                   path: local_settings.py
+          - name: backup-manager-secret  # used to access google cloud
+            secret:
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}

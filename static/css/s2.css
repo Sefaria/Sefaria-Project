@@ -654,6 +654,7 @@ input.noselect {
 .mobileNavMenu a.blue {
   background-color: #18345D;
   color: white;
+  border-bottom: unset;
 }
 .mobileNavMenu a.blue img {
   filter: invert(1);
@@ -1405,7 +1406,6 @@ div.interfaceLinks-row a {
 .interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
 .interface-hebrew .readerPanel .textRange,
-.interface-hebrew .readerPanel .sheetContent,
 .interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
@@ -3535,7 +3535,7 @@ select {
 .bookPage .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
-.modTools .versionDownloadButton,
+.modTools .modtoolsButton,
 .bookPage .content .versionDownloadButton {
   width: 60%;
   margin: 10px auto;
@@ -3547,18 +3547,18 @@ select {
   color: #ccc;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.modTools .versionDownloadButton .downloadButtonInner,
+.modTools .modtoolsButton .modtoolsButtonInner,
 .bookPage .content .versionDownloadButton .downloadButtonInner {
     font-size: 16px;
     padding: 10px;
 }
-.modTools .versionDownloadButton .he,
+.modTools .modtoolsButton .he,
 .bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
     direction: rtl;
     text-align: right;
 }
-.modTools a .versionDownloadButton,
+.modTools a .modtoolsButton,
 .bookPage .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
@@ -3570,10 +3570,10 @@ select {
 .modTools .workflowy-tool .dlSectionTitle{
   width: unset;
 }
-.modTools .workflowy-tool .versionDownloadButton{
+.modTools .workflowy-tool .modtoolsButton{
   color: black;
 }
-.modTools .workflowy-tool .versionDownloadButton:hover{
+.modTools .workflowy-tool .modtoolsButton:hover{
   background-color: #999;
 }
 .modTools .workflowy-tool textarea {
@@ -5104,6 +5104,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
 .sheetContent .textPreviewSegment.highlight,
+.editTextInfo .textPreviewSegment.highlight,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight,
 .editorContent .sheetItem.highlight,
@@ -6845,132 +6846,20 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 20px;
   margin: 0 8px;
 }
-.connectionsPanel .chavruta #chavrutaURL {
-  background: #FBFBFA;
-  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
-  border-radius: 6px;
-  border: none;
-  width: calc(100% - 22px);
-  padding: 15px 11px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #666;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 16px;
-  line-height: 19px;
-}
-.connectionsPanel .chavruta .buttonContainer,
+
 .feedbackOverlay .buttonContainer {
   width: 100%;
   margin-top: 15px;
   text-align: center;
 }
-.connectionsPanel .chavruta .startChavrutaButton {
-  color: #fff;
-}
-.connectionsPanel .chavruta .startChavrutaButton img {
-  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(181deg) brightness(118%) contrast(111%);
-  margin-inline-end: 10px;
-}
-.connectionsPanel .chavruta .headerText {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 22px;
-  line-height: 26px;
-  padding-bottom: 13px;
-  color: #666666;
-  border-bottom: 1px solid #CCCCCC;
-}
-.connectionsPanel .chavruta p,
+
 .connectionsPanel .divineNameReplacer p {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   line-height: 19px;
   color: #666666;
 }
-.connectionsPanel .chavruta .fakeBrowser {
-  width: 100%;
-  margin: 30px auto 30px;
-}
-.fakeBrowser .fakeBrowserHeader {
-  background: #C4C4C4;
-  width: 100%;
-  height: 30px;
-  display: inline-flex;
-  border-radius: 3px 3px 0 0;
-}
-.fakeBrowser .fakeBrowserButtons {
-  padding: 7px;
-}
-.fakeBrowser .fakeBrowserButton {
-  width: 8px;
-  height: 8px;
-  border-radius: 8px;
-  display: inline-block;
-  margin: 0px 1px;
-}
-.fakeBrowserButton.red {
-  background: #E96E4C;
-}
-.fakeBrowserButton.yellow {
-  background: #E6A935;
-}
-.fakeBrowserButton.green {
-  background: #85C33D;
-}
 
-.fakeBrowser .fakeBrowserURLBar {
-  background: #fff;
-  flex: 1;
-  align-self: center;
-  margin-right: 10px;
-  text-align: center;
-  opacity: 0.85;
-  border-radius: 4px;
-  color: #9B9B9B;
-}
-.fakeBrowser .fakeBrowserMain {
-  width: 100%;
-  height: 190px;
-  background-color: #fff;
-  border-radius: 0 0 3px 0;
-}
-.fakeBrowser .fakeBrowserMain .fakeBrowserLeft {
-  padding: 10px;
-  background-color: #EDEDEC;
-  width: 85px;
-  display: inline-block;
-  border-radius: 0 0 0 3px;
-}
-.fakeBrowser .fakeBrowserMain .fakeBrowserRight {
-  padding: 0 10px;
-  background-color: #fff;
-  width: calc(100% - 127px);
-  display: inline-block;
-}
-.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr {
-  border: none;
-  margin-top: 8px;
-  border-top: 3px solid #ccc;
-}
-.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr:nth-child(4n+0) {
-  margin-bottom: 16px;
-  width: 80%;
-  margin-inline-start: 0;
-}
-.fakeBrowser .fakeBrowserButtonAvatar {
-  margin: 10px auto 5px;
-  width: 80%;
-  text-align: center;
-}
-.fakeBrowser .fakeBrowserButtonAvatar img {
-  width: 100%;
-}
-.fakeBrowser .fakeBrowserButtonAvatar .default-profile-img {
-  line-height: 68px;
-  background: #212E50;
-}
 .addConnectionBox {
   font-size: 18px;
   text-align: center;
@@ -7384,6 +7273,9 @@ a.button.mini {
 }
 a .button:hover {
   text-decoration: none;
+}
+.reactMarkdown a {
+  color: var(--commentary-blue);
 }
 .button.small {
   padding: 10px 14px;
@@ -8920,6 +8812,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #EEE;
   margin-bottom: 6px;
   color: #333;
+}
+.newsletterSignUpBox .educatorNewsletterInput {
+  padding: 10px;
+  -webkit-appearance: auto
 }
 .newsletterSignUpBox img {
   height: 18px;
@@ -10903,59 +10799,6 @@ body .homeFeedWrapper {
 body .homeFeedWrapper .content {
   padding: 0;
 }
-.homeFeedWrapper #homeCover {
-  height: 240px;
-  padding: 50px 0;
-  background-color: #ADA99B;
-  box-sizing: border-box;
-  text-align: center;
-  overflow: hidden;
-  position: relative;
-  left: -20px;
-  width: calc(100% + 20px);
-}
-.interface-hebrew .homeFeedWrapper #homeCover {
-  left: auto;
-}
-.homeFeedWrapper #homeVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  width: 100%;
-  min-width: 1200px;
-  z-index: 0;
-}
-.homeFeedWrapper #homeCover h1.featureTitle {
-  color: white;
-  margin-bottom: 20px;
-  position: relative;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en,
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  color: white;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-en {
-  font-size: 36px;
-}
-.homeFeedWrapper #homeCover h1.featureTitle .int-he {
-  font-size: 44px;
-}
-.homeFeedWrapper #homeCover .sub {
-  color: white;
-  font-size: 16px;
-  margin: 0;
-  position: relative;
-}
-.homeFeedWrapper #homeCover .sub a {
-  font-size: 16px;
-}
-.homeFeedWrapper #homeCover .sub .int-en {
-}
-.homeFeedWrapper #homeCover a {
-  color: white;
-  font-style: normal;
-  position: relative;
-}
 .columnLayout {
   display: flex;
   flex-direction: row;
@@ -11021,32 +10864,14 @@ body .homeFeedWrapper .content {
 .sideColumn .inlineButtonBox a .button {
   width: 100%;
 }
-.sideColumn #homeLearn .refLink {
-  display: block;
-  height: 56px;
-  line-height: 56px;
-  border-top: 4px solid;
-  color: #000;
-  font-size: 20px;
-}
-.sideColumn #homeLearn .refLink .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  text-transform: uppercase;
-}
+
 .sideColumn .button {
   letter-spacing: 0;
 }
 .sideColumn h2 {
   font-weight: 400;
 }
-.sideColumn .sideCatLink .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 22px;
-  font-weight: normal;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #333;
-}
+
 .sideColumn .newsletterInput {
   height: 53px;
 }
@@ -11077,39 +10902,7 @@ body .homeFeedWrapper .content {
 .interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
-.sideColumn #homeSocialButtons {
-  margin-top: 15px;
-}
-.sideColumn #homeSocialButtons .fa {
-  font-size: 18px;
-  color: white;
-  background-color: #aaa;
-  display: inline-block;
-  height: 30px;
-  width: 30px;
-  line-height: 30px;
-  text-align: center;
-  border-radius: 15px;
-  margin-right: 5px;
-}
-.interface-hebrew .sideColumn #homeSocialButtons .fa {
-  margin: 0 0 0 5px;
-}
-.sideColumn #homeSocialButtons .fa:hover {
-  text-decoration: none;
-  background-color: #999;
-}
-.sideColumn #homeFeedback {
-  background-color: #EDEDED;
-  margin: 0 -50px;
-  padding: 30px 50px;
-  position: -webkit-sticky; /* Safari */
-  position: sticky;
-  top: 0;
-}
-.sideColumn #homeFeedback .button {
-  margin-bottom: 10px;
-}
+
 .sideColumn .feedbackBoxOverlay.open {
   position: fixed;
   width: 100%;
@@ -11193,46 +10986,14 @@ body .homeFeedWrapper .content {
 .mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 2px;
 }
-.story.publishSheetStory .storyTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle {
-  padding-bottom: 10px;
-}
-.mainColumn .story .storySubTitle .int-en,
-.mainColumn .story .storySubTitle .int-he {
-  color: #666;
-}
-img.smallProfileImage {
-  height: 40px;
-  width: 40px;
-  margin: 0;
-  border-radius: 20px;
-}
-.mainColumn .story img.mediumProfileImage {
-  height: 64px;
-  width: 64px;
-  margin: 0;
-  border-radius: 32px;
-}
+
 .interface-english .mainColumn .story .storyTypeBlock {
   float: left;
 }
 .interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
-.interface-english .mainColumn .story .topTailBlock {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .topTailBlock {
-  float: left;
-}
-.interface-english .mainColumn .story .mediumProfileImage {
-  float: right;
-}
-.interface-hebrew .mainColumn .story .mediumProfileImage {
-  float: left;
-}
+
 .story .storyBody {
   clear: both;
   margin: 10px 0;
@@ -11283,13 +11044,6 @@ img.smallProfileImage {
 .story .citationLine.contentText .int-he {
   color: #999;
 }
-.story .authorText {
-  display: inline-block;
-  padding: 0 10px;
-  line-height: 22px;
-  width: 100%;
-  letter-spacing: 2px;
-}
 .authorByLine {
   display: flex;
 }
@@ -11325,20 +11079,6 @@ img.smallProfileImage {
 .storyBody a {
   text-decoration: underline;
 }
-.storyEditBar {
-  padding-bottom: 30px;
-}
-.storyEditorTag {
-  display: inline-block;
-  float: right;
-}
-.storyEditorTag.mustHave {
-  color: #66aa66;
-  padding: 0 10px;
-}
-.storyEditorTag.cantHave {
-  color: #aa6666;
-}
 .learnMoreLink a {
   text-decoration: none;
   color:  #999;
@@ -11352,7 +11092,6 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
-
 .editTextInfo {
   top: 0px;
   right: 0px;
@@ -11365,8 +11104,6 @@ body .homeFeedWrapper.userStats {
   background-color:  var(--lighter-grey);
 
 }
-
-
 .editTextInfo .static .inner {
   padding: 5px 0 100px;
 }
@@ -11412,6 +11149,9 @@ body .homeFeedWrapper.userStats {
   line-height: 18.75px;
   padding: 10px;
 }
+ .editTextInfo #newIndex .default::placeholder {
+   color: #666;
+ }
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
@@ -11527,8 +11267,16 @@ body .homeFeedWrapper.userStats {
   font-size: 16px;
   margin: 0 0 10px 0;
   max-width: 97%;
+  box-shadow: 0px 1px 3px rgba(0,0,0,0.2);
+  box-sizing: content-box;
+  border-radius: 7px;
+  background: white;
+  font-family: revert;
 }
-
+.editTextInfo #newIndex input::placeholder {
+  color: #666;
+  font-size: 16px;
+}
 .editTextInfo #newIndex #heTitle {
   direction: rtl;
 }
@@ -11562,10 +11310,9 @@ body .homeFeedWrapper.userStats {
 .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.editTextInfo #newIndex a {
+.editTextInfo #newIndex .headerWithButtons a {
     color: #666;
 }
-
 .editTextInfo .nodeTemplate {
 	display: none;
 }
@@ -12610,34 +12357,8 @@ span.ref-link-color-3 {color: blue}
   flex-grow: 1;
 }
 
-.chavrutaFooter {
-  font-size: 13px;
-  font-weight: 400;
-  color: #CCCCCC;
-  margin: 20px;
-}
-
-.beitMidrashHomeFooter {
-  font-size: 13px;
-  font-weight: 400;
-  color: #CCCCCC;
-  margin: 0 30px;
-}
-
-.beitMidrashHomeFooter p {
-  margin-top: 0;
-}
-
 .blockButton {
   cursor: pointer;
-}
-
-#openBeitMidrashButton {
-  transform: rotate(45deg);
-  margin-top: 20px;
-  height: 18px;
-  width: 18px;
-  margin-inline-start: 6px;
 }
 
 @-webkit-keyframes load5 {

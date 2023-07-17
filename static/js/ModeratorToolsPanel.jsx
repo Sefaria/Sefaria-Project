@@ -4,7 +4,9 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import Cookies from 'js-cookie';
-
+import { saveAs } from 'file-saver';
+import qs from 'qs';
+import { useState } from 'react';
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
@@ -95,8 +97,8 @@ class ModeratorToolsPanel extends Component {
   render () {
     // Bulk Download
     const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
-    const downloadButton = <div className="versionDownloadButton">
-        <div className="downloadButtonInner">
+    const downloadButton = <div className="modtoolsButton">
+        <div className="modtoolsButtonInner">
           <span className="int-en">Download</span>
           <span className="int-he">הורדה</span>
         </div>
@@ -127,7 +129,7 @@ class ModeratorToolsPanel extends Component {
 
     // Uploading
     const ulReady = (!this.state.uploading) && this.state.files.length > 0;
-    const uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
+    const uploadButton = <a><div className="modtoolsButton" onClick={this.uploadFiles}><div className="modtoolsButtonInner">
        <span className="int-en">Upload</span>
        <span className="int-he">העלאה</span>
       </div></div></a>;
@@ -148,8 +150,16 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <WorkflowyModeratorTool />
       </div>);
+    const uploadLinksFromCSV = (
+      <div className="modToolsSection">
+          <UploadLinksFromCSV />
+      </div>);
+    const getLinks = (
+      <div className="modToolsSection">
+          <GetLinks/>
+      </div>);
     return (Sefaria.is_moderator)?
-        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl} </div> :
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl}{uploadLinksFromCSV}{getLinks} </div> :
         <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
@@ -274,7 +284,7 @@ class WorkflowyModeratorTool extends Component{
                 value={this.state.term_scheme}
                 onChange={this.handleInputChange} />
             </label>
-             <button className="versionDownloadButton" name="wf-submit" type="submit">
+             <button className="modtoolsButton" name="wf-submit" type="submit">
                 <span className="int-en">Upload</span>
                 <span className="int-he">Upload</span>
              </button>
@@ -287,5 +297,232 @@ class WorkflowyModeratorTool extends Component{
   }
 }
 
+class UploadLinksFromCSV extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {projectName: ''};
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+  isSubmitDisabled() {
+      return !this.state.hasFile || !this.state.projectName.length;
+  }
+  handleChange(event) {
+    const target = event.target;
+    this.setState({[target.name]: target.value});
+  }
+  handleFileChange(event) {
+      this.setState({hasFile: !!event.target.files[0]});
+  }
+  handleSubmit(event) {
+    event.preventDefault();
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    const data = new FormData(event.target);
+    const request = new Request(
+        '/modtools/links',
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      body: data
+    }).then(response => {
+        if (!response.ok) {
+            response.text().then(resp_text => {
+                this.setState({uploading: false,
+                    uploadMessage: "",
+                    error: true,
+                    errorIsHTML: true,
+                    uploadResult: resp_text});
+            })
+        } else {
+            response.json().then(resp_json => {
+                this.setState({uploading: false,
+                    error: false,
+                    uploadMessage: resp_json.data.message,
+                    uploadResult: JSON.stringify(resp_json.data.index, undefined, 4)});
+                if (resp_json.data.errors) {
+                    let blob = new Blob([resp_json.data.errors], {type: "text/plain;charset=utf-8"});
+                    saveAs(blob, 'errors.csv');
+                }
+            });
+        }
+    }).catch(error => {
+        this.setState({uploading: false, error: true, errorIsHTML: false, uploadMessage:error.message});
+    });
+
+  }
+  getOptions() {
+      const options = ['Commentary', 'Quotation', 'Related', 'Mesorat hashas', 'Ein Mishpat', 'Reference'];
+      return options.map((option) => {
+          return <option value={option.toLowerCase()} key={option}>{option}</option>;
+      });
+  }
+
+  render() {
+    return (
+        <div className="uploadLinksFromCSV">
+            <div className="dlSectionTitle">Upload links</div>
+            <form id="upload-links-form" onSubmit={this.handleSubmit}>
+                <label>
+                    Upload file:
+                    <input type="file" name="csv_file"  onChange={this.handleFileChange} />
+                    <br />
+                    Choose a csv file with two columns. First row should include titles, and the others valid refs to link
+                    <br />
+                </label>
+                <label>
+                    Select links type:
+                    <select name="linkType" value={this.state.linkType} onChange={this.handleChange}>
+                        {this.getOptions()}
+                    </select>
+                </label>
+                <label>
+                    Project name
+                    <input
+                        name="projectName"
+                        type="text"
+                        value={this.state.generatedBy}
+                        onChange={this.handleChange}
+                    />
+                </label>
+                <input type="submit" value="Submit" disabled={this.isSubmitDisabled()} />
+            </form>
+            { this.state.uploadMessage && <div>{this.state.uploadMessage}</div> }
+            { (this.state.errorIsHTML) && <div dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> }
+        </div>
+    );
+  }
+}
+
+const InputRef = ({ id, value, handleChange, handleBlur, error }) => (
+  <label>
+    Ref{id}
+    <input
+      type="text"
+      name={`ref${id}`}
+      value={value}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      style={error ? { backgroundColor: "rgba(255, 0, 0, 0.5)" } : {}}
+      placeholder={id === 2 ? 'all library, limited to 15k links' : null}
+    />
+    <p role="alert" style={{ color: "rgb(255, 0, 0)" }}>{(error) ? "Not a valid ref" : ""}</p>
+  </label>
+);
+InputRef.propTypes = {
+  id: PropTypes.number.isRequired,
+  value: PropTypes.string.isRequired,
+  handleChange: PropTypes.func.isRequired,
+  handleBlur: PropTypes.func.isRequired,
+  error: PropTypes.bool,
+};
+
+const InputNonRef = ({ name, value, handleChange }) => (
+  <label>
+    {name.charAt(0).toUpperCase() + name.slice(1)}
+    <input
+      type="text"
+      name={name}
+      value={value}
+      onChange={handleChange}
+      placeholder="any"
+    />
+  </label>
+);
+InputNonRef.propTypes = {
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  handleChange: PropTypes.func.isRequired,
+};
+
+const DownloadButton = () => (
+  <div className="modtoolsButton">
+    <div className="modtoolsButtonInner">
+      Download
+    </div>
+  </div>
+);
+
+function GetLinks() {
+  const [refs, setRefs] = useState({ ref1: '', ref2: '' });
+  const [errors, setErrors] = useState({ref2: false});
+  const [type, setType] = useState('');
+  const [generatedBy, setGeneratedBy] = useState('');
+  const [bySegment, setBySegment] = useState(false)
+
+  const handleCheck = () => {
+    setBySegment(!bySegment)
+  }
+
+  const handleChange = async (event) => {
+    const { name, value } = event.target;
+    setRefs(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      if (!value) {
+          setErrors(prev => ({...prev, [name]: false}));
+      }
+      else {
+          try {
+              const response = await Sefaria.getName(value);
+              setErrors(prev => ({...prev, [name]: !response.is_ref}));
+          } catch (error) {
+              console.error(error);
+          }
+      }
+    }
+  }
+
+
+  const handleBlur = async (event) => {
+    const name = event.target.name;
+    if (refs[name]) {
+      try {
+        const response = await Sefaria.getName(refs[name]);
+        setErrors(prev => ({ ...prev, [name]: !response.is_ref }));
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+
+  const formReady = () => {
+    return refs.ref1 && errors.ref1 === false && errors.ref2 === false;
+  }
+
+  const linksDownloadLink = () => {
+    const queryParams = qs.stringify({ type: (type) ? type : null, generated_by: (generatedBy) ? generatedBy : null },
+        { addQueryPrefix: true, skipNulls: true });
+    const tool = (bySegment) ? 'index_links' : 'links';
+    return `modtools/${tool}/${refs.ref1}/${refs.ref2 || 'all'}${queryParams}`;
+  }
+
+  return (
+    <div className="getLinks">
+      <div className="dlSectionTitle">Download links</div>
+      <form id="download-links-form">
+        <fieldset>
+            <InputRef id={1} value={refs.ref1} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref1} />
+            <label>
+                <input
+                    type="checkbox"
+                    checked={bySegment}
+                    onChange={handleCheck}
+                />
+                iterate by segments (include empties)
+            </label>
+        </fieldset>
+        <br/>
+        <InputRef id={2} value={refs.ref2} handleChange={handleChange} handleBlur={handleBlur} error={errors.ref2} />
+        <br/>
+        <InputNonRef name='type' value={type} handleChange={(e) => setType(e.target.value)} />
+        <br/>
+        <InputNonRef name='generated_by' value={generatedBy} handleChange={(e) => setGeneratedBy(e.target.value)} />
+      </form>
+      {formReady() ? <a href={linksDownloadLink()} download><DownloadButton /></a> : <DownloadButton />}
+    </div>
+  );
+}
 
 export default ModeratorToolsPanel;

@@ -28,14 +28,10 @@ class SearchState {
     this.sortType              = sortType           || SearchState.metadataByType[type].sortType;
   }
 
-  _recreateRegistry(filters) {
-    let registry = {};
+  _recreateRegistry(filters, registry = {}) {
     for (let f of filters) {
-      registry = {
-        ...registry,
-        [f.aggKey]: f,
-        ...this._recreateRegistry(f.children),
-      };
+      registry[f.aggKey] = f;
+      registry = this._recreateRegistry(f.children, registry);
     }
     return registry;
   }
