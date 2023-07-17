@@ -25,4 +25,9 @@ test('Filter topics', async ({ context }) => {
  
 test('Toggle sources and sheets', async ({ context }) => {
   // fill in test
+  const page = await goToPageWithLang(context, '/topics');
+  await page.getByRole('link', { name: 'Holidays' }).click();
+  await page.getByRole('link', { name: 'Rosh Hashanah' }).click();
+  await page.waitForSelector('text=Loading...', { state: 'detached' });
+  await page.getByRole('link').filter({ hasText: /^Day of Atonement$/ }).isVisible();
 })
