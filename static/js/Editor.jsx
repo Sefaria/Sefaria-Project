@@ -461,6 +461,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
+    rawhtml = Sefaria.util.RefValidator._stripImgs(rawhtml);
     const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
@@ -1893,7 +1894,7 @@ const insertSource = (editor, ref) => {
     const nodeAbove = getNodeAbove(path, editor)
     const nodeBelow = getNodeBelow(path, editor)
 
-    Sefaria.getText(ref, {stripItags: 1, stripImgs: 1}).then(text => {
+    Sefaria.getText(ref, {stripItags: 1}).then(text => {
         const segments = Sefaria.makeSegments(text);
 
         let includeNumbers = $.inArray("Talmud", text.categories) == -1;

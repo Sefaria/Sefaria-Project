@@ -1,3 +1,5 @@
+import sanitizeHtml from "sanitize-html";
+
 var sjs = sjs || {};
 
 sjs.cache = {
@@ -1037,11 +1039,19 @@ sjs.textBrowser = {
 	},
 	previewText: function(ref) {
 		// Ask the API for text of ref, then build a preview
-		Sefaria.text(ref, {stripImgs: 1}, this.buildPreviewText);
+		Sefaria.text(ref, {}, this.buildPreviewText);
 	},
+	_stripImgs: function(s) {
+		return sanitizeHtml(s, {
+			allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'img'),
+			allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+		});
+  	},
 	buildPreviewText: function(data) {
 		function segmentString(he, en, section) {
 			if (!he && !en) { return ""; }
+			en = !!en ? this._stripImgs(en) : en;
+			he = !!he ? this._stripImgs(he) : he;
 			var sectionLabel = isCommentary ? section.split(":")[0] : section;
 			sectionLabel = sjs.interfaceLang == "he" ? Sefaria.hebrew.encodeHebrewNumeral(sectionLabel) : sectionLabel;
 			var html = "<div class='segment' data-section='" + section + "'>" +

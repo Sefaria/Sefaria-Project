@@ -536,7 +536,7 @@ $(function() {
 				loadSource(data, $target, option);
         		Sefaria.track.sheets("Reset Source", data.ref);
 			};
-			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0&stripImgs=1";
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
 		};
@@ -1119,7 +1119,7 @@ $(function() {
       var ref = $("#addInterface").prev(".source").attr("data-ref");
       $("#connectionsToAdd").text(_("Looking up Connections..."));
 
-      $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0&stripImgs=1", function(data) {
+      $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
         sjs.alert.clear();
         if ("error" in data) {
           $("#connectionsToAdd").text(data.error)
@@ -1597,7 +1597,7 @@ $(function() {
 				loadSource(data, $target, option);
         		Sefaria.track.sheets("Reset Source", data.ref);
 			};
-			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0&stripImgs=1";
+			var getStr = "/api/texts/" + normRef($target.attr("data-ref")) + "?commentary=0&context=0&pad=0";
 			$.getJSON(getStr, loadClosure);
 			sjs.openRequests += 1;
 		};
@@ -1940,7 +1940,7 @@ $(function() {
 
 		sjs.alert.saving("Looking up Connections...");
 
-		$.getJSON("/api/texts/" + ref + "?context=0&pad=0&stripImgs=1", function(data) {
+		$.getJSON("/api/texts/" + ref + "?context=0&pad=0", function(data) {
 			sjs.alert.clear();
 			if ("error" in data) {
 				sjs.alert.message(data.error)
@@ -2309,7 +2309,7 @@ function addSource(q, source, appendOrInsert, $target) {
 	var loadClosure = function(data) {
 		loadSource(data, $target);
 	};
-	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0&stripImgs=1";
+	var getStr = "/api/texts/" + makeRef(q) + "?commentary=0&context=0&pad=0";
 	$.getJSON(getStr, loadClosure);
 	sjs.openRequests += 1;
 
@@ -2331,6 +2331,7 @@ function addSource(q, source, appendOrInsert, $target) {
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
 
+	s[lang] = Sefaria.util.RefValidator._stripImgs(s[lang]);
     var numStr = "";
     if (includeNumbers) {
         var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;

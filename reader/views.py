@@ -1405,7 +1405,6 @@ def texts_api(request, tref):
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
         wrapNamedEntities = bool(int(request.GET.get("wrapNamedEntities", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
-        stripImgs = bool(int(request.GET.get("stripImgs", False)))
         multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
         translationLanguagePreference = request.GET.get("transLangPref", None)  # as opposed to vlangPref, this refers to the actual lang of the text
         fallbackOnDefaultVersion = bool(int(request.GET.get("fallbackOnDefaultVersion", False)))
@@ -1416,7 +1415,7 @@ def texts_api(request, tref):
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags, wrapNamedEntities=wrapNamedEntities,
                                       translationLanguagePreference=translationLanguagePreference,
-                                      fallbackOnDefaultVersion=fallbackOnDefaultVersion, stripImgs=stripImgs)
+                                      fallbackOnDefaultVersion=fallbackOnDefaultVersion)
             try:
                 text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:

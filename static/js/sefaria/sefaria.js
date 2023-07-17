@@ -400,7 +400,6 @@ Sefaria = extend(Sefaria, {
   _complete_text_settings: function(s = null) {
     let settings = s || {};
     settings = {
-      stripImgs: settings.stripImgs   || 0,
       commentary: settings.commentary || 0,
       context:    settings.context    || 0,
       pad:        settings.pad        || 0,
@@ -680,7 +679,6 @@ Sefaria = extend(Sefaria, {
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
-      stripImgs:  settings.stripImgs,
       commentary: settings.commentary,
       context:    settings.context,
       pad:        settings.pad,

@@ -108,44 +108,24 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const VersionContent = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null, textImageLoadCallback}) => {
+const VersionContent = (props) => {
+  const renderedItems = ContentTextFilterByLang({...props});
 
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
-  const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-  const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable);
-
+  const languageToFilter = renderedItems.length === 2 ? 'bilingual' : renderedItems[0][0];
   function isImage(textChunk) {
-      const pattern = /<img\b[^>]*>/i
-      const isImageTag = pattern.test(textChunk)
-      return isImageTag
+      const pattern = /<img\b[^>]*>/i;
+      const isImageTag = pattern.test(textChunk);
+      return isImageTag;
   }
-
-  if(languageToFilter === "bilingual"){
-    if(bilingualOrder !== null){
-      //nifty function that sorts one array according to the order of a second array.
-      renderedItems.sort(function(a, b){
-        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
-      });
-    }
-  }else{
-    renderedItems = renderedItems.filter(([lang, _])=>{
-      return lang === langShort;
-    });
-  }
-
-  return renderedItems.map((x) => {
-      if (isImage(x[1])){
-        return(<VersionImage renderedItem={x} languageToFilter={languageToFilter} textImageLoadCallback={textImageLoadCallback}/>)
+  return renderedItems.map((item) => {
+      if (isImage(item[1])){
+        return(<VersionImage renderedItem={item} languageToFilter={languageToFilter} textImageLoadCallback={props.textImageLoadCallback}/>)
       }
-
-      return (<VersionText renderedItem={x} isDangerouslySetInnerHTML={isDangerouslySetInnerHTML}/>)
+      return (<ContentSpan item={item} isDangerouslySetInnerHTML={!!props.html}/>)
   })
 }
 
 const VersionImage = ({renderedItem, languageToFilter, textImageLoadCallback}) => {
-
     function getImageAttribute(imgTag, attribute) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(imgTag, 'text/html');
@@ -165,29 +145,27 @@ const VersionImage = ({renderedItem, languageToFilter, textImageLoadCallback}) =
     return(<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}>{renderedItem[1]}</span>)
 };
 
-const VersionText = ({renderedItem, isDangerouslySetInnerHTML}) => {
-     if (isDangerouslySetInnerHTML) {
-    return (<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]} dangerouslySetInnerHTML={{ __html: renderedItem[1] }}/>);
-  } else {
-    return (<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}> {renderedItem[1]}</span>)
-    }
-};
+const getContentLang = (defaultToInterfaceOnBilingual=false, overrideLanguage="english") => {
+  /* overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
+  const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0,2);
+  return [languageToFilter, langShort];
+}
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
+const ContentTextFilterByLang = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
-   * Renders content language throughout the site (content that comes from the database and is not interface language)
-   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * Gets the active content language from Context and returns only the appropriate child(ren) for given language
    * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
    * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
    * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
    * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
+   * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
-  const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-  const langShort = languageToFilter.slice(0,2);
+  const contentVariable  = html ? html : text;
+  const [languageToFilter, langShort] = getContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
   let renderedItems = Object.entries(contentVariable);
   if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){
@@ -201,14 +179,21 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
       return lang === langShort;
     });
   }
-  return renderedItems.map( x =>
-      isDangerouslySetInnerHTML ?
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
-          :
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
-  );
+  return renderedItems;
+}
+
+const ContentText = (props) => {
+  /* Renders content language throughout the site (content that comes from the database and is not interface language) */
+  const renderedItems = ContentTextFilterByLang({...props});
+  return renderedItems.map(renderItem => <ContentSpan item={renderItem} isDangerouslySetInnerHTML={!!props.html}/>);
 };
 
+const ContentSpan = ({item, isDangerouslySetInnerHTML}) => {
+  return isDangerouslySetInnerHTML ?
+          <span className={`contentSpan ${item[0]}`} lang={item[0]} key={item[0]} dangerouslySetInnerHTML={{__html: item[1]}}/>
+          :
+          <span className={`contentSpan ${item[0]}`} lang={item[0]} key={item[0]}>{item[1]}</span>;
+}
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -2950,7 +2935,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
 
   const generatePreviewText = (ref) => {
-        Sefaria.getText(ref, {context:1, stripItags: 1, stripImgs: 1}).then(text => {
+        Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
            const segments = Sefaria.makeSegments(text, true);
            const previewHTML =  segments.map((segment, i) => {
             {
