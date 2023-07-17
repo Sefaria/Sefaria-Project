@@ -65,4 +65,7 @@ test('Bookmark page', async ({ context }) => {
 
 test('Share link', async ({ context }) => {
   // fill in test
+  const page = await goToPageWithUser(context, '/Numbers.36.6?lang=he&with=all&lang2=he');
+  await page.getByText('זֶ֣ה הַדָּבָ֞ר אֲשֶׁר־צִוָּ֣ה יְהֹוָ֗ה לִבְנ֤וֹת צְלׇפְחָד֙ לֵאמֹ֔ר לַטּ֥וֹב בְּעֵינֵיהֶ֖ם תִּהְיֶ֣ינָה לְנָשִׁ֑ים אַ֗ךְ לְמִשְׁפַּ֛חַת מַטֵּ֥ה אֲבִיהֶ֖ם תִּהְיֶ֥ינָה לְנָשִֽׁים׃').click();
+  
 });
