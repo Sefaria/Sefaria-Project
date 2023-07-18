@@ -19,7 +19,7 @@ def is_sustainer(row):
         return False
 
 
-def find_matching_and_update(row):
+def find_matching_and_update(row, dry_run):
     """
     takes a row, updates info on side and returns the row to write
     """
@@ -30,8 +30,11 @@ def find_matching_and_update(row):
         if profile.email == row['Sefaria App Email']:
             row['email matches'] = True
         try:
-            row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
-            CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
+            if dry_run:
+                row['updated'] = "dry_run"
+            else:
+                row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
+                CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
         except:
             row['updated'] = False
     else:
@@ -43,8 +46,11 @@ def find_matching_and_update(row):
             return row
         else:
             row['email matches'] = True
-            row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
-            CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
+            if dry_run:
+                row['updated'] = "dry_run"
+            else:
+                row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
+                CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
     return row
 
 
@@ -53,10 +59,10 @@ if __name__ == '__main__':
         prog="ResolveCrmUsers",
         description="Resolves CRM Users to add Sefaria app user ids (salesforce) based on Nationbuilder ID or Email"
     )
-    parser.add_argument("-d", "--dry-run", action='store_false',
+    parser.add_argument("-d", "--dry-run", action='store_true',
                         help="produce output file without actually updating any profiles")
 
-    parser.add_argument("-f", "--file", action='store_const', const='',
+    parser.add_argument("-f", "--file", nargs=1,
                         help='csv file from Salesforce with relevant information')
 
     args = parser.parse_args()
@@ -69,6 +75,6 @@ if __name__ == '__main__':
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for index, row_r in enumerate(csv_reader):
-            row_w = find_matching_and_update(row_r)
+            row_w = find_matching_and_update(row_r, args.dry_run)
             csv_writer.writerow(row_r)
 # print sefaria app emails that don't have
