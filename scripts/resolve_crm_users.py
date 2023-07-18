@@ -9,6 +9,16 @@ import argparse
 import csv
 
 
+def is_sustainer(row):
+    sustainer_status = row['Contact: Sustainer']
+    if sustainer_status == "Active":
+        return True
+    elif sustainer_status == "Former": # maybe we will change this later
+        return False
+    else:
+        return False
+
+
 def find_matching_and_update(row):
     """
     takes a row, updates info on side and returns the row to write
@@ -21,6 +31,7 @@ def find_matching_and_update(row):
             row['email matches'] = True
         try:
             row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
+            CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
         except:
             row['updated'] = False
     else:
@@ -33,6 +44,7 @@ def find_matching_and_update(row):
         else:
             row['email matches'] = True
             row['updated'] = CrmInfoStore.save_crm_id(row['Sefaria App User: ID'], profile.email, "SALESFORCE", profile)
+            CrmInfoStore.mark_sustainer(profile, is_sustainer(row))
     return row
 
 
@@ -56,7 +68,7 @@ if __name__ == '__main__':
                       "Contact: Sustainer", "nb_id matches", "email matches", "updated"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
-        for index, row in enumerate(csv_reader):
-            row_w = find_matching_and_update(row)
-            csv_writer.writerow(row)
+        for index, row_r in enumerate(csv_reader):
+            row_w = find_matching_and_update(row_r)
+            csv_writer.writerow(row_r)
 # print sefaria app emails that don't have
