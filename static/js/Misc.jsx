@@ -1400,11 +1400,15 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
+const gtagClick = (e, onClick=()=>{}, comp_name, params) => {
+  gtag("event", `onclick_${comp_name}`, params)
+  onClick(e)
+}
 
 const ToolTipped = ({ altText, classes, style, onClick, children }) => (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={onClick}
+    style={style} onClick={e => gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`})}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
