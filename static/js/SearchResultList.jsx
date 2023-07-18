@@ -104,7 +104,7 @@ class SearchResultList extends Component {
           //console.log("Loaded cached query for")
           //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
-          this.state.totals[t] = cachedQuery.hits.total;
+          this.state.totals[t] = cachedQuery.hits.total.value;
           this.state.pagesLoaded[t] += 1;
           args.start = this.state.pagesLoaded[t] * this.querySize[t];
           if (t === "text") {
@@ -326,9 +326,9 @@ class SearchResultList extends Component {
               if (this.state.pagesLoaded[type] === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 let state = {
                   hits: extend(this.state.hits, {[type]: data.hits.hits}),
-                  totals: extend(this.state.totals, {[type]: data.hits.total}),
+                  totals: extend(this.state.totals, {[type]: data.hits.total.value}),
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
-                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
+                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total.value > this.querySize[type]})
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -336,7 +336,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total);
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total.value);
               }
 
               if (data.aggregations) {
