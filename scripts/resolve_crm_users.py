@@ -1,7 +1,13 @@
+import django
+
+django.setup()
 from sefaria.system.database import db
 from sefaria.model.user_profile import UserProfile
 from sefaria.helper.crm.crm_info_store import CrmInfoStore
+from datetime import date
 import argparse
+import csv
+
 
 def find_matching_and_update(row):
     """
@@ -30,9 +36,6 @@ def find_matching_and_update(row):
     return row
 
 
-with open(""):
-    pass
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog="ResolveCrmUsers",
@@ -46,4 +49,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    with open(args.file, "r") as sf_inf, \
+            open(f'{date.today().strftime("%Y_%m_%d")}_resolve_crm_{args.file}') as outf:
+        csv_reader = csv.DictReader(sf_inf, delimiter=',')
+        fieldnames = ["Contact: NationBuilder Id", "Contact: Contact ID", "Contact: First Name", "Sefaria App Email",
+                      "Contact: Sustainer", "nb_id matches", "email matches", "updated"]
+        csv_writer = csv.DictWriter(outf, fieldnames)
+        csv_writer.writeheader()
+        for index, row in enumerate(csv_reader):
+            row_w = find_matching_and_update(row)
+            csv_writer.writerow(row)
 # print sefaria app emails that don't have
