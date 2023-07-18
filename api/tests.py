@@ -3,7 +3,7 @@ import django
 django.setup()
 from reader.tests import SefariaTestCase
 import json
-from api.helper import split_at_pipe_with_default
+from api.helper import split_query_param_and_add_defaults
 
 
 class HelperTests(SefariaTestCase):
@@ -17,7 +17,7 @@ class HelperTests(SefariaTestCase):
             ('he|foo bar', 3, ['baz'], ['he', 'foo bar', 'baz']),
             ('he', 3, ['foo', 'baz'], ['he', 'foo', 'baz']),
         ]:
-            self.assertEqual(expected, split_at_pipe_with_default(string, list_length, default))
+            self.assertEqual(expected, split_query_param_and_add_defaults(string, list_length, default))
 
 
 c = Client()

@@ -3,7 +3,7 @@ django.setup()
 from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from .api_errors import *
-from .helper import split_at_pipe_with_default
+from .helper import split_query_param_and_add_defaults
 from typing import List
 
 class APITextsHandler():
@@ -69,7 +69,7 @@ class APITextsHandler():
     def _handle_version_params(self, version_params: str) -> None:
         if version_params in self.handled_version_params:
             return
-        lang, vtitle = split_at_pipe_with_default(version_params, 2, [''])
+        lang, vtitle = split_query_param_and_add_defaults(version_params, 2, [''])
         vtitle = vtitle.replace('_', ' ')
         self._append_required_versions(lang, vtitle)
         self.handled_version_params.append(version_params)
