@@ -12,6 +12,7 @@ import {ContentLanguageContext, AdContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {Editor} from "slate";
+import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
@@ -107,93 +108,6 @@ InterfaceText.propTypes = {
   context: PropTypes.string,
   className: PropTypes.string
 };
-
-const VersionContent = (props) => {
-  const renderedItems = ContentTextFilterByLang({...props});
-
-  const languageToFilter = renderedItems.length === 2 ? 'bilingual' : renderedItems[0][0];
-  function isImage(textChunk) {
-      const pattern = /<img\b[^>]*>/i;
-      const isImageTag = pattern.test(textChunk);
-      return isImageTag;
-  }
-  return renderedItems.map((item) => {
-      if (isImage(item[1])){
-        return(<VersionImage renderedItem={item} languageToFilter={languageToFilter} textImageLoadCallback={props.textImageLoadCallback}/>)
-      }
-      return (<ContentSpan item={item} isDangerouslySetInnerHTML={!!props.html}/>)
-  })
-}
-
-const VersionImage = ({renderedItem, languageToFilter, textImageLoadCallback}) => {
-    function getImageAttribute(imgTag, attribute) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(imgTag, 'text/html');
-      const imgElement = doc.querySelector('img');
-
-      if (imgElement) {
-        return imgElement.getAttribute(attribute);
-      }
-
-      return null;
-    }
-    const altText = getImageAttribute(renderedItem[1], 'alt');
-    const srcText = getImageAttribute(renderedItem[1], 'src');
-    renderedItem[1] = (<div className="image-in-text">{<img onLoad={textImageLoadCallback} src={srcText} alt={altText}/>}<p className="image-in-text-title">{altText}</p></div>);
-    if (renderedItem[0] === 'he' && languageToFilter === "bilingual") {renderedItem[1] = ''}
-
-    return(<span className={`contentSpan ${renderedItem[0]}`} lang={renderedItem[0]} key={renderedItem[0]}>{renderedItem[1]}</span>)
-};
-
-const getContentLang = (defaultToInterfaceOnBilingual=false, overrideLanguage="english") => {
-  /* overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
-  const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-  const langShort = languageToFilter.slice(0,2);
-  return [languageToFilter, langShort];
-}
-
-const ContentTextFilterByLang = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
-  /**
-   * Gets the active content language from Context and returns only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
-   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
-   */
-  const contentVariable  = html ? html : text;
-  const [languageToFilter, langShort] = getContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
-  let renderedItems = Object.entries(contentVariable);
-  if(languageToFilter === "bilingual"){
-    if(bilingualOrder !== null){
-      //nifty function that sorts one array according to the order of a second array.
-      renderedItems.sort(function(a, b){
-        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
-      });
-    }
-  }else{
-    renderedItems = renderedItems.filter(([lang, _])=>{
-      return lang === langShort;
-    });
-  }
-  return renderedItems;
-}
-
-const ContentText = (props) => {
-  /* Renders content language throughout the site (content that comes from the database and is not interface language) */
-  const renderedItems = ContentTextFilterByLang({...props});
-  return renderedItems.map(renderItem => <ContentSpan item={renderItem} isDangerouslySetInnerHTML={!!props.html}/>);
-};
-
-const ContentSpan = ({item, isDangerouslySetInnerHTML}) => {
-  return isDangerouslySetInnerHTML ?
-          <span className={`contentSpan ${item[0]}`} lang={item[0]} key={item[0]} dangerouslySetInnerHTML={{__html: item[1]}}/>
-          :
-          <span className={`contentSpan ${item[0]}`} lang={item[0]} key={item[0]}>{item[1]}</span>;
-}
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -3036,7 +2950,6 @@ export {
   InterruptingMessage,
   InterfaceText,
   ContentText,
-  VersionContent,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,

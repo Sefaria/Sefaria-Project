@@ -9,6 +9,8 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import {useContext} from "react";
+import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
@@ -2775,6 +2777,14 @@ _media: {},
     */
     const lang = Sefaria.interfaceLang.slice(0,2);
     return langOptions[lang] ? langOptions[lang] : "";
+  },
+  getContentLang: function(defaultToInterfaceOnBilingual, overrideLanguage){
+      /* overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+       * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
+      const contentLanguage = useContext(ContentLanguageContext);
+      const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+      const langShort = languageToFilter.slice(0,2);
+      return [languageToFilter, langShort];
   },
   _r: function (inputRef) {
     const oref = Sefaria.getRefFromCache(inputRef);
