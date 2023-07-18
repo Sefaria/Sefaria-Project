@@ -36,8 +36,7 @@ class TopicSearch extends Component {
         topics.push({title: this.props.createNewTopicStr+word, key: ""})
         return topics;
      };
-    const completion_objects = await Sefaria._cachedApiPromise({url: Sefaria.apiHost + "/api/topic/completion/" + word, key: word,
-                              store: Sefaria._topicCompletions, processor: callback});
+    const completion_objects = await Sefaria.getTopicCompletions(word, callback);
     results.currentSuggestions = completion_objects
         .map(suggestion => ({
           name: suggestion.title,

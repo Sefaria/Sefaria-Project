@@ -38,8 +38,8 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -298,17 +298,8 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response, add_webpage_hit_for_url
-
-    with_text = bool(int(request.GET.get("with_text", False)))
-    debug = bool(int(request.GET.get("debug", False)))
-    max_segments = int(request.GET.get("max_segments", 0))
-    post_body = json.loads(request.body)
-
-    response = make_find_refs_response(post_body, with_text, debug, max_segments)
-    add_webpage_hit_for_url(post_body.get("metaDataForTracking", {}).get("url", None))
-
-    return jsonResponse(response)
+    from sefaria.helper.linker import make_find_refs_response
+    return jsonResponse(make_find_refs_response(request))
 
 
 @api_view(["GET"])
@@ -953,6 +944,33 @@ def profile_spam_dashboard(request):
             "type": "profile",
         })
 
+@staff_member_required
+def delete_user_by_email(request):
+    from django.contrib.auth.models import User
+    from sefaria.utils.user import delete_user_account
+    if request.method == 'GET':
+        form = SefariaDeleteUserForm()
+        return render_template(request, "registration/delete_user_account.html", None, {'form': form, 'next': next})
+    elif request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        try:
+            if not user.check_password(password):
+                return jsonResponse({"failure": "incorrect password"})
+        except:
+            return jsonResponse({"failure": "incorrect password"})
+        try:
+            id_to_delete = UserProfile(email=email)
+            if delete_user_account(id_to_delete.id, False):
+                return jsonResponse({"success": f"deleted user {email}"})
+            else:
+                return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+        except:
+            return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+
+
+
 
 def purge_spammer_account_data(spammer_id, delete_from_crm=True):
     from django.contrib.auth.models import User
@@ -1259,9 +1277,9 @@ def links_upload_api(request):
         return HttpResponseBadRequest(e)
     return jsonResponse({"status": "ok", "data": res})
 
-def get_csv_links_by_refs_api(request, tref1, tref2):
+def get_csv_links_by_refs_api(request, tref1, tref2, by_segment=False):
     try:
-        file = get_csv_links_by_refs([tref1, tref2], **{k: v for k, v in request.GET.items()})
+        file = get_csv_links_by_refs([tref1, tref2], by_segment=by_segment, **{k: v for k, v in request.GET.items()})
     except Exception as e:
         return HttpResponseBadRequest(e)
     response = HttpResponse(file, content_type="text/csv; charset=utf-8")
