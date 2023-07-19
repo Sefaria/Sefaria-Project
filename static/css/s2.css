@@ -7296,8 +7296,18 @@ a .button:hover {
   background-color: var(--lighter-grey);
   white-space: nowrap;
 }
+.adminButtons .button.extraSmall.topic.top {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.adminButtons .button.extraSmall.topic.bottom {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-bottom: 1px solid var(--light-grey);
+}
 .adminButtons .button.extraSmall.topic {
   box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  border-radius: revert;
   color: #666666;
 }
 .headerWithAdminButtons {
@@ -7311,10 +7321,10 @@ a .button:hover {
 .adminButtons {
   display: flex;
   flex-direction: column;
-  margin-left: 240px;
   width: 147px;
   position: absolute;
   height: 90px;
+  padding: 0 20px 0 20px;
 }
 
 .button .buttonIcon {
@@ -11155,6 +11165,7 @@ body .homeFeedWrapper.userStats {
 .button.small.deleteTopic {
   color: var(--dark-grey);
   float: right;
+  margin-top: 30px;
   background-color: var(--lightest-grey);
 }
 .button.small.addTopic {
@@ -11694,6 +11705,7 @@ a.topicLexiconTitle.contentText {
 .headerWithButtons h1,
 .static .headerWithButtons h1 {
   margin: 0;
+  text-transform: capitalize;
 }
 .headerWithButtons .start,
 .headerWithButtons .end {
