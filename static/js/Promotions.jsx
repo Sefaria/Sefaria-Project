@@ -16,7 +16,7 @@ const Promotions = ({ adType, rerender }) => {
       console.log("we got some data");
       console.log(JSON.stringify(strapi.strapiData, null, 2));
 
-      const sidebarAds = strapi.strapiData.sidebarAds.data;
+      const sidebarAds = strapi.strapiData?.sidebarAds?.data;
 
       if (sidebarAds) {
         sidebarAds.forEach((sidebarAd) => {
