@@ -5,13 +5,13 @@ django.setup()
 from sefaria.model import NotificationSet
 
 def purge_messages():
-    count = 0
     ns = NotificationSet({'type': 'message'})
     print(f"There are {len(ns)} messages in the database which are about to be purged")
-    for message in ns:
-        message.delete()
-        count += 1
-    print(f"Purged {count} messages from the database")
+    ns.delete(bulk_delete=True)
+
+    ns = NotificationSet({'type': 'message'})
+    if ns.count() == 0:
+        print(f"Purged all messages from the database")
 
 if __name__ == '__main__':
     purge_messages()
