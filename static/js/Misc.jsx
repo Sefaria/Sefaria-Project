@@ -1,24 +1,22 @@
 //const React      = require('react');
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import ReactDOM  from 'react-dom';
-import $  from './sefaria/sefariaJquery';
-import { CollectionsModal } from "./CollectionsWidget";
-import Sefaria  from './sefaria/sefaria';
-import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
+import ReactDOM from 'react-dom';
+import $ from './sefaria/sefariaJquery';
+import {CollectionsModal} from "./CollectionsWidget";
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component from 'react-class';
-import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext} from './context';
+import {usePaginatedDisplay} from './Hooks';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import {Editor} from "slate";
 import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
-import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import ReactMarkdown from 'react-markdown';
@@ -2926,6 +2924,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     </div>
     )
 }
+
 export {
   CategoryHeader,
   SimpleInterfaceBlock,
@@ -2949,7 +2948,6 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
-  ContentText,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,

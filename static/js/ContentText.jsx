@@ -1,13 +1,20 @@
 import React from "react";
-import Sefaria from "./sefaria/sefaria";
+import {useContentLang} from './Hooks';
 
 const ContentText = (props) => {
-  /* Renders content language throughout the site (content that comes from the database and is not interface language).
-  `html` is present
-  * See filterContentTextByLang for documentation */
-  const langAndContentItems = filterContentTextByLang(props);
-  return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html}/>);
+   /* Renders content language throughout the site (content that comes from the database and is not interface language).
+   * Gets the active content language from Context and returns only the appropriate child(ren) for given language
+   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
+   * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
+   */
+   const langAndContentItems = _filterContentTextByLang(props);
+   return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html}/>);
 };
+
 
 const VersionContent = (props) => {
   /* Used to render content of Versions.
@@ -15,8 +22,8 @@ const VersionContent = (props) => {
   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
   * See filterContentTextByLang for more documentation */
-  const langAndContentItems = filterContentTextByLang(props);
-  const [languageToFilter, _] = Sefaria.getContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
+  const langAndContentItems = _filterContentTextByLang(props);
+  const [languageToFilter, _] = useContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
   function isImage(textChunk) {
       const pattern = /<img\b[^>]*>/i;
       return pattern.test(textChunk);
@@ -24,9 +31,9 @@ const VersionContent = (props) => {
   return langAndContentItems.map((item) => {
       const [lang, content] = item;
       if (isImage(content)){
-        return(<VersionImageSpan lang={lang} content={content} languageToFilter imageLoadCallback={props.imageLoadCallback}/>);
+        return(<VersionImageSpan lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
       }
-      return (<ContentSpan lang={lang} content={content}  isHTML={true}/>);
+      return (<ContentSpan lang={lang} content={content} isHTML={true}/>);
   })
 }
 
@@ -50,18 +57,12 @@ const VersionImageSpan = ({lang, content, languageToFilter, imageLoadCallback}) 
     return(<span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>)
 };
 
-const filterContentTextByLang = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
+const _filterContentTextByLang = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
-   * Gets the active content language from Context and returns only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
-   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
+   See ContentText for documentation
    */
   const contentVariable  = html ? html : text;
-  const [languageToFilter, langShort] = Sefaria.getContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
+  const [languageToFilter, langShort] = useContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
   let langAndContentItems = Object.entries(contentVariable);
   if(languageToFilter === "bilingual"){
     if(bilingualOrder !== null){

@@ -9,11 +9,12 @@ import {
   ResponsiveNBox,
   TabView,
   InterfaceText,
-  ContentText, EnglishText, HebrewText, LanguageToggleButton,
+  EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
   CategoryChooser,
   TitleVariants
 } from './Misc';
+import {ContentText} from "./ContentText";
 import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
@@ -29,6 +30,7 @@ import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
+
 import ReactTags from 'react-tag-autocomplete';
 
 

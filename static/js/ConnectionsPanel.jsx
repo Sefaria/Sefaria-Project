@@ -10,9 +10,9 @@ import {
   FeedbackBox,
   ProfilePic,
   DivineNameReplacer,
-  ToolTipped, InterfaceText, ContentText, EnglishText, HebrewText,
+  ToolTipped, InterfaceText, EnglishText, HebrewText,
 } from './Misc';
-
+import {ContentText} from "./ContentText";
 import {
   MediaList
 } from './Media';

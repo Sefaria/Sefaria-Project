@@ -8,7 +8,6 @@ import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import {
   CategoryColorLine,
-  ContentText,
   DropdownModal,
   DropdownButton,
   DropdownOptionList,
@@ -22,6 +21,7 @@ import {
   TabView,
   TwoOrThreeBox,
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 class CollectionPage extends Component {

@@ -8,9 +8,10 @@ import {
     SimpleContentBlock,
     SimpleLinkedBlock,
     ProfileListing,
-    ContentText, InterfaceText,
+    InterfaceText,
     CategoryHeader,
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 // Much of Stories was removed November 2022.
 // It remains because some of the Components are re-used in other areas of the site.
