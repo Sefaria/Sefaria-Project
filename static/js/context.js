@@ -53,6 +53,16 @@ function StrapiDataProvider({ children }) {
                 buttonURL
                 createdAt
                 locale
+                localizations {
+                  data {
+                    attributes {
+                      locale
+                      buttonText
+                      buttonURL
+                      bannerText
+                    }
+                  }
+                }
                 publishedAt
                 shouldDeployOnMobile
                 showToNewVisitors
@@ -77,6 +87,16 @@ function StrapiDataProvider({ children }) {
                 buttonURL
                 createdAt
                 locale
+                localizations {
+                  data {
+                    attributes {
+                      locale
+                      buttonText
+                      buttonURL
+                      modalText
+                    }
+                  }
+                }
                 modalEndDate
                 modalStartDate
                 modalText
