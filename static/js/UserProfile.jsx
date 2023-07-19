@@ -12,7 +12,6 @@ import {
   SheetListing,
   ProfileListing,
   ProfilePic,
-  MessageModal,
   FollowButton,
   InterfaceText,
 } from './Misc';
@@ -51,7 +50,6 @@ class UserProfile extends Component {
       tabs,
     };
   }
-  _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
   getCollections() {
     return Sefaria.getUserCollections(this.props.profile.id);
@@ -328,11 +326,6 @@ class UserProfile extends Component {
       </div>
     );
   }
-  message(e) {
-    e.preventDefault();
-    if (!Sefaria._uid) { this.props.toggleSignUpModal(SignUpModalKind.Follow); return; }
-    this._messageModalRef.makeVisible();
-  }
   follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
@@ -355,7 +348,6 @@ class UserProfile extends Component {
               <div>
                 <ProfileSummary
                   profile={this.props.profile}
-                  message={this.message}
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
@@ -442,7 +434,6 @@ class UserProfile extends Component {
                 </TabView>
             </div>
             }
-            <MessageModal uid={this.props.profile.id} name={this.props.profile.full_name} ref={this._getMessageModalRef} />
           </div>
           <Footer />
         </div>
