@@ -65,6 +65,7 @@ class Header extends Component {
             <LoggedInButtons headerMode={this.props.headerMode}/>
             : <LoggedOutButtons headerMode={this.props.headerMode}/>
           }
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
           { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <InterfaceLanguageMenu
                 currentLang={Sefaria.interfaceLang}
@@ -416,7 +417,6 @@ const LoggedOutButtons = ({mobile, loginOnly}) => {
          {mobile ? <img src="/static/icons/register.svg" /> : null }
          <InterfaceText>Sign up</InterfaceText>
       </a> }
-      { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
     </div>
   );
 }
@@ -436,7 +436,6 @@ const LoggedInButtons = ({headerMode}) => {
       <a href="/texts/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" />
       </a>
-      { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
         <img src="/static/icons/notification.svg" />
       </a>
