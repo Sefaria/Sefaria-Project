@@ -1,5 +1,6 @@
 import React from "react";
 import {useContentLang} from './Hooks';
+import Sefaria from './sefaria/sefaria';
 
 const ContentText = (props) => {
    /* Renders content language throughout the site (content that comes from the database and is not interface language).
@@ -15,7 +16,6 @@ const ContentText = (props) => {
    return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html}/>);
 };
 
-
 const VersionContent = (props) => {
   /* Used to render content of Versions.
   * imageLoadCallback is called to update segment numbers placement
@@ -24,13 +24,9 @@ const VersionContent = (props) => {
   * See filterContentTextByLang for more documentation */
   const langAndContentItems = _filterContentTextByLang(props);
   const [languageToFilter, _] = useContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
-  function isImage(textChunk) {
-      const pattern = /<img\b[^>]*>/i;
-      return pattern.test(textChunk);
-  }
   return langAndContentItems.map((item) => {
       const [lang, content] = item;
-      if (isImage(content)){
+      if (Sefaria.isImage(content)){
         return(<VersionImageSpan lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
       }
       return (<ContentSpan lang={lang} content={content} isHTML={true}/>);

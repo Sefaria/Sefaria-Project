@@ -1004,6 +1004,10 @@ Sefaria = extend(Sefaria, {
             }, error);
     });
   },
+  isImage: function(textChunk) {
+    const pattern = /<img\b[^>]*>/i;
+    return pattern.test(textChunk);
+  },
   getRefFromCache: function(ref) {
     if (!ref) return null;
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
