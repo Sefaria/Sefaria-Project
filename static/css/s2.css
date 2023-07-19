@@ -746,6 +746,12 @@ input.noselect {
   margin-inline-start: 23px;
   margin-top: 2px;
 }
+.loggedIn .help { 
+  margin-inline-start: 17px;
+}
+.loggedIn .help img {
+  height: 24px;
+}
 .accountLinks.anon .help {
   margin-top: 6px;
 }

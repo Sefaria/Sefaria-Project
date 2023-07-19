@@ -432,7 +432,7 @@ const LoggedInButtons = ({headerMode}) => {
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({notifications: 1, unread: unread});
   return (
-    <div className="accountLinks">
+    <div className="loggedIn accountLinks">
       <a href="/texts/saved" aria-label="See My Saved Texts">
         <img src="/static/icons/bookmarks.svg" />
       </a>
