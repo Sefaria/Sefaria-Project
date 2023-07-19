@@ -26,12 +26,13 @@ import {
 import {
   SignUpModal,
   InterruptingMessage,
+  Banner,
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
-import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
+// import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
@@ -204,14 +205,13 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
-    // Initialize entries for first-time visitors to determine if they are new or returning
-    if (!("isNewVisitor" in localStorage) && !("isReturningVisitor" in localStorage)) {
+    // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
+    if (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage)) {
       sessionStorage.setItem("isNewVisitor", "true");
-      // Setting these at this time will make the current new visitor a returning one once their session is cleared
-      localStorage.setItem("isNewVisitor", "false");
+      // Setting this at this time will make the current new visitor a returning one once their session is cleared
       localStorage.setItem("isReturningVisitor", "true"); 
     } else if (Sefaria._uid) {
-      localStorage.setItem("isNewVisitor", "false");
+      // A logged in user is automatically a returning visitor
       sessionStorage.setItem("isNewVisitor", "false");
       localStorage.setItem("isReturningVisitor", "true");
     }
@@ -1867,8 +1867,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   handleCopyEvent(e) {
     // Custom processing of Copy/Paste
-    if (e.srcElement.tagName === "INPUT") {
-      // If the selection is from an input tag, don't do anything special
+    const tagsToIgnore = ["INPUT", "TEXTAREA"];
+    if (tagsToIgnore.includes(e.srcElement.tagName)) {
+      // If the selection is from an input or textarea tag, don't do anything special
       return
     }
     const selection = document.getSelection()
@@ -2186,6 +2187,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         modalContentKind={this.state.modalContentKind}
       />
     );
+
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
@@ -2212,28 +2214,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 //    const { interruptingMessageModal } = useContext(StrapiDataContext);
 
     return (
-          <StrapiDataProvider>
-            <AdContext.Provider value={this.getUserContext()}>
-              <div id="readerAppWrap">
-                <InterruptingMessage
-                  messageName={Sefaria.interruptingMessage.name}
-                  messageHTML={Sefaria.interruptingMessage.html}
-                  style={Sefaria.interruptingMessage.style}
-                  repetition={Sefaria.interruptingMessage.repetition}
-                  // onClose={this.rerender} 
-                  />
-                <div className={classes} onClick={this.handleInAppLinkClick}>
-                  {header}
-                  {panels}
-                  {sefariaModal}
-                  {communityPagePreviewControls}
-                  {beitMidrashPanel}
-                  <CookiesNotification />
-                  {/* <ExampleComponent /> */}
-                </div>
-              </div>
-            </AdContext.Provider>
-          </StrapiDataProvider>
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            {/* <Banner onClose={this.setContainerMode} /> */}
+            <Banner />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {sefariaModal}
+              {communityPagePreviewControls}
+              {beitMidrashPanel}
+              <CookiesNotification />
+              {/* <ExampleComponent /> */}
+            </div>
+          </div>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }

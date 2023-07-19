@@ -72,6 +72,7 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
         }
     }
     const save = () => {
+        setSavingStatus(true);
         let postCategoryData = {};
         if (type === "books") {
             // use displayOptions to map toc objects to titles of category/book

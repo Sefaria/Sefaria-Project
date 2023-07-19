@@ -20,6 +20,7 @@ import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
+import ReactMarkdown from 'react-markdown';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -58,7 +59,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -67,11 +68,12 @@ const InterfaceText = ({text, html, children, context}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentVariable = html ?
+                          html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
@@ -88,10 +90,10 @@ const InterfaceText = ({text, html, children, context}) => {
     }
   }
   return (
-    isDangerouslySetInnerHTML ?
+    html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-      :
-      <span className={elemclasses}>{textResponse}</span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+                    : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -1101,14 +1103,14 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader = ({children, type, data = [], edit = true,
-                          add_subcategory = true, reorder = false,
-                          add_source = false}) => {
+const CategoryHeader =  ({children, type, data = [], edit = true,
+                            add_subcategory = true, reorder = false,
+                            add_source = false}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'books' or 'topics'
   `data` is list when `type` === 'books' which tells us where we are in the TOC tree,
-        for `type` === 'topics' it's a string with value of topic slug
+        for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
@@ -1119,8 +1121,6 @@ const CategoryHeader = ({children, type, data = [], edit = true,
 
   const adminClasses = classNames({adminButtons: 1, hiddenButtons});
   let adminButtonsSpan = null;
-  const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(data));
-
   if (Sefaria.is_moderator && editCategory) {
     if (data.length === 0) {  // at /texts or /topics
       const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
@@ -1144,29 +1144,21 @@ const CategoryHeader = ({children, type, data = [], edit = true,
       };
       adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
     } else if (type === "topics") {
-      if (!topicData) {
-        Sefaria.getTopic(data).then(d => {
-          setTopicData(d);
-        })
-      } else {
-        const initCatSlug = TopicToCategorySlug(topicData);
-        const origData = {
-          origSlug: topicData.slug, origCategorySlug: initCatSlug,
-          origEn: topicData.primaryTitle.en, origHe: topicData.primaryTitle.he || ""
-        };
-        origData.origDesc = topicData.description || {"en": "", "he": ""};
-        origData.origCategoryDesc = topicData.categoryDescription || {"en": "", "he": ""};
-        const origWasCat = "displays-above" in topicData?.links;
-        adminButtonsSpan = <TopicEditor origData={origData}
-                                        origWasCat={origWasCat}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                        close={toggleEditCategory}/>;
-      }
-
+      const initCatSlug = TopicToCategorySlug(data);
+      const origData = {
+        origSlug: data.slug, origCategorySlug: initCatSlug,
+        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
+      };
+      origData.origDesc = data.description || {"en": "", "he": ""};
+      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
+      const origWasCat = "displays-above" in data?.links;
+      adminButtonsSpan = <TopicEditor origData={origData}
+                                      origWasCat={origWasCat}
+                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
+                                      close={toggleEditCategory}/>;
     }
   } else if (Sefaria.is_moderator && addSource && type === "topics") {
-    adminButtonsSpan = <SourceEditor topic={data} close={toggleAddSource}/>;
-
+    adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
   } else if (Sefaria.is_moderator && addCategory) {
     const origData = {origEn: ""};
     if (type === "books") {
@@ -1177,29 +1169,24 @@ const CategoryHeader = ({children, type, data = [], edit = true,
                                       onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
     }
   } else if (Sefaria.is_moderator && reorderCategory) {
-    if (!topicData) {
-        Sefaria.getTopic(data).then(d => {
-          setTopicData(d);
-        })
-    } else {
-      let url = `/api/source/reorder?topic=${topicData.slug}&lang=${Sefaria.interfaceLang}`;
-      let refs = topicData.refs?.about?.refs || [];
-      if (refs.length) {
-        refs = refs.filter((x) => !x.ref.startsWith('Sheet ')).slice(0, Sefaria._topicPageSize);
-        refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b]));
-      }
-      adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
-                                        postURL={url}
-                                        type={'sources'}
-                                        origItems={refs}
-                                        redirect={`/topics/${topicData.slug}`}/>;
-    }
+    const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
+    let refs = data.refs?.about?.refs || [];
+    // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+    refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+    // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+    refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
+    adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
+                                      postURL={url}
+                                      type={'sources'}
+                                      origItems={refs}
+                                      redirect={`/topics/${data.slug}`}/>;
   } else if (Sefaria.is_moderator) {
     adminButtonsSpan = <span className={adminClasses}>
-                              { add_subcategory && <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
-                              { add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
-                              { edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
-                              { reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
+                              {add_subcategory &&
+                              <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
+      {add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
+      {edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
+      {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
                       </span>;
 
   }
@@ -2055,111 +2042,6 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-
-// class InterruptingMessage extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.displayName = 'InterruptingMessage';
-//     this.state = {
-//       timesUp: false,
-//       animationStarted: false
-//     };
-//     this.settings = {
-//       "modal": {
-//         "trackingName": "Interrupting Message",
-//         "showDelay": 10000,
-//       },
-//       "banner": {
-//         "trackingName": "Banner Message",
-//         "showDelay": 1,
-//       }
-//     }[this.props.style];
-//   }
-//   componentDidMount() {
-//     if (this.shouldShow()) {
-//       this.delayedShow();
-//     }
-//   }
-//   shouldShow() {
-//     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-//     return excludedPaths.indexOf(window.location.pathname) === -1;
-//   }
-//   delayedShow() {
-//     setTimeout(function() {
-//       this.setState({timesUp: true});
-//       $("#interruptingMessage .button").click(this.close);
-//       $("#interruptingMessage .trackedAction").click(this.trackAction);
-//       this.showAorB();
-//       this.animateOpen();
-//     }.bind(this), this.settings.showDelay);
-//   }
-//   animateOpen() {
-//     setTimeout(function() {
-//       if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
-//       this.setState({animationStarted: true});
-//       this.trackOpen();
-//     }.bind(this), 50);
-//   }
-//   showAorB() {
-//     // Allow random A/B testing if items are tagged ".optionA", ".optionB"
-//     const $message = $(ReactDOM.findDOMNode(this));
-//     if ($message.find(".optionA").length) {
-//       console.log("rand show")
-//       Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
-//     }
-//   }
-//   close() {
-//     this.markAsRead();
-//     this.props.onClose();
-// //   if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
-//   }
-//   trackOpen() {
-//     Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
-//   }
-//   trackAction() {
-//     Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
-//   }
-//   markAsRead() {
-//     Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-//     var cookieName = this.props.messageName + "_" + this.props.repetition;
-//     $.cookie(cookieName, true, { path: "/", expires: 14 });
-//     Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
-//     Sefaria.interruptingMessage = null;
-//   }
-//   render() {
-//     if (!this.state.timesUp) { return null; }
-
-//     if (this.props.style === "banner") {
-//       return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
-//                 <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-//                 <div id="bannerMessageClose" onClick={this.close}>×</div>
-//               </div>;
-
-//     } else if (this.props.style === "modal") {
-//       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-//           <div id="interruptingMessageOverlay"></div>
-//           <div id="interruptingMessage">
-//             <div className="colorLine"></div>
-//             <div id="interruptingMessageContentBox" className="hasColorLine">
-//               <div id="interruptingMessageClose" onClick={this.close}>×</div>
-//               <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-//               {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.strapi.interruptingMessageModal ? interruptingMessageModal.modalText : null } }></div> */}
-//               <div className="colorLine"></div>
-//             </div>
-//           </div>
-//         </div>;
-//     }
-//     return null;
-//   }
-// }
-// InterruptingMessage.propTypes = {
-//   messageName: PropTypes.string.isRequired,
-//   messageHTML: PropTypes.string.isRequired,
-//   style:       PropTypes.string.isRequired,
-//   repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
-//   onClose:     PropTypes.func.isRequired
-// };
-
 // Write comments explaining how this works
 function OnInView({ children, onVisible }) {
   const elementRef = useRef();
@@ -2189,13 +2071,12 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
-// let isNewVisitor = JSON.parse(localStorage.getItem("isNewVisitor"));
+// User could be new visitor when there isn't anything in sessionStorage either...
+// Maybe don't check if it's in there or have extra conditional
 function isNewVisitor() {
   return (
-    ("isNewVisitor" in sessionStorage &&
-      JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
-    ("isNewVisitor" in localStorage &&
-      JSON.parse(localStorage.getItem("isNewVisitor")))
+    "isNewVisitor" in sessionStorage &&
+    JSON.parse(sessionStorage.getItem("isNewVisitor"))
   );
 }
 
@@ -2208,10 +2089,6 @@ function isReturningVisitor() {
 }
 
 const InterruptingMessage = ({
-  messageName,
-  messageHTML,
-  style,
-  repetition,
   onClose,
 }) => {
   const [timesUp, setTimesUp] = useState(false);
@@ -2237,7 +2114,7 @@ const InterruptingMessage = ({
   const trackModalImpression = () => {
     console.log("We've got visibility!");
     gtag("event", "modal_viewed", {
-      campaignID: strapi.interruptingMessageModal.internalModalName,
+      campaignID: strapi.modal.internalModalName,
       adType: "modal",
     });
   };
@@ -2246,34 +2123,36 @@ const InterruptingMessage = ({
   // Use user context to determine whether this is valid for a user?
   // Maybe user context should be used to find if there's a compatible modal
   const shouldShow = () => {
-    if (!strapi.interruptingMessageModal) return false;
+    console.log("checking whether to show modal or not");
+    if (!strapi.modal) return false;
     if (
       hasModalBeenInteractedWith(
-        strapi.interruptingMessageModal.internalModalName
+        strapi.modal.internalModalName
       )
     )
       return false;
+    console.log('lets check a modal');
 
     let shouldShowModal = false;
 
     let noUserKindIsSet = ![
-      strapi.interruptingMessageModal.showToReturningVisitors,
-      strapi.interruptingMessageModal.showToNewVisitors,
-      strapi.interruptingMessageModal.showToSustainers,
-      strapi.interruptingMessageModal.showToNonSustainers,
+      strapi.modal.showToReturningVisitors,
+      strapi.modal.showToNewVisitors,
+      strapi.modal.showToSustainers,
+      strapi.modal.showToNonSustainers,
     ].some((p) => p);
     if (
       Sefaria._uid &&
       ((Sefaria.is_sustainer &&
-        strapi.interruptingMessageModal.showToSustainers) ||
+        strapi.modal.showToSustainers) ||
         (!Sefaria.is_sustainer &&
-          strapi.interruptingMessageModal.showToNonSustainers))
+          strapi.modal.showToNonSustainers))
     )
       shouldShowModal = true;
     else if (
       (isReturningVisitor() &&
-        strapi.interruptingMessageModal.showToReturningVisitors) ||
-      (isNewVisitor() && strapi.interruptingMessageModal.showToNewVisitors)
+        strapi.modal.showToReturningVisitors) ||
+      (isNewVisitor() && strapi.modal.showToNewVisitors)
     )
       shouldShowModal = true;
     else if (noUserKindIsSet) shouldShowModal = true;
@@ -2287,11 +2166,11 @@ const InterruptingMessage = ({
     if (onClose) onClose();
     console.log(eventDescription);
     markModalAsHasBeenInteractedWith(
-      strapi.interruptingMessageModal.internalModalName
+      strapi.modal.internalModalName
     );
     setHasInteractedWithModal(true);
     trackModalInteraction(
-      strapi.interruptingMessageModal.internalModalName,
+      strapi.modal.internalModalName,
       eventDescription
     );
   };
@@ -2303,11 +2182,11 @@ const InterruptingMessage = ({
       }, showDelay);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }, [strapi.interruptingMessageModal]); // execute useEffect when the modal changes
+  }, [strapi.modal]); // execute useEffect when the modal changes
 
   if (!timesUp) return null;
   console.log("data for the component");
-  console.log(strapi.interruptingMessageModal);
+  console.log(strapi.modal);
 
   if (!hasInteractedWithModal) {
     console.log("rendering component");
@@ -2326,7 +2205,7 @@ const InterruptingMessage = ({
               >
                 ×
               </div>
-              {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.interruptingMessageModal ? strapi.interruptingMessageModal.modalText : null } }></div> */}
+              {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.modal ? strapi.modal.modalText : null } }></div> */}
               <div id="interruptingMessageContent">
                 <style>
                   {`#highHolidayDonation {
@@ -2394,20 +2273,20 @@ const InterruptingMessage = ({
                 <div id="highHolidayDonation">
                   <p>
                     <span className="int-en">
-                      {strapi.interruptingMessageModal.modalText}
+                      {strapi.modal.modalText}
                     </span>
                   </p>
                   <div className="buttons">
                     <a
                       className="button int-en"
                       target="_blank"
-                      href={strapi.interruptingMessageModal.buttonURL}
+                      href={strapi.modal.buttonURL}
                       onClick={() => {
                         closeModal("donate_button_clicked");
                       }}
                     >
                       <span className="int-en">
-                        {strapi.interruptingMessageModal.buttonText}
+                        {strapi.modal.buttonText}
                       </span>
                     </a>
                   </div>
@@ -2424,6 +2303,443 @@ const InterruptingMessage = ({
   }
 };
 InterruptingMessage.displayName = "InterruptingMessage";
+
+const Banner = ({ onClose }) => {
+  const [timesUp, setTimesUp] = useState(false);
+  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+  const showDelay = 5000;
+
+  const markBannerAsHasBeenInteractedWith = (bannerName) => {
+    sessionStorage.setItem("banner_" + bannerName, "true");
+  };
+
+  const hasBannerBeenInteractedWith = (bannerName) => {
+    return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+  };
+
+  const trackBannerInteraction = (bannerName, eventDescription) => {
+    gtag("event", "banner_interacted_with_" + eventDescription, {
+      campaignID: bannerName,
+      adType: "banner",
+    });
+  };
+
+  const trackBannerImpression = () => {
+    console.log("We've got visibility!");
+    gtag("event", "banner_viewed", {
+      campaignID: strapi.banner.internalBannerName,
+      adType: "banner",
+    });
+  };
+
+  const shouldShow = () => {
+    console.log("checking whether to show banner or not");
+    if (!strapi.banner) return false;
+    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+      return false;
+
+    let shouldShowBanner = false;
+
+    let noUserKindIsSet = ![
+      strapi.banner.showToReturningVisitors,
+      strapi.banner.showToNewVisitors,
+      strapi.banner.showToSustainers,
+      strapi.banner.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+    )
+      shouldShowBanner = true;
+    else if (
+      (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (isNewVisitor() && strapi.banner.showToNewVisitors)
+    )
+      shouldShowBanner = true;
+    else if (noUserKindIsSet) shouldShowBanner = true;
+    if (!shouldShowBanner) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeBanner = (eventDescription) => {
+    if (onClose) onClose();
+    console.log(eventDescription);
+    markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+    setHasInteractedWithBanner(true);
+    trackBannerInteraction(
+      strapi.banner.internalBannerName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+      console.log("reaching here...");
+
+      const timeoutId = setTimeout(() => {
+        // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+        if (document.getElementById("s2").classList.contains("headerOnly")) {
+          document.body.classList.add("hasBannerMessage");
+        }
+        setTimesUp(true);
+      }, showDelay);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+    }
+  }, [strapi.banner]); // execute useEffect when the modal changes
+
+  if (!timesUp) return null;
+  console.log("data for the component");
+  console.log(strapi.banner);
+
+  if (!hasInteractedWithBanner) {
+    console.log("rendering component");
+    return (
+      <OnInView onVisible={trackBannerImpression}>
+        <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
+          <div id="bannerMessageContent">
+            <div id="bannerTextBox">
+              <span className="int-en">{strapi.banner.bannerText}</span>
+              <span className="int-he">
+                ספריית ספריא מנגישה יותר מ-300 מיליון מלים של טקסטים יהודיים
+                ברחבי העולם. לכבוד שבועות, אנא תמכו היום בספריה שמסייעת ללימוד
+                שלכם על-ידי קבלת מעמד של ידידי ספריא.
+              </span>
+            </div>
+            <div id="bannerButtonBox">
+              <a
+                className="button white int-en"
+                href={strapi.banner.buttonURL}
+              >
+                <span>{strapi.banner.buttonText}</span>
+              </a>
+              <a
+                className="button white int-he"
+                href="https://sefaria.nationbuilder.com/sustainers_e"
+              >
+                <span>לתרומה חודשית</span>
+              </a>
+            </div>
+          </div>
+          <div id="bannerMessageClose">×</div>
+          <div id="bannerMessageClose" onClick={closeBanner}>
+            ×
+          </div>
+        </div>
+      </OnInView>
+    );
+  } else {
+    return null;
+  }
+};
+
+Banner.displayName = "Banner";
+
+// const useInterruptingComponent = (componentKind, showDelay, onClose, nameId) => {
+//   const [timesUp, setTimesUp] = useState(false);
+//   const [hasComponentBeenInteractedWith, setComponentHasBeenInteractedWith] = useState(false);
+//   const strapi = useContext(StrapiDataContext);
+
+//   const markComponentAsHasBeenInteractedWith = (name) => {
+//     sessionStorage.setItem(componentKind + "_" + name, "true");
+//   }
+
+//   const hasBeenInteractedWith = (name) => {
+//     return JSON.parse(sessionStorage.getItem(componentKind + "_" + name));
+//   }
+
+//   const trackInteraction = (name, eventDescription) => {
+//     gtag("event", componentKind + "_interacted_with_" + eventDescription, {
+//       campaignID: name,
+//       adType: componentKind,
+//     });
+//   }
+
+//   const trackImpression = (name) => {
+//     console.log("We've got visibility!");
+//     gtag("event", componentKind + "_viewed", {
+//       campaignID: name,
+//       adType: componentKind,
+//     });
+//   }
+
+//   const closeComponent = (eventDescription) => {
+//     if (onClose) onClose();
+//     markComponentAsHasBeenInteractedWith(strapiData[nameId]);
+//     setComponentHasBeenInteractedWith(true);
+//     trackInteraction(strapiData[nameId], eventDescription);
+//   }
+
+//   useEffect(() => {
+//     if (shouldShow()) {
+//       const timeoutId = setTimeout(() => {
+//         setTimesUp(true);
+//       }, showDelay);
+//       return () => clearTimeout(timeoutId);
+//     }
+//   }, [strapi[componentKind]]);
+
+//   return {timesUp, hasComponentBeenInteractedWith, closeComponent, trackImpression, strapiData: strapi[componentKind]};
+// };
+
+// const InterruptingMessage = ({ onClose }) => {
+//   const { timesUp, hasComponentBeenInteractedWith, closeComponent, trackImpression, strapiData } = useInterruptingComponent('modal', 5000, onClose, 'internalModalName');
+
+//   if (!timesUp) return null;
+
+//   if (!hasBeenInteractedWith) {
+//     if (!hasInteractedWithModal) {
+//       console.log("rendering component");
+//       return (
+//         <OnInView onVisible={trackModalImpression}>
+//           <div id="interruptingMessageBox" className={timesUp ? "" : "hidden"}>
+//             <div id="interruptingMessageOverlay"></div>
+//             <div id="interruptingMessage">
+//               <div className="colorLine"></div>
+//               <div id="interruptingMessageContentBox" className="hasColorLine">
+//                 <div
+//                   id="interruptingMessageClose"
+//                   onClick={() => {
+//                     closeModal("close_clicked");
+//                   }}
+//                 >
+//                   ×
+//                 </div>
+//                 {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.modal ? strapi.modal.modalText : null } }></div> */}
+//                 <div id="interruptingMessageContent">
+//                   <style>
+//                     {`#highHolidayDonation {
+//                         width: 410px;
+//                         max-height: 100%;
+//                         max-width: 100%;
+//                     }
+//                     .interface-english #highHolidayDonation {
+//                         text-align: left;
+//                     }
+//                     .interface-hebrew #highHolidayDonation {
+//                         text-align: right;
+//                         direction: rtl;
+//                     }
+//                     #highHolidayDonation p {
+//                         color: #555;
+//                     }
+//                     .interface-hebrew p.int-en {
+//                         display: none;
+//                     }
+//                     #highHolidayDonation p .int-en {
+//                         font-family: "adobe-garamond-pro", Georgia, serif;
+//                     }
+//                     #highHolidayDonation p .int-he {
+//                         font-family: "adobe-garamond-pro", Georgia, serif;
+//                         /* font-family: "Heebo", sans-serif; */
+//                     }
+//                     #highHolidayDonation p.sub {
+//                         color: #999;
+//                         font-size: 12px;
+//                         font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+//                     }
+//                     #highHolidayDonation p {
+//                         margin-top: 0;
+//                     }
+//                     #highHolidayDonation .button {
+//                         margin-bottom: 20px;
+//                     }
+//                     #highHolidayDonation img {
+//                         max-width: 100%;
+//                     }
+//                     #highHolidayDonation .buttons{
+//                         text-align: right;
+//                     }
+//                     .leader {
+//                         font-weight: bold;
+//                     }
+//                     .center{
+//                         text-align: center;
+//                     }
+//                     #email-input-wrapper {
+//                         display: flex;
+//                         align-items: flex-start;
+//                         flex-direction: column;
+//                     }
+//                     .newsletterInput#email-input {
+//                         width: 300px;
+//                         padding: 10px;
+//                         margin-bottom: 20px;
+//                         border-radius: 7px;
+//                         border: 1px solid #EEE;
+//                         color: #333;
+//                     }`}
+//                   </style>
+//                   <div id="highHolidayDonation">
+//                     <p>
+//                       <span className="int-en">
+//                         {strapi.modal.modalText}
+//                       </span>
+//                     </p>
+//                     <div className="buttons">
+//                       <a
+//                         className="button int-en"
+//                         target="_blank"
+//                         href={strapi.modal.buttonURL}
+//                         onClick={() => {
+//                           closeModal("donate_button_clicked");
+//                         }}
+//                       >
+//                         <span className="int-en">
+//                           {strapi.modal.buttonText}
+//                         </span>
+//                       </a>
+//                     </div>
+//                   </div>
+//                 </div>
+//                 <div className="colorLine"></div>
+//               </div>
+//             </div>
+//           </div>
+//         </OnInView>
+//       );
+//     } else {
+//       return null;
+//     }
+//   }
+// };
+
+
+
+// const InterruptingComponent = ({ componentKind, componentName, showDelay, beforeShowingUp, onClose }) => {
+//   const [timesUp, setTimesUp] = useState(false);
+//   const [hasInteractedWithComponent, setHasInteractedWithComponent] = useState(false);
+//   const strapi = useContext(StrapiDataContext);
+
+//   const markComponentAsHasBeenInteractedWith = (componentName) => {
+//     sessionStorage.setItem(componentKind + "_" + componentName, "true");
+//   };
+
+//   const hasComponentBeenInteractedWith = (bannerName) => {
+//     return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+//   };
+
+//   const trackBannerInteraction = (bannerName, eventDescription) => {
+//     gtag("event", "banner_interacted_with_" + eventDescription, {
+//       campaignID: bannerName,
+//       adType: "banner",
+//     });
+//   };
+
+//   const trackBannerImpression = () => {
+//     console.log("We've got visibility!");
+//     gtag("event", "banner_viewed", {
+//       campaignID: strapi.banner.internalBannerName,
+//       adType: "banner",
+//     });
+//   };
+
+//   const shouldShow = () => {
+//     console.log("checking whether to show banner or not");
+//     if (!strapi.banner) return false;
+//     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+//       return false;
+
+//     let shouldShowBanner = false;
+
+//     let noUserKindIsSet = ![
+//       strapi.banner.showToReturningVisitors,
+//       strapi.banner.showToNewVisitors,
+//       strapi.banner.showToSustainers,
+//       strapi.banner.showToNonSustainers,
+//     ].some((p) => p);
+//     if (
+//       Sefaria._uid &&
+//       ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+//         (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+//     )
+//       shouldShowBanner = true;
+//     else if (
+//       (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+//       (isNewVisitor() && strapi.banner.showToNewVisitors)
+//     )
+//       shouldShowBanner = true;
+//     else if (noUserKindIsSet) shouldShowBanner = true;
+//     if (!shouldShowBanner) return false;
+
+//     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+//     return excludedPaths.indexOf(window.location.pathname) === -1;
+//   };
+
+//   const closeBanner = (eventDescription) => {
+//     if (onClose) onClose();
+//     console.log(eventDescription);
+//     markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+//     setHasInteractedWithBanner(true);
+//     trackBannerInteraction(
+//       strapi.banner.internalBannerName,
+//       eventDescription
+//     );
+//   };
+
+//   useEffect(() => {
+//     if (shouldShow()) {
+//       console.log("reaching here...");
+
+//       const timeoutId = setTimeout(() => {
+//         // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+//         if (document.getElementById("s2").classList.contains("headerOnly")) {
+//           document.body.classList.add("hasBannerMessage");
+//         }
+//         setTimesUp(true);
+//       }, showDelay);
+//       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+//     }
+//   }, [strapi.banner]); // execute useEffect when the modal changes
+
+//   if (!timesUp) return null;
+//   console.log("data for the component");
+//   console.log(strapi.banner);
+
+//   if (!hasInteractedWithBanner) {
+//     console.log("rendering component");
+//     return (
+//       <OnInView onVisible={trackBannerImpression}>
+//         <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
+//           <div id="bannerMessageContent">
+//             <div id="bannerTextBox">
+//               <span className="int-en">{strapi.banner.bannerText}</span>
+//               <span className="int-he">
+//                 ספריית ספריא מנגישה יותר מ-300 מיליון מלים של טקסטים יהודיים
+//                 ברחבי העולם. לכבוד שבועות, אנא תמכו היום בספריה שמסייעת ללימוד
+//                 שלכם על-ידי קבלת מעמד של ידידי ספריא.
+//               </span>
+//             </div>
+//             <div id="bannerButtonBox">
+//               <a
+//                 className="button white int-en"
+//                 href={strapi.banner.buttonURL}
+//               >
+//                 <span>{strapi.banner.buttonText}</span>
+//               </a>
+//               <a
+//                 className="button white int-he"
+//                 href="https://sefaria.nationbuilder.com/sustainers_e"
+//               >
+//                 <span>לתרומה חודשית</span>
+//               </a>
+//             </div>
+//           </div>
+//           <div id="bannerMessageClose">×</div>
+//           <div id="bannerMessageClose" onClick={closeBanner}>
+//             ×
+//           </div>
+//         </div>
+//       </OnInView>
+//     );
+//   } else {
+//     return null;
+//   }
+// };
+
 
 // InterruptingMessage.propTypes = {
 //   messageName: PropTypes.string.isRequired,
@@ -3271,6 +3587,7 @@ export {
   FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
+  Banner,
   InterfaceText,
   ContentText,
   EnglishText,

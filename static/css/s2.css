@@ -1406,7 +1406,6 @@ div.interfaceLinks-row a {
 .interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
 .interface-hebrew .readerPanel .textRange,
-.interface-hebrew .readerPanel .sheetContent,
 .interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
@@ -7387,6 +7386,9 @@ a.button.mini {
 a .button:hover {
   text-decoration: none;
 }
+.reactMarkdown a {
+  color: var(--commentary-blue);
+}
 .button.small {
   padding: 10px 14px;
   width: -moz-fit-content;
@@ -11420,10 +11422,9 @@ body .homeFeedWrapper.userStats {
 .editTextInfo #newIndex .sectionType .remove {
 	margin: -5px 11px 0 -32px;
 }
-.editTextInfo #newIndex a {
+.editTextInfo #newIndex .headerWithButtons a {
     color: #666;
 }
-
 .editTextInfo .nodeTemplate {
 	display: none;
 }

@@ -312,21 +312,8 @@ CACHES = {
 #     }
 # }
 
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2022-04-07-passover-donate-modal",
-    "style":      "modal",  # "modal" or "banner"
-    "repetition": 1,
-    "is_fundraising": False,
-    "condition":  {
-        "returning_only": False,
-        "english_only": False,
-        "desktop_only": True,
-        "debug": True,
-    }
-}
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 
