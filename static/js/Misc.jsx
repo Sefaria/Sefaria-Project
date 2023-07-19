@@ -2947,7 +2947,6 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
-  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,
