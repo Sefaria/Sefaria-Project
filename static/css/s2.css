@@ -736,15 +736,18 @@ input.noselect {
 .header .accountLinks.anon a {
   margin: 0;
 }
-.header .accountLinks.anon a:last-child{
+.header .accountLinks.anon a:nth-last-child(2){
   background: #FFFFFF;
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
 }
-.header .help {
+.accountLinks .help {
   margin-inline-start: 23px;
-  margin-top: 8px;
+  margin-top: 2px;
+}
+.accountLinks.anon .help {
+  margin-top: 6px;
 }
 .header .interfaceLinks {
   display: block;
@@ -949,7 +952,7 @@ div.interfaceLinks-row a {
 }
 @media screen and (max-width: 580px) {
   .header .interfaceLinks,
-  .header .help,
+  .accountLinks .help,
   .header .notifications {
     display: none;
   }
