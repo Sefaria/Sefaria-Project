@@ -67,14 +67,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    with open(args.file, "r") as sf_inf, \
-            open(f'{date.today().strftime("%Y_%m_%d")}_resolve_crm_{args.file}') as outf:
+    with open(args.file[0], "r") as sf_inf, \
+            open(f'{date.today().strftime("%Y_%m_%d")}_resolve_crm_{args.file[0]}', "w+") as outf:
         csv_reader = csv.DictReader(sf_inf, delimiter=',')
-        fieldnames = ["Contact: NationBuilder Id", "Contact: Contact ID", "Contact: First Name", "Sefaria App Email",
+        fieldnames = ["Contact: NationBuilder Id", "Contact: Contact ID", "Contact: First Name", 'Contact: Last Name',
+                      'Sefaria App User: Sefaria App User Name', 'Sefaria App User: ID', "Sefaria App Email",
                       "Contact: Sustainer", "nb_id matches", "email matches", "updated"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for index, row_r in enumerate(csv_reader):
             row_w = find_matching_and_update(row_r, args.dry_run)
             csv_writer.writerow(row_r)
-# print sefaria app emails that don't have
