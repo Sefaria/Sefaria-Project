@@ -176,22 +176,51 @@ function StrapiDataProvider({ children }) {
               console.log(modal);
               if (modal) {
                 console.log("setting the modal");
+                if (modal.attributes.localizations?.data?.length) {
+                  let localization_attributes = modal.attributes.localizations.data[0].attributes;
+                  let {locale, ...hebrew_attributes} = localization_attributes;
+                  Object.keys(hebrew_attributes).forEach((attribute) => {
+                    modal.attributes[attribute] = { en: modal.attributes[attribute], he: hebrew_attributes[attribute] }
+                  });
+                  modal.attributes.locales = ['en', 'he'];
+                }
+                else {
+                  ['modalText', 'buttonText', 'buttonURL'].forEach((attribute) => {
+                    modal.attributes[attribute] = { en: modal.attributes[attribute], he: null };
+                  });
+                  modal.attributes.locales = ['en'];
+                }
                 setModal(modal.attributes);
               }
             }
 
             if (banners?.length) {
-              let b = banners.find(
+              let banner = banners.find(
                 (b) =>
                   currentDate >= new Date(b.attributes.bannerStartDate) &&
                   currentDate <= new Date(b.attributes.bannerEndDate)
               );
+
               console.log("found acceptable banner:");
-              console.log(b);
-              if (b) {
+              console.log(banner);
+              if (banner) {
                 console.log("setting the banner");
-                setBanner(b.attributes);
-                console.log(b.attributes);
+                if (banner.attributes.localizations?.data?.length) {
+                  let localization_attributes = banner.attributes.localizations.data[0].attributes;
+                  let {locale, ...hebrew_attributes} = localization_attributes;
+                  Object.keys(hebrew_attributes).forEach((attribute) => {
+                    banner.attributes[attribute] = { en: banner.attributes[attribute], he: hebrew_attributes[attribute] }
+                  });
+                  banner.attributes.locales = ['en', 'he'];
+                } else {
+                  // Maybe have the GraphQL return null entries for each key so the same technique can be used from above?
+                  ['bannerText', 'buttonText', 'buttonURL'].forEach((attribute) => {
+                    banner.attributes[attribute] = { en: banner.attributes[attribute], he: null };
+                  });
+                  banner.attributes.locales = ['en'];
+                }
+                setBanner(banner.attributes);
+                console.log(banner.attributes);
               }
             }
           });
