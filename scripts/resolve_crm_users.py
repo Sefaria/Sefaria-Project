@@ -27,6 +27,7 @@ def find_matching_and_update(row, dry_run):
     if matching_mongo_profile:
         row['nb_id matches'] = True
         profile = UserProfile(uid=matching_mongo_profile['id'])
+        row['mongo_id'] = profile.id
         if profile.email == row['Sefaria App Email']:
             row['email matches'] = True
         try:
@@ -40,6 +41,7 @@ def find_matching_and_update(row, dry_run):
     else:
         row['nb_id matches'] = False
         profile = UserProfile(email=row['Sefaria App Email'])
+        row['mongo_id'] = profile.id
         if profile.email == 'test@sefaria.org':
             row['email matches'] = False
             row['updated'] = False
@@ -72,7 +74,7 @@ if __name__ == '__main__':
         csv_reader = csv.DictReader(sf_inf, delimiter=',')
         fieldnames = ["Contact: NationBuilder Id", "Contact: Contact ID", "Contact: First Name", 'Contact: Last Name',
                       'Sefaria App User: Sefaria App User Name', 'Sefaria App User: ID', "Sefaria App Email",
-                      "Contact: Sustainer", "nb_id matches", "email matches", "updated"]
+                      "Contact: Sustainer", "nb_id matches", "email matches", "updated", "mongo_id"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
         for index, row_r in enumerate(csv_reader):
