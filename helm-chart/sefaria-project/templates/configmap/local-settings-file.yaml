@@ -145,8 +145,6 @@ data:
     SEARCH_INDEX_NAME_SHEET = 'sheet'
     SEARCH_INDEX_NAME_MERGED = 'merged'
 
-    # DafRoulette server
-    RTC_SERVER = 'rtc.sefaria.org'
     TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
     TURN_SECRET= os.getenv("TURN_SECRET")
     TURN_USER = os.getenv("TURN_USER")

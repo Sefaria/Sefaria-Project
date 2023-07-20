@@ -1104,6 +1104,27 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
+const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+  return (
+    <span className={adminClasses}>
+      {buttonsToDisplay.map((key, i) => {
+        const top = i === 0;
+        const bottom = i === buttonsToDisplay.length - 1;
+        const [buttonText, toggleAddingTopics] = buttonOptions[key];
+        return (
+          <AdminEditorButton 
+            text={buttonText} 
+            top={top} 
+            bottom={bottom}
+            toggleAddingTopics={toggleAddingTopics} 
+          />
+        );
+      })}
+    </span>
+  );
+};
+
+
 const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
   /*
   Provides an interface for using admin tools.
@@ -1125,19 +1146,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
                           "edit": ["Edit", toggleEditCategory]};     
-  const getButtons = () => {
-    wrapper = "headerWithAdminButtons";
-    return  <span className={adminClasses}>
-              {buttonsToDisplay.map((x, i) => {
-                const top = i === 0;
-                const bottom = i === buttonsToDisplay.length - 1;
-                return <AdminEditorButton text={buttonOptions[x][0]} top={top} bottom={bottom}
-                                          toggleAddingTopics={buttonOptions[x][1]}/>
-              })}
-          </span>;
-  }
 
-  const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+
   let wrapper = "";
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
@@ -1152,7 +1162,13 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
     } else if (reorderCategory) {
       adminButtonsSpan = <ReorderEditorWrapper toggle={toggleReorderCategory} data={data} type={type}/>;  // reordering sources on a topic page
     } else {
-      adminButtonsSpan = getButtons();
+      wrapper = "headerWithAdminButtons";
+      const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+        adminButtonsSpan = <AllAdminButtons
+        buttonOptions={buttonOptions} 
+        buttonsToDisplay={buttonsToDisplay} 
+        adminClasses={adminClasses} 
+      />;
     }
   }
   return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
@@ -1164,18 +1180,21 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
     is a dictionary of the topic whose sources can be accessed via its `refs` field.
      */
     const reorderingSources = data.length !== 0;
-    const filterAndSortRefs = (refs) => {
+    const _filterAndSortRefs = (refs) => {
+        if (!refs) {   
+            return [];
+        }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
         refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
         // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
         return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
     }
-    const createURLs = (type, data) => {
+    const _createURLs = (type, data) => {
       if (reorderingSources) {
         return {
           url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
           redirect: `/topics/${data.slug}`,
-          origItems: filterAndSortRefs(data.refs?.about?.refs) || [],
+          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
         }
       }
       switch (type) {  // at /texts or /topics
@@ -1193,7 +1212,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
           };
       }
     }
-    const {url, redirect, origItems} = createURLs(type, data);
+    const {url, redirect, origItems} = _createURLs(type, data);
     return <ReorderEditor
             close={toggle}
             type={!reorderingSources ? type : 'sources'}
@@ -1203,45 +1222,64 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
           />;
 }
 
-const CategoryEditorWrapper = ({toggle, data, type}) => {
-  const getEditorForExistingTopic = () => {
-      const initCatSlug = TopicToCategorySlug(data);
-      const origData = {
-        origSlug: data.slug, origCategorySlug: initCatSlug,
-        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
-      };
-      origData.origDesc = data.description || {"en": "", "he": ""};
-      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
-      const origWasCat = "displays-above" in data?.links;
-      return <TopicEditor origData={origData}
-                                    origWasCat={origWasCat}
-                                    onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                    close={toggle}/>;
-  }
-  const getEditorForExistingCategory = () => {
-      let tocObject = Sefaria.tocObjectByCategories(data);
-      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {
-        origEn: tocObject.category,
-        origHe: tocObject.heCategory,
-        origDesc,
-        origCategoryDesc,
-        isPrimary: tocObject.isPrimary
-      };
-      return <CategoryEditor origData={origData} close={toggle} origPath={data.slice(0, -1)}/>;
-  }
+const EditorForExistingTopic = ({ toggle, data }) => {
+  const initCatSlug = TopicToCategorySlug(data);
+  const origData = {
+    origSlug: data.slug,
+    origCategorySlug: initCatSlug,
+    origEn: data.primaryTitle.en,
+    origHe: data.primaryTitle.he || "",
+    origDesc: data.description || {"en": "", "he": ""},
+    origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
+  };
+  
+  const origWasCat = "displays-above" in data?.links;
+  
+  return (
+    <TopicEditor 
+      origData={origData}
+      origWasCat={origWasCat}
+      onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
+      close={toggle}
+    />
+  );
+};
 
+
+
+const EditorForExistingCategory = ({ toggle, data }) => {
+  let tocObject = Sefaria.tocObjectByCategories(data);
+  const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+  const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+  const origData = {
+    origEn: tocObject.category,
+    origHe: tocObject.heCategory,
+    origDesc,
+    origCategoryDesc,
+    isPrimary: tocObject.isPrimary
+  };
+
+  return (
+    <CategoryEditor 
+      origData={origData} 
+      close={toggle} 
+      origPath={data.slice(0, -1)}
+    />
+  );
+};
+
+
+const CategoryEditorWrapper = ({toggle, data, type}) => {
   switch (type) {
-    case 'books':
+    case "books":
       return <EditTextInfo initTitle={data} close={toggle}/>;
     case "sources":
         const [topicSlug, refData] = data;
         return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
     case "cats":
-        return getEditorForExistingCategory();
+        return <EditorForExistingCategory toggle={toggle} data={data} />;
     case "topics":
-        return getEditorForExistingTopic();
+        return <EditorForExistingTopic toggle={toggle} data={data} />;
   }
 }
 
@@ -1843,53 +1881,6 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
-
-
-class MessageModal extends Component {
-  constructor(props) {
-    super(props);
-    this.textarea = React.createRef();
-    this.state = {
-      visible: false,
-      message: '',
-    };
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.visible && !prevState.visible) {
-      this.textarea.current.focus();
-    }
-  }
-  onChange(e) { this.setState({ message: e.target.value }); }
-  onSend(e) {
-    if (!this.state.message) { return; }
-    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
-      this.setState({ visible: false });
-      alert("Message Sent");
-      Sefaria.track.event("Messages", "Message Sent", "");
-    });
-  }
-  makeVisible() { this.setState({ visible: true }); }
-  onCancel(e) { this.setState({ visible: false }); }
-  render() {
-    if (!this.state.visible) { return null; }
-    return (
-      <div id="interruptingMessageBox" className="sefariaModalBox sans-serif">
-        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
-        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
-          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
-          <textarea value={this.state.message} onChange={this.onChange} ref={this.textarea} />
-          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
-          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
-        </div>
-      </div>
-    );
-  }
-}
-MessageModal.propTypes = {
-  name: PropTypes.string.isRequired,
-  uid:  PropTypes.number.isRequired,
-};
-
 function NewsletterSignUpForm(props) {
   const {contextName, includeEducatorOption} = props;
   const [email, setEmail] = useState('');
@@ -3053,7 +3044,6 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
-  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,
