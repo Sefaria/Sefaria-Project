@@ -1,18 +1,6 @@
-import React, {useState, useEffect, useMemo, useCallback, useRef, useContext} from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import $  from './sefaria/sefariaJquery';
-import {ContentLanguageContext} from "./context";
-import Sefaria from "./sefaria/sefaria";
 
-
-function useContentLang(defaultToInterfaceOnBilingual, overrideLanguage){
-    /* useful for determining language for content text while taking into account ContentLanguageContent and interfaceLang
-    * `overrideLanguage` a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-    * `defaultToInterfaceOnBilingual` use if you want components not to render all languages in bilingual mode, and default them to what the interface language is*/
-    const contentLanguage = useContext(ContentLanguageContext);
-    const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-    const langShort = languageToFilter.slice(0,2);
-    return [languageToFilter, langShort];
-}
 
 //From https://usehooks.com/useDebounce/
 function useDebounce(value, delay) {
@@ -267,6 +255,5 @@ export {
   usePaginatedScroll,
   usePaginatedDisplay,
   useDebounce,
-  useContentLang,
   useIncrementalLoad,
 };

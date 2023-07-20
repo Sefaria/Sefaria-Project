@@ -621,7 +621,7 @@ class TextIndexer(object):
         # Don't bother indexing if there's no content
         if not content:
             return False
-        content = AbstractTextRecord.strip_imgs(content)
+
         content = cls.remove_footnotes(content)
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
         content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
