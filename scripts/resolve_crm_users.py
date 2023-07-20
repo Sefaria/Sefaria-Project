@@ -78,3 +78,5 @@ if __name__ == '__main__':
         for index, row_r in enumerate(csv_reader):
             row_w = find_matching_and_update(row_r, args.dry_run)
             csv_writer.writerow(row_r)
+            if index % 2000 == 0: # in case script gets dropped
+                print(f'Row {index+1}: {row_r["Contact: Contact ID"]}')
