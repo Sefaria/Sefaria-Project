@@ -1,23 +1,22 @@
 //const React      = require('react');
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import ReactDOM  from 'react-dom';
-import $  from './sefaria/sefariaJquery';
-import { CollectionsModal } from "./CollectionsWidget";
-import Sefaria  from './sefaria/sefaria';
-import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
+import React, {useEffect, useRef, useState} from 'react';
+import ReactDOM from 'react-dom';
+import $ from './sefaria/sefariaJquery';
+import {CollectionsModal} from "./CollectionsWidget";
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component from 'react-class';
-import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext} from './context';
+import {usePaginatedDisplay} from './Hooks';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import {Editor} from "slate";
+import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
 import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
-import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
@@ -108,43 +107,6 @@ InterfaceText.propTypes = {
   context: PropTypes.string,
   className: PropTypes.string
 };
-
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
-  /**
-   * Renders content language throughout the site (content that comes from the database and is not interface language)
-   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
-   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
-   */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
-  const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-  const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable);
-  if(languageToFilter === "bilingual"){
-    if(bilingualOrder !== null){
-      //nifty function that sorts one array according to the order of a second array.
-      renderedItems.sort(function(a, b){
-        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
-      });
-    }
-  }else{
-    renderedItems = renderedItems.filter(([lang, _])=>{
-      return lang === langShort;
-    });
-  }
-  return renderedItems.map( x =>
-      isDangerouslySetInnerHTML ?
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
-          :
-          <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
-  );
-};
-
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -3012,6 +2974,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     </div>
     )
 }
+
 export {
   CategoryHeader,
   SimpleInterfaceBlock,
@@ -3035,7 +2998,6 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
-  ContentText,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,

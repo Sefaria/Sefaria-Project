@@ -974,13 +974,20 @@ Util.RefValidator.prototype = {
   _disallow: function() {
     this.$ok.addClass("inactive").addClass("disabled");
   },
+  _stripImgs: function(s) {
+      return sanitizeHtml(s, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'img'),
+          allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+      });
+  },
   _preview_segment_mapper: function(lang, s) {
     return (s[lang])?
-        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
+        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + this._stripImgs(s[lang]) + "</div> "):
         "";
   },
   _inlineAddSourcePreview: function(inString, ref) {
     Sefaria.text(ref, {}, function (data) {
+        stripImgs
         if (this.$input.val() != inString) { return; }
         if (!this.$preview) { return; }
 
