@@ -2965,8 +2965,7 @@ Sefaria.unpackBaseProps = function(props){
       "followRecommendations",
       "trendingTopics",
       "_siteSettings",
-      "_debug",
-      "rtc_server"
+      "_debug"
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

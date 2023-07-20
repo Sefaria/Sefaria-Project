@@ -2,9 +2,14 @@ import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
 import {AdminToolHeader, InterfaceText} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
+import classNames from "classnames";
 
-const AdminEditorButton = ({toggleAddingTopics, text}) => {
-    return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
+const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) => {
+    const classes = classNames({button: 1, extraSmall: 1, topic: 1, top, bottom});
+    return <div onClick={toggleAddingTopics}
+                id="editTopic"
+                className={classes}
+                role="button">
         <InterfaceText>{text}</InterfaceText>
     </div>;
 }
