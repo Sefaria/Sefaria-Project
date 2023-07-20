@@ -29,7 +29,7 @@ import TrackG4 from "./sefaria/trackG4";
  * <InterfaceText>
  *     <EnglishText>lorem ipsum</EnglishText>
  *     <HebrewText>lorem ipsum</HebrewText>
- * </LText>
+ * </InterfaceText>
  * ```
  * @param children
  * @returns {JSX.Element}
