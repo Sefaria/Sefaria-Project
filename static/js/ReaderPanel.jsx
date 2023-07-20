@@ -38,9 +38,8 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
+  ToggleSet, ContentText, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
-import {ContentText} from "./ContentText";
 
 
 class ReaderPanel extends Component {

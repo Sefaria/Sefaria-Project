@@ -12,9 +12,9 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
-  CategoryHeader
+  CategoryHeader,
+  ContentText
 } from './Misc';
-import {ContentText} from "./ContentText";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
