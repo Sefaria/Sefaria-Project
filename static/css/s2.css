@@ -1745,6 +1745,11 @@ div.interfaceLinks-row a {
   margin-left: 0;
   margin-right: 0;
 }
+@media (max-width: 450px) {
+  .button.get-start {
+    display: none;
+  }
+}
 .navSidebar .button .get-start {
   white-space: nowrap;
   size: 16px;
