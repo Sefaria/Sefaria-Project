@@ -29,7 +29,7 @@ import TrackG4 from "./sefaria/trackG4";
  * <InterfaceText>
  *     <EnglishText>lorem ipsum</EnglishText>
  *     <HebrewText>lorem ipsum</HebrewText>
- * </InterfaceText>
+ * </LText>
  * ```
  * @param children
  * @returns {JSX.Element}
@@ -2287,21 +2287,31 @@ const InterruptingMessage = ({
                 </style>
                 <div id="highHolidayDonation">
                   <p>
-                    <span className="int-en">
-                      {strapi.modal.modalText}
-                    </span>
+                    <InterfaceText markdown={strapi.modal.modalText} />
                   </p>
                   <div className="buttons">
                     <a
                       className="button int-en"
                       target="_blank"
-                      href={strapi.modal.buttonURL}
+                      href={strapi.modal.buttonURL.en}
                       onClick={() => {
                         closeModal("donate_button_clicked");
                       }}
                     >
                       <span className="int-en">
-                        {strapi.modal.buttonText}
+                        {strapi.modal.buttonText.en}
+                      </span>
+                    </a>
+                    <a
+                      className="button int-he"
+                      target="_blank"
+                      href={strapi.modal.buttonURL.he}
+                      onClick={() => {
+                      closeModal("donate_button_clicked");
+                    }}
+                      >
+                      <span className="int-he">
+                        {strapi.modal.buttonText.he}
                       </span>
                     </a>
                   </div>
@@ -2351,6 +2361,7 @@ const Banner = ({ onClose }) => {
   const shouldShow = () => {
     console.log("checking whether to show banner or not");
     if (!strapi.banner) return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.banner.locales.includes('he')) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
 
@@ -2411,31 +2422,27 @@ const Banner = ({ onClose }) => {
   console.log(strapi.banner);
 
   if (!hasInteractedWithBanner) {
-    console.log("rendering component");
+    console.log("rendering banner");
+    console.log(strapi.banner.bannerText);
     return (
       <OnInView onVisible={trackBannerImpression}>
         <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
-              <span className="int-en">{strapi.banner.bannerText}</span>
-              <span className="int-he">
-                ספריית ספריא מנגישה יותר מ-300 מיליון מלים של טקסטים יהודיים
-                ברחבי העולם. לכבוד שבועות, אנא תמכו היום בספריה שמסייעת ללימוד
-                שלכם על-ידי קבלת מעמד של ידידי ספריא.
-              </span>
+              <InterfaceText markdown={strapi.banner.bannerText} />
             </div>
             <div id="bannerButtonBox">
               <a
                 className="button white int-en"
-                href={strapi.banner.buttonURL}
+                href={strapi.banner.buttonURL.en}
               >
-                <span>{strapi.banner.buttonText}</span>
+                <span>{strapi.banner.buttonText.en}</span>
               </a>
               <a
                 className="button white int-he"
-                href="https://sefaria.nationbuilder.com/sustainers_e"
+                href={strapi.banner.buttonURL.he}
               >
-                <span>לתרומה חודשית</span>
+                <span>{strapi.banner.buttonText.he}</span>
               </a>
             </div>
           </div>

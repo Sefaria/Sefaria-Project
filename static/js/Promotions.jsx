@@ -224,6 +224,7 @@ const Promotions = ({ adType, rerender }) => {
       if (!matchingAd) {
         return null;
       }
+      // TODO: change this to use new InterruptingMessage
       const bannerHtml = createBannerHtml(matchingAd);
       return (
         <InterruptingMessage
