@@ -28,7 +28,7 @@ import ReactMarkdown from 'react-markdown';
  * <InterfaceText>
  *     <EnglishText>lorem ipsum</EnglishText>
  *     <HebrewText>lorem ipsum</HebrewText>
- * </LText>
+ * </InterfaceText>
  * ```
  * @param children
  * @returns {JSX.Element}
