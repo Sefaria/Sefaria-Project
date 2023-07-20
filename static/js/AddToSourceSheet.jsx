@@ -120,7 +120,7 @@ class AddToSourceSheetBox extends Component {
           source[language.slice(0,2)] = selectedWords;
         }
       }
-      if (this.validateRefs(source.refs)) {
+      if (this.checkContentForImages(source.refs)) {
         let postData = {source: JSON.stringify(source)};
         if (this.props.note) {
           postData.note = this.props.note;
@@ -128,24 +128,16 @@ class AddToSourceSheetBox extends Component {
         $.post(url, postData, this.confirmAdd);
       }
   }
-  validateRefs(refs) {
-    // validate refs have no images before posting them to sheet
-    let foundImage = false;
-    refs.forEach(r => {
-      if (!foundImage) {
-        const ref = Sefaria.getRefFromCache(r);
-        if (ref) {
-          foundImage = Sefaria.isImage(ref.he) || Sefaria.isImage(ref.text);
-        }
+  checkContentForImages(refs) {
+    // validate texts corresponding to refs have no images before posting them to sheet
+    for (let i = 0; i < refs.length; i++) {
+      let ref = Sefaria.getRefFromCache(refs[i]);
+      if (ref && (Sefaria.isImage(ref.he) || Sefaria.isImage(ref.text))) {
+        alert("We do not currently support adding images to source sheets.");
+        return false;
       }
-    });
-    if (foundImage) {
-      alert("One of the sources you tried to add contains an image.  Unfortunately, we do not currently support adding images to source sheets.");
-      return false;
     }
-    else {
-     return true; 
-    }
+    return true;
   }
   createSheet(refs) {
     const title = $(ReactDOM.findDOMNode(this)).find("input").val();
