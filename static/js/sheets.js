@@ -41,6 +41,7 @@ normRef = Sefaria.normRef.bind(Sefaria);
 humanRef = Sefaria.humanRef.bind(Sefaria);
 isHebrew = Sefaria.hebrew.isHebrew;
 
+
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
@@ -2331,7 +2332,7 @@ function addSource(q, source, appendOrInsert, $target) {
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
 
-	s[lang] = Sefaria.util.RefValidator._stripImgs(s[lang]);
+	s[lang] = Sefaria.util._stripImgs(s[lang]);
     var numStr = "";
     if (includeNumbers) {
         var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;
