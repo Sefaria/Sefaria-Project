@@ -1956,8 +1956,8 @@ _media: {},
         var ref = data.sectionRef + delim + number;
         segments.push({
           ref: ref,
-          en: !sheets ? en[i] : Sefaria.util._stripImgs(en[i]),
-          he: !sheets ? he[i] : Sefaria.util._stripImgs(he[i]),
+          en: en[i],
+          he: he[i],
           number: number,
           highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
           alt: ("alts" in data && i < data.alts.length) ? data.alts[i] : null
@@ -1985,8 +1985,8 @@ _media: {},
           var ref = baseRef + delim + section + ":" + number;
           segments.push({
             ref: ref,
-            en: !sheets ? en2[i] : Sefaria.util._stripImgs(en2[i]),
-            he: !sheets ? he2[i] : Sefaria.util._stripImgs(he2[i]),
+            en: en2[i],
+            he: he2[i],
             number: number,
             highlight: highlight &&
                         ((n == 0 && number >= data.sections.slice(-1)[0]) ||
@@ -1998,6 +1998,14 @@ _media: {},
       }
     }
     return segments;
+  },
+  stripImagesFromSegments: function(segments) {
+      // Used by sheets editors.  Sefaria.makeSegments creates a list of segments and this function handles the images.
+      return segments.map(x => {
+          x.he = Sefaria.util.stripImgs(x.he);
+          x.en = Sefaria.util.stripImgs(x.en);
+          return x;
+      })
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,

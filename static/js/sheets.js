@@ -2379,7 +2379,8 @@ function loadSource(data, $target, optionStr) {
     includeNumbers = data.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
     var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
-    var segments = Sefaria.makeSegments(data, false, true);
+    var segments = Sefaria.makeSegments(data);
+	segments = Sefaria.stripImagesFromSegments(segments);
     var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
         .filter(Boolean)
         .join("");
