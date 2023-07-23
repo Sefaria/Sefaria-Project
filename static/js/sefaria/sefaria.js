@@ -9,6 +9,8 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import {useContext} from "react";
+import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
@@ -1001,6 +1003,10 @@ Sefaria = extend(Sefaria, {
               error: error
             }, error);
     });
+  },
+  isImage: function(textChunk) {
+    const pattern = /<img\b[^>]*>/i;
+    return pattern.test(textChunk);
   },
   getRefFromCache: function(ref) {
     if (!ref) return null;

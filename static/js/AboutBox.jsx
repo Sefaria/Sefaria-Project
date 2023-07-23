@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
-import {ContentText, InterfaceText} from "./Misc";
+import {InterfaceText} from "./Misc";
+import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
 
 
