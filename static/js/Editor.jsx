@@ -1871,7 +1871,6 @@ const insertMedia = (editor, mediaUrl) => {
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
 
-    // s[lang] = Sefaria.util._stripImgs(s[lang]);
     let numStr = "";
     if (includeNumbers) {
         const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;

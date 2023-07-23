@@ -981,9 +981,6 @@ Util.RefValidator.prototype = {
     this.$ok.addClass("inactive").addClass("disabled");
   },
   _preview_segment_mapper: function(lang, s) {
-    // return (s[lang])?
-    //     ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + Sefaria.util._stripImgs(s[lang]) + "</div> "):
-    //     "";
     return (s[lang])?
         ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
         "";
