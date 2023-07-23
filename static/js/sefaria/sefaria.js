@@ -1932,7 +1932,7 @@ _media: {},
     // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
-  makeSegments: function(data, withContext) {
+  makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
@@ -1956,8 +1956,8 @@ _media: {},
         var ref = data.sectionRef + delim + number;
         segments.push({
           ref: ref,
-          en: en[i],
-          he: he[i],
+          en: !sheets ? en[i] : Sefaria.util._stripImgs(en[i]),
+          he: !sheets ? he[i] : Sefaria.util._stripImgs(he[i]),
           number: number,
           highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
           alt: ("alts" in data && i < data.alts.length) ? data.alts[i] : null
@@ -1985,8 +1985,8 @@ _media: {},
           var ref = baseRef + delim + section + ":" + number;
           segments.push({
             ref: ref,
-            en: en2[i],
-            he: he2[i],
+            en: !sheets ? en2[i] : Sefaria.util._stripImgs(en2[i]),
+            he: !sheets ? he2[i] : Sefaria.util._stripImgs(he2[i]),
             number: number,
             highlight: highlight &&
                         ((n == 0 && number >= data.sections.slice(-1)[0]) ||

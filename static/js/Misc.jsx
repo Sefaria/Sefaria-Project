@@ -2898,13 +2898,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
-           const segments = Sefaria.makeSegments(text, true);
+           const segments = Sefaria.makeSegments(text, true, true);
            const previewHTML =  segments.map((segment, i) => {
             {
+              // segment.en = Sefaria.util._stripImgs(segment.en);
+              // segment.he = Sefaria.util._stripImgs(segment.he);
               const heOnly = !segment.en;
               const enOnly = !segment.he;
-              segment.en = Sefaria.util._stripImgs(segment.en);
-              segment.he = Sefaria.util._stripImgs(segment.he);
               const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
               return(

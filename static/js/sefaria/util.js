@@ -981,8 +981,11 @@ Util.RefValidator.prototype = {
     this.$ok.addClass("inactive").addClass("disabled");
   },
   _preview_segment_mapper: function(lang, s) {
+    // return (s[lang])?
+    //     ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + Sefaria.util._stripImgs(s[lang]) + "</div> "):
+    //     "";
     return (s[lang])?
-        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + Sefaria.util._stripImgs(s[lang]) + "</div> "):
+        ("<div class='previewLine'><span class='previewNumber'>(" + (s.number) + ")</span> " + s[lang] + "</div> "):
         "";
   },
   _inlineAddSourcePreview: function(inString, ref) {
@@ -990,7 +993,7 @@ Util.RefValidator.prototype = {
         if (this.$input.val() != inString) { return; }
         if (!this.$preview) { return; }
 
-        var segments = Sefaria.makeSegments(data);
+        var segments = Sefaria.makeSegments(data, false, true);
         var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
         var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
 
