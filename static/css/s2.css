@@ -1751,6 +1751,22 @@ div.interfaceLinks-row a {
 .navSidebar .button + .button {
   margin-inline-start: 7px;
 }
+.navSidebar .button.get-start {
+  height: 39px;
+  width: 221px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0;
+  margin-right: 0;
+}
+.navSidebar .button .get-start {
+  white-space: nowrap;
+  size: 16px;
+}
+.navSidebar .button.get-start img {
+  filter: unset;
+}
 .navSidebar .readingsSection {
   margin-bottom: 15px;
 }

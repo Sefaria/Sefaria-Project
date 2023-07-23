@@ -108,6 +108,14 @@ const AboutSefaria = ({hideTitle}) => (
           <HebrewText>לקריאה נוספת ›</HebrewText>
       </InterfaceText>
     </a>
+    { Sefaria.interfaceLang === 'english' && !hideTitle &&
+      <a className="button get-start" href="/sheets/210670">
+          <img src="/static/icons/vector.svg"/>
+          <div className="get-start">
+              Getting Started (2 min)
+          </div>
+      </a>
+    }
   </Module>
 );
 
