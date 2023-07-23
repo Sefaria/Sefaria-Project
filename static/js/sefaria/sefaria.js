@@ -9,6 +9,8 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import {useContext} from "react";
+import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
@@ -1002,6 +1004,10 @@ Sefaria = extend(Sefaria, {
             }, error);
     });
   },
+  isImage: function(textChunk) {
+    const pattern = /<img\b[^>]*>/i;
+    return pattern.test(textChunk);
+  },
   getRefFromCache: function(ref) {
     if (!ref) return null;
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
@@ -1926,7 +1932,7 @@ _media: {},
     // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
-  makeSegments: function(data, withContext) {
+  makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
@@ -1992,6 +1998,14 @@ _media: {},
       }
     }
     return segments;
+  },
+  stripImagesFromSegments: function(segments) {
+      // Used by sheets editors.  Sefaria.makeSegments creates a list of segments and this function handles the images.
+      return segments.map(x => {
+          x.he = Sefaria.util.stripImgs(x.he);
+          x.en = Sefaria.util.stripImgs(x.en);
+          return x;
+      })
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
@@ -2959,8 +2973,7 @@ Sefaria.unpackBaseProps = function(props){
       "followRecommendations",
       "trendingTopics",
       "_siteSettings",
-      "_debug",
-      "rtc_server"
+      "_debug"
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

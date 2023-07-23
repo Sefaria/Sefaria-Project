@@ -22,8 +22,7 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    CategoryHeader, ContentText,
-
+    CategoryHeader,
 } from './Misc';
 
 
@@ -314,7 +313,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} add_subcategory={false} reorder={true} add_source={true}>
+                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
