@@ -2853,6 +2853,8 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
             {
               const heOnly = !segment.en;
               const enOnly = !segment.he;
+              segment.en = Sefaria.util._stripImgs(segment.en);
+              segment.he = Sefaria.util._stripImgs(segment.he);
               const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
               return(

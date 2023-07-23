@@ -461,7 +461,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    rawhtml = Sefaria.util.RefValidator._stripImgs(rawhtml);
+    rawhtml = Sefaria.util._stripImgs(rawhtml);
     const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r|\t)/gm, "");
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
@@ -1869,9 +1869,9 @@ const insertMedia = (editor, mediaUrl) => {
 
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-
     if (!s[lang]) {return ""}
 
+    s[lang] = Sefaria.util._stripImgs(s[lang]);
     let numStr = "";
     if (includeNumbers) {
         const num = (lang=="he") ? Sefaria.hebrew.encodeHebrewNumeral(s.number) : s.number;
