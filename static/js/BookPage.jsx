@@ -7,13 +7,12 @@ import {
   LoadingMessage,
   TabView,
   InterfaceText,
-  EnglishText, HebrewText, LanguageToggleButton,
+  ContentText, EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
   CategoryHeader, requestWithCallBack
 } from './Misc';
-import {ContentText} from "./ContentText";
 import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
@@ -29,7 +28,6 @@ import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
-
 import ReactTags from 'react-tag-autocomplete';
 
 

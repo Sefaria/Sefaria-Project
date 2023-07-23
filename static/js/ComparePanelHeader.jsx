@@ -4,11 +4,12 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {
   CategoryColorLine,
+  ContentText,
   MenuButton,
   DisplaySettingsButton,
   SearchButton,
 } from './Misc';
-import {ContentText} from "./ContentText";
+
 
 const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, catTitle, heCatTitle, 
   onBack, openSearch

@@ -2331,7 +2331,6 @@ function addSource(q, source, appendOrInsert, $target) {
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
 
-	s[lang] = Sefaria.util.RefValidator._stripImgs(s[lang]);
     var numStr = "";
     if (includeNumbers) {
         var num = (lang=="he") ? encodeHebrewNumeral(s.number) : s.number;

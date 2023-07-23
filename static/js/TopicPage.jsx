@@ -22,7 +22,8 @@ import {
     FilterableList,
     ToolTipped,
     SimpleLinkedBlock,
-    CategoryHeader,
+    CategoryHeader, ContentText,
+
 } from './Misc';
 
 
