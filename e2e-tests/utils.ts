@@ -42,6 +42,7 @@ export const loginUser = async (page: Page, user=testUser, language=DEFAULT_LANG
 
 export const goToPageWithUser = async (context: BrowserContext, url: string, user=testUser) => {
     if (!loginCookies.length) {
+        
         const page: Page = await context.newPage();
         await loginUser(page, user)
         loginCookies = await context.cookies();

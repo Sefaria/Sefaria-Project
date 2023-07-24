@@ -45,6 +45,7 @@ test('Open panel window', async ({ context }) => {
 
 test('Bookmark page', async ({ context }) => {
   const page = await goToPageWithUser(context, '/Genesis.1.1?lang=he&with=all&lang2=he');
+  
   await page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃').click();
   // if we reach the page and it is already bookmarked, undo it
   await page.getByRole('button', { name: 'Remove "Genesis 1:1"' }).isVisible() && await page.getByRole('button', { name: 'Remove "Genesis 1:1"' }).click();

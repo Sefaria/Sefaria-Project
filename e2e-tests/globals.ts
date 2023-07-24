@@ -8,7 +8,7 @@ export const LANGUAGES = {
 export const cookieObject = {
     "name": "interfaceLang",
     "value": DEFAULT_LANGUAGE,
-    "url": "https://sefaria.org",
+    "url": "http://localhost:8000",
 }
 
 export const testUser = {
