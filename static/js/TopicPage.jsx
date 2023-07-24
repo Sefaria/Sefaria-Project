@@ -195,7 +195,7 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth, 
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
   openDisplaySettings, openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -224,7 +224,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-                 className="navBlockTitle" 
+                 className="navBlockTitle"
                  onClick={openTopic}
                  key={i}>
                 <InterfaceText text={{en, he}} />
@@ -295,7 +295,12 @@ const TopicSponsorship = ({topic_slug}) => {
         "parashat-achrei-mot": {
             "en": "Dedicated by Kevin Waldman in loving memory of his grandparents, Rose and Morris Waldman, who helped nurture his commitment to Jewish life.",
             "he": "מוקדש על-ידי קווין ולדמן לזכרם האהוב של סביו, רוז ומוריס ולדמן, שעזרו לטפח את מחויבותו לחיים יהודיים."
+        },
+        "parashat-vaetchanan": {
+            "en": "Shabbat Nachamu learning is dedicated in memory of Jerome L. Stern, Yehuda Leib ben David Shmuel, z\"l.",
+            "he": "הלימוד לשבת נחמו מוקדש לזכרו של ג'רום ל. שטרן, יהודה לייב בן דוד שמואל ז\"ל."
         }
+
     };
     const sponsorship_language = topic_sponsorship_map[topic_slug];
     if (!sponsorship_language) return null;
@@ -385,7 +390,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
 };
 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome, 
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref, topicTestVersion
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
@@ -399,7 +404,7 @@ const TopicPage = ({
 
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
-    
+
     // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
@@ -459,7 +464,7 @@ const TopicPage = ({
         icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
         justifyright: true
       });
-      onClickFilterIndex = displayTabs.length - 1;      
+      onClickFilterIndex = displayTabs.length - 1;
     }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
@@ -510,7 +515,7 @@ const TopicPage = ({
                 </div>
                 <div className="sideColumn">
                     { topicData ?
-                    <TopicSideColumn 
+                    <TopicSideColumn
                       key={topic}
                       slug={topic}
                       links={topicData.links}
@@ -545,7 +550,7 @@ TopicPage.propTypes = {
 
 
 const TopicPageTab = ({
-  data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader, 
+  data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
   scrollableElement, onDisplayedDataChange, initialRenderSize
 }) => {
   return (
@@ -706,10 +711,10 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     <div className="parasha">
         <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
         <div className="navSidebarLink ref serif">
-            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />  
+            <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
             <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
         </div>
-        <div className="aliyot"> 
+        <div className="aliyot">
         {
             parashaData.parasha?.extraDetails?.aliyot?.map((aliya, index) => {
                let sectionNum = index+1;
@@ -719,11 +724,11 @@ const ReadingsComponent = ({ parashaData, tref }) => (
                   <a className="sectionLink" href={"/" + Sefaria.normRef(aliya)} data-ref={aliya} key={aliya}>
                     <InterfaceText text={{en:sectionStr, he:heSectionStr}}/>
                   </a>
-                );    
+                );
             }) ?? null
-        }  
+        }
         </div>
-    </div>    
+    </div>
     <div className="haftarah">
         <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
         {parashaData.haftarah ?
@@ -731,7 +736,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
             {
               parashaData.haftarah.map(h => (
                 <div className="navSidebarLink ref serif">
-                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />    
+                    <img src="/static/icons/book.svg" className="navSidebarIcon" alt="book icon" />
                     <a href={'/' + h.url} className="contentText" key={h.url}>
                       <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
                     </a>
@@ -773,7 +778,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
             url = propObj.url.he || propObj.url.en;
           } else {
             if (!propObj.url.en) { urlExists = false; }
-            url = propObj.url.en || propObj.url.he;            
+            url = propObj.url.en || propObj.url.he;
           }
           if (!url) { return null; }
           return (
