@@ -3,8 +3,6 @@
 import os.path
 from django.utils.translation import ugettext_lazy as _
 
-from sefaria.settings_utils import init_sentry
-
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 # Local time zone for this installation. Choices can be found here:
@@ -327,12 +325,6 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
-
-
-if SENTRY_DSN:
-    SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
-    SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "unknown")
-    init_sentry(SENTRY_DSN, SENTRY_CODE_VERSION, SENTRY_ENVIRONMENT)
 
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
