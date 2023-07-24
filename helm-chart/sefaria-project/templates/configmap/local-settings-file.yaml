@@ -254,6 +254,7 @@ data:
     }
 
     # Sentry
+    
     SENTRY_DSN = os.getenv("SENTRY_DSN", None)
     CLIENT_SENTRY_DSN = os.getenv("CLIENT_SENTRY_DSN", None)
     SENTRY_CODE_VERSION = os.getenv("SENTRY_CODE_VERSION", "unknown")
