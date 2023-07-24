@@ -4,6 +4,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 import re
+from sefaria.model.text import AbstractTextRecord
 from sefaria.utils.util import list_depth
 
 
@@ -451,6 +452,13 @@ def test_complex_with_depth_1():
 
 def test_complex_with_depth_2():
     pass
+
+
+def test_strip_imgs():
+    text = "text with an image"
+    image = "<img src='src.jpg' alt='image caption'>"
+    assert AbstractTextRecord.strip_imgs(f"{text}{image}") == text
+    assert AbstractTextRecord.strip_imgs(text) == text
 
 
 @pytest.mark.xfail(reason="<br/> tags become <br>, so don't match exactly.")
