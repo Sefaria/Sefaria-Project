@@ -85,8 +85,10 @@ class TextsForClientHandler():
             lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == self.SOURCE:
             lang_condition = lambda v: v['isSource']
-        else:
+        elif lang:
             lang_condition = lambda v: v['actualLanguage'] == lang
+        else:
+            lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
             versions = [v for v in self.all_versions if lang_condition(v) and v['versionTitle'] == vtitle]
         else:
