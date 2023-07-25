@@ -403,8 +403,9 @@ def make_panel_dict(oref, version_source, version_translation, filter, versionFi
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            text_handler = TextsForClientHandler(oref, [VersionsParams(None, panel["currVersions"]["source"]),
-                                                   VersionsParams(None, panel["currVersions"]["translation"])])
+            text_handler = TextsForClientHandler(oref.padded_ref().context_ref(),
+                                                 [VersionsParams(None, panel["currVersions"]["source"]),
+                                                  VersionsParams(None, panel["currVersions"]["translation"])])
             panel["text"] = text_handler.get_versions_for_query()
             panel["text"]["updateFromAPI"] = True
 
@@ -518,13 +519,13 @@ def get_text_parmas(request, oref, index: int):
             lang = request_dict.get(f"l{index}", request.contentLang)
         else:
             lang = request.contentLang
-    version_source = request_dict.get(f"source{index}", request_dict.get(f'vhe{index}', None))
-    version_translation = request_dict.get(f"translation{index}", request_dict.get(f'ven{index}', None))
+    version_source = request_dict.get(f"source{index}", request_dict.get(f'vhe{index}', ''))
+    version_translation = request_dict.get(f"translation{index}", request_dict.get(f'ven{index}', ''))
     if index and not version_source and not version_translation:
         if lang == 'en':
-            version_translation = request_dict.get(f'v{index}', None)
+            version_translation = request_dict.get(f'v{index}', '')
         else:
-            version_source = request_dict.get(f'v{index}', None)
+            version_source = request_dict.get(f'v{index}', '')
     version_translation, version_source = override_version_with_preference(oref, request, version_translation, version_source)
     version_source, version_translation = version_source.replace('_', ' '), version_translation.replace('_', ' ')
 
@@ -556,7 +557,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
-        version_source, version_translation, lang = get_text_parmas(request, ref, 0)
+        version_source, version_translation, lang = get_text_parmas(request, oref, 0)
         if version_source and not Version().load({"versionTitle": version_source}):
             raise Http404
         if version_translation and not Version().load({"versionTitle": version_translation}):
@@ -607,7 +608,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            version_source, version_translation, lang = get_text_parmas(request, ref, 0)
+            version_source, version_translation, lang = get_text_parmas(request, oref, 0)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
