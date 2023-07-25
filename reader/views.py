@@ -80,6 +80,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
+from api.texts_api import TextsForClientHandler, VersionsParams
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -332,7 +333,7 @@ def get_connections_mode(filter):
     else:
         return "TextList", False
 
-def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
+def make_panel_dict(oref, version_source, version_translation, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -372,8 +373,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "ref": oref.normal(),
             "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
             "currVersions": {
-                "en": versionEn,
-                "he": versionHe,
+                "source": version_source,
+                "translation": version_translation,
             },
             "filter": filter,
             "versionFilter": versionFilter,
@@ -402,15 +403,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            try:
-                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
-                                  context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
-            except NoVersionFoundError:
-                text_family = {}
-            text_family["updateFromAPI"] = True
-            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text_family
+            panel["text"] = TextsForClientHandler(oref, [VersionsParams(None, panel["currVersions"]["source"]),
+                                                         VersionsParams(None, panel["currVersions"]["translation"])])
 
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents() # Included for Torah Parashah titles rendered in text
@@ -489,7 +483,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         return panels
 
 
-def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
+def make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -497,15 +491,42 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
+def get_text_parmas(request, oref, index: int):
+    '''
+    this function parse the version and lang from the request, taking in account older versions of urls
+    in the current version url can have 'source', 'translation' and 'lang', and an additional nem for additional panels
+    in older version it was 'vhe', 'ven' and 'lang'
+    in evem older version, in the additional panels it was 'v' (it can be english or hebrew) and 'l'
+    this function should catch all of them
+    '''
+    index = str(index) if index else ''
+    request_dict = request.GET
+    lang = request_dict.get(f"lang{index}", None)
+    if not lang:
+        if index:
+            lang = request_dict.get(f"l{index}", request.contentLang)
+        else:
+            lang = request.contentLang
+    version_source = request_dict.get(f"source{index}", request_dict.get(f'vhe{index}', None))
+    version_translation = request_dict.get(f"translation{index}", request_dict.get(f'ven{index}', None))
+    if index and not version_source and not version_translation:
+        if lang == 'en':
+            version_translation = request_dict.get(f'v{index}', None)
+        else:
+            version_source = request_dict.get(f'v{index}', None)
+    version_translation, version_source = override_version_with_preference(oref, request, version_translation, version_source)
+    version_source, version_translation = version_source.replace('_', ' '), version_translation.replace('_', ' ')
+
+    return version_source, version_translation, lang
 
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
@@ -524,12 +545,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
-    versionEn = request.GET.get("ven", None)
-    if versionEn:
-        versionEn = versionEn.replace("_", " ")
-    versionHe = request.GET.get("vhe", None)
-    if versionHe:
-        versionHe = versionHe.replace("_", " ")
 
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
@@ -539,14 +554,14 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
-        if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
+        version_source, version_translation, lang = get_text_parmas(request, ref, 0)
+        if version_source and not Version().load({"versionTitle": version_source}):
             raise Http404
-        if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
+        if version_translation and not Version().load({"versionTitle": version_translation}):
             raise Http404
-        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
 
         kwargs = {
-            "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
+            "panelDisplayLanguage": lang,
             'extended notes': int(request.GET.get("notes", 0)),
             "translationLanguagePreference": request.translation_language_preference,
         }
@@ -561,7 +576,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
-        panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+        panels += make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
@@ -590,21 +605,12 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
-            if not versionEn and not versionHe:
-                # potential link using old version format
-                language = request.GET.get("l{}".format(i))
-                if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-                else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-            versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
+            version_source, version_translation, lang = get_text_parmas(request, ref, 0)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             kwargs = {
-                "panelDisplayLanguage": request.GET.get("lang{}".format(i), request.contentLang),
+                "panelDisplayLanguage": lang,
                 'extended notes': int(request.GET.get("notes{}".format(i), 0)),
                 "translationLanguagePreference": request.translation_language_preference,
             }
@@ -614,13 +620,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
-                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
+            if (version_source and not Version().load({"versionTitle": version_source})) or \
+                (version_translation and not Version().load({"versionTitle": version_translation})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+            panels += make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props = {
