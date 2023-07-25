@@ -67,6 +67,9 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--file", nargs=1,
                         help='csv file from Salesforce with relevant information')
 
+    parser.add_argument("-l", "--line", nargs=1,
+                        help="line of file to start on")
+
     args = parser.parse_args()
 
     with open(args.file[0], "r") as sf_inf, \
@@ -77,8 +80,13 @@ if __name__ == '__main__':
                       "Contact: Sustainer", "nb_id matches", "email matches", "updated", "mongo_id"]
         csv_writer = csv.DictWriter(outf, fieldnames)
         csv_writer.writeheader()
+        last_skipped_line = 0
+        if args.line:
+            for i in range(int(args.line[0])):
+                next(csv_reader)
+                last_skipped_line = last_skipped_line + 1
         for index, row_r in enumerate(csv_reader):
             row_w = find_matching_and_update(row_r, args.dry_run)
             csv_writer.writerow(row_r)
-            if index % 2000 == 0: # in case script gets dropped
-                print(f'Row {index+1}: {row_r["Contact: Contact ID"]}')
+            if index % 1000 == 0:  # in case script gets dropped
+                print(f'Row {index+last_skipped_line+2}: {row_r["Sefaria App User: ID"]}')
