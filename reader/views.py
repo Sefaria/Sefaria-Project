@@ -341,30 +341,30 @@ def make_panel_dict(oref, version_source, version_translation, filter, versionFi
     if oref.is_book_level():
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
-        if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
-            currVersions = {"en": versionEn, "he": versionHe}
-            if versionEn is not None and versionHe is not None:
-                curr_lang = kwargs.get("panelDisplayLanguage", "en")
-                for key in list(currVersions.keys()):
-                    if key == curr_lang:
-                        continue
-                    else:
-                        currVersions[key] = None
-            panel = {
-                "menuOpen": "extended notes",
-                "mode": "Menu",
-                "bookRef": oref.normal(),
-                "indexDetails": index_details,
-                "currVersions": currVersions
-            }
-        else:
-            panel = {
-                "menuOpen": "book toc",
-                "mode": "Menu",
-                "bookRef": oref.normal(),
-                "indexDetails": index_details,
-                "versions": oref.version_list()
-            }
+        # if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
+        #     currVersions = {"en": versionEn, "he": versionHe}
+        #     if versionEn is not None and versionHe is not None:
+        #         curr_lang = kwargs.get("panelDisplayLanguage", "en")
+        #         for key in list(currVersions.keys()):
+        #             if key == curr_lang:
+        #                 continue
+        #             else:
+        #                 currVersions[key] = None
+        #     panel = {
+        #         "menuOpen": "extended notes",
+        #         "mode": "Menu",
+        #         "bookRef": oref.normal(),
+        #         "indexDetails": index_details,
+        #         "currVersions": currVersions
+        #     }
+        # else:
+        panel = {
+            "menuOpen": "book toc",
+            "mode": "Menu",
+            "bookRef": oref.normal(),
+            "indexDetails": index_details,
+            "versions": oref.version_list()
+        }
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
