@@ -405,6 +405,7 @@ def make_panel_dict(oref, version_source, version_translation, filter, versionFi
         if mode != "Connections" and oref != None:
             panel["text"] = TextsForClientHandler(oref, [VersionsParams(None, panel["currVersions"]["source"]),
                                                          VersionsParams(None, panel["currVersions"]["translation"])])
+            panel["text"]["updateFromAPI"] = True
 
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents() # Included for Torah Parashah titles rendered in text
