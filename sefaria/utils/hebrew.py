@@ -427,6 +427,22 @@ def is_hebrew(s, heb_only=False):
 		return True
 	return False
 
+def is_mostly_hebrew(s):
+    # Returns true if text is (mostly) Hebrew
+    # Examines up to the first 60 characters, ignoring punctuation and numbers
+
+    he_count = 0;
+    en_count = 0;
+    s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s) # remove punctuation/spaces/numbers
+
+    for c in s[:60]:
+        if any_hebrew.search(c):
+            he_count += 1
+        elif any_english.search(c):
+            en_count += 1
+
+    return he_count > en_count
+
 
 def strip_cantillation(text, strip_vowels=False):
 	if strip_vowels:
@@ -633,6 +649,3 @@ def get_prefixless_inds(st: str) -> List[int]:
 		if not st.startswith(prefix): continue
 		starti_list += [len(prefix)]
 	return starti_list
-
-
-
