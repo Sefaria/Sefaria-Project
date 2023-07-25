@@ -403,8 +403,9 @@ def make_panel_dict(oref, version_source, version_translation, filter, versionFi
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            panel["text"] = TextsForClientHandler(oref, [VersionsParams(None, panel["currVersions"]["source"]),
-                                                         VersionsParams(None, panel["currVersions"]["translation"])])
+            text_handler = TextsForClientHandler(oref, [VersionsParams(None, panel["currVersions"]["source"]),
+                                                   VersionsParams(None, panel["currVersions"]["translation"])])
+            panel["text"] = text_handler.get_versions_for_query()
             panel["text"]["updateFromAPI"] = True
 
             if oref.index.categories == ["Tanakh", "Torah"]:
