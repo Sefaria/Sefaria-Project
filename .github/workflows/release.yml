@@ -5,7 +5,7 @@ on:
       chart_version:
         type: string
         required: true
-        default: 0.20.0
+        default: 0.32.0
 jobs:
   semantic-release:
     runs-on: ubuntu-latest
