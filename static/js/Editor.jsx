@@ -1062,11 +1062,13 @@ const AddInterface = ({ attributes, children, element }) => {
 
 const Element = (props) => {
     const { attributes, children, element } = props;
+    const [isHovering, setIsHovering] = useState(false);
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
         highlight: (useSlate().highlightedNode === (element.node ? element.node.toString() : null))
     };
+
 
     switch (element.type) {
         case 'spacer':
@@ -1077,8 +1079,12 @@ const Element = (props) => {
             empty: 1
           }
           return (
-            <div className={classNames(spacerClasses)} {...attributes}>
-              {spacerSelected && document.getSelection().isCollapsed ?  <AddInterface {...props} /> : <>{children}</>}
+            <div className={classNames(spacerClasses)}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            {...attributes}>
+            {isHovering && <AddInterface {...props} />}
+            {children}
             </div>
           );
         case 'SheetSource':
