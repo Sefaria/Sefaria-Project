@@ -1,5 +1,4 @@
 import {
-  ContentText,
   LoadingMessage
 } from './Misc';
 import React  from 'react';
@@ -10,6 +9,7 @@ import TextRange  from './TextRange';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+import {ContentText} from "./ContentText";
 
 
 class TextColumn extends Component {

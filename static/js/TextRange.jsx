@@ -5,7 +5,9 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import {ContentText, EnglishText, HebrewText} from "./Misc";
+import {EnglishText, HebrewText} from "./Misc";
+import {VersionContent} from "./ContentText";
+import {ContentText} from "./ContentText";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -52,6 +54,7 @@ class TextRange extends Component {
 
     return false;
   }
+
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
@@ -371,6 +374,7 @@ class TextRange extends Component {
             unsetTextHighlight={this.props.unsetTextHighlight}
             formatEnAsPoetry={formatEnAsPoetry}
             formatHeAsPoetry={formatHeAsPoetry}
+            placeSegmentNumbers={this.placeSegmentNumbers}
           />
         </span>
       );
@@ -409,11 +413,10 @@ class TextRange extends Component {
     } else if (showNumberLabel && this.props.numberLabel) {
       sidebarNum = <div className="numberLabel sans-serif">
         <span className="numberLabelInner">
-          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
+          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else { sidebarNum = null;}
-
     return (
       <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
@@ -469,7 +472,6 @@ TextRange.propTypes = {
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
 };
-
 
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
@@ -637,7 +639,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]}/>
+          <VersionContent overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]} imageLoadCallback={this.props.placeSegmentNumbers}/>
         </p>
 
         <div className="clearFix"></div>

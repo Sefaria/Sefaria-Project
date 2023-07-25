@@ -1239,6 +1239,14 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
+    def strip_imgs(s, sections=None):
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        imgs = soup.find_all('img')
+        for img in imgs:
+            img.decompose()
+        return soup.root.encode_contents().decode()  # remove divs added
+
+    @staticmethod
     def strip_itags(s, sections=None):
         soup, itag_list = AbstractTextRecord.find_all_itags(s)
         for itag in itag_list:
@@ -2308,9 +2316,10 @@ class TextFamily(object):
         "en": "sources",
         "he": "heSources"
     }
-    
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
+                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
+                 wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
