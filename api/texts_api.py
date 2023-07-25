@@ -1,22 +1,54 @@
 import django
 django.setup()
-from sefaria.datatype.jagged_array import JaggedArray
 from sefaria.utils.hebrew import hebrew_term
 from .api_errors import *
 from .helper import split_query_param_and_add_defaults
 from typing import List
 
-class APITextsHandler():
+
+class VersionsParams():
     """
-    process api calls for text
-    an api call contains ref and list of version_params
-    a version params is string divided by pipe as 'lang|vtitle'
+    an object for managing the versions params for TextsHandler
+    params can come from an API request or internal (sever side rendering)
     lang is our code language. special values are:
         source - for versions in the source language of the text
         base - as source but with falling to the 'nearest' to source, or what we have defined as such
     vtitle is the exact versionTitle. special values are:
         no vtitle - the version with the max priority attr of the specified language
         all - all versions of the specified language
+    representing_string is the original string that came from an API call
+    """
+
+    def __init__(self, lang: str, vtitle: str, representing_string=''):
+        self.lang = lang
+        self.vtitle = vtitle
+        self.representing_string = representing_string
+        if not self.representing_string:
+            self.representing_string = f'{self.lang}|{self.representing_string}'
+
+    def __eq__(self, other):
+        return isinstance(other, VersionsParams) and self.lang == other.lang and self.vtitle == other.vtitle
+
+    @staticmethod
+    def parse_api_params(version_params):
+        """
+        an api call contains ref and list of version_params
+        a version params is string divided by pipe as 'lang|vtitle'
+        this function takes the list of version_params and returns list of VersionsParams
+        """
+        version_params_list = []
+        for params_string in version_params:
+            lang, vtitle = split_query_param_and_add_defaults(params_string, 2, [''])
+            vtitle = vtitle.replace('_', ' ')
+            version_params = VersionsParams(lang, vtitle, params_string)
+            if version_params not in version_params_list:
+                version_params_list.append(version_params)
+        return version_params_list
+
+
+class TextsForClientHandler():
+    """
+    process api calls for text
     return_obj is dict that includes in its root:
         ref and index data
         'versions' - list of versions details and text
@@ -27,15 +59,15 @@ class APITextsHandler():
     BASE = 'base'
     SOURCE = 'source'
 
-    def __init__(self, oref: Ref, versions_params: List[str]):
+    def __init__(self, oref: Ref, versions_params: List[VersionsParams]):
         self.versions_params = versions_params
-        self.current_params = ''
         self.oref = oref
         self.handled_version_params = []
         self.all_versions = self.oref.version_list()
         self.return_obj = {'versions': [], 'errors': []}
 
-    def _handle_errors(self, lang: str, vtitle: str) -> None:
+    def _handle_errors(self, version_params: VersionsParams) -> None:
+        lang, vtitle = version_params.lang, version_params.vtitle
         if lang == self.SOURCE:
             error = APINoSourceText(self.oref)
         elif vtitle and vtitle != self.ALL:
@@ -44,10 +76,11 @@ class APITextsHandler():
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
             error = APINoLanguageVersion(self.oref, sorted(availabe_langs))
         self.return_obj['errors'].append({
-            self.current_params: error.get_dict()
+            version_params.representing_string: error.get_dict()
         })
 
-    def _append_required_versions(self, lang: str, vtitle=None) -> None:
+    def _append_required_versions(self, version_params: VersionsParams) -> None:
+        lang, vtitle = version_params.lang, version_params.vtitle
         if lang == self.BASE:
             lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == self.SOURCE:
@@ -64,15 +97,7 @@ class APITextsHandler():
             if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
                 self.return_obj['versions'].append(version)
         if not versions:
-            self._handle_errors(lang, vtitle)
-
-    def _handle_version_params(self, version_params: str) -> None:
-        if version_params in self.handled_version_params:
-            return
-        lang, vtitle = split_query_param_and_add_defaults(version_params, 2, [''])
-        vtitle = vtitle.replace('_', ' ')
-        self._append_required_versions(lang, vtitle)
-        self.handled_version_params.append(version_params)
+            self._handle_errors(version_params)
 
     def _add_text_to_versions(self) -> None:
         for version in self.return_obj['versions']:
@@ -135,8 +160,7 @@ class APITextsHandler():
 
     def get_versions_for_query(self) -> dict:
         for version_params in self.versions_params:
-            self.current_params = version_params
-            self._handle_version_params(version_params)
+            self._append_required_versions(version_params)
         self._add_text_to_versions()
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()

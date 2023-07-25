@@ -1,7 +1,5 @@
-import json
-from django.http import HttpResponseBadRequest
 from sefaria.model import *
-from .texts_api import APITextsHandler
+from .texts_api import TextsForClientHandler, VersionsParams
 from sefaria.client.util import jsonResponse
 
 
@@ -24,7 +22,8 @@ def get_texts(request, tref):
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['base']
-        handler = APITextsHandler(oref, versions_params)
+        versions_params = VersionsParams.parse_api_params(versions_params)
+        handler = TextsForClientHandler(oref, versions_params)
         data = handler.get_versions_for_query()
         return jsonResponse(data, cb)
     return jsonResponse({"error": "Unsupported HTTP method."}, cb, status=405)
