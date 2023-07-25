@@ -12,7 +12,7 @@ on:
       chart_version:
         type: string
         required: true
-        default: 0.33.0
+        default: ${{ vars.CHART_VERSION }}
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -208,13 +208,13 @@ jobs:
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
           CHART_VERSION: "${{ inputs.chart_version }}"
-#      - name: Update workflow default chart
-#        if: github.ref == 'refs/heads/master'
-#        run: |
-#          yq -i e '.on.workflow_dispatch.inputs.chart_version.default="${{ inputs.chart_version }}"' .github/workflows/release.yml
-#          yq -i e '.on.workflow_call.inputs.chart_version.default="${{ inputs.chart_version }}"' .github/workflows/production-deploy.yaml
-#          git config user.email bot@sefaria.org
-#          git config user.name "Sefaria Automated Workflow"
-#          git checkout -b master
-#          git commit -am "ci: update default chart version to ${{ inputs.chart_version }}"
-#          git push
+      - name: Update workflow default chart
+        if: github.ref == 'refs/heads/master'
+        run: > 
+          curl -L 
+          -X PATCH 
+          -H "Accept: application/vnd.github+json" 
+          -H "Authorization: Bearer ${{ secrets.WORKFLOW_AUTOMATION_TOKEN }}" 
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          https://api.github.com/repos/Sefaria/Sefaria-Project/actions/variables/CHART_VERSION
+          -d '{"name":"CHART_VERSION","value":"${{ inputs.chart_version }}"}'
