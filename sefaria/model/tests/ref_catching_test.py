@@ -4,7 +4,7 @@ import django
 django.setup()
 import pytest
 import regex as re
-from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.hebrew import has_hebrew
 import sefaria.model as m
 
 
@@ -43,7 +43,7 @@ class In(object):
             return False
 
     def finds_multiple(self, result):
-        lang = "he" if is_hebrew(self._needle) else "en"
+        lang = "he" if has_hebrew(self._needle) else "en"
         for title_match in m.library.all_titles_regex(lang, citing_only=False).finditer(self._haystack):
             match = self._do_search(self._needle, self._haystack[title_match.start():])
             if not match:
