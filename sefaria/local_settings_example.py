@@ -132,6 +132,11 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 """
 
+# Location of Strapi CMS instance
+# For local development, Strapi is located at http://localhost:1337 by default
+STRAPI_LOCATION = None
+STRAPI_PORT = None
+
 
 MANAGERS = ADMINS
 
