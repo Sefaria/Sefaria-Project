@@ -136,14 +136,10 @@ data:
 
     SEARCH_HOST = "/api/search"
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
-    SEARCH_ADMIN_USER = os.getenv("SEARCH_ADMIN_USER")
-    SEARCH_ADMIN_PW = os.getenv("SEARCH_ADMIN_PW")
-    SEARCH_ADMIN_K8S = os.getenv("SEARCH_ADMIN_K8S")
+    SEARCH_NON_ADMIN = os.getenv("SEARCH_NON_ADMIN")
     SEARCH_INDEX_ON_SAVE = True
-    SEARCH_INDEX_NAME = "sefaria"
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = 'sheet'
-    SEARCH_INDEX_NAME_MERGED = 'merged'
 
     TURN_SERVER = os.getenv("TURN_SERVER") #coturn.cauldron.sefaria.org
     TURN_SECRET= os.getenv("TURN_SECRET")
