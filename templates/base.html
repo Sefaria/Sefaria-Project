@@ -255,12 +255,6 @@
     {% endif %}
 
 
-    <script>
-      {% autoescape off %}
-        RTC_SERVER = "{{ RTC_SERVER }}"
-      {% endautoescape %}
-    </script>
-
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
