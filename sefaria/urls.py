@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from functools import partial
 from django.conf.urls import include, url
 from django.conf.urls import handler404, handler500
 from django.contrib import admin
@@ -45,12 +46,14 @@ urlpatterns = [
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^modtools/links$', sefaria_views.links_upload_api),
     url(r'^modtools/links/(?P<tref1>.+)/(?P<tref2>.+)$', sefaria_views.get_csv_links_by_refs_api),
+    url(r'^modtools/index_links/(?P<tref1>.+)/(?P<tref2>.+)$', partial(sefaria_views.get_csv_links_by_refs_api, by_segment=True)),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
 
 # People Pages
 urlpatterns += [
     url(r'^person/(?P<name>.+)$', reader_views.person_page_redirect),
+
     url(r'^people/Talmud/?$', reader_views.talmud_person_index_redirect),
     url(r'^people/?$', reader_views.person_index_redirect),
 ]
@@ -179,7 +182,6 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
-    url(r'^api/messages/?$', reader_views.messages_api),
     url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     url(r'^api/background-data', reader_views.background_data_api),
 
@@ -322,11 +324,6 @@ urlpatterns += [
     url(r'^api/img-gen/(?P<tref>.+)$', reader_views.social_image_api),
 ]
 
-# Chavruta URLs
-urlpatterns += [
-    url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
-    url(r'^api/chat-messages/?$', reader_views.chat_message_api)
-]
 
 # Registration
 urlpatterns += [
@@ -408,6 +405,7 @@ urlpatterns += [
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
+    url(r'^admin/delete/user-account', sefaria_views.delete_user_by_email, name="delete/user-account"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),

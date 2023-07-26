@@ -31,12 +31,13 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError
+    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, RAW_REF_MODEL_BY_LANG_FILEPATH, RAW_REF_PART_MODEL_BY_LANG_FILEPATH, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.constants import model as constants
 
 """
                 ----------------------------------
@@ -1087,18 +1088,8 @@ class AbstractTextRecord(object):
     """
     """
     text_attr = "chapter"
-    ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
-    ALLOWED_ATTRS   = {
-        'sup': ['class'],
-        'span':['class', 'dir'],
-        # There are three uses of i tags.
-        # footnotes: uses content internal to <i> tag.
-        # commentary placement: uses 'data-commentator', 'data-order', 'data-label'
-        # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
-        'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
-        'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
-    }
+    ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
+    ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
 
     def word_count(self):
         """ Returns the number of words in this text """
@@ -1296,6 +1287,14 @@ class AbstractTextRecord(object):
             is_tanakh_end_sup = tag.name == "sup" and 'endFootnote' in tag.get('class', [])  # footnotes like this occur in JPS english
             return AbstractTextRecord._itag_is_footnote(tag) or is_inline_commentator or is_page_marker or is_tanakh_end_sup
         return False
+
+    @staticmethod
+    def strip_imgs(s, sections=None):
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        imgs = soup.find_all('img')
+        for img in imgs:
+            img.decompose()
+        return soup.root.encode_contents().decode()  # remove divs added
 
     @staticmethod
     def strip_itags(s, sections=None):
@@ -2426,7 +2425,9 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
+                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
+                 wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
         :param oref:
         :param context:
