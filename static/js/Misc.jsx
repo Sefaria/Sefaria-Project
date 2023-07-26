@@ -2208,9 +2208,7 @@ const InterruptingMessage = ({
               </div>
               <div id="interruptingMessageContent">
                 <div id="highHolidayDonation">
-                  <p>
                     <InterfaceText markdown={strapi.modal.modalText} />
-                  </p>
                   <div className="buttons">
                     <a
                       className="button int-en"
