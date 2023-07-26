@@ -21,7 +21,7 @@ import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalC
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import ReactMarkdown from 'react-markdown';
-
+import TrackG4 from "./sefaria/trackG4";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1387,19 +1387,17 @@ SaveButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
-const gtagClick = (e, onClick=()=>{}, comp_name, params) => {
-  gtag("event", `onclick_${comp_name}`, params)
-  onClick(e)
-}
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => {
+  const analyticsContext = useContext(AdContext)
+  return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`})}
+    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`}, analyticsContext)}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
-);
+)};
 
 
 class FollowButton extends Component {
