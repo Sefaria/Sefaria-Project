@@ -201,14 +201,11 @@ class ReaderApp extends Component {
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
-    if (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage)) {
-      sessionStorage.setItem("isNewVisitor", "true");
-      // Setting this at this time will make the current new visitor a returning one once their session is cleared
-      localStorage.setItem("isReturningVisitor", "true"); 
+    if (Sefaria.isNewVisitor()) {
+      Sefaria.markUserAsNewVisitor();
     } else if (Sefaria._uid) {
       // A logged in user is automatically a returning visitor
-      sessionStorage.setItem("isNewVisitor", "false");
-      localStorage.setItem("isReturningVisitor", "true");
+      Sefaria.markUserAsReturningVisitor();
     }
   }
   componentWillUnmount() {
