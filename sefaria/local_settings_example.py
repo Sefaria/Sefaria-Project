@@ -3,7 +3,7 @@
 from datetime import timedelta
 import structlog
 import sefaria.system.logging as sefaria_logging
-
+import os
 
 # These are things you need to change!
 
@@ -310,3 +310,6 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+SENTRY_DSN = None
+CLIENT_SENTRY_DSN = None

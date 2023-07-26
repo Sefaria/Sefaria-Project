@@ -1042,6 +1042,8 @@ sjs.textBrowser = {
 	buildPreviewText: function(data) {
 		function segmentString(he, en, section) {
 			if (!he && !en) { return ""; }
+			en = !!en ? Sefaria.util.stripImgs(en) : en;
+			he = !!he ? Sefaria.util.stripImgs(he) : he;
 			var sectionLabel = isCommentary ? section.split(":")[0] : section;
 			sectionLabel = sjs.interfaceLang == "he" ? Sefaria.hebrew.encodeHebrewNumeral(sectionLabel) : sectionLabel;
 			var html = "<div class='segment' data-section='" + section + "'>" +
