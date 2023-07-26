@@ -156,11 +156,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
 # ElasticSearch server
-SEARCH_PASSWORD = ""
-SEARCH_ADMIN = "localhost:9200"  # URL to connect to internal ES server for admin access. Leave off https://
-SEARCH_NON_ADMIN = "http://localhost:9200/api/search"  # URL to connect to ES for searching. Can be /api/search Django endpoint which gets proxied to ES server.
-SEARCH_ADMIN_PW = None  # Optional password to connect to ES server. If no password, leave as `None`
-SEARCH_ADMIN_USER = None  # Optional user to connect to ES server. If no user, leave as `None`
+# URL to connect to internal ES server for admin access. This URL is used by indexing jobs only
+# If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
+SEARCH_ADMIN = "http://localhost:9200"
+# URL to connect to ES for searching. Can point to /api/search Django endpoint which gets proxied to ES server.
+# Set this to https://sefaria.org/api/search to connect to production search.
+SEARCH_NON_ADMIN = "http://localhost:8000/api/search"
+
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
