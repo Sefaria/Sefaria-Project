@@ -427,21 +427,21 @@ def is_hebrew(s, heb_only=False):
 		return True
 	return False
 
-def is_mostly_hebrew(s):
-    # Returns true if text is (mostly) Hebrew
-    # Examines up to the first 60 characters, ignoring punctuation and numbers
 
-    he_count = 0;
-    en_count = 0;
-    s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s) # remove punctuation/spaces/numbers
+def is_mostly_hebrew(s: str, len_to_check: int = 60):
+	"""
+	Check if input string is majority Hebrew
+	@param s: Input string to check
+	@param len_to_check: Maximum number of characters to check. Use `None` to check the whole string.
+	@return: Returns True if text is majority Hebrew
+	"""
+	he_count = 0
+	s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s)  # remove punctuation/spaces/numbers
+	for c in s[:len_to_check]:
+		if any_hebrew.search(c):
+			he_count += 1
 
-    for c in s[:60]:
-        if any_hebrew.search(c):
-            he_count += 1
-        elif any_english.search(c):
-            en_count += 1
-
-    return he_count > en_count
+	return he_count > (len_to_check/2)
 
 
 def strip_cantillation(text, strip_vowels=False):
