@@ -5,7 +5,10 @@ on:
       chart_version:
         type: string
         required: true
-        default: ${{ vars.CHART_VERSION }}
+        description: | 
+          Set to 'current' to use currently deployed chart version
+          Eg 0.33.0 - note no 'v'
+
 jobs:
   semantic-release:
     runs-on: ubuntu-latest
