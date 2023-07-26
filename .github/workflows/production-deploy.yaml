@@ -12,9 +12,8 @@ on:
       chart_version:
         type: string
         required: true
-        description: | 
-          Set to 'current' to use currently deployed chart version
-          Eg 0.33.0 - note no 'v'
+        default: current
+        description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
