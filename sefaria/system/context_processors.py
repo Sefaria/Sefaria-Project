@@ -68,6 +68,8 @@ def global_settings(request):
     return {
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
+        "STRAPI_LOCATION":        STRAPI_LOCATION,
+        "STRAPI_PORT":            STRAPI_PORT,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
         "GOOGLE_GTAG":            GOOGLE_GTAG,
         "HOTJAR_ID":              HOTJAR_ID,

@@ -19,6 +19,7 @@ function StrapiDataProvider({children}) {
         useState(null);
     const [banner, setBanner] = useState(null);
     useEffect(() => {
+      if (STRAPI_INSTANCE) {
         const getStrapiData = async () => {
             try {
                 let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
@@ -141,8 +142,7 @@ function StrapiDataProvider({children}) {
           }
         }
         `;
-
-                const result = fetch("http://localhost:1337/graphql", {
+                const result = fetch(STRAPI_INSTANCE + "/graphql", {
                     method: "POST", // *GET, POST, PUT, DELETE, etc.
                     mode: "cors", // no-cors, *cors, same-origin
                     cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -235,6 +235,7 @@ function StrapiDataProvider({children}) {
             }
         };
         getStrapiData();
+      }
     }, []);
 
     return (
