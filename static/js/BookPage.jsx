@@ -5,13 +5,14 @@ import {
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
+  NBox,
+  ResponsiveNBox,
   TabView,
   InterfaceText,
   ContentText, EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants,
-  CategoryHeader, requestWithCallBack
+  TitleVariants
 } from './Misc';
 import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
@@ -195,6 +196,8 @@ class BookPage extends Component {
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
 
+    const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
+
     const classes = classNames({
       bookPage: 1,
       readerNavMenu: 1,
@@ -242,8 +245,8 @@ class BookPage extends Component {
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
-                    <CategoryHeader type="books" buttonsToDisplay={["section", "edit"]}
-                                    data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
+                    <ContentText text={{en:title, he:heTitle}}/>
+                    {moderatorSection}
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                   <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
@@ -1016,6 +1019,97 @@ VersionsList.propTypes = {
   viewExtendedNotes:         PropTypes.func,
 };
 
+
+class ModeratorButtons extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      expanded: false,
+      message: null,
+      editing: false,
+    }
+  }
+  expand() {
+    this.setState({expanded: true});
+  }
+  collapse() {
+    this.setState({expanded: false});
+  }
+  editIndex(e) {
+    if (e.currentTarget.id === "edit") {
+      this.setState({editing: true});
+    }
+    else if(e.currentTarget.id === "cancel") {
+      this.setState({editing: false});
+    }
+  }
+  addSection() {
+    window.location = "/add/" + this.props.title;
+  }
+  deleteIndex() {
+    const title = this.props.title;
+
+    const confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions, translations and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+    if (confirm !== "DELETE") {
+      alert("Delete canceled.");
+      return;
+    }
+
+    const url = "/api/v2/index/" + title;
+    $.ajax({
+      url: url,
+      type: "DELETE",
+      success: function(data) {
+        if ("error" in data) {
+          alert(data.error)
+        } else {
+          alert("Text Deleted.");
+          window.location = "/";
+        }
+      }
+    }).fail(function() {
+      alert("Something went wrong. Sorry!");
+    });
+    this.setState({message: "Deleting text (this may time a while)..."});
+  }
+  render() {
+    if (!this.state.expanded) {
+      return (<div className="moderatorSectionExpand" onClick={this.expand}>
+                <i className="fa fa-cog"></i>
+              </div>);
+    }
+    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={this.editIndex}/>
+                          :
+                          <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
+                            <span className="fa fa-info-circle"/> Edit Text Info
+                          </div>
+
+
+    let addSection   = <div className="button white" onClick={this.addSection}>
+                          <span><i className="fa fa-plus-circle"></i> Add Section</span>
+                        </div>;
+    let deleteText   = <div className="button white" onClick={this.deleteIndex}>
+                          <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
+                        </div>
+    let textButtons = (<span className="moderatorTextButtons">
+                          {Sefaria.is_moderator ? editTextInfo : null}
+                          {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
+                          {Sefaria.is_moderator ? deleteText : null}
+                          <span className="moderatorSectionCollapse" onClick={this.collapse}><i className="fa fa-times"></i></span>
+                        </span>);
+    let message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
+    return (<div className="moderatorSection">
+              {textButtons}
+              {message}
+            </div>);
+  }
+}
+ModeratorButtons.propTypes = {
+  title: PropTypes.string.isRequired,
+};
+
+
 const SectionTypesBox = function({sections, canEdit, updateParent}) {
   const box = useRef(null);
   const add = function() {
@@ -1231,11 +1325,6 @@ const EditTextInfo = function({initTitle, close}) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
   }
-  const deleteObj = () => {
-    setSavingStatus(true);
-    const url = `/api/v2/index/${enTitle}`;
-    requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
-  }
   return (
       <div className="editTextInfo">
       <div className="static">
@@ -1301,9 +1390,6 @@ const EditTextInfo = function({initTitle, close}) {
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
                 <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
               </div> : null}
-            <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                <InterfaceText>Delete</InterfaceText>
-            </div>
           </div>
         </div>
       </div>
@@ -1360,4 +1446,4 @@ ReadMoreText.defaultProps = {
 
 
 
-export {BookPage as default, TextTableOfContents, EditTextInfo};
+export {BookPage as default, TextTableOfContents};

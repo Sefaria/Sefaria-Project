@@ -12,7 +12,7 @@ on:
       chart_version:
         type: string
         required: true
-        default: 0.28.0
+        default: 0.20.0
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.

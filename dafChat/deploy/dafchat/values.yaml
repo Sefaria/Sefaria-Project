@@ -1,0 +1,29 @@
+---
+deployEnv: testing
+releaseImageTag: asdf
+dafChat:
+  sefariaHost: sefaria.org
+  auth:
+    turnUser: dummyValue
+    turnSecret: dummyValue
+  rtc:
+    containerImage: defaultImage
+    replicaCount: 1
+    resources:
+      request:
+        memory: "100Mi"
+        cpu: "50m"
+      limit:
+        memory: "250Mi"
+        cpu: "150m"
+  coturn:
+    containerImage: defaultImage
+    replicaCount: 1
+    resources:
+      request:
+        memory: "4000Mi"
+        cpu: "1500m"
+      limit:
+        memory: "5000Mi"
+        cpu: "3000m"
+...

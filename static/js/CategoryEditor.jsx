@@ -15,7 +15,7 @@ const displayOptionForSources = (child) => {
         return child?.descriptions?.he ? `${child?.descriptions?.he?.title} - ${displayRef}` : displayRef;
     }
 }
-const displayOptions = {"cats": (child) => child.title || child.category,
+const displayOptions = {"books": (child) => child.title || child.category,
                         "topics": (child) => child.en,
                         "sources": (child) => displayOptionForSources(child)};
 const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentChangedStatus=null}) => {
@@ -74,9 +74,9 @@ const ReorderEditor = ({close, type="", postURL="", redirect="", origItems = []}
     const save = () => {
         setSavingStatus(true);
         let postCategoryData = {};
-        if (type === "cats") {
+        if (type === "books") {
             // use displayOptions to map toc objects to titles of category/book
-            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["cats"](x)), path: []};
+            postCategoryData = {subcategoriesAndBooks: tocItems.map(x => displayOptions["books"](x)), path: []};
         }
         else if (type === "topics") {
              postCategoryData = {topics: tocItems};
@@ -177,8 +177,8 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
             urlParams.push("update=1");
             postCategoryData = {...postCategoryData, origPath: origFullPath};
         }
-        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["cats"]);
-        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["cats"]);
+        const origSubcategoryTitles = origSubcategoriesAndBooks.current.map(displayOptions["books"]);
+        const newSubcategoryTitles = subcategoriesAndBooks.map(displayOptions["books"]);
         const reordered = origSubcategoryTitles.some((val, index) => val !== newSubcategoryTitles[index]);
         if (reordered && !isNew) {  // only reorder children when category isn't new
             postCategoryData["subcategoriesAndBooks"] = newSubcategoryTitles;
@@ -211,23 +211,17 @@ const CategoryEditor = ({origData={}, close, origPath=[]}) => {
                 extras={
                     [isNew ? null :
                         <Reorder subcategoriesAndBooks={subcategoriesAndBooks} updateParentChangedStatus={setChanged}
-                                 updateOrder={setSubcategoriesAndBooks} displayType="cats"/>,
-                         <div className="section">
-                             <br/>
-                            <label>
-                            <InterfaceText>{Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}</InterfaceText>
-                            </label>
-                            <ToggleSet
-                              blueStyle={true}
-                              ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
-                              label=""
-                              name="primary"
-                              separated={false}
-                              options={primaryOptions}
-                              setOption={handlePrimaryClick}
-                              currentValue={isPrimary} />
-                         </div>,
-                        ]
+                                 updateOrder={setSubcategoriesAndBooks} displayType="books"/>,
+                        <ToggleSet
+                          blueStyle={true}
+                          ariaLabel="Primary Status (If true, this category will display its contents on its own category page.)"
+                          label={Sefaria._("Primary Status (If true, this category will display its contents on its own category page.)")}
+                          name="primary"
+                          separated={false}
+                          options={primaryOptions}
+                          setOption={handlePrimaryClick}
+                          currentValue={isPrimary} />,
+                    ]
                 }/>
 
     </div>;

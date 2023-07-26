@@ -4,7 +4,7 @@ deployEnv:
 previousServicesCount: "1"
 web:
   containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
+    imageRegistry: gcr.io/development-205018/sefaria-web-${BRANCH}
     tag: 
   secrets:
     googleClient:
@@ -19,7 +19,7 @@ redis:
     tag: latest
 nodejs:
   containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-node-${BRANCH}
+    imageRegistry: gcr.io/development-205018/sefaria-node-${BRANCH}
     tag: 
 varnish:
   secrets:
@@ -36,11 +36,11 @@ ingress:
       ref: cauldron-wildcard-letsencrypt
 nginx:
   containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-${BRANCH}
+    imageRegistry: gcr.io/development-205018/sefaria-asset-${BRANCH}
     tag: 
 monitor:
   containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
+    imageRegistry: gcr.io/development-205018/sefaria-web-${BRANCH}
     tag: 
 secrets:
   localSettings: 

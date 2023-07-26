@@ -1,6 +1,7 @@
 export const SignUpModalKind = {
   AddConnection: Symbol("Add Connection"),
   AddToSheet: Symbol("Add to Sheet"),
+  Chavruta: Symbol("Chavruta"),
   AddTranslation: Symbol("Add Translation"),
   Follow: Symbol("Follow"),
   Notes: Symbol("Notes"),
@@ -80,6 +81,43 @@ const signUpModalContent = {
       },
     ],
   },
+  [SignUpModalKind.Chavruta]: {
+    h2: {
+      en: "Want to study with a friend?",
+      he: "רוצים להתחבר עם משתמשים אחרים בספריא?",
+    },
+    h3: {
+      en: "Create a free account to start a chavruta video call",
+      he: "פתחו חשבון משתמש בחינם והצטרפו לשיח",
+    },
+    contentList: [
+      {
+        icon: "network-icon-white.svg",
+        bulletContent: {
+          en: "Explore Torah together",
+          he: "עקבו אחרי היוצרים האהובים עליכם",
+        },
+      },
+      {
+        icon: "sheetsplus-white.svg",
+        bulletContent: {
+          en: "Build & share source sheets",
+          he: "בנו ושתפו דפי מקורות",
+        },
+      },
+      {
+        icon: "feedback-white.svg",
+        bulletContent: { en: "Send messages", he: "שלחו הודעות דרך ספריא" },
+      },
+      {
+        icon: "chavruta-white.svg",
+        bulletContent: {
+          en: "Learn with a chavruta over video",
+          he: "למדו עם חברותא באמצעות הווידיאו",
+        },
+      },
+    ],
+  },
   [SignUpModalKind.AddTranslation]: {
     h2: {
       en: "Have your own translation of this text?",
@@ -141,6 +179,13 @@ const signUpModalContent = {
       {
         icon: "note-white.svg",
         bulletContent: { en: "Send messages", he: "שלחו הודעות דרך ספריא" },
+      },
+      {
+        icon: "chavruta-white.svg",
+        bulletContent: {
+          en: "Learn with a chavruta over video",
+          he: "למדו עם חברותא באמצעות הווידיאו",
+        },
       },
     ],
   },
