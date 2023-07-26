@@ -48,6 +48,6 @@ spec:
                       - name: CHANNEL
                         valueFrom:
                           secretKeyRef:
-                            name: { { template "sefaria.secrets.slackWebhook" . } }
+                            name: {{ template "sefaria.secrets.slackWebhook" . }}
                             key: channel
                 restartPolicy: Never
