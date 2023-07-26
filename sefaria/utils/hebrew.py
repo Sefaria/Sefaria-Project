@@ -436,13 +436,8 @@ def is_mostly_hebrew(s: str, len_to_check: int = 60):
 	@param len_to_check: Maximum number of characters to check. Use `None` to check the whole string.
 	@return: Returns True if text is majority Hebrew
 	"""
-	he_count = 0
 	s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s)  # remove punctuation/spaces/numbers
-	s = s[:len_to_check]
-	for c in s:
-		if any_hebrew.search(c):
-			he_count += 1
-
+	he_count = len(any_hebrew.findall(s[:len_to_check]))
 	return he_count > len(s)/2
 
 
