@@ -2125,6 +2125,7 @@ const InterruptingMessage = ({
   const shouldShow = () => {
     console.log("checking whether to show modal or not");
     if (!strapi.modal) return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
