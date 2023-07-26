@@ -39,7 +39,7 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -298,17 +298,8 @@ def find_refs_report_api(request):
 
 @api_view(["POST"])
 def find_refs_api(request):
-    from sefaria.helper.linker import make_find_refs_response, add_webpage_hit_for_url
-
-    with_text = bool(int(request.GET.get("with_text", False)))
-    debug = bool(int(request.GET.get("debug", False)))
-    max_segments = int(request.GET.get("max_segments", 0))
-    post_body = json.loads(request.body)
-
-    response = make_find_refs_response(post_body, with_text, debug, max_segments)
-    add_webpage_hit_for_url(post_body.get("metaDataForTracking", {}).get("url", None))
-
-    return jsonResponse(response)
+    from sefaria.helper.linker import make_find_refs_response
+    return jsonResponse(make_find_refs_response(request))
 
 
 @api_view(["GET"])

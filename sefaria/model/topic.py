@@ -20,6 +20,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
+    pkeys = ["description"]
+    track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
@@ -42,9 +44,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
     ]
-    # The below is to support HTML markup in the description
-    ALLOWED_TAGS = AbstractTextRecord.ALLOWED_TAGS
-    ALLOWED_ATTRS = AbstractTextRecord.ALLOWED_ATTRS
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
 
@@ -85,7 +84,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for attr in ['description', 'categoryDescription']:
             p = getattr(self, attr, {})
             for k, v in p.items():
-                p[k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
+                p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
 
     def set_titles(self, titles):
@@ -760,6 +759,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
+            self.ref = Ref(self.ref).normal()
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _validate(self):
@@ -915,3 +915,44 @@ def process_topic_delete(topic):
     for sheet in db.sheets.find({"topics.slug": topic.slug}):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
+
+def process_topic_description_change(topic, **kwargs):
+    """
+    Upon topic description change, get rid of old markdown links and save any new ones
+    """
+    # need to delete currently existing links but dont want to delete link if its still in the description
+    # so load up a dictionary of relevant data -> link
+    IntraTopicLinkSet({"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
+    refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
+    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
+
+    markdown_links = set()
+    for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
+        for m in re.findall('\[.*?\]\((.*?)\)', val):
+            markdown_links.add(m)
+
+    for markdown_link in markdown_links:
+        if markdown_link.startswith("/topics"):
+            other_slug = markdown_link.split("/")[-1]
+            intra_topic_dict = {"toTopic": topic.slug, "linkType": "related-to",
+                                "dataSource": "learning-team-editing-tool", 'fromTopic': other_slug}
+            try:
+                IntraTopicLink(intra_topic_dict).save()
+            except DuplicateRecordError as e:  # there may be identical IntraTopicLinks with a different dataSource or inverted fromTopic and toTopic
+                pass
+        else:
+            if markdown_link.startswith("/"):
+                markdown_link = markdown_link[1:]  # assume link starts with a '/'
+            try:
+                ref = Ref(markdown_link).normal()
+            except InputError as e:
+                continue
+            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
+                              'ref': ref}
+            RefTopicLink(ref_topic_dict).save()
+
+
+
+
+
+

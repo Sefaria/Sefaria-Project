@@ -124,7 +124,7 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'sefaria.urls'
@@ -299,23 +299,21 @@ CACHES = {
 
 
 
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-06-16-help-center",
-    "style":      "banner",  # "modal" or "banner"
-    "repetition": 1,
-    "is_fundraising": False,
-    "condition":  {
-        "returning_only": False,
-        "english_only": False,
-        "desktop_only": True,
-        "debug": False,
-    }
-}
+# GLOBAL_INTERRUPTING_MESSAGE = {
+#     "name": "2023-06-16-help-center",
+#     "style":      "banner",  # "modal" or "banner"
+#     "repetition": 1,
+#     "is_fundraising": False,
+#     "condition":  {
+#         "returning_only": False,
+#         "english_only": False,
+#         "desktop_only": True,
+#         "debug": False,
+#     }
+# }
 
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-
-
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 # Grab environment specific settings from a file which
@@ -327,6 +325,7 @@ try:
         from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
+
 
 # Listed after local settings are imported so CACHE can depend on DEBUG
 WEBPACK_LOADER = {

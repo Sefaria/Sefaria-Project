@@ -232,20 +232,6 @@ class Search {
         // Returns JSON with keys sorted consistently, suitable for a cache key
         return JSON.stringify(obj, Object.keys(obj).sort());
     }
-    getPivot(queue, minValue, sortType) {
-
-        // if this is the last query, this will be the last chance to return results
-        if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total &&
-            this.sefariaQueryQueue.lastSeen + 1 >= this.sefariaQueryQueue.hits.total)
-            return queue.length;
-
-        // return whole queue if the last item in queue is equal to minValue
-        if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
-            return queue.length;
-
-        const pivot = queue.findIndex(x => x[sortType] > minValue);
-        return (pivot >= 0) ? pivot : 0;
-    }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
         if(addAggregations) {
@@ -310,13 +296,6 @@ class Search {
                 }
             }
 
-            const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
-            const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
-            this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
-            sefariaHits = sefariaHits.slice(0, sefariaPivot);
-            this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
-            dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
 

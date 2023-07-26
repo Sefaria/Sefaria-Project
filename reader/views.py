@@ -48,7 +48,7 @@ from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_use
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -80,6 +80,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
+from api.texts_api import TextsForClientHandler, VersionsParams
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -260,8 +261,7 @@ def base_props(request):
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG,
-        "rtc_server": RTC_SERVER
+        "_debug": DEBUG
     })
     return user_data
 
@@ -332,7 +332,7 @@ def get_connections_mode(filter):
     else:
         return "TextList", False
 
-def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
+def make_panel_dict(oref, version_source, version_translation, filter, versionFilter, mode, **kwargs):
     """
     Returns a dictionary corresponding to the React panel state,
     additionally setting `text` field with textual content.
@@ -340,30 +340,30 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     if oref.is_book_level():
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
-        if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
-            currVersions = {"en": versionEn, "he": versionHe}
-            if versionEn is not None and versionHe is not None:
-                curr_lang = kwargs.get("panelDisplayLanguage", "en")
-                for key in list(currVersions.keys()):
-                    if key == curr_lang:
-                        continue
-                    else:
-                        currVersions[key] = None
-            panel = {
-                "menuOpen": "extended notes",
-                "mode": "Menu",
-                "bookRef": oref.normal(),
-                "indexDetails": index_details,
-                "currVersions": currVersions
-            }
-        else:
-            panel = {
-                "menuOpen": "book toc",
-                "mode": "Menu",
-                "bookRef": oref.normal(),
-                "indexDetails": index_details,
-                "versions": oref.version_list()
-            }
+        # if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
+        #     currVersions = {"en": versionEn, "he": versionHe}
+        #     if versionEn is not None and versionHe is not None:
+        #         curr_lang = kwargs.get("panelDisplayLanguage", "en")
+        #         for key in list(currVersions.keys()):
+        #             if key == curr_lang:
+        #                 continue
+        #             else:
+        #                 currVersions[key] = None
+        #     panel = {
+        #         "menuOpen": "extended notes",
+        #         "mode": "Menu",
+        #         "bookRef": oref.normal(),
+        #         "indexDetails": index_details,
+        #         "currVersions": currVersions
+        #     }
+        # else:
+        panel = {
+            "menuOpen": "book toc",
+            "mode": "Menu",
+            "bookRef": oref.normal(),
+            "indexDetails": index_details,
+            "versions": oref.version_list()
+        }
     else:
         section_ref = oref.first_available_section_ref()
         oref = section_ref if section_ref else oref
@@ -372,8 +372,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "ref": oref.normal(),
             "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
             "currVersions": {
-                "en": versionEn,
-                "he": versionHe,
+                "source": version_source,
+                "translation": version_translation,
             },
             "filter": filter,
             "versionFilter": versionFilter,
@@ -402,15 +402,11 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            try:
-                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
-                                  context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
-            except NoVersionFoundError:
-                text_family = {}
-            text_family["updateFromAPI"] = True
-            text_family["next"] = oref.next_section_ref().normal() if oref.next_section_ref() else None
-            text_family["prev"] = oref.prev_section_ref().normal() if oref.prev_section_ref() else None
-            panel["text"] = text_family
+            text_handler = TextsForClientHandler(oref.padded_ref().context_ref(),
+                                                 [VersionsParams(None, panel["currVersions"]["source"]),
+                                                  VersionsParams(None, panel["currVersions"]["translation"])])
+            panel["text"] = text_handler.get_versions_for_query()
+            panel["text"]["updateFromAPI"] = True
 
             if oref.index.categories == ["Tanakh", "Torah"]:
                 panel["indexDetails"] = oref.index.contents() # Included for Torah Parashah titles rendered in text
@@ -489,7 +485,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         return panels
 
 
-def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs):
+def make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs):
     """
     Returns an array of panel dictionaries.
     Depending on whether `multi_panel` is True, connections set in `filter` are displayed in either 1 or 2 panels.
@@ -497,15 +493,42 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     panels = []
     # filter may have value [], meaning "all".  Therefore we test filter with "is not None".
     if filter is not None and multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Connections", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Connections", **kwargs)]
     elif filter is not None and not multi_panel:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "TextAndConnections", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "TextAndConnections", **kwargs)]
     else:
-        panels += [make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, "Text", **kwargs)]
+        panels += [make_panel_dict(oref, version_source, version_translation, filter, versionFilter, "Text", **kwargs)]
 
     return panels
 
+def get_text_parmas(request, oref, index: int):
+    '''
+    this function parse the version and lang from the request, taking in account older versions of urls
+    in the current version url can have 'source', 'translation' and 'lang', and an additional nem for additional panels
+    in older version it was 'vhe', 'ven' and 'lang'
+    in evem older version, in the additional panels it was 'v' (it can be english or hebrew) and 'l'
+    this function should catch all of them
+    '''
+    index = str(index) if index else ''
+    request_dict = request.GET
+    lang = request_dict.get(f"lang{index}", None)
+    if not lang:
+        if index:
+            lang = request_dict.get(f"l{index}", request.contentLang)
+        else:
+            lang = request.contentLang
+    version_source = request_dict.get(f"source{index}", request_dict.get(f'vhe{index}', ''))
+    version_translation = request_dict.get(f"translation{index}", request_dict.get(f'ven{index}', ''))
+    if index and not version_source and not version_translation:
+        if lang == 'en':
+            version_translation = request_dict.get(f'v{index}', '')
+        else:
+            version_source = request_dict.get(f'v{index}', '')
+    version_translation, version_source = override_version_with_preference(oref, request, version_translation, version_source)
+    version_source, version_translation = version_source.replace('_', ' '), version_translation.replace('_', ' ')
+
+    return version_source, version_translation, lang
 
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
@@ -524,12 +547,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
-    versionEn = request.GET.get("ven", None)
-    if versionEn:
-        versionEn = versionEn.replace("_", " ")
-    versionHe = request.GET.get("vhe", None)
-    if versionHe:
-        versionHe = versionHe.replace("_", " ")
 
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
@@ -539,14 +556,14 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
-        if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
+        version_source, version_translation, lang = get_text_parmas(request, oref, 0)
+        if version_source and not Version().load({"versionTitle": version_source}):
             raise Http404
-        if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
+        if version_translation and not Version().load({"versionTitle": version_translation}):
             raise Http404
-        versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
 
         kwargs = {
-            "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
+            "panelDisplayLanguage": lang,
             'extended notes': int(request.GET.get("notes", 0)),
             "translationLanguagePreference": request.translation_language_preference,
         }
@@ -561,7 +578,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
-        panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+        panels += make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
@@ -590,21 +607,12 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            versionEn  = request.GET.get("ven{}".format(i)).replace("_", " ") if request.GET.get("ven{}".format(i)) else None
-            versionHe  = request.GET.get("vhe{}".format(i)).replace("_", " ") if request.GET.get("vhe{}".format(i)) else None
-            if not versionEn and not versionHe:
-                # potential link using old version format
-                language = request.GET.get("l{}".format(i))
-                if language == "en":
-                    versionEn = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-                else: # he
-                    versionHe = request.GET.get("v{}".format(i)).replace("_", " ") if request.GET.get("v{}".format(i)) else None
-            versionEn, versionHe = override_version_with_preference(oref, request, versionEn, versionHe)
+            version_source, version_translation, lang = get_text_parmas(request, oref, 0)
             filter   = request.GET.get("w{}".format(i)).replace("_", " ").split("+") if request.GET.get("w{}".format(i)) else None
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             kwargs = {
-                "panelDisplayLanguage": request.GET.get("lang{}".format(i), request.contentLang),
+                "panelDisplayLanguage": lang,
                 'extended notes': int(request.GET.get("notes{}".format(i), 0)),
                 "translationLanguagePreference": request.translation_language_preference,
             }
@@ -614,13 +622,13 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (versionEn and not Version().load({"versionTitle": versionEn, "language": "en"})) or \
-                (versionHe and not Version().load({"versionTitle": versionHe, "language": "he"})):
+            if (version_source and not Version().load({"versionTitle": version_source})) or \
+                (version_translation and not Version().load({"versionTitle": version_translation})):
                 i += 1
                 continue  # Stop processing all panels?
                 # raise Http404
 
-            panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
+            panels += make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
     props = {
@@ -632,7 +640,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
-        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -2905,27 +2912,6 @@ def notifications_read_api(request):
 
 
 @catch_error_as_json
-def messages_api(request):
-    """
-    API for posting user to user messages
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to access your messages."})
-
-    if request.method == "POST":
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
-        return jsonResponse({"status": "ok"})
-
-    elif request.method == "GET":
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -3247,12 +3233,12 @@ def topic_ref_api(request, tref):
         if not request.user.is_staff:
             return jsonResponse({"error": "Only moderators can connect edit topic sources."})
         elif request.method == "DELETE":
-            return jsonResponse(delete_ref_topic_link(tref, slug, linkType))
+            return jsonResponse(delete_ref_topic_link(tref, slug, linkType, interface_lang))
         elif request.method == "POST":
             description = data.get("description", {})
             creating_new_link = data.get("is_new", True)
             new_tref = Ref(data.get("new_ref", tref)).normal()   # `new_tref` is only present when editing (`creating_new_link` is False)
-            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, link=link, creating_new_link=creating_new_link,
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=new_tref, creating_new_link=creating_new_link,
                                 linkType=linkType, description=description, interface_lang=interface_lang)
             return jsonResponse(ref_topic_dict)
 
@@ -3461,40 +3447,6 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
-@catch_error_as_json
-def chat_message_api(request):
-    if request.method == "POST":
-        messageJSON = request.POST.get("json")
-        messageJSON = json.loads(messageJSON)
-
-        room_id = messageJSON["roomId"]
-        uids = room_id.split("-")
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can post to it."})
-
-
-        message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"],
-                        "timestamp": messageJSON["timestamp"],
-                        "message": messageJSON["messageContent"]})
-        message.save()
-        return jsonResponse({"status": "ok"})
-
-    if request.method == "GET":
-        room_id = request.GET.get("room_id")
-        uids = room_id.split("-")
-
-
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can view it."})
-
-        skip = int(request.GET.get("skip", 0))
-        limit = int(request.GET.get("limit", 10))
-
-        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
-        return jsonResponse(messages)
-
-    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -4629,16 +4581,3 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-@login_required
-def beit_midrash(request, slug):
-    chavrutaId = request.GET.get("cid", None)
-    starting_ref = request.GET.get("ref", None)
-
-    if starting_ref:
-        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
-
-    else:
-        props = {"customBeitMidrashId": slug,}
-        title = _("Sefaria Beit Midrash")
-        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-        return menu_page(request, props, "navigation", title, desc)

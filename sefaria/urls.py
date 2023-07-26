@@ -14,6 +14,7 @@ import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
+import api.views as bi_directional_translation_views
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -149,6 +150,7 @@ urlpatterns += [
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
+    url(r'^api/v3/texts/(?P<tref>.+)$', bi_directional_translation_views.get_texts),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -180,7 +182,6 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
-    url(r'^api/messages/?$', reader_views.messages_api),
     url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     url(r'^api/background-data', reader_views.background_data_api),
 
@@ -323,11 +324,6 @@ urlpatterns += [
     url(r'^api/img-gen/(?P<tref>.+)$', reader_views.social_image_api),
 ]
 
-# Chavruta URLs
-urlpatterns += [
-    url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
-    url(r'^api/chat-messages/?$', reader_views.chat_message_api)
-]
 
 # Registration
 urlpatterns += [

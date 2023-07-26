@@ -1036,7 +1036,7 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
-def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link=True,
+def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
                       interface_lang='en', linkType='about', description={}):
     """
     API helper function used by SourceEditor for editing sources associated with topics which are stored as RefTopicLink
@@ -1044,56 +1044,50 @@ def edit_topic_source(slug, orig_tref, new_tref="", link=None, creating_new_link
     :param slug: (str) String of topic whose source we are editing
     :param orig_tref (str) String representation of original reference of source.
     :param new_tref: (str) String representation of new reference of source.
-    :param link: (RefTopicLink) If not None, the source
     :param linkType: (str) 'about' is used for most topics, except for 'authors' case
     :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
     """
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_link = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
-    link = RefTopicLink().load(ref_topic_link)
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
+    link = RefTopicLink().load(ref_topic_dict)
+    link_already_existed = link is not None
+    if not link_already_existed:
+        link = RefTopicLink(ref_topic_dict)
+
+    if not hasattr(link, 'order'):
+        link.order = {}
+    if 'availableLangs' not in link.order:
+        link.order['availableLangs'] = []
+    if interface_lang not in link.order['availableLangs']:
+        link.order['availableLangs'] += [interface_lang]
+    link.dataSource = 'learning-team'
+    link.ref = new_tref
+
+    current_descriptions = getattr(link, 'descriptions', {})
+    if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
+        current_descriptions[interface_lang] = description
+        link.descriptions = current_descriptions
+
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
-    elif not creating_new_link and new_tref != link.ref:
-        new_link = RefTopicLink().load({"toTopic": slug, "linkType": linkType, "ref": new_tref, "order.availableLangs": interface_lang})
-        if new_link:
-            # attempting to change ref of an existing link
-            return {"error": f"Can't change source's ref to {new_tref} as that source already exists.  Please edit that source directly."}
-    elif link:
-        if not hasattr(link, 'order'):
-            link.order = {}
-        if 'availableLangs' not in link.order:
-            link.order['availableLangs'] = []
-        if 'curatedPrimacy' not in link.order and linkType == 'about':
-            link.order['curatedPrimacy'] = {}
-        if interface_lang not in link.order['availableLangs']:
-            link.order['availableLangs'] += [interface_lang]
+    elif creating_new_link:
+        if not link_already_existed:
+            num_sources = getattr(topic_obj, "numSources", 0)
+            topic_obj.numSources = num_sources + 1
+            topic_obj.save()
         if interface_lang not in link.order.get('curatedPrimacy', {}) and linkType == 'about':
-            # author sources sorted by custom order not curated primacy so check linkType
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
-            link.order['curatedPrimacy'][interface_lang] = num_curr_links  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
-    elif creating_new_link and link is None:
-        # check link is None to avoid unjustifiably incrementing topic's numSources
-        num_sources = getattr(topic_obj, "numSources", 0)
-        topic_obj.numSources = num_sources + 1
-        topic_obj.save()
-        ref_topic_link['ref'] = new_tref
-        ref_topic_link['order'] = {}
-        ref_topic_link['order']['availableLangs'] = [interface_lang]
-        if linkType == 'about':
-            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang}))
-            ref_topic_link['order']['curatedPrimacy'] = {interface_lang: num_curr_links}  # this sets the new source at the top of the topic page, because otherwise it can be hard to find
-        link = RefTopicLink(ref_topic_link)
+            # this will evaluate to false when (1) creating a new link though the link already exists and has a curated primacy
+            # or (2) topic is an author (which means linkType is not 'about') as curated primacy is irrelevant to authors
+            # this code sets the new source at the top of the topic page, because otherwise it can be hard to find.
+            # curated primacy's default value for all links is 0 so set it to 1 + num of links in this language
+            num_curr_links = len(RefTopicLinkSet({"toTopic": slug, "linkType": linkType, 'order.availableLangs': interface_lang})) + 1
+            if 'curatedPrimacy' not in link.order:
+                link.order['curatedPrimacy'] = {}
+            link.order['curatedPrimacy'][interface_lang] = num_curr_links
 
-    link.dataSource = "sefaria"
-    link.ref = new_tref
-    if len(description) > 0:
-        if not hasattr(link, 'descriptions'):
-            link.descriptions = {}
-        link.descriptions[interface_lang] = description
     link.save()
-
     # process link for client-side, especially relevant in TopicSearch.jsx
     ref_topic_dict = ref_topic_link_prep(link.contents())
     return annotate_topic_link(ref_topic_dict, {slug: topic_obj})
@@ -1124,6 +1118,9 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
         link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
         if link is None:
             return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+        order = getattr(link, 'order', {})
+        if lang not in order.get('availableLangs', []) :
+            return {"error": f"Link between {topic} and {s['ref']} does not exist in '{lang}'."}
         ref_to_link[s['ref']] = link
 
     # now update curatedPrimacy data
@@ -1139,11 +1136,12 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
     return {"sources": results}
 
 
-def delete_ref_topic_link(tref, to_topic, link_type):
+def delete_ref_topic_link(tref, to_topic, link_type, lang):
     """
     :param type: (str) Can be 'ref' or 'intra'
     :param tref: (str) tref of source
     :param to_topic: (str) Slug of topic
+    :param lang: (str) 'he' or 'en'
     """
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
@@ -1152,8 +1150,18 @@ def delete_ref_topic_link(tref, to_topic, link_type):
     link = RefTopicLink().load(topic_link)
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
-    if link.can_delete():
-        link.delete()
+
+    if lang in link.order['availableLangs']:   
+        link.order['availableLangs'].remove(lang)
+    if lang in link.order['curatedPrimacy']:
+        link.order['curatedPrimacy'].pop(lang)
+
+    if len(link.order['availableLangs']) > 0:
+        link.save()
         return {"status": "ok"}
-    else:
-        return {"error": f"Cannot delete link between {tref} and {to_topic}."}
+    else:   # deleted in both hebrew and english so delete link object
+        if link.can_delete():
+            link.delete()
+            return {"status": "ok"}
+        else:
+            return {"error": f"Cannot delete link between {tref} and {to_topic}."}
