@@ -5,9 +5,6 @@ import json
 
 from sefaria.helper.crm.crm_connection_manager import CrmConnectionManager
 from sefaria import settings as sls
-import structlog
-logger = structlog.get_logger(__name__)
-
 
 class SalesforceConnectionManager(CrmConnectionManager):
     def __init__(self):
@@ -79,7 +76,6 @@ class SalesforceConnectionManager(CrmConnectionManager):
             return nationbuilder_user['id']
 
         except:
-            # log
             return False
         return res
 
@@ -95,7 +91,6 @@ class SalesforceConnectionManager(CrmConnectionManager):
         try:
             return res.status_code == 204
         except:
-            # log
             return False
         return res
 
@@ -108,9 +103,10 @@ class SalesforceConnectionManager(CrmConnectionManager):
         try:
             return res.status_code == 204
         except:
-            # log
             return False
-        return res
+
+    def mark_for_review_in_crm(self, crm_id):
+        return self.mark_as_spam_in_crm(crm_id)
 
     def find_crm_id(self, email=None):
         if email:

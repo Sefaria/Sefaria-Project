@@ -21,6 +21,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const [sortedSubtopics, setSortedSubtopics] = useState(subtopics?.sort(Sefaria.sortTopicsCompareFn)
                                                                                 .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
                                                                                 || []);
+    const [isChanged, setIsChanged] = useState(false);
+
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
@@ -52,7 +54,15 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                             </div>
                                     </div>);
 
+    const updateData = function(newData) {
+        setIsChanged(true);
+        setData(newData);
+    }
     const validate = async function () {
+        if (!isChanged) {
+            alert("You haven't changed any of the fields.");
+            return false;
+        }
         if (data.catSlug === "") {
           alert(Sefaria._("Please choose a category."));
           return false;
@@ -118,7 +128,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         items.push("Hebrew Short Description");
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                        validate={validate} deleteObj={deleteObj} updateData={setData} isNew={isNew}
+                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
                         items={items} extras={
                             [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}

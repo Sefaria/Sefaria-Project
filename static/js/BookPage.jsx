@@ -5,16 +5,16 @@ import {
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
-  NBox,
-  ResponsiveNBox,
   TabView,
   InterfaceText,
-  ContentText, EnglishText, HebrewText, LanguageToggleButton,
+  EnglishText, HebrewText, LanguageToggleButton,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants
+  TitleVariants,
+  CategoryHeader, requestWithCallBack
 } from './Misc';
-
+import {ContentText} from "./ContentText";
+import {validateMarkdownLinks} from "./AdminEditor";
 import React, { useState, useRef }  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -29,6 +29,7 @@ import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 import {ContentLanguageContext} from './context';
 import Hebrew from './sefaria/hebrew.js';
+
 import ReactTags from 'react-tag-autocomplete';
 
 
@@ -196,8 +197,6 @@ class BookPage extends Component {
         !isDictionary ? {type: "DownloadVersions", props:{sref: this.props.title}} : {type: null},
       ];
 
-    const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
-
     const classes = classNames({
       bookPage: 1,
       readerNavMenu: 1,
@@ -245,8 +244,8 @@ class BookPage extends Component {
               <div className="tocTop">
                 <div className="tocTitle" role="heading" aria-level="1">
                   <div className="tocTitleControls">
-                    <ContentText text={{en:title, he:heTitle}}/>
-                    {moderatorSection}
+                    <CategoryHeader type="books" buttonsToDisplay={["section", "edit"]}
+                                    data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                   <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
@@ -1019,97 +1018,6 @@ VersionsList.propTypes = {
   viewExtendedNotes:         PropTypes.func,
 };
 
-
-class ModeratorButtons extends Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      expanded: false,
-      message: null,
-      editing: false,
-    }
-  }
-  expand() {
-    this.setState({expanded: true});
-  }
-  collapse() {
-    this.setState({expanded: false});
-  }
-  editIndex(e) {
-    if (e.currentTarget.id === "edit") {
-      this.setState({editing: true});
-    }
-    else if(e.currentTarget.id === "cancel") {
-      this.setState({editing: false});
-    }
-  }
-  addSection() {
-    window.location = "/add/" + this.props.title;
-  }
-  deleteIndex() {
-    const title = this.props.title;
-
-    const confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions, translations and links. This action CANNOT be undone. Type DELETE to confirm.", "");
-    if (confirm !== "DELETE") {
-      alert("Delete canceled.");
-      return;
-    }
-
-    const url = "/api/v2/index/" + title;
-    $.ajax({
-      url: url,
-      type: "DELETE",
-      success: function(data) {
-        if ("error" in data) {
-          alert(data.error)
-        } else {
-          alert("Text Deleted.");
-          window.location = "/";
-        }
-      }
-    }).fail(function() {
-      alert("Something went wrong. Sorry!");
-    });
-    this.setState({message: "Deleting text (this may time a while)..."});
-  }
-  render() {
-    if (!this.state.expanded) {
-      return (<div className="moderatorSectionExpand" onClick={this.expand}>
-                <i className="fa fa-cog"></i>
-              </div>);
-    }
-    let editTextInfo =    this.state.editing ? <EditTextInfo initTitle={this.props.title} close={this.editIndex}/>
-                          :
-                          <div className="button white" id="edit" onClick={(e) => this.editIndex(e)}>
-                            <span className="fa fa-info-circle"/> Edit Text Info
-                          </div>
-
-
-    let addSection   = <div className="button white" onClick={this.addSection}>
-                          <span><i className="fa fa-plus-circle"></i> Add Section</span>
-                        </div>;
-    let deleteText   = <div className="button white" onClick={this.deleteIndex}>
-                          <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
-                        </div>
-    let textButtons = (<span className="moderatorTextButtons">
-                          {Sefaria.is_moderator ? editTextInfo : null}
-                          {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
-                          {Sefaria.is_moderator ? deleteText : null}
-                          <span className="moderatorSectionCollapse" onClick={this.collapse}><i className="fa fa-times"></i></span>
-                        </span>);
-    let message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
-    return (<div className="moderatorSection">
-              {textButtons}
-              {message}
-            </div>);
-  }
-}
-ModeratorButtons.propTypes = {
-  title: PropTypes.string.isRequired,
-};
-
-
 const SectionTypesBox = function({sections, canEdit, updateParent}) {
   const box = useRef(null);
   const add = function() {
@@ -1159,7 +1067,7 @@ const EditTextInfo = function({initTitle, close}) {
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
   const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
   const getYearAsStr = (initCompDate) => {
-    if (typeof initCompDate === 'undefined') {
+    if (typeof initCompDate === 'undefined' || initCompDate === '') {
       return "";
     }
     else {
@@ -1181,12 +1089,13 @@ const EditTextInfo = function({initTitle, close}) {
       }
     }
   }
-  const [compDate, setCompDate] = useState(getYearAsStr(index.current?.compDate));
+  const [compDate, setCompDate] = useState(index.current?.compDate);
+  const [compDateStr, setCompDateStr] = useState(getYearAsStr(compDate));
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
   }
-  const validate = function () {
+  const validate = async function () {
     if (!enTitle) {
       alert("Please give a text title or commentator name.");
       return false;
@@ -1221,6 +1130,12 @@ const EditTextInfo = function({initTitle, close}) {
     if (Hebrew.containsHebrew(enTitle)) {
       alert("Please enter a primary title in English. Use the Hebrew Title field to specify a title in Hebrew.");
       return false;
+    }
+    for (const x of [enDesc, heDesc]) {
+      const valid_tags = await validateMarkdownLinks(x);
+      if (!valid_tags) {
+        return false;
+      }
     }
     return true;
   }
@@ -1269,7 +1184,7 @@ const EditTextInfo = function({initTitle, close}) {
     if (enTitle !== oldTitle) {
       postIndex.oldTitle = oldTitle;
     }
-    if (compDate !== "") {
+    if (compDateStr !== "") {
       postIndex.compDate = compDate;
       postIndex.errorMargin = errorMargin;
     }
@@ -1317,6 +1232,11 @@ const EditTextInfo = function({initTitle, close}) {
   const removeAuthor = function (authorIDtoRemove) {
     let newAuthors = authors.filter(author => author.id !== authorIDtoRemove);
     setAuthors(newAuthors);
+  }
+  const deleteObj = () => {
+    setSavingStatus(true);
+    const url = `/api/v2/index/${enTitle}`;
+    requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/texts`});
   }
   return (
       <div className="editTextInfo">
@@ -1376,13 +1296,16 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDate}/>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDateStr}/>
             </div>
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
                 <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
               </div> : null}
+            <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
+                <InterfaceText>Delete</InterfaceText>
+            </div>
           </div>
         </div>
       </div>
@@ -1439,4 +1362,4 @@ ReadMoreText.defaultProps = {
 
 
 
-export {BookPage as default, TextTableOfContents};
+export {BookPage as default, TextTableOfContents, EditTextInfo};

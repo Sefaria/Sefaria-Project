@@ -34,6 +34,8 @@ plugins:
           - {"type": "perf", "hidden": true}
           - {"type": "test", "hidden": true}
           - {"type": "static", "hidden": true}
+  - - "@semantic-release/github"
+    - "successComment": false
 EOF
 export branch=$(git branch --show-current)
 if [[ $branch != "master" ]]; then
