@@ -163,6 +163,12 @@ class Util {
                                now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
       return Math.round(nowUTC/1000);
     }
+    static stripImgs(s) {
+      return !s ? "" : sanitizeHtml(s, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'img'),
+          allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+      });
+    }
     static zip(...rows) {
       // rows is an array
       // corrolary to zip in python
@@ -985,6 +991,7 @@ Util.RefValidator.prototype = {
         if (!this.$preview) { return; }
 
         var segments = Sefaria.makeSegments(data);
+        segments = Sefaria.stripImagesFromSegments(segments);
         var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
         var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
 
