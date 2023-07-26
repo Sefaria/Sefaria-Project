@@ -60,7 +60,7 @@ class In(object):
         return not self._do_search(self._needle, self._haystack)
 
     def _do_search(self, needle, haystack):
-        lang = "he" if is_hebrew(needle) else "en"
+        lang = "he" if has_hebrew(needle) else "en"
         reg_str = m.library.get_regex_string(
             needle, lang, for_js=True, anchored=False, capture_title=False, parentheses=self._with_parenthesis)
         reg = re.compile(reg_str, re.VERBOSE)
