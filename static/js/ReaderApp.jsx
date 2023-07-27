@@ -1979,7 +1979,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
-    // How do I get the user type?
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
