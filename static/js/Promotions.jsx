@@ -1,13 +1,12 @@
 import React, { useState, useContext, useEffect } from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import classNames from "classnames";
-import { InterruptingMessage } from "./Misc";
 import Sefaria from "./sefaria/sefaria";
+import { OnInView } from "./Misc";
 
-const Promotions = ({ adType, rerender }) => {
+const Promotions = () => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
-  const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from the google doc
-  const [prevMatchingAdIds, setPrevMatchingAdIds] = useState([]);
+  const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
   useEffect(() => {
@@ -25,30 +24,54 @@ const Promotions = ({ adType, rerender }) => {
           let keywordTargetsArray = sidebarAd.keywords
             .split(",")
             .map((x) => x.trim().toLowerCase());
+          let excludeKeywordTargets = keywordTargetsArray
+            .filter((x) => x[0] === "!")
+            .map((x) => x.slice(1));
+          keywordTargetsArray = keywordTargetsArray.filter(
+            (x) => x[0] !== "!"
+          );
           Sefaria._inAppAds.push({
             campaignId: sidebarAd.internalCampaignId,
-            title: sidebarAd.Title,
+            title: sidebarAd.title,
             bodyText: sidebarAd.bodyText,
             buttonText: sidebarAd.buttonText,
-            buttonUrl: sidebarAd.buttonUrl,
-            buttonIcon: "",
-            buttonLocation: sidebarAd.buttonUrl,
-            adType: "sidebar",
+            buttonURL: sidebarAd.buttonURL,
+            buttonIcon: sidebarAd.buttonIcon,
+            buttonLocation: sidebarAd.buttonAboveOrBelow,
             hasBlueBackground: sidebarAd.hasBlueBackground,
-            repetition: 5,
-            buttonStyle: "",
             trigger: {
               showTo: sidebarAd.showTo,
-              interfaceLang: Sefaria.translateISOLanguageCode(
-                sidebarAd.locale
-              ).toLowerCase(),
+              interfaceLang: "english",
               dt_start: Date.parse(sidebarAd.startTime),
               dt_end: Date.parse(sidebarAd.endTime),
               keywordTargets: keywordTargetsArray,
-              excludeKeywordTargets: [],
+              excludeKeywordTargets: excludeKeywordTargets,
             },
             debug: sidebarAd.debug,
           });
+          if (sidebarAd.localizations?.data?.length) {
+            const hebrewAttributes = sidebarAd.localizations.data[0].attributes;
+            const [buttonText, bodyText, buttonURL, title] = [hebrewAttributes.buttonText, hebrewAttributes.bodyText, hebrewAttributes.buttonURL, hebrewAttributes.title];
+            Sefaria._inAppAds.push({
+              campaignId: sidebarAd.internalCampaignId,
+              title: title,
+              bodyText: bodyText,
+              buttonText: buttonText,
+              buttonUrl: buttonURL,
+              buttonIcon: sidebarAd.buttonIcon,
+              buttonLocation: sidebarAd.buttonAboveOrBelow,
+              hasBlueBackground: sidebarAd.hasBlueBackground,
+              trigger: {
+                showTo: sidebarAd.showTo,
+                interfaceLang: "hebrew",
+                dt_start: Date.parse(sidebarAd.startTime),
+                dt_end: Date.parse(sidebarAd.endTime),
+                keywordTargets: keywordTargetsArray,
+                excludeKeywordTargets: excludeKeywordTargets,
+              },
+              debug: sidebarAd.debug,
+            });
+          }
         });
         setInAppAds(Sefaria._inAppAds);
       }
@@ -61,27 +84,6 @@ const Promotions = ({ adType, rerender }) => {
       setMatchingAds(getCurrentMatchingAds());
     }
   }, [context, inAppAds]); // when state changes, the effect will run
-  useEffect(() => {
-    if (!matchingAds) {
-      return;
-    }
-    const matchingAdIds = matchingAds.map((x) => x.campaignId).sort();
-    const newIds = matchingAdIds.filter(
-      (value) => !prevMatchingAdIds.includes(value)
-    );
-
-    if (newIds.length > 0) {
-      for (const matchingAd of matchingAds) {
-        if (newIds.includes(matchingAd.campaignId)) {
-          gtag("event", "promo_viewed", {
-            campaignID: matchingAd.campaignId,
-            adType: matchingAd.adType,
-          });
-        }
-      }
-      setPrevMatchingAdIds(newIds);
-    }
-  }, [matchingAds]); // when state of matching ads changes, which changes in previous useEffect
 
   //    function getAds() {
   //        const url =
@@ -122,7 +124,6 @@ const Promotions = ({ adType, rerender }) => {
         showToUser(ad) &&
         showGivenDebugMode(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
-        ad.adType === adType &&
         context.dt > ad.trigger.dt_start &&
         context.dt < ad.trigger.dt_end &&
         (context.keywordTargets.some((kw) =>
@@ -131,163 +132,77 @@ const Promotions = ({ adType, rerender }) => {
           (ad.trigger.excludeKeywordTargets.length !== 0 &&
             !context.keywordTargets.some((kw) =>
               ad.trigger.excludeKeywordTargets.includes(kw)
-            ))) &&
-        /* line below checks if ad with particular repetition number has been seen before and is a banner */
-        ((Sefaria._inBrowser &&
-          !document.cookie.includes(`${ad.campaignId}_${ad.repetition}`)) ||
-          ad.adType === "sidebar")
+            )))
       );
     });
   }
 
-  function processSheetsData(response) {
-    if (response.isError()) {
-      alert(
-        "Error in query: " +
-          response.getMessage() +
-          " " +
-          response.getDetailedMessage()
-      );
-      return;
-    }
-    const data = response.getDataTable();
-    const columns = data.getNumberOfColumns();
-    const rows = data.getNumberOfRows();
-    Sefaria._inAppAds = [];
-    for (let r = 0; r < rows; r++) {
-      let row = [];
-      for (let c = 0; c < columns; c++) {
-        row.push(data.getFormattedValue(r, c));
-      }
-      let keywordTargetsArray = row[5]
-        .split(",")
-        .map((x) => x.trim().toLowerCase());
-      let excludeKeywordTargets = keywordTargetsArray.filter(
-        (x) => x.indexOf("!") === 0
-      );
-      excludeKeywordTargets = excludeKeywordTargets.map((x) => x.slice(1));
-      keywordTargetsArray = keywordTargetsArray.filter(
-        (x) => x.indexOf("!") !== 0
-      );
-      Sefaria._inAppAds.push({
-        campaignId: row[0],
-        title: row[6],
-        bodyText: row[7],
-        buttonText: row[8],
-        buttonUrl: row[9],
-        buttonIcon: row[10],
-        buttonLocation: row[11],
-        adType: row[12],
-        hasBlueBackground: parseInt(row[13]),
-        repetition: row[14],
-        buttonStyle: row[15],
-        trigger: {
-          showTo: row[4],
-          interfaceLang: row[3],
-          dt_start: Date.parse(row[1]),
-          dt_end: Date.parse(row[2]),
-          keywordTargets: keywordTargetsArray,
-          excludeKeywordTargets: excludeKeywordTargets,
-        },
-        debug: parseInt(row[16]),
-      });
-    }
-    setInAppAds(Sefaria._inAppAds);
-  }
+  console.log("promotions component is being rerendered");
 
-  // TODO: refactor once old InterruptingMessage pattern is retired
-  function createBannerHtml(matchingAd) {
-    return `<div id="bannerTextBox">
-	<span class="${
-    context.interfaceLang === "hebrew" ? "int-he" : "int-en"
-  }" style="font-weight: bold">
-        ${matchingAd.bodyText}
-    </span>
-</div>
-<div id="bannerButtonBox">
-	<a class="button white ${
-    context.interfaceLang === "hebrew" ? "int-he" : "int-en"
-  }"
-	    href="${matchingAd.buttonUrl}"   
-	    onclick='gtag("event", "promo_clicked", {  
-            campaignID: matchingAd.campaignId, adType:matchingAd.adType
-            })' 
-        target="_blank">
-        <span>${matchingAd.buttonText}</span>
-    </a>
-</div>`;
-  }
-
-  function styleAds() {
-    if (adType === "banner") {
-      const matchingAd = matchingAds[0]; // Only allow a single banner
-      if (!matchingAd) {
-        return null;
-      }
-      // TODO: change this to use new InterruptingMessage
-      const bannerHtml = createBannerHtml(matchingAd);
-      return (
-        <InterruptingMessage
-          messageName={matchingAd.campaignId}
-          messageHTML={bannerHtml}
-          style="banner"
-          repetition={matchingAd.repetition}
-          onClose={rerender}
-        />
-      );
-    } else {
-      const sidebarAds = matchingAds.map((ad) => (
-        <SidebarAd matchingAd={ad} key={ad.campaignId} />
-      ));
-      return sidebarAds;
-    }
-  }
-
-  return matchingAds ? styleAds() : null;
+  return matchingAds
+    ? matchingAds.map((ad) => <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />)
+    : null;
 };
 
-const SidebarAd = ({ matchingAd }) => {
+function trackSidebarAdImpression(ad) {
+  console.log(ad.campaignId + " has been seen");
+  gtag("event", "promo_viewed", {
+    campaignID: ad.campaignId,
+    adType: "sidebar",
+  });
+}
+
+function trackSidebarAdClick(ad) {
+  gtag("event", "promo_clicked", {
+    campaignID: ad.campaignId,
+    adType: "sidebar",
+  });
+}
+
+const SidebarAd = ({ context, matchingAd }) => {
   const classes = classNames({
     sidebarPromo: 1,
     blue: matchingAd.hasBlueBackground,
   });
 
+  console.log("is this being rerendered?");
+
   function getButton() {
     return (
       <a
-        className={matchingAd.buttonStyle}
-        href={matchingAd.buttonUrl}
-        onClick={() =>
-          gtag("event", "promo_clicked", {
-            campaignID: matchingAd.campaignId,
-            adType: matchingAd.adType,
-          })
-        }
+        className="button small"
+        href={matchingAd.buttonURL}
+        onClick={() => trackSidebarAdClick(matchingAd)}
       >
-        <img
-          src={`/static/icons/${matchingAd.buttonIcon}`}
-          aria-hidden="true"
-        />
+        {matchingAd.buttonIcon?.data ? (
+          <img
+            src={STRAPI_INSTANCE + matchingAd.buttonIcon.data.attributes.url}
+            alt={matchingAd.buttonIcon.data.attributes.alternativeText}
+            aria-hidden="true"
+          />
+        ) : null}
         {matchingAd.buttonText}
       </a>
     );
   }
 
   return (
-    <div className={classes}>
-      <h3>{matchingAd.title}</h3>
-      {matchingAd.buttonLocation === "below" ? (
-        <>
-          <p>{matchingAd.bodyText}</p>
-          {getButton()}
-        </>
-      ) : (
-        <>
-          {getButton()}
-          <p>{matchingAd.bodyText}</p>
-        </>
-      )}
-    </div>
+    <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
+      <div className={classes}>
+        <h3 className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.title}</h3>
+        {matchingAd.buttonLocation === "below" ? (
+          <>
+          <p className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.bodyText}</p>
+            {getButton()}
+          </>
+        ) : (
+          <>
+            {getButton()}
+          <p className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.bodyText}</p>
+          </>
+        )}
+      </div>
+    </OnInView>
   );
 };
 

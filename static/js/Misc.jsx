@@ -3269,5 +3269,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack
+  requestWithCallBack,
+  OnInView
 };
