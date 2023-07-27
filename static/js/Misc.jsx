@@ -20,6 +20,7 @@ import {TopicEditor} from "./TopicEditor";
 import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
+import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 
 /**
@@ -1103,100 +1104,196 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const CategoryHeader =  ({children, type, data = [], edit = true,
-                            add_subcategory = true, reorder = false,
-                            add_source = false}) => {
+const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+  return (
+    <span className={adminClasses}>
+      {buttonsToDisplay.map((key, i) => {
+        const top = i === 0;
+        const bottom = i === buttonsToDisplay.length - 1;
+        const [buttonText, toggleAddingTopics] = buttonOptions[key];
+        return (
+          <AdminEditorButton 
+            text={buttonText} 
+            top={top} 
+            bottom={bottom}
+            toggleAddingTopics={toggleAddingTopics} 
+          />
+        );
+      })}
+    </span>
+  );
+};
+
+
+const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
   /*
   Provides an interface for using admin tools.
-  `type` is 'sources', 'books' or 'topics'
-  `data` is list when `type` === 'books' which tells us where we are in the TOC tree,
+  `type` is 'sources', 'cats', 'books' or 'topics'
+  `data` is list when `type` === 'cats' which tells us where we are in the TOC tree,
+        for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
+  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [reorderCategory, toggleReorderCategory] = useEditToggle();
   const [addSource, toggleAddSource] = useEditToggle();
+  const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
+  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+                          "source": ["Add a source", toggleAddSource],
+                          "section": ["Add section", toggleAddSection],
+                          "reorder": ["Reorder sources", toggleReorderCategory],
+                          "edit": ["Edit", toggleEditCategory]};     
 
-  const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+
+  let wrapper = "";
   let adminButtonsSpan = null;
-  if (Sefaria.is_moderator && editCategory) {
-    if (data.length === 0) {  // at /texts or /topics
-      const url = type === 'topics' ? `/api/topic/reorder` : `/api/category?reorder=1`;
-      const redirect = type === 'topics' ? '/topics' : '/texts';
-      const origItems = type === 'topics' ? Sefaria.topic_toc : Sefaria.toc;
-      adminButtonsSpan = <ReorderEditor close={toggleEditCategory} type={type} origItems={origItems}
-                                        postURL={url} redirect={redirect}/>;
-    } else if (type === "sources") {
-      const [topicSlug, refData] = data;
-      adminButtonsSpan = <SourceEditor topic={topicSlug} origData={refData} close={toggleEditCategory}/>;
-    } else if (type === "books") {
-      let tocObject = Sefaria.tocObjectByCategories(data);
-      const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
-      const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
-      const origData = {
-        origEn: tocObject.category,
-        origHe: tocObject.heCategory,
-        origDesc,
-        origCategoryDesc,
-        isPrimary: tocObject.isPrimary
-      };
-      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleEditCategory} origPath={data.slice(0, -1)}/>;
-    } else if (type === "topics") {
-      const initCatSlug = TopicToCategorySlug(data);
-      const origData = {
-        origSlug: data.slug, origCategorySlug: initCatSlug,
-        origEn: data.primaryTitle.en, origHe: data.primaryTitle.he || ""
-      };
-      origData.origDesc = data.description || {"en": "", "he": ""};
-      origData.origCategoryDesc = data.categoryDescription || {"en": "", "he": ""};
-      const origWasCat = "displays-above" in data?.links;
-      adminButtonsSpan = <TopicEditor origData={origData}
-                                      origWasCat={origWasCat}
-                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}
-                                      close={toggleEditCategory}/>;
+  if (Sefaria.is_moderator) {
+    if (editCategory) {
+      adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
+    } else if (addSource) {
+      adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
+    } else if (addCategory) {
+      adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
+    } else if (addSection) {
+      window.location = `/add/${data}`;
+    } else if (reorderCategory) {
+      adminButtonsSpan = <ReorderEditorWrapper toggle={toggleReorderCategory} data={data} type={type}/>;  // reordering sources on a topic page
+    } else {
+      wrapper = "headerWithAdminButtons";
+      const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+        adminButtonsSpan = <AllAdminButtons
+        buttonOptions={buttonOptions} 
+        buttonsToDisplay={buttonsToDisplay} 
+        adminClasses={adminClasses} 
+      />;
     }
-  } else if (Sefaria.is_moderator && addSource && type === "topics") {
-    adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
-  } else if (Sefaria.is_moderator && addCategory) {
-    const origData = {origEn: ""};
-    if (type === "books") {
-      adminButtonsSpan = <CategoryEditor origData={origData} close={toggleAddCategory} origPath={data}/>;
-    } else if (type === "topics") {
-      origData['origCategorySlug'] = data;
-      adminButtonsSpan = <TopicEditor origData={origData} close={toggleAddCategory} origWasCat={false}
-                                      onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
-    }
-  } else if (Sefaria.is_moderator && reorderCategory) {
-    const url = `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`;
-    let refs = data.refs?.about?.refs || [];
-    // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
-    refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
-    // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
-    refs = refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
-    adminButtonsSpan = <ReorderEditor close={toggleReorderCategory}
-                                      postURL={url}
-                                      type={'sources'}
-                                      origItems={refs}
-                                      redirect={`/topics/${data.slug}`}/>;
-  } else if (Sefaria.is_moderator) {
-    adminButtonsSpan = <span className={adminClasses}>
-                              {add_subcategory &&
-                              <AdminEditorButton text="Add sub-category" toggleAddingTopics={toggleAddCategory}/>}
-      {add_source && <AdminEditorButton text="Add a source" toggleAddingTopics={toggleAddSource}/>}
-      {edit && <AdminEditorButton text="Edit" toggleAddingTopics={toggleEditCategory}/>}
-      {reorder && <AdminEditorButton text="Reorder sources" toggleAddingTopics={toggleReorderCategory}/>}
-                      </span>;
-
   }
-  const wrapper = addCategory || editCategory || addSource || reorderCategory ? "" : "headerWithAdminButtons";
-  return <span className={wrapper}><span
-      onMouseEnter={() => setHiddenButtons()}>{children}</span>{adminButtonsSpan}</span>;
+  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
+}
+const ReorderEditorWrapper = ({toggle, type, data}) => {
+    /*
+    Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
+    root of the topic or category TOC, so an empty array for `data` is passed indicating these cases.  In the case of reordering sources, `data`
+    is a dictionary of the topic whose sources can be accessed via its `refs` field.
+     */
+    const reorderingSources = data.length !== 0;
+    const _filterAndSortRefs = (refs) => {
+        if (!refs) {   
+            return [];
+        }
+        // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+        return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
+    }
+    const _createURLs = (type, data) => {
+      if (reorderingSources) {
+        return {
+          url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
+          redirect: `/topics/${data.slug}`,
+          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+        }
+      }
+      switch (type) {  // at /texts or /topics
+        case 'topics':
+            return {
+              url: '/api/topic/reorder',
+              redirect: '/topics',
+              origItems: Sefaria.topic_toc
+            };
+        case 'cats':
+          return {
+            url: '/api/category?reorder=1',
+            redirect: '/texts',
+            origItems: Sefaria.toc
+          };
+      }
+    }
+    const {url, redirect, origItems} = _createURLs(type, data);
+    return <ReorderEditor
+            close={toggle}
+            type={!reorderingSources ? type : 'sources'}
+            origItems={origItems}
+            postURL={url}
+            redirect={redirect}
+          />;
 }
 
+const EditorForExistingTopic = ({ toggle, data }) => {
+  const initCatSlug = TopicToCategorySlug(data);
+  const origData = {
+    origSlug: data.slug,
+    origCategorySlug: initCatSlug,
+    origEn: data.primaryTitle.en,
+    origHe: data.primaryTitle.he || "",
+    origDesc: data.description || {"en": "", "he": ""},
+    origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
+  };
+  
+  const origWasCat = "displays-above" in data?.links;
+  
+  return (
+    <TopicEditor 
+      origData={origData}
+      origWasCat={origWasCat}
+      onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
+      close={toggle}
+    />
+  );
+};
 
 
+
+const EditorForExistingCategory = ({ toggle, data }) => {
+  let tocObject = Sefaria.tocObjectByCategories(data);
+  const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+  const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+  const origData = {
+    origEn: tocObject.category,
+    origHe: tocObject.heCategory,
+    origDesc,
+    origCategoryDesc,
+    isPrimary: tocObject.isPrimary
+  };
+
+  return (
+    <CategoryEditor 
+      origData={origData} 
+      close={toggle} 
+      origPath={data.slice(0, -1)}
+    />
+  );
+};
+
+
+const CategoryEditorWrapper = ({toggle, data, type}) => {
+  switch (type) {
+    case "books":
+      return <EditTextInfo initTitle={data} close={toggle}/>;
+    case "sources":
+        const [topicSlug, refData] = data;
+        return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
+    case "cats":
+        return <EditorForExistingCategory toggle={toggle} data={data} />;
+    case "topics":
+        return <EditorForExistingTopic toggle={toggle} data={data} />;
+  }
+}
+
+const CategoryAdderWrapper = ({toggle, data, type}) => {
+      const origData = {origEn: ""};
+      switch (type) {
+        case "cats":
+          return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
+        case "topics":
+          origData['origCategorySlug'] = data;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}
+                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+      }
+  }
 
 class SearchButton extends Component {
   render() {
@@ -1784,53 +1881,6 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
-
-
-class MessageModal extends Component {
-  constructor(props) {
-    super(props);
-    this.textarea = React.createRef();
-    this.state = {
-      visible: false,
-      message: '',
-    };
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.visible && !prevState.visible) {
-      this.textarea.current.focus();
-    }
-  }
-  onChange(e) { this.setState({ message: e.target.value }); }
-  onSend(e) {
-    if (!this.state.message) { return; }
-    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
-      this.setState({ visible: false });
-      alert("Message Sent");
-      Sefaria.track.event("Messages", "Message Sent", "");
-    });
-  }
-  makeVisible() { this.setState({ visible: true }); }
-  onCancel(e) { this.setState({ visible: false }); }
-  render() {
-    if (!this.state.visible) { return null; }
-    return (
-      <div id="interruptingMessageBox" className="sefariaModalBox sans-serif">
-        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
-        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
-          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
-          <textarea value={this.state.message} onChange={this.onChange} ref={this.textarea} />
-          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
-          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
-        </div>
-      </div>
-    );
-  }
-}
-MessageModal.propTypes = {
-  name: PropTypes.string.isRequired,
-  uid:  PropTypes.number.isRequired,
-};
-
 function NewsletterSignUpForm(props) {
   const {contextName, includeEducatorOption} = props;
   const [email, setEmail] = useState('');
@@ -2071,6 +2121,22 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
+// User could be new visitor when there isn't anything in sessionStorage either...
+// Maybe don't check if it's in there or have extra conditional
+function isNewVisitor() {
+  return (
+    "isNewVisitor" in sessionStorage &&
+    JSON.parse(sessionStorage.getItem("isNewVisitor"))
+  );
+}
+
+function isReturningVisitor() {
+  return (
+    !isNewVisitor() &&
+    "isReturningVisitor" in localStorage &&
+    JSON.parse(localStorage.getItem("isReturningVisitor"))
+  );
+}
 
 const InterruptingMessage = ({
   onClose,
@@ -2109,7 +2175,6 @@ const InterruptingMessage = ({
   const shouldShow = () => {
     console.log("checking whether to show modal or not");
     if (!strapi.modal) return false;
-    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
@@ -2135,9 +2200,9 @@ const InterruptingMessage = ({
     )
       shouldShowModal = true;
     else if (
-      (Sefaria.isReturningVisitor() &&
+      (isReturningVisitor() &&
         strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+      (isNewVisitor() && strapi.modal.showToNewVisitors)
     )
       shouldShowModal = true;
     else if (noUserKindIsSet) shouldShowModal = true;
@@ -2190,9 +2255,75 @@ const InterruptingMessage = ({
               >
                 ×
               </div>
+              {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.modal ? strapi.modal.modalText : null } }></div> */}
               <div id="interruptingMessageContent">
+                <style>
+                  {`#highHolidayDonation {
+                      width: 410px;
+                      max-height: 100%;
+                      max-width: 100%;
+                  }
+                  .interface-english #highHolidayDonation {
+                      text-align: left;
+                  }
+                  .interface-hebrew #highHolidayDonation {
+                      text-align: right;
+                      direction: rtl;
+                  }
+                  #highHolidayDonation p {
+                      color: #555;
+                  }
+                  .interface-hebrew p.int-en {
+                      display: none;
+                  }
+                  #highHolidayDonation p .int-en {
+                      font-family: "adobe-garamond-pro", Georgia, serif;
+                  }
+                  #highHolidayDonation p .int-he {
+                      font-family: "adobe-garamond-pro", Georgia, serif;
+                      /* font-family: "Heebo", sans-serif; */
+                  }
+                  #highHolidayDonation p.sub {
+                      color: #999;
+                      font-size: 12px;
+                      font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+                  }
+                  #highHolidayDonation p {
+                      margin-top: 0;
+                  }
+                  #highHolidayDonation .button {
+                      margin-bottom: 20px;
+                  }
+                  #highHolidayDonation img {
+                      max-width: 100%;
+                  }
+                  #highHolidayDonation .buttons{
+                      text-align: right;
+                  }
+                  .leader {
+                      font-weight: bold;
+                  }
+                  .center{
+                      text-align: center;
+                  }
+                  #email-input-wrapper {
+                      display: flex;
+                      align-items: flex-start;
+                      flex-direction: column;
+                  }
+                  .newsletterInput#email-input {
+                      width: 300px;
+                      padding: 10px;
+                      margin-bottom: 20px;
+                      border-radius: 7px;
+                      border: 1px solid #EEE;
+                      color: #333;
+                  }`}
+                </style>
                 <div id="highHolidayDonation">
+                  <p>
                     <InterfaceText markdown={strapi.modal.modalText} />
+                  </p>
                   <div className="buttons">
                     <a
                       className="button int-en"
@@ -2284,8 +2415,8 @@ const Banner = ({ onClose }) => {
     )
       shouldShowBanner = true;
     else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+      (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (isNewVisitor() && strapi.banner.showToNewVisitors)
     )
       shouldShowBanner = true;
     else if (noUserKindIsSet) shouldShowBanner = true;
@@ -2363,6 +2494,308 @@ const Banner = ({ onClose }) => {
 };
 
 Banner.displayName = "Banner";
+
+// const useInterruptingComponent = (componentKind, showDelay, onClose, nameId) => {
+//   const [timesUp, setTimesUp] = useState(false);
+//   const [hasComponentBeenInteractedWith, setComponentHasBeenInteractedWith] = useState(false);
+//   const strapi = useContext(StrapiDataContext);
+
+//   const markComponentAsHasBeenInteractedWith = (name) => {
+//     sessionStorage.setItem(componentKind + "_" + name, "true");
+//   }
+
+//   const hasBeenInteractedWith = (name) => {
+//     return JSON.parse(sessionStorage.getItem(componentKind + "_" + name));
+//   }
+
+//   const trackInteraction = (name, eventDescription) => {
+//     gtag("event", componentKind + "_interacted_with_" + eventDescription, {
+//       campaignID: name,
+//       adType: componentKind,
+//     });
+//   }
+
+//   const trackImpression = (name) => {
+//     console.log("We've got visibility!");
+//     gtag("event", componentKind + "_viewed", {
+//       campaignID: name,
+//       adType: componentKind,
+//     });
+//   }
+
+//   const closeComponent = (eventDescription) => {
+//     if (onClose) onClose();
+//     markComponentAsHasBeenInteractedWith(strapiData[nameId]);
+//     setComponentHasBeenInteractedWith(true);
+//     trackInteraction(strapiData[nameId], eventDescription);
+//   }
+
+//   useEffect(() => {
+//     if (shouldShow()) {
+//       const timeoutId = setTimeout(() => {
+//         setTimesUp(true);
+//       }, showDelay);
+//       return () => clearTimeout(timeoutId);
+//     }
+//   }, [strapi[componentKind]]);
+
+//   return {timesUp, hasComponentBeenInteractedWith, closeComponent, trackImpression, strapiData: strapi[componentKind]};
+// };
+
+// const InterruptingMessage = ({ onClose }) => {
+//   const { timesUp, hasComponentBeenInteractedWith, closeComponent, trackImpression, strapiData } = useInterruptingComponent('modal', 5000, onClose, 'internalModalName');
+
+//   if (!timesUp) return null;
+
+//   if (!hasBeenInteractedWith) {
+//     if (!hasInteractedWithModal) {
+//       console.log("rendering component");
+//       return (
+//         <OnInView onVisible={trackModalImpression}>
+//           <div id="interruptingMessageBox" className={timesUp ? "" : "hidden"}>
+//             <div id="interruptingMessageOverlay"></div>
+//             <div id="interruptingMessage">
+//               <div className="colorLine"></div>
+//               <div id="interruptingMessageContentBox" className="hasColorLine">
+//                 <div
+//                   id="interruptingMessageClose"
+//                   onClick={() => {
+//                     closeModal("close_clicked");
+//                   }}
+//                 >
+//                   ×
+//                 </div>
+//                 {/* <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: strapi.modal ? strapi.modal.modalText : null } }></div> */}
+//                 <div id="interruptingMessageContent">
+//                   <style>
+//                     {`#highHolidayDonation {
+//                         width: 410px;
+//                         max-height: 100%;
+//                         max-width: 100%;
+//                     }
+//                     .interface-english #highHolidayDonation {
+//                         text-align: left;
+//                     }
+//                     .interface-hebrew #highHolidayDonation {
+//                         text-align: right;
+//                         direction: rtl;
+//                     }
+//                     #highHolidayDonation p {
+//                         color: #555;
+//                     }
+//                     .interface-hebrew p.int-en {
+//                         display: none;
+//                     }
+//                     #highHolidayDonation p .int-en {
+//                         font-family: "adobe-garamond-pro", Georgia, serif;
+//                     }
+//                     #highHolidayDonation p .int-he {
+//                         font-family: "adobe-garamond-pro", Georgia, serif;
+//                         /* font-family: "Heebo", sans-serif; */
+//                     }
+//                     #highHolidayDonation p.sub {
+//                         color: #999;
+//                         font-size: 12px;
+//                         font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+//                     }
+//                     #highHolidayDonation p {
+//                         margin-top: 0;
+//                     }
+//                     #highHolidayDonation .button {
+//                         margin-bottom: 20px;
+//                     }
+//                     #highHolidayDonation img {
+//                         max-width: 100%;
+//                     }
+//                     #highHolidayDonation .buttons{
+//                         text-align: right;
+//                     }
+//                     .leader {
+//                         font-weight: bold;
+//                     }
+//                     .center{
+//                         text-align: center;
+//                     }
+//                     #email-input-wrapper {
+//                         display: flex;
+//                         align-items: flex-start;
+//                         flex-direction: column;
+//                     }
+//                     .newsletterInput#email-input {
+//                         width: 300px;
+//                         padding: 10px;
+//                         margin-bottom: 20px;
+//                         border-radius: 7px;
+//                         border: 1px solid #EEE;
+//                         color: #333;
+//                     }`}
+//                   </style>
+//                   <div id="highHolidayDonation">
+//                     <p>
+//                       <span className="int-en">
+//                         {strapi.modal.modalText}
+//                       </span>
+//                     </p>
+//                     <div className="buttons">
+//                       <a
+//                         className="button int-en"
+//                         target="_blank"
+//                         href={strapi.modal.buttonURL}
+//                         onClick={() => {
+//                           closeModal("donate_button_clicked");
+//                         }}
+//                       >
+//                         <span className="int-en">
+//                           {strapi.modal.buttonText}
+//                         </span>
+//                       </a>
+//                     </div>
+//                   </div>
+//                 </div>
+//                 <div className="colorLine"></div>
+//               </div>
+//             </div>
+//           </div>
+//         </OnInView>
+//       );
+//     } else {
+//       return null;
+//     }
+//   }
+// };
+
+
+
+// const InterruptingComponent = ({ componentKind, componentName, showDelay, beforeShowingUp, onClose }) => {
+//   const [timesUp, setTimesUp] = useState(false);
+//   const [hasInteractedWithComponent, setHasInteractedWithComponent] = useState(false);
+//   const strapi = useContext(StrapiDataContext);
+
+//   const markComponentAsHasBeenInteractedWith = (componentName) => {
+//     sessionStorage.setItem(componentKind + "_" + componentName, "true");
+//   };
+
+//   const hasComponentBeenInteractedWith = (bannerName) => {
+//     return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+//   };
+
+//   const trackBannerInteraction = (bannerName, eventDescription) => {
+//     gtag("event", "banner_interacted_with_" + eventDescription, {
+//       campaignID: bannerName,
+//       adType: "banner",
+//     });
+//   };
+
+//   const trackBannerImpression = () => {
+//     console.log("We've got visibility!");
+//     gtag("event", "banner_viewed", {
+//       campaignID: strapi.banner.internalBannerName,
+//       adType: "banner",
+//     });
+//   };
+
+//   const shouldShow = () => {
+//     console.log("checking whether to show banner or not");
+//     if (!strapi.banner) return false;
+//     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+//       return false;
+
+//     let shouldShowBanner = false;
+
+//     let noUserKindIsSet = ![
+//       strapi.banner.showToReturningVisitors,
+//       strapi.banner.showToNewVisitors,
+//       strapi.banner.showToSustainers,
+//       strapi.banner.showToNonSustainers,
+//     ].some((p) => p);
+//     if (
+//       Sefaria._uid &&
+//       ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+//         (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+//     )
+//       shouldShowBanner = true;
+//     else if (
+//       (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+//       (isNewVisitor() && strapi.banner.showToNewVisitors)
+//     )
+//       shouldShowBanner = true;
+//     else if (noUserKindIsSet) shouldShowBanner = true;
+//     if (!shouldShowBanner) return false;
+
+//     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+//     return excludedPaths.indexOf(window.location.pathname) === -1;
+//   };
+
+//   const closeBanner = (eventDescription) => {
+//     if (onClose) onClose();
+//     console.log(eventDescription);
+//     markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+//     setHasInteractedWithBanner(true);
+//     trackBannerInteraction(
+//       strapi.banner.internalBannerName,
+//       eventDescription
+//     );
+//   };
+
+//   useEffect(() => {
+//     if (shouldShow()) {
+//       console.log("reaching here...");
+
+//       const timeoutId = setTimeout(() => {
+//         // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+//         if (document.getElementById("s2").classList.contains("headerOnly")) {
+//           document.body.classList.add("hasBannerMessage");
+//         }
+//         setTimesUp(true);
+//       }, showDelay);
+//       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+//     }
+//   }, [strapi.banner]); // execute useEffect when the modal changes
+
+//   if (!timesUp) return null;
+//   console.log("data for the component");
+//   console.log(strapi.banner);
+
+//   if (!hasInteractedWithBanner) {
+//     console.log("rendering component");
+//     return (
+//       <OnInView onVisible={trackBannerImpression}>
+//         <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
+//           <div id="bannerMessageContent">
+//             <div id="bannerTextBox">
+//               <span className="int-en">{strapi.banner.bannerText}</span>
+//               <span className="int-he">
+//                 ספריית ספריא מנגישה יותר מ-300 מיליון מלים של טקסטים יהודיים
+//                 ברחבי העולם. לכבוד שבועות, אנא תמכו היום בספריה שמסייעת ללימוד
+//                 שלכם על-ידי קבלת מעמד של ידידי ספריא.
+//               </span>
+//             </div>
+//             <div id="bannerButtonBox">
+//               <a
+//                 className="button white int-en"
+//                 href={strapi.banner.buttonURL}
+//               >
+//                 <span>{strapi.banner.buttonText}</span>
+//               </a>
+//               <a
+//                 className="button white int-he"
+//                 href="https://sefaria.nationbuilder.com/sustainers_e"
+//               >
+//                 <span>לתרומה חודשית</span>
+//               </a>
+//             </div>
+//           </div>
+//           <div id="bannerMessageClose">×</div>
+//           <div id="bannerMessageClose" onClick={closeBanner}>
+//             ×
+//           </div>
+//         </div>
+//       </OnInView>
+//     );
+//   } else {
+//     return null;
+//   }
+// };
 
 
 // InterruptingMessage.propTypes = {
@@ -3222,7 +3655,6 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
-  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,

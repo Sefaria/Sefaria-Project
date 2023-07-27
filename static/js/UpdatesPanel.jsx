@@ -10,7 +10,6 @@ import { Notifications } from './NotificationsPanel';
 import { NavSidebar }from './NavSidebar';
 import {
   InterfaceText,
-  MessageModal,
 } from './Misc';
 
 
