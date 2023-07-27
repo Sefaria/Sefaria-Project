@@ -314,7 +314,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   return (
     <div>
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} add_subcategory={false} reorder={true} add_source={true}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
@@ -521,7 +521,7 @@ const TopicPage = ({
                       timePeriod={topicData.timePeriod}
                       properties={topicData.properties} />
                     : null }
-                    <Promotions adType="sidebar"/>
+                    <Promotions />
                 </div>
             </div>
             <Footer />

@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { InterruptingMessage } from "./Misc";
 import Sefaria from "./sefaria/sefaria";
 
-const Promotions = ({ adType, rerender }) => {
+const Promotions = ({ adType }) => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from the google doc
   const [prevMatchingAdIds, setPrevMatchingAdIds] = useState([]);
@@ -54,8 +54,6 @@ const Promotions = ({ adType, rerender }) => {
       }
     }
   }, [strapi.dataFromStrapiHasBeenReceived]);
-  // empty array happens when the page loads, equivalent of didcomponentmount
-  // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
   useEffect(() => {
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
@@ -82,16 +80,6 @@ const Promotions = ({ adType, rerender }) => {
       setPrevMatchingAdIds(newIds);
     }
   }, [matchingAds]); // when state of matching ads changes, which changes in previous useEffect
-
-  //    function getAds() {
-  //        const url =
-  //        'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
-  //        const query = new google.visualization.Query(url);
-  //        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
-  //        query.send(processSheetsData);
-  //
-  //
-  //    }
 
   function showToUser(ad) {
     if (ad.trigger.showTo === "all") {
@@ -218,32 +206,9 @@ const Promotions = ({ adType, rerender }) => {
 </div>`;
   }
 
-  function styleAds() {
-    if (adType === "banner") {
-      const matchingAd = matchingAds[0]; // Only allow a single banner
-      if (!matchingAd) {
-        return null;
-      }
-      // TODO: change this to use new InterruptingMessage
-      const bannerHtml = createBannerHtml(matchingAd);
-      return (
-        <InterruptingMessage
-          messageName={matchingAd.campaignId}
-          messageHTML={bannerHtml}
-          style="banner"
-          repetition={matchingAd.repetition}
-          onClose={rerender}
-        />
-      );
-    } else {
-      const sidebarAds = matchingAds.map((ad) => (
-        <SidebarAd matchingAd={ad} key={ad.campaignId} />
-      ));
-      return sidebarAds;
-    }
-  }
-
-  return matchingAds ? styleAds() : null;
+  return matchingAds
+    ? matchingAds.map((ad) => <SidebarAd matchingAd={ad} key={ad.campaignId} />)
+    : null;
 };
 
 const SidebarAd = ({ matchingAd }) => {

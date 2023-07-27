@@ -32,6 +32,7 @@ import {
 } from './Misc';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
+// import BeitMidrash, {BeitMidrashClosed} from './BeitMidrash';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 
@@ -117,6 +118,9 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
+      beitMidrashStatus: Sefaria._uid && props.customBeitMidrashId ? true : false,
+      beitMidrashId: props.customBeitMidrashId ? props.customBeitMidrashId : "Sefaria",
+      inCustomBeitMidrash: !!props.customBeitMidrashId,
     };
   }
   makePanelState(state) {
@@ -167,6 +171,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
+      beitMidrashId:           state.beitMidrashId           || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null
@@ -201,14 +206,11 @@ class ReaderApp extends Component {
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
-    if (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage)) {
-      sessionStorage.setItem("isNewVisitor", "true");
-      // Setting this at this time will make the current new visitor a returning one once their session is cleared
-      localStorage.setItem("isReturningVisitor", "true"); 
+    if (Sefaria.isNewVisitor()) {
+      Sefaria.markUserAsNewVisitor();
     } else if (Sefaria._uid) {
       // A logged in user is automatically a returning visitor
-      sessionStorage.setItem("isNewVisitor", "false");
-      localStorage.setItem("isReturningVisitor", "true");
+      Sefaria.markUserAsReturningVisitor();
     }
   }
   componentWillUnmount() {
@@ -561,6 +563,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
             hist.mode = "history";
+            break;
+          case "beit_midrash":
+            hist.title = Sefaria._("Sefaria Beit Midrash");
+            hist.url = "beit-midrash";
+            hist.mode = "beit-midrash";
         }
         hist.url = addTab(hist.url)
       } else if (state.mode === "Text") {
@@ -2163,13 +2170,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    // var interruptingMessage = Sefaria.interruptingMessage ?
-    //   (<InterruptingMessage
-    //       messageName={Sefaria.interruptingMessage.name}
-    //       messageHTML={Sefaria.interruptingMessage.html}
-    //       style={Sefaria.interruptingMessage.style}
-    //       repetition={Sefaria.interruptingMessage.repetition}
-    //       onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2181,6 +2181,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
+    const beitMidrashPanel = this.state.beitMidrashStatus ? (
+      <div id='beitMidrash' style={{width: 330,
+                                    marginInlineStart: "auto",
+                                    marginInlineEnd: 0,
+                                    height: `calc(100% - 60px)`,
+                                    marginTop: 60}}>
+          <BeitMidrash
+            socket={io(`//${Sefaria.rtc_server}`, {autoConnect: false})}
+            beitMidrashId = {this.state.beitMidrashId}
+            currentlyReading = {this.generateCurrentlyReading()}
+          />
+      </div>
+    ) : null
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -2195,8 +2208,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
-            {/* <Banner onClose={this.setContainerMode} /> */}
-            <Banner />
+            <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}

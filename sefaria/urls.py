@@ -180,6 +180,7 @@ urlpatterns += [
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
+    url(r'^api/messages/?$', reader_views.messages_api),
     url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     url(r'^api/background-data', reader_views.background_data_api),
 
@@ -322,6 +323,11 @@ urlpatterns += [
     url(r'^api/img-gen/(?P<tref>.+)$', reader_views.social_image_api),
 ]
 
+# Chavruta URLs
+urlpatterns += [
+    url(r'^beit-midrash/(?P<slug>[^.]+)$', reader_views.beit_midrash),
+    url(r'^api/chat-messages/?$', reader_views.chat_message_api)
+]
 
 # Registration
 urlpatterns += [

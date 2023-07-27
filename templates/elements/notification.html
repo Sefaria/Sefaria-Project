@@ -2,8 +2,24 @@
 {% load sefaria_tags %}
 
 <div class="notification {% if not notification.read %}unread{% endif %}" data-id="{{ notification.id }}">
+	
+	{% if notification.type == "message" %}
+		<div>
+            <div>
+                <span class="int-en">{{ notification.content.sender|user_link }} sent you a message:</span>
+                <span class="int-he">{{ notification.content.sender|user_link }} שלח/ה לך הודעה:</span>
+            </div>
 
-    {% if notification.type == "general" %}
+            {% autoescape off %}{{ notification.content.message }}{% endautoescape %}
+
+            <div class="messageText">{% autoescape off %}{{ notification.content.message }}{% endautoescape %}</div>
+		</div>
+		<a class="notification-message-link" href='{{ notification.content.sender|user_message_path }}'>
+            <span class="int-en">Reply</span>
+            <span class="int-he">השב</span>
+        </a>
+
+    {% elif notification.type == "general" %}
         <div>
             <span class="int-en">{% autoescape off %}{{ notification.content.en }}{% endautoescape %}</span>
             <span class="int-he">{% autoescape off %}{{ notification.content.he }}{% endautoescape %}</span>

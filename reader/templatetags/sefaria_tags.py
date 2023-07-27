@@ -203,6 +203,13 @@ def user_name(uid):
 
 
 @register.filter(is_safe=True)
+def user_message_path(uid):
+	"""Returns the relative path to send a message to `uid`"""
+	data = public_user_data(uid)
+	return mark_safe(data["profileUrl"] + "?message=1")
+
+
+@register.filter(is_safe=True)
 def group_link(group_name):
 	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
 

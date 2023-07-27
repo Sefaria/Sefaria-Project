@@ -45,6 +45,8 @@ from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLin
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
 from .linker.ref_resolver import RefResolver
+from .chatroom import Chatroom, ChatroomSet, Message, MessageSet
+
 from . import dependencies
 
 library._build_index_maps()

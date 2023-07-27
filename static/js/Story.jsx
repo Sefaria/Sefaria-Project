@@ -139,7 +139,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
-            <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+            <CategoryHeader type="sources" data={[topic, text]} add_subcategory={false}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
             </CategoryHeader>
             <div className={"systemText learningPrompt"}>
@@ -181,7 +181,7 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+      <CategoryHeader type="sources" data={[topic, text]} add_subcategory={false}>
           <SaveLine
             dref={text.ref}
             versions={versions}

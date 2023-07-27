@@ -31,7 +31,7 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError
+    NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -1727,10 +1727,7 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
             if v:
                 self._versions += [v]
-                try:
-                    self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
-                except TypeError:
-                    raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
+                self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
         elif lang:
             if actual_lang is not None:
                 self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
@@ -2308,7 +2305,6 @@ class TextFamily(object):
         "en": "sources",
         "he": "heSources"
     }
-    
 
     def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False, translationLanguagePreference=None, fallbackOnDefaultVersion=False):
         """
