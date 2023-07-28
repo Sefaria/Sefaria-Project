@@ -14,9 +14,9 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
-  ContentText,
   CategoryHeader
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
