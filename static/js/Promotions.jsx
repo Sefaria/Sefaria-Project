@@ -125,7 +125,6 @@ const Promotions = () => {
     });
   }
 
-  console.log("promotions component is being rerendered");
 
   return matchingAds
     ? matchingAds.map((ad) => <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />)
@@ -147,13 +146,11 @@ function trackSidebarAdClick(ad) {
   });
 }
 
-const SidebarAd = ({ context, matchingAd }) => {
+const SidebarAd = React.memo(({ context, matchingAd }) => {
   const classes = classNames({
     sidebarPromo: 1,
     blue: matchingAd.hasBlueBackground,
   });
-
-  console.log("is this being rerendered?");
 
   function getButton() {
     return (
@@ -192,6 +189,6 @@ const SidebarAd = ({ context, matchingAd }) => {
       </div>
     </OnInView>
   );
-};
+});
 
 export { Promotions };
