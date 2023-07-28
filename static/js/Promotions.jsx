@@ -4,7 +4,7 @@ import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import { OnInView } from "./Misc";
 
-const Promotions = () => {
+const Promotions = ({ topicDataHasLoaded }) => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
@@ -27,9 +27,7 @@ const Promotions = () => {
           let excludeKeywordTargets = keywordTargetsArray
             .filter((x) => x[0] === "!")
             .map((x) => x.slice(1));
-          keywordTargetsArray = keywordTargetsArray.filter(
-            (x) => x[0] !== "!"
-          );
+          keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
           Sefaria._inAppAds.push({
             campaignId: sidebarAd.internalCampaignId,
             title: sidebarAd.title,
@@ -51,7 +49,12 @@ const Promotions = () => {
           });
           if (sidebarAd.localizations?.data?.length) {
             const hebrewAttributes = sidebarAd.localizations.data[0].attributes;
-            const [buttonText, bodyText, buttonURL, title] = [hebrewAttributes.buttonText, hebrewAttributes.bodyText, hebrewAttributes.buttonURL, hebrewAttributes.title];
+            const [buttonText, bodyText, buttonURL, title] = [
+              hebrewAttributes.buttonText,
+              hebrewAttributes.bodyText,
+              hebrewAttributes.buttonURL,
+              hebrewAttributes.title,
+            ];
             Sefaria._inAppAds.push({
               campaignId: sidebarAd.internalCampaignId,
               title: title,
@@ -137,9 +140,10 @@ const Promotions = () => {
     });
   }
 
-
-  return matchingAds
-    ? matchingAds.map((ad) => <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />)
+  return matchingAds && topicDataHasLoaded
+    ? matchingAds.map((ad) => (
+        <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />
+      ))
     : null;
 };
 
@@ -186,16 +190,32 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
   return (
     <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
       <div className={classes}>
-        <h3 className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.title}</h3>
+        <h3
+          className={context.interfaceLang === "hebrew" ? "int-he" : "int-en"}
+        >
+          {matchingAd.title}
+        </h3>
         {matchingAd.buttonLocation === "below" ? (
           <>
-          <p className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.bodyText}</p>
+            <p
+              className={
+                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
+              }
+            >
+              {matchingAd.bodyText}
+            </p>
             {getButton()}
           </>
         ) : (
           <>
             {getButton()}
-          <p className={context.interfaceLang === "hebrew" ? "int-he" : "int-en" }>{matchingAd.bodyText}</p>
+            <p
+              className={
+                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
+              }
+            >
+              {matchingAd.bodyText}
+            </p>
           </>
         )}
       </div>
