@@ -1,0 +1,1 @@
+AdminJS.UserComponents = {}
