@@ -39,7 +39,7 @@ class VersionBlock extends Component {
   onVersionTitleClick(e) {
     e.preventDefault();
     this.index = Sefaria.parseRef(this.props.currentRef).index
-    gtag("event", "onClick_version_title", {element_name: `version_title`, version_to: `${this.props.version.versionTitle}`, text_categories: `${Sefaria.refCategories(this.props.currentRef)}`, text_index: `${Sefaria.parseRef(this.props.currentRef).index}`, version_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}` })
+    gtag("event", "onClick_version_title", {element_name: `version_title`, version_to: `${this.props.version.versionTitle}`, version_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`, text_categories: `${Sefaria.refCategories(this.props.currentRef)}`, text_index: `${Sefaria.parseRef(this.props.currentRef).index}` })
     if (!this.props.openVersionInSidebar && !this.props.openVersionInReader) return;
     if (this.props.firstSectionRef) {
       window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle.replace(/\s/g,'_')}`;
@@ -52,7 +52,7 @@ class VersionBlock extends Component {
   }
   onSelectVersionClick(e) {
     e.preventDefault();
-        gtag("event", "onClick_select_version", {element_name: `select_version`, version_to: `${this.props.version.versionTitle}`, text_categories: `${Sefaria.refCategories(this.props.currentRef)}`, text_index: `${Sefaria.parseRef(this.props.currentRef).index}`, version_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}` })
+        gtag("event", "onClick_select_version", {element_name: `select_version`, version_to: `${this.props.version.versionTitle}`, version_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`, text_categories: `${Sefaria.refCategories(this.props.currentRef)}`, text_index: `${Sefaria.parseRef(this.props.currentRef).index}` })
     if (this.props.openVersionInReader) {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
       Sefaria.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
