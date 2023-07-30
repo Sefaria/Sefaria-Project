@@ -1,5 +1,5 @@
 Appium-Python-Client==1.2.0
-apscheduler==3.6.
+apscheduler==3.6.0
 bleach==1.4.2
 boto3==1.16.6
 bs4==0.0.1
@@ -42,7 +42,8 @@ google-auth-oauthlib==0.4.2
 p929==0.6.1
 pathos==0.2.6
 pillow==8.0.1
-psycopg2==2.8.6
+# psycopg2==2.8.6
+psycopg2-binary==2.8.6
 py2-py3-django-email-as-username==1.7.1
 pymongo==3.12.*
 pytest==6.1.1
@@ -59,10 +60,16 @@ undecorated==0.3.0
 unicodecsv==0.14.1
 unidecode==1.1.1
 user-agents==2.2.0
+
 babel
 python-bidi
+dnspython
+
 
 opentelemetry-distro
 opentelemetry-exporter-otlp
 opentelemetry-propagator-b3
 opentelemetry-propagator-jaeger
+dnspython
+
+psycopg2-binary==2.8.6

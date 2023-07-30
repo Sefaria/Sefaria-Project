@@ -66,8 +66,8 @@ node_modules
 
 
 # Sefaria Local Settings files #
+# Sefaria Local Settings files #
 ################################
-/sefaria/local_settings.py
 
 # Site specific templates and urls #
 ####################################
@@ -132,3 +132,10 @@ static/sheetrank.json
 
 env/*
 dump/*
+tmp/*
+log/*
+/static/bundles
+/dockerData
+
+.env
+.envrc

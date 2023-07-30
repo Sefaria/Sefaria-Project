@@ -10,7 +10,7 @@
         <h1>
             <span class="int-en">Delete User</span>
         </h1>
-        <form method="post" autocomplete="off" if="delete-form" action="{% url "delete/user-account" %}">
+        <form method="post" if="delete-form" action="{% url "delete/user-account" %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button control-elem">
