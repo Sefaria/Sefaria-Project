@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/sidzan/sefaria/actions/workflows/docker-image.yml/badge.svg)](https://github.com/sidzan/sefaria/actions/workflows/docker-image.yml)
+
 ## New Interfaces for Buddhist Texts
 
 This is a fork of Sefaria for Buddhist texts.

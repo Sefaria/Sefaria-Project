@@ -42,7 +42,13 @@ CACHES = {
 SITE_PACKAGE = "sites.sefaria"
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
+ALLOWED_HOSTS = [
+    'sefaria-docker.onrender.com',
+    'localhost',
+    '127.0.0.1',
+    "0.0.0.0",
+    '[::1]'
+]
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""

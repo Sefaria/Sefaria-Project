@@ -4,3 +4,6 @@
 /.idea
 /.pytest_cache
 /.secrets
+/dockerData
+/tmp
+/static/bundles

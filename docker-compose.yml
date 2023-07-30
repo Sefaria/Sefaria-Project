@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  sefaria:
+    image: ghcr.io/sidzan/sidzan/sefaria:latest
+    container_name: sefaria-local
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_DATABASE_NAME=${MONGO_DATABASE_NAME}
+      - MONGO_HOST=${MONGO_HOST}
+      - POSTGRESQL_DATABASE_NAME=${POSTGRESQL_DATABASE_NAME}
+      - POSTGRESQL_HOST=${POSTGRESQL_HOST}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_USER=${POSTGRESQL_USER}
+      - REDIS_HOST=${REDIS_HOST}
