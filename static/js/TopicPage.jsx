@@ -399,7 +399,6 @@ const TopicPage = ({
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
-    const [isTopicSideColumnRendered, setIsTopicSideColumnRendered] = useState(false);
 
 
     const scrollableElement = useRef();
@@ -430,12 +429,6 @@ const TopicPage = ({
         setRefsToFetchByTab({});
       }
     }, [topic]);
-
-    useEffect(() => {
-      if (!topicData.isLoading) {
-        setIsTopicSideColumnRendered(true);
-      }
-    }, [topicData]);
 
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
@@ -533,7 +526,7 @@ const TopicPage = ({
                         timePeriod={topicData.timePeriod}
                         properties={topicData.properties}
                       />
-                      {isTopicSideColumnRendered && <Promotions/>}
+                      {!topicData.isLoading && <Promotions/>}
                     </>
                   ) : null}
                 </div>
