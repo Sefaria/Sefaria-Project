@@ -523,8 +523,11 @@ def get_default_versions(oref, request, version_source, version_translation):
                     version_translation = vtitle
     if not version_source:
         version_source = 'base'
-    if not version_translation: #TODO - get translation of preferred language
-        translations = [v['versionTitle'] for v in oref.version_list() if 'isSource' not in v or not v['isSource']]
+    if not version_translation:
+        lang = request.GET.get('translation_language_preference', 'en')
+        translations = [v['versionTitle'] for v in oref.version_list() if ('isSource' not in v or not v['isSource']) and v['actualLanguage'] == lang]
+        if not translations:
+            translations = [v['versionTitle'] for v in oref.version_list() if 'isSource' not in v or not v['isSource']]
         if translations:
             version_translation = sorted(translations, key=lambda v: v['priority'])[-1]
     return version_source, version_translation
