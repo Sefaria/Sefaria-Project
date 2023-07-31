@@ -509,19 +509,22 @@ const TopicPage = ({
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 <div className="sideColumn">
-                    { topicData ?
-                    <TopicSideColumn 
-                      key={topic}
-                      slug={topic}
-                      links={topicData.links}
-                      clearAndSetTopic={clearAndSetTopic}
-                      setNavTopic={setNavTopic}
-                      parashaData={parashaData}
-                      tref={topicData.ref}
-                      timePeriod={topicData.timePeriod}
-                      properties={topicData.properties} />
-                    : null }
-                    <Promotions adType="sidebar"/>
+                  {topicData ? (
+                    <>
+                      <TopicSideColumn
+                        key={topic}
+                        slug={topic}
+                        links={topicData.links}
+                        clearAndSetTopic={clearAndSetTopic}
+                        setNavTopic={setNavTopic}
+                        parashaData={parashaData}
+                        tref={topicData.ref}
+                        timePeriod={topicData.timePeriod}
+                        properties={topicData.properties}
+                      />
+                      {!topicData.isLoading && <Promotions/>}
+                    </>
+                  ) : null}
                 </div>
             </div>
             <Footer />

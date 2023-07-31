@@ -2071,22 +2071,6 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
-// User could be new visitor when there isn't anything in sessionStorage either...
-// Maybe don't check if it's in there or have extra conditional
-function isNewVisitor() {
-  return (
-    "isNewVisitor" in sessionStorage &&
-    JSON.parse(sessionStorage.getItem("isNewVisitor"))
-  );
-}
-
-function isReturningVisitor() {
-  return (
-    !isNewVisitor() &&
-    "isReturningVisitor" in localStorage &&
-    JSON.parse(localStorage.getItem("isReturningVisitor"))
-  );
-}
 
 const InterruptingMessage = ({
   onClose,
@@ -2151,9 +2135,9 @@ const InterruptingMessage = ({
     )
       shouldShowModal = true;
     else if (
-      (isReturningVisitor() &&
+      (Sefaria.isReturningVisitor() &&
         strapi.modal.showToReturningVisitors) ||
-      (isNewVisitor() && strapi.modal.showToNewVisitors)
+      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
     )
       shouldShowModal = true;
     else if (noUserKindIsSet) shouldShowModal = true;
@@ -2208,9 +2192,7 @@ const InterruptingMessage = ({
               </div>
               <div id="interruptingMessageContent">
                 <div id="highHolidayDonation">
-                  <p>
                     <InterfaceText markdown={strapi.modal.modalText} />
-                  </p>
                   <div className="buttons">
                     <a
                       className="button int-en"
@@ -2302,8 +2284,8 @@ const Banner = ({ onClose }) => {
     )
       shouldShowBanner = true;
     else if (
-      (isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (isNewVisitor() && strapi.banner.showToNewVisitors)
+      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
     )
       shouldShowBanner = true;
     else if (noUserKindIsSet) shouldShowBanner = true;
@@ -3272,5 +3254,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack
+  requestWithCallBack,
+  OnInView
 };

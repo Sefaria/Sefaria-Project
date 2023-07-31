@@ -206,14 +206,11 @@ class ReaderApp extends Component {
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
-    if (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage)) {
-      sessionStorage.setItem("isNewVisitor", "true");
-      // Setting this at this time will make the current new visitor a returning one once their session is cleared
-      localStorage.setItem("isReturningVisitor", "true"); 
+    if (Sefaria.isNewVisitor()) {
+      Sefaria.markUserAsNewVisitor();
     } else if (Sefaria._uid) {
       // A logged in user is automatically a returning visitor
-      sessionStorage.setItem("isNewVisitor", "false");
-      localStorage.setItem("isReturningVisitor", "true");
+      Sefaria.markUserAsReturningVisitor();
     }
   }
   componentWillUnmount() {
@@ -1982,7 +1979,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           .flat()
           .filter(ref => !!ref);
     const deDupedTriggers = [...new Set(triggers.map(JSON.stringify))].map(JSON.parse).map(x => x.toLowerCase());
-    // How do I get the user type?
     const context = {
       isDebug: this.props._debug,
       isLoggedIn: Sefaria._uid,
@@ -2173,13 +2169,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    // var interruptingMessage = Sefaria.interruptingMessage ?
-    //   (<InterruptingMessage
-    //       messageName={Sefaria.interruptingMessage.name}
-    //       messageHTML={Sefaria.interruptingMessage.html}
-    //       style={Sefaria.interruptingMessage.style}
-    //       repetition={Sefaria.interruptingMessage.repetition}
-    //       onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2218,8 +2207,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         <AdContext.Provider value={this.getUserContext()}>
           <div id="readerAppWrap">
             <InterruptingMessage />
-            {/* <Banner onClose={this.setContainerMode} /> */}
-            <Banner />
+            <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {panels}
