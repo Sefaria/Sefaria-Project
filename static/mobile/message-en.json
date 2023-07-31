@@ -1,1 +1,11 @@
-null
+{
+  "title": "",
+  "text": [
+"Show your love for Sefaria this Tu B’Av!",
+"We’ve set a goal to raise $3,600 in ONE DAY this Tu B’Av. Show your appreciation for the library and our learning community by investing in the future of Torah."
+  ],
+  "buttonLink": "https://donate.sefaria.org/give/487265/#!/donation/checkout?c_src=mobile&amount=18",
+  "buttonText": "Donate Now",
+  "name": "2023-08-01-tu-b-av",
+  "schemaVersion": 1
+}
