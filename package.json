@@ -42,6 +42,8 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@adminjs/express": "^6.0.0",
+    "@adminjs/mongoose": "^4.0.0",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
@@ -54,7 +56,7 @@
     "diff-match-patch": "^1.0.0",
     "dompurify": "^2.3.6",
     "draggabilly": "^3.0.0",
-    "express": "4.x",
+    "express": "^4.18.2",
     "express-winston": "^4.1.0",
     "extend": "^3.0.0",
     "file-saver": "^2.0.5",
