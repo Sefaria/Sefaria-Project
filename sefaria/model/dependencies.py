@@ -6,42 +6,46 @@ from . import abstract, link, note, history, schema, text, layer, version_state,
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
-
-# Index Save / Create
-subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
-subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
-subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-
-
-# Index Name Change
-subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")
-subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
-subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
-subscribe(link.process_index_title_change_in_links,                     text.Index, "attributeChange", "title")
-subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
-subscribe(history.process_index_title_change_in_history,                text.Index, "attributeChange", "title")
-subscribe(text.process_index_title_change_in_dependant_records,         text.Index, "attributeChange", "title")
-subscribe(text.process_index_title_change_in_sheets,                    text.Index, "attributeChange", "title")
-subscribe(cascade(notification.GlobalNotificationSet, "content.index"), text.Index, "attributeChange", "title")
-subscribe(ref_data.process_index_title_change_in_ref_data,              text.Index, "attributeChange", "title")
-subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
-subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
-subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
-
-# Taken care of on save
-# subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
-
-
-# Index Delete (start with cache clearing)
-subscribe(text.process_index_delete_in_core_cache,                      text.Index, "delete")
-subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
-subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
-subscribe(topic.process_index_delete_in_topic_links,                    text.Index, "delete")
-subscribe(note.process_index_delete_in_notes,                           text.Index, "delete")
-subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
-subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
-subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
-subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
+from sefaria.system.database import db
+with db['Index'].watch() as stream:
+    for change in stream:
+        print(f'Received change event: {change}')
+#
+# # Index Save / Create
+# subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
+# subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
+# subscribe(text.process_index_change_in_toc,                             text.Index, "save")
+#
+#
+# # Index Name Change
+# subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")
+# subscribe(text.process_index_title_change_in_versions,                  text.Index, "attributeChange", "title")
+# subscribe(version_state.process_index_title_change_in_version_state,    text.Index, "attributeChange", "title")
+# subscribe(link.process_index_title_change_in_links,                     text.Index, "attributeChange", "title")
+# subscribe(note.process_index_title_change_in_notes,                     text.Index, "attributeChange", "title")
+# subscribe(history.process_index_title_change_in_history,                text.Index, "attributeChange", "title")
+# subscribe(text.process_index_title_change_in_dependant_records,         text.Index, "attributeChange", "title")
+# subscribe(text.process_index_title_change_in_sheets,                    text.Index, "attributeChange", "title")
+# subscribe(cascade(notification.GlobalNotificationSet, "content.index"), text.Index, "attributeChange", "title")
+# subscribe(ref_data.process_index_title_change_in_ref_data,              text.Index, "attributeChange", "title")
+# subscribe(user_profile.process_index_title_change_in_user_history,      text.Index, "attributeChange", "title")
+# subscribe(topic.process_index_title_change_in_topic_links,              text.Index, "attributeChange", "title")
+# subscribe(manuscript.process_index_title_change_in_manuscript_links,    text.Index, "attributeChange", "title")
+#
+# # Taken care of on save
+# # subscribe(text.process_index_change_in_toc,                             text.Index, "attributeChange", "title")
+#
+#
+# # Index Delete (start with cache clearing)
+# subscribe(text.process_index_delete_in_core_cache,                      text.Index, "delete")
+# subscribe(version_state.process_index_delete_in_version_state,          text.Index, "delete")
+# subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
+# subscribe(topic.process_index_delete_in_topic_links,                    text.Index, "delete")
+# subscribe(note.process_index_delete_in_notes,                           text.Index, "delete")
+# subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
+# subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
+# subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
+# subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
 
 
 # Process in ES
