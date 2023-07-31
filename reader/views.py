@@ -502,6 +502,33 @@ def make_panel_dicts(oref, version_source, version_translation, filter, versionF
 
     return panels
 
+def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
+    corpus = oref.index.get_primary_corpus()
+    vpref_dict = version_preferences_by_corpus.get(corpus, None)
+    if vpref_dict is None:
+        return None
+    return vpref_dict
+
+
+def get_default_versions(oref, request, version_source, version_translation):
+    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
+    if vpref_dict :
+        for vtitle in vpref_dict.items():
+            version = Version().load({"versionTitle": vtitle, "title": oref.index.title})
+            if version:
+                # vpref exists and the version exists for this text
+                if (getattr(version, 'isBaseText', None) or getattr(version, 'isSource', None)) and not version_source:
+                    version_source = vtitle
+                elif not getattr(version, 'isSource', False) and not version_translation:
+                    version_translation = vtitle
+    if not version_source:
+        version_source = 'base'
+    if not version_translation: #TODO - get translation of preferred language
+        translations = [v['versionTitle'] for v in oref.version_list() if 'isSource' not in v or not v['isSource']]
+        if translations:
+            version_translation = sorted(translations, key=lambda v: v['priority'])[-1]
+    return version_source, version_translation
+
 def get_text_parmas(request, oref, index: int):
     '''
     this function parse the version and lang from the request, taking in account older versions of urls
@@ -525,7 +552,16 @@ def get_text_parmas(request, oref, index: int):
             version_translation = request_dict.get(f'v{index}', '')
         else:
             version_source = request_dict.get(f'v{index}', '')
-    version_translation, version_source = override_version_with_preference(oref, request, version_translation, version_source)
+    if not version_source or not Version().load({"title": oref.index.title, 'versionTitle': version_source,
+                                                 '$or': [{'isBaseText': True}, {'isSource': True}]}):
+        #old urls can have 'Hebrew' version that is not source or base
+        version_source = None
+    if not version_translation or not Version().load({"title": oref.index.title, 'versionTitle': version_translation,
+                                                      'isSource': {'$ne': True}}):
+        #old urls can have ltr source version as 'English'
+        version_translation = None
+    if not version_source or not version_translation:
+        version_source, version_translation = get_default_versions(oref, request, version_source, version_translation)
     version_source, version_translation = version_source.replace('_', ' '), version_translation.replace('_', ' ')
 
     return version_source, version_translation, lang
@@ -557,10 +593,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
         version_source, version_translation, lang = get_text_parmas(request, oref, 0)
-        if version_source and not Version().load({"versionTitle": version_source}):
-            raise Http404
-        if version_translation and not Version().load({"versionTitle": version_translation}):
-            raise Http404
 
         kwargs = {
             "panelDisplayLanguage": lang,
@@ -622,11 +654,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             kwargs["sidebarSearchQuery"] = request.GET.get(f"sbsq{i}", None)
             kwargs["selectedNamedEntity"] = request.GET.get(f"namedEntity{i}", None)
             kwargs["selectedNamedEntityText"] = request.GET.get(f"namedEntityText{i}", None)
-            if (version_source and not Version().load({"versionTitle": version_source})) or \
-                (version_translation and not Version().load({"versionTitle": version_translation})):
-                i += 1
-                continue  # Stop processing all panels?
-                # raise Http404
 
             panels += make_panel_dicts(oref, version_source, version_translation, filter, versionFilter, multi_panel, **kwargs)
         i += 1
@@ -658,10 +685,10 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             try:
-                enText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("text", []))
-                heText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("he", []))
-                enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
-                heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
+                sourceText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("source", []))
+                translationText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("translation", []))
+                enDesc = translationText[segmentIndex] if segmentIndex < len(translationText) else "" # get english text for section if it exists
+                heDesc = sourceText[segmentIndex] if segmentIndex < len(sourceText) else "" # get hebrew text for section if it exists
                 if request.interfaceLang == "hebrew":
                     desc = heDesc or enDesc # if no hebrew, fall back on hebrew
                 else:
@@ -809,29 +836,6 @@ def get_search_params(get_dict, i=None):
         "sheetFilters": sheet_filters,
         "sheetFilterAggTypes": sheet_agg_types,
     }
-
-
-def get_version_preferences_from_dict(oref, version_preferences_by_corpus):
-    corpus = oref.index.get_primary_corpus()
-    vpref_dict = version_preferences_by_corpus.get(corpus, None)
-    if vpref_dict is None:
-        return None
-    return vpref_dict
-
-
-def override_version_with_preference(oref, request, versionEn, versionHe):
-    vpref_dict = get_version_preferences_from_dict(oref, request.version_preferences_by_corpus)
-    if vpref_dict is None:
-        return versionEn, versionHe
-    for lang, vtitle in vpref_dict.items():
-        if Version().load({"versionTitle": vtitle, "language": lang, "title": oref.index.title}):
-            # vpref exists and the version exists for this text
-            if lang == "en" and not versionEn:
-                versionEn = vtitle
-            elif lang == "he" and not versionHe:
-                versionHe = vtitle
-    return versionEn, versionHe
-
 
 @ensure_csrf_cookie
 @sanitize_get_params
