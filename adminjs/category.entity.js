@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const CategorySchema = new mongoose.Schema(
   {
     path: { type: [String], required: true },
+      enDesc: {type: String},
+      heDesc: {type: String},
+      enShortDesc: {type: String},
+      heShortDesc: {type: String}
   },
   { timestamps: true,
   collection: 'category'},
