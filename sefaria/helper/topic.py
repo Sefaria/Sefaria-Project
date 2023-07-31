@@ -1070,6 +1070,9 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         current_descriptions[interface_lang] = description
         link.descriptions = current_descriptions
 
+    if getattr(link, 'generatedBy', TopicLinkHelper.generated_by_sheets):
+        del link.generatedBy
+
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
     elif creating_new_link:
