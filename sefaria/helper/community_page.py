@@ -12,7 +12,7 @@ from sefaria.model import Ref, Topic, Collection
 from sefaria.sheets import get_sheet, sheet_to_dict
 from sefaria.system.database import db
 from sefaria.utils.calendars import get_parasha
-from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
+from sefaria.utils.hebrew import has_hebrew, hebrew_term, hebrew_parasha_name
 from sefaria.utils.util import strip_tags
 from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key, in_memory_cache
@@ -223,14 +223,14 @@ def get_featured_sheet_from_topic(slug):
     "id": {"$in": sids},
     "summary": {"$exists": 1},
   })
-  sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
+  sheets = [s for s in sheets if not has_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
   return random.choice(sheets)
 
 
 def get_featured_sheet_from_ref(ref):
   import random
   sheets = get_sheets_for_ref(ref)
-  sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
+  sheets = [s for s in sheets if not has_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
   return random.choice(sheets)  
 
 

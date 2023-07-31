@@ -41,6 +41,7 @@ normRef = Sefaria.normRef.bind(Sefaria);
 humanRef = Sefaria.humanRef.bind(Sefaria);
 isHebrew = Sefaria.hebrew.isHebrew;
 
+
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
@@ -2379,6 +2380,7 @@ function loadSource(data, $target, optionStr) {
     var segmented = !(data.categories[0] in {"Tanakh": 1, "Talmud": 1});
 
     var segments = Sefaria.makeSegments(data);
+	segments = Sefaria.stripImagesFromSegments(segments);
     var enStr = segments.map(placed_segment_mapper.bind(this, "en", segmented, includeNumbers))
         .filter(Boolean)
         .join("");

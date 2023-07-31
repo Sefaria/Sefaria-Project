@@ -11,7 +11,6 @@ import {
   InterfaceText,
   LoginPrompt,
   FollowButton,
-  MessageModal,
 } from './Misc';
 
 
@@ -111,7 +110,6 @@ const Notifications = ({type, props}) => {
     "sheet publish":   SheetPublishNotification,
     "sheet like":      SheetLikeNotification,
     "follow":          FollowNotification,
-    "message":         MessageNotification,
     "collection add":  CollectionAddNotification,
     "index":           IndexNotification,
     "version":         VersionNotification,
@@ -235,41 +233,6 @@ const FollowNotification = ({date, content}) => {
   );
 };
 
-
-const MessageNotification = ({date, content}) => {
-
-  const modalRef = useRef(null);
-
-  const onReplyClick = () => { modalRef.current.makeVisible(); };
-
-  const topLine = (
-    <>
-      <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>sent you a message</InterfaceText>
-    </>
-  );
-
-  const body = (
-    <>
-      <div className="message" dangerouslySetInnerHTML={ {__html: content.message }} />
-      <div className="button small white replyButton" onClick={onReplyClick}>
-        <img src="/static/icons/reply.svg" />
-        <InterfaceText>Reply</InterfaceText>
-      </div>
-    
-      <MessageModal uid={content.sender} name={content.name} ref={modalRef} />
-    </>
-  );
-
-  return (
-    <Notification
-      topLine={topLine}
-      imageUrl={content.imageUrl}
-      imageLink={content.profileUrl}
-      date={date}
-      body={body} />
-  );
-};
 
 
 const CollectionAddNotification = ({date, content}) => {

@@ -276,7 +276,7 @@ nginx:
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   # set to search-democracy for democracy
-  SEARCH_HOST: elasticsearch-data
+  SEARCH_HOST: elasticsearch-es-default.elasticsearch
   # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
   localsettings:
   # APP: nginx
@@ -402,7 +402,6 @@ localSettings:
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.sandbox.sefaria.org" in sandboxes and cauldrons

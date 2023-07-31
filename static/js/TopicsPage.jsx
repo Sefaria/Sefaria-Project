@@ -1,11 +1,7 @@
 import {
     InterfaceText,
-    ContentText,
-    ResponsiveNBox, AdminToolHeader,
-    CategoryChooser
+    ResponsiveNBox
 } from './Misc';
-import {AdminEditorButton, useEditToggle} from './AdminEditor';
-import {TopicEditor} from './TopicEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -66,7 +62,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
               <div className="navTitle tight sans-serif">
-                  <CategoryHeader type="topics">
+                  <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
                     <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
                   </CategoryHeader>
               </div>

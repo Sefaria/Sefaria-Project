@@ -64,8 +64,8 @@ class _FindRefsText:
     body: str
 
     def __post_init__(self):
-        from sefaria.utils.hebrew import is_hebrew
-        self.lang = 'he' if is_hebrew(self.body) else 'en'
+        from sefaria.utils.hebrew import is_mostly_hebrew
+        self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
 
 
 def _unpack_find_refs_request(request):
@@ -265,5 +265,3 @@ def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
             'input_range_to_sections': [p.text for p in range_part.toSections]
         })
     return debug_data
-
-
