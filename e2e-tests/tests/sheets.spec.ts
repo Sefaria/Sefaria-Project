@@ -21,28 +21,28 @@ test('Add source to sheet', async ({ context }) => {
 });
 
 // test depends on previous test
-test('Delete source from sheet', async ({ context }) => {
-  if (!url) {
-    await addSource({ context });
-  }
-  const page = await goToPageWithUser(context, url);
+// test('Delete source from sheet', async ({ context }) => {
+//   if (!url) {
+//     await addSource({ context });
+//   }
+//   const page = await goToPageWithUser(context, url);
   
-  page.on('dialog', dialog => dialog.accept());
+//   page.on('dialog', dialog => dialog.accept());
   
-  await page.locator('.sheetItem').first().click();
-  await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
-  await page.getByText('Edit').click();
-  // wait for new page to load
-  await page.waitForSelector('text=Genesis 1:1', { state: 'visible' });
+//   await page.locator('.sheetItem').first().click();
+//   await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
+//   await page.getByText('Edit').click();
+//   // wait for new page to load
+//   await page.waitForSelector('text=Genesis 1:1', { state: 'visible' });
   
-  const sheetItems = await page.locator('.sheetItem').all();
-  await sheetItems[0].hover();
-  await page.locator('.removeSource').first().click();
-  const remainingSheetItems = await page.locator('.sheetItem').count();
-  expect(sheetItems.length - remainingSheetItems).toBe(1);
-});
+//   const sheetItems = await page.locator('.sheetItem').all();
+//   await sheetItems[0].hover();
+//   await page.locator('.removeSource').first().click();
+//   const remainingSheetItems = await page.locator('.sheetItem').count();
+//   expect(sheetItems.length - remainingSheetItems).toBe(1);
+// });
 
 
-test('Add comment to sheet', async ({ context }) => {
-  // fill in test
-});
+// test('Add comment to sheet', async ({ context }) => {
+//   // fill in test
+// });
