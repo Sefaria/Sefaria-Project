@@ -46,9 +46,9 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
-from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -260,8 +260,7 @@ def base_props(request):
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG,
-        "rtc_server": RTC_SERVER
+        "_debug": DEBUG
     })
     return user_data
 
@@ -632,7 +631,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
-        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -2605,7 +2603,7 @@ def terms_api(request, name):
 
 
 def get_name_completions(name, limit, ref_only, topic_override=False):
-    lang = "he" if is_hebrew(name) else "en"
+    lang = "he" if has_hebrew(name) else "en"
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
     ref = None
@@ -2901,27 +2899,6 @@ def notifications_read_api(request):
                             })
 
     else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
-def messages_api(request):
-    """
-    API for posting user to user messages
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to access your messages."})
-
-    if request.method == "POST":
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
-        return jsonResponse({"status": "ok"})
-
-    elif request.method == "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -3461,40 +3438,6 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
-@catch_error_as_json
-def chat_message_api(request):
-    if request.method == "POST":
-        messageJSON = request.POST.get("json")
-        messageJSON = json.loads(messageJSON)
-
-        room_id = messageJSON["roomId"]
-        uids = room_id.split("-")
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can post to it."})
-
-
-        message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"],
-                        "timestamp": messageJSON["timestamp"],
-                        "message": messageJSON["messageContent"]})
-        message.save()
-        return jsonResponse({"status": "ok"})
-
-    if request.method == "GET":
-        room_id = request.GET.get("room_id")
-        uids = room_id.split("-")
-
-
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can view it."})
-
-        skip = int(request.GET.get("skip", 0))
-        limit = int(request.GET.get("limit", 10))
-
-        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
-        return jsonResponse(messages)
-
-    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -4629,16 +4572,3 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-@login_required
-def beit_midrash(request, slug):
-    chavrutaId = request.GET.get("cid", None)
-    starting_ref = request.GET.get("ref", None)
-
-    if starting_ref:
-        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
-
-    else:
-        props = {"customBeitMidrashId": slug,}
-        title = _("Sefaria Beit Midrash")
-        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-        return menu_page(request, props, "navigation", title, desc)

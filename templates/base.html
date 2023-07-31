@@ -171,6 +171,17 @@
 
 
     {% autoescape off %}
+
+    <!--Sentry error reporting config-->
+    <script>
+      {% if CLIENT_SENTRY_DSN %}
+        const sentryDSN = "{{CLIENT_SENTRY_DSN}}";
+      {% else %}
+        const sentryDSN = null;
+      {% endif %}
+    </script>
+    <!--End Sentry error reporting config-->
+
     {% if html %}
     <!-- React will complain about whitespace -->
     <div id="s2">{{ html }}</div>
@@ -250,12 +261,6 @@
       <!-- End Google tag -->
     {% endif %}
 
-
-    <script>
-      {% autoescape off %}
-        RTC_SERVER = "{{ RTC_SERVER }}"
-      {% endautoescape %}
-    </script>
 
     {% render_bundle 'main' %}
 

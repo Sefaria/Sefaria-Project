@@ -420,12 +420,25 @@ def strip_nikkud(rawString):
 any_hebrew = regex.compile(r"\p{Hebrew}")
 any_english = regex.compile(r"[a-zA-Z]")
 
-def is_hebrew(s, heb_only=False):
-	if not heb_only and any_hebrew.search(s):
-		return True
-	elif heb_only and any_hebrew.search(s) and not any_english.search(s):
-		return True
-	return False
+
+def has_hebrew(s):
+	return any_hebrew.search(s)
+
+
+def is_all_hebrew(s):
+	return any_hebrew.search(s) and not any_english.search(s)
+
+
+def is_mostly_hebrew(s: str, len_to_check: int = 60):
+	"""
+	Check if input string is majority Hebrew
+	@param s: Input string to check
+	@param len_to_check: Maximum number of characters to check. Use `None` to check the whole string.
+	@return: Returns True if text is majority Hebrew
+	"""
+	s = regex.sub(r"[0-9 .,'\"?!;:\-=@\#$%^&*()/<>]", "", s)  # remove punctuation/spaces/numbers
+	he_count = len(any_hebrew.findall(s[:len_to_check]))
+	return he_count > len(s)/2
 
 
 def strip_cantillation(text, strip_vowels=False):
@@ -490,7 +503,7 @@ def hebrew_term(s):
 	from sefaria.model import library
 	from sefaria.system.exceptions import BookNameError
 
-	if is_hebrew(s):
+	if has_hebrew(s):
 		return s
 
 	term = library.get_simple_term_mapping().get(s)
@@ -633,6 +646,3 @@ def get_prefixless_inds(st: str) -> List[int]:
 		if not st.startswith(prefix): continue
 		starti_list += [len(prefix)]
 	return starti_list
-
-
-
