@@ -4,7 +4,7 @@ import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import { OnInView } from "./Misc";
 
-const Promotions = ({ topicDataHasLoaded }) => {
+const Promotions = () => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
@@ -140,7 +140,7 @@ const Promotions = ({ topicDataHasLoaded }) => {
     });
   }
 
-  return matchingAds && topicDataHasLoaded
+  return matchingAds
     ? matchingAds.map((ad) => (
         <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />
       ))
