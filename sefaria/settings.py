@@ -315,7 +315,7 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = None
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0","sefaria-docker.onrender.com","sefaria-web:80","sefaria-web.onrender.com"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "indrajala.com", "sefaria-web:80"]
 
 
 
