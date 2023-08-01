@@ -41,14 +41,26 @@ CACHES = {
 
 SITE_PACKAGE = "sites.sefaria"
 
-DEBUG = True
-ALLOWED_HOSTS = [
-    'indrajala.com',
+DEBUG = os.getenv("DEBUG", True)
+
+REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'indrajala.com').replace(" ", "")
+
+LOCAL_HOSTS = [
     'localhost',
     '127.0.0.1',
     "0.0.0.0",
     '[::1]'
 ]
+
+ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
+
+# ALLOWED_HOSTS = [
+#     'indrajala.com',
+#     'localhost',
+#     '127.0.0.1',
+#     "0.0.0.0",
+#     '[::1]'
+# ]
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""

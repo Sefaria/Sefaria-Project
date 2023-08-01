@@ -315,7 +315,16 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = None
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "indrajala.com", "sefaria-web:80"]
+REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'indrajala.com').replace(" ", "")
+
+LOCAL_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    "0.0.0.0",
+    '[::1]'
+]
+
+ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
 
 
 
