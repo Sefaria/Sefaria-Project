@@ -219,7 +219,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             try:
                 self.title_group = term.title_group
             except AttributeError:
-                raise IndexError("Failed to load term named {}.".format(self.sharedTitle))
+                logger.error(f"Term {self.sharedTitle} has no title_group")
 
     def add_shared_term(self, term):
         self.sharedTitle = term
