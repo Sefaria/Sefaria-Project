@@ -27,13 +27,12 @@ function StrapiDataProvider({ children }) {
             return new Date(parts[0], parts[1] - 1, parts[2]).toJSON();
           };
           let currentDate = new Date();
-          let oneWeekFromNow = new Date();
-          oneWeekFromNow.setDate(currentDate.getDate() + 7);
-          currentDate.setDate(currentDate.getDate() - 2); // Fix time management, previous code got time 1 hour in the future in UTC
-          let startDate = getJSONDateStringInLocalTimeZone(currentDate);
-          let endDate = getJSONDateStringInLocalTimeZone(oneWeekFromNow);
-          console.log(startDate);
-          console.log(endDate);
+          let twoWeeksAgo = new Date();
+          let twoWeeksFromNow = new Date();
+          twoWeeksFromNow.setDate(currentDate.getDate() + 14);
+          twoWeeksAgo.setDate(currentDate.getDate() - 14);
+          let startDate = getJSONDateStringInLocalTimeZone(twoWeeksAgo);
+          let endDate = getJSONDateStringInLocalTimeZone(twoWeeksFromNow);
           const query = `
         query {
           banners(
