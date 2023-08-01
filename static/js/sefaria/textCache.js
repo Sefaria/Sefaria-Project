@@ -1,10 +1,10 @@
-class SegmentVersionsFofLanguage {
+class SegmentLanguageVersions {
     setVersion(versionTitle, version) {
         this[versionTitle] = version;
     }
-    updateVersion(segmentVersionsFofLanguage) {
-        Object.keys(segmentVersionsFofLanguage).forEach((versionTitle) => {
-            this.setVersion(versionTitle, segmentVersionsFofLanguage[versionTitle]);
+    updateVersion(SegmentLanguageVersions) {
+        Object.keys(SegmentLanguageVersions).forEach((versionTitle) => {
+            this.setVersion(versionTitle, SegmentLanguageVersions[versionTitle]);
         });
     }
     getVersion(versionTitle) {
@@ -16,7 +16,7 @@ class SegmentVersionsFofLanguage {
 class SegmentVersions {
     addLangIfMissing(language) {
         if (!this.hasOwnProperty(language)) {
-            this[language] = new SegmentVersionsFofLanguage();
+            this[language] = new SegmentLanguageVersions();
         }
     }
     setVersion(language, versionTitle, version) {
@@ -67,9 +67,9 @@ export default class TextCache {
         if (!this.hasOwnProperty(ref)) {
             this[ref] = new SectionVersions;
         }
-        this[ref].addVersion(language, versionTitle, version);
+        this[ref].setVersion(language, versionTitle, version);
     }
     getVersion(ref, language, versionTitle) {
-        return this[ref].getVersion(language, versionTitle);
+        return this[ref]?.getVersion(language, versionTitle);
     }
 }
