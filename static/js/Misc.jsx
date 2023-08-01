@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataContext, replaceNewLinesWithLinebreaks} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -60,7 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context, styleClasses}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -68,11 +68,12 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
+   * `styleClasses` are CSS classes that you want applied to all the interface languages
    */
   const contentVariable = html ?
                           html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
+  let elemclasses = classNames(styleClasses, {"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
@@ -2207,7 +2208,7 @@ const InterruptingMessage = ({
               </div>
               <div id="interruptingMessageContent">
                 <div id="highHolidayDonation">
-                    <InterfaceText markdown={strapi.modal.modalText} />
+                  <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.modal.modalText)} styleClasses={['line-break']} />
                   <div className="buttons">
                     <a
                       className="button int-en"
@@ -2348,7 +2349,7 @@ const Banner = ({ onClose }) => {
         <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
-              <InterfaceText markdown={strapi.banner.bannerText} />
+              <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.banner.bannerText)} styleClasses={['line-break']} />
             </div>
             <div id="bannerButtonBox">
               <a

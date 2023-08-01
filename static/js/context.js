@@ -11,6 +11,11 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
+export function replaceNewLinesWithLinebreaks(string)
+{
+  return string.replace(/\n/gi, "&nbsp; \n")
+}
+
 function StrapiDataProvider({ children }) {
   const [dataFromStrapiHasBeenReceived, setDataFromStrapiHasBeenReceived] =
     useState(false);
