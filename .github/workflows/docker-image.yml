@@ -16,8 +16,16 @@ jobs:
       - name: Login to GitHub Container Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
+      - name: Set Env Variables in lowecase
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >> ${GITHUB_ENV}
+          echo "REPOSITORY_LC=${REPOSITORY,,}" >> ${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
+          REPOSITORY: '${{ github.repository }}'
+
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:${{ github.sha }} . && docker tag ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
+        run: docker build -t ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} . && docker tag ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
 
 
       - name: Push Docker image
