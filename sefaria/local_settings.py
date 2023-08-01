@@ -45,7 +45,7 @@ DOMAIN_LANGUAGES = {}
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
 ALLOWED_HOSTS = [
-    "sefaria-docker.onrender.com",
+    "indrajala.com",
     "localhost",
     "127.0.0.1",
     "0.0.0.0"
@@ -113,7 +113,7 @@ SITE_PACKAGE = "sites.sefaria"
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
 DEBUG = os.getenv("DEBUG", True)
 ALLOWED_HOSTS = [
-    'sefaria-docker.onrender.com',
+    'indrajala.com',
     'localhost',
     '127.0.0.1',
     '[::1]'
