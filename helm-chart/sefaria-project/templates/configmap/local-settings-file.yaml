@@ -134,7 +134,6 @@ data:
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
-    SEARCH_HOST = "/api/search"
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
     SEARCH_NON_ADMIN = os.getenv("SEARCH_NON_ADMIN")
     SEARCH_INDEX_ON_SAVE = True
