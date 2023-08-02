@@ -5766,7 +5766,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-bottom: 5px;
   color: #999;
 }
-.textList.singlePanel .versionsTextList .topFiltersInner {
+.textList.singlePanel .versionsTextList .topFiltersInner, .line-break {
   white-space: pre-wrap;
 }
 .showMoreFilters {
