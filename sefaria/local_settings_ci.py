@@ -48,7 +48,6 @@ DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
-# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 SECRET_KEY = 'insert your long random secret key here !'
