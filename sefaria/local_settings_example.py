@@ -3,7 +3,7 @@
 from datetime import timedelta
 import structlog
 import sefaria.system.logging as sefaria_logging
-
+import os
 
 # These are things you need to change!
 
@@ -172,9 +172,6 @@ SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
 
-# DafRoulette server
-RTC_SERVER = '' # Root URL/IP of the server
-
 GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
@@ -309,3 +306,6 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+SENTRY_DSN = None
+CLIENT_SENTRY_DSN = None

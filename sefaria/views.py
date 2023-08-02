@@ -39,7 +39,7 @@ from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -48,7 +48,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.system.database import db
 from sefaria.system.decorators import catch_error_as_http
-from sefaria.utils.hebrew import is_hebrew, strip_nikkud
+from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.clean import remove_old_counts
@@ -340,7 +340,7 @@ def title_regex_api(request, titles, json_response=True):
         errors = []
         # check request.domain and then look up in WebSites collection to get linker_params and return both resp and linker_params
         for title in titles:
-            lang = "he" if is_hebrew(title) else "en"
+            lang = "he" if has_hebrew(title) else "en"
             try:
                 re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
                 res[title] = re_string
@@ -361,7 +361,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
     for tref in refs:
         try:
             oref = model.Ref(tref)
-            lang = "he" if is_hebrew(tref) else "en"
+            lang = "he" if has_hebrew(tref) else "en"
             if useTextFamily:
                 text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,

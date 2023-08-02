@@ -2,9 +2,9 @@
 set -x
 set -e
 
-export WEB_IMAGE="gcr.io/$PROJECT_ID/sefaria-web-$BRANCH"
-export NODE_IMAGE="gcr.io/$PROJECT_ID/sefaria-node-$BRANCH"
-export ASSET_IMAGE="gcr.io/$PROJECT_ID/sefaria-asset-$BRANCH"
+export WEB_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-web-$BRANCH"
+export NODE_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-node-$BRANCH"
+export ASSET_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-asset-$BRANCH"
 export TAG="sha-$GIT_COMMIT"
 export NAME="sandbox-$GIT_COMMIT"
 
