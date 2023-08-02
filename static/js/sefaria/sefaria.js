@@ -2978,8 +2978,6 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "interruptingMessage",
-
       "community",
       "followRecommendations",
       "trendingTopics",

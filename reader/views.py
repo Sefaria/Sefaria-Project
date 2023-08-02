@@ -68,7 +68,7 @@ from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
-from sefaria.settings import NODE_TIMEOUT, DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.category import TocCollectionNode
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
@@ -197,7 +197,6 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -217,8 +216,7 @@ def base_props(request):
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True),
-            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
         }
     else:
         user_data = {
@@ -239,8 +237,7 @@ def base_props(request):
             "notificationCount": 0,
             "notifications": [],
             "saved": {"loaded": False, "items": []},
-            "last_place": [],
-            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
+            "last_place": []
         }
     user_data.update({
         "last_cached": library.get_last_cached_time(),
@@ -3825,15 +3822,6 @@ def my_profile(request):
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)
-
-
-def interrupting_messages_read_api(request, message):
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to use this API."})
-    profile = UserProfile(id=request.user.id)
-    profile.mark_interrupting_message_read(message)
-    return jsonResponse({"status": "ok"})
-
 
 @login_required
 @ensure_csrf_cookie
