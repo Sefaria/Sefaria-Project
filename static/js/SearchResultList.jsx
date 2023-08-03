@@ -104,7 +104,7 @@ class SearchResultList extends Component {
           //console.log("Loaded cached query for")
           //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
-          this.state.totals[t] = cachedQuery.hits.total.value;
+          this.state.totals[t] = this._get_hits_total(cachedQuery.hits.total);
           this.state.pagesLoaded[t] += 1;
           args.start = this.state.pagesLoaded[t] * this.querySize[t];
           if (t === "text") {
@@ -302,6 +302,13 @@ class SearchResultList extends Component {
         .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
         .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[Sefaria.interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
+    _get_hits_total(totalObj) {
+        /**
+         * this function ensures backwards compatibility between the way elasticsearch formats the total pre-v8 and post-v8
+         */
+        if (typeof(totalObj) === 'number') { return totalObj; }
+        return totalObj.value;
+    }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
       props = props || this.props;
@@ -326,9 +333,9 @@ class SearchResultList extends Component {
               if (this.state.pagesLoaded[type] === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 let state = {
                   hits: extend(this.state.hits, {[type]: data.hits.hits}),
-                  totals: extend(this.state.totals, {[type]: data.hits.total.value}),
+                  totals: extend(this.state.totals, {[type]: this._get_hits_total(data.hits.total)}),
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
-                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total.value > this.querySize[type]})
+                  moreToLoad: extend(this.state.moreToLoad, {[type]: this._get_hits_total(data.hits.total) > this.querySize[type]})
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -336,7 +343,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total.value);
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, this._get_hits_total(data.hits.total));
               }
 
               if (data.aggregations) {

@@ -4214,7 +4214,8 @@ def search_wrapper_api(request):
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            return jsonResponse(response.to_dict().body, callback=request.GET.get("callback", None))
+            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
