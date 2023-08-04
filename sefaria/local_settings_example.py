@@ -120,17 +120,6 @@ OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-"""
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "messageName",
-    "repetition": 1,
-    "is_fundraising": True,
-    "style":      "modal" # "modal" or "banner"
-    "condition":  {"returning_only": True}
-}
-"""
-
 # Location of Strapi CMS instance
 # For local development, Strapi is located at http://localhost:1337 by default
 STRAPI_LOCATION = None
