@@ -104,12 +104,14 @@ function StrapiDataProvider({ children }) {
                       locale
                       buttonText
                       buttonURL
+                      modalHeader
                       modalText
                     }
                   }
                 }
                 modalEndDate
                 modalStartDate
+                modalHeader
                 modalText
                 publishedAt
                 shouldDeployOnMobile
@@ -218,14 +220,17 @@ function StrapiDataProvider({ children }) {
                     });
                     modal.attributes.locales = ["en", "he"];
                   } else {
-                    ["modalText", "buttonText", "buttonURL"].forEach(
-                      (attribute) => {
-                        modal.attributes[attribute] = {
-                          en: modal.attributes[attribute],
-                          he: null,
-                        };
-                      }
-                    );
+                    [
+                      "modalHeader",
+                      "modalText",
+                      "buttonText",
+                      "buttonURL",
+                    ].forEach((attribute) => {
+                      modal.attributes[attribute] = {
+                        en: modal.attributes[attribute],
+                        he: null,
+                      };
+                    });
                     modal.attributes.locales = ["en"];
                   }
                   setModal(modal.attributes);
