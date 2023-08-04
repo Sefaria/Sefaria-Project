@@ -2208,7 +2208,18 @@ const InterruptingMessage = ({
               </div>
               <div id="interruptingMessageContent">
                 <div id="highHolidayDonation">
-                  <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.modal.modalText)} styleClasses={['line-break']} />
+                  {strapi.modal.modalHeader.en && (
+                    <h4 className="int-en">{strapi.modal.modalHeader.en}</h4>
+                  )}
+                  {strapi.modal.modalHeader.he && (
+                    <h4 className="int-he">{strapi.modal.modalHeader.he}</h4>
+                  )}
+                  <InterfaceText
+                    markdown={replaceNewLinesWithLinebreaks(
+                      strapi.modal.modalText
+                    )}
+                    styleClasses={["line-break"]}
+                  />
                   <div className="buttons">
                     <a
                       className="button int-en"
@@ -2227,9 +2238,9 @@ const InterruptingMessage = ({
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
-                      closeModal("donate_button_clicked");
-                    }}
-                      >
+                        closeModal("donate_button_clicked");
+                      }}
+                    >
                       <span className="int-he">
                         {strapi.modal.buttonText.he}
                       </span>

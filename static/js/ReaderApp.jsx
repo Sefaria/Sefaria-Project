@@ -2183,9 +2183,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
 
-//    const strapi = useContext(StrapiDataContext);
-//    const { interruptingMessageModal } = useContext(StrapiDataContext);
-
     return (
       <StrapiDataProvider>
         <AdContext.Provider value={this.getUserContext()}>
