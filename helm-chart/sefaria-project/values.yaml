@@ -57,7 +57,7 @@ web:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: us-east1-docker.pkg/production-deployment/containers/sefaria-web
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -114,7 +114,7 @@ linker:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-linker
+    imageRegistry: us-east1-docker.pkg/production-deployment/containers/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -179,7 +179,7 @@ redis:
 nodejs:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-node
+    imageRegistry: us-east1-docker.pkg/production-deployment/containers/sefaria-node
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   # key-pair values to load into node pod environment.  Takes precedence over global localsettings
@@ -271,7 +271,7 @@ ingress:
 nginx:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-asset
+    imageRegistry: us-east1-docker.pkg/production-deployment/containers/sefaria-asset
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   # set to search-democracy for democracy
@@ -294,7 +294,7 @@ monitor:
   # APP: monitor
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: us-east1-docker.pkg/production-deployment/containers/sefaria-web
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
