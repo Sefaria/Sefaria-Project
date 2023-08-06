@@ -5,7 +5,6 @@ var BundleTracker = require('webpack-bundle-tracker');
 var DeepMerge = require('deep-merge');
 var nodemon = require('nodemon');
 var fs = require('fs');
-const { sentryWebpackPlugin } = require("@sentry/webpack-plugin");
 
 var deepmerge = DeepMerge(function (target, source, key) {
     if (target instanceof Array) {
@@ -51,11 +50,6 @@ const buildDir = './static/bundles/';
 var baseConfig = {
     devtool: 'source-map', //should have better performance on incremental build over `source-map`
     plugins: [
-        sentryWebpackPlugin({
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-            org: "sefaria",
-            project: "javascript-react",  
-          }),
         new WatchRunPlugin(),
         new webpack.optimize.ModuleConcatenationPlugin() // puts all module code in one scope which is supposed to speed up run-time
     ],
