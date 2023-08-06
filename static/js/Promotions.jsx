@@ -11,7 +11,12 @@ const Promotions = ({adType, rerender}) => {
     const context = useContext(AdContext);
     useEffect(() => {
         google.charts.load("current");
-        google.charts.setOnLoadCallback(getAds)
+        try {
+          google.charts.setOnLoadCallback(getAds)
+        }
+        catch (e) {
+          console.error(e)
+        }    
     }, []);
     useEffect(() => {
       if(inAppAds) {
