@@ -312,6 +312,6 @@ SENTRY_DSN = None
 CLIENT_SENTRY_DSN = None
 
 # Fail gracefully when a text or ref cannot be properly loaded, this should be set to True on production
-FAIL_TEXT_GRACEFULLY = False
+FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
-    FAIL_TEXT_GRACEFULLY = False
+    FAIL_GRACEFULLY = False

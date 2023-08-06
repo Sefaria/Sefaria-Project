@@ -8,7 +8,7 @@ import re
 from functools import wraps
 from itertools import zip_longest
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-from sefaria.settings import FAIL_TEXT_GRACEFULLY
+from sefaria.settings import FAIL_GRACEFULLY
 
 """
 Time utils
@@ -621,7 +621,7 @@ def conditional_graceful_exception(logger=None, logLevel="exception", return_val
             try:
                 return func(*args, **kwargs)
             except exception_type as e:
-                if FAIL_TEXT_GRACEFULLY:
+                if FAIL_GRACEFULLY:
                     if logger:
                         logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
                 else:
