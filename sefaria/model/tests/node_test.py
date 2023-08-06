@@ -130,10 +130,12 @@ class Test_Titles(object):
 
         assert td == target
 
-    def test_bad_term(self):
-        with pytest.raises(IndexError):
-            j = JaggedArrayNode()
-            j.add_shared_term("BadTermName")
+    def test_bad_term(self, caplog):
+        j = JaggedArrayNode()
+        j.add_shared_term("BadTermName")
+        
+        assert f"Term BadTermName has no title_group" in caplog.text
+
 
     #todo: why failing?
     @pytest.mark.xfail(reason="unknown")
