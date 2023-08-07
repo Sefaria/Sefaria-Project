@@ -54,6 +54,13 @@ elastic-certificate-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
+{{- define "sefaria.secrets.mongoCredentials" }}
+{{- if .Values.secrets.mongoCredentials.ref -}}
+{{- .Values.web.secrets.mongoCredentials.ref }}
+{{- else -}}
+mongo-credentials-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
 
 {{- define "sefaria.secrets.originTls" }}
 {{- if .Values.ingress.secrets.originTls.ref -}}

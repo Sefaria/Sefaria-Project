@@ -72,6 +72,9 @@ spec:
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
+              name: {{ template "sefaria.secrets.mongoCredentials" . }} 
+              optional: true
+          - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
           - configMapRef:

@@ -27,6 +27,8 @@ spec:
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
+              name: {{ template "sefaria.secrets.mongoCredentials" . }}
+          - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
         command: ["/script/destroy-mongo.sh"]

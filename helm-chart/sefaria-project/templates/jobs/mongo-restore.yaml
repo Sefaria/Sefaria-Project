@@ -49,6 +49,9 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: {{ template "sefaria.secrets.mongoCredentials" . }}
             - secretRef:
                 name: local-settings-secrets-{{ .Values.deployEnv }}
                 optional: true
