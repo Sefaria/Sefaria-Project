@@ -3811,7 +3811,7 @@ def home(request):
     """
     Homepage (which is the texts page)
     """
-    return redirect("/texts")
+    return redirect("/community")
 
 
 def community_page(request, props={}):
