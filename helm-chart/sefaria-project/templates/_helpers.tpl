@@ -54,6 +54,22 @@ elastic-certificate-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
+{{- define "sefaria.secrets.elasticUser" }}
+{{- if .Values.secrets.elasticUser.ref -}}
+{{- .Values.web.secrets.elasticUser.ref }}
+{{- else -}}
+elastic-user-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
+
+{{- define "sefaria.secrets.elasticAdmin" }}
+{{- if .Values.secrets.elasticAdmin.ref -}}
+{{- .Values.web.secrets.elasticAdmin.ref }}
+{{- else -}}
+elastic-admin-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
+
 
 {{- define "sefaria.secrets.originTls" }}
 {{- if .Values.ingress.secrets.originTls.ref -}}
