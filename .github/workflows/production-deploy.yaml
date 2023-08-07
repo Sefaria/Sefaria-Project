@@ -69,7 +69,7 @@ jobs:
       - name: Login to GAR
         uses: docker/login-action@v1
         with:
-          registry: us-east1-docker.pkg.dev
+          registry: us-east1-docker.pkg.dev.dev
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
@@ -81,7 +81,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
-            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -135,7 +135,7 @@ jobs:
       - name: Login to GAR
         uses: docker/login-action@v1
         with:
-          registry: us-east1-docker.pkg.dev
+          registry: us-east1-docker.pkg.dev.dev
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
@@ -147,7 +147,7 @@ jobs:
         with:
           images: |
             gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
-            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -164,7 +164,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=us-east1-docker.pkg/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
+            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
