@@ -36,7 +36,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-es_client = get_elasticsearch_client(admin=True)
+es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)

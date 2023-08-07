@@ -4209,7 +4209,7 @@ def search_wrapper_api(request):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = get_elasticsearch_client(admin=False)
+        es_client = get_elasticsearch_client()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
