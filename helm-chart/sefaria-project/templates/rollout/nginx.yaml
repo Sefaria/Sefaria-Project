@@ -101,6 +101,8 @@ spec:
             value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           {{- end }}
         envFrom:
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}  
           - configMapRef:
               name: local-settings-nginx-{{ .Values.deployEnv }}
               optional: true
