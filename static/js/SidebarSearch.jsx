@@ -116,8 +116,8 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
           query={query}
           compare={false}
           searchInBook={true}
-          tab="text"
-          types={["text"]}
+          tab="sheets"
+          types={["sheets"]}
           textSearchState={searchState}
           updateTotalResults={n => console.log(n)}
           registerAvailableFilters={n => console.log(n)}

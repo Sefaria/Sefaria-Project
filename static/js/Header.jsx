@@ -40,18 +40,21 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
+    const buttonStyle = {
+      filter: 'sepia(1) hue-rotate(100deg) saturate(1000%) contrast(0.8)'
+    };
     const logo = Sefaria.interfaceLang == "hebrew" ?
       <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.svg" alt="Sefaria Logo"/>;
+      <img src="/static/img/logo.svg" alt="Sefaria Logo" style={buttonStyle}/>;
 
     const headerContent = (
       <>
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
-          <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a>
-          <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a>
-          {/* <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a> */}
+          {/* <a href="/texts" className="textLink"><InterfaceText context="Header">Texts</InterfaceText></a> */}
+          {/* <a href="/topics" className="textLink"><InterfaceText>Topics</InterfaceText></a> */}
+          <a href="/community" className="textLink"><InterfaceText>Community</InterfaceText></a>
           <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>Donate</InterfaceText></DonateLink>
         </div>
 
