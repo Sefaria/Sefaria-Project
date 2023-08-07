@@ -135,7 +135,6 @@ data:
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
     SEARCH_ADMIN = os.getenv("SEARCH_ADMIN")
-    SEARCH_NON_ADMIN = os.getenv("SEARCH_NON_ADMIN")
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = 'sheet'

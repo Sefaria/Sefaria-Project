@@ -146,11 +146,7 @@ def make_filter(type, agg_type, agg_key):
         return Term(**{agg_type: agg_key})
 
 
-def get_elasticsearch_client(admin=False):
+def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
-    from sefaria.settings import SEARCH_ADMIN, SEARCH_NON_ADMIN
-    es_url = SEARCH_ADMIN if admin else SEARCH_NON_ADMIN
-    if not es_url:
-        # try flipping values in case the other is defined
-        es_url = SEARCH_NON_ADMIN if admin else SEARCH_ADMIN
-    return Elasticsearch(es_url)
+    from sefaria.settings import SEARCH_ADMIN
+    return Elasticsearch(SEARCH_ADMIN)
