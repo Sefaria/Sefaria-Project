@@ -76,8 +76,8 @@ const ModulePickerComponent = () => {
   };
 
   const listItems = [
-    { color: "#18345D", title: "Library", url: "https://library.sefaria.org/" },
-    { color: "#5D956F", title: "Create", url: "https://community.sefaria.org/" },
+    { color: "#18345D", title: "Library", url: "https://library.cauldron.sefaria.org/" },
+    { color: "#5D956F", title: "Create", url: "https://community.cauldron.sefaria.org/" },
     { color: "#CCB479", title: "Developers", url: "about:blank" },
   ];
 
