@@ -238,7 +238,11 @@
       };
 
       {% if STRAPI_LOCATION and STRAPI_PORT %}
-          var STRAPI_INSTANCE = "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
+        {% if STRAPI_PORT == 80 %}
+          var STRAPI_INSTANCE = "{{ STRAPI_LOCATION }}";
+        {% else %}
+          var STRAPI_INSTANCE =  "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
+        {% endif %}
       {% endif %}
 
       {% endautoescape %}
