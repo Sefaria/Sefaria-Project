@@ -8,7 +8,6 @@ import re
 from functools import wraps
 from itertools import zip_longest
 from sefaria.constants.model import ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
-from sefaria.settings import FAIL_GRACEFULLY
 
 """
 Time utils
@@ -609,23 +608,6 @@ def graceful_exception(logger=None, logLevel="exception", return_value=[], excep
             except exception_type as e:
                 if logger:
                     logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
-            return return_value
-        return decorated_function
-    return argumented_decorator
-
-
-def conditional_graceful_exception(logger=None, logLevel="exception", return_value=[], exception_type=Exception):
-    def argumented_decorator(func):
-        @wraps(func)
-        def decorated_function(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except exception_type as e:
-                if FAIL_GRACEFULLY:
-                    if logger:
-                        logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
-                else:
-                    raise e
             return return_value
         return decorated_function
     return argumented_decorator
