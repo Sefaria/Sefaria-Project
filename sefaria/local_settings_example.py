@@ -311,7 +311,8 @@ structlog.configure(
 SENTRY_DSN = None
 CLIENT_SENTRY_DSN = None
 
-# Fail gracefully when a text or ref cannot be properly loaded, this should be set to True on production
+# Fail gracefully when decorator conditional_graceful_exception on function. This should be set to True on production
+# Example: If a text or ref cannot be properly loaded, fail gracefully and let the server continue to run
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
