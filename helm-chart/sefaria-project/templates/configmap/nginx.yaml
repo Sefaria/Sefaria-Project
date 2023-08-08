@@ -28,6 +28,16 @@ data:
       }
     }
   {{- end }}
+  entrpoint.sh: |
+    #!/bin/bash
+
+    set -e
+
+    export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USER:$ELASTIC_PASSWORD | base64)
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
+
+    nginx -c /nginx.conf -g 'daemon off;'
+
   nginx.template.conf: |-
     {{- if .Values.instrumentation.enabled }}
     load_module /etc/nginx/modules/ngx_http_opentracing_module.so;
