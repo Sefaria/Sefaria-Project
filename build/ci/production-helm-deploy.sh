@@ -2,10 +2,10 @@
 set -x
 set -e
 
-export WEB_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-web"
-export NODE_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-node"
-export ASSET_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-asset"
-export LINKER_IMAGE="gcr.io/$PROJECT_ID/$IMAGE_NAME-linker"
+export WEB_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/$IMAGE_NAME-web"
+export NODE_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/$IMAGE_NAME-node"
+export ASSET_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/$IMAGE_NAME-asset"
+export LINKER_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/$IMAGE_NAME-linker"
 export TAG="$GIT_COMMIT"
 
 yq e -i '.web.containerImage.imageRegistry = strenv(WEB_IMAGE)' $1
