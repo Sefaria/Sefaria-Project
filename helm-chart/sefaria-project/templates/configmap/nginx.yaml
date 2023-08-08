@@ -28,7 +28,7 @@ data:
       }
     }
   {{- end }}
-  entrpoint.sh: |
+  entrypoint.sh: |
     #!/bin/bash
 
     set -e
