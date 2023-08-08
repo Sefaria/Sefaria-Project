@@ -34,7 +34,7 @@ data:
     set -e
 
     export ELASTIC_AUTH_HEADER=$(echo -n $ELASTIC_USER:$ELASTIC_PASSWORD | base64)
-    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
+    envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${ELASTIC_USERNAME},${ELASTIC_PASSWORD},${RELEASE_TAG},${ELASTIC_AUTH_HEADER}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf 
 
     nginx -c /nginx.conf -g 'daemon off;'
 
@@ -118,6 +118,7 @@ data:
         location /api/search/ {
           rewrite ^/(?:api/search)/(.*)$ /$1 break;
           proxy_set_header Content-Type application/json;  # es 6.0 requires this header
+          proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
           add_header 'Access-Control-Allow-Origin' '';
           proxy_pass http://elasticsearch_upstream/;
         }
