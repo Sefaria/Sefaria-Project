@@ -66,11 +66,10 @@ test('Bookmark page', async ({ context }) => {
 test('Share link', async ({ context }) => {
   
   let page = await goToPageWithUser(context, '/texts');
-  await page.getByText('×').click()
+  // await page.getByText('×').click()
   page = await goToPageWithUser(context, '/Numbers.36.6?lang=he&with=all&lang2=he');
   await page.getByText('זֶ֣ה הַדָּבָ֞ר אֲשֶׁר־צִוָּ֣ה יְהֹוָ֗ה לִבְנ֤וֹת צְלׇפְחָד֙ לֵאמֹ֔ר לַטּ֥וֹב בְּעֵינֵיהֶ֖ם תִּהְיֶ֣ינָה לְנָשִׁ֑ים אַ֗ךְ לְמִשְׁפַּ֛חַת מַטֵּ֥ה אֲבִיהֶ֖ם תִּהְיֶ֥ינָה לְנָשִֽׁים׃').click();
   await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
-  await page.locator('a').filter({ hasText: 'Share' }).click()
-  await page.locator('#sheetShareLink')
-  
+  await page.locator('a').filter({ hasText: 'Share' }).click();
+  await page.locator('#sheetShareLink').getByText('https://www.sefaria.org/Numbers.36.6?ven=The_Koren_Jerusalem_Bible&lang=he&with=all&lang2=he').waitFor({ state: 'detached' });  
 });
