@@ -21,7 +21,7 @@ import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
-
+import TrackG4 from "./sefaria/trackG4";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1447,14 +1447,16 @@ SaveButton.propTypes = {
 };
 
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => {
+  const analyticsContext = useContext(AdContext)
+  return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={onClick}
+    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`}, analyticsContext)}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
-);
+)};
 
 
 class FollowButton extends Component {
@@ -1962,7 +1964,7 @@ function NewsletterSignUpForm(props) {
                 className="educatorNewsletterInput"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span>I am an educator</span>
+            <span> I am an educator</span>
           </span>
                 <span className="int-he">
             <input
@@ -1970,7 +1972,7 @@ function NewsletterSignUpForm(props) {
                 className="educatorNewsletterInput"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span>מורים/ אנשי הוראה</span>
+            <span> מורים/ אנשי הוראה</span>
           </span>
                 <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
               </div>
