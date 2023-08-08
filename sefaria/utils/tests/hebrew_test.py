@@ -90,6 +90,8 @@ class TestIsHebrewFuncs:
         assert not h.is_mostly_hebrew("שלום world")  # exactly one less than half
         assert not h.is_mostly_hebrew("שלוגם world")  # exactly half
         assert h.is_mostly_hebrew("שלוגם word")  # exactly one more than half
+        assert not h.is_mostly_hebrew("word לשוםג", len_to_check=4)
+        assert h.is_mostly_hebrew("גשגכדגכשדגכדלשוםג", len_to_check=4)
 
 
 class TestGematria():

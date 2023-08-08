@@ -1,4 +1,5 @@
 from functools import wraps, partial
+from typing import Any
 
 from django.http import HttpResponse, Http404
 from django.template import RequestContext
@@ -12,6 +13,8 @@ import collections
 import bleach
 import structlog
 logger = structlog.get_logger(__name__)
+
+from sefaria.settings import FAIL_GRACEFULLY
 
 
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
@@ -93,6 +96,33 @@ def sanitize_get_params(func):
         result = func(request, *args, **kwargs)
         return result
     return wrapper
+
+
+def conditional_graceful_exception(logLevel: str = "exception", exception_type: Exception = Exception) -> Any:
+    """
+    Decorator that catches exceptions and logs them if FAIL_GRACEFULLY is True.
+    For instance, when loading the server on prod, we want to fail gracefully if a text or ref cannot be properly loaded.
+    However, when running text creation functions, we want to fail loudly so that we can fix the problem.
+
+    :param logLevel: "exception" or "warning"
+    :param return_value: function return value if exception is caught
+    :param exception_type: type of exception to catch
+    :return: return_value no error, if FAIL_GRACEFULLY is True log the error, otherwise raise exception
+
+    """
+    def argumented_decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except exception_type as e:
+                if FAIL_GRACEFULLY:
+                    if logger:
+                        logger.exception(str(e)) if logLevel == "exception" else logger.warning(str(e))
+                else:
+                    raise e
+        return decorated_function
+    return argumented_decorator
 
 
 class memoized(object):
