@@ -26,3 +26,4 @@ data:
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
+  FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
