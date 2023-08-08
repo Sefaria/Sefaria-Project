@@ -63,8 +63,7 @@ test('Bookmark page', async ({ context }) => {
   await page.waitForSelector('text=Genesis 1:1', { state: 'detached' });
 });
 
-test('Share link', async ({ context }) => {
-  
+test('Share link', async ({ context }) => { 
   let page = await goToPageWithUser(context, '/texts');
   // await page.getByText('×').click()
   page = await goToPageWithUser(context, '/Numbers.36.6?lang=he&with=all&lang2=he');
@@ -72,4 +71,5 @@ test('Share link', async ({ context }) => {
   await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
   await page.locator('a').filter({ hasText: 'Share' }).click();
   await page.locator('#sheetShareLink').getByText('https://www.sefaria.org/Numbers.36.6?ven=The_Koren_Jerusalem_Bible&lang=he&with=all&lang2=he').waitFor({ state: 'detached' });  
+
 });
