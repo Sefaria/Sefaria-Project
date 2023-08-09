@@ -2195,7 +2195,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {panels}
               {sefariaModal}
               {communityPagePreviewControls}
-              {beitMidrashPanel}
               <CookiesNotification />
               {/* <ExampleComponent /> */}
             </div>
