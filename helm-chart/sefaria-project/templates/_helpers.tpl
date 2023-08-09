@@ -47,8 +47,8 @@ slack-webhook-{{ .Values.deployEnv }}
 {{- end }}
 
 {{- define "sefaria.secrets.elasticCertificate" }}
-{{- if .Values.web.secrets.elasticCertificate.ref -}}
-{{- .Values.web.secrets.elasticCertificate.ref }}
+{{- if .Values.secrets.elasticCertificate.ref -}}
+{{- .Values.secrets.elasticCertificate.ref }}
 {{- else -}}
 elastic-certificate-{{ .Values.deployEnv }}
 {{- end }}
@@ -56,7 +56,7 @@ elastic-certificate-{{ .Values.deployEnv }}
 
 {{- define "sefaria.secrets.elasticUser" }}
 {{- if .Values.secrets.elasticUser.ref -}}
-{{- .Values.web.secrets.elasticUser.ref }}
+{{- .Values.secrets.elasticUser.ref }}
 {{- else -}}
 elastic-user-{{ .Values.deployEnv }}
 {{- end }}
@@ -64,7 +64,7 @@ elastic-user-{{ .Values.deployEnv }}
 
 {{- define "sefaria.secrets.elasticAdmin" }}
 {{- if .Values.secrets.elasticAdmin.ref -}}
-{{- .Values.web.secrets.elasticAdmin.ref }}
+{{- .Values.secrets.elasticAdmin.ref }}
 {{- else -}}
 elastic-admin-{{ .Values.deployEnv }}
 {{- end }}
