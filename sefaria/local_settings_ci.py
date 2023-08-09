@@ -193,6 +193,9 @@ LOGGING = {
     }
 }
 
+STRAPI_LOCATION = None
+STRAPI_PORT = None
+
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
