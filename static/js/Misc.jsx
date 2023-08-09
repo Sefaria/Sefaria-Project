@@ -1449,16 +1449,14 @@ SaveButton.propTypes = {
 };
 
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => {
-  const analyticsContext = useContext(AdContext)
-  return (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`}, analyticsContext)}
+    style={style} onClick={onClick}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
-)};
+);
 
 
 class FollowButton extends Component {
