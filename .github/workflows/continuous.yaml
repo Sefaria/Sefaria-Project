@@ -7,6 +7,10 @@ on:
     branches:
       - "*"
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   duplication-check:
     runs-on: ubuntu-latest
