@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
@@ -21,7 +21,8 @@ import {SourceEditor} from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
-
+import TrackG4 from "./sefaria/trackG4";
+import {AdContext} from "./context";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1962,7 +1963,7 @@ function NewsletterSignUpForm(props) {
                 className="educatorNewsletterInput"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span>I am an educator</span>
+            <span> I am an educator</span>
           </span>
                 <span className="int-he">
             <input
@@ -1970,7 +1971,7 @@ function NewsletterSignUpForm(props) {
                 className="educatorNewsletterInput"
                 checked={educatorCheck}
                 onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span>מורים/ אנשי הוראה</span>
+            <span> מורים/ אנשי הוראה</span>
           </span>
                 <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
               </div>

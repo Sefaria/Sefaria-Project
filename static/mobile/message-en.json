@@ -1,1 +1,10 @@
-null
+{
+  "title": "",
+  "text": [
+"Celebrate 10 years of Torah on Sefaria! Join us on Sunday, August 20th, for a virtual anniversary party with learning, community stories, and a special announcement you won’t want to miss."
+  ],
+  "buttonLink": "https://sefaria.formstack.com/forms/10thanniversary",
+  "buttonText": "RSVP Now",
+  "name": "2023-08-08-anniversary",
+  "schemaVersion": 1
+}

@@ -132,7 +132,7 @@ class AddToSourceSheetBox extends Component {
     // validate texts corresponding to refs have no images before posting them to sheet
     for (let i = 0; i < refs.length; i++) {
       let ref = Sefaria.getRefFromCache(refs[i]);
-      if (ref && (Sefaria.isImage(ref.he) || Sefaria.isImage(ref.text))) {
+      if (ref && (Sefaria.isFullSegmentImage(ref.he) || Sefaria.isFullSegmentImage(ref.text))) {
         alert("We do not currently support adding images to source sheets.");
         return false;
       }
