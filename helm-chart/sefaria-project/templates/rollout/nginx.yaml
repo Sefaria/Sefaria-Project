@@ -52,8 +52,7 @@ spec:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
         imagePullPolicy: Always
-        command:
-          - ./entrypoint.sh
+        command: ["/usr/src/entrypoint.sh"]
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -75,7 +74,7 @@ spec:
             name: nginx-conf
             subPath: nginx.template.conf
             readOnly: true
-          - mountPath: /entrypoint.sh
+          - mountPath: /usr/src/entrypoint.sh
             name: nginx-conf
             subPath: entrypoint.sh
             defaultMode: 0755
