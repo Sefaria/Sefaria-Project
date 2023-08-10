@@ -15,6 +15,8 @@ AdminJS.registerAdapter({
 const BulkEdit = () => {
 
 }
+const customSaveHandler = () => {}
+
 const start = async () => {
   const app = express();
 
@@ -23,16 +25,20 @@ const start = async () => {
     // We pass Category to `resources`
     resources: [
         {resource: Book,
-        options: {actions:
-              {
-                customSave: {
-                actionType: 'record',
-                icon: 'Edit',
-                isVisible: true,
-                handler: customSaveHandler
-              }}}},
+        options: {
+            properties: {updatedAt: {isVisible: false}, createdAt: {isVisible: false}},
+            actions:
+                {
+                    customSave: {
+                        actionType: 'record',
+                        icon: 'Edit',
+                        isVisible: true,
+                        handler: customSaveHandler
+                    }}
+        }},
       {resource: Category,
           options: {
+                  properties: {updatedAt: {isVisible: false}, createdAt: {isVisible: false}},
               actions: {
                       bulkEdit: {
                         actionType: 'bulk',

@@ -7,7 +7,16 @@ from . import abstract, link, note, history, schema, text, layer, version_state,
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
 from sefaria.system.database import db
-with db.index.watch() as stream: # {'_id': {'_data': '8264D37A3C000000012B022C0100296E5A1004E5D42CA65139420D8D469EEE44C41D5546645F69640064599D3BE5D6E4A92C4F1AC0A70004'}, 'operationType': 'update', 'clusterTime': Timestamp(1691580988, 1), 'wallTime': datetime.datetime(2023, 8, 9, 11, 36, 28, 643000), 'ns': {'db': 'sefaria', 'coll': 'category'}, 'documentKey': {'_id': ObjectId('599d3be5d6e4a92c4f1ac0a7')}, 'updateDescription': {'updatedFields': {'lastPath': 'asdf'}, 'removedFields': [], 'truncatedArrays': []}}
+
+with db.category.watch() as stream:
+    # Categories
+    for change in stream:
+        if change['operationType'] == 'update':
+            if 'path' in change['updateDescription']['updatedFields']:
+                c = category.Category().load_by_id(change['documentKey']["_id"])
+                category.process_category_path_change(c)
+        text.rebuild_library_after_category_change()
+with db.index.watch() as stream: #
     for change in stream:
         print(f'Received change event: {change}') # {'_id': {'_data': '8264D37A17000000012B022C0100296E5A1004E5D42CA65139420D8D469EEE44C41D5546645F69640064599D3BE5D6E4A92C4F1AC08C0004'}, 'operationType': 'delete', 'clusterTime': Timestamp(1691580951, 1), 'wallTime': datetime.datetime(2023, 8, 9, 11, 35, 51, 872000), 'ns': {'db': 'sefaria', 'coll': 'category'}, 'documentKey': {'_id': ObjectId('599d3be5d6e4a92c4f1ac08c')}}
 #
@@ -112,9 +121,6 @@ subscribe(collection.process_collection_delete_in_sheets,                  colle
 subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug", "slug"), collection.Collection, "delete")
 
 
-# Categories
-subscribe(category.process_category_path_change,  category.Category, "attributeChange", "path")
-subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
 
 # Manuscripts
 subscribe(manuscript.process_slug_change_in_manuscript,  manuscript.Manuscript, "attributeChange", "slug")
