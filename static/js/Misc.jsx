@@ -118,12 +118,12 @@ const DonateLink = ({children, classes, source, link}) => {
   source = source || "undefined";
   const linkOptions = {
     default: {
-      en: "https://donate.sefaria.org/en",
-      he: "https://donate.sefaria.org/he"
+      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
     },
     sustainer: {
-      en: "https://donate.sefaria.org/sustainers",
-      he: "https://donate.sefaria.org/sustainershe"
+      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
     },
     dayOfLearning: {
       en: "https://donate.sefaria.org/sponsor",
