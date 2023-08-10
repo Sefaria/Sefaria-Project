@@ -53,7 +53,7 @@ spec:
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
         imagePullPolicy: Always
         command:
-          - "./entrypoint.sh"
+          - ./entrypoint.sh
         ports:
         - containerPort: 80
         - containerPort: 443
