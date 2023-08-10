@@ -1013,6 +1013,10 @@ Sefaria = extend(Sefaria, {
     const pattern = /^\s*<img\b[^>]*>\s*$/i;
     return pattern.test(text);
   },
+  isImage: function(textChunk) {
+    const pattern = /<img\b[^>]*>/i;
+    return pattern.test(textChunk);
+  },
   getRefFromCache: function(ref) {
     if (!ref) return null;
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
@@ -2945,10 +2949,6 @@ Sefaria.unpackDataFromProps = function(props) {
 
   Sefaria.getBackgroundData();
 };
-
-Sefaria.isImage = (data) => {
-  return (data.match(/\.(jpeg|jpg|gif|png)$/i) != null);
-}
 
 Sefaria.unpackBaseProps = function(props){
     //TODO: verify these are all base props!!!
