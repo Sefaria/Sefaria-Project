@@ -1453,7 +1453,7 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
   return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": `${classes}`}, analyticsContext)}
+    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
