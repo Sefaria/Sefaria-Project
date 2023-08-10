@@ -2946,6 +2946,10 @@ Sefaria.unpackDataFromProps = function(props) {
   Sefaria.getBackgroundData();
 };
 
+Sefaria.isImage = (data) => {
+  return (data.match(/\.(jpeg|jpg|gif|png)$/i) != null);
+}
+
 Sefaria.unpackBaseProps = function(props){
     //TODO: verify these are all base props!!!
       if (typeof props === 'undefined') {
