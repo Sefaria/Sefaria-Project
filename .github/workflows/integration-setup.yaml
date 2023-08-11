@@ -16,8 +16,9 @@ jobs:
     - name: Setup base utils
       run: |
         export DEBIAN_FRONTEND=noninteractive
+        sudo add-apt-repository ppa:rmescandon/yq.
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends curl
+        sudo apt-get install -y --no-install-recommends curl yq
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
