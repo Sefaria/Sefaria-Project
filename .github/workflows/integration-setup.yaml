@@ -15,6 +15,7 @@ jobs:
     steps:
     - name: Setup base utils
       run: |
+        export DEBIAN_FRONTEND=noninteractive
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends curl
     - id: auth
@@ -32,13 +33,13 @@ jobs:
       uses: azure/setup-kubectl@v3
     - name: Setup mongodb-tools
       run: |
-        curl https://fastdl.mongodb.org/tools/db/$MONGO_DEB -O
+        curl -S https://fastdl.mongodb.org/tools/db/$MONGO_DEB -O
         sudo apt install ./$MONGO_DEB
         mongorestore --version
       env:
         MONGO_DEB: mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
     - name: Get latest Backup
-      run: gsutil cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
+      run: gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
     - name: Extract Backup
       run: tar xzvf dump.tar.gz -C .
     - name: Restore Backup
