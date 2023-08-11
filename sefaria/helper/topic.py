@@ -112,8 +112,8 @@ def merge_props_for_similar_refs(curr_link, new_link):
     # as well as datasource and descriptions of all the similar refs
     data_source = new_link.get('dataSource', None)
     if data_source:
+        update_refs(curr_link, new_link, data_source)
         update_data_source_in_link(curr_link, new_link, data_source)
-        update_learning_team_data(curr_link, new_link, data_source)
 
     if not curr_link['is_sheet']:
         update_descriptions_in_link(curr_link, new_link)
@@ -125,11 +125,16 @@ def update_data_source_in_link(curr_link, new_link, data_source):
     curr_link['dataSources'][data_source] = data_source_obj.displayName
     del new_link['dataSource']
 
-def update_learning_team_data(curr_link, new_link, data_source):
+def is_data_source_learning_team(func):
+    def wrapper(curr_link, new_link, data_source):
+        if data_source == 'learning-team':
+            func(curr_link, new_link)
+    return wrapper
+
+@is_data_source_learning_team
+def update_refs(curr_link, new_link):
     # in case the new_link was created by the learning team, we want to use ref of learning team link
     # in the case when both links are from the learning team, use whichever ref covers a smaller range
-    if data_source != 'learning-team':
-        return
     if 'learning-team' not in curr_link['dataSources'] or len(curr_link['expandedRefs']) > len(
             new_link['expandedRefs']):
         curr_link['ref'] = new_link['ref']
