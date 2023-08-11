@@ -16,6 +16,8 @@ jobs:
     - name: Setup base utils
       run: |
         export DEBIAN_FRONTEND=noninteractive
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
         sudo add-apt-repository ppa:rmescandon/yq.
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends curl yq
