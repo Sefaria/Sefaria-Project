@@ -1,0 +1,62 @@
+name: Setup Integration Environment
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 4 * * *'
+
+concurrency: integration_environment
+
+jobs:
+  database-setup:
+    runs-on: sefaria-integrations
+    steps:
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        token_format: 'access_token'
+        workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+        service_account: '${{ secrets.DEV_GKE_SA }}'
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        version: '>= 363.0.0'
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+    - name: Setup mongodb-tools
+      run: |
+        wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
+        sudo apt install ./mongodb-database-tools-*-100.6.1.deb
+        mongorestore --version
+    - name: Get latest Backup
+      run: gsutil cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
+    - name: Extract Backup
+      run: tar xzvf dump.tar.gz -C .
+    - name: Restore Backup
+      run: |
+        . <(kubectl get secret local-settings-secrets -n default -o yaml | yq -o=shell '.data | map_values(@base64d)')
+        echo "::add-mask::$MONGO_HOST"
+        echo "::add-mask::$MONGO_REPLICASET_NAME"
+        echo "::add-mask::$SEFARIA_DB_USER"
+        echo "::add-mask::$SEFARIA_DB_PASSWORD"
+
+        if [[ -z "$MONGO_HOST" ]]; then
+          echo "Mongo Host not specified"
+          exit 1
+        fi
+        URI="mongodb://"
+        if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+          URI="${URI}${SEFARIA_DB_USER}"
+          if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+              URI="${URI}:${SEFARIA_DB_PASSWORD}"
+          fi
+          URI="${URI}@"
+        fi
+        URI="${URI}${MONGO_HOST}/?ssl=false"
+        if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+          URI="${URI}&authSource=admin"
+        fi
+        if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+        URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+        fi
+        mongorestore --drop --uri="$URI" -v -d sefaria-integration --dir=dump/sefaria 
