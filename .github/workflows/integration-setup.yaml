@@ -13,6 +13,10 @@ jobs:
       id-token: 'write'
     runs-on: sefaria-integrations
     steps:
+    - name: Setup base utils
+      run: |
+        apt-get update
+        apt-get install curl
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
