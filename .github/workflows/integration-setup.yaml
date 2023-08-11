@@ -19,7 +19,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends curl
     - name: Set up yq
-      uses: frenck/action-setup-yq@v1
+      run: |
+        curl https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
+        sudo mv yq_linux_amd64 /usr/bin/yq
+        chmod +x /usr/bin/yq
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
