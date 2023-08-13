@@ -26,7 +26,7 @@ const VersionContent = (props) => {
   const [languageToFilter, _] = useContentLang(props.defaultToInterfaceOnBilingual, props.overrideLanguage);
   return langAndContentItems.map((item) => {
       const [lang, content] = item;
-      if (Sefaria.isImage(content)){
+      if (Sefaria.isFullSegmentImage(content)){
         return(<VersionImageSpan lang={lang} content={content} languageToFilter={languageToFilter} imageLoadCallback={props.imageLoadCallback}/>);
       }
       return (<ContentSpan lang={lang} content={content} isHTML={true}/>);
