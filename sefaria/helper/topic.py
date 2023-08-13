@@ -1014,7 +1014,6 @@ def update_topic(topic_obj, **kwargs):
 
     topic_obj.save()
 
-
     if kwargs.get('rebuild_topic_toc', True):
         rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
     return topic_obj
@@ -1070,8 +1069,8 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         current_descriptions[interface_lang] = description
         link.descriptions = current_descriptions
 
-    if getattr(link, 'generatedBy', TopicLinkHelper.generated_by_sheets):
-        del link.generatedBy
+    if hasattr(link, 'generatedBy') and getattr(link, 'generatedBy', "") == TopicLinkHelper.generated_by_sheets:
+        del link.generatedBy  # prevent link from getting deleted when topic cronjob runs
 
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
