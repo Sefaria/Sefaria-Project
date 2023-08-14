@@ -8,8 +8,21 @@ concurrency: integration_environment
 
 jobs:
   database-setup:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     runs-on: sefaria-integrations
     steps:
+    - name: Setup base utils
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends curl
+    - name: Set up yq
+      run: |
+        curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
+        sudo mv yq_linux_amd64 /usr/bin/yq
+        chmod +x /usr/bin/yq
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
@@ -25,11 +38,13 @@ jobs:
       uses: azure/setup-kubectl@v3
     - name: Setup mongodb-tools
       run: |
-        wget https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
-        sudo apt install ./mongodb-database-tools-*-100.6.1.deb
+        curl -S https://fastdl.mongodb.org/tools/db/$MONGO_DEB -O
+        sudo apt install ./$MONGO_DEB
         mongorestore --version
+      env:
+        MONGO_DEB: mongodb-database-tools-ubuntu2204-x86_64-100.6.1.deb
     - name: Get latest Backup
-      run: gsutil cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
+      run: gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
     - name: Extract Backup
       run: tar xzvf dump.tar.gz -C .
     - name: Restore Backup
