@@ -18,6 +18,21 @@ entries:
     version: 0.37.0-strapi-cms-revised.1
   - apiVersion: v2
     appVersion: v5.63.0
+    created: "2023-08-14T11:45:59.371528205Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 2d2dc3cf35596dc6f368c97d5b0b017f33560f89357b1707225aaa054eae4b93
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.37.0-mongo-connection-string.2.tgz
+    version: 0.37.0-mongo-connection-string.2
+  - apiVersion: v2
+    appVersion: v5.63.0
     created: "2023-08-14T09:19:35.789323306Z"
     description: Chart to deploy complete Sefaria environment
     digest: 986db17674761ba3f5052c90ece2e0515cc4ca2fd0136ccd007c17938054f17d
@@ -4425,4 +4440,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-08-14T11:42:48.809862855Z"
+generated: "2023-08-14T11:45:59.36841331Z"
