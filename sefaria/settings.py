@@ -299,21 +299,21 @@ CACHES = {
 
 
 
-# GLOBAL_INTERRUPTING_MESSAGE = {
-#     "name": "2023-08-01-tu-b-av",
-#     "style":      "modal",  # "modal" or "banner"
-#     "repetition": 1,
-#     "is_fundraising": False,
-#     "condition":  {
-#         "returning_only": False,
-#         "english_only": False,
-#         "desktop_only": False,
-#         "debug": False,
-#     }
-# }
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name": "2023-08-08-anniversary",
+    "style":      "modal",  # "modal" or "banner"
+    "repetition": 1,
+    "is_fundraising": False,
+    "condition":  {
+        "returning_only": False,
+        "english_only": False,
+        "desktop_only": False,
+        "debug": False,
+    }
+}
 
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 # Grab environment specific settings from a file which
