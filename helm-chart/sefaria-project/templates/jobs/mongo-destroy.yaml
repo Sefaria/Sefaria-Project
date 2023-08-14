@@ -24,8 +24,6 @@ spec:
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
-          - configMapRef:
-              name: local-settings-{{ .Values.deployEnv }}
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
