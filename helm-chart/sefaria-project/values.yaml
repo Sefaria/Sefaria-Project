@@ -244,6 +244,7 @@ ingress:
       path: /*
       serviceName: nginx
       port: 80
+  annotations: {}
   secrets:
     # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
     # data: fields for either deployments.

@@ -6,7 +6,7 @@ export WEB_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-web-$BR
 export NODE_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-node-$BRANCH"
 export ASSET_IMAGE="us-east1-docker.pkg.dev/$PROJECT_ID/containers/sefaria-asset-$BRANCH"
 export TAG="sha-$GIT_COMMIT"
-export NAME="sandbox-$GIT_COMMIT"
+export NAME="integration"
 
 yq e -i '.web.containerImage.imageRegistry = strenv(WEB_IMAGE)' $1
 yq e -i '.nodejs.containerImage.imageRegistry = strenv(NODE_IMAGE)' $1

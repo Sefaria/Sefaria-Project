@@ -187,7 +187,7 @@ jobs:
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
-        run: ./build/ci/sandbox-helm-deploy.sh build/ci/integration-values.yaml
+        run: ./build/ci/integration-helm-deploy.sh build/ci/integration-values.yaml
         env:
           GIT_COMMIT: "${{ needs.variables.outputs.commit }}"
           BRANCH: "${{ needs.variables.outputs.branch }}"
@@ -209,7 +209,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl
       - name: Run tests
-        run: curl "nginx-sandbox-${{ needs.variables.outputs.commit}}.${{secrets.DEV_SANDBOX_NAMESPACE}}"
+        run: curl "nginx-integration.${{secrets.DEV_SANDBOX_NAMESPACE}}"
   cleanup:
     name: "Clean up Integration test environment"
     needs:
