@@ -7,6 +7,20 @@ on:
 concurrency: integration_environment
 
 jobs:
+  environment-cleanup:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: sefaria-integrations
+    steps:
+    - name: Setup base utils
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends curl helm
+    - name: cleanup
+      run: |
+        helm list release | grep sandbox | xargs -I env -n helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
   database-setup:
     permissions:
       contents: 'read'
