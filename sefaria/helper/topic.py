@@ -112,23 +112,26 @@ def merge_props_for_similar_refs(curr_link, new_link):
     # as well as datasource and descriptions of all the similar refs
     data_source = new_link.get('dataSource', None)
     if data_source:
-        update_refs(curr_link, new_link, data_source)
-        update_data_source_in_link(curr_link, new_link, data_source)
+        curr_link = update_refs(curr_link, new_link, data_source)
+        curr_link = update_data_source_in_link(curr_link, new_link, data_source)
 
     if not curr_link['is_sheet']:
-        update_descriptions_in_link(curr_link, new_link)
-        update_curated_primacy(curr_link, new_link)
+        curr_link = update_descriptions_in_link(curr_link, new_link)
+        curr_link = update_curated_primacy(curr_link, new_link)
     return curr_link
 
 def update_data_source_in_link(curr_link, new_link, data_source):
     data_source_obj = library.get_topic_data_source(data_source)
     curr_link['dataSources'][data_source] = data_source_obj.displayName
     del new_link['dataSource']
+    return curr_link
 
 def is_data_source_learning_team(func):
     def wrapper(curr_link, new_link, data_source):
         if data_source == 'learning-team':
-            func(curr_link, new_link)
+            return func(curr_link, new_link)
+        else:
+            return curr_link
     return wrapper
 
 @is_data_source_learning_team
@@ -139,6 +142,7 @@ def update_refs(curr_link, new_link):
             new_link['expandedRefs']):
         curr_link['ref'] = new_link['ref']
         curr_link['expandedRefs'] = new_link['expandedRefs']
+    return curr_link
 
 def update_descriptions_in_link(curr_link, new_link):
     # merge new link descriptions into current link
@@ -149,6 +153,7 @@ def update_descriptions_in_link(curr_link, new_link):
             if lang not in curr_link_description and lang in new_description:
                 curr_link_description[lang] = new_description[lang]
         curr_link['descriptions'] = curr_link_description
+    return curr_link
 
 def update_curated_primacy(curr_link, new_link):
     # make sure curr_link has the maximum curated primacy value of itself and new_link
@@ -162,6 +167,7 @@ def update_curated_primacy(curr_link, new_link):
             # front-end sorting considers 0 to be default for curatedPrimacy
             curr_curated_primacy[lang] = max(curr_curated_primacy.get(lang, 0), new_curated_primacy.get(lang, 0))
         curr_link['order']['curatedPrimacy'] = curr_curated_primacy
+    return curr_link
 
 def sort_and_group_similar_refs(ref_links):
     ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
