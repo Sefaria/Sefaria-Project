@@ -134,7 +134,7 @@ data:
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
 
-    SEARCH_ADMIN: f'http://{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' + {{ .Values.nginx.SEARCH_HOST | quote }} + ":9200"
+    SEARCH_ADMIN = f'http://{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' + {{ .Values.nginx.SEARCH_HOST | quote }} + ":9200"
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = 'sheet'
