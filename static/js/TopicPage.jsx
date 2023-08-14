@@ -105,7 +105,7 @@ const refSort = (currSortOption, a, b) => {
       (a.order.curatedPrimacy.en > 0 || b.order.curatedPrimacy.en > 0)) {
       return b.order.curatedPrimacy.en - a.order.curatedPrimacy.en; }
     else if ((Sefaria.interfaceLang === 'hebrew') &&
-      (a.order.curatedPrimacy.he || b.order.curatedPrimacy.he > 0)) {
+      (a.order.curatedPrimacy.he > 0 || b.order.curatedPrimacy.he > 0)) {
       return b.order.curatedPrimacy.he - a.order.curatedPrimacy.he;
     }
     if (Sefaria.interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
