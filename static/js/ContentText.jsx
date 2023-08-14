@@ -6,6 +6,7 @@ const ContentText = (props) => {
    /* Renders content language throughout the site (content that comes from the database and is not interface language).
    * Gets the active content language from Context and returns only the appropriate child(ren) for given language
    * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * markdown {{markdown: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language in the case where text contains markdown
    * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
    * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
    * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
@@ -53,11 +54,12 @@ const VersionImageSpan = ({lang, content, languageToFilter, imageLoadCallback}) 
     return(<span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>)
 };
 
-const _filterContentTextByLang = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
+const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
   /**
    See ContentText for documentation
    */
-  const contentVariable  = html ? html : text;
+  const contentVariable = html ?
+                          html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const [languageToFilter, langShort] = useContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
   let langAndContentItems = Object.entries(contentVariable);
   if(languageToFilter === "bilingual"){

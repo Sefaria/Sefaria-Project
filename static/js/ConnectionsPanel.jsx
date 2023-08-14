@@ -1199,7 +1199,7 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
         topic.description && (topic.description.en || topic.description.he) ? (
 
           <span className="smallText">
-            <InterfaceText markdown={{en: topic.description.en, he: topic.description.he}} />
+            <ContentText markdown={{en: topic.description.en, he: topic.description.he}} />
           </span>
         ) : null
       }
