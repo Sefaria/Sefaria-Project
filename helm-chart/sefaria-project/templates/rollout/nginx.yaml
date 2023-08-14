@@ -77,7 +77,6 @@ spec:
           - mountPath: /usr/src/entrypoint.sh
             name: nginx-conf
             subPath: entrypoint.sh
-            defaultMode: 0777
           {{- if .Values.instrumentation.enabled }}
           - mountPath: /etc/nginx/opentracing.json
             name: nginx-conf
@@ -115,6 +114,7 @@ spec:
         - name:  nginx-conf
           configMap:
             name: nginx-conf-{{ .Values.deployEnv }}
+            defaultMode: 0755
         - name: robots-txt
           configMap:
             name: robots-txt-{{ .Values.deployEnv }}
