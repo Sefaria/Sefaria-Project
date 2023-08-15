@@ -2,6 +2,7 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production
 previousServicesCount: "3"
+deploymentMessage: true
 restore:
   enabled: false
 backup:
