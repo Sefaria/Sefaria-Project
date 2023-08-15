@@ -393,7 +393,7 @@ cronJobs:
     enabled: false
 
 localSettings:
-  DEBUG: "False"
+  DEBUG: true
   DOMAIN_LANGUAGE: {}
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
