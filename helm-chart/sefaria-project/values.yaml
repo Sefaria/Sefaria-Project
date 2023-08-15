@@ -6,12 +6,6 @@
 # ID.)
 releaseImageTag:
 
-# Setting this to true will make this a sandbox environment. It'll set the
-# following:
-# - nodeAffinity for the Monitor, Nodejs, Redis, Varnish, Web & Nginx pod to
-#   schedule opn node where preemptible=true
-# - Set appropriate labels to Nginx pod
-# - Requests images with the tag "sandbox-<releaseImageTag>"
 sandbox: "false"
 
 # This value sets the name of the environment and it's associated objects. Some
@@ -250,7 +244,7 @@ ingress:
       # If you're using a refenrece to an existing secret then the data: section
       # should be commented out and vice-versa.
       # Reference to an existing secret in the cluster
-      # "cauldron-wildcard-letsencrypt" is for sandboxes, wildcard cert managed
+      # "cauldron-wildcard-letsencrypt" is for cauldrons, wildcard cert managed
       # via infrastructure
       ref:
       # for local testing purposes or CI pipeline use input a value
@@ -404,7 +398,7 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.sandbox.sefaria.org" in sandboxes and cauldrons
+  FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
   DOWN_FOR_MAINTENANCE: "False"
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
