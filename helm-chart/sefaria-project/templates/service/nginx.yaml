@@ -5,10 +5,6 @@ metadata:
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
     app: nginx-{{ .Values.deployEnv }}
-    sandbox: "{{ .Values.sandbox }}"
-    {{- if eq .Values.sandbox "true" }}
-    sandbox-name: "{{ .Values.deployEnv }}"
-    {{- end }}
 spec:
   ports:
   - name: http
