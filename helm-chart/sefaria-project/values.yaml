@@ -172,6 +172,8 @@ redis:
     limits:
       memory: "500Mi"
       cpu: "120m"
+  # enable pod disruption budget
+  pdb: false
 
 nodejs:
   containerImage:
