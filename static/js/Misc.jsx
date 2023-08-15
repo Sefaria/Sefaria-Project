@@ -1604,6 +1604,9 @@ const SheetListing = ({
       handleSheetClick(e, sheet, null, connectedRefs);
       e.preventDefault();
     }
+    if (e.currentTarget.target === "_self") {
+      history.pushState(null, null, sheet.sheetUrl);
+    }
   };
 
   const handleSheetOwnerClick = (e) => {
