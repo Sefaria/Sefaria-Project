@@ -5,6 +5,8 @@ previousServicesCount: "3"
 deploymentMessage: true
 restore:
   enabled: false
+  dynamicName: false
+  cleanup: false
 backup:
   mongo:
     enabled: true

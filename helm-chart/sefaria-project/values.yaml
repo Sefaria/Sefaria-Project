@@ -23,6 +23,8 @@ deploymentMessage: false
 # a specific backup else leave blank.
 restore:
   enabled: true
+  dynamicName: true
+  cleanup: true
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
