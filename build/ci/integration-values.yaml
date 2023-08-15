@@ -1,4 +1,4 @@
-sandbox: "true"
+sandbox: "false"
 contentSandbox: "true"
 deployEnv:  
 previousServicesCount: "1"
@@ -35,7 +35,7 @@ ingress:
       port: 80
   secrets:
     originTls: 
-    ref: cauldron-wildcard-cert
+    ref: integration-wildcard-cert
 nginx:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-${BRANCH}

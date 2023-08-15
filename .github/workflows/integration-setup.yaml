@@ -20,7 +20,7 @@ jobs:
         sudo apt-get install -y --no-install-recommends curl helm
     - name: cleanup
       run: |
-        helm list release | grep sandbox | xargs -I env -n helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
+        helm list release -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} | grep integration | xargs -I env -n helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
   database-setup:
     permissions:
       contents: 'read'
