@@ -14,7 +14,7 @@ metadata:
 spec:
   tls:
     - secretName: {{ template "sefaria.secrets.originTls" . }}
-    {{- if ne .Values.sandbox "true" }}
+    {{- if or .Values.ingress.secrets.originIlTls.data .Values.ingress.secrets.originIlTls.ref }}
     - secretName: {{ template "sefaria.secrets.originIlTls" . }}
     {{- end }}
   rules:
