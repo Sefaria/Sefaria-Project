@@ -140,6 +140,7 @@ nginx:
     imageRegistry:
     tag:
   SEARCH_HOST: elasticsearch-data
+  disableScraping: false
   replicaCount: 2
   resources:
     requests:
