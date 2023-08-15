@@ -53,6 +53,7 @@ redis:
   containerImage:
     imageRegistry: redis
     tag: latest
+  pdb: true
   resources:
     requests:
       memory: "500Mi"
