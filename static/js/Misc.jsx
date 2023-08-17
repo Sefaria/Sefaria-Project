@@ -114,24 +114,27 @@ const LoadingRing = () => (
 );
 
 const DonateLink = ({children, classes, source, link}) => {
-  link = link || "default";
-  source = source || "undefined";
-  const linkOptions = {
-    default: {
-      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
-    },
-    sustainer: {
-      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
-    },
-    dayOfLearning: {
-      en: "https://donate.sefaria.org/sponsor",
-      he: "https://donate.sefaria.org/sponsorhe",
-    }
-  };
-  const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
-
+  let url = Sefaria._siteSettings?.DONATION_URL;
+  if (!url)
+  {
+    link = link || "default";
+    source = source || "undefined";
+    const linkOptions = {
+      default: {
+        en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
+        he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
+      },
+      sustainer: {
+        en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+        he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
+      },
+      dayOfLearning: {
+        en: "https://donate.sefaria.org/sponsor",
+        he: "https://donate.sefaria.org/sponsorhe",
+      }
+    };
+    const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
+  }
   return (
     <a href={url} className={classes} target="_blank">
       {children}
@@ -1729,11 +1732,6 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
-        {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
@@ -2033,7 +2031,8 @@ class SignUpModal extends Component {
               <InterfaceText text={modalContent.h2} />
             </h2>
             <h3>
-              <InterfaceText text={modalContent.h3} />
+              <InterfaceText>Sign up to get more from {Sefaria._siteSettings.SITE_NAME["en"]}</InterfaceText>
+              {/*<InterfaceText text={modalContent.h3} />*/}
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -2514,7 +2513,7 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME["en"]}. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">

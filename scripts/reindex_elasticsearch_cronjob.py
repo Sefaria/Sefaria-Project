@@ -21,7 +21,7 @@ try:
     last_sheet_timestamp = datetime.now().isoformat()
     update_pagesheetrank()
     index_all()
-    r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    r = requests.post("https://www.contextus.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
     if "error" in r.text:
         raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
     else:
@@ -42,5 +42,7 @@ except Exception as e:
             }
         ]
     }
-    requests.post(os.environ['SLACK_URL'], json=post_object)
+    slack_url = os.environ.get('SLACK_URL', None)
+    if slack_url:
+        requests.post(slack_url, json=post_object)
     raise e

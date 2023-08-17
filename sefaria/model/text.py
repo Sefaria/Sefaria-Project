@@ -1041,6 +1041,7 @@ class AbstractTextRecord(object):
     ALLOWED_TAGS    = constants.ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD
     ALLOWED_ATTRS   = constants.ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD
 
+
     def word_count(self):
         """ Returns the number of words in this text """
         return self.ja(remove_html=True).word_count()
@@ -5665,6 +5666,7 @@ class Library(object):
         from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
 
+
         logger.info("Loading Spacy Model")
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
@@ -6262,7 +6264,7 @@ class Library(object):
         # I will likely have to add fields to the object to be changed once
 
         # Avoid allocation here since it will be called very frequently
-        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready
+        are_autocompleters_ready = self._full_auto_completer_is_ready and self._ref_auto_completer_is_ready and self._lexicon_auto_completer_is_ready and self._cross_lexicon_auto_completer_is_ready and self._topic_auto_completer_is_ready
         is_initialized = self._toc_tree_is_ready and (DISABLE_AUTOCOMPLETER or are_autocompleters_ready)
         if not is_initialized:
             logger.warning({"message": "Application not fully initialized", "Current State": {

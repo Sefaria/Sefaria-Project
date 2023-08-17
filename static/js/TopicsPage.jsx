@@ -47,12 +47,13 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
   const about = multiPanel ? null :
     <Modules type={"AboutTopics"} props={{hideTitle: true}} />;
 
+
+
   const sidebarModules = [
     multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
     {type: "JoinTheConversation"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
   ];
 
 
@@ -76,6 +77,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     </div>
   );
 };
+
 
 
 export default TopicsPage;

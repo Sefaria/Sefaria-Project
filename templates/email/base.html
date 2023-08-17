@@ -17,14 +17,16 @@
 		{% blocktrans %}
             You're receiving this message because you have an account on
         {% endblocktrans %}
-            <a href="http://www.sefaria.org">www.sefaria.org</a>.
+        {% blocktrans with domain=""|absolute_url %}
+            <a href="{{ domain }}">{{ domain }}</a>.
             <br>
+        {% endblocktrans %}
         {% blocktrans with settings_url="/settings/account"|absolute_url %}
             To change your email settings, click <a href="{{ settings_url }}">here</a>
         {% endblocktrans %}
             <br>
-        {% blocktrans with hello_email="mailto:hello@sefaria.org" %}
-            Your feedback is welcome. Feel free to send us an <a href="{{ hello_email }}">email</a>.
+        {% blocktrans with domain=""|absolute_url|cut:"https://"|cut:"http://" %}
+            Your feedback is welcome. Feel free to send us an <a href="mailto:hello@{{ domain }}">email</a>.
         {% endblocktrans %}
 		</div>
 	<tr>

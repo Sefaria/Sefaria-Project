@@ -45,6 +45,9 @@ const Promotions = ({adType, rerender}) => {
     }
 
     function showToUser(ad) {
+        if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+            return false;
+        }
         if (ad.trigger.showTo === "all") {
             return true;
         } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {

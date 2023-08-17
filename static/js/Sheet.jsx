@@ -132,7 +132,7 @@ class Sheet extends Component {
     }
     return (
       <div className={classes}>
-        { sheet && Sefaria._uid === sheet.owner && Sefaria._uses_new_editor ?
+        { sheet && Sefaria._uid === sheet.owner ?
         <div className="sheetContent">
           <SefariaEditor
             data={sheet}
@@ -374,8 +374,8 @@ class SheetContent extends Component {
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
-          <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
-          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
+          <span className="int-en">Created with <img src={`/static${Sefaria._siteSettings.LOGO}`} /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src={`/static${Sefaria._siteSettings.LOGO}`} /></span>
         </div>
       </div>
     )

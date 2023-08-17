@@ -22,12 +22,14 @@ const Modules = ({type, props}) => {
   // Choose the appropriate module component to render by `type`
   const moduleTypes = {
     "AboutSefaria":           AboutSefaria,
+    "AboutContext":           AboutContext,
     "Promo":                  Promo,
     "Resources":              Resources,
     "TheJewishLibrary":       TheJewishLibrary,
     "AboutTextCategory":      AboutTextCategory,
     "AboutText":              AboutText,
     "SupportSefaria":         SupportSefaria,
+    "SupportJMC":             SupportJMC,
     "SponsorADay":            SponsorADay,
     "LearningSchedules":      LearningSchedules,
     "Translations":           Translations,
@@ -86,6 +88,19 @@ const Promo = () =>
         <Promotions adType="sidebar"/>
     </Module>
 ;
+
+const AboutContext = ({hideTitle}) => (
+    <Module>
+        {!hideTitle ?
+            <ModuleTitle h1={true}>A Living Library of the American Tradition</ModuleTitle> : null }
+        <p>
+            <span>
+                ContextUS is a project of the Jack Miller Center and powered by Sefaria. We are a nonprofit organization committed to improving public knowledge and preserving the American experiment.
+            </span>
+            <a href="/about" className="inTextLink">Learn More ›</a>
+        </p>
+    </Module>
+);
 
 const AboutSefaria = ({hideTitle}) => (
   <Module>
@@ -183,6 +198,17 @@ const TheJewishLibrary = ({hideTitle}) => (
   </Module>
 );
 
+const SupportJMC = ({blue}) => (
+    <Module blue={blue}>
+        <ModuleTitle>Support ContextUS</ModuleTitle>
+        <InterfaceText>ContextUS is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
+        <br />
+        <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar / SupportJMC"}>
+            <img src="/static/img/heart.png" alt="donation icon" />
+            <InterfaceText>Make a Donation</InterfaceText>
+        </DonateLink>
+    </Module>
+);
 
 const SupportSefaria = ({blue}) => (
   <Module blue={blue}>
@@ -484,15 +510,8 @@ const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle>About Topics</ModuleTitle> }
-    <InterfaceText>
-        <HebrewText>
-בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
-        </HebrewText>
-        <EnglishText>
-            Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.
-        </EnglishText>
+    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects.</InterfaceText>
 
-    </InterfaceText>
   </Module>
 );
 

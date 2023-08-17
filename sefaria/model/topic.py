@@ -8,6 +8,8 @@ from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog, bleach
 import regex as re
+from sefaria.site.site_settings import SITE_SETTINGS
+
 logger = structlog.get_logger(__name__)
 
 
@@ -528,6 +530,9 @@ class AuthorTopic(PersonTopic):
         unique_urls = {}  # {url: {lang: title}}. This dict arbitrarily chooses one title per URL.
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
+                en_primary_title = index_or_cat.get_title('en')
+                if "ContextUS" == SITE_SETTINGS["SITE_NAME"]["en"]:
+                    en_primary_title = index_or_cat.get_title('en').replace(f"{str(self)}, ", "", 1)
                 unique_urls[f'/{index_or_cat.title.replace(" ", "_")}'] = {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')}
             else:
                 if collective_title_term is None:

@@ -56,7 +56,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from sefaria.system.database import db
-from sefaria.helper.search import get_query_obj
+from sefaria.helper.search import get_query_obj, get_es_server_url
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
@@ -201,7 +201,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
+            "_uses_new_editor": getattr(profile, "uses_new_editor", True),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -563,7 +563,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
+        kwargs = {"referer": request.path}
+        kwargs["panelDisplayLanguage"] = "en" if not SITE_SETTINGS["TORAH_SPECIFIC"] else request.GET.get("lang", request.contentLang)
+        panels += make_sheet_panel_dict(ref, filter, **kwargs)
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -667,7 +669,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     else:
         sheet = panels[0].get("sheet",{})
         sheet["title"] = unescape(sheet["title"])
-        title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
+        title = strip_tags(sheet["title"]) + " | " + _(SITE_SETTINGS["SITE_NAME"]["en"])
         breadcrumb = sheet_crumbs(request, sheet)
         desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
         noindex = sheet.get("noindex", False) or sheet["status"] != "public"
@@ -707,7 +709,7 @@ def texts_category_list(request, cats):
 
     if cats == "recent":
         title = _("Recently Viewed")
-        desc  = _("Texts that you've recently viewed on Sefaria.")
+        desc = _("Texts that you've recently viewed on {}.".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     else:
         cats = cats.split("/")
         tocObject = library.get_toc_tree().lookup(cats)
@@ -717,8 +719,9 @@ def texts_category_list(request, cats):
         catDesc = getattr(tocObject, "enDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heDesc", '')
         catShortDesc = getattr(tocObject, "enShortDesc", '') if request.interfaceLang == "english" else getattr(tocObject, "heShortDesc", '')
         catDefaultDesc = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
-        title = cat_string + _(" | Sefaria")
+        title = cat_string + _(" | "+SITE_SETTINGS["SITE_NAME"]["en"])
         desc  = catDesc if len(catDesc) else catShortDesc if len(catShortDesc) else catDefaultDesc
+
 
     props = {
         "initialMenu": "navigation",
@@ -750,8 +753,12 @@ def topics_category_page(request, topicCategory):
     }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    else:
+        title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets.")
+        desc = _("Texts and source sheets about %(topic)s") % {'topic': topic_obj.get_primary_title(short_lang)}
 
     return render_template(request, 'base.html', props, {
         "title": title,
@@ -767,11 +774,13 @@ def all_topics_page(request, letter):
         "initialMenu": "allTopics",
         "initialNavigationTopicLetter": letter,
     }
+    title = _("Explore Jewish Texts by Topic") if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Explore by Topics")
+    desc = _("Explore Jewish texts related to traditional and contemporary topics, coming from Torah, Talmud, and more.")\
+        if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Explore by Topic")
     return render_template(request, 'base.html', props, {
-        "title": _("Explore Jewish Texts by Topic"),
-        "desc":  _("Explore Jewish texts related to traditional and contemporary topics, coming from Torah, Talmud, and more."),
+        "title": title,
+        "desc":  desc
     })
-
 
 def get_search_params(get_dict, i=None):
     def get_param(param, i=None):
@@ -844,9 +853,12 @@ def search(request):
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
     }
+
+    desc = _("Search 3,000 years of Jewish texts in Hebrew and English translation.") if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Search")
+
     return render_template(request,'base.html', props, {
-        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
-        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
+        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _(SITE_SETTINGS["SITE_NAME"]["en"]+" Search"),
+        "desc":      desc
     })
 
 
@@ -1029,8 +1041,8 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = _("Sefaria: a Living Library of Jewish Texts Online")
-    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    title = _(SITE_SETTINGS["LONG_SITE_NAME"])
+    desc  = _(SITE_SETTINGS["LIBRARY_MESSAGE"])
     return menu_page(request, page="navigation", title=title, desc=desc)
 
 
@@ -1043,11 +1055,10 @@ def calendars(request):
 @login_required
 def saved(request):
     title = _("My Saved Content")
-    desc = _("See your saved content on Sefaria")
+    desc = _("See your saved content on {}".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     profile = UserProfile(user_obj=request.user)
     props = {"saved": {"loaded": True, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=True, limit=20)}}
     return menu_page(request, props, page="saved", title=title, desc=desc)
-
 
 def user_history(request):
     if request.user.is_authenticated:
@@ -1057,32 +1068,29 @@ def user_history(request):
         uhistory = _get_anonymous_user_history(request)
     props = {"userHistory": {"loaded": True, "items": uhistory}}
     title = _("My User History")
-    desc = _("See your user history on Sefaria")
+    desc = _("See your user history on {}".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     return menu_page(request, props, page="history", title=title, desc=desc)
 
 
 def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
+    title = _("New Additions to the {} Library".format(SITE_SETTINGS["SITE_NAME"]["en"]))
+    desc  = _("See texts, translations and connections that have been recently added to {}".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     return menu_page(request, page="updates", title=title, desc=desc)
-
 
 @login_required
 def user_stats(request):
     title = _("User Stats")
     return menu_page(request, page="user_stats", title=title)
 
-
 @login_required
 def notifications(request):
     # Notifications content is not rendered server side
-    title = _("Sefaria Notifications")
+    title = _("{} Notifications".format(SITE_SETTINGS["SITE_NAME"]["en"]))
     notifications = UserProfile(user_obj=request.user).recent_notifications()
     props = {
         "notifications": notifications.client_contents(),
     }
     return menu_page(request, props, page="notifications", title=title)
-
 
 @staff_member_required
 def modtools(request):
@@ -3034,10 +3042,13 @@ def topics_page(request):
         "initialMenu":  "topics",
         "initialTopic": None,
     }
+
+    desc = _("Explore Jewish Texts by Topic on Sefaria") if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Explore by Topics")
     return render_template(request, 'base.html', props, {
-        "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "title":          _("Topics") + " | " + _(SITE_SETTINGS["SITE_NAME"]["en"]),
+        "desc":           desc
     })
+
 
 
 def topic_page_b(request, topic):
@@ -3071,8 +3082,16 @@ def topic_page(request, topic, test_version=None):
         props["topicTestVersion"] = test_version
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    if SITE_SETTINGS["TORAH_SPECIFIC"]:
+        header = _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+        desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {
+                   'topic': topic_obj.get_primary_title(short_lang)}
+    else:
+        header = _("Texts & Source Sheets")
+        desc = _("Texts and source sheets about %(topic)s") % {'topic': topic_obj.get_primary_title(short_lang)}
+
+    title = topic_obj.get_primary_title(short_lang) + " | " + header
+
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
@@ -3457,8 +3476,8 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(),
         "initialTab": tab,
     }
-    title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
-    desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
+    title = _("%(full_name)s on "+SITE_SETTINGS["SITE_NAME"]["en"]) % {"full_name": requested_profile.full_name}
+    desc = _('%(full_name)s is on '+SITE_SETTINGS["SITE_NAME"]["en"]+'. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
     return render_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
@@ -4202,7 +4221,7 @@ def search_wrapper_api(request):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = Elasticsearch(get_es_server_url(admin=True))
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()

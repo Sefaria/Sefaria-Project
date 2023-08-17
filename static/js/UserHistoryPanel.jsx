@@ -40,8 +40,7 @@ const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNa
 
   const sidebarModules = [
     {type: "Promo"},
-    {type: "GetTheApp"},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
   ];
 
   const footer = compare ? null : <Footer />;

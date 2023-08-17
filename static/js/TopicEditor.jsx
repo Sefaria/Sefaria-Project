@@ -84,6 +84,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveTopic = function () {
         toggle();
         let url = "";
+
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
         if (isCategory) {

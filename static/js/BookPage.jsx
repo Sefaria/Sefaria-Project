@@ -1047,8 +1047,6 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
           </div>
 }
 
-
-
 const EditTextInfo = function({initTitle, close}) {
   const index = useRef(null);
   index.current = Sefaria.getIndexDetailsFromCache(initTitle);
@@ -1108,11 +1106,6 @@ const EditTextInfo = function({initTitle, close}) {
 
     if (/[.\-\\\/]/.test(enTitle)) {
       alert('Text titles may not contain periods, hyphens or slashes.');
-      return false;
-    }
-
-    if (/[0-9]/.test(enTitle)) {
-      alert('Text titles may not contain numbers. This form is for general information about a text as a whole, not specific citations.');
       return false;
     }
 

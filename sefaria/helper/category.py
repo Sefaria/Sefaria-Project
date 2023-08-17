@@ -1,7 +1,9 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
 from sefaria import tracker
-def move_index_into(index, cat):
+
+def move_index_into(index, cat, verbose=True):
+
     """
     :param index: (String)  The primary name of the Index to move.
     :param cat:  (model.Category or List) Category to move into - either a Category object, or a List with the path leading to the Category
@@ -17,7 +19,8 @@ def move_index_into(index, cat):
         cat = Category().load({"path": cat})
 
     index.categories = cat.path[:]
-    print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
+    if verbose:
+        print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
     index.save(override_dependencies=True)
 
 
@@ -134,6 +137,10 @@ def create_category(path, en=None, he=None, searchRoot=None, order=None):
     :param order: (int) the order of the category in the location (negative for the end)
     :return: (model.Category) the new category object
     """
+    existing_c = Category().load({"path": path})
+    if existing_c:
+        print("Already exists")
+        return existing_c
     c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
