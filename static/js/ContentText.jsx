@@ -58,8 +58,7 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
   /**
    See ContentText for documentation
    */
-  const contentVariable = html ?
-                          html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
+  const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const [languageToFilter, langShort] = useContentLang(defaultToInterfaceOnBilingual, overrideLanguage);
   let langAndContentItems = Object.entries(contentVariable);
   if(languageToFilter === "bilingual"){
