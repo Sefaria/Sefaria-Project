@@ -171,7 +171,7 @@ class AboutBox extends Component {
             </div> : null
           }
           <div className="aboutDesc">
-            <ContentText markdown={{en: d?.enDesc, he: d?.heDesc}}/>
+            <ContentText markdown={{en: d?.enDesc, he: d?.heDesc || d?.heShortDesc}}/>
           </div>
 
           { !!placeTextEn || !!dateTextEn ?
