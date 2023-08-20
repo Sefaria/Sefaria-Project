@@ -111,7 +111,7 @@ class Section extends Ref {
 }
 
 
-export default class TextCache {
+class TextCache {
     // this is the interface
     // its setter gets the response, and the getter gets ref, language and versionTitle, and returns a response-like object with one version
     constructor() {
@@ -189,3 +189,5 @@ export default class TextCache {
         }
     }
 }
+
+export default new TextCache();
