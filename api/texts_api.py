@@ -23,8 +23,6 @@ class VersionsParams():
         self.lang = lang
         self.vtitle = vtitle
         self.representing_string = representing_string
-        if not self.representing_string:
-            self.representing_string = f'{self.lang}|{self.representing_string}'
 
     def __eq__(self, other):
         return isinstance(other, VersionsParams) and self.lang == other.lang and self.vtitle == other.vtitle
@@ -75,6 +73,7 @@ class TextsForClientHandler():
         else:
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
             error = APINoLanguageVersion(self.oref, sorted(availabe_langs))
+        representing_string = version_params.representing_string or f'{version_params.lang}|{version_params.representing_string}'
         self.return_obj['errors'].append({
             version_params.representing_string: error.get_message()
         })
