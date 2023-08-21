@@ -9,12 +9,18 @@ used when part of the data that was requested exists and returned, and part is m
 """
 
 class APIDataError():
+    """
+    general class
+    """
 
     def __init__(self):
         pass
 
 
 class TextsAPIResponseMessage(APIDataError):
+    """
+    class for returning a message and an error code
+    """
 
     def get_dict(self) -> dict:
         return {'error_code': self.error_code,
