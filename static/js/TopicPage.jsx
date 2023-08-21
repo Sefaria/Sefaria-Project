@@ -239,7 +239,6 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const sidebarModules = [
       {type: "Promo"},
       {type: "TrendingTopics"},
-      {type: "SponsorADay"},
     ];
     if (topicData.description) {
       sidebarModules.unshift({
