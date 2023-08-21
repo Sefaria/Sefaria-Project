@@ -22,7 +22,7 @@ class TextsAPIResponseMessage(APIDataError):
     class for returning a message and an error code
     """
 
-    def get_dict(self) -> dict:
+    def get_message(self) -> dict:
         return {'error_code': self.error_code,
                 'message': self.message}
 
