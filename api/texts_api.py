@@ -76,7 +76,7 @@ class TextsForClientHandler():
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
             error = APINoLanguageVersion(self.oref, sorted(availabe_langs))
         self.return_obj['errors'].append({
-            version_params.representing_string: error.get_dict()
+            version_params.representing_string: error.get_message()
         })
 
     def _append_required_versions(self, version_params: VersionsParams) -> None:
