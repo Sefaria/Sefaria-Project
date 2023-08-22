@@ -17,7 +17,6 @@ def get_texts(request, tref):
         return jsonResponse({'error': getattr(e, 'message', str(e))}, status=400)
     if oref.is_empty():
         return jsonResponse({'error': f'We have no text for {oref}.'}, status=400)
-    cb = request.GET.get("callback", None)
     if request.method == "GET":
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
@@ -25,5 +24,5 @@ def get_texts(request, tref):
         versions_params = VersionsParams.parse_api_params(versions_params)
         handler = TextsForClientHandler(oref, versions_params)
         data = handler.get_versions_for_query()
-        return jsonResponse(data, cb)
-    return jsonResponse({"error": "Unsupported HTTP method."}, cb, status=405)
+        return jsonResponse(data)
+    return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
