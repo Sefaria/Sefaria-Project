@@ -4,6 +4,7 @@ django.setup()
 from reader.tests import SefariaTestCase
 import json
 from api.helper import split_query_param_and_add_defaults
+from api.api_errors import APIWarningCode
 
 
 def test_split_at_pipe_with_default():
@@ -124,7 +125,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['source']['error_code'], 103)
+        self.assertEqual(data['errors'][0]['source']['error_code'], APIWarningCode.APINoSourceText.value)
         self.assertEqual(data['errors'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
 
     def test_api_get_text_no_language(self):
@@ -132,7 +133,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['sgrg|all']['error_code'], 102)
+        self.assertEqual(data['errors'][0]['sgrg|all']['error_code'], APIWarningCode.APINoLanguageVersion.value)
         self.assertEqual(data['errors'][0]['sgrg|all']['message'],
                          "We do not have the code language you asked for The Book of Maccabees I 1. Available codes are ['en', 'he']")
 
@@ -141,6 +142,6 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['he|Kishkoosh']['error_code'], 101)
+        self.assertEqual(data['errors'][0]['he|Kishkoosh']['error_code'], APIWarningCode.APINoVersion.value)
         self.assertEqual(data['errors'][0]['he|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')

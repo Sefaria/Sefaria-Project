@@ -2,6 +2,12 @@ import django
 django.setup()
 from sefaria.model import *
 from typing import List
+from enum import Enum
+
+class APIWarningCode(Enum):
+    APINoVersion = 101
+    APINoLanguageVersion = 102
+    APINoSourceText = 103
 
 """
 classes for data errors in API calls.
@@ -30,19 +36,19 @@ class TextsAPIResponseMessage(APIDataError):
 class APINoVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, vtitle: str, lang: str):
-        self.error_code = 101
+        self.error_code = APIWarningCode.APINoVersion.value
         self.message = f'We do not have version named {vtitle} with language code {lang} for {oref}'
 
 
 class APINoLanguageVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, langs: List[str]):
-        self.error_code = 102
+        self.error_code = APIWarningCode.APINoLanguageVersion.value
         self.message = f'We do not have the code language you asked for {oref}. Available codes are {langs}'
 
 
 class APINoSourceText(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref):
-        self.error_code = 103
+        self.error_code = APIWarningCode.APINoSourceText.value
         self.message = f'We do not have the source text for {oref}'
