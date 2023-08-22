@@ -20,7 +20,10 @@ const transformValues = (obj, callback) => {
 };
 
 export function replaceNewLinesWithLinebreaks(content) {
-  return transformValues(content, s => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n");
+  return transformValues(
+    content,
+    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n"
+  );
 }
 
 function StrapiDataProvider({ children }) {
@@ -32,20 +35,21 @@ function StrapiDataProvider({ children }) {
   useEffect(() => {
     if (STRAPI_INSTANCE) {
       const getStrapiData = async () => {
-        try {
-          let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
-          let getJSONDateStringInLocalTimeZone = (date) => {
-            let parts = getDateWithoutTime(date).split("-");
-            return new Date(parts[0], parts[1] - 1, parts[2]).toJSON();
-          };
-          let currentDate = new Date();
-          let twoWeeksAgo = new Date();
-          let twoWeeksFromNow = new Date();
-          twoWeeksFromNow.setDate(currentDate.getDate() + 14);
-          twoWeeksAgo.setDate(currentDate.getDate() - 14);
-          let startDate = getJSONDateStringInLocalTimeZone(twoWeeksAgo);
-          let endDate = getJSONDateStringInLocalTimeZone(twoWeeksFromNow);
-          const query = `
+        let getDateWithoutTime = (date) => date.toISOString().split("T")[0];
+        let getJSONDateStringInLocalTimeZone = (date) => {
+          let parts = getDateWithoutTime(date).split("-");
+          return new Date(parts[0], parts[1] - 1, parts[2]).toJSON();
+        };
+        let [currentDate, twoWeeksAgo, twoWeeksFromNow] = Array(3)
+          .fill()
+          .map(() => {
+            return new Date();
+          });
+        twoWeeksFromNow.setDate(currentDate.getDate() + 14);
+        twoWeeksAgo.setDate(currentDate.getDate() - 14);
+        let startDate = getJSONDateStringInLocalTimeZone(twoWeeksAgo);
+        let endDate = getJSONDateStringInLocalTimeZone(twoWeeksFromNow);
+        const query = `
         query {
           banners(
             filters: {
@@ -172,114 +176,119 @@ function StrapiDataProvider({ children }) {
           }
         }
         `;
-          const result = fetch(STRAPI_INSTANCE + "/graphql", {
-            method: "POST", // *GET, POST, PUT, DELETE, etc.
-            mode: "cors", // no-cors, *cors, same-origin
-            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-            credentials: "same-origin",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
-            body: JSON.stringify({ query }),
+        const result = fetch(STRAPI_INSTANCE + "/graphql", {
+          method: "POST",
+          mode: "cors",
+          cache: "no-cache",
+          credentials: "omit",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          redirect: "follow",
+          referrerPolicy: "no-referrer",
+          body: JSON.stringify({ query }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            return response.json();
           })
-            .then((response) => response.json())
-            .then((result) => {
-              setStrapiData(result.data);
-              setDataFromStrapiHasBeenReceived(true);
-              // maybe sort by start date to choose which one should have a greater priority if more than one compatible one exists
-              // e.g. there are modals with overlapping time frames
-              let modals = result.data?.modals?.data;
-              console.log(modals);
-              let banners = result.data?.banners?.data;
-              console.log(banners);
+          .then((result) => {
+            setStrapiData(result.data);
+            setDataFromStrapiHasBeenReceived(true);
+            // maybe sort by start date to choose which one should have a greater priority if more than one compatible one exists
+            // e.g. there are modals with overlapping time frames
+            let modals = result.data?.modals?.data;
+            console.log(modals);
+            let banners = result.data?.banners?.data;
+            console.log(banners);
 
-              const currentDate = new Date();
-              if (modals?.length) {
-                // if they end up being sorted, the first one will be the compatible one
-                let modal = modals.find(
-                  (modal) =>
-                    currentDate >= new Date(modal.attributes.modalStartDate) &&
-                    currentDate <= new Date(modal.attributes.modalEndDate)
-                );
-                console.log("found acceptable modal:");
-                console.log(modal);
-                if (modal) {
-                  console.log("setting the modal");
-                  if (modal.attributes.localizations?.data?.length) {
-                    let localization_attributes =
-                      modal.attributes.localizations.data[0].attributes;
-                    let { locale, ...hebrew_attributes } =
-                      localization_attributes;
-                    Object.keys(hebrew_attributes).forEach((attribute) => {
-                      modal.attributes[attribute] = {
-                        en: modal.attributes[attribute],
-                        he: hebrew_attributes[attribute],
-                      };
-                    });
-                    modal.attributes.locales = ["en", "he"];
-                  } else {
-                    [
-                      "modalHeader",
-                      "modalText",
-                      "buttonText",
-                      "buttonURL",
-                    ].forEach((attribute) => {
-                      modal.attributes[attribute] = {
-                        en: modal.attributes[attribute],
-                        he: null,
-                      };
-                    });
-                    modal.attributes.locales = ["en"];
-                  }
-                  setModal(modal.attributes);
+            const currentDate = new Date();
+            if (modals?.length) {
+              // if they end up being sorted, the first one will be the compatible one
+              let modal = modals.find(
+                (modal) =>
+                  currentDate >= new Date(modal.attributes.modalStartDate) &&
+                  currentDate <= new Date(modal.attributes.modalEndDate)
+              );
+              console.log("found acceptable modal:");
+              console.log(modal);
+              if (modal) {
+                console.log("setting the modal");
+                if (modal.attributes.localizations?.data?.length) {
+                  let localization_attributes =
+                    modal.attributes.localizations.data[0].attributes;
+                  let { locale, ...hebrew_attributes } =
+                    localization_attributes;
+                  Object.keys(hebrew_attributes).forEach((attribute) => {
+                    modal.attributes[attribute] = {
+                      en: modal.attributes[attribute],
+                      he: hebrew_attributes[attribute],
+                    };
+                  });
+                  modal.attributes.locales = ["en", "he"];
+                } else {
+                  [
+                    "modalHeader",
+                    "modalText",
+                    "buttonText",
+                    "buttonURL",
+                  ].forEach((attribute) => {
+                    modal.attributes[attribute] = {
+                      en: modal.attributes[attribute],
+                      he: null,
+                    };
+                  });
+                  modal.attributes.locales = ["en"];
                 }
+                setModal(modal.attributes);
               }
+            }
 
-              if (banners?.length) {
-                let banner = banners.find(
-                  (b) =>
-                    currentDate >= new Date(b.attributes.bannerStartDate) &&
-                    currentDate <= new Date(b.attributes.bannerEndDate)
-                );
+            if (banners?.length) {
+              let banner = banners.find(
+                (b) =>
+                  currentDate >= new Date(b.attributes.bannerStartDate) &&
+                  currentDate <= new Date(b.attributes.bannerEndDate)
+              );
 
-                console.log("found acceptable banner:");
-                console.log(banner);
-                if (banner) {
-                  console.log("setting the banner");
-                  if (banner.attributes.localizations?.data?.length) {
-                    let localization_attributes =
-                      banner.attributes.localizations.data[0].attributes;
-                    let { locale, ...hebrew_attributes } =
-                      localization_attributes;
-                    Object.keys(hebrew_attributes).forEach((attribute) => {
+              console.log("found acceptable banner:");
+              console.log(banner);
+              if (banner) {
+                console.log("setting the banner");
+                if (banner.attributes.localizations?.data?.length) {
+                  let localization_attributes =
+                    banner.attributes.localizations.data[0].attributes;
+                  let { locale, ...hebrew_attributes } =
+                    localization_attributes;
+                  Object.keys(hebrew_attributes).forEach((attribute) => {
+                    banner.attributes[attribute] = {
+                      en: banner.attributes[attribute],
+                      he: hebrew_attributes[attribute],
+                    };
+                  });
+                  banner.attributes.locales = ["en", "he"];
+                } else {
+                  // Maybe have the GraphQL return null entries for each key so the same technique can be used from above?
+                  ["bannerText", "buttonText", "buttonURL"].forEach(
+                    (attribute) => {
                       banner.attributes[attribute] = {
                         en: banner.attributes[attribute],
-                        he: hebrew_attributes[attribute],
+                        he: null,
                       };
-                    });
-                    banner.attributes.locales = ["en", "he"];
-                  } else {
-                    // Maybe have the GraphQL return null entries for each key so the same technique can be used from above?
-                    ["bannerText", "buttonText", "buttonURL"].forEach(
-                      (attribute) => {
-                        banner.attributes[attribute] = {
-                          en: banner.attributes[attribute],
-                          he: null,
-                        };
-                      }
-                    );
-                    banner.attributes.locales = ["en"];
-                  }
-                  setBanner(banner.attributes);
-                  console.log(banner.attributes);
+                    }
+                  );
+                  banner.attributes.locales = ["en"];
                 }
+                setBanner(banner.attributes);
+                console.log(banner.attributes);
               }
-            });
-        } catch (error) {
-          console.error("Failed to get strapi data", error);
-        }
+            }
+          })
+          .catch((error) => {
+            console.error("Failed to get strapi data: ", error);
+          });
       };
       getStrapiData();
     }

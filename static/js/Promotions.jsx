@@ -88,15 +88,6 @@ const Promotions = () => {
     }
   }, [context, inAppAds]); // when state changes, the effect will run
 
-  //    function getAds() {
-  //        const url =
-  //        'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
-  //        const query = new google.visualization.Query(url);
-  //        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
-  //        query.send(processSheetsData);
-  //
-  //
-  //    }
 
   function showToUser(ad) {
     if (ad.trigger.showTo === "all") {
