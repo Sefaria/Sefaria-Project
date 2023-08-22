@@ -1424,6 +1424,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     event.preventDefault();
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
+    gtag("event", `saved`, {"saved_ref": historyObject.ref})
     Sefaria.toggleSavedItem(historyObject)
         .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
         .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
