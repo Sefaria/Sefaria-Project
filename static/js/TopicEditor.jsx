@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, ToggleSet} from "./Misc";
+import {InterfaceText, requestWithCallBack, TitleVariants, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -12,9 +12,13 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 enDescription: origData?.origDesc?.en || "",
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he,
+                                enAltTitles: origData.origEnAltTitles, heAltTitles: origData.origHeAltTitles,
+                                birthPlace: origData.origBirthPlace, birthYear: origData.origBirthYear,
+                                deathYear: origData.origDeathYear, era: origData.origEra, deathPlace: origData.origDeathPlace
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
+    const [isAuthor, setIsAuthor] = useState(origData.origCategorySlug === 'authors');
     const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
                                                                   // isCategory determines whether user can edit categoryDescriptions of topic
     const subtopics = Sefaria.topicTocPage(origData.origSlug);
@@ -33,6 +37,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
       //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
       const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
+      setIsAuthor(data.catSlug === 'authors');
       setData(data);
     }
 
@@ -44,7 +49,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const [catMenu, setCatMenu] =   useState(<div className="section">
                                             <label><InterfaceText>Parent Topic</InterfaceText></label>
-                                            <div id="categoryChooserMenu">
+                                            <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {
                                                         const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
@@ -122,10 +127,16 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
 
-    let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
+    let items = ["Title", "Hebrew Title", "English Alternate Titles", "Hebrew Alternate Titles", "Category Menu", "English Description", "Hebrew Description"];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");
+    }
+    if (isAuthor) {
+        ["Birth Place", "Birth Year", "Death Place", "Death Year"].forEach(x => items.push(x));
+        if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+            items.push("Era");
+        }
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
@@ -133,9 +144,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                             [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
-                                         displayType="topics"/>,
+                                         displayType="topics"/>
                             ]
                         } />;
 }
+
 
 export {TopicEditor};

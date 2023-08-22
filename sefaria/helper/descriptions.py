@@ -41,6 +41,7 @@ def update_authors_data():
         "Achronim": "AH",
         "Contemporary": "CO"
     }
+
     era_slug_map = {
         "GN": "geon-person",
         "RI": "rishon-person",

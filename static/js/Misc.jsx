@@ -1193,6 +1193,13 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origHe: data.primaryTitle.he || "",
     origDesc: data.description || {"en": "", "he": ""},
     origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
+    origEnAltTitles: data.titles.filter(x => !x.primary && x.lang === 'en').map(x => x.text),
+    origHeAltTitles: data.titles.filter(x => !x.primary && x.lang === 'he').map(x => x.text),
+    origBirthPlace: data?.properties?.birthPlace.value,
+    origBirthYear: data?.properties?.birthYear.value,
+    origDeathPlace: data?.properties?.deathPlace.value,
+    origDeathYear: data?.properties?.deathYear.value,
+    origEra: data?.properties?.era.value
   };
   
   const origWasCat = "displays-above" in data?.links;
@@ -2684,7 +2691,7 @@ const CategoryChooser = function({categories, update}) {
   }
   return <div ref={categoryMenu}>
           {menus.map((menu, index) =>
-            <div id="categoryChooserMenu">
+            <div className="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
               <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
@@ -2696,15 +2703,20 @@ const CategoryChooser = function({categories, update}) {
 
 const TitleVariants = function({titles, update, options}) {
   /*
-  Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
+  Wrapper for ReactTags component.  `titles` is initial list of objects to populate ReactTags component.
+  each item in `titles` should have an 'id' and 'name' field and can have others as well
   and `update` is method to call after deleting or adding to titles. `options` is an object that can have
   the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
+  if (titles.length > 0 && typeof titles[0] === 'string') {  // normalize titles
+    titles = titles.map((item, i) => ({["name"]: item, ["id"]: i}));
+  }
   const onTitleDelete = function(i) {
     const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
+    title.id = Math.max(titles.map(x => x.id)) + 1;  // assign unique id
     const newTitles = [].concat(titles, title);
     update(newTitles);
   }
