@@ -10,11 +10,11 @@ class APIWarningCode(Enum):
     APINoSourceText = 103
 
 """
-classes for data errors in API calls.
+classes for data warnings in API calls.
 used when part of the data that was requested exists and returned, and part is missing.  
 """
 
-class APIDataError():
+class APIDatawarning():
     """
     general class
     """
@@ -23,32 +23,32 @@ class APIDataError():
         pass
 
 
-class TextsAPIResponseMessage(APIDataError):
+class TextsAPIResponseMessage(APIDatawarning):
     """
-    class for returning a message and an error code
+    class for returning a message and an warning code
     """
 
     def get_message(self) -> dict:
-        return {'error_code': self.error_code,
+        return {'warning_code': self.warning_code,
                 'message': self.message}
 
 
 class APINoVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, vtitle: str, lang: str):
-        self.error_code = APIWarningCode.APINoVersion.value
+        self.warning_code = APIWarningCode.APINoVersion.value
         self.message = f'We do not have version named {vtitle} with language code {lang} for {oref}'
 
 
 class APINoLanguageVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, langs: List[str]):
-        self.error_code = APIWarningCode.APINoLanguageVersion.value
+        self.warning_code = APIWarningCode.APINoLanguageVersion.value
         self.message = f'We do not have the code language you asked for {oref}. Available codes are {langs}'
 
 
 class APINoSourceText(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref):
-        self.error_code = APIWarningCode.APINoSourceText.value
+        self.warning_code = APIWarningCode.APINoSourceText.value
         self.message = f'We do not have the source text for {oref}'

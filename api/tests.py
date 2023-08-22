@@ -4,7 +4,7 @@ django.setup()
 from reader.tests import SefariaTestCase
 import json
 from api.helper import split_query_param_and_add_defaults
-from api.api_errors import APIWarningCode
+from api.api_warnings import APIWarningCode
 
 
 def test_split_at_pipe_with_default():
@@ -125,16 +125,16 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['source']['error_code'], APIWarningCode.APINoSourceText.value)
-        self.assertEqual(data['errors'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
+        self.assertEqual(data['warnings'][0]['source']['warning_code'], APIWarningCode.APINoSourceText.value)
+        self.assertEqual(data['warnings'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
 
     def test_api_get_text_no_language(self):
         response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=sgrg|all")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['sgrg|all']['error_code'], APIWarningCode.APINoLanguageVersion.value)
-        self.assertEqual(data['errors'][0]['sgrg|all']['message'],
+        self.assertEqual(data['warnings'][0]['sgrg|all']['warning_code'], APIWarningCode.APINoLanguageVersion.value)
+        self.assertEqual(data['warnings'][0]['sgrg|all']['message'],
                          "We do not have the code language you asked for The Book of Maccabees I 1. Available codes are ['en', 'he']")
 
     def test_api_get_text_no_version(self):
@@ -142,6 +142,6 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['he|Kishkoosh']['error_code'], APIWarningCode.APINoVersion.value)
-        self.assertEqual(data['errors'][0]['he|Kishkoosh']['message'],
+        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['warning_code'], APIWarningCode.APINoVersion.value)
+        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')

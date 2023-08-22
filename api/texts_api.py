@@ -1,7 +1,7 @@
 import django
 django.setup()
 from sefaria.utils.hebrew import hebrew_term
-from .api_errors import *
+from .api_warnings import *
 from .helper import split_query_param_and_add_defaults
 from typing import List
 
@@ -50,7 +50,7 @@ class TextsForClientHandler():
     return_obj is dict that includes in its root:
         ref and index data
         'versions' - list of versions details and text
-        'errors' - for any version_params that had an error
+        'warning' - for any version_params that has an warning
     """
 
     ALL = 'all'
@@ -62,20 +62,20 @@ class TextsForClientHandler():
         self.oref = oref
         self.handled_version_params = []
         self.all_versions = self.oref.version_list()
-        self.return_obj = {'versions': [], 'errors': []}
+        self.return_obj = {'versions': [], 'warnings': []}
 
-    def _handle_errors(self, version_params: VersionsParams) -> None:
+    def _handle_warnings(self, version_params: VersionsParams) -> None:
         lang, vtitle = version_params.lang, version_params.vtitle
         if lang == self.SOURCE:
-            error = APINoSourceText(self.oref)
+            warning = APINoSourceText(self.oref)
         elif vtitle and vtitle != self.ALL:
-            error = APINoVersion(self.oref, vtitle, lang)
+            warning = APINoVersion(self.oref, vtitle, lang)
         else:
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
-            error = APINoLanguageVersion(self.oref, sorted(availabe_langs))
+            warning = APINoLanguageVersion(self.oref, sorted(availabe_langs))
         representing_string = version_params.representing_string or f'{version_params.lang}|{version_params.representing_string}'
-        self.return_obj['errors'].append({
-            version_params.representing_string: error.get_message()
+        self.return_obj['warnings'].append({
+            version_params.representing_string: warning.get_message()
         })
 
     def _append_required_versions(self, version_params: VersionsParams) -> None:
@@ -98,7 +98,7 @@ class TextsForClientHandler():
             if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
                 self.return_obj['versions'].append(version)
         if not versions:
-            self._handle_errors(version_params)
+            self._handle_warnings(version_params)
 
     def _add_text_to_versions(self) -> None:
         for version in self.return_obj['versions']:
