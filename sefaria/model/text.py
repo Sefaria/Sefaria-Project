@@ -1739,6 +1739,29 @@ class TextFamilyDelegator(type):
             return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
 
 
+class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
+
+    def __init__(self, oref, lang, vtitle):
+        if isinstance(oref.index_node, JaggedArrayNode):
+            self.oref = oref
+        else:
+            child_ref = oref.default_child_ref()
+            if child_ref == oref:
+                raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
+            self.oref = child_ref
+        self.lang = lang
+        self.vtitle = vtitle
+        self._text = None
+
+    def set_text(self):
+        self._text = Version().load({'actualLanguage': self.lang, 'versionTitle': self.vtitle}, self.oref.part_projection())
+
+    def get_text(self):
+        if not self._text:
+            self.set_text()
+        return self._text
+
+
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     """
     A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
