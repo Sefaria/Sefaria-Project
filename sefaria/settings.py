@@ -318,6 +318,7 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'indrajala.com').replace(" ", "")
 
 LOCAL_HOSTS = [
+    'indrajala.com',
     'localhost',
     '127.0.0.1',
     "0.0.0.0",
