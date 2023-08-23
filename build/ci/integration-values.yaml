@@ -4,6 +4,7 @@ deployEnv:
 previousServicesCount: "1"
 restore:
   enabled: false
+  dynamicName: false
 web:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
@@ -29,7 +30,7 @@ varnish:
       ref: varnish-secret-helm
 ingress:
   hosts: 
-    - host: "{{ .Values.deployEnv }}.cauldron.sefaria.org"
+    - host: "{{ .Values.deployEnv }}.integration.sefaria.org"
       path: /*
       serviceName: nginx
       port: 80
@@ -58,7 +59,7 @@ localSettings:
   SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL:  "http://${NAME}.dev.sefaria.org" 
+  FRONT_END_URL:  "http://${NAME}.integration.sefaria.org"
   OFFLINE: false
   DOWN_FOR_MAINTENANCE: false
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
