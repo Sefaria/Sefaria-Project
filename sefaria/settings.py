@@ -327,7 +327,7 @@ LOCAL_HOSTS = [
 
 # ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
 
-ALLOWED_HOSTS = ['indrajala.com', 'www.indrajala.com']
+ALLOWED_HOSTS = ['indrajala.com', 'www.indrajala.com']+LOCAL_HOSTS
 
 
 # Grab environment specific settings from a file which
