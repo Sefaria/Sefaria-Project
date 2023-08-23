@@ -1065,6 +1065,11 @@ const EditTextInfo = function({initTitle, close}) {
   const [heDesc, setHeDesc] = useState(index.current?.heDesc || "");
   const [heShortDesc, setHeShortDesc] = useState(index.current?.heShortDesc || "");
   const [authors, setAuthors] = useState(index.current.authors?.map((item, i) =>({["name"]: item.en, ["slug"]: item.slug, ["id"]: i})) || []);
+  const [pubDate, setPubDate] = useState(index.current?.pubDate);
+  const [pubPlace, setPubPlace] = useState(index.current?.pubPlaceString?.en);
+  const [hePubPlace, setHePubPlace] = useState(index.current?.pubPlaceString?.he);
+  const [compPlace, setCompPlace] = useState(index.current?.compPlaceString?.en);
+  const [heCompPlace, setHeCompPlace] = useState(index.current?.compPlaceString?.he);
   const [errorMargin, setErrorMargin] = useState(Number(index.current?.errorMargin) || 0);
   const getYearAsStr = (initCompDate) => {
     if (typeof initCompDate === 'undefined' || initCompDate === '') {
@@ -1090,7 +1095,7 @@ const EditTextInfo = function({initTitle, close}) {
     }
   }
   const [compDate, setCompDate] = useState(index.current?.compDate);
-  const [compDateStr, setCompDateStr] = useState(getYearAsStr(compDate));
+  const initCompDate = useState(getYearAsStr(compDate));  //init comp date to display
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
@@ -1144,7 +1149,7 @@ const EditTextInfo = function({initTitle, close}) {
     let result = newValue.match(pattern);
     if (!result) {
       setErrorMargin(0);
-      setCompDate(0);
+      setCompDate('');
     }
     else if (result[2] === "-") {
       const start = Number.parseInt(result[1]);
@@ -1177,14 +1182,18 @@ const EditTextInfo = function({initTitle, close}) {
     const heTitleVariantNames = heTitleVariants.map(i => i.name);
     const authorSlugs = authors.map(i => i.slug);
     let postIndex = {title: enTitle, authors: authorSlugs, titleVariants: enTitleVariantNames, heTitleVariants: heTitleVariantNames,
-                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc}
+                    heTitle, categories, enDesc, enShortDesc, heDesc, heShortDesc, pubPlace, compPlace, hePubPlace, heCompPlace
+                    }
     if (sections && sections.length > 0) {
       postIndex.sectionNames = sections;
     }
     if (enTitle !== oldTitle) {
       postIndex.oldTitle = oldTitle;
     }
-    if (compDateStr !== "") {
+    if (pubDate != index.current?.pubDate) {
+      postIndex.pubDate = pubDate;
+    }
+    if (compDate != initCompDate) {
       postIndex.compDate = compDate;
       postIndex.errorMargin = errorMargin;
     }
@@ -1208,8 +1217,9 @@ const EditTextInfo = function({initTitle, close}) {
         window.location.href = "/admin/reset/"+index.current.title;  // often this occurs when save occurs successfully but there is simply a timeout on cauldron so try resetting it
       });
   };
-  const validateThenSave = function () {
-    if (validate()) {
+  const validateThenSave = async function () {
+    const valid = await validate();
+    if (valid) {
       save();
     }
   }
@@ -1296,8 +1306,33 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={compDateStr}/>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={initCompDate}/>
             </div>
+            <div className="section">
+              <div><InterfaceText>Place of Composition</InterfaceText></div>
+              <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <input id="compPlace" onBlur={setCompPlace} defaultValue={compPlace}/>
+            </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC &&
+                <div className="section">
+                  <div><InterfaceText>Hebrew Place of Composition</InterfaceText></div><label>
+                  <span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <input id="heCompPlace" onBlur={setHeCompPlace} defaultValue={heCompPlace}/>
+                </div>}
+            <div className="section">
+              <div><InterfaceText>Publication Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
+              <input id="pubDate" onBlur={setPubDate} defaultValue={pubDate}/>
+            </div>
+            <div className="section">
+              <div><InterfaceText>Place of Publication</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <input id="pubPlace" onBlur={setPubPlace} defaultValue={pubPlace}/>
+            </div>
+            {Sefaria._siteSettings.TORAH_SPECIFIC &&
+                <div className="section">
+                  <div><InterfaceText>Hebrew Place of Publication</InterfaceText></div>
+                  <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <input id="hePubPlace" onBlur={setHePubPlace} defaultValue={hePubPlace}/>
+                </div>}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
                 <div><label><InterfaceText>Text Structure</InterfaceText></label></div>

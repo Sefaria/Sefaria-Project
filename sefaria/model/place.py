@@ -3,7 +3,6 @@ import geojson
 from . import abstract as abst
 from . import schema
 from sefaria.system.exceptions import InputError
-
 import structlog
 from geopy.geocoders import Nominatim
 logger = structlog.get_logger(__name__)
@@ -47,6 +46,15 @@ class Place(abst.AbstractMongoRecord):
 
     def secondary_names(self, lang=None):
         return self.name_group.secondary_titles(lang)
+    
+    @classmethod 
+    def create_new_place(cls, en, he=None):
+        p = Place({'key': en})
+        p.name_group.add_title(en, 'en', True, True)
+        if he:
+            p.name_group.add_title(he, 'he', True, True)
+        p.city_to_coordinates(en)
+        p.save()
 
     def city_to_coordinates(self, city):
         geolocator = Nominatim(user_agent=self.key)
@@ -84,3 +92,17 @@ class PlaceSet(abst.AbstractMongoSet):
             return geojson.dumps(geojson.FeatureCollection(features))
         else:
             return geojson.FeatureCollection(features)
+
+
+def process_obj_with_places(obj_to_modify, new_obj_dict, keys):
+    # for Topics and Indexes, any modification of place attributes should create a new Place()
+    # 'obj_to_modify' is the original object instance and 'new_obj_dict' is a dictionary of the updated data
+    # 'keys' is a list of tuples where each tuple contains english and corresponding hebrew key such as ("birthPlace", "heBirthPlace")
+    for en, he in keys:
+        new_val = new_obj_dict.get(en, None)
+        he_new_val = new_obj_dict.get(he)
+        if Place().load({"key": new_val}) is None:
+            Place.create_new_place(en=new_val, he=he_new_val)
+        obj_to_modify[en] = new_val
+        obj_to_modify[he] = he_new_val
+

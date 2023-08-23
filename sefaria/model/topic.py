@@ -7,7 +7,7 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog, bleach
-from sefaria.model.place import *
+from sefaria.model.place import Place
 import regex as re
 logger = structlog.get_logger(__name__)
 
