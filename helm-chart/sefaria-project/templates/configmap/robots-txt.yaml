@@ -8,7 +8,7 @@ metadata:
 data:
   robots.txt: |-
     User-agent: *
-{{- if eq .Values.sandbox "true" }}
+{{- if .Values.nginx.disableScraping }}
     Disallow: /
 {{- else }}
     Disallow: /activity/

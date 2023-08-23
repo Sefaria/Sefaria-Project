@@ -1,11 +1,6 @@
 # NB: This assumes an already-functioning mongo instance.
-# Parameters:
-# MONGO_DUMP_PATH: URI of database dump
-# MONGO_HOST: Mongo hostname
-# SANDBOX_NAME: The name of the table created by this job
-# ENVIRONMENT: Deployment environment {prod, preprod, stage}
 ---
-{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
+{{- if .Values.restore.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
