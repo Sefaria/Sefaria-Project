@@ -1196,6 +1196,8 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origEnAltTitles: data.titles.filter(x => !x.primary && x.lang === 'en').map(x => x.text),
     origHeAltTitles: data.titles.filter(x => !x.primary && x.lang === 'he').map(x => x.text),
     origBirthPlace: data?.properties?.birthPlace.value,
+    origHeBirthPlace: data?.properties?.heBirthPlace.value,
+    origHeDeathPlace: data?.properties?.heDeathPlace.value,
     origBirthYear: data?.properties?.birthYear.value,
     origDeathPlace: data?.properties?.deathPlace.value,
     origDeathYear: data?.properties?.deathYear.value,

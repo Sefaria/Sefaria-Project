@@ -7,6 +7,7 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog, bleach
+from sefaria.model.place import *
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -400,10 +401,23 @@ class PersonTopic(Topic):
         """
         return PersonTopic().load({"alt_ids.old-person-key": key})
 
+    def annotate_place(self, d):
+        birthPlace = getattr(self, "birthPlace", None)
+        deathPlace = getattr(self, "deathPlace", None)
+        if birthPlace:
+            heBirthPlace = Place().load({"key": birthPlace})
+            heDeathPlace = Place().load({"key": deathPlace})
+            d['properties']['heBirthPlace'] = {'value': heBirthPlace.primary_name('he'),
+                                               'dataSource': d['properties']['birthPlace']['dataSource']}
+            d['properties']['heDeathPlace'] = {'value': heDeathPlace.primary_name('he'),
+                                               'dataSource': d['properties']['deathPlace']['dataSource']}
+        return d
+
     def contents(self, **kwargs):
         annotate_time_period = kwargs.get('annotate_time_period', False)
         d = super(PersonTopic, self).contents(**kwargs)
         if annotate_time_period:
+            d = self.annotate_place(d)
             tp = self.most_accurate_time_period()
             if tp is not None:
                 d['timePeriod'] = {

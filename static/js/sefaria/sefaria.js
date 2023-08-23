@@ -349,6 +349,7 @@ Sefaria = extend(Sefaria, {
         return (text.indexOf(title) > -1);
     });
   },
+  _eras:  ["GN", "RI", "AH", "CO"],
   makeRefRe: function(titles) {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed

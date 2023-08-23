@@ -38,8 +38,14 @@ const options_for_form = {
     "Birth Place": {
         label: "Place of Birth", field: "birthPlace", placeholder: "Place of birth", type: 'input'
     },
-    "Death Place": {
+    "Hebrew Birth Place": {
+        label: "Hebrew Place of Birth", field: "heBirthPlace", placeholder: "Place of birth", type: 'input'
+    },
+    "Place of Death": {
         label: "Place of Death", field: "deathPlace", placeholder: "Place of death", type: 'input'
+    },
+    "Hebrew Place of Death": {
+        label: "Hebrew Place of Death", field: "heDeathPlace", placeholder: "Place of death", type: 'input'
     },
     "Birth Year": {
         label: "Year of Birth", field: "birthYear", placeholder: "Year of birth", type: 'input'
@@ -49,7 +55,7 @@ const options_for_form = {
     },
     "Era": {
         label: "Era (GN/Gaonim, RI/Rishonim, AH/Achronim, CO/Contemporary)", field: "era", placeholder: "Choose an era", type: 'dropdown',
-        dropdown_data: ["GN", "RI", "AH", "CO"]
+        dropdown_data: Sefaria._eras
     }
 }
     

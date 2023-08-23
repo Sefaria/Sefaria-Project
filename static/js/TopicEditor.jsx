@@ -76,6 +76,10 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
+        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras)) {
+            alert(`Era ${data.era} is invalid.`);
+            return false;
+        }
         if (sortedSubtopics.length > 0 && !isNew) {
             await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
         }
@@ -86,16 +90,38 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
          const postCategoryData = {topics: sortedSubtopics};
          requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
     }
-    const saveTopic = function () {
-        toggle();
-        let url = "";
+    const authorItems = (type) => {
+        switch(type) {
+            case 'labels':
+                return Sefaria._siteSettings.TORAH_SPECIFIC ?
+                            ["Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"]
+                            :  ["Birth Place", "Birth Year", "Place of Death", "Death Year"];
+            case 'keys':
+                return Sefaria._siteSettings.TORAH_SPECIFIC ?
+                            ["birthPlace", "heBirthPlace", "birthYear", "deathPlace", "heDeathPlace", "era"]
+                            : ["birthPlace", "birthYear", "deathPlace", "deathYear"];
+        }
+    }
+    const prepData = () => {
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
         if (isCategory) {
             postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
         }
-        postData.category = data.catSlug;
 
+        if (isAuthor) {
+            postData.altTitles = {};
+            postData.altTitles.en = postData.enAltTitles.map(x => x.name);
+            postData.altTitles.he = postData.heAltTitles.map(x => x.name);
+        }
+        else {
+            authorItems('keys').forEach(x => {  // we don't want to post these keys since they are only for authors
+                delete postData[x];
+            })
+        }
+
+        postData.category = data.catSlug;
+        let url = "";
         if (isNew) {
           url = "/api/topic/new";
         }
@@ -108,18 +134,34 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           }
         }
 
+        return [postData, url];
+    }
+
+    const saveTopic = function () {
+        toggle();
+        const [postData, url] = prepData();
         const postJSON = JSON.stringify(postData);
-        $.post(url,  {"json": postJSON}, function(result) {
-          if (result.error) {
-            toggle();
-            alert(result.error);
-          } else {
-            const newSlug = result.slug;
-            onCreateSuccess(newSlug);
-          }
-          }).fail( function(xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown.toString());
-          });
+        if (onCreateSuccess) {  // used by TopicSearch.jsx
+            $.post(url, {"json": postJSON}, function (result) {
+                if (result.error) {
+                    toggle();
+                    alert(result.error);
+                } else {
+                    const newSlug = result.slug;
+                    onCreateSuccess(newSlug);
+                }
+            }).fail(function (xhr, status, errorThrown) {
+                alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+            });
+        }
+        else {
+            requestWithCallBack({
+                url,
+                data: postJSON,
+                setSavingStatus,
+                redirect: () => window.location.href = `/topics/${postData.slug}`
+            });
+        }
     }
 
     const deleteObj = function() {
@@ -133,10 +175,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         items.push("Hebrew Short Description");
     }
     if (isAuthor) {
-        ["Birth Place", "Birth Year", "Death Place", "Death Year"].forEach(x => items.push(x));
-        if (Sefaria._siteSettings.TORAH_SPECIFIC) {
-            items.push("Era");
-        }
+        authorItems('labels').forEach(x => items.push(x));
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}

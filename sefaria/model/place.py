@@ -5,6 +5,7 @@ from . import schema
 from sefaria.system.exceptions import InputError
 
 import structlog
+from geopy.geocoders import Nominatim
 logger = structlog.get_logger(__name__)
 
 class Place(abst.AbstractMongoRecord):
@@ -47,7 +48,10 @@ class Place(abst.AbstractMongoRecord):
     def secondary_names(self, lang=None):
         return self.name_group.secondary_titles(lang)
 
-    ###
+    def city_to_coordinates(self, city):
+        geolocator = Nominatim(user_agent=self.key)
+        location = geolocator.geocode(city)
+        self.point_location(location)
 
     def point_location(self, lon=None, lat=None):
         if lat is None and lon is None:

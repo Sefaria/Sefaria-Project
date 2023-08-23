@@ -12,6 +12,7 @@ from sefaria.system.cache import django_cache
 
 import structlog
 from sefaria import tracker
+from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -1037,7 +1038,49 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
+def update_topic_titles(topic_obj, **kwargs):
+    for lang in ['en', 'he']:
+        for title in topic_obj.get_titles(lang):
+            topic_obj.remove_title(title, lang)
+        for title in kwargs['altTitles'][lang]:
+            topic_obj.add_title(title, lang)
 
+    topic_obj.add_title(kwargs['title'], 'en', True, True)
+    topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
+    return topic_obj
+
+
+def update_authors_era(topic_obj, **kwargs):
+    for k in ["birthYear", "deathYear"]:
+        assert kwargs[k].is_digit(), f"'{k}' must be a number but is {kwargs[k]}"
+        kwargs[k] = int(kwargs[k])
+        setattr(topic_obj, k, kwargs[k])
+
+    prev_era = getattr(topic_obj, 'era', None)
+    if 'era' in kwargs and prev_era != kwargs['era']:
+        setattr(topic_obj, 'era', kwargs['era'])
+        create_era_link(topic, prev_era_to_delete=prev_era)
+
+    return topic_obj
+
+def update_authors_place_data(topic_obj, **kwargs):
+    for en, he in [("birthPlace", "heBirthPlace"), ("deathPlace", "heDeathPlace")]:
+        new_val = kwargs.get(en, None)
+        old_val = getattr(topic_obj, en, None)
+        if new_val != old_val:
+            p = Place({'key': new_val})
+            p.name_group.add_title(new_val, 'en', True, True)
+            he_new_val = kwargs.get(he)
+            if he_new_val:
+                p.name_group.add_title(he_new_val, 'he', True, True)
+            p.city_to_coordinates(new_val)
+            p.save()
+            properties = getattr(topic_obj, 'properties')
+            properties[en] = new_val
+            properties[he] = he_new_val
+            topic_obj.properties = properties
+
+    return topic_obj
 
 def update_topic(topic_obj, **kwargs):
     """
@@ -1051,13 +1094,12 @@ def update_topic(topic_obj, **kwargs):
     old_category = ""
     orig_slug = topic_obj.slug
 
-    if 'title' in kwargs and kwargs['title'] != topic_obj.get_primary_title('en'):
-        topic_obj.add_title(kwargs['title'], 'en', True, True)
-
-    if 'heTitle' in kwargs and kwargs['heTitle'] != topic_obj.get_primary_title('he'):
-        topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
+    update_topic_titles(topic_obj, **kwargs)
 
     if 'category' in kwargs:
+        if kwargs['category'] == 'authors':
+            topic_obj = update_authors_place_data(topic_obj, **kwargs)
+            topic_obj = update_authors_era(topic_obj, **kwargs)
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
