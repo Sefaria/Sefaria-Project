@@ -12,7 +12,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.DEV_GKE_PROJECT_ID}}/containers/hosted-runner:latest
+    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
     steps:
     - name: Authenticate to Google Cloud
       id: auth
