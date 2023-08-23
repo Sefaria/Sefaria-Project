@@ -2,46 +2,7 @@ import django
 django.setup()
 from sefaria.utils.hebrew import hebrew_term
 from .api_warnings import *
-from .helper import split_query_param_and_add_defaults
 from typing import List
-
-
-class VersionsParams():
-    """
-    an object for managing the versions params for TextsHandler
-    params can come from an API request or internal (sever side rendering)
-    lang is our code language. special values are:
-        source - for versions in the source language of the text
-        base - as source but with falling to the 'nearest' to source, or what we have defined as such
-    vtitle is the exact versionTitle. special values are:
-        no vtitle - the version with the max priority attr of the specified language
-        all - all versions of the specified language
-    representing_string is the original string that came from an API call
-    """
-
-    def __init__(self, lang: str, vtitle: str, representing_string=''):
-        self.lang = lang
-        self.vtitle = vtitle
-        self.representing_string = representing_string
-
-    def __eq__(self, other):
-        return isinstance(other, VersionsParams) and self.lang == other.lang and self.vtitle == other.vtitle
-
-    @staticmethod
-    def parse_api_params(version_params):
-        """
-        an api call contains ref and list of version_params
-        a version params is string divided by pipe as 'lang|vtitle'
-        this function takes the list of version_params and returns list of VersionsParams
-        """
-        version_params_list = []
-        for params_string in version_params:
-            lang, vtitle = split_query_param_and_add_defaults(params_string, 2, [''])
-            vtitle = vtitle.replace('_', ' ')
-            version_params = VersionsParams(lang, vtitle, params_string)
-            if version_params not in version_params_list:
-                version_params_list.append(version_params)
-        return version_params_list
 
 
 class TextsForClientHandler():
@@ -57,15 +18,14 @@ class TextsForClientHandler():
     BASE = 'base'
     SOURCE = 'source'
 
-    def __init__(self, oref: Ref, versions_params: List[VersionsParams]):
+    def __init__(self, oref: Ref, versions_params: List[List[str]]):
         self.versions_params = versions_params
         self.oref = oref
         self.handled_version_params = []
         self.all_versions = self.oref.version_list()
         self.return_obj = {'versions': [], 'warnings': []}
 
-    def _handle_warnings(self, version_params: VersionsParams) -> None:
-        lang, vtitle = version_params.lang, version_params.vtitle
+    def _handle_warnings(self, lang: str, vtitle: str, params_str: str) -> None:
         if lang == self.SOURCE:
             warning = APINoSourceText(self.oref)
         elif vtitle and vtitle != self.ALL:
@@ -73,13 +33,12 @@ class TextsForClientHandler():
         else:
             availabe_langs = {v['actualLanguage'] for v in self.all_versions}
             warning = APINoLanguageVersion(self.oref, sorted(availabe_langs))
-        representing_string = version_params.representing_string or f'{version_params.lang}|{version_params.representing_string}'
+        representing_string = params_str or f'{lang}|{vtitle}'
         self.return_obj['warnings'].append({
             representing_string: warning.get_message()
         })
 
-    def _append_required_versions(self, version_params: VersionsParams) -> None:
-        lang, vtitle = version_params.lang, version_params.vtitle
+    def _append_required_versions(self, lang: str, vtitle: str, params_str: str) -> None:
         if lang == self.BASE:
             lang_condition = lambda v: v['isBaseText2'] #temporal name
         elif lang == self.SOURCE:
@@ -98,7 +57,7 @@ class TextsForClientHandler():
             if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
                 self.return_obj['versions'].append(version)
         if not versions:
-            self._handle_warnings(version_params)
+            self._handle_warnings(lang, vtitle, params_str)
 
     def _add_text_to_versions(self) -> None:
         for version in self.return_obj['versions']:
@@ -160,8 +119,8 @@ class TextsForClientHandler():
         })
 
     def get_versions_for_query(self) -> dict:
-        for version_params in self.versions_params:
-            self._append_required_versions(version_params)
+        for lang, vtitle, params_str in self.versions_params:
+            self._append_required_versions(lang, vtitle, params_str)
         self._add_text_to_versions()
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()

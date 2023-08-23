@@ -3,21 +3,7 @@ import django
 django.setup()
 from reader.tests import SefariaTestCase
 import json
-from api.helper import split_query_param_and_add_defaults
 from api.api_warnings import APIWarningCode
-
-
-def test_split_at_pipe_with_default():
-    for string, list_length, default, expected in [
-        ('he|foo bar', 2, [], ['he', 'foo bar']),
-        ('he|foo bar', 2, ['baz'], ['he', 'foo bar']),
-        ('he', 2, ['baz'], ['he', 'baz']),
-        ('he|foo bar|baz', 3, [], ['he', 'foo bar', 'baz']),
-        ('he|foo bar|baz', 3, ['blue'], ['he', 'foo bar', 'baz']),
-        ('he|foo bar', 3, ['baz'], ['he', 'foo bar', 'baz']),
-        ('he', 3, ['foo', 'baz'], ['he', 'foo', 'baz']),
-    ]:
-        assert expected == split_query_param_and_add_defaults(string, list_length, default)
 
 
 c = Client()
