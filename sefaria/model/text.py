@@ -1738,12 +1738,28 @@ class TextFamilyDelegator(type):
         else:
             return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
 
-class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
+
+class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
+    """
+    A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
+    If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
+
+    :param oref: :class:`Ref`
+    :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
+    :param vtitle: optional. Title of the version desired.
+    :param actual_lang: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang`. As opposed to `lang` which can only be "he" or "en", `actual_lang` can be any valid 2 letter ISO language code.
+    """
 
     text_attr = "text"
 
-    def __init__(self, oref, actual_lang='en', vtitle=None, **kwargs):
-        #kwargs are only for supporting old TextChunck. should be removed after merging
+    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
+        """
+        :param oref:
+        :type oref: Ref
+        :param lang: "he" or "en"
+        :param vtitle:
+        :return:
+        """
         if isinstance(oref.index_node, JaggedArrayNode):
             self._oref = oref
         else:
@@ -1752,41 +1768,57 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
             self._oref = child_ref
         self._ref_depth = len(self._oref.sections)
-        self.actual_lang = actual_lang
         self._versions = []
         self._version_ids = None
-        self._saveable = False
+        self._saveable = False  # Can this TextChunk be saved?
+
+        self.lang = lang
         self.is_merged = False
         self.sources = []
         self.text = self._original_text = self.empty_text()
         self.vtitle = vtitle
+
         self.full_version = None
         self.versionSource = None  # handling of source is hacky
-        self._choose_version(actual_lang=actual_lang, **kwargs) #kactual_lang and wargs are only for supporting old TextChunck. should be removed after merging
 
-    def _choose_version(self, **kwargs): #kwargs are only for supporting old TextChunck. should be removed after merging
-        if self.actual_lang and self.vtitle:
+        if lang and vtitle and not fallback_on_default_version:
             self._saveable = True
-            v = Version().load({"title": self._oref.index.title, "actualLanguage": self.actual_lang, "versionTitle": self.vtitle}, self._oref.part_projection())
+            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
             if v:
                 self._versions += [v]
-                self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
-        elif self.actual_lang:
-            self._choose_version_by_lang()
+                try:
+                    self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
+                except TypeError:
+                    raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
+        elif lang:
+            if actual_lang is not None:
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
+            else:
+                self._choose_version_by_lang(oref, lang, exclude_copyrighted, prioritized_vtitle=vtitle)
         else:
             raise Exception("TextChunk requires a language.")
-        if not self._versions:
-            version_title_message = f" and version title '{self.vtile}'" if self.vtile else ''
-            raise NoVersionFoundError(f"No text record found for '{self._oref.index.title}' in {self.actual_lang}{version_title_message}")
 
-    def _choose_version_by_lang(self) -> None:
-        vset = VersionSet(self._oref.condition_query(actual_lang=self.actual_lang), proj=self._oref.part_projection())
+    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
+        if prioritized_vtitle:
+            actual_lang = None
+        vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
+        if len(vset) == 0:
+            if VersionSet({"title": self._oref.index.title}).count() == 0:
+                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
+            return
         if len(vset) == 1:
             v = vset[0]
+            if exclude_copyrighted and v.is_copyrighted():
+                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
             self._versions += [v]
             self.text = self.trim_text(v.content_node(self._oref.index_node))
-        elif len(vset) > 1:  # multiple versions available, merge
-            merged_text, sources = vset.merge(self._oref.index_node)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
+            #todo: Should this instance, and the non-merge below, be made saveable?
+        else:  # multiple versions available, merge
+            if exclude_copyrighted:
+                vset.remove(Version.is_copyrighted)
+            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
             self.text = self.trim_text(merged_text)
             if len(set(sources)) == 1:
                 for v in vset:
@@ -1799,13 +1831,16 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
                 self._versions = vset.array()
 
     def __str__(self):
-        args = f"{self._oref}, {self.actual_lang}"
+        args = "{}, {}".format(self._oref, self.lang)
         if self.vtitle:
-            args += f", {self.vtitle}"
+            args += ", {}".format(self.vtitle)
         return args
 
     def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        return f"{self.__class__.__name__}({self.__str__()})"
+        args = "{}, {}".format(self._oref, self.lang)
+        if self.vtitle:
+            args += ", {}".format(self.vtitle)
+        return "{}({})".format(self.__class__.__name__, args)
 
     def version_ids(self):
         if self._version_ids is None:
@@ -1825,6 +1860,55 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
         else:
             return JaggedTextArray(self.text)
+
+    def save(self, force_save=False):
+        """
+        For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
+        because by editing in place, both the self.text and the self._original_text fields will get changed,
+        causing the save to abort.
+        :param force_save: If set to True, will force a save even if no change was detected in the text.
+        :return:
+        """
+        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
+        assert not self._oref.is_range(), "Only non-range references can be saved: {}".format(self._oref.normal())
+        #may support simple ranges in the future.
+        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
+        if not force_save:
+            if self.text == self._original_text:
+                logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
+                return False
+
+        self._validate()
+        self._sanitize()
+        self._trim_ending_whitespace()
+
+        if not self.version():
+            self.full_version = Version(
+                {
+                    "chapter": self._oref.index.nodes.create_skeleton(),
+                    "versionTitle": self.vtitle,
+                    "versionSource": self.versionSource,
+                    "language": self.lang,
+                    "title": self._oref.index.title
+                }
+            )
+        else:
+            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
+            assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
+            if self.versionSource:
+                self.full_version.versionSource = self.versionSource  # hack
+
+        content = self.full_version.sub_content(self._oref.index_node.version_address())
+        self._pad(content)
+        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
+
+        self._check_available_text_pre_save()
+
+        self.full_version.save()
+        self._oref.recalibrate_next_prev_refs(len(self.text))
+        self._update_link_language_availability()
+
+        return self
 
     def _pad(self, content):
         """
@@ -1851,6 +1935,61 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
                 parent_content[val - 1] = [parent_content[val - 1]]
 
+    def _check_available_text_pre_save(self):
+        """
+        Stores the availability of this text in before a save is made,
+        so that we can know if segments have been added or deleted overall.
+        """
+        self._available_text_pre_save = {}
+        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
+        for lang in langs_checked:
+            try:
+                self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
+            except NoVersionFoundError:
+                self._available_text_pre_save[lang] = []
+
+    def _check_available_segments_changed_post_save(self, lang=None):
+        """
+        Returns a list of tuples containing a Ref and a boolean availability
+        for each Ref that was either made available or unavailble for `lang`.
+        If `lang` is None, returns changed availability across all langauges.
+        """
+        if lang:
+            old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
+        else:
+            # Looking for availability of in all langauges, merge results of Hebrew and English
+            old_en_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
+            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["he"])
+            zipped = list(itertools.zip_longest(old_en_refs_available, old_he_refs_available))
+            old_refs_available = []
+            for item in zipped:
+                en, he = item[0], item[1]
+                ref = en[0] if en else he[0]
+                old_refs_available.append((ref, (en and en[1] or he and he[1])))
+
+        new_refs_available = self._text_to_ref_available(self.text)
+
+        changed = []
+        zipped = list(itertools.zip_longest(old_refs_available, new_refs_available))
+        for item in zipped:
+            old_text, new_text = item[0], item[1]
+            had_previously = old_text and old_text[1]
+            have_now = new_text and new_text[1]
+
+            if not had_previously and have_now:
+                changed.append(new_text)
+            elif had_previously and not have_now:
+                # Current save is deleting a line of text, but it could still be
+                # available in a different version for this language. Check again.
+                if lang:
+                    text_still_available = bool(old_text[0].text(lang=lang).text)
+                else:
+                    text_still_available = bool(old_text[0].text("en").text) or bool(old_text[0].text("he").text)
+                if not text_still_available:
+                    changed.append([old_text[0], False])
+
+        return changed
+
     def _text_to_ref_available(self, text):
         """Converts a JaggedArray of text to flat list of (Ref, bool) if text is availble"""
         flat = JaggedArray(text).flatten_to_array_with_indices()
@@ -1864,6 +2003,18 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             refs_available += [[ref, available]]
         return refs_available
 
+    def _update_link_language_availability(self):
+        """
+        Check if current save has changed the overall availabilty of text for refs
+        in this language, pass refs to update revelant links if so.
+        """
+        changed = self._check_available_segments_changed_post_save(lang=self.lang)
+
+        if len(changed):
+            from . import link
+            for change in changed:
+                link.update_link_language_availabiliy(change[0], self.lang, change[1])
+
     def _validate(self):
         """
         validate that depth/breadth of the TextChunk.text matches depth/breadth of the Ref
@@ -1874,8 +2025,8 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
         implied_depth = ref_depth + posted_depth
         if implied_depth != self._oref.index_node.depth:
             raise InputError(
-                f"Text Structure Mismatch. The stored depth of {self._oref.index_node.full_title()} is {self._oref.index_node.depth}, \
-                but the text posted to {self._oref.normal()} implies a depth of {implied_depth}."
+                "Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
+                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
             )
 
         #validate that length of the array matches length of the ref
@@ -1884,18 +2035,20 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             span_size = self._oref.span_size()
             if posted_depth == 0: #possible?
                 raise InputError(
-                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a string."
+                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a string."
+                        .format(self._oref.normal(), span_size)
                 )
             elif posted_depth == 1: #possible?
                 raise InputError(
-                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, but the text posted is a simple list."
+                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a simple list."
+                        .format(self._oref.normal(), span_size)
                 )
             else:
                 posted_length = len(self.text)
                 if posted_length != span_size:
                     raise InputError(
-                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {span_size} sections, \
-                        but the text posted has {posted_length} elements."
+                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted has {} elements."
+                        .format(self._oref.normal(), span_size, posted_length)
                     )
                 #todo: validate last section size if provided
 
@@ -1903,21 +2056,23 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             range_length = self._oref.range_size()
             if posted_depth == 0:
                 raise InputError(
-                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, but the text posted is a string."
+                        "Text Structure Mismatch. {} implies a length of {}, but the text posted is a string."
+                        .format(self._oref.normal(), range_length)
                 )
             elif posted_depth == 1:
                 posted_length = len(self.text)
                 if posted_length != range_length:
                     raise InputError(
-                        f"Text Structure Mismatch. {self._oref.normal()} implies a length of {range_length}, \
-                        but the text posted has {posted_length} elements."
+                        "Text Structure Mismatch. {} implies a length of {}, but the text posted has {} elements."
+                        .format(self._oref.normal(), range_length, posted_length)
                     )
             else:  # this should never happen.  The depth check should catch it.
                 raise InputError(
-                    f"Text Structure Mismatch. {self._oref.normal()} implies an simple array of length {range_length}, \
-                    but the text posted has depth {posted_depth}."
+                    "Text Structure Mismatch. {} implies an simple array of length {}, but the text posted has depth {}."
+                    .format(self._oref.normal(), range_length, posted_depth)
                 )
 
+    #maybe use JaggedArray.subarray()?
     def trim_text(self, txt):
         """
         Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
@@ -1986,13 +2141,9 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             # merged version
             return False
 
-    def get_language(self):
-        #method for getting a different lang attribue in old TextChunck and RangeText
-        #can be removed after merging and all uses can be replaced by self.acutal_lang
-        return self.actual_lang
-
     def nonempty_segment_refs(self):
         """
+
         :return: list of segment refs with content in this TextChunk
         """
         r = self._oref
@@ -2004,7 +2155,7 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             input_refs = [r]
         for temp_ref in input_refs:
-            temp_tc = temp_ref.text(lang=self.get_language(), vtitle=self.vtitle)
+            temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
             ja = temp_tc.ja()
             jarray = ja.mask().array()
 
@@ -2033,9 +2184,9 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
         text_list = [x for x in self.ja().flatten_to_array() if len(x) > 0]
         if len(text_list) != len(ref_list):
             if strict:
-                raise ValueError(f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(text_list)}")
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
             else:
-                print(f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(text_list)}")
+                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
 
         matches = []
         for r, t in zip(ref_list, text_list):
@@ -2068,9 +2219,9 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
 
         if len(ind_list) != len(ref_list):
             if strict:
-                raise ValueError(f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}")
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
             else:
-                print(f"Warning: The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)}")
+                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
                 if len(ind_list) > len(ref_list):
                     ind_list = ind_list[:len(ref_list)]
                 else:
@@ -2080,212 +2231,6 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             return ind_list, ref_list, total_len, text_list
         else:
             return ind_list, ref_list, total_len
-
-
-class TextChunk(TextRange, metaclass=TextFamilyDelegator):
-    """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
-    If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
-
-    :param oref: :class:`Ref`
-    :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
-    :param vtitle: optional. Title of the version desired.
-    :param actual_lang: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang`. As opposed to `lang` which can only be "he" or "en", `actual_lang` can be any valid 2 letter ISO language code.
-    """
-
-    text_attr = "text"
-
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
-        """
-        :param oref:
-        :type oref: Ref
-        :param lang: "he" or "en"
-        :param vtitle:
-        :return:
-        """
-
-        self.lang = lang
-        super(TextChunk, self).__init__(oref=oref, vtitle=vtitle, exclude_copyrighted=exclude_copyrighted, actual_lang=actual_lang, fallback_on_default_version=fallback_on_default_version)
-
-    def _choose_version(self, exclude_copyrighted, actual_lang, fallback_on_default_version):
-        if self.lang and self.vtitle and not fallback_on_default_version:
-            self._saveable = True
-            v = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle}, self._oref.part_projection())
-            if exclude_copyrighted and v.is_copyrighted():
-                raise InputError(f"Can not provision copyrighted text. {self._oref.normal()} ({self.vtitle}/{self.lang})")
-            if v:
-                self._versions += [v]
-                self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
-        elif self.lang:
-            if actual_lang is not None:
-                self._choose_version_by_lang(self.lang, exclude_copyrighted, actual_lang, prioritized_vtitle=self.vtitle)
-            else:
-                self._choose_version_by_lang(self.lang, exclude_copyrighted, prioritized_vtitle=self.vtitle)
-        else:
-            raise Exception("TextChunk requires a language.")
-
-    def _choose_version_by_lang(self, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
-        if prioritized_vtitle:
-            actual_lang = None
-        vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
-        if len(vset) == 0:
-            if VersionSet({"title": self._oref.index.title}).count() == 0:
-                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
-            return
-        if len(vset) == 1:
-            v = vset[0]
-            if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
-            self._versions += [v]
-            self.text = self.trim_text(v.content_node(self._oref.index_node))
-            #todo: Should this instance, and the non-merge below, be made saveable?
-        else:  # multiple versions available, merge
-            if exclude_copyrighted:
-                vset.remove(Version.is_copyrighted)
-            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
-            self.text = self.trim_text(merged_text)
-            if len(set(sources)) == 1:
-                for v in vset:
-                    if v.versionTitle == sources[0]:
-                        self._versions += [v]
-                        break
-            else:
-                self.sources = sources
-                self.is_merged = True
-                self._versions = vset.array()
-
-    def __str__(self):
-        args = "{}, {}".format(self._oref, self.lang)
-        if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return args
-
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        args = "{}, {}".format(self._oref, self.lang)
-        if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return "{}({})".format(self.__class__.__name__, args)
-
-    def save(self, force_save=False):
-        """
-        For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
-        because by editing in place, both the self.text and the self._original_text fields will get changed,
-        causing the save to abort.
-        :param force_save: If set to True, will force a save even if no change was detected in the text.
-        :return:
-        """
-        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
-        assert not self._oref.is_range(), "Only non-range references can be saved: {}".format(self._oref.normal())
-        #may support simple ranges in the future.
-        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
-        if not force_save:
-            if self.text == self._original_text:
-                logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
-                return False
-
-        self._validate()
-        self._sanitize()
-        self._trim_ending_whitespace()
-
-        if not self.version():
-            self.full_version = Version(
-                {
-                    "chapter": self._oref.index.nodes.create_skeleton(),
-                    "versionTitle": self.vtitle,
-                    "versionSource": self.versionSource,
-                    "language": self.lang,
-                    "title": self._oref.index.title
-                }
-            )
-        else:
-            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
-            assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
-            if self.versionSource:
-                self.full_version.versionSource = self.versionSource  # hack
-
-        content = self.full_version.sub_content(self._oref.index_node.version_address())
-        self._pad(content)
-        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
-
-        self._check_available_text_pre_save()
-
-        self.full_version.save()
-        self._oref.recalibrate_next_prev_refs(len(self.text))
-        self._update_link_language_availability()
-
-        return self
-
-    def _check_available_text_pre_save(self):
-        """
-        Stores the availability of this text in before a save is made,
-        so that we can know if segments have been added or deleted overall.
-        """
-        self._available_text_pre_save = {}
-        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
-        for lang in langs_checked:
-            try:
-                self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
-            except NoVersionFoundError:
-                self._available_text_pre_save[lang] = []
-
-    def _check_available_segments_changed_post_save(self, lang=None):
-        """
-        Returns a list of tuples containing a Ref and a boolean availability
-        for each Ref that was either made available or unavailble for `lang`.
-        If `lang` is None, returns changed availability across all langauges.
-        """
-        if lang:
-            old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
-        else:
-            # Looking for availability of in all langauges, merge results of Hebrew and English
-            old_en_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
-            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["he"])
-            zipped = list(itertools.zip_longest(old_en_refs_available, old_he_refs_available))
-            old_refs_available = []
-            for item in zipped:
-                en, he = item[0], item[1]
-                ref = en[0] if en else he[0]
-                old_refs_available.append((ref, (en and en[1] or he and he[1])))
-
-        new_refs_available = self._text_to_ref_available(self.text)
-
-        changed = []
-        zipped = list(itertools.zip_longest(old_refs_available, new_refs_available))
-        for item in zipped:
-            old_text, new_text = item[0], item[1]
-            had_previously = old_text and old_text[1]
-            have_now = new_text and new_text[1]
-
-            if not had_previously and have_now:
-                changed.append(new_text)
-            elif had_previously and not have_now:
-                # Current save is deleting a line of text, but it could still be
-                # available in a different version for this language. Check again.
-                if lang:
-                    text_still_available = bool(old_text[0].text(lang=lang).text)
-                else:
-                    text_still_available = bool(old_text[0].text("en").text) or bool(old_text[0].text("he").text)
-                if not text_still_available:
-                    changed.append([old_text[0], False])
-
-        return changed
-
-    def _update_link_language_availability(self):
-        """
-        Check if current save has changed the overall availabilty of text for refs
-        in this language, pass refs to update revelant links if so.
-        """
-        changed = self._check_available_segments_changed_post_save(lang=self.lang)
-
-        if len(changed):
-            from . import link
-            for change in changed:
-                link.update_link_language_availabiliy(change[0], self.lang, change[1])
-
-    def get_language(self):
-        #method for getting a different lang attribue in old TextChunck and RangeText
-        #can be removed after merging and all uses can be replaced by self.acutal_lang
-        return self.lang
 
 
 class VirtualTextChunk(AbstractTextRecord):
