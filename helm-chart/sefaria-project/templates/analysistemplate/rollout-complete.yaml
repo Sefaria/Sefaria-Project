@@ -28,8 +28,7 @@ spec:
                         -X
                         POST
                         --data-urlencode
-                        'payload={"channel": "#$CHANNEL", "username": "Deployment Status", "text": "$ENV revision $REVISION has deployed version $VERSION", "icon_emoji": 
-                        ":globe_with_meridians:"}'
+                        'payload={"channel": "#'$CHANNEL'", "username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION'", "icon_emoji": ":globe_with_meridians:"}'
                         $SLACK_URL 
                         ||
                         /bin/true
