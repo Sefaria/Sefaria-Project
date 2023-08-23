@@ -1751,10 +1751,34 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
             self.oref = child_ref
         self.lang = lang
         self.vtitle = vtitle
+        self._version = None #todo - what we want to do if the version doesnt exist. for now the getter will cause error
         self._text = None
 
+    def set_version(self):
+        self._version = Version().load({'actualLanguage': self.lang, 'versionTitle': self.vtitle}, self.oref.part_projection())
+
+    def get_version(self):
+        if not self._version:
+            self.set_version()
+        return self._version
+
+    def _trim_text(self, text):
+        """
+        part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
+        """
+        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut form end, for cutting from the start will change the indexes
+            subtext = reduce(lambda x, _: x[-1], range(s), text)
+            del subtext[section:]
+        for s, section in enumerate(self.oref.sections[1:], 1):
+            subtext = reduce(lambda x, _: x[0], range(s), text)
+            del subtext[:section-1]
+        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
+        redundant_depth = len(list(matching_sections))
+        return reduce(lambda x, _: x[0], range(redundant_depth), text)
+
     def set_text(self):
-        self._text = Version().load({'actualLanguage': self.lang, 'versionTitle': self.vtitle}, self.oref.part_projection())
+         self._text = self._trim_text(self.get_version().content_node(self.oref.index_node))
+         return self._text
 
     def get_text(self):
         if not self._text:
