@@ -325,6 +325,8 @@ LOCAL_HOSTS = [
     '[::1]'
 ]
 
+# ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
+
 ALLOWED_HOSTS = ['indrajala.com', 'www.indrajala.com']
 
 
