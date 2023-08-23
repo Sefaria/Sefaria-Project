@@ -75,7 +75,7 @@ class TextsForClientHandler():
             warning = APINoLanguageVersion(self.oref, sorted(availabe_langs))
         representing_string = version_params.representing_string or f'{version_params.lang}|{version_params.representing_string}'
         self.return_obj['warnings'].append({
-            version_params.representing_string: warning.get_message()
+            representing_string: warning.get_message()
         })
 
     def _append_required_versions(self, version_params: VersionsParams) -> None:
