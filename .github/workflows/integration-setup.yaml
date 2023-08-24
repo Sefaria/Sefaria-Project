@@ -24,13 +24,6 @@ jobs:
     runs-on: sefaria-integrations
     container: us-east1-docker.pkg.dev/development-205018/containers/hosted-runner:latest
     steps:
-    - name: Authenticate to Google Cloud
-      id: auth
-      uses: google-github-actions/auth@v1
-      with:
-        token_format: 'access_token'
-        workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-        service_account: '${{ secrets.DEV_GKE_SA }}'
     - name: Get latest Backup
       run: gsutil -q cp gs://sefaria-mongo-backup/dump.tar.gz dump.tar.gz
     - name: Extract Backup
