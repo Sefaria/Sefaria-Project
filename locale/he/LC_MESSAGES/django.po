@@ -19,11 +19,11 @@ msgstr ""
 
 #: reader/templatetags/sefaria_tags.py:228 sefaria/settings.py:22
 msgid "English"
-msgstr "אנגלית"
+msgstr "དབྱིན་ཡིག"
 
 #: reader/templatetags/sefaria_tags.py:229 sefaria/settings.py:23
 msgid "Hebrew"
-msgstr "עברית"
+msgstr "བོད་ཡིག"
 
 #: reader/templatetags/sefaria_tags.py:230
 msgid "Bilingual"
