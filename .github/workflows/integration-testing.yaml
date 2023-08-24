@@ -12,7 +12,7 @@ jobs:
       date: ${{ steps.data.outputs.date }}
       commit: ${{ steps.get-sha.outputs.sha_short }}
       branch: ${{ steps.branch-name.outputs.current_branch }}
-      runner-image: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
+      runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
     steps:
       - uses: actions/checkout@v2
       - name: Get current date
