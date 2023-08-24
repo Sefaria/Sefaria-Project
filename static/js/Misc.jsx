@@ -2095,11 +2095,11 @@ const InterruptingMessage = ({
   const showDelay = 5000;
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
-    sessionStorage.setItem("modal_" + modalName, "true");
+    localStorage.setItem("modal_" + modalName, "true");
   };
 
   const hasModalBeenInteractedWith = (modalName) => {
-    return JSON.parse(sessionStorage.getItem("modal_" + modalName));
+    return JSON.parse(localStorage.getItem("modal_" + modalName));
   };
 
   const trackModalInteraction = (modalName, eventDescription) => {
@@ -2265,11 +2265,11 @@ const Banner = ({ onClose }) => {
   const showDelay = 5000;
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
-    sessionStorage.setItem("banner_" + bannerName, "true");
+    localStorage.setItem("banner_" + bannerName, "true");
   };
 
   const hasBannerBeenInteractedWith = (bannerName) => {
-    return JSON.parse(sessionStorage.getItem("banner_" + bannerName));
+    return JSON.parse(localStorage.getItem("banner_" + bannerName));
   };
 
   const trackBannerInteraction = (bannerName, eventDescription) => {
