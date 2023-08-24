@@ -7,35 +7,22 @@ on:
 concurrency: integration_environment
 
 jobs:
-  secret:
-    runs-on: ubuntu-latest
-    outputs:
-      runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/hosted-runner:latest
-    steps:
-    - run: echo ""
   environment-cleanup:
-    needs: [ secret ]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: ${{ needs.secret.outputs.runner-image }}
+    container: us-east1-docker.pkg.dev/development-205018/containers/hosted-runner:latest
     steps:
-    - name: Setup base utils
-      run: |
-        export DEBIAN_FRONTEND=noninteractive
-        sudo apt-get update
-        sudo apt-get install -y --no-install-recommends curl helm
     - name: cleanup
       run: |
         helm list release -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} | grep integration | xargs -I env -n helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
   database-setup:
-    needs: [ secret ]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: ${{ needs.secret.outputs.runner-image }}
+    container: us-east1-docker.pkg.dev/development-205018/containers/hosted-runner:latest
     steps:
     - name: Authenticate to Google Cloud
       id: auth
