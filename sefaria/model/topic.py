@@ -402,15 +402,15 @@ class PersonTopic(Topic):
         return PersonTopic().load({"alt_ids.old-person-key": key})
 
     def annotate_place(self, d):
-        birthPlace = getattr(self, "birthPlace", None)
-        deathPlace = getattr(self, "deathPlace", None)
-        if birthPlace:
-            heBirthPlace = Place().load({"key": birthPlace})
-            heDeathPlace = Place().load({"key": deathPlace})
-            d['properties']['heBirthPlace'] = {'value': heBirthPlace.primary_name('he'),
-                                               'dataSource': d['properties']['birthPlace']['dataSource']}
-            d['properties']['heDeathPlace'] = {'value': heDeathPlace.primary_name('he'),
-                                               'dataSource': d['properties']['deathPlace']['dataSource']}
+        properties = d.get('properties', {})
+        for k in ['birthPlace', 'deathPlace']:
+            place = properties.get(k)
+            heKey = 'he' + k[0].upper() + k[1:]  # birthPlace => heBirthPlace
+            if place and heKey not in properties:
+                value, dataSource = place['value'], place['dataSource']
+                place_obj = Place().load({"key": value})
+                name = place_obj.primary_name('he')
+                d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
         return d
 
     def contents(self, **kwargs):

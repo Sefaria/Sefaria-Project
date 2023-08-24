@@ -126,8 +126,9 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         updateData({...data});
     }
     const handleTitleVariants = (newTitles, field) => {
-        data[field] = newTitles;
-        updateData({...data});
+        const newData = {...data};
+        newData[field] = [...newTitles];
+        updateData(newData);
     }
     const preprocess = async () => {
         setValidatingLinks(true);

@@ -55,11 +55,12 @@ class Place(abst.AbstractMongoRecord):
             p.name_group.add_title(he, 'he', True, True)
         p.city_to_coordinates(en)
         p.save()
+        return p
 
     def city_to_coordinates(self, city):
-        geolocator = Nominatim(user_agent=self.key)
+        geolocator = Nominatim(user_agent='hello@sefaria.org')
         location = geolocator.geocode(city)
-        self.point_location(location)
+        self.point_location(lon=location.longitude, lat=location.latitude)
 
     def point_location(self, lon=None, lat=None):
         if lat is None and lon is None:
@@ -94,15 +95,18 @@ class PlaceSet(abst.AbstractMongoSet):
             return geojson.FeatureCollection(features)
 
 
-def process_obj_with_places(obj_to_modify, new_obj_dict, keys):
+def process_obj_with_places(obj_to_modify, new_obj_dict, keys, dataSource='sefaria'):
     # for Topics and Indexes, any modification of place attributes should create a new Place()
     # 'obj_to_modify' is the original object instance and 'new_obj_dict' is a dictionary of the updated data
     # 'keys' is a list of tuples where each tuple contains english and corresponding hebrew key such as ("birthPlace", "heBirthPlace")
     for en, he in keys:
         new_val = new_obj_dict.get(en, None)
         he_new_val = new_obj_dict.get(he)
-        if Place().load({"key": new_val}) is None:
-            Place.create_new_place(en=new_val, he=he_new_val)
-        obj_to_modify[en] = new_val
-        obj_to_modify[he] = he_new_val
+        if new_val != '':
+            place = Place().load({"key": new_val})
+            if place is None:
+                place = Place.create_new_place(en=new_val, he=he_new_val)
+            obj_to_modify[en] = {'value': place.primary_name('en'), 'dataSource': dataSource}
+            obj_to_modify[he] = {'value': place.primary_name('he'), 'dataSource': dataSource}
+    return obj_to_modify
 

@@ -1185,6 +1185,9 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 }
 
 const EditorForExistingTopic = ({ toggle, data }) => {
+  const prepAltTitles = (lang) => {
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+  }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
     origSlug: data.slug,
@@ -1193,15 +1196,15 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origHe: data.primaryTitle.he || "",
     origDesc: data.description || {"en": "", "he": ""},
     origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
-    origEnAltTitles: data.titles.filter(x => !x.primary && x.lang === 'en').map(x => x.text),
-    origHeAltTitles: data.titles.filter(x => !x.primary && x.lang === 'he').map(x => x.text),
-    origBirthPlace: data?.properties?.birthPlace.value,
-    origHeBirthPlace: data?.properties?.heBirthPlace.value,
-    origHeDeathPlace: data?.properties?.heDeathPlace.value,
-    origBirthYear: data?.properties?.birthYear.value,
-    origDeathPlace: data?.properties?.deathPlace.value,
-    origDeathYear: data?.properties?.deathYear.value,
-    origEra: data?.properties?.era.value
+    origEnAltTitles: prepAltTitles('en'),
+    origHeAltTitles: prepAltTitles('he'),
+    origBirthPlace: data?.properties?.birthPlace?.value,
+    origHeBirthPlace: data?.properties?.heBirthPlace?.value,
+    origHeDeathPlace: data?.properties?.heDeathPlace?.value,
+    origBirthYear: data?.properties?.birthYear?.value,
+    origDeathPlace: data?.properties?.deathPlace?.value,
+    origDeathYear: data?.properties?.deathYear?.value,
+    origEra: data?.properties?.era?.value
   };
   
   const origWasCat = "displays-above" in data?.links;
@@ -1210,7 +1213,6 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     <TopicEditor 
       origData={origData}
       origWasCat={origWasCat}
-      onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
       close={toggle}
     />
   );
@@ -1261,8 +1263,7 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
           return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
         case "topics":
           origData['origCategorySlug'] = data;
-          return <TopicEditor origData={origData} close={toggle} origWasCat={false}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}/>;
       }
   }
 

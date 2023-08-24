@@ -79,7 +79,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic
+from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -1684,7 +1684,7 @@ def index_api(request, title, raw=False):
                 return jsonResponse({"error": "Unrecognized API key."})
             index = func(apikey["uid"], Index, j, method="API", raw=raw)
             results = jsonResponse(index.contents(raw=raw))
-            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")])
+            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")], dataSource='learning-team-editing-tool')  # create place if new places added
             return results
         else:
             title = j.get("oldTitle", j.get("title"))
@@ -1699,7 +1699,7 @@ def index_api(request, title, raw=False):
         def protected_index_post(request):
             index = func(request.user.id, Index, j, raw=raw)
             results = jsonResponse(index.contents(raw=raw))
-            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")])
+            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")])  # create place if new places added
             return results
 
         return protected_index_post(request)
@@ -3107,9 +3107,7 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        t.add_title(data["title"], 'en', True, True)
-        if "heTitle" in data:
-            t.add_title(data["heTitle"], "he", True, True)
+        update_topic_titles(t, data)
 
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})

@@ -1039,32 +1039,43 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic_obj, **kwargs):
+def update_topic_titles(topic_obj, data):
     for lang in ['en', 'he']:
         for title in topic_obj.get_titles(lang):
             topic_obj.remove_title(title, lang)
-        for title in kwargs['altTitles'][lang]:
+        for title in data['altTitles'][lang]:
             topic_obj.add_title(title, lang)
 
-    topic_obj.add_title(kwargs['title'], 'en', True, True)
-    topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
+    topic_obj.add_title(data['title'], 'en', True, True)
+    topic_obj.add_title(data['heTitle'], 'he', True, True)
     return topic_obj
 
 
-def update_authors_data(topic_obj, kwargs):
+def update_authors_data(topic_obj, data, dataSource='learning-team-editing-tool'):
     # create any new places added to author, then update year and era info
-    process_obj_with_places(topic_obj.properties, kwargs, [("birthPlace", "heBirthPlace"), ("deathPlace", "heDeathPlace")])
-    for k in ["birthYear", "deathYear"]:
-        assert kwargs[k].is_digit(), f"'{k}' must be a number but is {kwargs[k]}"
-        kwargs[k] = int(kwargs[k])
-        setattr(topic_obj, k, kwargs[k])
+    keys = [("birthPlace", "heBirthPlace"), ("deathPlace", "heDeathPlace")]
+    if not hasattr(topic_obj, 'properties'):
+        topic_obj.properties = {}
+    topic_obj.properties = process_obj_with_places(topic_obj.properties, data, keys, dataSource=dataSource)
 
-    prev_era = getattr(topic_obj, 'era', None)
-    if 'era' in kwargs and prev_era != kwargs['era']:
-        setattr(topic_obj, 'era', kwargs['era'])
-        create_era_link(topic, prev_era_to_delete=prev_era)
+    topic_obj = update_author_era(topic_obj, data, dataSource='learning-team-editing-tool')
 
     return topic_obj
+
+def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
+    for k in ["birthYear", "deathYear"]:
+        year = data.get(k)
+        if year:
+            assert isinstance(year, int) or year.isdigit(), f"'{k}' must be a number but is {year}"
+            year = int(year)
+            topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
+
+    prev_era = topic_obj.properties.get('era', {}).get('value')
+    if data.get('era', '') != '' and prev_era != data['era']:
+        topic_obj.properties['era'] = {'value': data['era'], 'dataSource': dataSource}
+        create_era_link(topic_obj, prev_era_to_delete=prev_era)
+    return topic_obj
+
 
 def update_topic(topic_obj, **kwargs):
     """
@@ -1078,11 +1089,11 @@ def update_topic(topic_obj, **kwargs):
     old_category = ""
     orig_slug = topic_obj.slug
 
-    update_topic_titles(topic_obj, **kwargs)
+    update_topic_titles(topic_obj, kwargs)
+    if kwargs.get('catSlug') == 'authors':
+        topic_obj = update_authors_data(topic_obj, kwargs)
 
     if 'category' in kwargs:
-        if kwargs['category'] == 'authors':
-            topic_obj = update_authors_data(topic_obj, kwargs)
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:

@@ -3,7 +3,7 @@ import {InterfaceText, requestWithCallBack, TitleVariants, ToggleSet} from "./Mi
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
@@ -12,9 +12,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 enDescription: origData?.origDesc?.en || "",
                                 enCategoryDescription: origData?.origCategoryDesc?.en,
                                 heCategoryDescription: origData?.origCategoryDesc?.he,
-                                enAltTitles: origData.origEnAltTitles, heAltTitles: origData.origHeAltTitles,
-                                birthPlace: origData.origBirthPlace, birthYear: origData.origBirthYear,
-                                deathYear: origData.origDeathYear, era: origData.origEra, deathPlace: origData.origDeathPlace
+                                enAltTitles: origData?.origEnAltTitles || [],
+                                heAltTitles: origData?.origHeAltTitles || [],
+                                birthPlace: origData.origBirthPlace || "", heBirthPlace: origData.origHeBirthPlace || "",
+                                birthYear: origData.origBirthYear || "", heDeathPlace: origData.origHeDeathPlace || "",
+                                deathYear: origData.origDeathYear || "", era: origData.origEra || "",
+                                deathPlace: origData.origDeathPlace || ""
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -26,6 +29,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                                                                 .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
                                                                                 || []);
     const [isChanged, setIsChanged] = useState(false);
+    useEffect(() => {
+      console.log('Y has changed', data.enAltTitles);
+    }, [data.enAltTitles]);
 
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
@@ -38,7 +44,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
       const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
       setIsAuthor(data.catSlug === 'authors');
-      setData(data);
+      setData({...data});
     }
 
     let slugsToTitles = Sefaria.slugsToTitles();
@@ -76,7 +82,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           alert(Sefaria._("Title must be provided."));
           return false;
         }
-        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras)) {
+        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras) === -1) {
             alert(`Era ${data.era} is invalid.`);
             return false;
         }
@@ -108,18 +114,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         if (isCategory) {
             postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
         }
-
-        if (isAuthor) {
-            postData.altTitles = {};
-            postData.altTitles.en = postData.enAltTitles.map(x => x.name);
-            postData.altTitles.he = postData.heAltTitles.map(x => x.name);
-        }
-        else {
-            authorItems('keys').forEach(x => {  // we don't want to post these keys since they are only for authors
-                delete postData[x];
-            })
-        }
-
+        postData.altTitles = {};
+        postData.altTitles.en = postData.enAltTitles.map(x => x.name);
+        postData.altTitles.he = postData.heAltTitles.map(x => x.name);
         postData.category = data.catSlug;
         let url = "";
         if (isNew) {
@@ -140,8 +137,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const saveTopic = function () {
         toggle();
         const [postData, url] = prepData();
-        const postJSON = JSON.stringify(postData);
         if (onCreateSuccess) {  // used by TopicSearch.jsx
+            const postJSON = JSON.stringify(postData);
             $.post(url, {"json": postJSON}, function (result) {
                 if (result.error) {
                     toggle();
@@ -157,7 +154,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         else {
             requestWithCallBack({
                 url,
-                data: postJSON,
+                data: postData,
                 setSavingStatus,
                 redirect: () => window.location.href = `/topics/${postData.slug}`
             });
@@ -168,7 +165,11 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-
+    // const handleTitleVariants = (newTitles, field) => {
+    //     const newData = {...data};
+    //     newData[field] = [...newTitles];
+    //     updateData(newData);
+    // }
     let items = ["Title", "Hebrew Title", "English Alternate Titles", "Hebrew Alternate Titles", "Category Menu", "English Description", "Hebrew Description"];
     if (isCategory) {
         items.push("English Short Description");
@@ -183,7 +184,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                             [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
-                                         displayType="topics"/>
+                                         displayType="topics"/>,
+                             // <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>
                             ]
                         } />;
 }

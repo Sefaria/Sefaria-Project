@@ -11,7 +11,6 @@ import sefaria.system.cache as scache
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-subscribe(place.process_obj_with_places,                                   text.Index, "save")
 
 
 # Index Name Change
@@ -75,7 +74,6 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_description_change,                       topic.Topic, "attributeChange", "description")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
-subscribe(place.process_obj_with_places,                                   topic.AuthorTopic, "save")
 
 
 # Terms
