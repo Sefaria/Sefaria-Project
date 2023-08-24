@@ -22,8 +22,8 @@ def chunks(l, n):
 class SefariaSiteMapGenerator(object):
 
     hostnames = {
-        'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
-        'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},
+        'org': {'interfaceLang': 'en', 'hostname':'https://www.indrajala.com'},
+        'org.il': {'interfaceLang': 'he', 'hostname':'https://www.indrajala.com.il'},
     }
     static_urls = [
         "",
