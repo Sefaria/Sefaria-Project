@@ -12,6 +12,7 @@ jobs:
       date: ${{ steps.data.outputs.date }}
       commit: ${{ steps.get-sha.outputs.sha_short }}
       branch: ${{ steps.branch-name.outputs.current_branch }}
+      runner-image: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
     steps:
       - uses: actions/checkout@v2
       - name: Get current date
@@ -160,7 +161,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
+    container: ${{ needs.variables.outputs.runner-image }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -191,7 +192,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
+    container: ${{ needs.variables.outputs.runner-image }}
     steps:
       - name: Run tests
         run: curl "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}"
@@ -201,7 +202,7 @@ jobs:
       - run-tests
       - variables
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
+    container: ${{ needs.variables.outputs.runner-image }}
     permissions:
       contents: 'read'
       id-token: 'write'

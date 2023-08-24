@@ -7,11 +7,19 @@ on:
 concurrency: integration_environment
 
 jobs:
+  secret:
+    runs-on: ubuntu-latest
+    outputs:
+      runner-image: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/containers/hosted-runner:latest
+    steps:
+    - run: echo ""
   environment-cleanup:
+    needs: [ secret ]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
+    container: ${{ needs.secret.outputs.runner-image }}
     steps:
     - name: Setup base utils
       run: |
@@ -22,11 +30,12 @@ jobs:
       run: |
         helm list release -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} | grep integration | xargs -I env -n helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
   database-setup:
+    needs: [ secret ]
     permissions:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
+    container: ${{ needs.secret.outputs.runner-image }}
     steps:
     - name: Authenticate to Google Cloud
       id: auth
