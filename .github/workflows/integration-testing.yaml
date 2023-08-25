@@ -168,7 +168,9 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl helm
+          sudo apt-get install -y --no-install-recommends curl
+      - name: setup helm
+        uses: azure/setup-helm@v3
       - name: Set up yq
         run: |
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
@@ -227,6 +229,8 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl helm
+          sudo apt-get install -y --no-install-recommends curl
+      - name: setup helm
+        uses: azure/setup-helm@v3
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
