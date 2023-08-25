@@ -22,7 +22,7 @@ jobs:
       uses: azure/setup-helm@v3
     - name: cleanup
       run: |
-        helm list release -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} | grep integration | xargs -I env -n 1 helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
+        helm list -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} | grep integration | cut -f 1 -d " " | xargs -I env -n 1 helm delete env -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s  
   database-setup:
     permissions:
       contents: 'read'

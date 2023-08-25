@@ -176,19 +176,8 @@ jobs:
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
           sudo mv yq_linux_amd64 /usr/bin/yq
           chmod +x /usr/bin/yq
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
       - name: Setup kubectl
         uses: azure/setup-kubectl@v3
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
         run: ./build/ci/integration-helm-deploy.sh build/ci/integration-values.yaml
         env:
