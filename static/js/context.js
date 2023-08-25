@@ -22,7 +22,7 @@ const transformValues = (obj, callback) => {
 export function replaceNewLinesWithLinebreaks(content) {
   return transformValues(
     content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n"
+    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
   );
 }
 
