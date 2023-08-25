@@ -153,7 +153,7 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  deploy-test-environment:
+  run-tests:
     needs:
       - build-derived
       - variables
@@ -169,6 +169,8 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends curl unzip
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
       - name: setup helm
         uses: azure/setup-helm@v3
       - name: Set up yq
@@ -176,8 +178,6 @@ jobs:
           curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
           sudo mv yq_linux_amd64 /usr/bin/yq
           chmod +x /usr/bin/yq
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
       - name: Deploy Sandbox
         run: ./build/ci/integration-helm-deploy.sh build/ci/integration-values.yaml
         env:
@@ -185,41 +185,10 @@ jobs:
           BRANCH: "${{ needs.variables.outputs.branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-  run-tests:
-    name: "Run Integration Tests"
-    needs:
-      - deploy-test-environment
-      - variables
-      - deploy-test-environment
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    runs-on: sefaria-integrations
-    steps:
-      - name: Setup base utils
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl
+      - name: Wait for env
+        run: while [[ $(curl -s "nginx-integration-0a50610.${{secrets.DEV_SANDBOX_NAMESPACE}}/healthz") != "Healthy" ]]; do sleep 10; done
+        timeout-minutes: 5
       - name: Run tests
-        run: curl "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}"
-  cleanup:
-    name: "Clean up Integration test environment"
-    needs:
-      - run-tests
-      - variables
-      - run-tests
-    runs-on: sefaria-integrations
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    steps:
-      - name: Setup base utils
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl unzip
-      - name: setup helm
-        uses: azure/setup-helm@v3
+        run: if [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; then exit 1; fi
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s

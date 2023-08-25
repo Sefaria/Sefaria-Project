@@ -36,7 +36,7 @@ ingress:
       port: 80
   secrets:
     originTls: 
-      ref: integration-wildcard-cert
+      ref: integration-wildcard-letsencrypt
 nginx:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-${BRANCH}
