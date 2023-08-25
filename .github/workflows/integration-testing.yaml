@@ -168,7 +168,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl
+          sudo apt-get install -y --no-install-recommends curl unzip
       - name: setup helm
         uses: azure/setup-helm@v3
       - name: Set up yq
@@ -229,7 +229,7 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl
+          sudo apt-get install -y --no-install-recommends curl unzip
       - name: setup helm
         uses: azure/setup-helm@v3
       - name: Uninstall
