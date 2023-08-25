@@ -4,6 +4,7 @@ deployEnv:
 previousServicesCount: "1"
 restore:
   enabled: false
+  cleanup: false
   dynamicName: false
 web:
   containerImage: 
