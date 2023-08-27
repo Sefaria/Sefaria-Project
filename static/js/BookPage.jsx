@@ -1034,13 +1034,13 @@ const SectionTypesBox = function({sections, canEdit, updateParent}) {
   return <div id="sBox" ref={box}>
             {sections.map(function(section, i) {
               if (i === 0) {
-                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
+                return <input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
               }
               else if (canEdit) {
-                return <span><input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
+                return <span><input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section}/><span className="remove" onClick={(i) => remove(i)}>X</span></span>;
               }
               else {
-                return <input onBlur={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
+                return <input onChange={updateSelfAndParent} className={'sectionType'} defaultValue={section}/>;
               }
             })}
             {canEdit ? <span className="add" onClick={add}>Add Section</span> : null}
@@ -1257,31 +1257,31 @@ const EditTextInfo = function({initTitle, close}) {
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
                 <label><InterfaceText>Text Title</InterfaceText></label>
-              <input type="text" id="textTitle" onBlur={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
+              <input type="text" id="textTitle" onChange={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
                 <label><InterfaceText>Hebrew Title</InterfaceText></label>
-                <input id="textTitle" type="text" onBlur={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
+                <input id="textTitle" type="text" onChange={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
                 </div> : null}
 
             <div className="section">
                 <label><InterfaceText>English Description</InterfaceText></label>
-              <textarea className="default" onBlur={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
+              <textarea className="default" onChange={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
             </div>
             <div className="section">
                 <label><InterfaceText>Short English Description</InterfaceText></label>
-              <textarea className="default" onBlur={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
+              <textarea className="default" onChange={(e) => setEnShortDesc(e.target.value)} defaultValue={enShortDesc}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <div className="section">
                   <label><InterfaceText>Hebrew Description</InterfaceText></label>
-                <textarea className="default" onBlur={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
+                <textarea className="default" onChange={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
               </div> : null}
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <div className="section">
                   <label><InterfaceText>Short Hebrew Description</InterfaceText></label>
-                <textarea className="default" onBlur={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
+                <textarea className="default" onChange={(e) => setHeShortDesc(e.target.value)} defaultValue={heShortDesc}/>
               </div> : null}
 
             <div className="section">
@@ -1306,7 +1306,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={initCompDate}/>
+              <br/><input id="compDate" onChange={(e) => validateCompDate(e.target.value)} defaultValue={initCompDate}/>
             </div>
             <div className="section">
               <div><InterfaceText>Place of Composition</InterfaceText></div>

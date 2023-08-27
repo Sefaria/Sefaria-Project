@@ -1185,7 +1185,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 }
 
 const EditorForExistingTopic = ({ toggle, data }) => {
-  const prepAltTitles = (lang) => {
+  const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
     return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
   }
   const initCatSlug = TopicToCategorySlug(data);

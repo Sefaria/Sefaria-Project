@@ -1681,9 +1681,7 @@ def index_api(request, title, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            index = func(apikey["uid"], Index, j, method="API", raw=raw)
-            results = jsonResponse(index.contents(raw=raw))
-            return results
+            return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1695,9 +1693,9 @@ def index_api(request, title, raw=False):
                 pass  # if this is a new text, allow any logged in user to submit
         @csrf_protect
         def protected_index_post(request):
-            index = func(request.user.id, Index, j, raw=raw)
-            results = jsonResponse(index.contents(raw=raw))
-            return results
+            return jsonResponse(
+                func(request.user.id, Index, j, raw=raw).contents(raw=raw)
+            )
 
         return protected_index_post(request)
 
