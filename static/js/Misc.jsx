@@ -1018,7 +1018,7 @@ class ToggleOption extends Component {
 
          //style={this.props.style}
 
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}}) => {
+const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
     let ajaxPayload = {url, type};
     if (type === "POST") {
       ajaxPayload.data = {json: JSON.stringify(data)};

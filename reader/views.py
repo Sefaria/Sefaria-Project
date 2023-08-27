@@ -59,7 +59,6 @@ from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
-from sefaria.model.place import process_obj_with_places
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
@@ -1684,7 +1683,6 @@ def index_api(request, title, raw=False):
                 return jsonResponse({"error": "Unrecognized API key."})
             index = func(apikey["uid"], Index, j, method="API", raw=raw)
             results = jsonResponse(index.contents(raw=raw))
-            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")], dataSource='learning-team-editing-tool')  # create place if new places added
             return results
         else:
             title = j.get("oldTitle", j.get("title"))
@@ -1699,7 +1697,6 @@ def index_api(request, title, raw=False):
         def protected_index_post(request):
             index = func(request.user.id, Index, j, raw=raw)
             results = jsonResponse(index.contents(raw=raw))
-            process_obj_with_places(index, j, [("compPlace", "heCompPlace"), ("pubPlace", "hePubPlace")])  # create place if new places added
             return results
 
         return protected_index_post(request)

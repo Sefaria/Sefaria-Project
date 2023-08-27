@@ -127,7 +127,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     }
     const handleTitleVariants = (newTitles, field) => {
         const newData = {...data};
-        newData[field] = [...newTitles];
+        newData[field] = newTitles.map(x => Object.assign({}, x));
         updateData(newData);
     }
     const preprocess = async () => {
@@ -146,7 +146,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         setValidatingLinks(false);
     }
     const getDropdown = (field, dropdown_data, placeholder) => {
-        const chooseCat = <option key="chooseCategory" value={data.origEra}
+        const chooseCat = <option key={`chooseCategory_${field}`} value={data.origEra}
                             selected={!dropdown_data.includes(data[field])}>{placeholder}</option>;
         return <div id={`dropdown_${field}`} className="categoryChooserMenu">
                           <select key={field} id={field} onChange={setInputValue}>
@@ -169,11 +169,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                 obj = <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>;
                 break;
             case 'textarea':
-                obj = <textarea className="default" id={field} onBlur={setInputValue} defaultValue={data[field]}
+                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
                          placeholder={Sefaria._(placeholder)}/>;
                 break;
             default:
-                obj = <input type='text' id={field} onBlur={setInputValue} defaultValue={data[field]}
+                obj = <input type='text' id={field} onChange={setInputValue} defaultValue={data[field]}
                          placeholder={Sefaria._(placeholder)}/>;
         }
 

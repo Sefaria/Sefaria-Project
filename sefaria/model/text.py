@@ -182,7 +182,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     criteria_field = 'title'
     criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
     track_pkeys = True
-    pkeys = ["title"]
+    pkeys = ["title", "compPlace", "pubPlace"]
 
     required_attrs = [
         "title",

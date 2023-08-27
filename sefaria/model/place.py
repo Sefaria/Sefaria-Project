@@ -49,6 +49,9 @@ class Place(abst.AbstractMongoRecord):
     
     @classmethod 
     def create_new_place(cls, en, he=None):
+        p = Place().load({'key': en})
+        if p:
+            return p
         p = Place({'key': en})
         p.name_group.add_title(en, 'en', True, True)
         if he:
@@ -95,18 +98,21 @@ class PlaceSet(abst.AbstractMongoSet):
             return geojson.FeatureCollection(features)
 
 
-def process_obj_with_places(obj_to_modify, new_obj_dict, keys, dataSource='sefaria'):
-    # for Topics and Indexes, any modification of place attributes should create a new Place()
-    # 'obj_to_modify' is the original object instance and 'new_obj_dict' is a dictionary of the updated data
-    # 'keys' is a list of tuples where each tuple contains english and corresponding hebrew key such as ("birthPlace", "heBirthPlace")
-    for en, he in keys:
-        new_val = new_obj_dict.get(en, None)
-        he_new_val = new_obj_dict.get(he)
+def process_index_place_change(indx, **kwargs):
+    key = kwargs['attr']
+    he_key = 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+    he_new_val = getattr(indx, he_key, '')
+    Place.create_new_place(en=kwargs['new'], he=he_new_val)
+
+def process_topic_place_change(topic_obj, data):
+    keys = ["birthPlace", "deathPlace"]
+    for key in keys:
+        he_key = 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+        he_new_val = data.get(he_key, '')
+        new_val = data.get(key, '')
         if new_val != '':
-            place = Place().load({"key": new_val})
-            if place is None:
-                place = Place.create_new_place(en=new_val, he=he_new_val)
-            obj_to_modify[en] = {'value': place.primary_name('en'), 'dataSource': dataSource}
-            obj_to_modify[he] = {'value': place.primary_name('he'), 'dataSource': dataSource}
-    return obj_to_modify
+            place = Place.create_new_place(en=new_val, he=he_new_val)
+            topic_obj.properties[key] = {"value": place.primary_name('en'), 'dataSource': 'learning-team-editing-tool'}
+        else:
+            topic_obj.properties.pop(key, None)
 

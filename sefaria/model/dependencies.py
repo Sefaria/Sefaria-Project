@@ -11,7 +11,8 @@ import sefaria.system.cache as scache
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-
+subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'compPlace')
+subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'pubPlace')
 
 # Index Name Change
 subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")

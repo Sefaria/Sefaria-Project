@@ -5,7 +5,7 @@ from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
-from sefaria.model.place import process_obj_with_places
+from sefaria.model.place import process_topic_place_change
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
@@ -1052,23 +1052,20 @@ def update_topic_titles(topic_obj, data):
 
 
 def update_authors_data(topic_obj, data, dataSource='learning-team-editing-tool'):
-    # create any new places added to author, then update year and era info
-    keys = [("birthPlace", "heBirthPlace"), ("deathPlace", "heDeathPlace")]
+    # update place info added to author, then update year and era info
     if not hasattr(topic_obj, 'properties'):
         topic_obj.properties = {}
-    topic_obj.properties = process_obj_with_places(topic_obj.properties, data, keys, dataSource=dataSource)
-
+    process_topic_place_change(topic_obj, data)
     topic_obj = update_author_era(topic_obj, data, dataSource='learning-team-editing-tool')
 
     return topic_obj
 
 def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
     for k in ["birthYear", "deathYear"]:
-        year = data.get(k)
-        if year:
-            assert isinstance(year, int) or year.isdigit(), f"'{k}' must be a number but is {year}"
-            year = int(year)
-            topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
+        year = data.get(k, '')  # set to None if blank, otherwise validate number
+        if year != '':
+            assert int(year), f"'{k}' must be a number but is {year}"
+        topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
 
     prev_era = topic_obj.properties.get('era', {}).get('value')
     if data.get('era', '') != '' and prev_era != data['era']:

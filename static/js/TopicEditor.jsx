@@ -29,9 +29,6 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                                                                 .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
                                                                                 || []);
     const [isChanged, setIsChanged] = useState(false);
-    useEffect(() => {
-      console.log('Y has changed', data.enAltTitles);
-    }, [data.enAltTitles]);
 
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
@@ -53,7 +50,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
-    const [catMenu, setCatMenu] =   useState(<div className="section">
+    const catMenu =   <div className="section">
                                             <label><InterfaceText>Parent Topic</InterfaceText></label>
                                             <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
@@ -63,11 +60,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                                     })}
                                                 </select>
                                             </div>
-                                    </div>);
+                                    </div>;
 
     const updateData = function(newData) {
         setIsChanged(true);
         setData(newData);
+        console.log(newData);
     }
     const validate = async function () {
         if (!isChanged) {
@@ -81,10 +79,6 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         if (data.enTitle.length === 0) {
           alert(Sefaria._("Title must be provided."));
           return false;
-        }
-        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras) === -1) {
-            alert(`Era ${data.era} is invalid.`);
-            return false;
         }
         if (sortedSubtopics.length > 0 && !isNew) {
             await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
@@ -100,12 +94,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         switch(type) {
             case 'labels':
                 return Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            ["Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"]
-                            :  ["Birth Place", "Birth Year", "Place of Death", "Death Year"];
+                            ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"]
+                            :  ["English Alternate Titles", "Birth Place", "Birth Year", "Place of Death", "Death Year"];
             case 'keys':
                 return Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            ["birthPlace", "heBirthPlace", "birthYear", "deathPlace", "heDeathPlace", "era"]
-                            : ["birthPlace", "birthYear", "deathPlace", "deathYear"];
+                            ["enAltTitles", "heAltTitles", "birthPlace", "heBirthPlace", "birthYear", "deathPlace", "heDeathPlace", "era"]
+                            : ["enAltTitles", "birthPlace", "birthYear", "deathPlace", "deathYear"];
         }
     }
     const prepData = () => {
@@ -114,16 +108,14 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         if (isCategory) {
             postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
         }
+        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras) === -1) {
+            delete postData.era;
+        }
         postData.altTitles = {};
-        postData.altTitles.en = postData.enAltTitles.map(x => x.name);
+        postData.altTitles.en = postData.enAltTitles.map(x => x.name);  // alt titles implemented using TitleVariants which contains list of objects with 'name' property
         postData.altTitles.he = postData.heAltTitles.map(x => x.name);
         postData.category = data.catSlug;
-        let url = "";
-        if (isNew) {
-          url = "/api/topic/new";
-        }
-        else {
-          url = `/api/topics/${data.origSlug}`;
+        if (!isNew) {
           postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
                     origSlug: data.origSlug};
           if (isCategory) {
@@ -131,46 +123,37 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
           }
         }
 
-        return [postData, url];
+        return postData;
     }
 
     const saveTopic = function () {
         toggle();
-        const [postData, url] = prepData();
-        if (onCreateSuccess) {  // used by TopicSearch.jsx
-            const postJSON = JSON.stringify(postData);
-            $.post(url, {"json": postJSON}, function (result) {
-                if (result.error) {
-                    toggle();
-                    alert(result.error);
-                } else {
-                    const newSlug = result.slug;
+        const postData = prepData();
+        let postURL = isNew ? "/api/topic/new" : `/api/topics/${data.origSlug}`;
+        const postJSON = JSON.stringify(postData);
+        $.post(postURL, {"json": postJSON}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                const newSlug = result.slug;
+                if (onCreateSuccess) {
                     onCreateSuccess(newSlug);
                 }
-            }).fail(function (xhr, status, errorThrown) {
-                alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
-            });
-        }
-        else {
-            requestWithCallBack({
-                url,
-                data: postData,
-                setSavingStatus,
-                redirect: () => window.location.href = `/topics/${postData.slug}`
-            });
-        }
+                else {
+                    window.location.href = `/topics/${newSlug}`;
+                }
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
     }
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-    // const handleTitleVariants = (newTitles, field) => {
-    //     const newData = {...data};
-    //     newData[field] = [...newTitles];
-    //     updateData(newData);
-    // }
-    let items = ["Title", "Hebrew Title", "English Alternate Titles", "Hebrew Alternate Titles", "Category Menu", "English Description", "Hebrew Description"];
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");
@@ -185,7 +168,6 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
                                          displayType="topics"/>,
-                             // <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>
                             ]
                         } />;
 }

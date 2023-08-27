@@ -1095,7 +1095,7 @@ const EditTextInfo = function({initTitle, close}) {
     }
   }
   const [compDate, setCompDate] = useState(index.current?.compDate);
-  const initCompDate = useState(getYearAsStr(compDate));  //init comp date to display
+  const [initCompDate, setInitCompDate] = useState(getYearAsStr(compDate));  //init comp date to display
 
   const toggleInProgress = function() {
     setSavingStatus(savingStatus => !savingStatus);
@@ -1311,27 +1311,27 @@ const EditTextInfo = function({initTitle, close}) {
             <div className="section">
               <div><InterfaceText>Place of Composition</InterfaceText></div>
               <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-              <input id="compPlace" onBlur={setCompPlace} defaultValue={compPlace}/>
+              <input id="compPlace" onChange={(e) => setCompPlace(e.target.value)} defaultValue={compPlace}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC &&
                 <div className="section">
                   <div><InterfaceText>Hebrew Place of Composition</InterfaceText></div><label>
                   <span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-                  <input id="heCompPlace" onBlur={setHeCompPlace} defaultValue={heCompPlace}/>
+                  <input id="heCompPlace" onChange={(e) => setHeCompPlace(e.target.value)} defaultValue={heCompPlace}/>
                 </div>}
             <div className="section">
               <div><InterfaceText>Publication Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <input id="pubDate" onBlur={setPubDate} defaultValue={pubDate}/>
+              <input id="pubDate" onChange={(e) => setPubDate(e.target.value)} defaultValue={pubDate}/>
             </div>
             <div className="section">
               <div><InterfaceText>Place of Publication</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-              <input id="pubPlace" onBlur={setPubPlace} defaultValue={pubPlace}/>
+              <input id="pubPlace" onChange={(e) => setPubPlace(e.target.value)} defaultValue={pubPlace}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC &&
                 <div className="section">
                   <div><InterfaceText>Hebrew Place of Publication</InterfaceText></div>
                   <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
-                  <input id="hePubPlace" onBlur={setHePubPlace} defaultValue={hePubPlace}/>
+                  <input id="hePubPlace" onChange={(e) => setHePubPlace(e.target.value)} defaultValue={hePubPlace}/>
                 </div>}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
