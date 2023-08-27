@@ -338,6 +338,7 @@ import {LinkExcluder} from "./excluder";
 
     function getWebsiteApiUrl() {
         const domain = new URL(getPageUrl()).host;
+        if (!domain) { return null; }
         return `${ns.sefariaUrl}/api/websites/${encodeURIComponent(domain)}`;
     }
 
@@ -361,7 +362,9 @@ import {LinkExcluder} from "./excluder";
     }
 
     function getFullWhitelistSelectors(userWhitelistSelector) {
-        return fetch(getWebsiteApiUrl())
+        const url = getWebsiteApiUrl();
+        if (!url) { return Promise.resolve([]); }
+        return fetch(url)
             .then(handleApiResponse)
             .then(json => {
                 return json.whitelist_selectors || [];
