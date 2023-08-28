@@ -1214,63 +1214,55 @@ div.interfaceLinks-row a {
   margin: 0 0 30px;
   color: #333;
 }
-.interface-hebrew #interruptingMessage h1{
+.interface-hebrew #interruptingMessage h1 {
   font-style: normal;
 }
 
 /* Styles used from previously existing modals */
 
-#highHolidayDonation {
+.line-break {
+  white-space: pre-wrap;
+}
+
+#defaultModal {
     width: 410px;
     max-height: 100%;
     max-width: 100%;
 }
 
-.interface-english #highHolidayDonation {
+.interface-english #defaultModal {
     text-align: left;
 }
 
-.interface-hebrew #highHolidayDonation {
+.interface-hebrew #defaultModal {
     text-align: right;
     direction: rtl;
 }
 
-#highHolidayDonation p {
+#defaultModalBody {
     color: #555;
+    margin-top: 0;
 }
 
-.interface-hebrew p.int-en {
-    display: none;
+#defaultModalBody .reactMarkdown {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 
-#highHolidayDonation p .int-en {
-    font-family: "adobe-garamond-pro", Georgia, serif;
-}
-
-#highHolidayDonation p .int-he {
-    font-family: "adobe-garamond-pro", Georgia, serif;
-    /* font-family: "Heebo", sans-serif; */
-}
-
-#highHolidayDonation p.sub {
+#defaultModal #defaultModalBody .sub {
     color: #999;
     font-size: 12px;
     font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 
-#highHolidayDonation p {
-    margin-top: 0;
-}
-
-#highHolidayDonation .button {
+#defaultModal .button {
     margin-bottom: 20px;
 }
 
-#highHolidayDonation img {
+#defaultModal img {
     max-width: 100%;
 }
 
-#highHolidayDonation .buttons {
+#defaultModal .buttons {
     text-align: right;
 }
 
@@ -5797,7 +5789,7 @@ But not to use a display block directive that might break continuous mode for ot
   margin-bottom: 5px;
   color: #999;
 }
-.textList.singlePanel .versionsTextList .topFiltersInner, .line-break {
+.textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
 }
 .showMoreFilters {

@@ -2159,13 +2159,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    // var interruptingMessage = Sefaria.interruptingMessage ?
-    //   (<InterruptingMessage
-    //       messageName={Sefaria.interruptingMessage.name}
-    //       messageHTML={Sefaria.interruptingMessage.html}
-    //       style={Sefaria.interruptingMessage.style}
-    //       repetition={Sefaria.interruptingMessage.repetition}
-    //       onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
@@ -2195,7 +2188,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               {sefariaModal}
               {communityPagePreviewControls}
               <CookiesNotification />
-              {/* <ExampleComponent /> */}
             </div>
           </div>
         </AdContext.Provider>

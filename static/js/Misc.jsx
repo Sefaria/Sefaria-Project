@@ -60,7 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context, styleClasses}) => {
+const InterfaceText = ({text, html, markdown, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -68,12 +68,11 @@ const InterfaceText = ({text, html, markdown, children, context, styleClasses}) 
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
-   * `styleClasses` are CSS classes that you want applied to all the interface languages
    */
   const contentVariable = html ?
                           html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  let elemclasses = classNames(styleClasses, {"int-en": !isHebrew, "int-he": isHebrew});
+  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
@@ -2089,7 +2088,7 @@ function OnInView({ children, onVisible }) {
 const InterruptingMessage = ({
   onClose,
 }) => {
-  const [timesUp, setTimesUp] = useState(false);
+  const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
   const showDelay = 5000;
@@ -2177,13 +2176,13 @@ const InterruptingMessage = ({
   useEffect(() => {
     if (shouldShow()) {
       const timeoutId = setTimeout(() => {
-        setTimesUp(true);
+        setInterruptingMessageShowDelayHasElapsed(true);
       }, showDelay);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
   }, [strapi.modal]); // execute useEffect when the modal changes
 
-  if (!timesUp) return null;
+  if (!interruptingMessageShowDelayHasElapsed) return null;
   console.log("data for the component");
   console.log(strapi.modal);
 
@@ -2191,7 +2190,7 @@ const InterruptingMessage = ({
     console.log("rendering component");
     return (
       <OnInView onVisible={trackModalImpression}>
-        <div id="interruptingMessageBox" className={timesUp ? "" : "hidden"}>
+        <div id="interruptingMessageBox" className={interruptingMessageShowDelayHasElapsed ? "" : "hidden"}>
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div className="colorLine"></div>
@@ -2205,19 +2204,20 @@ const InterruptingMessage = ({
                 ×
               </div>
               <div id="interruptingMessageContent">
-                <div id="highHolidayDonation">
+                <div id="defaultModal">
                   {strapi.modal.modalHeader.en && (
-                    <h4 className="int-en">{strapi.modal.modalHeader.en}</h4>
+                    <h1 className="int-en">{strapi.modal.modalHeader.en}</h1>
                   )}
                   {strapi.modal.modalHeader.he && (
-                    <h4 className="int-he">{strapi.modal.modalHeader.he}</h4>
+                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
                   )}
-                  <InterfaceText
-                    markdown={replaceNewLinesWithLinebreaks(
-                      strapi.modal.modalText
-                    )}
-                    styleClasses={["line-break"]}
-                  />
+                  <div id="defaultModalBody" className="line-break">
+                    <InterfaceText
+                      markdown={replaceNewLinesWithLinebreaks(
+                        strapi.modal.modalText
+                      )}
+                    />
+                  </div>
                   <div className="buttons">
                     <a
                       className="button int-en"
@@ -2259,7 +2259,7 @@ const InterruptingMessage = ({
 InterruptingMessage.displayName = "InterruptingMessage";
 
 const Banner = ({ onClose }) => {
-  const [timesUp, setTimesUp] = useState(false);
+  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
   const strapi = useContext(StrapiDataContext);
   const showDelay = 5000;
@@ -2340,13 +2340,13 @@ const Banner = ({ onClose }) => {
         if (document.getElementById("s2").classList.contains("headerOnly")) {
           document.body.classList.add("hasBannerMessage");
         }
-        setTimesUp(true);
+        setBannerShowDelayHasElapsed(true);
       }, showDelay);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
   }, [strapi.banner]); // execute useEffect when the modal changes
 
-  if (!timesUp) return null;
+  if (!bannerShowDelayHasElapsed) return null;
   console.log("data for the component");
   console.log(strapi.banner);
 
@@ -2355,10 +2355,10 @@ const Banner = ({ onClose }) => {
     console.log(strapi.banner.bannerText);
     return (
       <OnInView onVisible={trackBannerImpression}>
-        <div id="bannerMessage" className={timesUp ? "" : "hidden"}>
+        <div id="bannerMessage" className={bannerShowDelayHasElapsed ? "" : "hidden"}>
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
-              <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.banner.bannerText)} styleClasses={['line-break']} />
+              <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.banner.bannerText)} />
             </div>
             <div id="bannerButtonBox">
               <a
