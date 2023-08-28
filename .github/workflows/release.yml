@@ -5,7 +5,9 @@ on:
       chart_version:
         type: string
         required: true
-        default: ${{ vars.CHART_VERSION }}
+        default: current
+        description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
+
 jobs:
   semantic-release:
     runs-on: ubuntu-latest

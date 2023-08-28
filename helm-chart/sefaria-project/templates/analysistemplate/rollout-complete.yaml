@@ -28,7 +28,7 @@ spec:
                         -X
                         POST
                         --data-urlencode
-                        'payload={"channel": "#engineering", "username": "Deployment Status", "text": "$ENV revision $REVISION has deployed version $VERSION", "icon_emoji": ":globe_with_meridians:"}'
+                        'payload={"channel": "#'$CHANNEL'", "username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION'", "icon_emoji": ":globe_with_meridians:"}'
                         $SLACK_URL 
                         ||
                         /bin/true
@@ -44,4 +44,9 @@ spec:
                           secretKeyRef:
                             name: {{ template "sefaria.secrets.slackWebhook" . }}
                             key: slack-webhook
+                      - name: CHANNEL
+                        valueFrom:
+                          secretKeyRef:
+                            name: {{ template "sefaria.secrets.slackWebhook" . }}
+                            key: channel
                 restartPolicy: Never

@@ -1004,9 +1004,14 @@ Sefaria = extend(Sefaria, {
             }, error);
     });
   },
-  isImage: function(textChunk) {
-    const pattern = /<img\b[^>]*>/i;
-    return pattern.test(textChunk);
+  isFullSegmentImage: function(text) {
+    /**
+     * Is `text` a segment with only an image
+     * To distinguish from inline images
+     * Returns `true` if yes.
+     */
+    const pattern = /^\s*<img\b[^>]*>\s*$/i;
+    return pattern.test(text);
   },
   getRefFromCache: function(ref) {
     if (!ref) return null;
