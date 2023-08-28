@@ -2224,7 +2224,7 @@ const InterruptingMessage = ({
                       target="_blank"
                       href={strapi.modal.buttonURL.en}
                       onClick={() => {
-                        closeModal("donate_button_clicked");
+                        closeModal("modal_button_clicked");
                       }}
                     >
                       <span className="int-en">
@@ -2236,7 +2236,7 @@ const InterruptingMessage = ({
                       target="_blank"
                       href={strapi.modal.buttonURL.he}
                       onClick={() => {
-                        closeModal("donate_button_clicked");
+                        closeModal("modal_button_clicked");
                       }}
                     >
                       <span className="int-he">
