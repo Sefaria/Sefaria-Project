@@ -2092,7 +2092,6 @@ const InterruptingMessage = ({
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const showDelay = strapi.modal.showDelay * 1000;
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
     localStorage.setItem("modal_" + modalName, "true");
@@ -2178,7 +2177,7 @@ const InterruptingMessage = ({
     if (shouldShow()) {
       const timeoutId = setTimeout(() => {
         setInterruptingMessageShowDelayHasElapsed(true);
-      }, showDelay);
+      }, strapi.modal.showDelay * 1000);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
   }, [strapi.modal]); // execute useEffect when the modal changes
@@ -2263,7 +2262,6 @@ const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const showDelay = strapi.banner.showDelay * 1000;
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
     localStorage.setItem("banner_" + bannerName, "true");
@@ -2342,7 +2340,7 @@ const Banner = ({ onClose }) => {
           document.body.classList.add("hasBannerMessage");
         }
         setBannerShowDelayHasElapsed(true);
-      }, showDelay);
+      }, strapi.banner.showDelay * 1000);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
   }, [strapi.banner]); // execute useEffect when the modal changes
