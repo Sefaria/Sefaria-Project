@@ -23,7 +23,6 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {AdContext} from "./context";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
