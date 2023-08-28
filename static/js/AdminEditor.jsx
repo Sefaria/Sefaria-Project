@@ -173,7 +173,8 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                          placeholder={Sefaria._(placeholder)}/>;
                 break;
             default:
-                obj = <input type='text' id={field} onChange={setInputValue} defaultValue={data[field]}
+                const inputType = field.includes('Year') ? 'number' : 'text';
+                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
                          placeholder={Sefaria._(placeholder)}/>;
         }
 

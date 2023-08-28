@@ -1321,7 +1321,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div>}
             <div className="section">
               <div><InterfaceText>Publication Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <input id="pubDate" onChange={(e) => setPubDate(e.target.value)} defaultValue={pubDate}/>
+              <input type='number' id="pubDate" onChange={(e) => setPubDate(e.target.value)} defaultValue={pubDate}/>
             </div>
             <div className="section">
               <div><InterfaceText>Place of Publication</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>

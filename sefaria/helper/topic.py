@@ -713,7 +713,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         else:
             sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
             includedRefs = []
-            for tref in sheet['includedRefs']:                
+            for tref in sheet['includedRefs']:
                 try:
                     oref = get_ref_safely(tref)
                     if oref is None:
@@ -913,7 +913,7 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
             continue
         if getattr(oref.index, 'authors', None) is None: continue
         for author in oref.index.authors:
-            by_author[author] += [rd.contents()]    
+            by_author[author] += [rd.contents()]
     for author, rd_list in by_author.items():
         rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
         if len(rd_list) == 0: continue
@@ -1051,20 +1051,18 @@ def update_topic_titles(topic_obj, data):
     return topic_obj
 
 
-def update_authors_data(topic_obj, data, dataSource='learning-team-editing-tool'):
+def update_authors_place_and_time(topic_obj, data, dataSource='learning-team-editing-tool'):
     # update place info added to author, then update year and era info
     if not hasattr(topic_obj, 'properties'):
         topic_obj.properties = {}
     process_topic_place_change(topic_obj, data)
-    topic_obj = update_author_era(topic_obj, data, dataSource='learning-team-editing-tool')
+    topic_obj = update_author_era(topic_obj, data, dataSource=dataSource)
 
     return topic_obj
 
 def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
     for k in ["birthYear", "deathYear"]:
-        year = data.get(k, '')  # set to None if blank, otherwise validate number
-        if year != '':
-            assert int(year), f"'{k}' must be a number but is {year}"
+        year = data.get(k, '')
         topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
 
     prev_era = topic_obj.properties.get('era', {}).get('value')
@@ -1088,7 +1086,7 @@ def update_topic(topic_obj, **kwargs):
 
     update_topic_titles(topic_obj, kwargs)
     if kwargs.get('catSlug') == 'authors':
-        topic_obj = update_authors_data(topic_obj, kwargs)
+        topic_obj = update_authors_place_and_time(topic_obj, kwargs)
 
     if 'category' in kwargs:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
@@ -1244,7 +1242,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
-    if lang in link.order['availableLangs']:   
+    if lang in link.order['availableLangs']:
         link.order['availableLangs'].remove(lang)
     if lang in link.order['curatedPrimacy']:
         link.order['curatedPrimacy'].pop(lang)

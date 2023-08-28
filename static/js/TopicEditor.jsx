@@ -90,18 +90,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
          const postCategoryData = {topics: sortedSubtopics};
          requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
     }
-    const authorItems = (type) => {
-        switch(type) {
-            case 'labels':
-                return Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"]
-                            :  ["English Alternate Titles", "Birth Place", "Birth Year", "Place of Death", "Death Year"];
-            case 'keys':
-                return Sefaria._siteSettings.TORAH_SPECIFIC ?
-                            ["enAltTitles", "heAltTitles", "birthPlace", "heBirthPlace", "birthYear", "deathPlace", "heDeathPlace", "era"]
-                            : ["enAltTitles", "birthPlace", "birthYear", "deathPlace", "deathYear"];
-        }
-    }
+
     const prepData = () => {
         let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
             "heTitle": data.heTitle};
@@ -112,7 +101,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             delete postData.era;
         }
         postData.altTitles = {};
-        postData.altTitles.en = postData.enAltTitles.map(x => x.name);  // alt titles implemented using TitleVariants which contains list of objects with 'name' property
+         // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
+        postData.altTitles.en = postData.enAltTitles.map(x => x.name);
         postData.altTitles.he = postData.heAltTitles.map(x => x.name);
         postData.category = data.catSlug;
         if (!isNew) {
@@ -159,7 +149,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         items.push("Hebrew Short Description");
     }
     if (isAuthor) {
-        authorItems('labels').forEach(x => items.push(x));
+        const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
+        authorItems.forEach(x => items.push(x));
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}

@@ -62,7 +62,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_data
+                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3109,7 +3109,7 @@ def add_new_topic_api(request):
             new_link.save()
 
         if data["category"] == 'authors':
-            t = update_authors_data(t, data)
+            t = update_authors_place_and_time(t, data)
 
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this

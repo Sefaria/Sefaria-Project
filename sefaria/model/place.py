@@ -49,10 +49,10 @@ class Place(abst.AbstractMongoRecord):
     
     @classmethod 
     def create_new_place(cls, en, he=None):
-        p = Place().load({'key': en})
+        p = cls().load({'key': en})
         if p:
             return p
-        p = Place({'key': en})
+        p = cls({'key': en})
         p.name_group.add_title(en, 'en', True, True)
         if he:
             p.name_group.add_title(he, 'he', True, True)
