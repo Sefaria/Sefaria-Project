@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, {useEffect, useRef, useState, useContext} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
 import {CollectionsModal} from "./CollectionsWidget";
@@ -69,8 +69,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const contentVariable = html ?
-                          html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
+  const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
@@ -118,12 +117,12 @@ const DonateLink = ({children, classes, source, link}) => {
   source = source || "undefined";
   const linkOptions = {
     default: {
-      en: "https://donate.sefaria.org/en",
-      he: "https://donate.sefaria.org/he"
+      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
     },
     sustainer: {
-      en: "https://donate.sefaria.org/sustainers",
-      he: "https://donate.sefaria.org/sustainershe"
+      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
     },
     dayOfLearning: {
       en: "https://donate.sefaria.org/sponsor",
@@ -1075,11 +1074,11 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
         const bottom = i === buttonsToDisplay.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
-          <AdminEditorButton 
-            text={buttonText} 
-            top={top} 
+          <AdminEditorButton
+            text={buttonText}
+            top={top}
             bottom={bottom}
-            toggleAddingTopics={toggleAddingTopics} 
+            toggleAddingTopics={toggleAddingTopics}
           />
         );
       })}
@@ -1108,7 +1107,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};     
+                          "edit": ["Edit", toggleEditCategory]};
 
 
   let wrapper = "";
@@ -1128,9 +1127,9 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       wrapper = "headerWithAdminButtons";
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
-        buttonOptions={buttonOptions} 
-        buttonsToDisplay={buttonsToDisplay} 
-        adminClasses={adminClasses} 
+        buttonOptions={buttonOptions}
+        buttonsToDisplay={buttonsToDisplay}
+        adminClasses={adminClasses}
       />;
     }
   }
@@ -1144,7 +1143,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
      */
     const reorderingSources = data.length !== 0;
     const _filterAndSortRefs = (refs) => {
-        if (!refs) {   
+        if (!refs) {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
@@ -1195,11 +1194,11 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDesc: data.description || {"en": "", "he": ""},
     origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
   };
-  
+
   const origWasCat = "displays-above" in data?.links;
-  
+
   return (
-    <TopicEditor 
+    <TopicEditor
       origData={origData}
       origWasCat={origWasCat}
       onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
@@ -1223,9 +1222,9 @@ const EditorForExistingCategory = ({ toggle, data }) => {
   };
 
   return (
-    <CategoryEditor 
-      origData={origData} 
-      close={toggle} 
+    <CategoryEditor
+      origData={origData}
+      close={toggle}
       origPath={data.slice(0, -1)}
     />
   );
@@ -1448,14 +1447,16 @@ SaveButton.propTypes = {
 };
 
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => {
+  const analyticsContext = useContext(AdContext)
+  return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={onClick}
+    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
-);
+)};
 
 
 class FollowButton extends Component {

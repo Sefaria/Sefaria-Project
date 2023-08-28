@@ -1,5 +1,6 @@
 import Sefaria from './sefaria';
-
+const GERESH = '\u05F3';
+const GERSHAYIM = '\u05F4';
 class Hebrew {
   static decodeHebrewNumeral(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value.
@@ -20,19 +21,109 @@ class Hebrew {
   /**
    * Encodes an integer "Daf" and returns a string encoding it as a Hebrew numeral.
    * @param {number} n - The integer
-   * @returns {string} - Hebrew numeral
+   * @returns {number[]} - Hebrew numeral
    */
-  static encodeHebrewNumeral(n) {
-    n = parseInt(n);
-    if (n >= 1300) {
-      return n;
+  static breakIntMagnitudes(n, start=null) {
+    /* Accepts an integer and an optional integer (multiple of 10) for at what order of
+	magnitude to start breaking apart the integer.  If no option "start" is provided,
+	function will determine the size of the input integer and start that the largest order
+	of magnitude.
+	Returns a big-endian list of the various orders of magnitude, by 10s, broken apart.
+
+	breakIntMagnitudes(1129, 100)
+	[1100, 20, 9]
+
+	breakIntMagnitudes(2130)
+	[2000, 100, 30, 0]
+
+	breakIntMagnitudes(15000)
+	[10000, 5000, 0, 0, 0]
+     */
+    if (!!start) {
+      if (!(start % 10 === 0 || start === 1)) {
+        throw new TypeError(`Argument 'start' must be 1 or divisible by 10, ${start} provided.`);
+      }
+    } else {
+      start = Math.pow(10, Math.floor(Math.log10(n)));
     }
 
-    var values = this.hebrewNumerals;
+    if (start === 1) {
+      return [n];
+    } else {
+      const thisIntMagnitude = Math.floor(n / start) * start;
+      const nextIntMagnitude = this.breakIntMagnitudes(n - Math.floor(n / start) * start, start = Math.floor(start / 10));
+      return [thisIntMagnitude].concat(nextIntMagnitude);
+    }
+  }
+  static getChunks (list, chunkSize) {
+    return list.reduce((all, one, i) => {
+      const ch = Math.floor(i/chunkSize);
+      all[ch] = [].concat((all[ch]||[]), one);
+      return all
+    }, [])
+  }
+  static sanitize (inputString, punctuation=true) {
+    const replacementPairs = [
+        [/\u05d9\u05d4/g, '\u05d8\u05d5'], //15
+        [/\u05d9\u05d5/g, '\u05d8\u05d6'], //16
+        [/\u05e8\u05e2\u05d4/g, '\u05e2\u05e8\u05d4'], //275
+        [/\u05e8\u05e2\u05d1/g, '\u05e2\u05e8\u05d1'], //272
+        [/\u05e8\u05e2/g, '\u05e2\u05e8'], //270
+    ];
 
-    var heb = "";
+    replacementPairs.forEach(function(pair) {
+        inputString = inputString.replace(pair[0], pair[1]);
+    });
+
+    if (punctuation) {
+        // add gershayim at the end if longer than one character
+        if (inputString.length > 1) {
+            // if a geresh is not one of the last two items in the string
+            if (this.right(inputString, 2).indexOf(GERESH) < 0) {
+                inputString = inputString.substr(0, inputString.length - 1) + GERSHAYIM + this.right(inputString, 1);
+            }
+        } else {
+            inputString += GERESH;
+        }
+    }
+
+    return inputString;
+  };
+  static right(string, numChars) {
+    'use strict';
+    return string.slice(string.length - numChars);
+  };
+  static encodeLargeHebrewNumeral(n, punctuation=true) {
+    // Break into magnitudes, then break into thousands buckets, big-endian
+    let ret = this.breakIntMagnitudes(n).reverse();
+    ret = this.getChunks(ret, 3);
+
+    // Eliminate the orders of magnitude in preparation for being encoded
+    ret = ret.map((arr, index) => {
+       const sum = arr.reduce(function(a, b){
+          return a + b;
+      }, 0);
+      return parseInt(sum * Math.pow(10, -3 * index));
+    });
+
+    // encode and join together, separating thousands with geresh
+    ret = ret.map(x => this.encodeHebrewNumeral(x));
+    ret = ret.reverse().join(GERESH);
+    ret = this.sanitize(ret, punctuation);
+    return ret;
+  }
+
+  static encodeHebrewNumeral(n, punctuation=true) {
+    n = parseInt(n);
+    if (n >= 1300) {
+      return this.encodeLargeHebrewNumeral(n, punctuation=punctuation);
+    }
+
+    const values = this.hebrewNumerals;
+
+    let heb = "";
     if (n >= 100) {
-      var hundreds = n - (n % 100);
+      const hundreds = n - (n % 100);
       heb += values[hundreds];
       n -= hundreds;
     }
@@ -41,7 +132,7 @@ class Hebrew {
       heb += values[n];
     } else {
       if (n >= 10) {
-        var tens = n - (n % 10);
+        const tens = n - (n % 10);
         heb += values[tens];
         n -= tens;
       }
