@@ -12,6 +12,7 @@ jobs:
       date: ${{ steps.data.outputs.date }}
       commit: ${{ steps.get-sha.outputs.sha_short }}
       branch: ${{ steps.branch-name.outputs.current_branch }}
+      runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
     steps:
       - uses: actions/checkout@v2
       - name: Get current date
@@ -152,7 +153,7 @@ jobs:
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  deploy-test-environment:
+  run-tests:
     needs:
       - build-derived
       - variables
@@ -160,7 +161,6 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -168,13 +168,16 @@ jobs:
         run: |
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends helm
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
+          sudo apt-get install -y --no-install-recommends curl unzip
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      - name: setup helm
+        uses: azure/setup-helm@v3
+      - name: Set up yq
+        run: |
+          curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
+          sudo mv yq_linux_amd64 /usr/bin/yq
+          chmod +x /usr/bin/yq
       - name: Deploy Sandbox
         run: ./build/ci/integration-helm-deploy.sh build/ci/integration-values.yaml
         env:
@@ -182,29 +185,10 @@ jobs:
           BRANCH: "${{ needs.variables.outputs.branch }}"
           PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
           NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-  run-tests:
-    name: "Run Integration Tests"
-    needs:
-      - deploy-test-environment
-      - variables
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
-    steps:
+      - name: Wait for env
+        run: while [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; do sleep 10; done
+        timeout-minutes: 5
       - name: Run tests
-        run: curl "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}"
-  cleanup:
-    name: "Clean up Integration test environment"
-    needs:
-      - run-tests
-      - variables
-    runs-on: sefaria-integrations
-    container: us-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT}}/containers/hosted-runner:latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    steps:
+        run: if [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; then exit 1; fi
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
