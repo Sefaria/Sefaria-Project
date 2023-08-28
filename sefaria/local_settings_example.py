@@ -1,6 +1,7 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 from datetime import timedelta
+import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
 import os
@@ -313,3 +314,9 @@ structlog.configure(
 
 SENTRY_DSN = None
 CLIENT_SENTRY_DSN = None
+
+# Fail gracefully when decorator conditional_graceful_exception on function. This should be set to True on production
+# Example: If a text or ref cannot be properly loaded, fail gracefully and let the server continue to run
+FAIL_GRACEFULLY = False
+if "pytest" in sys.modules:
+    FAIL_GRACEFULLY = False

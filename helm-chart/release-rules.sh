@@ -38,17 +38,18 @@ plugins:
     - "successComment": false
 EOF
 export branch=$(git branch --show-current)
+export channel=$(echo $branch | awk '{print tolower($0)}' | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|' | sed 's/[^a-z0-9\.\-]//g')
 if [[ $branch != "master" ]]; then
 cat << EOF >> helm-chart/.releaserc
 branches: [
-    {name: 'master'},
-    {name: '${branch}', prerelease: true}
+    {"name": "master"},
+    {"name": "${branch}", "prerelease": "$channel"}
   ]
 EOF
 else
 cat << EOF >> helm-chart/.releaserc
 branches: [
-    {name: 'master'}
+    {"name": "master"}
   ]
 EOF
 fi

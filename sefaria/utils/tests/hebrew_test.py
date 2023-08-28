@@ -71,9 +71,28 @@ class TestNikkudUtils():
         assert h.strip_nikkud('הַדְּבָרִים אֲשֶׁר') == 'הדברים אשר'
         assert h.strip_nikkud("הַמּוֹצִיא בְמִסְפָּר צְבָאָם לְכֻלָּם בְּשֵׁם יִקְרָא") == "המוציא במספר צבאם לכלם בשם יקרא"
 
-class TestIsHebrew():
-    def test_is_hebrew(self):
-        assert h.is_hebrew("ג")
+
+class TestIsHebrewFuncs:
+    """
+    Tests the various functions that check for the amount of Hebrew in a string
+    """
+    def test_has_hebrew(self):
+        assert h.has_hebrew("ג")
+        assert h.has_hebrew("שלום world")
+        assert not h.has_hebrew("hello world")
+
+    def test_is_all_hebrew(self):
+        assert h.is_all_hebrew("גגגדגחח")
+        assert not h.is_all_hebrew("שלום world")
+
+    def test_is_mostly_hebrew(self):
+        assert h.is_mostly_hebrew("שלום עולם")
+        assert not h.is_mostly_hebrew("שלום world")  # exactly one less than half
+        assert not h.is_mostly_hebrew("שלוגם world")  # exactly half
+        assert h.is_mostly_hebrew("שלוגם word")  # exactly one more than half
+        assert not h.is_mostly_hebrew("word לשוםג", len_to_check=4)
+        assert h.is_mostly_hebrew("גשגכדגכשדגכדלשוםג", len_to_check=4)
+
 
 class TestGematria():
     def test_simple_gematria(self):
