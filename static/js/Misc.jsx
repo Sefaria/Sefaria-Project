@@ -2055,7 +2055,7 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-// Write comments explaining how this works
+
 function OnInView({ children, onVisible }) {
   const elementRef = useRef();
 
@@ -2091,7 +2091,7 @@ const InterruptingMessage = ({
   const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const showDelay = 5000;
+  const showDelay = strapi.modal.showDelay * 1000;
 
   const markModalAsHasBeenInteractedWith = (modalName) => {
     localStorage.setItem("modal_" + modalName, "true");
@@ -2262,7 +2262,7 @@ const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
   const strapi = useContext(StrapiDataContext);
-  const showDelay = 5000;
+  const showDelay = strapi.banner.showDelay * 1000;
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
     localStorage.setItem("banner_" + bannerName, "true");

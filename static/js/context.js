@@ -66,6 +66,7 @@ function StrapiDataProvider({ children }) {
                 bannerText
                 buttonText
                 buttonURL
+                showDelay
                 createdAt
                 locale
                 localizations {
@@ -100,6 +101,7 @@ function StrapiDataProvider({ children }) {
                 internalModalName
                 buttonText
                 buttonURL
+                showDelay
                 createdAt
                 locale
                 localizations {
