@@ -5,6 +5,7 @@ from . import schema
 from sefaria.system.exceptions import InputError
 import structlog
 from geopy.geocoders import Nominatim
+from sefaria.utils.hebrew import get_he_key
 logger = structlog.get_logger(__name__)
 
 class Place(abst.AbstractMongoRecord):
@@ -97,17 +98,17 @@ class PlaceSet(abst.AbstractMongoSet):
         else:
             return geojson.FeatureCollection(features)
 
-
 def process_index_place_change(indx, **kwargs):
     key = kwargs['attr']
-    he_key = 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+    he_key = get_he_key(key)
     he_new_val = getattr(indx, he_key, '')
-    Place.create_new_place(en=kwargs['new'], he=he_new_val)
+    if kwargs['new'] != '':
+        Place.create_new_place(en=kwargs['new'], he=he_new_val)
 
 def process_topic_place_change(topic_obj, data):
     keys = ["birthPlace", "deathPlace"]
     for key in keys:
-        he_key = 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+        he_key = get_he_key(key)
         he_new_val = data.get(he_key, '')
         new_val = data.get(key, '')
         if new_val != '':
