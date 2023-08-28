@@ -1,4 +1,4 @@
-{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
+{{- if .Values.restore.cleanup }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -31,12 +31,11 @@ data:
       URI="${URI}@"
 
     fi
-    {{- if eq .Values.sandbox "true" }}
-    DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
-    {{- else }}
-    DATABASE="${SEFARIA_DB}"
-    {{- end }}
-
+    {{- if .Values.restore.dynamicName }}
+    DB_NAME="$SEFARIA_DB-{{ .Values.deployEnv }}"
+    {{ else }}
+    DB_NAME=$SEFARIA_DB
+    {{ end }}
 
     URI="${URI}${MONGO_HOST}/${DATABASE}?ssl=false&authSource=admin"
 
@@ -45,6 +44,12 @@ data:
     fi
 
     mongo "$URI" <<EOF
+
+    mongo --host $MONGO_HOST $DB_NAME <<EOF
+    db.dropDatabase();
+    EOF
+
+    mongo --host $MONGO_HOST $APSCHEDULER_NAME <<EOF
     db.dropDatabase();
     EOF
 {{- end }}

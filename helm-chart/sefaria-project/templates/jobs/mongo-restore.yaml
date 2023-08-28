@@ -1,8 +1,7 @@
 # NB: This assumes an already-functioning mongo instance. 
 # Connection to Mongo should exist in .Values.secrets.localSettings.ref'd secret
-#
 ---
-{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
+{{- if .Values.restore.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:

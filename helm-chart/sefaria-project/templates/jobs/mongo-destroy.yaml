@@ -1,9 +1,6 @@
 # NB: This assumes an already-functioning mongo instance.
-# Parameters:
-# MONGO_HOST: Mongo hostname
-# SANDBOX_NAME: The name of the table created by this job
 ---
-{{- if and (eq .Values.sandbox "true") .Values.restore.cleanup  }}
+{{- if .Values.restore.cleanup }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -26,6 +23,18 @@ spec:
               name: {{ .Values.secrets.localSettings.ref }}
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-web-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-web-secrets-{{ .Values.deployEnv }}
               optional: true
         command: ["/script/destroy-mongo.sh"]
         volumeMounts:

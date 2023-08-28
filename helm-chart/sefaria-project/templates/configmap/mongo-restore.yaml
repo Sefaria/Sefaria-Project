@@ -1,4 +1,4 @@
-{{- if and (eq .Values.sandbox "true") .Values.restore.enabled }}
+{{- if .Values.restore.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -41,7 +41,7 @@ data:
     URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
 
-    {{- if eq .Values.sandbox "true" }}
+    {{- if .Values.restore.dynamicName }}
     DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
     {{- else }}
     DATABASE="${SEFARIA_DB}"

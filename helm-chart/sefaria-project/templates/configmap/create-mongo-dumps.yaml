@@ -1,4 +1,4 @@
-{{- if eq .Values.backup.mongo.enabled true }}
+{{- if .Values.backup.mongo.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -10,7 +10,7 @@ data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
 
-    {{- if eq .Values.sandbox "true" }}
+    {{- if .Values.restore.dynamicName }}
     DATABASE="${SEFARIA_DB}-{{ .Values.deployEnv | quote }}"
     {{- else }}
     DATABASE="${SEFARIA_DB}"
