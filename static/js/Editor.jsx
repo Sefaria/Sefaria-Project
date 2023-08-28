@@ -2563,7 +2563,7 @@ const SefariaEditor = (props) => {
         () => {
             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
             for (const [node, path] of nodes) {
-                if (node.text) {
+                if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
                         Transforms.insertText(editor, newStr, { at: path })
