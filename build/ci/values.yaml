@@ -49,8 +49,6 @@ secrets:
     ref: backup-manager
   slackWebhook: 
     ref: slack-webhook-helm
-  mongo:
-    ref: mongo-credentials
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {}
