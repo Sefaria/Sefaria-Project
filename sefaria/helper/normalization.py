@@ -86,7 +86,6 @@ class AbstractNormalizer:
     def get_mapping_after_normalization(self, text, removal_list=None, reverse=False, **kwargs):
         """
         text - unnormalized text
-        find_text_to_remove - function which takes text as param and return list of tuples. each tuple is of form ((start, end), replacement) where start and end are indices in unnormalized string and replacement is the string that will replace text at these indices
         removal_list - instead of passing `find_text_to_remove`, you can pass an already calculated list of tuples. should be in same format as return value of find_text_to_remove
         reverse - bool. If True, then will return mapping from unnormalized string to normalized string
 
@@ -109,7 +108,10 @@ class AbstractNormalizer:
                 # must be match object
                 start, end = removal.start(), removal.end()
             normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
-            total_removed += (end - start - len(subst))
+            temp_removed = end - start - len(subst)
+            if temp_removed == 0:
+                continue
+            total_removed += temp_removed
             removal_map[normalized_text_index] = total_removed
         return removal_map
 
@@ -288,14 +290,16 @@ class NormalizerComposer(AbstractNormalizer):
             inds_are_final = True
             for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds[last_curr:]):
                 if new_inds[1] <= curr_inds[0]:
-                    # curr_inds are past new_inds indicating rest of curr_inds will also be past. break early.
-                    break
+                    # new_inds are before curr_inds and not overlapping. easy case.
+                    inds_are_final = True
                 elif curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
-                    # if earlier inds are a subset of later inds, later inds override
+                    # if curr_inds is a full subset of new_inds, new_inds override
                     merged_inds.remove((curr_inds, curr_repl))
+                    last_curr += 1
                 elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
-                    # if later inds overlap and earlier inds are not a subset, merge
+                    # if new_inds overlap and curr_inds are not a subset, merge
                     if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
+                        # new_inds is a full subset of curr_inds
                         merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
                                                                                                 curr_inds[1]:]
                         merged_inds[i+last_curr] = (curr_inds, merged_repl)
@@ -305,7 +309,6 @@ class NormalizerComposer(AbstractNormalizer):
                     else:
                         # overlap that's not a subset. more complicated merge that I don't want to deal with now
                         pass
-                last_curr += 1
             if inds_are_final:
                 merged_inds += [(new_inds, new_repl)]
         return merged_inds
