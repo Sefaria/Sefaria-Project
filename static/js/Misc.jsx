@@ -2056,32 +2056,43 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-
+// Have a callback function run when its children (element or nested group of elements) become fully visible within the viewport
 function OnInView({ children, onVisible }) {
-  const elementRef = useRef();
+  // Get a mutable reference object for the child and/or children to be rendered within this component wrapped in a div
+  // The reference is attached to the DOM element returned from this component
+  // This allows us to access properties of the DOM element directly
+  const elementRef = useRef(); 
 
   useEffect(() => {
     const observer = new IntersectionObserver(
+      // Callback function will be invoked whenever the visibility of the observed element changes
       (entries) => {
         const [entry] = entries;
+        // Check if the observed element is intersecting with the viewport (it's visible)
+        // Invoke provided prop callback for analytics purposes
         if (entry.isIntersecting) {
           onVisible();
         }
       },
+      // The entire element must be entirely visible
       { threshold: 1 }
     );
 
+    // Start observing the element, but wait until the element exists
     if (elementRef.current) {
       observer.observe(elementRef.current);
     }
 
+    // Cleanup when the component unmounts
     return () => {
+      // Stop observing the element when it's no longer on the screen and can't be visible
       if (elementRef.current) {
         observer.unobserve(elementRef.current);
       }
     };
   }, [onVisible]);
 
+  // Attach elementRef to a div wrapper and pass the children to be rendered within it
   return <div ref={elementRef}>{children}</div>;
 }
 
@@ -2116,11 +2127,7 @@ const InterruptingMessage = ({
     });
   };
 
-  // Need to figure out caching for Strapi so multiple queries aren't made on different page loads
-  // Use user context to determine whether this is valid for a user?
-  // Maybe user context should be used to find if there's a compatible modal
   const shouldShow = () => {
-    console.log("checking whether to show modal or not");
     if (!strapi.modal) return false;
     if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
     if (
@@ -2129,7 +2136,6 @@ const InterruptingMessage = ({
       )
     )
       return false;
-    console.log('lets check a modal');
 
     let shouldShowModal = false;
 
@@ -2162,7 +2168,6 @@ const InterruptingMessage = ({
 
   const closeModal = (eventDescription) => {
     if (onClose) onClose();
-    console.log(eventDescription);
     markModalAsHasBeenInteractedWith(
       strapi.modal.internalModalName
     );
@@ -2183,11 +2188,8 @@ const InterruptingMessage = ({
   }, [strapi.modal]); // execute useEffect when the modal changes
 
   if (!interruptingMessageShowDelayHasElapsed) return null;
-  console.log("data for the component");
-  console.log(strapi.modal);
 
   if (!hasInteractedWithModal) {
-    console.log("rendering component");
     return (
       <OnInView onVisible={trackModalImpression}>
         <div id="interruptingMessageBox" className={interruptingMessageShowDelayHasElapsed ? "" : "hidden"}>
@@ -2279,7 +2281,6 @@ const Banner = ({ onClose }) => {
   };
 
   const trackBannerImpression = () => {
-    console.log("We've got visibility!");
     gtag("event", "banner_viewed", {
       campaignID: strapi.banner.internalBannerName,
       adType: "banner",
@@ -2287,7 +2288,6 @@ const Banner = ({ onClose }) => {
   };
 
   const shouldShow = () => {
-    console.log("checking whether to show banner or not");
     if (!strapi.banner) return false;
     if (Sefaria.interfaceLang === 'hebrew' && !strapi.banner.locales.includes('he')) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
@@ -2321,7 +2321,6 @@ const Banner = ({ onClose }) => {
 
   const closeBanner = (eventDescription) => {
     if (onClose) onClose();
-    console.log(eventDescription);
     markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
     setHasInteractedWithBanner(true);
     trackBannerInteraction(
@@ -2332,7 +2331,6 @@ const Banner = ({ onClose }) => {
 
   useEffect(() => {
     if (shouldShow()) {
-      console.log("reaching here...");
 
       const timeoutId = setTimeout(() => {
         // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
@@ -2343,15 +2341,11 @@ const Banner = ({ onClose }) => {
       }, strapi.banner.showDelay * 1000);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }, [strapi.banner]); // execute useEffect when the modal changes
+  }, [strapi.banner]); // execute useEffect when the banner changes
 
   if (!bannerShowDelayHasElapsed) return null;
-  console.log("data for the component");
-  console.log(strapi.banner);
 
   if (!hasInteractedWithBanner) {
-    console.log("rendering banner");
-    console.log(strapi.banner.bannerText);
     return (
       <OnInView onVisible={trackBannerImpression}>
         <div id="bannerMessage" className={bannerShowDelayHasElapsed ? "" : "hidden"}>
@@ -2387,16 +2381,6 @@ const Banner = ({ onClose }) => {
 };
 
 Banner.displayName = "Banner";
-
-
-// InterruptingMessage.propTypes = {
-//   messageName: PropTypes.string.isRequired,
-//   messageHTML: PropTypes.string.isRequired,
-//   style: PropTypes.string.isRequired,
-//   repetition: PropTypes.number.isRequired,
-//   onClose: PropTypes.func.isRequired
-// };
-
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox

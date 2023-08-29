@@ -26,6 +26,7 @@ export function replaceNewLinesWithLinebreaks(content) {
   );
 }
 
+// Gets data from a Strapi CMS instance to be used for displaying static content
 function StrapiDataProvider({ children }) {
   const [dataFromStrapiHasBeenReceived, setDataFromStrapiHasBeenReceived] =
     useState(false);
@@ -49,6 +50,9 @@ function StrapiDataProvider({ children }) {
         twoWeeksAgo.setDate(currentDate.getDate() - 14);
         let startDate = getJSONDateStringInLocalTimeZone(twoWeeksAgo);
         let endDate = getJSONDateStringInLocalTimeZone(twoWeeksFromNow);
+        // The GraphQL query has a filter for each content type to find instances that have start dates earlier than the present time
+        // Content type instances will be found that are one month within their start date. Their date range can't exceed one month
+        // There is no conflict resolution for overlapping timeframes
         const query = `
         query {
           banners(
@@ -199,30 +203,28 @@ function StrapiDataProvider({ children }) {
           .then((result) => {
             setStrapiData(result.data);
             setDataFromStrapiHasBeenReceived(true);
-            // maybe sort by start date to choose which one should have a greater priority if more than one compatible one exists
-            // e.g. there are modals with overlapping time frames
+
+            // Decompose the modals and banners from the GraphQL query response for easier handling
             let modals = result.data?.modals?.data;
-            console.log(modals);
             let banners = result.data?.banners?.data;
-            console.log(banners);
 
             const currentDate = new Date();
             if (modals?.length) {
-              // if they end up being sorted, the first one will be the compatible one
+              // Only one modal can be displayed currently. The first one that matches will be the one shown
               let modal = modals.find(
                 (modal) =>
                   currentDate >= new Date(modal.attributes.modalStartDate) &&
                   currentDate <= new Date(modal.attributes.modalEndDate)
               );
-              console.log("found acceptable modal:");
-              console.log(modal);
               if (modal) {
-                console.log("setting the modal");
+                // Check if there is a Hebrew translation for the modal
                 if (modal.attributes.localizations?.data?.length) {
                   let localization_attributes =
                     modal.attributes.localizations.data[0].attributes;
+                  // Ignore the locale because only Hebrew is supported currently
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
+                  // Iterate over the localizable attributes in parallel to create an object compatible for use in an InterfaceText
                   Object.keys(hebrew_attributes).forEach((attribute) => {
                     modal.attributes[attribute] = {
                       en: modal.attributes[attribute],
@@ -249,21 +251,22 @@ function StrapiDataProvider({ children }) {
             }
 
             if (banners?.length) {
+              // Only one banner can be displayed currently. The first one that matches will be the one shown
               let banner = banners.find(
                 (b) =>
                   currentDate >= new Date(b.attributes.bannerStartDate) &&
                   currentDate <= new Date(b.attributes.bannerEndDate)
               );
 
-              console.log("found acceptable banner:");
-              console.log(banner);
               if (banner) {
-                console.log("setting the banner");
+                // Check if there is a Hebrew translation
                 if (banner.attributes.localizations?.data?.length) {
                   let localization_attributes =
                     banner.attributes.localizations.data[0].attributes;
+                  // Get the hebrew attributes
                   let { locale, ...hebrew_attributes } =
                     localization_attributes;
+                  // Iterate over the localizable attributes in parallel to create an object compatible for use in an InterfaceText
                   Object.keys(hebrew_attributes).forEach((attribute) => {
                     banner.attributes[attribute] = {
                       en: banner.attributes[attribute],
@@ -272,7 +275,7 @@ function StrapiDataProvider({ children }) {
                   });
                   banner.attributes.locales = ["en", "he"];
                 } else {
-                  // Maybe have the GraphQL return null entries for each key so the same technique can be used from above?
+                  // TODO: Make the GraphQL query return nilable attributes so the attributes (just their keys) can be iterated over within the localization object
                   ["bannerText", "buttonText", "buttonURL"].forEach(
                     (attribute) => {
                       banner.attributes[attribute] = {
@@ -284,7 +287,6 @@ function StrapiDataProvider({ children }) {
                   banner.attributes.locales = ["en"];
                 }
                 setBanner(banner.attributes);
-                console.log(banner.attributes);
               }
             }
           })
@@ -300,7 +302,7 @@ function StrapiDataProvider({ children }) {
     <StrapiDataContext.Provider
       value={{
         dataFromStrapiHasBeenReceived,
-        strapiData,
+        strapiData, // All the data returned from the GraphQL query is here but only Promotions uses it in this current state
         modal,
         banner,
       }}

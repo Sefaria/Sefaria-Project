@@ -12,8 +12,6 @@ const Promotions = () => {
   useEffect(() => {
     if (strapi.dataFromStrapiHasBeenReceived) {
       Sefaria._inAppAds = [];
-      console.log("we got some data");
-      console.log(JSON.stringify(strapi.strapiData, null, 2));
 
       const sidebarAds = strapi.strapiData?.sidebarAds?.data;
 
@@ -47,6 +45,7 @@ const Promotions = () => {
             },
             debug: sidebarAd.debug,
           });
+          // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
           if (sidebarAd.localizations?.data?.length) {
             const hebrewAttributes = sidebarAd.localizations.data[0].attributes;
             const [buttonText, bodyText, buttonURL, title] = [
@@ -80,13 +79,13 @@ const Promotions = () => {
       }
     }
   }, [strapi.dataFromStrapiHasBeenReceived]);
-  // empty array happens when the page loads, equivalent of didcomponentmount
   // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
+  
   useEffect(() => {
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
     }
-  }, [context, inAppAds]); // when state changes, the effect will run
+  }, [context, inAppAds]);
 
 
   function showToUser(ad) {
@@ -153,6 +152,8 @@ function trackSidebarAdClick(ad) {
   });
 }
 
+// Don't continuously rerender a SidebarAd if the parent component decides to rerender
+// This is done to prevent multiple views from registering from OnInView
 const SidebarAd = React.memo(({ context, matchingAd }) => {
   const classes = classNames({
     sidebarPromo: 1,
