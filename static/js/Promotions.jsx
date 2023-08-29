@@ -168,7 +168,10 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
       >
         {matchingAd.buttonIcon?.data ? (
           <img
-            src={STRAPI_INSTANCE + matchingAd.buttonIcon.data.attributes.url}
+            // TODO: Create middleware to handle serving media assets to distinguish between different environments
+            // The absolute path is needed for debugging purposes to get the media asset from the local Strapi server
+            // The local Strapi instance provides a relative path through the API
+            src={(matchingAd.debug ? STRAPI_INSTANCE : '') + matchingAd.buttonIcon.data.attributes.url}
             alt={matchingAd.buttonIcon.data.attributes.alternativeText}
             aria-hidden="true"
           />
