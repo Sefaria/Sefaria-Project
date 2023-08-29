@@ -259,7 +259,7 @@ class NormalizerComposer(AbstractNormalizer):
         apply normalization steps one-by-one and keep track of mapping from one step to the next
         iteratively apply mappings (in reverse) on each step's removal inds to get inds in original string
         """
-        all_text_to_remove = []
+        final_text_to_remove = []
         mappings = []
         snorm = s
         for step in self.steps:
@@ -271,12 +271,12 @@ class NormalizerComposer(AbstractNormalizer):
             for mapping in reversed(mappings):
                 text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
             temp_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
-            all_text_to_remove += [temp_text_to_remove]
+
+            # merge any overlapping ranges
+            # later edits should override earlier ones
+            final_text_to_remove = self.merge_removal_inds_new(final_text_to_remove, temp_text_to_remove)
             mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
             snorm = step.normalize(snorm, **kwargs)
-        # merge any overlapping ranges
-        # later edits should override earlier ones
-        final_text_to_remove = reduce(self.merge_removal_inds_new, all_text_to_remove)
         final_text_to_remove.sort(key=lambda x: x[0])
         return final_text_to_remove
 
