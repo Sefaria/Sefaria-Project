@@ -42,11 +42,17 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@semantic-release/commit-analyzer": "^9.0.2",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^8.0.7",
+    "@semantic-release/npm": "^9.0.2",
+    "@semantic-release/release-notes-generator": "^10.0.3",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
     "cheerio": "^0.22.0",
     "classnames": "^2.2.5",
+    "conventional-changelog-conventionalcommits": "^6.1.0",
     "cookie-parser": "^1.4.2",
     "core-js": "^3.15.2",
     "css-modules-require-hook": "^4.2.3",

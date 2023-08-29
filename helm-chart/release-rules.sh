@@ -3,7 +3,7 @@
 cat << EOF > helm-chart/.releaserc
 tagFormat: helm-chart-\${version}
 plugins:
-  - - "@semantic-release/commit-analyzer@9.0.2"
+  - - "@semantic-release/commit-analyzer"
     - preset: "conventionalcommits"
       releaseRules:
         - {"type": "helm", "release": "minor" }
@@ -20,7 +20,7 @@ plugins:
       parserOpts:
         noteKeywords:
           - MAJOR RELEASE
-  - - "@semantic-release/release-notes-generator@10.0.3"
+  - - "@semantic-release/release-notes-generator"
     - preset: "conventionalcommits"
       presetConfig:
         "types":
@@ -34,7 +34,7 @@ plugins:
           - {"type": "perf", "hidden": true}
           - {"type": "test", "hidden": true}
           - {"type": "static", "hidden": true}
-  - - "@semantic-release/github@8.0.7"
+  - - "@semantic-release/github"
     - "successComment": false
 EOF
 export branch=$(git branch --show-current)
