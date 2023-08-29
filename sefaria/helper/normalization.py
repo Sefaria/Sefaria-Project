@@ -274,44 +274,30 @@ class NormalizerComposer(AbstractNormalizer):
             snorm = step.normalize(snorm, **kwargs)
         # merge any overlapping ranges
         # later edits should override earlier ones
-        final_text_to_remove = reduce(lambda a, b: self.merge_removal_inds(a, b), all_text_to_remove)
+        final_text_to_remove = reduce(self.merge_removal_inds_new, all_text_to_remove)
         final_text_to_remove.sort(key=lambda x: x[0])
         return final_text_to_remove
 
     @staticmethod
-    def merge_removal_inds(curr_removal_inds, new_removal_inds):
-        if isinstance(new_removal_inds, tuple):
-            new_removal_inds = [new_removal_inds]
-        curr_removal_inds.sort(key=lambda x: x[0])
-        new_removal_inds.sort(key=lambda x: x[0])
-        merged_inds = curr_removal_inds[:]
-        last_curr = 0
-        for new_inds, new_repl in new_removal_inds:
-            inds_are_final = True
-            for i, (curr_inds, curr_repl) in enumerate(curr_removal_inds[last_curr:]):
-                if new_inds[1] <= curr_inds[0]:
-                    # new_inds are before curr_inds and not overlapping. easy case.
-                    inds_are_final = True
-                elif curr_inds[0] >= new_inds[0] and curr_inds[1] <= new_inds[1]:  # are curr_inds subset of new_inds?
-                    # if curr_inds is a full subset of new_inds, new_inds override
-                    merged_inds.remove((curr_inds, curr_repl))
-                    last_curr += 1
-                elif new_inds[0] < curr_inds[1] or new_inds[1] > curr_inds[0]:
-                    # if new_inds overlap and curr_inds are not a subset, merge
-                    if new_inds[0] >= curr_inds[0] and new_inds[1] <= curr_inds[1]:
-                        # new_inds is a full subset of curr_inds
-                        merged_repl = curr_repl[:new_inds[0] - curr_inds[0]] + new_repl + curr_repl[new_inds[1] -
-                                                                                                curr_inds[1]:]
-                        merged_inds[i+last_curr] = (curr_inds, merged_repl)
-                        inds_are_final = False
-                        last_curr += 1
-                        break
-                    else:
-                        # overlap that's not a subset. more complicated merge that I don't want to deal with now
-                        pass
-            if inds_are_final:
-                merged_inds += [(new_inds, new_repl)]
-        return merged_inds
+    def merge_removal_inds_new(*all_removal_inds):
+        combined_removal_inds = reduce(lambda a, b: a + b, all_removal_inds, [])
+        combined_removal_inds.sort(key=lambda x: x[0][0])
+        merged_removal_inds = []
+        for curr_inds, curr_repl in combined_removal_inds:
+            if len(merged_removal_inds) == 0:
+                merged_removal_inds += [(curr_inds, curr_repl)]
+                continue
+            last_inds, last_repl = merged_removal_inds[-1]
+            if curr_inds[0] >= last_inds[1]:
+                # If current interval doesn't overlap with the last interval in result, append it
+                merged_removal_inds += [(curr_inds, curr_repl)]
+            else:
+                # some sort of overlap
+                temp_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
+                temp_merged_repl = last_repl[:curr_inds[0]-last_inds[0]] + curr_repl + last_repl[(curr_inds[1]+1)-last_inds[0]:]
+                merged_removal_inds[-1] = (temp_merged_inds, temp_merged_repl)
+
+        return merged_removal_inds
 
 
 class TableReplaceNormalizer(AbstractNormalizer):
