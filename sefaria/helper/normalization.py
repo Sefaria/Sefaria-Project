@@ -274,14 +274,14 @@ class NormalizerComposer(AbstractNormalizer):
 
             # merge any overlapping ranges
             # later edits should override earlier ones
-            final_text_to_remove = self.merge_removal_inds_new(final_text_to_remove, temp_text_to_remove)
+            final_text_to_remove = self.merge_removal_inds(final_text_to_remove, temp_text_to_remove)
             mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
             snorm = step.normalize(snorm, **kwargs)
         final_text_to_remove.sort(key=lambda x: x[0])
         return final_text_to_remove
 
     @staticmethod
-    def merge_removal_inds_new(*all_removal_inds):
+    def merge_removal_inds(*all_removal_inds):
         combined_removal_inds = reduce(lambda a, b: a + b, all_removal_inds, [])
         combined_removal_inds.sort(key=lambda x: x[0][0])
         merged_removal_inds = []
