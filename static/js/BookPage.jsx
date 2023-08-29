@@ -1306,7 +1306,7 @@ const EditTextInfo = function({initTitle, close}) {
                 </div> : null}
             <div className="section">
               <div><InterfaceText>Completion Year</InterfaceText></div><label><span className="optional"><InterfaceText>Optional.  Provide a range if there is an error margin or the work was completed over the course of many years such as 1797-1800 or -900--200 (to denote 900 BCE to 200 BCE).</InterfaceText></span></label>
-              <br/><input id="compDate" onChange={(e) => validateCompDate(e.target.value)} defaultValue={initCompDate}/>
+              <br/><input id="compDate" onBlur={(e) => validateCompDate(e.target.value)} defaultValue={initCompDate}/>
             </div>
             <div className="section">
               <div><InterfaceText>Place of Composition</InterfaceText></div>
