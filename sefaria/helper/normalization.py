@@ -127,7 +127,9 @@ class AbstractNormalizer:
         sign = -1 if reverse else 1
         for start, end in normalized_indices:
             unnorm_start_index = bisect_right(removal_keys, start) - 1
-            unnorm_end_index = bisect_right(removal_keys, (end - 1 if reverse else end)) - 1  # not sure if end-1 is specific to reverse case, but seems to be working
+            # special case if range is zero-length. treat end as literal and not off-by-one.
+            bisect_end_index = end if end == start else (end - 1)
+            unnorm_end_index = bisect_right(removal_keys, bisect_end_index) - 1
 
             unnorm_start = start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
             unnorm_end = end if unnorm_end_index < 0 else end + (sign * removal_map[removal_keys[unnorm_end_index]])
