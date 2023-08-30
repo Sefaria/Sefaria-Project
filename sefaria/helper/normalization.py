@@ -108,10 +108,10 @@ class AbstractNormalizer:
                 # must be match object
                 start, end = removal.start(), removal.end()
             normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
-            temp_removed = end - start - len(subst)
-            if temp_removed == 0:
+            curr_removed = end - start - len(subst)
+            if curr_removed == 0:
                 continue
-            total_removed += temp_removed
+            total_removed += curr_removed
             removal_map[normalized_text_index] = total_removed
         return removal_map
 
@@ -295,9 +295,9 @@ class NormalizerComposer(AbstractNormalizer):
                 merged_removal_inds += [(curr_inds, curr_repl)]
             else:
                 # some sort of overlap
-                temp_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
-                temp_merged_repl = last_repl[:curr_inds[0]-last_inds[0]] + curr_repl + last_repl[(curr_inds[1]+1)-last_inds[0]:]
-                merged_removal_inds[-1] = (temp_merged_inds, temp_merged_repl)
+                curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
+                curr_merged_repl = last_repl[:curr_inds[0]-last_inds[0]] + curr_repl + last_repl[(curr_inds[1]+1)-last_inds[0]:]
+                merged_removal_inds[-1] = (curr_merged_inds, curr_merged_repl)
 
         return merged_removal_inds
 
