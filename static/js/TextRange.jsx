@@ -495,13 +495,15 @@ class TextSegment extends Component {
     }
   }
   handleRefLinkClick(refLink, event) {
-    // two options: either open a new panel or if refLink's class is 'scrollLink' and the new ref is in the same book, scroll in same panel to new location
     event.preventDefault();
     let newRef = Sefaria.humanRef(refLink.attr("data-ref"));
     const newBook = Sefaria.parseRef(newRef)?.book;
     const currBook = Sefaria.parseRef(this.props.sref)?.book;
     const typeRefLink = refLink.attr('class');
-    if (typeRefLink === 'scrollLink' && newBook === currBook && !!this.props.navigatePanel) {
+
+    // two options: either open a new panel, or if refLink's class is 'scrollLink,' we should navigate in the same panel to the new location
+    const canNavigatePanel = newBook === currBook && !!this.props.navigatePanel; // navigatePanel only works if we're scrolling to a location in the same book
+    if (typeRefLink === 'scrollLink' && canNavigatePanel) {
       this.props.navigatePanel(newRef);
     }
     else {
