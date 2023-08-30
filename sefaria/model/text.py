@@ -1739,34 +1739,48 @@ class TextFamilyDelegator(type):
             return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
 
 
-class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
+class TextRangeBase:
+
+    def __init__(self, oref):
+        if isinstance(oref.index_node, JaggedArrayNode): #text cannot be SchemaNode
+            self.oref = oref
+        elif oref.has_default_child(): #use default child:
+            self.oref = oref.default_child_ref()
+        else:
+            raise InputError("Can not get TextRange at this level, please provide a more precise reference")
+
+
+class TextRange(TextRangeBase):
 
     def __init__(self, oref, lang, vtitle):
-        if isinstance(oref.index_node, JaggedArrayNode):
-            self.oref = oref
-        else:
-            child_ref = oref.default_child_ref()
-            if child_ref == oref:
-                raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
-            self.oref = child_ref
+        super().__init__(oref)
         self.lang = lang
         self.vtitle = vtitle
         self._version = None #todo - what we want to do if the version doesnt exist. for now the getter will cause error
         self._text = None
 
-    def set_version(self):
-        self._version = Version().load({'actualLanguage': self.lang, 'versionTitle': self.vtitle}, self.oref.part_projection())
-
-    def get_version(self):
-        if not self._version:
-            self.set_version()
+    @property
+    def version(self):
+        if self._version is None:  # todo if there is no version it will run any time
+            self._version = Version().load({'title': self.oref.index.title, 'actualLanguage': self.lang, 'versionTitle': self.vtitle},
+                                           self.oref.part_projection())
         return self._version
+
+    @version.setter
+    def version(self, version): #version can be used if version is already in memory
+        self._validate_version(version)
+        self._version = version
+
+    def _validate_version(self, version):
+        if self.lang != version.actualLanguage or self.vtitle != version.versionTitle:
+            raise InputError("Given version is not matching to given language and versionTitle")
 
     def _trim_text(self, text):
         """
         part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
         """
-        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut form end, for cutting from the start will change the indexes
+        #TODO can we get the specific text directly from mongo?
+        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
             subtext = reduce(lambda x, _: x[-1], range(s), text)
             del subtext[section:]
         for s, section in enumerate(self.oref.sections[1:], 1):
@@ -1776,14 +1790,41 @@ class TextRange(AbstractTextRecord, metaclass=TextFamilyDelegator):
         redundant_depth = len(list(matching_sections))
         return reduce(lambda x, _: x[0], range(redundant_depth), text)
 
-    def set_text(self):
-         self._text = self._trim_text(self.get_version().content_node(self.oref.index_node))
-         return self._text
-
-    def get_text(self):
-        if not self._text:
-            self.set_text()
+    @property
+    def text(self):
+        if self._text is None:
+            self._text = self._trim_text(self.version.content_node(self.oref.index_node)) #todo if there is no version it will fail
         return self._text
+
+
+class TextRangeSet(TextRangeBase, abst.AbstractMongoSet):
+    """
+    this class if for getting by one query a list of TextRange like other classes inheriting from AbstractMongoSet.
+    but TextRange is not inheriting from AbstarctMongoRecord, so it uses Version as recordClass and
+    override _read_records for getting TextRange.
+    """
+    recordClass = Version #records will be converted to TextRange by overridden _read_records method
+
+    def __init__(self, oref, version_langs_and_vtitles):
+        TextRangeBase.__init__(self, oref)
+        query = {'$or': [
+                    {'$and': [
+                        {'title': self.oref.index.title},
+                        {'actualLanguage': lang},
+                        {'versionTitle': vtitle}
+                    ]}
+        for lang, vtitle in version_langs_and_vtitles]}
+        abst.AbstractMongoSet.__init__(self, query=query, proj=self.oref.part_projection())
+
+    def _read_records(self):
+        if self.records is None:
+            super()._read_records() #this makes self.records list of Version. now we'll convert them to TextRange
+            for i, rec in enumerate(self.records):
+                text_range = TextRange(self.oref, rec.actualLanguage, rec.versionTitle)
+                text_range.version = rec
+                self.records[i] = text_range
+
+    #TODO should override some unsupported methods of AbstractMongoSet - for now: update, save, delete, contents
 
 
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
