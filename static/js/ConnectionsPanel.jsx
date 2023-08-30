@@ -343,10 +343,8 @@ class ConnectionsPanel extends Component {
             <div className="topToolsButtons">
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
-              <ToolsButton en="Search in this Text" he="חפש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
-              { Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
-                  : <ToolsButton en="Editions" he="Editions" image="aye.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
-              }
+              <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
+              { Sefaria._siteSettings.TORAH_SPECIFIC && <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />}
             </div>
           }
           {showConnectionSummary ?
@@ -1191,7 +1189,7 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
         topic.description && (topic.description.en || topic.description.he) ? (
 
           <span className="smallText">
-            <InterfaceText markdown={{en: topic.description.en, he: topic.description.he}} />
+            <ContentText markdown={{en: topic.description.en, he: topic.description.he}} />
           </span>
         ) : null
       }

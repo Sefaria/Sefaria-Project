@@ -2849,6 +2849,9 @@ display: none;
 .singlePanel .readerNavMenu .dedication{
   margin: 27px 0;
 }
+.readerNavMenu .dedication a {
+  text-decoration: underline;
+}
 .bookPage .categoryAttribution,
 .bookPage .dedication {
   margin: 25px 0 10px;
