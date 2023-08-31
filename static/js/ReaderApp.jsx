@@ -33,7 +33,6 @@ import {
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -898,18 +897,9 @@ class ReaderApp extends Component {
       $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
-
-toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
-  if (this.state.showSignUpModal) {
-    this.setState({ showSignUpModal: false });
-  } else {
-    this.setState({
-      showSignUpModal: true,
-      modalContentKind: modalContentKind,
-    });
+  toggleSignUpModal() {
+    this.setState({ showSignUpModal: !this.state.showSignUpModal });
   }
-}
-  
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -1189,7 +1179,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
-  updateSearchFilter(n, type, searchState, filterNode) {
+  updateSearchFilter(n, type, filterNode) {
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
@@ -1304,22 +1296,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     return panelLang;
   }
-  _getDependentPanel(n) {
-    /**
-     * Given panel `n`, return dependent panel, if it exists. A dependent panel is the master panel if panel
-     * `n` is a connections panel and vice versa if panel `n` is a master panel.
-     * Returns null if no dependent panel exists
-     **/
-    let dependentPanel = null;
-    let isDependentPanelConnections = false;
-    if ((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections") {
-      dependentPanel = this.state.panels[n+1];
-      isDependentPanelConnections = true;
-    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
-      dependentPanel = this.state.panels[n-1];
-    }
-    return { dependentPanel, isDependentPanelConnections };
-  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     const panel = this.state.panels[n];
@@ -1333,13 +1309,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       Sefaria.track.event("Reader", "Choose Version", `${oRef.indexTitle} / default version / ${panel.settings.language}`)
     }
     panel.settings.language = this._getPanelLangOnVersionChange(panel, versionLanguage, panel.mode === "Connections");
-    const { dependentPanel, isDependentPanelConnections } = this._getDependentPanel(n);
-
-    // make sure object reference changes for setState()
-    dependentPanel.currVersions = {...panel.currVersions};
-    panel.currVersions = {...panel.currVersions};
-
-    dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
+      const connectionsPanel =  this.state.panels[n+1];
+      connectionsPanel.currVersions = panel.currVersions;
+      connectionsPanel.settings.language = this._getPanelLangOnVersionChange(connectionsPanel, versionLanguage, true);
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      const masterPanel = this.state.panels[n-1];
+      masterPanel.currVersions = panel.currVersions;
+      masterPanel.settings.language = this._getPanelLangOnVersionChange(masterPanel, versionLanguage);
+    }
     this.setState({panels: this.state.panels});
   }
   navigatePanel(n, ref, currVersions={en: null, he: null}) {
@@ -1359,8 +1337,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
     let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
-    const { dependentPanel } = this._getDependentPanel(n);
-    Object.assign(dependentPanel, {refs, currentlyVisibleRef, highlightedRefs});
+    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
+      let connectionsPanel =  this.state.panels[n+1];
+      Object.assign(connectionsPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
+      let masterPanel = this.state.panels[n-1];
+      Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
   }
@@ -2042,7 +2025,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
-      const panel                        = this.clonePanel(panelStates[i]);
+      const panel                        = panelStates[i];
       if (!("settings" in panel )) { debugger; }
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
@@ -2162,11 +2145,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           repetition={Sefaria.interruptingMessage.repetition}
           onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
     const sefariaModal = (
-      <SignUpModal
-        onClose={this.toggleSignUpModal}
-        show={this.state.showSignUpModal}
-        modalContentKind={this.state.modalContentKind}
-      />
+      <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;

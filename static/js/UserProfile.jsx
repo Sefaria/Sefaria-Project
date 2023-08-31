@@ -15,7 +15,6 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -500,7 +499,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
       <ul>
         <li><InterfaceText>Technical problems</InterfaceText></li>
         <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features</InterfaceText></li>
+        <li><InterfaceText>Missing features </InterfaceText></li>
       </ul>
 
       <p>

@@ -83,12 +83,13 @@ jobs:
           else
             echo "chartVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
           fi
+
       - name: Download yq
         run: |
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
           chmod +x yq
       - name: Update chart version
-        run: ./yq -i e '.version = "${{ steps.chartVersion.outputs.chartVersion }}"' helm-chart/sefaria-project/Chart.yaml
+        run: ./yq -i e '.version = "${{ steps.semantic.outputs.new_release_version }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Update chart appVersion
         run: ./yq -i e '.appVersion = "${{ steps.appVersion.outputs.appVersion }}"' helm-chart/sefaria-project/Chart.yaml
       - name: Publish Helm charts

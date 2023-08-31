@@ -1,4 +1,4 @@
-{{- if .Values.cronJobs.indexFromQueue.enabled }}
+{{- if ne .Values.sandbox "true" }}
 ---
 apiVersion: batch/v1
 kind: CronJob

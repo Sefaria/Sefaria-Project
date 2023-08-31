@@ -29,7 +29,7 @@ web:
   containerImage:
     imageRegistry:
     tag:
-  replicaCount: 2
+  replicaCount: 1
   resources:
     web:
       gunicornWorkerCount: 5
@@ -157,7 +157,6 @@ instrumentation:
   enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"
   jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
-
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {

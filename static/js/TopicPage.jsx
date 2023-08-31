@@ -164,10 +164,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
   );
 
   const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
-
-  // When running a test, topicTestVersion is respected.
-  // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
+  const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}
