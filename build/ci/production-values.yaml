@@ -2,7 +2,7 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production
 previousServicesCount: "3"
-deploymentMessage: true
+deploymentMessage: false
 restore:
   enabled: true
   bucket: sefaria-contextus-backup
