@@ -262,18 +262,18 @@ class NormalizerComposer(AbstractNormalizer):
         mappings = []
         snorm = s
         for step in self.steps:
-            temp_text_to_remove = step.find_text_to_remove(snorm, **kwargs)
-            if len(temp_text_to_remove) == 0:
+            curr_text_to_remove = step.find_text_to_remove(snorm, **kwargs)
+            if len(curr_text_to_remove) == 0:
                 text_to_remove_inds, text_to_remove_repls = [], []
             else:
-                text_to_remove_inds, text_to_remove_repls = zip(*temp_text_to_remove)
+                text_to_remove_inds, text_to_remove_repls = zip(*curr_text_to_remove)
             for mapping in reversed(mappings):
                 text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
-            temp_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
+            curr_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
 
             # merge any overlapping ranges
             # later edits should override earlier ones
-            final_text_to_remove = self.merge_removal_inds(final_text_to_remove, temp_text_to_remove)
+            final_text_to_remove = self.merge_removal_inds(final_text_to_remove, curr_text_to_remove)
             mappings += [step.get_mapping_after_normalization(snorm, **kwargs)]
             snorm = step.normalize(snorm, **kwargs)
         final_text_to_remove.sort(key=lambda x: x[0])
