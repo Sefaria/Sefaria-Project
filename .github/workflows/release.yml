@@ -15,17 +15,11 @@ jobs:
       version: ${{ steps.releaseVersion.outputs.releaseVersion }}
     steps:
       - uses: actions/checkout@v3
-      - uses: cycjimmy/semantic-release-action@v3
+      - uses: cycjimmy/semantic-release-action@v4
         id: semantic
         with:
-          semantic_version: 19.0.5
           extra_plugins: |
-            conventional-changelog-conventionalcommits@6.1.0
-            @semantic-release/commit-analyzer@9.0.2
-            @semantic-release/release-notes-generator@10.0.3
-            @semantic-release/npm@9.0.2
-            @semantic-release/github@8.0.7
-            @semantic-release/git@10.0.1
+            conventional-changelog-conventionalcommits
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check version was generated
