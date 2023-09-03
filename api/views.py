@@ -1,8 +1,9 @@
 from sefaria.model import *
-from .texts_api import TextsForClientHandler
+from sefaria.model.text_manager import TextManager
 from sefaria.client.util import jsonResponse
 from django.views import View
 from typing import List
+from .api_warnings import *
 
 
 class Text(View):
@@ -22,13 +23,29 @@ class Text(View):
         params[1] = params[1].replace('_', ' ')
         return params
 
+    def _handle_warnings(self, data):
+        data['warnings'] = []
+        for lang, vtitle in data['missings']:
+            if lang == 'source':
+                warning = APINoSourceText(self.oref)
+            elif vtitle and vtitle != 'all':
+                warning = APINoVersion(self.oref, vtitle, lang)
+            else:
+                warning = APINoLanguageVersion(self.oref, data['availabe_langs'])
+            representing_string = f'{lang}|{vtitle}' if vtitle else lang
+            data['warnings'].append({representing_string: warning.get_message()})
+        data.pop('missings')
+        data.pop('availabe_langs')
+        return data
+
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty():
             return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['base']
-        versions_params = [self.split_piped_params(param_str) + [param_str] for param_str in versions_params]
-        handler = TextsForClientHandler(self.oref, versions_params)
-        data = handler.get_versions_for_query()
+        versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
+        text_manager = TextManager(self.oref, versions_params)
+        data = text_manager.get_versions_for_query()
+        data = self._handle_warnings(data)
         return jsonResponse(data)

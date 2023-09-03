@@ -1,69 +1,62 @@
 import django
 django.setup()
+from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
-from .api_warnings import *
 from typing import List
 
-
-class TextsForClientHandler():
-    """
-    process api calls for text
-    return_obj is dict that includes in its root:
-        ref and index data
-        'versions' - list of versions details and text
-        'warning' - for any version_params that has an warning
-    """
-
+class TextManager:
     ALL = 'all'
     BASE = 'base'
     SOURCE = 'source'
+    TRANSLATION = 'translation'
 
     def __init__(self, oref: Ref, versions_params: List[List[str]]):
         self.versions_params = versions_params
         self.oref = oref
         self.handled_version_params = []
-        self.all_versions = self.oref.version_list()
-        self.return_obj = {'versions': [], 'warnings': []}
+        self.all_versions = self.oref.versionset()
+        self.return_obj = {
+            'versions': [],
+            'missings': [],
+            'availabe_langs': sorted({v.actualLanguage for v in self.all_versions})
+        }
 
-    def _handle_warnings(self, lang: str, vtitle: str, params_str: str) -> None:
-        if lang == self.SOURCE:
-            warning = APINoSourceText(self.oref)
-        elif vtitle and vtitle != self.ALL:
-            warning = APINoVersion(self.oref, vtitle, lang)
-        else:
-            availabe_langs = {v['actualLanguage'] for v in self.all_versions}
-            warning = APINoLanguageVersion(self.oref, sorted(availabe_langs))
-        representing_string = params_str or f'{lang}|{vtitle}'
-        self.return_obj['warnings'].append({
-            representing_string: warning.get_message()
-        })
+    def _append_version(self, version):
+        #TODO part of this function duplicate the functionality of Ref.versionlist(). maybe we should mvoe it to Version
+        fields = Version.optional_attrs + Version.required_attrs
+        for attr in ['chapter', 'title', 'language']:
+            fields.remove(attr)
+        version_details = {f: getattr(version, f, "") for f in fields}
+        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle)
+        text_range.version = version
+        version_details['text'] = text_range.text
+        if self.oref.is_book_level():
+            first_section_ref = version.first_section_ref() or version.get_index().nodes.first_leaf().first_section_ref()
+            version_details['firstSectionRef'] = first_section_ref.normal()
+        self.return_obj['versions'].append(version_details)
 
-    def _append_required_versions(self, lang: str, vtitle: str, params_str: str) -> None:
+    def _append_required_versions(self, lang: str, vtitle: str) -> None:
         if lang == self.BASE:
-            lang_condition = lambda v: v['isBaseText2'] #temporal name
+            lang_condition = lambda v: getattr(v, 'isBaseText2', False)  # temporal name
         elif lang == self.SOURCE:
-            lang_condition = lambda v: v['isSource']
+            lang_condition = lambda v: getattr(v, 'isSource', False)
+        elif lang == self.TRANSLATION:
+            lang_condition = lambda v: not getattr(v, 'isSource', False)
         elif lang:
-            lang_condition = lambda v: v['actualLanguage'] == lang
+            lang_condition = lambda v: v.actualLanguage == lang
         else:
             lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
-            versions = [v for v in self.all_versions if lang_condition(v) and v['versionTitle'] == vtitle]
+            versions = [v for v in self.all_versions if lang_condition(v) and v.versionTitle == vtitle]
         else:
             versions = [v for v in self.all_versions if lang_condition(v)]
             if vtitle != self.ALL and versions:
-                versions = [max(versions, key=lambda v: v['priority'] or 0)]
+                versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
             if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
-                self.return_obj['versions'].append(version)
+                self._append_version(version)
         if not versions:
-            self._handle_warnings(lang, vtitle, params_str)
-
-    def _add_text_to_versions(self) -> None:
-        for version in self.return_obj['versions']:
-            version.pop('title')
-            version.pop('language') #should be removed after language is removed from attrs
-            version['text'] = TextRange(self.oref, version['actualLanguage'], version['versionTitle']).text
+            self.return_obj['missings'].append((lang, vtitle))
 
     def _add_ref_data_to_return_obj(self) -> None:
         oref = self.oref
@@ -119,9 +112,8 @@ class TextsForClientHandler():
         })
 
     def get_versions_for_query(self) -> dict:
-        for lang, vtitle, params_str in self.versions_params:
-            self._append_required_versions(lang, vtitle, params_str)
-        self._add_text_to_versions()
+        for lang, vtitle in self.versions_params:
+            self._append_required_versions(lang, vtitle)
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
