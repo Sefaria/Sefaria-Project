@@ -8,6 +8,7 @@ class APIWarningCode(Enum):
     APINoVersion = 101
     APINoLanguageVersion = 102
     APINoSourceText = 103
+    APINoTranslationText = 104
 
 """
 classes for data warnings in API calls.
@@ -57,5 +58,5 @@ class APINoSourceText(TextsAPIResponseMessage):
 class APINoTranslationText(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref):
-        self.warning_code = APIWarningCode.APINoSourceText.value
+        self.warning_code = APIWarningCode.APINoTranslationText.value
         self.message = f'We do not have a translation for {oref}'
