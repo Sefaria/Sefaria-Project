@@ -2,7 +2,6 @@ from sefaria.model import *
 from sefaria.model.text_manager import TextManager
 from sefaria.client.util import jsonResponse
 from django.views import View
-from typing import List
 from .api_warnings import *
 
 
@@ -28,6 +27,8 @@ class Text(View):
         for lang, vtitle in data['missings']:
             if lang == 'source':
                 warning = APINoSourceText(self.oref)
+            elif lang == 'translation':
+                warning = APINoTranslationText(self.oref)
             elif vtitle and vtitle != 'all':
                 warning = APINoVersion(self.oref, vtitle, lang)
             else:

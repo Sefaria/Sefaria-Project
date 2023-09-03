@@ -52,3 +52,10 @@ class APINoSourceText(TextsAPIResponseMessage):
     def __init__(self, oref: Ref):
         self.warning_code = APIWarningCode.APINoSourceText.value
         self.message = f'We do not have the source text for {oref}'
+
+
+class APINoTranslationText(TextsAPIResponseMessage):
+
+    def __init__(self, oref: Ref):
+        self.warning_code = APIWarningCode.APINoSourceText.value
+        self.message = f'We do not have a translation for {oref}'
