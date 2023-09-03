@@ -33,6 +33,17 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["sections"], ["22a"])
         self.assertEqual(data["toSections"], ["22a"])
 
+    def test_api_get_text_translation_all(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=translation|all')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(len(data["versions"]) > 1)
+        self.assertTrue(any(v['actualLanguage'] == 'en' for v in data["versions"]))
+        self.assertEqual(data["book"], "Shabbat")
+        self.assertEqual(data["categories"], ["Talmud", "Bavli", "Seder Moed"])
+        self.assertEqual(data["sections"], ["22a"])
+        self.assertEqual(data["toSections"], ["22a"])
+
     def test_api_get_text_lang_all(self):
         response = c.get('/api/v3/texts/Rashi_on_Genesis.2.3?version=en|all')
         self.assertEqual(200, response.status_code)
@@ -113,6 +124,14 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(len(data["versions"]), 1)
         self.assertEqual(data['warnings'][0]['source']['warning_code'], APIWarningCode.APINoSourceText.value)
         self.assertEqual(data['warnings'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
+
+    def test_api_get_text_no_translation(self):
+        response = c.get("/api/v3/texts/Shuvi_Shuvi_HaShulamit?version=translation")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 0)
+        self.assertEqual(data['warnings'][0]['translation']['warning_code'], APIWarningCode.APINoTranslationText.value)
+        self.assertEqual(data['warnings'][0]['translation']['message'], 'We do not have a translation for Shuvi Shuvi HaShulamit')
 
     def test_api_get_text_no_language(self):
         response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=sgrg|all")
