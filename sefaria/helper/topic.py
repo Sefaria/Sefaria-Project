@@ -5,6 +5,7 @@ from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
+from sefaria.model.place import process_topic_place_change
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
@@ -12,6 +13,7 @@ from sefaria.system.cache import django_cache
 
 import structlog
 from sefaria import tracker
+from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -711,7 +713,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         else:
             sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
             includedRefs = []
-            for tref in sheet['includedRefs']:                
+            for tref in sheet['includedRefs']:
                 try:
                     oref = get_ref_safely(tref)
                     if oref is None:
@@ -911,7 +913,7 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
             continue
         if getattr(oref.index, 'authors', None) is None: continue
         for author in oref.index.authors:
-            by_author[author] += [rd.contents()]    
+            by_author[author] += [rd.contents()]
     for author, rd_list in by_author.items():
         rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
         if len(rd_list) == 0: continue
@@ -1037,6 +1039,37 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
+def update_topic_titles(topic_obj, data):
+    for lang in ['en', 'he']:
+        for title in topic_obj.get_titles(lang):
+            topic_obj.remove_title(title, lang)
+        for title in data['altTitles'][lang]:
+            topic_obj.add_title(title, lang)
+
+    topic_obj.add_title(data['title'], 'en', True, True)
+    topic_obj.add_title(data['heTitle'], 'he', True, True)
+    return topic_obj
+
+
+def update_authors_place_and_time(topic_obj, data, dataSource='learning-team-editing-tool'):
+    # update place info added to author, then update year and era info
+    if not hasattr(topic_obj, 'properties'):
+        topic_obj.properties = {}
+    process_topic_place_change(topic_obj, data)
+    topic_obj = update_author_era(topic_obj, data, dataSource=dataSource)
+
+    return topic_obj
+
+def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
+    for k in ["birthYear", "deathYear"]:
+        year = data.get(k, '')
+        topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
+
+    prev_era = topic_obj.properties.get('era', {}).get('value')
+    if data.get('era', '') != '' and prev_era != data['era']:
+        topic_obj.properties['era'] = {'value': data['era'], 'dataSource': dataSource}
+        create_era_link(topic_obj, prev_era_to_delete=prev_era)
+    return topic_obj
 
 
 def update_topic(topic_obj, **kwargs):
@@ -1051,11 +1084,9 @@ def update_topic(topic_obj, **kwargs):
     old_category = ""
     orig_slug = topic_obj.slug
 
-    if 'title' in kwargs and kwargs['title'] != topic_obj.get_primary_title('en'):
-        topic_obj.add_title(kwargs['title'], 'en', True, True)
-
-    if 'heTitle' in kwargs and kwargs['heTitle'] != topic_obj.get_primary_title('he'):
-        topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
+    update_topic_titles(topic_obj, kwargs)
+    if kwargs.get('catSlug') == 'authors':
+        topic_obj = update_authors_place_and_time(topic_obj, kwargs)
 
     if 'category' in kwargs:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
@@ -1211,7 +1242,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
-    if lang in link.order['availableLangs']:   
+    if lang in link.order['availableLangs']:
         link.order['availableLangs'].remove(lang)
     if lang in link.order['curatedPrimacy']:
         link.order['curatedPrimacy'].pop(lang)

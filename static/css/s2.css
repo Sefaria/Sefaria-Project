@@ -11208,7 +11208,7 @@ body .homeFeedWrapper.userStats {
   float: right;
   margin-right: 30px;
 }
-#categoryChooserMenu {
+.categoryChooserMenu {
   overflow: hidden;
   background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
   width: 100%;
@@ -11239,7 +11239,7 @@ body .homeFeedWrapper.userStats {
   display: inline-block;
 }
 
-#categoryChooserMenu select {
+.categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
   width: 680px;
@@ -11248,14 +11248,14 @@ body .homeFeedWrapper.userStats {
   padding: 4px 25px 4px 10px;
 }
 
-.connectionsPanel .editTextInfo #categoryChooserMenu {
+.connectionsPanel .editTextInfo .categoryChooserMenu {
   width: 102%;
 }
 
 .connectionsPanel .editTextInfo .collectionsWidget {
   width: 70%;
 }
-.connectionsPanel .editTextInfo #categoryChooserMenu select {
+.connectionsPanel .editTextInfo .categoryChooserMenu select {
   width: 98.5%;
 }
 
@@ -11266,11 +11266,11 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex {
   margin: 50px auto;
 }
-.searchBox #categoryChooserMenu {
+.searchBox .categoryChooserMenu {
   width: 97%;
   background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
 }
-.searchBox #categoryChooserMenu select {
+.searchBox .categoryChooserMenu select {
   width: 100%;
 }
 .searchBox .editTextInfo #newIndex input {
@@ -11279,7 +11279,7 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex #topicDesc {
   width: 92%;
 }
-#categoryChooserMenu img {
+.categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
@@ -11363,14 +11363,14 @@ body .homeFeedWrapper.userStats {
 }
 @media screen and (max-width: 680px) {
 
-  #categoryChooserMenu {
+  .categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
   .editTextInfo .static .headerWithButtons h1 {
     margin: 30px;
   }
-  #categoryChooserMenu select {
+  .categoryChooserMenu select {
     width: 340px;
   }
   .editTextInfo #newIndex input {
