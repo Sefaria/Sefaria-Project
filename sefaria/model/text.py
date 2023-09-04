@@ -200,7 +200,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "enShortDesc",
         "heShortDesc",
         "pubDate",
-        "hasErrorMargin"
+        "hasErrorMargin",     # (bool) whether or not compDate is exact.  used to be 'errorMargin' which was an integer amount that compDate was off by
         "compDate",
         "compPlace",
         "pubPlace",
@@ -456,16 +456,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Assumes that value of `date_field` ('pubDate' or 'compDate') is a list of integers.
         """
         from . import timeperiod
-        if not getattr(self, date_field, None):
-            return None
-        years = getattr(self, date_field)
-        if len(years) > 1:
-            start, end = years
-            startIsApprox = endIsApprox = True
-        else:
-            start = end = years[0]
-            startIsApprox = endIsApprox = False
-        return timeperiod.TimePeriod({
+        years = getattr(self, date_field, None)
+        if years is not None:
+            startIsApprox = endIsApprox = getattr(self, 'hasErrorMargin', False)
+            if len(years) > 1:
+                start, end = years
+            else:
+                start = end = years[0]
+            return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
             "end": end,
