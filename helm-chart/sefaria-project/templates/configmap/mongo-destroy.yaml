@@ -16,11 +16,34 @@ data:
     set -e
     set -x
 
+    if [[ -z "$MONGO_HOST" ]]; then
+      echo "Mongo Host not specified"
+      exit 1
+    fi
+
+    URI="mongodb://"
+
+    if [[ ! -z "$SEFARIA_DB_USER" ]]; then
+      URI="${URI}${SEFARIA_DB_USER}"
+      if [[ ! -z "$SEFARIA_DB_PASSWORD" ]]; then
+          URI="${URI}:${SEFARIA_DB_PASSWORD}"
+      fi
+      URI="${URI}@"
+
+    fi
     {{- if .Values.restore.dynamicName }}
     DB_NAME="$SEFARIA_DB-{{ .Values.deployEnv }}"
     {{ else }}
     DB_NAME=$SEFARIA_DB
     {{ end }}
+
+    URI="${URI}${MONGO_HOST}/${DATABASE}?ssl=false&authSource=admin"
+
+    if [[ ! -z "$MONGO_REPLICASET_NAME" ]]; then
+    URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
+    fi
+
+    mongo "$URI" <<EOF
 
     mongo --host $MONGO_HOST $DB_NAME <<EOF
     db.dropDatabase();
