@@ -104,9 +104,13 @@ class Section extends Ref {
         this.segments = segmentObjects;
     }
     get_text(language, versionTitle) {
-        return this.segments.map((segment) => {
+        const segmenets = this.segments.map((segment) => {
             return segment.get_text(language, versionTitle);
         })
+        // check that no element in array is undefined
+        if (segmenets.every((segment) => segment !== undefined)) {
+            return segmenets;
+        }
     }
 }
 
@@ -179,15 +183,20 @@ class TextCache {
         const textObject = this.refs[ref]?.get(language, versionTitle);
         if (textObject) {
             const sectionAttrs = this.sectionsAttrs[textObject.refAttrs.sectionRef];
-            const returnObj = {
-                ...this.books[sectionAttrs.indexTitle].get(language, versionTitle),
-                ...sectionAttrs,
-                ...textObject.refAttrs
-            };
-            returnObj.versions[0].text = textObject.text;
-            return returnObj;
+            const book = this.books[sectionAttrs.indexTitle].get(language, versionTitle);
+            if (book) {
+                const returnObj = {
+                    ...this.books[sectionAttrs.indexTitle].get(language, versionTitle),
+                    ...sectionAttrs,
+                    ...textObject.refAttrs
+                };
+                returnObj.versions[0].text = textObject.text;
+                return returnObj;
+            }
         }
     }
 }
 
-export default new TextCache();
+
+const CACHE = new TextCache();
+export default CACHE;
