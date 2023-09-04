@@ -9,6 +9,7 @@ spec:
     - name: revision
     - name: deployment
     - name: version
+    - name: chartVersion
   metrics:
     - name: healthcheck-ready
       provider:
