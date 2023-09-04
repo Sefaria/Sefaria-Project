@@ -12395,6 +12395,214 @@ span.ref-link-color-3 {color: blue}
   cursor: pointer;
 }
 
+.popover-menu {
+  position: relative;
+}
+
+.texts-properties-menu {
+  width: 256px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 5px;
+  box-shadow: 0px 2px 4px var(--lighter-grey);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 100%;
+  background-color: white;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+.popover-button {
+  background-color: white;
+  border: none;
+}
+
+.texts-properties-menu .int-en,
+.texts-properties-menu .int-he {
+  height: 18px;
+}
+
+.show-source-translation-buttons {
+  display: flex;
+  flex-direction: column;
+  height: 170px;
+  justify-content: center;
+}
+
+.show-source-translation-buttons .button {
+  margin: unset;
+  display: flex;
+  height: 46px;
+  width: 235px;
+  align-items: center;
+  justify-content: center;
+  margin: 3px 0;
+}
+
+.show-source-translation-buttons .button:not(.checked) {
+  background-color: var(--lighter-grey);
+  color: black;
+}
+
+.toggle-switch-container {
+  align-items: center;
+  display: flex;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 46px;
+  display: inline-block;
+  text-align: left;
+}
+
+.toggle-switch-checkbox {
+  display: none;
+}
+
+.toggle-switch-label {
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+}
+
+.toggle-switch-inner {
+  display: block;
+  width: 200%;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+}
+
+.toggle-switch-inner:before,
+.toggle-switch-inner:after {
+  float: left;
+  width: 50%;
+  height: 24px;
+  padding: 0;
+  line-height: 24px;
+  color: white;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.toggle-switch-inner:before {
+  content: "";
+  padding-left: 10px;
+  background-color: var(--sefaria-blue);
+  color: white;
+}
+
+.toggle-switch-inner:after {
+  content: "";
+  padding-right: 10px;
+  background-color: var(--light-grey);
+  color: white;
+  text-align: right;
+}
+
+.toggle-switch-switch {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: white;
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  right: 24px;
+  border: 0 solid var(--light-grey);
+  border-radius: 20px;
+  transition: all 0.3s ease-in 0s;
+  transform: translateY(-50%);
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+  right: 2px;
+}
+
+.toggle-switch-checkbox:disabled + .toggle-switch-label .toggle-switch-inner:after {
+  background-color: var(--lighter-grey);
+}
+
+.toggle-switch-line {
+  display: flex;
+  width: 216px;
+  height: 49px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-switch-line:is(.disabled) .int-en,
+.toggle-switch-line:is(.disabled) .int-he {
+  color: var(--light-grey);
+}
+
+.interface-hebrew .toggle-switch-line,
+.interface-hebrew .layout-options,
+.interface-hebrew .layout-button-line {
+  flex-direction: row-reverse;
+}
+
+.font-size-line {
+  width: 230px;
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.font-size-button {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: none;
+}
+
+.layout-button-line {
+  height: 57px;
+  width: 216px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.layout-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.layout-button {
+  border: none;
+  width: 28px;
+  height: 24px;
+  -webkit-mask: var(--url) no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 100% 100%;
+  background-color: var(--medium-grey);
+}
+
+.layout-button.checked {
+  background-color: var(--sefaria-blue);
+}
+
+.text-menu-border {
+  width: 100%;
+  height: 1px;
+  background-color: var(--lighter-grey);
+}
+
 #currentlyReadingContainer {
   margin: 5px 30px;
   flex-grow: 1;
