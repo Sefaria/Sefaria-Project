@@ -200,6 +200,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "enShortDesc",
         "heShortDesc",
         "pubDate",
+        "hasErrorMargin"
         "compDate",
         "compPlace",
         "pubPlace",
@@ -627,7 +628,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "lengths",            # optional for old style
         "transliteratedTitle",# optional for old style
         """
-        deprecated_attrs = ["titleVariants","sectionNames","heTitle","heTitleVariants","maps","length","lengths", "transliteratedTitle", "errorMargin"]
+        deprecated_attrs = ["titleVariants","sectionNames","heTitle","heTitleVariants","maps","length","lengths", "transliteratedTitle"]
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
