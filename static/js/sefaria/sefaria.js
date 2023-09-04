@@ -12,7 +12,6 @@ import $ from './sefariaJquery';
 import {useContext} from "react";
 import {ContentLanguageContext} from "../context";
 
-
 let Sefaria = Sefaria || {
   _dataLoaded: false,
   _inBrowser: (typeof document !== "undefined"),
@@ -20,7 +19,7 @@ let Sefaria = Sefaria || {
   books: [],
   booksDict: {},
   last_place: [],
-  apiHost: "" // Defaults to localhost, override to talk another server
+  apiHost: "https://api-v3.cauldron.sefaria.org" // Defaults to localhost, override to talk another server
 };
 
 if (typeof window !== 'undefined') {
@@ -438,6 +437,7 @@ Sefaria = extend(Sefaria, {
   },
   getText: function(ref, settings) {
     // returns a promise
+    debugger;
     settings = this._complete_text_settings(settings);
 
     const data = this.getTextFromCache(ref, settings);

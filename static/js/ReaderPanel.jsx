@@ -41,6 +41,7 @@ import {
   ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
 } from './Misc';
 import {ContentText} from "./ContentText";
+import {getVersionsByRef} from "./sefaria/textManager";
 
 
 class ReaderPanel extends Component {
@@ -1258,10 +1259,18 @@ class ReaderControls extends Component {
     if (title) {
       // If we don't have this data yet, rerender when we do so we can set the Hebrew title
       const versionPref = Sefaria.versionPreferences.getVersionPref(title);
-      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
+      const settings = {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}
+      
+      const getTextPromise = getVersionsByRef(title, settings).then(data => {
+        debugger
         if ("error" in data) { this.props.onError(data.error); }
         this.setState({runningQuery: null});   // Causes re-render
       });
+      
+      // const getTextPromise = Sefaria.getText(title, settings).then(data => {
+      //   if ("error" in data) { this.props.onError(data.error); }
+      //   this.setState({runningQuery: null});   // Causes re-render
+      // });
       this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
     this.loadTranslations();

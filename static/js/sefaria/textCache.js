@@ -179,15 +179,20 @@ class TextCache {
         const textObject = this.refs[ref]?.get(language, versionTitle);
         if (textObject) {
             const sectionAttrs = this.sectionsAttrs[textObject.refAttrs.sectionRef];
-            const returnObj = {
-                ...this.books[sectionAttrs.indexTitle].get(language, versionTitle),
-                ...sectionAttrs,
-                ...textObject.refAttrs
-            };
-            returnObj.versions[0].text = textObject.text;
-            return returnObj;
+            const book = this.books[sectionAttrs.indexTitle].get(language, versionTitle);
+            if (book) {
+                const returnObj = {
+                    ...book,
+                    ...sectionAttrs,
+                    ...textObject.refAttrs
+                };
+                returnObj.versions[0].text = textObject.text;
+                return returnObj;
+            }
         }
     }
 }
 
-export default new TextCache();
+// export TextCache instance
+const CACHE = new TextCache()
+export default CACHE;

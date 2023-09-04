@@ -8,16 +8,25 @@ import Component from 'react-class';
 import {EnglishText, HebrewText} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
+import {getVersionsByRef} from "./sefaria/textManager";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
-  componentDidMount() {
+  constructor(props) {
+    super(props);
+    this.state = {
+      data: null,
+    };
+  }
+
+  async componentDidMount() {
+    this.fetchTextData();
     this._isMounted = true;
-    let data = this.getText();
+    let data = await this.getText();
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
-      this.onTextLoad(data);
+      await this.onTextLoad(data);
     } else if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
@@ -78,6 +87,12 @@ class TextRange extends Component {
       }
     }
   }
+
+  async fetchTextData() {
+    const data = await this.getText();
+    this.setState({ data });
+  }
+
   handleResize() {
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
@@ -99,7 +114,7 @@ class TextRange extends Component {
       this.handleClick(event);
     }
   }
-  getText() {
+  async getText() {
     let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
@@ -109,17 +124,23 @@ class TextRange extends Component {
       translationLanguagePreference: this.props.translationLanguagePreference,
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
-    let data = Sefaria.getTextFromCache(this.props.sref, settings);
+    // let data = Sefaria.getTextFromCache(this.props.sref, settings);
+    let data = await getVersionsByRef(this.props.sref, settings);
 
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
-      Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
+      let data = await Sefaria.getText(this.props.sref, settings);
+      await this.onTextLoad(data);
     } else if (!!data && this.props.isCurrentlyVisible) {
       this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
     }
-    return data;
+    
+    const {source, translation} = data.reduce((acc, item) => item.versions.some(v => v.isBaseText) ? { ...acc, source: item } : { ...acc, translation: item }, {});
+    source.he = source?.versions ? source.versions[0].text : null;
+    source.text = translation?.versions ? translation.versions[0]?.text : null;
+    return source;
   }
-  onTextLoad(data) {
+  async onTextLoad(data) {
     // Initiate additional API calls when text data first loads
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
@@ -143,7 +164,7 @@ class TextRange extends Component {
       return;
     }
 
-    this.prefetchData();
+    await this.prefetchData();
 
     if (this._isMounted) {
       this.forceUpdate(function() {
@@ -180,11 +201,11 @@ class TextRange extends Component {
       }
     }
   }
-  prefetchData() {
+  async prefetchData() {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
-    let data = this.getText();
+    let data = await this.getText();
     if (!data) { return; }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
@@ -192,24 +213,30 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-       Sefaria.getText(data.next, {
-         context: 1,
-         multiple: this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null,
-         translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
-       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+      const nextSettings = {
+        context: 1,
+        multiple: this.props.prefetchMultiple,
+        enVersion: this.props.currVersions.en || null,
+        heVersion: this.props.currVersions.he || null,
+        translationLanguagePreference: this.props.translationLanguagePreference,
+        versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
+      };
+       const nextTextPromise = getVersionsByRef(data.next, nextSettings);
+      //  const nextTextPromise = Sefaria.getText(data.next, nextSettings);
+      nextTextPromise.then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.prev) {
-       Sefaria.getText(data.prev, {
-         context: 1,
-         multiple: -this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null,
-         translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
-       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+      const prevSettings = {
+        context: 1,
+        multiple: -this.props.prefetchMultiple,
+        enVersion: this.props.currVersions.en || null,
+        heVersion: this.props.currVersions.he || null,
+        translationLanguagePreference: this.props.translationLanguagePreference,
+        versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
+      };
+      const prevTextPromise = getVersionsByRef(data.prev, prevSettings);
+      // const prevTextPromise = Sefaria.getText(data.prev, prevSettings);
+      prevTextPromise.then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
@@ -280,7 +307,8 @@ class TextRange extends Component {
   }
 
   render() {
-    const data = this.getText();
+    const { data } = this.state;
+
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;
@@ -302,8 +330,8 @@ class TextRange extends Component {
     const formatHeAsPoetry = data && data.formatHeAsPoetry
 
     const showNumberLabel =  data && data.categories &&
-                              data.categories[0] !== "Liturgy" &&
-                              data.categories[0] !== "Reference";
+    data.categories[0] !== "Liturgy" &&
+    data.categories[0] !== "Reference";
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
