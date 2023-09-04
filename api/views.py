@@ -1,29 +1,52 @@
 from sefaria.model import *
-from .texts_api import TextsForClientHandler, VersionsParams
+from sefaria.model.text_manager import TextManager
 from sefaria.client.util import jsonResponse
+from django.views import View
+from .api_warnings import *
 
 
-def get_texts(request, tref):
-    """
-    handle text request based on ref and query params
-    status codes:
-    400 - for invalid ref or empty ref (i.e. has no text in any language)
-    405 - unsuppored method
-    200 - any other case. when requested version doesn't exist the returned object will include the message
-    """
-    try:
-        oref = Ref.instantiate_ref_with_legacy_parse_fallback(tref)
-    except Exception as e:
-        return jsonResponse({'error': getattr(e, 'message', str(e))}, status=400)
-    if oref.is_empty():
-        return jsonResponse({'error': f'We have no text for {oref}.'}, status=400)
-    cb = request.GET.get("callback", None)
-    if request.method == "GET":
+class Text(View):
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
+        except Exception as e:
+            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=400)
+        return super().dispatch(request, *args, **kwargs)
+
+    @staticmethod
+    def split_piped_params(params_string) -> List[str]:
+        params = params_string.split('|')
+        if len(params) < 2:
+            params.append('')
+        params[1] = params[1].replace('_', ' ')
+        return params
+
+    def _handle_warnings(self, data):
+        data['warnings'] = []
+        for lang, vtitle in data['missings']:
+            if lang == 'source':
+                warning = APINoSourceText(self.oref)
+            elif lang == 'translation':
+                warning = APINoTranslationText(self.oref)
+            elif vtitle and vtitle != 'all':
+                warning = APINoVersion(self.oref, vtitle, lang)
+            else:
+                warning = APINoLanguageVersion(self.oref, data['availabe_langs'])
+            representing_string = f'{lang}|{vtitle}' if vtitle else lang
+            data['warnings'].append({representing_string: warning.get_message()})
+        data.pop('missings')
+        data.pop('availabe_langs')
+        return data
+
+    def get(self, request, *args, **kwargs):
+        if self.oref.is_empty():
+            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['base']
-        versions_params = VersionsParams.parse_api_params(versions_params)
-        handler = TextsForClientHandler(oref, versions_params)
-        data = handler.get_versions_for_query()
-        return jsonResponse(data, cb)
-    return jsonResponse({"error": "Unsupported HTTP method."}, cb, status=405)
+        versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
+        text_manager = TextManager(self.oref, versions_params)
+        data = text_manager.get_versions_for_query()
+        data = self._handle_warnings(data)
+        return jsonResponse(data)

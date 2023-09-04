@@ -3,21 +3,7 @@ import django
 django.setup()
 from reader.tests import SefariaTestCase
 import json
-from api.helper import split_query_param_and_add_defaults
-
-
-class HelperTests(SefariaTestCase):
-    def test_split_at_pipe_with_default(self):
-        for string, list_length, default, expected in [
-            ('he|foo bar', 2, [], ['he', 'foo bar']),
-            ('he|foo bar', 2, ['baz'], ['he', 'foo bar']),
-            ('he', 2, ['baz'], ['he', 'baz']),
-            ('he|foo bar|baz', 3, [], ['he', 'foo bar', 'baz']),
-            ('he|foo bar|baz', 3, ['blue'], ['he', 'foo bar', 'baz']),
-            ('he|foo bar', 3, ['baz'], ['he', 'foo bar', 'baz']),
-            ('he', 3, ['foo', 'baz'], ['he', 'foo', 'baz']),
-        ]:
-            self.assertEqual(expected, split_query_param_and_add_defaults(string, list_length, default))
+from api.api_warnings import APIWarningCode
 
 
 c = Client()
@@ -42,6 +28,17 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue(len(data["versions"]) > 1)
         self.assertTrue(all(v['actualLanguage'] == 'he' for v in data["versions"]))
+        self.assertEqual(data["book"], "Shabbat")
+        self.assertEqual(data["categories"], ["Talmud", "Bavli", "Seder Moed"])
+        self.assertEqual(data["sections"], ["22a"])
+        self.assertEqual(data["toSections"], ["22a"])
+
+    def test_api_get_text_translation_all(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=translation|all')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(len(data["versions"]) > 1)
+        self.assertTrue(any(v['actualLanguage'] == 'en' for v in data["versions"]))
         self.assertEqual(data["book"], "Shabbat")
         self.assertEqual(data["categories"], ["Talmud", "Bavli", "Seder Moed"])
         self.assertEqual(data["sections"], ["22a"])
@@ -125,16 +122,24 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['source']['error_code'], 103)
-        self.assertEqual(data['errors'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
+        self.assertEqual(data['warnings'][0]['source']['warning_code'], APIWarningCode.APINoSourceText.value)
+        self.assertEqual(data['warnings'][0]['source']['message'], 'We do not have the source text for The Book of Maccabees I 1')
+
+    def test_api_get_text_no_translation(self):
+        response = c.get("/api/v3/texts/Shuvi_Shuvi_HaShulamit?version=translation")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 0)
+        self.assertEqual(data['warnings'][0]['translation']['warning_code'], APIWarningCode.APINoTranslationText.value)
+        self.assertEqual(data['warnings'][0]['translation']['message'], 'We do not have a translation for Shuvi Shuvi HaShulamit')
 
     def test_api_get_text_no_language(self):
         response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=sgrg|all")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['sgrg|all']['error_code'], 102)
-        self.assertEqual(data['errors'][0]['sgrg|all']['message'],
+        self.assertEqual(data['warnings'][0]['sgrg|all']['warning_code'], APIWarningCode.APINoLanguageVersion.value)
+        self.assertEqual(data['warnings'][0]['sgrg|all']['message'],
                          "We do not have the code language you asked for The Book of Maccabees I 1. Available codes are ['en', 'he']")
 
     def test_api_get_text_no_version(self):
@@ -142,6 +147,6 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['errors'][0]['he|Kishkoosh']['error_code'], 101)
-        self.assertEqual(data['errors'][0]['he|Kishkoosh']['message'],
+        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['warning_code'], APIWarningCode.APINoVersion.value)
+        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')
