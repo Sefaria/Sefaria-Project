@@ -300,8 +300,8 @@ CACHES = {
 
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-08-20-torah-campaign",
-    "style":      "modal",  # "modal" or "banner"
+    "name": "2023-09-04-new-year",
+    "style":      "banner",  # "modal" or "banner"
     "repetition": 1,
     "is_fundraising": False,
     "condition":  {
