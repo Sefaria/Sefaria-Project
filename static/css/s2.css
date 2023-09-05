@@ -1240,7 +1240,7 @@ div.interfaceLinks-row a {
 }
 
 #defaultModalBody {
-    color: #555;
+    color: #555555;
     margin-top: 0;
 }
 
@@ -1249,7 +1249,7 @@ div.interfaceLinks-row a {
 }
 
 #defaultModal #defaultModalBody .sub {
-    color: #999;
+    color: var(--medium-grey);
     font-size: 12px;
     font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
@@ -1285,8 +1285,8 @@ div.interfaceLinks-row a {
     padding: 10px;
     margin-bottom: 20px;
     border-radius: 7px;
-    border: 1px solid #EEE;
-    color: #333;
+    border: 1px solid #EEEEEE;
+    color: var(--beit-midrash-grey);
 }
 
 .header .my-profile img {
