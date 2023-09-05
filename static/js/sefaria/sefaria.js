@@ -11,6 +11,7 @@ import Util from './util';
 import $ from './sefariaJquery';
 import {useContext} from "react";
 import {ContentLanguageContext} from "../context";
+import  CACHE from './textCache';
 
 
 let Sefaria = Sefaria || {
@@ -2904,7 +2905,7 @@ Sefaria.unpackDataFromProps = function(props) {
             panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
-        Sefaria._saveText(panel.text, settings);
+        CACHE.set(panel.text);
       }
       if(panel.bookRef){
          if(panel.versions?.length){

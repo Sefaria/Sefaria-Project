@@ -1,4 +1,4 @@
-import CACHE from './TextCache';
+import CACHE from './textCache';
 import Sefaria from "./sefaria";
 import read from "./api";
 

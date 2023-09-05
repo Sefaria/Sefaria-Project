@@ -80,7 +80,7 @@ from django.core.mail import EmailMultiAlternatives
 from babel import Locale
 from sefaria.helper.topic import update_topic
 from sefaria.helper.category import update_order_of_category_children, check_term
-from api.texts_api import TextsForClientHandler, VersionsParams
+from sefaria.model.text_manager import TextManager
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -402,10 +402,10 @@ def make_panel_dict(oref, version_source, version_translation, filter, versionFi
         if settings_override:
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
-            text_handler = TextsForClientHandler(oref.padded_ref().context_ref(),
-                                                 [VersionsParams(None, panel["currVersions"]["source"]),
-                                                  VersionsParams(None, panel["currVersions"]["translation"])])
-            panel["text"] = text_handler.get_versions_for_query()
+            text_manager = TextManager(oref.padded_ref().context_ref(),
+                                                 [[None, version_source] if version_source != 'base' else [version_source, None],
+                                                  [None, version_translation] if version_translation != 'translation' else [version_translation, None]])
+            panel["text"] = text_manager.get_versions_for_query()
             panel["text"]["updateFromAPI"] = True
 
             if oref.index.categories == ["Tanakh", "Torah"]:
@@ -524,12 +524,7 @@ def get_default_versions(oref, request, version_source, version_translation):
     if not version_source:
         version_source = 'base'
     if not version_translation:
-        lang = request.GET.get('translation_language_preference', 'en')
-        translations = [v['versionTitle'] for v in oref.version_list() if ('isSource' not in v or not v['isSource']) and v['actualLanguage'] == lang]
-        if not translations:
-            translations = [v['versionTitle'] for v in oref.version_list() if 'isSource' not in v or not v['isSource']]
-        if translations:
-            version_translation = sorted(translations, key=lambda v: v['priority'])[-1]
+        version_translation = 'translation'
     return version_source, version_translation
 
 def get_text_parmas(request, oref, index: int):
