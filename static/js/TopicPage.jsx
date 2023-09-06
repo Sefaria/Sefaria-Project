@@ -572,7 +572,7 @@ const TopicPageTab = ({
             onDisplayedDataChange={onDisplayedDataChange}
             initialRenderSize={initialRenderSize}
             onSetSort={onSetTopicSort}
-            initialSort={topicSort}
+            externalSortOption={topicSort}
             data={data}
           />
         </div> : <LoadingMessage />

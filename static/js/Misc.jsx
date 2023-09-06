@@ -364,11 +364,12 @@ const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass, onSetSort, initialSort,
+  bottomMargin, containerClass, onSetSort, externalSortOption,
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [sortOption, setSortOption] = useState(initialSort || sortOptions[0]);
+  const [internalSortOption, setSortOption] = useState(externalSortOption || sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
+  const sortOption = externalSortOption || internalSortOption;
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
