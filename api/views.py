@@ -40,7 +40,7 @@ class Text(View):
         return data
 
     def get(self, request, *args, **kwargs):
-        if self.oref.is_empty():
+        if self.oref.is_empty() and not self.oref.index_node.is_virtual:
             return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:

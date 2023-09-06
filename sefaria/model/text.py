@@ -1742,7 +1742,7 @@ class TextFamilyDelegator(type):
 class TextRange:
 
     def __init__(self, oref, lang, vtitle):
-        if isinstance(oref.index_node, JaggedArrayNode): #text cannot be SchemaNode
+        if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
             self.oref = oref
         elif oref.has_default_child(): #use default child:
             self.oref = oref.default_child_ref()
@@ -1787,7 +1787,10 @@ class TextRange:
     @property
     def text(self):
         if self._text is None:
-            self._text = self._trim_text(self.version.content_node(self.oref.index_node)) #todo if there is no version it will fail
+            if self.oref.index_node.is_virtual:
+                self._text = self.oref.index_node.get_text()
+            else:
+                self._text = self._trim_text(self.version.content_node(self.oref.index_node)) #todo if there is no version it will fail
         return self._text
 
 
@@ -4496,6 +4499,9 @@ class Ref(object, metaclass=RefCacheType):
         """
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
+
+        if self.index_node.is_virtual:
+            return
 
         projection = {k: 1 for k in Version.required_attrs + Version.optional_attrs}
         del projection[Version.content_attr]  # Version.content_attr == "chapter"

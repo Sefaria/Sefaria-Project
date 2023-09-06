@@ -37,7 +37,7 @@ class TextManager:
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
         if lang == self.BASE:
-            lang_condition = lambda v: getattr(v, 'isBaseText2', False)  # temporal name
+            lang_condition = lambda v: getattr(v, 'isBaseText', False)
         elif lang == self.SOURCE:
             lang_condition = lambda v: getattr(v, 'isSource', False)
         elif lang == self.TRANSLATION:
@@ -108,8 +108,9 @@ class TextManager:
             'heTitle': inode.full_title("he"),
             'titleVariants': inode.all_tree_titles("en"),
             'heTitleVariants': inode.all_tree_titles("he"),
-            'index_offsets_by_depth': inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections),
         })
+        if not inode.is_virtual:
+            self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def get_versions_for_query(self) -> dict:
         for lang, vtitle in self.versions_params:
