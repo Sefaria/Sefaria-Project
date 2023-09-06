@@ -38,8 +38,8 @@ const Promotions = () => {
             trigger: {
               showTo: sidebarAd.showTo,
               interfaceLang: "english",
-              dt_start: Date.parse(sidebarAd.startTime),
-              dt_end: Date.parse(sidebarAd.endTime),
+              startTimeDate: Date.parse(sidebarAd.startTime),
+              endTimeDate: Date.parse(sidebarAd.endTime),
               keywordTargets: keywordTargetsArray,
               excludeKeywordTargets: excludeKeywordTargets,
             },
@@ -66,8 +66,8 @@ const Promotions = () => {
               trigger: {
                 showTo: sidebarAd.showTo,
                 interfaceLang: "hebrew",
-                dt_start: Date.parse(sidebarAd.startTime),
-                dt_end: Date.parse(sidebarAd.endTime),
+                startTimeDate: Date.parse(sidebarAd.startTime),
+                endTimeDate: Date.parse(sidebarAd.endTime),
                 keywordTargets: keywordTargetsArray,
                 excludeKeywordTargets: excludeKeywordTargets,
               },
@@ -117,8 +117,8 @@ const Promotions = () => {
         showToUser(ad) &&
         showGivenDebugMode(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
-        context.dt > ad.trigger.dt_start &&
-        context.dt < ad.trigger.dt_end &&
+        context.dt >= ad.trigger.startTimeDate &&
+        context.dt <= ad.trigger.endTimeDate &&
         (context.keywordTargets.some((kw) =>
           ad.trigger.keywordTargets.includes(kw)
         ) ||
