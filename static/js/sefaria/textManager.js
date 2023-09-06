@@ -32,12 +32,15 @@ function makeParamsString(language, versionTitle) {
     }
 }
 
-async function getVersionFromAPI(ref, language, versionTitle) {
+async function getVersionFromAPI(ref, requiredVersion) {
     const host = Sefaria.apiHost;
     const endPoint = '/api/v3/texts/'
-    const paramsString = makeParamsString(language, versionTitle);
-    const url = `${host}${endPoint}${ref}?version=${paramsString}`;
-    return await read(url)
+    let url = `${host}${endPoint}${ref}?`;
+    for (let [language, versionTitle] of requiredVersion) {
+        const paramsString = makeParamsString(language, versionTitle);
+        url += `version=${paramsString}&`;
+    }
+    return await read(url.slice(0, -1));
 }
 
 
@@ -80,22 +83,33 @@ export async function getVersions(ref, source, translation, translationLanguageP
     // source, translation are objects that can have language and versionTitle
     // translationLanguagePreference is on ReaderApp state and goind downward all components. it's not ideal but i don't see another way for now
     const book = getBookFromRef(ref);
-    const versions = [];
+    let versions = [];
     const data = {source: source, translation: translation};
+    const requiredVersion = [];
     for (const versionType in data) {
         const requiredVersion = data[versionType];
-        let { language, versionTitle } = { ...requiredVersion };
+        let {language, versionTitle} = {...requiredVersion};
         if (!(language && versionTitle)) {
-            ({ language, versionTitle } = getLanguageAndVersionTitle(book, language, versionType, translationLanguagePreference));
+            ({
+                language,
+                versionTitle
+            } = getLanguageAndVersionTitle(book, language, versionType, translationLanguagePreference));
         }
+        requiredVersion.push([language, versionTitle]);
+    }
+    for (let [language, versionTitle] of requiredVersion) {
         let version = CACHE.get(ref, language, versionTitle);
         if (version) {
-            versions.push(version);
+            if (versions === []) {
+                versions = version;
+            } else {
+                versions.versions.push(version.versions[0])
+            }
         } else {
-            version = await getVersionFromAPI(ref, language, versionTitle);
-            versions.push(version);
-            CACHE.set(version);
+            versions = await getVersionFromAPI(ref, requiredVersion);
+            CACHE.set(versions);
             (defaultVersionsCache?.[book] ?? (defaultVersionsCache[book] = {}))[version.actualLanguage] = version.versionTitle;
+            break
         }
     }
     return versions;
