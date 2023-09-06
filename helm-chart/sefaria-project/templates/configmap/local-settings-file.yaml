@@ -50,7 +50,8 @@ data:
 
     MANAGERS = ADMINS
 
-    MONGO_HOST = os.getenv("MONGO_HOST")
+    MONGO_REPLICASET_NAME = os.getenv("MONGO_REPLICASET_NAME")
+    MONGO_HOST = os.getenv("MONGO_HOST") 
     MONGO_PORT = 27017
     {{- if .Values.restore.dynamicName }}
     SEFARIA_DB = os.getenv("SEFARIA_DB") + "-" + {{ .Values.deployEnv | quote }}
