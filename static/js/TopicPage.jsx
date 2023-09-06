@@ -526,7 +526,7 @@ const TopicPage = ({
                         timePeriod={topicData.timePeriod}
                         properties={topicData.properties}
                       />
-                      {!topicData.isLoading && <Promotions/> /* Dont allow sidebar ads to be shown until the rest of the topics page has loaded */}
+                      {!topicData.isLoading && <Promotions/>}
                     </>
                   ) : null}
                 </div>

@@ -208,6 +208,20 @@ function StrapiDataProvider({ children }) {
             let modals = result.data?.modals?.data;
             let banners = result.data?.banners?.data;
 
+            let removeKeysFromLocalStorageWithPrefix = (prefix) => {
+              let keysToRemove = [];
+              // Removing keys while iterating affects the length of localStorage
+              for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key.startsWith(prefix)) {
+                  keysToRemove.push(key);
+                }
+              }
+              keysToRemove.forEach((key) => {
+                localStorage.removeItem(key);
+              });
+            };
+
             const currentDate = new Date();
             if (modals?.length) {
               // Only one modal can be displayed currently. The first one that matches will be the one shown
@@ -217,6 +231,9 @@ function StrapiDataProvider({ children }) {
                   currentDate <= new Date(modal.attributes.modalEndDate)
               );
               if (modal) {
+                // Remove any other previous modals since there is a new modal to replace it
+                removeKeysFromLocalStorageWithPrefix("modal_");
+
                 // Check if there is a Hebrew translation for the modal
                 if (modal.attributes.localizations?.data?.length) {
                   let localization_attributes =
@@ -259,6 +276,9 @@ function StrapiDataProvider({ children }) {
               );
 
               if (banner) {
+                // Remove any other previous banners since there is a new banner to replace it
+                removeKeysFromLocalStorageWithPrefix("banner_");
+
                 // Check if there is a Hebrew translation
                 if (banner.attributes.localizations?.data?.length) {
                   let localization_attributes =
