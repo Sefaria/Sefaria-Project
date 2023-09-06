@@ -11,21 +11,6 @@ AdContext.displayName = "AdContext";
 const StrapiDataContext = React.createContext({});
 StrapiDataContext.displayName = "StrapiDataContext";
 
-const transformValues = (obj, callback) => {
-  const newObj = {};
-  for (let key in obj) {
-    newObj[key] = obj[key] !== null ? callback(obj[key]) : null;
-  }
-  return newObj;
-};
-
-export function replaceNewLinesWithLinebreaks(content) {
-  return transformValues(
-    content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
-  );
-}
-
 // Gets data from a Strapi CMS instance to be used for displaying static content
 function StrapiDataProvider({ children }) {
   const [dataFromStrapiHasBeenReceived, setDataFromStrapiHasBeenReceived] =

@@ -8,7 +8,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext, replaceNewLinesWithLinebreaks} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -2058,9 +2058,6 @@ SignUpModal.propTypes = {
 
 // Have a callback function run when its children (element or nested group of elements) become fully visible within the viewport
 function OnInView({ children, onVisible }) {
-  // Get a mutable reference object for the child and/or children to be rendered within this component wrapped in a div
-  // The reference is attached to the DOM element returned from this component
-  // This allows us to access properties of the DOM element directly
   const elementRef = useRef(); 
 
   useEffect(() => {
@@ -2096,6 +2093,20 @@ function OnInView({ children, onVisible }) {
   return <div ref={elementRef}>{children}</div>;
 }
 
+const transformValues = (obj, callback) => {
+  const newObj = {};
+  for (let key in obj) {
+    newObj[key] = obj[key] !== null ? callback(obj[key]) : null;
+  }
+  return newObj;
+};
+
+const replaceNewLinesWithLinebreaks = (content) => {
+  return transformValues(
+    content,
+    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
+  );
+}
 
 const InterruptingMessage = ({
   onClose,
