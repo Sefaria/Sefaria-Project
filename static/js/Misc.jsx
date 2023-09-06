@@ -364,10 +364,10 @@ const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass
+  bottomMargin, containerClass, onSetSort, initialSort,
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [sortOption, setSortOption] = useState(initialSort || sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
 
   // Apply filter and sort to the raw data
@@ -420,10 +420,11 @@ const FilterableList = ({
     }, [dataUpToPage]);
   }
 
-  const onSortChange = newSortOption => {
+  const setSort = newSortOption => {
     if (newSortOption === sortOption) { return; }
     setSortOption(newSortOption);
     setDisplaySort(false);
+    onSetSort?.(newSortOption);
   };
 
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -453,7 +454,7 @@ const FilterableList = ({
                 isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
-                handleClick={onSortChange}
+                handleClick={setSort}
               />
             </DropdownModal>
             : null
@@ -480,7 +481,7 @@ const FilterableList = ({
               <span
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
-                onClick={() => onSortChange(option)}
+                onClick={() => setSort(option)}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
