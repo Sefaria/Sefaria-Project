@@ -697,6 +697,15 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
+const TopicImage = ({ title, children, hasMore }) => {
+  const [showMore, setShowMore] = useState(false);
+  return (
+    <div>
+      <img class="topicImage" src="https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640" />
+    </div>
+  );
+}
+
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
@@ -792,6 +801,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
   ) : null;
   return (
     <>
+    <TopicImage />
       { tpSection }
       { propsSection }
     </>

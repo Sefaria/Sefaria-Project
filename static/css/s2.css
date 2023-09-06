@@ -2204,6 +2204,9 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.topicImage{
+  border: 20px solid rgba(242, 15, 15, 1);
+}
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
   font-size: 24px;
