@@ -2056,15 +2056,20 @@ SignUpModal.propTypes = {
   modalContent: PropTypes.object.isRequired,
 };
 
-// Have a callback function run when its children (element or nested group of elements) become fully visible within the viewport
+
 function OnInView({ children, onVisible }) {
+  /**
+   *  Functional component that allows a callback function to run when its children become fully visible within the viewport
+   *  `children` single element or nested group of elements wrapped in a div
+   *  `onVisible` callback function that will be called when given component(s) are visible
+   */
   const elementRef = useRef(); 
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       // Callback function will be invoked whenever the visibility of the observed element changes
       (entries) => {
-        const [entry] = entries;
+        const entry = entries[0];
         // Check if the observed element is intersecting with the viewport (it's visible)
         // Invoke provided prop callback for analytics purposes
         if (entry.isIntersecting) {
