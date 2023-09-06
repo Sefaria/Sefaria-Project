@@ -2059,9 +2059,10 @@ SignUpModal.propTypes = {
 
 function OnInView({ children, onVisible }) {
   /**
-   *  Functional component that allows a callback function to run when its children become fully visible within the viewport
+   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
    *  `children` single element or nested group of elements wrapped in a div
-   *  `onVisible` callback function that will be called when given component(s) are visible
+   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
+   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
   const elementRef = useRef(); 
 
