@@ -14,17 +14,8 @@ class SearchTextResult extends Component {
         super(props);
 
         this.state = {
-            duplicatesShown: false,
-            ref: this.props.data._source.ref
+            duplicatesShown: false
         };
-    }
-    componentDidMount() {
-        const parsedRef = Sefaria.parseRef(this.state.ref);
-        if (parsedRef.index.length === 0) {  // if URL has old title, there won't be an index, so normalize "Bereishit Rabbah 3" => "Bereshit Rabbah 3" by calling API
-            Sefaria.getRef(this.state.ref).then(d => {  
-                this.setState({ref: d.ref});
-            });
-        }
     }
     toggleDuplicates(event) {
         this.setState({
@@ -54,19 +45,26 @@ class SearchTextResult extends Component {
         // highlights = highlights.filter(h => h.length === longestLength);
         return highlights;
     }
-    handleResultClick(event) {
-        if(this.props.onResultClick) {
+    async handleResultClick(event) {
+        if (this.props.onResultClick) {
             event.preventDefault();
             const s = this.props.data._source;
             const textHighlights = this.getHighlights();
             //console.log(textHighlights);
+            // in case a change to a title was made and ElasticSearch cronjob hasn't run,
+            // there won't be an index, so normalize "Bereishit Rabbah 3" => "Bereshit Rabbah 3" by calling API
+            let parsedRef = Sefaria.parseRef(s.ref);
+            if (parsedRef.index.length === 0) {
+                const d = await Sefaria.getRef(s.ref);
+                parsedRef.ref = d.ref;
+            }
+
             if (this.props.searchInBook) {
-              Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${this.state.ref}/${s.version}/${s.lang}`);
+                Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
+            } else {
+                Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
             }
-            else {
-              Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${this.state.ref}/${s.version}/${s.lang}`);
-            }
-            this.props.onResultClick(this.state.ref, {[s.lang]: s.version}, { textHighlights });
+            this.props.onResultClick(parsedRef.ref, {[s.lang]: s.version}, {textHighlights});
         }
     }
     get_snippet_markup(data) {
@@ -91,7 +89,7 @@ class SearchTextResult extends Component {
     render() {
         var data = this.props.data;
         var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(this.state.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
+        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
 
         const more_results_caret =
             (this.state.duplicatesShown)
@@ -128,10 +126,10 @@ class SearchTextResult extends Component {
             <div className="result textResult">
                 <a href={href} onClick={this.handleResultClick}>
                     <div className="result-title">
-                        <InterfaceText text={{en: this.state.ref, he: s.heRef}}/>
+                        <InterfaceText text={{en: s.ref, he: s.heRef}}/>
                     </div>
                 </a>
-                <ColorBarBox tref={this.state.ref}>
+                <ColorBarBox tref={s.ref}>
                     <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                 </ColorBarBox>
                 <div className="version">
