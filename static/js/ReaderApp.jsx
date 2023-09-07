@@ -1355,9 +1355,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       currentlyVisibleRef = ref;
       highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
-    let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
+    let updatePanelObj = {refs, currentlyVisibleRef, highlightedRefs};
     const { dependentPanel } = this._getDependentPanel(n);
-    Object.assign(dependentPanel, {refs, currentlyVisibleRef, highlightedRefs});
+    if (dependentPanel) {
+      Object.assign(dependentPanel, updatePanelObj);
+    }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
   }
