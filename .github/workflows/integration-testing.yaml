@@ -188,7 +188,33 @@ jobs:
       - name: Wait for env
         run: while [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; do sleep 10; done
         timeout-minutes: 5
-      - name: Run tests
-        run: if [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; then exit 1; fi
+
+      - name: Set SANDBOX_URL
+        run: echo "SANDBOX_URL=https://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}.your-domain.com" >> $GITHUB_ENV
+      
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      
+      - name: Run Playwright tests
+        run: npx playwright test
+      
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
