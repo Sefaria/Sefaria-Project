@@ -703,7 +703,7 @@ const TopicImage = ({ topicTitle }) => {
   const key = topicTitle.en;
   const hardcodedMap = {
     'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
-                     'enCaption':'Rosh Hashanah<br\>Artist: Arthur Szyk (1894-1951)<br/>Tempera and ink on paper<br/>New Canaan, 1948<br/>Collection of Yeshiva University Museum<br/>Gift of Charles Frost', 
+                     'enCaption':'Rosh Hashanah\nArtist: Arthur Szyk (1894-1951)\nTempera and ink on paper\nNew Canaan, 1948\nCollection of Yeshiva University Museum\nGift of Charles Frost', 
                      'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
 
     'Yom Kippur': {'photoLink':'https://picryl.com/media/jonah-and-the-fish-from-bl-add-21160-f-292-510120', 
@@ -719,7 +719,7 @@ const TopicImage = ({ topicTitle }) => {
                'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
 
     'Simchat Torah': {'photoLink':'https://www.flickr.com/photos/center_for_jewish_history/7974345646/', 
-                      'enCaption':'Rosh Hashanah postcard: Hakafot<br/>Artist: Haim Yisroel Goldberg (1888-1943)<br/>Publisher: Williamsburg Post Card Co.<br/>Germany, ca. 1915<br/>Collection of Yeshiva University Museum', 
+                      'enCaption':'Rosh Hashanah postcard: Hakafot\nArtist: Haim Yisroel Goldberg (1888-1943)\nPublisher: Williamsburg Post Card Co.\nGermany, ca. 1915\nCollection of Yeshiva University Museum', 
                       'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
 
     'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
@@ -729,7 +729,7 @@ const TopicImage = ({ topicTitle }) => {
   return ( key in hardcodedMap ?
     (<div class="topicImageWrapper">
         <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
-        <div class="topicImageCaption"> 
+        <div class="topicImageCaption topicLinebreak"> 
          <InterfaceText text={{en:hardcodedMap[key].enCaption, he:hardcodedMap[key].heCaption}}  />
         </div>
       </div>) : null);
