@@ -6,12 +6,6 @@
 # ID.)
 releaseImageTag:
 
-# Setting this to true will make this a sandbox environment. It'll set the
-# following:
-# - nodeAffinity for the Monitor, Nodejs, Redis, Varnish, Web & Nginx pod to
-#   schedule opn node where preemptible=true
-# - Set appropriate labels to Nginx pod
-# - Requests images with the tag "sandbox-<releaseImageTag>"
 sandbox: "false"
 
 # This value sets the name of the environment and it's associated objects. Some
@@ -22,10 +16,15 @@ deployEnv: "dev"
 # tags that help ArgoCD do blue green deployments.
 previousServicesCount: "3"
 
+# runs post-promotion job with slack hook to alert when deployment is complete
+deploymentMessage: false
+
 # write the full path to the back up if you want to start the environment from
 # a specific backup else leave blank.
 restore:
   enabled: true
+  dynamicName: true
+  cleanup: true
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
@@ -57,7 +56,7 @@ web:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -114,7 +113,7 @@ linker:
   # APP: web
   containerImage:
     # Full path of the image registry imclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-linker
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-linker
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -175,11 +174,13 @@ redis:
     limits:
       memory: "500Mi"
       cpu: "120m"
+  # enable pod disruption budget
+  pdb: false
 
 nodejs:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-node
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   # key-pair values to load into node pod environment.  Takes precedence over global localsettings
@@ -243,6 +244,7 @@ ingress:
       path: /*
       serviceName: nginx
       port: 80
+  annotations: {}
   secrets:
     # This TLS is referenced for Prod and Democracy deployments. Use the ref: or
     # data: fields for either deployments.
@@ -250,7 +252,7 @@ ingress:
       # If you're using a refenrece to an existing secret then the data: section
       # should be commented out and vice-versa.
       # Reference to an existing secret in the cluster
-      # "cauldron-wildcard-letsencrypt" is for sandboxes, wildcard cert managed
+      # "cauldron-wildcard-letsencrypt" is for cauldrons, wildcard cert managed
       # via infrastructure
       ref:
       # for local testing purposes or CI pipeline use input a value
@@ -271,11 +273,12 @@ ingress:
 nginx:
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-asset
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   # set to search-democracy for democracy
   SEARCH_HOST: elasticsearch-es-default.elasticsearch
+  disableScraping: true
   # key-pair values to load into nginx pod environment.  Takes precedence over global localsettings
   localsettings:
   # APP: nginx
@@ -294,7 +297,7 @@ monitor:
   # APP: monitor
   containerImage:
     # Full path of the image registry inclusive of the image name
-    imageRegistry: gcr.io/production-deployment/sefaria-web
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
     # Commit id of the repo for which the image build has been triggered.
     tag: latest
   replicaCount: 1
@@ -396,15 +399,14 @@ cronJobs:
     enabled: false
 
 localSettings:
-  DEBUG: "False"
+  DEBUG: true
   DOMAIN_LANGUAGE: {}
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
-  MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
-  FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.sandbox.sefaria.org" in sandboxes and cauldrons
+  FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
   DOWN_FOR_MAINTENANCE: "False"
   MAINTENANCE_MESSAGE: "Sefaria is down for scheduled maintenance. We expect to be back online within 15 minutes. Thank you for your patience."
@@ -415,6 +417,7 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
+  FAIL_GRACEFULLY: "True"
 
 instrumentation:
   enabled: false
