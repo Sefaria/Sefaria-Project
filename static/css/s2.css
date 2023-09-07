@@ -2207,7 +2207,7 @@ div.interfaceLinks-row a {
 .topicImagePicture{
   border: 1px solid #EDEDEC;
   width: 292px;
-  height: 292px;
+  /* height: 292px; */
   top: 121px;
   left: 835px;
 }

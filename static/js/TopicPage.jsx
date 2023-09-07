@@ -706,7 +706,7 @@ const TopicImage = ({ topicTitle }) => {
                      'enCaption':'Rosh Hashanah\nArtist: Arthur Szyk (1894-1951)\nTempera and ink on paper\nNew Canaan, 1948\nCollection of Yeshiva University Museum\nGift of Charles Frost', 
                      'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
 
-    'Yom Kippur': {'photoLink':'https://picryl.com/media/jonah-and-the-fish-from-bl-add-21160-f-292-510120', 
+    'Yom Kippur': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/K900/K90075-77.jpg', 
                    'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur. 1300-1500', 
                    'heCaption': 'מיקורגפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
 
@@ -714,11 +714,11 @@ const TopicImage = ({ topicTitle }) => {
                          'enCaption':'Etrog container, K B, late 19th century, Germany. Gift of Dr. Harry G. Friedman', 
                          'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
 
-    'Sukkot': {'photoLink':'https://picryl.com/media/sukkah-from-bl-add-26968-f-316v-d0c358', 
+    'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
                'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot). Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
                'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
 
-    'Simchat Torah': {'photoLink':'https://www.flickr.com/photos/center_for_jewish_history/7974345646/', 
+    'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
                       'enCaption':'Rosh Hashanah postcard: Hakafot\nArtist: Haim Yisroel Goldberg (1888-1943)\nPublisher: Williamsburg Post Card Co.\nGermany, ca. 1915\nCollection of Yeshiva University Museum', 
                       'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
 
