@@ -523,7 +523,8 @@ const TopicPage = ({
                       parashaData={parashaData}
                       tref={topicData.ref}
                       timePeriod={topicData.timePeriod}
-                      properties={topicData.properties} />
+                      properties={topicData.properties} 
+                      topicTitle={topicTitle}/>
                     : null }
                     <Promotions adType="sidebar"/>
                 </div>
@@ -592,7 +593,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -612,7 +613,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle}/>;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -697,21 +698,42 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
-const TopicImage = ({ title, children, hasMore }) => {
-  const [showMore, setShowMore] = useState(false);
-  return (
-    <div class="topicImageWrapper">
-      <img class="topicImagePicture" src="https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640" />
-      <div class="topicImageCaption">
-        Rosh Hashanah<br/>
-        Artist: Arthur Szyk (1894-1951)<br/>
-        Tempera and ink on paper<br/>
-        New Canaan, 1948<br/>
-        Collection of Yeshiva University Museum<br/>
-        Gift of Charles Frost<br/>
+const TopicImage = ({ topicTitle }) => {
+  // const [showMore, setShowMore] = useState(false);
+  const key = topicTitle.en;
+  const hardcodedMap = {
+    'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
+                     'enCaption':'Rosh Hashanah<br\>Artist: Arthur Szyk (1894-1951)<br/>Tempera and ink on paper<br/>New Canaan, 1948<br/>Collection of Yeshiva University Museum<br/>Gift of Charles Frost', 
+                     'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
+
+    'Yom Kippur': {'photoLink':'https://picryl.com/media/jonah-and-the-fish-from-bl-add-21160-f-292-510120', 
+                   'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur. 1300-1500', 
+                   'heCaption': 'מיקורגפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
+
+    'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
+                         'enCaption':'Etrog container, K B, late 19th century, Germany. Gift of Dr. Harry G. Friedman', 
+                         'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
+
+    'Sukkot': {'photoLink':'https://picryl.com/media/sukkah-from-bl-add-26968-f-316v-d0c358', 
+               'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot). Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
+               'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
+
+    'Simchat Torah': {'photoLink':'https://www.flickr.com/photos/center_for_jewish_history/7974345646/', 
+                      'enCaption':'Rosh Hashanah postcard: Hakafot<br/>Artist: Haim Yisroel Goldberg (1888-1943)<br/>Publisher: Williamsburg Post Card Co.<br/>Germany, ca. 1915<br/>Collection of Yeshiva University Museum', 
+                      'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
+
+    'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
+                'enCaption':'Friday Evening,  Isidor Kaufmann, Austria c. 1920. Gift of Mr. and Mrs. M. R. Schweitzer', 
+                'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
+  };
+  return ( key in hardcodedMap ?
+    (<div class="topicImageWrapper">
+      <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
+      <div class="topicImageCaption"> 
+      {/*todo - ADD HEBREW INT FACE*/}
+      {hardcodedMap[key].enCaption}
       </div>
-     </div>
-  );
+     </div>) : null);
 }
 
 
@@ -769,7 +791,7 @@ const propKeys = [
   {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia'},
   {en: 'enNliLink', he: 'heNliLink', title: 'National Library of Israel'},
 ];
-const TopicMetaData = ({ timePeriod, properties={} }) => {
+const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
@@ -811,7 +833,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
   ) : null;
   return (
     <>
-    <TopicImage />
+    <TopicImage topicTitle={topicTitle}/>
       { tpSection }
       { propsSection }
     </>
