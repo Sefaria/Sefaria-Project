@@ -723,7 +723,7 @@ const TopicImage = ({ topicTitle }) => {
                       'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
 
     'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                'enCaption':'Friday Evening,  Isidor Kaufmann, Austria c. 1920. Gift of Mr. and Mrs. M. R. Schweitzer', 
+                'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
                 'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
   };
   return ( key in hardcodedMap ?
