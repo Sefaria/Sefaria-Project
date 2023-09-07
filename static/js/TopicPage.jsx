@@ -700,9 +700,17 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 const TopicImage = ({ title, children, hasMore }) => {
   const [showMore, setShowMore] = useState(false);
   return (
-    <div>
-      <img class="topicImage" src="https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640" />
-    </div>
+    <div class="topicImageWrapper">
+      <img class="topicImagePicture" src="https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640" />
+      <div class="topicImageCaption">
+        Rosh Hashanah<br/>
+        Artist: Arthur Szyk (1894-1951)<br/>
+        Tempera and ink on paper<br/>
+        New Canaan, 1948<br/>
+        Collection of Yeshiva University Museum<br/>
+        Gift of Charles Frost<br/>
+      </div>
+     </div>
   );
 }
 
@@ -777,27 +785,29 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
   }));
   const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
   const propsSection = hasProps ? (
-    <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
-      {
-        propValues.map(propObj => {
-          let url, urlExists = true;
-          if (Sefaria.interfaceLang === 'hebrew') {
-            if (!propObj.url.he) { urlExists = false; }
-            url = propObj.url.he || propObj.url.en;
-          } else {
-            if (!propObj.url.en) { urlExists = false; }
-            url = propObj.url.en || propObj.url.he;
-          }
-          if (!url) { return null; }
-          return (
-            <SimpleLinkedBlock
-              key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
-              url={url} aclasses={"systemText topicMetaData"} openInNewTab
-            />
-          );
-        })
-      }
-    </TopicSideSection>
+    <div>
+      <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
+        {
+          propValues.map(propObj => {
+            let url, urlExists = true;
+            if (Sefaria.interfaceLang === 'hebrew') {
+              if (!propObj.url.he) { urlExists = false; }
+              url = propObj.url.he || propObj.url.en;
+            } else {
+              if (!propObj.url.en) { urlExists = false; }
+              url = propObj.url.en || propObj.url.he;
+            }
+            if (!url) { return null; }
+            return (
+              <SimpleLinkedBlock
+                key={url} en={propObj.title + (urlExists ? "" : " (Hebrew)")} he={Sefaria._(propObj.title) + (urlExists ? "" : ` (${Sefaria._("English")})`)}
+                url={url} aclasses={"systemText topicMetaData"} openInNewTab
+              />
+            );
+          })
+        }
+      </TopicSideSection>
+    </div>
   ) : null;
   return (
     <>
