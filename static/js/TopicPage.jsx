@@ -729,7 +729,7 @@ const TopicImage = ({ topicTitle }) => {
   return ( key in hardcodedMap ?
     (<div class="topicImageWrapper">
         <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
-        <div class="topicImageCaption topicLinebreak"> 
+        <div class="topicImageCaption topicImageCaptionLinebreak"> 
          <InterfaceText text={{en:hardcodedMap[key].enCaption, he:hardcodedMap[key].heCaption}}  />
         </div>
       </div>) : null);
