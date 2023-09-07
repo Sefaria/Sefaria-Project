@@ -728,12 +728,11 @@ const TopicImage = ({ topicTitle }) => {
   };
   return ( key in hardcodedMap ?
     (<div class="topicImageWrapper">
-      <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
-      <div class="topicImageCaption"> 
-      {/*todo - ADD HEBREW INT FACE*/}
-      {hardcodedMap[key].enCaption}
-      </div>
-     </div>) : null);
+        <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
+        <div class="topicImageCaption"> 
+         <InterfaceText text={{en:hardcodedMap[key].enCaption, he:hardcodedMap[key].heCaption}}  />
+        </div>
+      </div>) : null);
 }
 
 
