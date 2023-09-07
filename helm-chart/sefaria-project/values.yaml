@@ -403,7 +403,6 @@ localSettings:
   DOMAIN_LANGUAGE: {}
     # https://www.sefaria.org: english
     # https://www.sefaria.org.il: hebrew
-  MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
