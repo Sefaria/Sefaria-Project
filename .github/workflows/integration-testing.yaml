@@ -190,7 +190,7 @@ jobs:
         timeout-minutes: 5
 
       - name: Set SANDBOX_URL
-        run: echo "SANDBOX_URL=https://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}.your-domain.com" >> $GITHUB_ENV
+        run: echo "SANDBOX_URL=https://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}/texts" >> $GITHUB_ENV
       
       - name: Checkout Code
         uses: actions/checkout@v2
