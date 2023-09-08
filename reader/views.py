@@ -1029,7 +1029,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    title = _("Indrajala: a Living Library of Buddhist Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
 
