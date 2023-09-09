@@ -41,7 +41,7 @@ class Footer extends Component {
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="אודות">
-                <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
+                <Link href="/about" en="What is Indrajala?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
