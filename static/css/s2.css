@@ -5360,14 +5360,14 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.hebrew .segment.enOnly .segmentNumber .he {
   display: block;
 }
-.segment .refLink {
+.segment .refLink, .scrollLink {
   font-size: .8em;
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
   color: #333;
 }
-.refLink:hover {
+.scrollLink:hover, .refLink:hover {
   text-decoration: underline;
 }
 .segment .namedEntityLink {

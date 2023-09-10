@@ -1336,13 +1336,10 @@ class ReaderApp extends Component {
       currentlyVisibleRef = ref;
       highlightedRefs = (panel.mode === "TextAndConnections") ? [ref] : [];
     }
-    let updatePanelObj = {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs}
-    if((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections"){
-      let connectionsPanel =  this.state.panels[n+1];
-      Object.assign(connectionsPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
-    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
-      let masterPanel = this.state.panels[n-1];
-      Object.assign(masterPanel, {refs: refs, currentlyVisibleRef: currentlyVisibleRef, highlightedRefs: highlightedRefs});
+    let updatePanelObj = {refs, currentlyVisibleRef, highlightedRefs};
+    const { dependentPanel } = this._getDependentPanel(n);
+    if (dependentPanel) {
+      Object.assign(dependentPanel, updatePanelObj);
     }
     Object.assign(panel, updatePanelObj);
     this.setState({panels: this.state.panels});
