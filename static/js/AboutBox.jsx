@@ -134,7 +134,7 @@ class AboutBox extends Component {
         dateTextEn = d.pubDateString.en;
         dateTextHe = d.pubDateString.he;
       }
-      const bookPageUrl = "/" + Sefaria.normRef(d.title);
+      const bookPageUrl = "/" + Sefaria.normRef(d.title);  //comment for the sake of commit
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
