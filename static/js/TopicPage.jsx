@@ -707,15 +707,15 @@ const TopicImage = ({ topicTitle }) => {
                      'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
 
     'Yom Kippur': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/K900/K90075-77.jpg', 
-                   'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur. 1300-1500', 
+                   'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur.\n 1300-1500, Germany (The British Library)', 
                    'heCaption': 'מיקורגפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
 
     'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                         'enCaption':'Etrog container, K B, late 19th century, Germany. Gift of Dr. Harry G. Friedman', 
+                         'enCaption':'Etrog container, K B, late 19th century, Germany.\n The Jewish Museum, Gift of Dr. Harry G. Friedman', 
                          'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
 
     'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
-               'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot). Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
+               'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot).\n Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
                'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
 
     'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
@@ -723,7 +723,7 @@ const TopicImage = ({ topicTitle }) => {
                       'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
 
     'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
+                'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920.\n The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
                 'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
   };
   return ( key in hardcodedMap ?
