@@ -715,7 +715,8 @@ input.noselect {
 }
 .header .home img {
   vertical-align: middle;
-  margin-top: -7px;
+  height: 10px;
+  margin-top: 1px;
   width: 92px;
 }
 .interface-hebrew .header .home img {
