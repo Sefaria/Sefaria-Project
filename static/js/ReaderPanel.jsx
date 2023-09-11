@@ -31,6 +31,7 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
+import { TranslationLanguagePreferenceSuggestionBanner }  from './TextColumnBanner';
 import {
   CloseButton,
   MenuButton,
@@ -1435,61 +1436,6 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
-
-
-const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
-  const [accepted, setAccepted] = useState(false);
-  const [closed, setClosed] = useState(false);
-
-  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-  const { translation_language_preference_suggestion } = Sefaria;
-  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
-    return null;
-  }
-  const closeBanner = () => {
-    setClosed(true);
-    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
-    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
-  }
-  const accept = () => {
-    setAccepted(true);
-    setTranslationLanguagePreference(translation_language_preference_suggestion);
-  }
-  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-
-  return (
-    <div className="readerControls transLangPrefSuggBann">
-      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-        {
-          accepted ? (
-            <div className="transLangPrefCentered">
-              <InterfaceText>
-                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-              </InterfaceText>
-            </div>
-          ) : (
-            <div className="transLangPrefCentered">
-            <InterfaceText>
-                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
-            </InterfaceText>
-            <div className="yesNoGroup">
-              <a className="yesNoButton" onClick={accept}>
-                <InterfaceText>Yes</InterfaceText>
-              </a>
-              <a className="yesNoButton" onClick={closeBanner}>
-                <InterfaceText>No</InterfaceText>
-              </a>
-            </div>
-          </div>
-          )
-        }
-        <CloseButton onClick={closeBanner} />
-      </div>
-    </div>
-  );
-}
 
 
 class ReaderDisplayOptionsMenu extends Component {
