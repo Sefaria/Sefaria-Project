@@ -4,8 +4,8 @@ import {goToPageWithLang} from '../utils';
 
 test('Go to topic page', async ({ context }) => {
   const page = await goToPageWithLang(context, '/topics');
-  await page.getByRole('link', { name: 'Holidays' }).click();
-  await page.getByRole('link', { name: 'Rosh Hashanah' }).isVisible();
+  await page.getByRole('link', { name: 'Holidays', exact: true }).click();
+  await page.getByRole('link', { name: 'Rosh Hashanah' }).first().isVisible();
 });
 
 

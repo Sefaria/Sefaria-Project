@@ -4,7 +4,7 @@ import {goToPageWithLang, goToPageWithUser} from '../utils';
 test('Navigate to bereshit', async ({ context }) => {
   const page = await goToPageWithLang(context, '/texts');
   await page.getByRole('link', { name: 'Tanakh' }).click();
-  await page.getByRole('link', { name: 'Genesis' }).click();
+  await page.getByRole('link', { name: 'Genesis', exact: true }).click();
   await page.waitForSelector('text=Loading...', { state: 'detached' });
   await page.locator('.sectionLink').first().click();
   await expect(page).toHaveTitle(/Genesis 1/);
