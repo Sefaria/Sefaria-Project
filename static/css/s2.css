@@ -2206,8 +2206,10 @@ div.interfaceLinks-row a {
 }
 .topicImagePicture{
   border: 1px solid #EDEDEC;
-  width: 292px;
+  max-width: 100%; 
+  height: auto;
   /* height: 292px; */
+  padding: 0 44;
   top: 121px;
   left: 835px;
 }
