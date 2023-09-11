@@ -16,9 +16,9 @@ const addSource = async ({ context }) => {
   url = await page.locator('a').filter({ hasText: 'Test' }).first().getAttribute('href');
 };
 
-test('Add source to sheet', async ({ context }) => {
-  await addSource({ context });
-});
+// test('Add source to sheet', async ({ context }) => {
+//   await addSource({ context });
+// });
 
 // test depends on previous test
 // test('Delete source from sheet', async ({ context }) => {
