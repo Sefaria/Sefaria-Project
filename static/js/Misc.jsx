@@ -2278,8 +2278,7 @@ const InterruptingMessage = ({
 InterruptingMessage.displayName = "InterruptingMessage";
 
 const Banner = ({ onClose }) => {
-  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
-    useState(false);
+  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] = useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
   const strapi = useContext(StrapiDataContext);
 
@@ -2307,11 +2306,7 @@ const Banner = ({ onClose }) => {
 
   const shouldShow = () => {
     if (!strapi.banner) return false;
-    if (
-      Sefaria.interfaceLang === "hebrew" &&
-      !strapi.banner.locales.includes("he")
-    )
-      return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.banner.locales.includes('he')) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
 
@@ -2345,11 +2340,15 @@ const Banner = ({ onClose }) => {
     if (onClose) onClose();
     markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
     setHasInteractedWithBanner(true);
-    trackBannerInteraction(strapi.banner.internalBannerName, eventDescription);
+    trackBannerInteraction(
+      strapi.banner.internalBannerName,
+      eventDescription
+    );
   };
 
   useEffect(() => {
     if (shouldShow()) {
+
       const timeoutId = setTimeout(() => {
         // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
         if (document.getElementById("s2").classList.contains("headerOnly")) {
@@ -2366,22 +2365,10 @@ const Banner = ({ onClose }) => {
   if (!hasInteractedWithBanner) {
     return (
       <OnInView onVisible={trackBannerImpression}>
-        <div
-          id="bannerMessage"
-          className={bannerShowDelayHasElapsed ? "" : "hidden"}
-          style={
-            strapi.banner.bannerBackgroundColor && {
-              backgroundColor: strapi.banner.bannerBackgroundColor,
-            }
-          }
-        >
+        <div id="bannerMessage" className={bannerShowDelayHasElapsed ? "" : "hidden"}>
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
-              <InterfaceText
-                markdown={replaceNewLinesWithLinebreaks(
-                  strapi.banner.bannerText
-                )}
-              />
+              <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.banner.bannerText)} />
             </div>
             <div id="bannerButtonBox">
               <a
@@ -2398,6 +2385,7 @@ const Banner = ({ onClose }) => {
               </a>
             </div>
           </div>
+          <div id="bannerMessageClose">×</div>
           <div id="bannerMessageClose" onClick={closeBanner}>
             ×
           </div>

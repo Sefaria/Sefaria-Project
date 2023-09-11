@@ -56,7 +56,6 @@ function StrapiDataProvider({ children }) {
                 buttonText
                 buttonURL
                 showDelay
-                bannerBackgroundColor
                 createdAt
                 locale
                 localizations {
