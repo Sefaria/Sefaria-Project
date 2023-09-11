@@ -7,7 +7,8 @@ import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
-import {usePaginatedDisplay} from './Hooks';
+import { usePaginatedDisplay } from './Hooks';
+import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -22,7 +23,6 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
-import {AdContext} from "./context";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -1074,11 +1074,11 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
         const bottom = i === buttonsToDisplay.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
-          <AdminEditorButton 
-            text={buttonText} 
-            top={top} 
+          <AdminEditorButton
+            text={buttonText}
+            top={top}
             bottom={bottom}
-            toggleAddingTopics={toggleAddingTopics} 
+            toggleAddingTopics={toggleAddingTopics}
           />
         );
       })}
@@ -1107,7 +1107,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};     
+                          "edit": ["Edit", toggleEditCategory]};
 
 
   let wrapper = "";
@@ -1127,9 +1127,9 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       wrapper = "headerWithAdminButtons";
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
-        buttonOptions={buttonOptions} 
-        buttonsToDisplay={buttonsToDisplay} 
-        adminClasses={adminClasses} 
+        buttonOptions={buttonOptions}
+        buttonsToDisplay={buttonsToDisplay}
+        adminClasses={adminClasses}
       />;
     }
   }
@@ -1143,7 +1143,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
      */
     const reorderingSources = data.length !== 0;
     const _filterAndSortRefs = (refs) => {
-        if (!refs) {   
+        if (!refs) {
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
@@ -1194,11 +1194,11 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDesc: data.description || {"en": "", "he": ""},
     origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
   };
-  
+
   const origWasCat = "displays-above" in data?.links;
-  
+
   return (
-    <TopicEditor 
+    <TopicEditor
       origData={origData}
       origWasCat={origWasCat}
       onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
@@ -1222,9 +1222,9 @@ const EditorForExistingCategory = ({ toggle, data }) => {
   };
 
   return (
-    <CategoryEditor 
-      origData={origData} 
-      close={toggle} 
+    <CategoryEditor
+      origData={origData}
+      close={toggle}
       origPath={data.slice(0, -1)}
     />
   );
@@ -2057,109 +2057,347 @@ SignUpModal.propTypes = {
 };
 
 
-class InterruptingMessage extends Component {
-  constructor(props) {
-    super(props);
-    this.displayName = 'InterruptingMessage';
-    this.state = {
-      timesUp: false,
-      animationStarted: false
-    };
-    this.settings = {
-      "modal": {
-        "trackingName": "Interrupting Message",
-        "showDelay": 1000,
+function OnInView({ children, onVisible }) {
+  /**
+   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
+   *  `children` single element or nested group of elements wrapped in a div
+   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
+   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
+   */
+  const elementRef = useRef(); 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      // Callback function will be invoked whenever the visibility of the observed element changes
+      (entries) => {
+        const entry = entries[0];
+        // Check if the observed element is intersecting with the viewport (it's visible)
+        // Invoke provided prop callback for analytics purposes
+        if (entry.isIntersecting) {
+          onVisible();
+        }
       },
-      "banner": {
-        "trackingName": "Banner Message",
-        "showDelay": 1,
-      }
-    }[this.props.style];
-  }
-  componentDidMount() {
-    if (this.shouldShow()) {
-      this.delayedShow();
+      // The entire element must be entirely visible
+      { threshold: 1 }
+    );
+
+    // Start observing the element, but wait until the element exists
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
     }
+
+    // Cleanup when the component unmounts
+    return () => {
+      // Stop observing the element when it's no longer on the screen and can't be visible
+      if (elementRef.current) {
+        observer.unobserve(elementRef.current);
+      }
+    };
+  }, [onVisible]);
+
+  // Attach elementRef to a div wrapper and pass the children to be rendered within it
+  return <div ref={elementRef}>{children}</div>;
+}
+
+const transformValues = (obj, callback) => {
+  const newObj = {};
+  for (let key in obj) {
+    newObj[key] = obj[key] !== null ? callback(obj[key]) : null;
   }
-  shouldShow() {
+  return newObj;
+};
+
+const replaceNewLinesWithLinebreaks = (content) => {
+  return transformValues(
+    content,
+    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
+  );
+}
+
+const InterruptingMessage = ({
+  onClose,
+}) => {
+  const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
+  const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+
+  const markModalAsHasBeenInteractedWith = (modalName) => {
+    localStorage.setItem("modal_" + modalName, "true");
+  };
+
+  const hasModalBeenInteractedWith = (modalName) => {
+    return JSON.parse(localStorage.getItem("modal_" + modalName));
+  };
+
+  const trackModalInteraction = (modalName, eventDescription) => {
+    gtag("event", "modal_interacted_with_" + eventDescription, {
+      campaignID: modalName,
+      adType: "modal",
+    });
+  };
+
+  const trackModalImpression = () => {
+    console.log("We've got visibility!");
+    gtag("event", "modal_viewed", {
+      campaignID: strapi.modal.internalModalName,
+      adType: "modal",
+    });
+  };
+
+  const shouldShow = () => {
+    if (!strapi.modal) return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
+    if (
+      hasModalBeenInteractedWith(
+        strapi.modal.internalModalName
+      )
+    )
+      return false;
+
+    let shouldShowModal = false;
+
+    let noUserKindIsSet = ![
+      strapi.modal.showToReturningVisitors,
+      strapi.modal.showToNewVisitors,
+      strapi.modal.showToSustainers,
+      strapi.modal.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer &&
+        strapi.modal.showToSustainers) ||
+        (!Sefaria.is_sustainer &&
+          strapi.modal.showToNonSustainers))
+    )
+      shouldShowModal = true;
+    else if (
+      (Sefaria.isReturningVisitor() &&
+        strapi.modal.showToReturningVisitors) ||
+      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+    )
+      shouldShowModal = true;
+    else if (noUserKindIsSet) shouldShowModal = true;
+    if (!shouldShowModal) return false;
+
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
     return excludedPaths.indexOf(window.location.pathname) === -1;
-  }
-  delayedShow() {
-    setTimeout(function() {
-      this.setState({timesUp: true});
-      $("#interruptingMessage .button").click(this.close);
-      $("#interruptingMessage .trackedAction").click(this.trackAction);
-      this.showAorB();
-      this.animateOpen();
-    }.bind(this), this.settings.showDelay);
-  }
-  animateOpen() {
-    setTimeout(function() {
-      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
-      this.setState({animationStarted: true});
-      this.trackOpen();
-    }.bind(this), 50);
-  }
-  showAorB() {
-    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
-    const $message = $(ReactDOM.findDOMNode(this));
-    if ($message.find(".optionA").length) {
-      console.log("rand show")
-      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
+  };
+
+  const closeModal = (eventDescription) => {
+    if (onClose) onClose();
+    markModalAsHasBeenInteractedWith(
+      strapi.modal.internalModalName
+    );
+    setHasInteractedWithModal(true);
+    trackModalInteraction(
+      strapi.modal.internalModalName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+      const timeoutId = setTimeout(() => {
+        setInterruptingMessageShowDelayHasElapsed(true);
+      }, strapi.modal.showDelay * 1000);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }
-  close() {
-    this.markAsRead();
-    this.props.onClose();
-    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
-  }
-  trackOpen() {
-    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
-  }
-  trackAction() {
-    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
-  }
-  markAsRead() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    var cookieName = this.props.messageName + "_" + this.props.repetition;
-    $.cookie(cookieName, true, { path: "/", expires: 14 });
-    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
-    Sefaria.interruptingMessage = null;
-  }
-  render() {
-    if (!this.state.timesUp) { return null; }
+  }, [strapi.modal]); // execute useEffect when the modal changes
 
-    if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
-                <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-                <div id="bannerMessageClose" onClick={this.close}>×</div>
-              </div>;
+  if (!interruptingMessageShowDelayHasElapsed) return null;
 
-    } else if (this.props.style === "modal") {
-      return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+  if (!hasInteractedWithModal) {
+    return (
+      <OnInView onVisible={trackModalImpression}>
+        <div id="interruptingMessageBox" className={interruptingMessageShowDelayHasElapsed ? "" : "hidden"}>
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div className="colorLine"></div>
             <div id="interruptingMessageContentBox" className="hasColorLine">
-              <div id="interruptingMessageClose" onClick={this.close}>×</div>
-              <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+              <div
+                id="interruptingMessageClose"
+                onClick={() => {
+                  closeModal("close_clicked");
+                }}
+              >
+                ×
+              </div>
+              <div id="interruptingMessageContent">
+                <div id="defaultModal">
+                  {strapi.modal.modalHeader.en && (
+                    <h1 className="int-en">{strapi.modal.modalHeader.en}</h1>
+                  )}
+                  {strapi.modal.modalHeader.he && (
+                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
+                  )}
+                  <div id="defaultModalBody" className="line-break">
+                    <InterfaceText
+                      markdown={replaceNewLinesWithLinebreaks(
+                        strapi.modal.modalText
+                      )}
+                    />
+                  </div>
+                  <div className="buttons">
+                    <a
+                      className="button int-en"
+                      target="_blank"
+                      href={strapi.modal.buttonURL.en}
+                      onClick={() => {
+                        closeModal("modal_button_clicked");
+                      }}
+                    >
+                      <span className="int-en">
+                        {strapi.modal.buttonText.en}
+                      </span>
+                    </a>
+                    <a
+                      className="button int-he"
+                      target="_blank"
+                      href={strapi.modal.buttonURL.he}
+                      onClick={() => {
+                        closeModal("modal_button_clicked");
+                      }}
+                    >
+                      <span className="int-he">
+                        {strapi.modal.buttonText.he}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </div>
               <div className="colorLine"></div>
             </div>
           </div>
-        </div>;
-    }
+        </div>
+      </OnInView>
+    );
+  } else {
     return null;
   }
-}
-InterruptingMessage.propTypes = {
-  messageName: PropTypes.string.isRequired,
-  messageHTML: PropTypes.string.isRequired,
-  style:       PropTypes.string.isRequired,
-  repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
-  onClose:     PropTypes.func.isRequired
+};
+InterruptingMessage.displayName = "InterruptingMessage";
+
+const Banner = ({ onClose }) => {
+  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] = useState(false);
+  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+
+  const markBannerAsHasBeenInteractedWith = (bannerName) => {
+    localStorage.setItem("banner_" + bannerName, "true");
+  };
+
+  const hasBannerBeenInteractedWith = (bannerName) => {
+    return JSON.parse(localStorage.getItem("banner_" + bannerName));
+  };
+
+  const trackBannerInteraction = (bannerName, eventDescription) => {
+    gtag("event", "banner_interacted_with_" + eventDescription, {
+      campaignID: bannerName,
+      adType: "banner",
+    });
+  };
+
+  const trackBannerImpression = () => {
+    gtag("event", "banner_viewed", {
+      campaignID: strapi.banner.internalBannerName,
+      adType: "banner",
+    });
+  };
+
+  const shouldShow = () => {
+    if (!strapi.banner) return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.banner.locales.includes('he')) return false;
+    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+      return false;
+
+    let shouldShowBanner = false;
+
+    let noUserKindIsSet = ![
+      strapi.banner.showToReturningVisitors,
+      strapi.banner.showToNewVisitors,
+      strapi.banner.showToSustainers,
+      strapi.banner.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+    )
+      shouldShowBanner = true;
+    else if (
+      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+    )
+      shouldShowBanner = true;
+    else if (noUserKindIsSet) shouldShowBanner = true;
+    if (!shouldShowBanner) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeBanner = (eventDescription) => {
+    if (onClose) onClose();
+    markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+    setHasInteractedWithBanner(true);
+    trackBannerInteraction(
+      strapi.banner.internalBannerName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+
+      const timeoutId = setTimeout(() => {
+        // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+        if (document.getElementById("s2").classList.contains("headerOnly")) {
+          document.body.classList.add("hasBannerMessage");
+        }
+        setBannerShowDelayHasElapsed(true);
+      }, strapi.banner.showDelay * 1000);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+    }
+  }, [strapi.banner]); // execute useEffect when the banner changes
+
+  if (!bannerShowDelayHasElapsed) return null;
+
+  if (!hasInteractedWithBanner) {
+    return (
+      <OnInView onVisible={trackBannerImpression}>
+        <div id="bannerMessage" className={bannerShowDelayHasElapsed ? "" : "hidden"}>
+          <div id="bannerMessageContent">
+            <div id="bannerTextBox">
+              <InterfaceText markdown={replaceNewLinesWithLinebreaks(strapi.banner.bannerText)} />
+            </div>
+            <div id="bannerButtonBox">
+              <a
+                className="button white int-en"
+                href={strapi.banner.buttonURL.en}
+              >
+                <span>{strapi.banner.buttonText.en}</span>
+              </a>
+              <a
+                className="button white int-he"
+                href={strapi.banner.buttonURL.he}
+              >
+                <span>{strapi.banner.buttonText.he}</span>
+              </a>
+            </div>
+          </div>
+          <div id="bannerMessageClose">×</div>
+          <div id="bannerMessageClose" onClick={closeBanner}>
+            ×
+          </div>
+        </div>
+      </OnInView>
+    );
+  } else {
+    return null;
+  }
 };
 
+Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
@@ -3000,6 +3238,7 @@ export {
   FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
+  Banner,
   InterfaceText,
   EnglishText,
   HebrewText,
@@ -3040,5 +3279,6 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack
+  requestWithCallBack,
+  OnInView
 };
