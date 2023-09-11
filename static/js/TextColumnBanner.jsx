@@ -41,6 +41,28 @@ export const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLa
 }
 
 
+export const TranslationCallToActionBanner = ({ openTranslations }) => {
+    const textElement = (
+        <InterfaceText>
+            <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
+            <HebrewText> Want to <span className="bold">change</span> the translation?</HebrewText>
+        </InterfaceText>
+    );
+    const buttons = [
+        {
+            text: "Go to translations",
+            onClick: () => {
+                openTranslations();
+                // setConnectionsMode("Translations");
+            }
+    }];
+    const reject = () => {};
+    return (
+        <TextColumnBanner textElement={textElement} buttons={buttons} onClose={reject} />
+    );
+};
+
+
 
 /**
  * Banner which appears right above text column and informs a user of an action they can take

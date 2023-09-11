@@ -31,7 +31,7 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
-import { TranslationLanguagePreferenceSuggestionBanner }  from './TextColumnBanner';
+import {TranslationCallToActionBanner, TranslationLanguagePreferenceSuggestionBanner} from './TextColumnBanner';
 import {
   CloseButton,
   MenuButton,
@@ -1106,7 +1106,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
-            openSidePanel={this.openSidePanel}
+            openConnectionsPanel={this.props.openConnectionsPanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1383,7 +1383,11 @@ class ReaderControls extends Component {
           />
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
+    const openTranslations = this.props.openConnectionsPanel.bind(null, [this.props.currentRef], null, {"connectionsMode": "Translations"});
+    let banner = (hideHeader || connectionsHeader) ? null : getTextColumnBanner(
+        <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />,
+        <TranslationCallToActionBanner openTranslations={openTranslations} />
+    );
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1403,7 +1407,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
-        {transLangPrefSuggBann}
+        {banner}
       </div>
     );
   }
@@ -1436,6 +1440,12 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
+
+
+const getTextColumnBanner = (transPrefBanner, transCallToActionBanner) => {
+  return transCallToActionBanner;
+  // return transPrefBanner || transCallToActionBanner;
+}
 
 
 class ReaderDisplayOptionsMenu extends Component {
