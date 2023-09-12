@@ -12,7 +12,7 @@ jobs:
   semantic-release:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.semantic.outputs.release-version }}
+      version: ${{ steps.releaseVersion.outputs.release-version }}
     steps:
       - uses: actions/checkout@v3
       - uses: cycjimmy/semantic-release-action@v4
