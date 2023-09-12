@@ -2255,6 +2255,29 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+    isNewVisitor: () => {
+        return (
+            ("isNewVisitor" in sessionStorage &&
+                JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
+            (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage))
+        );
+    },
+    isReturningVisitor: () => {
+        return (
+            !Sefaria.isNewVisitor() &&
+            "isReturningVisitor" in localStorage &&
+            JSON.parse(localStorage.getItem("isReturningVisitor"))
+        );
+    },
+    markUserAsNewVisitor: () => {
+        sessionStorage.setItem("isNewVisitor", "true");
+        // Setting this at this time will make the current new visitor a returning one once their session is cleared
+        localStorage.setItem("isReturningVisitor", "true");
+    },
+    markUserAsReturningVisitor: () => {
+      sessionStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true");
+    },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
@@ -2319,6 +2342,7 @@ _media: {},
 
   },
   _tableOfContentsDedications: {},
+    _strapiContent: null,
   _inAppAds: null,
   _stories: {
     stories: [],
@@ -2959,6 +2983,7 @@ Sefaria.unpackBaseProps = function(props){
       "slug",
       "is_moderator",
       "is_editor",
+      "is_sustainer",
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
@@ -2973,8 +2998,6 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "interruptingMessage",
-
       "community",
       "followRecommendations",
       "trendingTopics",
