@@ -434,7 +434,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     # This is similar to logic on GardenStop
     def composition_time_period(self):
-        return self._get_time_period("compDate")
+        return self._get_time_period("compDate", margin_field="hasErrorMargin")
 
     def publication_time_period(self):
         return self._get_time_period("pubDate")
@@ -444,7 +444,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: TimePeriod: First tries to return `compDate`.
         If no compDate or compDate is an empty list, _get_time_period returns None and it then looks at author info
         """
-        compDatePeriod = self._get_time_period('compDate')
+        compDatePeriod = self._get_time_period('compDate', margin_field="hasErrorMargin")
         if compDatePeriod:
             return compDatePeriod
         else:
@@ -452,24 +452,29 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             tp = author and author.most_accurate_time_period()
             return tp
 
-    def _get_time_period(self, date_field):
+    def _get_time_period(self, date_field, margin_field=""):
         """
         Assumes that value of `date_field` ('pubDate' or 'compDate') is a list of integers.
         """
         from . import timeperiod
         years = getattr(self, date_field, [])
-        if len(years) > 0:
-            startIsApprox = endIsApprox = getattr(self, 'hasErrorMargin', False)
-            if len(years) > 1:
-                start, end = years
-            else:
-                start = end = years[0]
-            return timeperiod.TimePeriod({
-            "start": start,
-            "startIsApprox": startIsApprox,
-            "end": end,
-            "endIsApprox": endIsApprox
-        })
+        if years is None or len(years) == 0:
+            return None
+        try:
+            error_margin = getattr(self, margin_field, False) if margin_field else False
+        except ValueError:
+            error_margin = False
+        startIsApprox = endIsApprox = error_margin
+        if len(years) > 1:
+            start, end = years
+        else:
+            start = end = years[0]
+        return timeperiod.TimePeriod({
+        "start": start,
+        "startIsApprox": startIsApprox,
+        "end": end,
+        "endIsApprox": endIsApprox
+    })
 
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
     def update_from_dict(self, d):
