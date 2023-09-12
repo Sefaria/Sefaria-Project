@@ -441,11 +441,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     def best_time_period(self):
         """
-        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
-        If no compDate, looks at author info
+        :return: TimePeriod: First tries to return `compDate`.
+        If no compDate or compDate is an empty list, _get_time_period returns None and it then looks at author info
         """
-        if getattr(self, "compDate", None):
-            return self._get_time_period('compDate')
+        compDatePeriod = self._get_time_period('compDate')
+        if compDatePeriod:
+            return compDatePeriod
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
             tp = author and author.most_accurate_time_period()
@@ -456,8 +457,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         Assumes that value of `date_field` ('pubDate' or 'compDate') is a list of integers.
         """
         from . import timeperiod
-        years = getattr(self, date_field, None)
-        if years is not None:
+        years = getattr(self, date_field, [])
+        if len(years) > 0:
             startIsApprox = endIsApprox = getattr(self, 'hasErrorMargin', False)
             if len(years) > 1:
                 start, end = years
