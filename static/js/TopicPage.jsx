@@ -400,7 +400,6 @@ const TopicPage = ({
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
-
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
 
@@ -698,41 +697,15 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
-const TopicImage = ({ topicTitle }) => {
-  // const [showMore, setShowMore] = useState(false);
-  const key = topicTitle.en;
-  const hardcodedMap = {
-    'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
-                     'enCaption':'Rosh Hashanah\nArtist: Arthur Szyk (1894-1951)\nTempera and ink on paper\nNew Canaan, 1948\nCollection of Yeshiva University Museum\nGift of Charles Frost', 
-                     'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
+const TopicImage = ({photoLink, enCaption, heCaption }) => {
 
-    'Yom Kippur': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/K900/K90075-77.jpg', 
-                   'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur.\n 1300-1500, Germany (The British Library)', 
-                   'heCaption': 'מיקורגפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
-
-    'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                         'enCaption':'Etrog container, K B, late 19th century, Germany.\n The Jewish Museum, Gift of Dr. Harry G. Friedman', 
-                         'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
-
-    'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
-               'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot).\n Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
-               'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
-
-    'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
-                      'enCaption':'Rosh Hashanah postcard: Hakafot\nArtist: Haim Yisroel Goldberg (1888-1943)\nPublisher: Williamsburg Post Card Co.\nGermany, ca. 1915\nCollection of Yeshiva University Museum', 
-                      'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
-
-    'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920.\n The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
-                'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
-  };
-  return ( key in hardcodedMap ?
-    (<div class="topicImageWrapper">
-        <img class="topicImagePicture" src={hardcodedMap[key].photoLink}/>
+  return(
+    <div class="topicImageWrapper">
+        <img class="topicImagePicture" src={photoLink}/>
         <div class="topicImageCaption topicImageCaptionLinebreak"> 
-         <InterfaceText text={{en:hardcodedMap[key].enCaption, he:hardcodedMap[key].heCaption}}  />
+         <InterfaceText text={{en:enCaption, he:heCaption}}  />
         </div>
-      </div>) : null);
+      </div>);
 }
 
 
@@ -790,7 +763,36 @@ const propKeys = [
   {en: 'jeLink', he: 'jeLink', title: 'Jewish Encyclopedia'},
   {en: 'enNliLink', he: 'heNliLink', title: 'National Library of Israel'},
 ];
+
+
 const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
+  const topicImageKey = topicTitle.en;
+  const hardcodedTopicImagesMap = {
+    'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
+                     'enCaption':'Rosh Hashanah\nArtist: Arthur Szyk (1894-1951)\nTempera and ink on paper\nNew Canaan, 1948\nCollection of Yeshiva University Museum\nGift of Charles Frost', 
+                     'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
+  
+    'Yom Kippur': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/K900/K90075-77.jpg', 
+                   'enCaption':'Micrography of Jonah being swallowed by the fish, at the text of Jonah, the haftarah for the afternoon service of Yom Kippur.\n 1300-1500, Germany (The British Library)', 
+                   'heCaption': 'מיקורגפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
+  
+    'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
+                         'enCaption':'Etrog container, K B, late 19th century, Germany.\n The Jewish Museum, Gift of Dr. Harry G. Friedman', 
+                         'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
+  
+    'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
+               'enCaption':'Detail of a painting of a  sukkah (booth built for Sukkot).\n Image taken from f. 316v of Prayer book (Forli Siddur) for the entire year, 1383, Italian rite.', 
+               'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
+  
+    'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
+                      'enCaption':'Rosh Hashanah postcard: Hakafot\nArtist: Haim Yisroel Goldberg (1888-1943)\nPublisher: Williamsburg Post Card Co.\nGermany, ca. 1915\nCollection of Yeshiva University Museum', 
+                      'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
+  
+    'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
+                'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920.\n The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
+                'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
+  
+  };
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
@@ -806,7 +808,6 @@ const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
   }));
   const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
   const propsSection = hasProps ? (
-    <div>
       <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
         {
           propValues.map(propObj => {
@@ -828,11 +829,10 @@ const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
           })
         }
       </TopicSideSection>
-    </div>
   ) : null;
   return (
     <>
-    <TopicImage topicTitle={topicTitle}/>
+    {topicImageKey in hardcodedTopicImagesMap && <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/>}
       { tpSection }
       { propsSection }
     </>
