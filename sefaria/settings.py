@@ -70,9 +70,6 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
-STRAPI_LOCATION = 'https://credible-basketball-a14e66cd27.strapiapp.com'
-STRAPI_PORT = 443
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
