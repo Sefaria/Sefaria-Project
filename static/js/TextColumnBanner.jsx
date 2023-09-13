@@ -8,12 +8,15 @@ import {
 const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const { translation_language_preference_suggestion } = Sefaria;
 
-export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, openTranslations }) => {
+export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, openTranslations, transCallToActionApplies }) => {
     const [bannerAccepted, setBannerAccepted] = useState(false);
     const shouldTransPrefBannerRender = () => {
         // we haven't suggested yet and we have a suggestion
         return !cookie("translation_language_preference_suggested") && translation_language_preference_suggestion
     };
+    const shouldTransCallToActionRender = () => {
+        return transCallToActionApplies() && !cookie("translation_call_to_action_shown"); // && textMode in (bilingual, english) && category in (Tanakh, Mishnah, Bavli)
+    }
     if (shouldTransPrefBannerRender())  {
         return (<TransLangPrefBanner
             setAccepted={setBannerAccepted}
@@ -22,7 +25,10 @@ export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, open
     } else if (bannerAccepted) {
         return <TransLangPrefAcceptedBanner />;
     }
-    return <TransCallToActionBanner openTranslations={openTranslations} />;
+    if (shouldTransCallToActionRender()) {
+        return <TransCallToActionBanner openTranslations={openTranslations} />;
+    }
+    return null;
 };
 
 
