@@ -31,7 +31,7 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
-import {TranslationCallToActionBanner, TranslationLanguagePreferenceSuggestionBanner} from './TextColumnBanner';
+import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
   CloseButton,
   MenuButton,
@@ -1384,9 +1384,11 @@ class ReaderControls extends Component {
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
     const openTranslations = this.props.openConnectionsPanel.bind(null, [this.props.currentRef], null, {"connectionsMode": "Translations"});
-    let banner = (hideHeader || connectionsHeader) ? null : getTextColumnBanner(
-        <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />,
-        <TranslationCallToActionBanner openTranslations={openTranslations} />
+    let banner = (hideHeader || connectionsHeader) ? null : (
+        <TextColumnBannerChooser
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            openTranslations={openTranslations}
+        />
     );
     const classes = classNames({
       readerControls: 1,
@@ -1440,12 +1442,6 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
-
-
-const getTextColumnBanner = (transPrefBanner, transCallToActionBanner) => {
-  return transCallToActionBanner;
-  // return transPrefBanner || transCallToActionBanner;
-}
 
 
 class ReaderDisplayOptionsMenu extends Component {

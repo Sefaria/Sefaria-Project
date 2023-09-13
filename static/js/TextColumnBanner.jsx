@@ -5,14 +5,42 @@ import {
     CloseButton, InterfaceText, EnglishText, HebrewText
 } from './Misc';
 
-export const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
-    const [accepted, setAccepted] = useState(false);
+const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+const { translation_language_preference_suggestion } = Sefaria;
 
-    const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-    const { translation_language_preference_suggestion } = Sefaria;
-    if ((!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
-        return null;
+export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, openTranslations }) => {
+    const [bannerAccepted, setBannerAccepted] = useState(false);
+    const shouldTransPrefBannerRender = () => {
+        // we haven't suggested yet and we have a suggestion
+        return !cookie("translation_language_preference_suggested") && translation_language_preference_suggestion
+    };
+    if (shouldTransPrefBannerRender())  {
+        return (<TranslationLanguagePreferenceSuggestionBanner
+            setAccepted={setBannerAccepted}
+            setTranslationLanguagePreference={setTranslationLanguagePreference}
+        />);
+    } else if (bannerAccepted) {
+        return <TransLangPrefAcceptedBanner />;
     }
+    return <TranslationCallToActionBanner openTranslations={openTranslations} />;
+};
+
+
+const TransLangPrefAcceptedBanner = () => {
+    const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
+    const textElement = (
+        <InterfaceText>
+            <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
+            <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
+        </InterfaceText>
+    );
+    return (
+        <TextColumnBanner textElement={textElement} />
+    );
+}
+
+
+const TranslationLanguagePreferenceSuggestionBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
     const reject = () => {
         cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
         Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
@@ -22,18 +50,13 @@ export const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLa
         setTranslationLanguagePreference(translation_language_preference_suggestion);
     }
     const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-    const textElement = accepted ? (
-        <InterfaceText>
-            <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-            <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-        </InterfaceText>
-    ) : (
+    const textElement = (
         <InterfaceText>
             <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
             <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
         </InterfaceText>
     );
-    const buttons = accepted ? null : [{text: "Yes", onClick: accept}, {text: "No", onClick: reject, sideEffect: "close" }];
+    const buttons = [{text: "Yes", onClick: accept}, {text: "No", onClick: reject, sideEffect: "close" }];
 
     return (
         <TextColumnBanner textElement={textElement} buttons={buttons} onClose={reject}/>
@@ -41,7 +64,7 @@ export const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLa
 }
 
 
-export const TranslationCallToActionBanner = ({ openTranslations }) => {
+const TranslationCallToActionBanner = ({ openTranslations }) => {
     const textElement = (
         <InterfaceText>
             <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
@@ -85,7 +108,7 @@ const TextColumnBanner = ({ textElement, buttons, onClose }) => {
                 <div className="transLangPrefCentered">
                     { textElement }
                     <div className="yesNoGroup">
-                        { buttons.map(button => <TextColumnBannerButton key={button.text} button={button} setBannerClosed={setClosed}/>) }
+                        { buttons?.map(button => <TextColumnBannerButton key={button.text} button={button} setBannerClosed={setClosed}/>) }
                     </div>
                 </div>
                 <CloseButton onClick={closeBanner} />
