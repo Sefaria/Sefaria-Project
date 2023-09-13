@@ -2000,6 +2000,73 @@ _media: {},
     }
     return segments;
   },
+  makeSegmentsV3: function(data, withContext, sheets=false) {
+    // Returns a flat list of annotated segment objects,
+    // derived from the walking the text in data
+    if (!data || "error" in data) { return []; }
+    var segments  = [];
+    var highlight = data.sections.length === data.textDepth;
+    var wrapTranslation = (typeof data.translation.text == "string");
+    var wrapSource = (typeof data.source.text == "string");
+    var translation = wrapTranslation ? [data.translation.text] : data.translation.text;
+    var source = wrapSource ? [data.source.text] : data.source.text;
+    var topLength = Math.max(translation.length, source.length);
+    translation = translation.pad(topLength, "");
+    source = source.pad(topLength, "");
+
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
+    var start = (data.textDepth == data.sections.length && !withContext ?
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
+    if (!data.isSpanning) {
+      for (var i = 0; i < topLength; i++) {
+        var number = i+start;
+        var delim  = data.textDepth == 1 ? " " : ":";
+        var ref = data.sectionRef + delim + number;
+        segments.push({
+          ref: ref,
+          translation: translation[i],
+          source: source[i],
+          number: number,
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          alt: ("alts" in data && i < data.alts.length) ? data.alts[i] : null
+        });
+      }
+    } else {
+      for (var n = 0; n < topLength; n++) {
+        var translation2 = typeof translation[n] == "string" ? [translation[n]] : translation[n];
+        var source2 = typeof source[n] == "string" ? [source[n]] : source[n];
+        var length = Math.max(translation2.length, source2.length);
+        translation2 = translation2.pad(length, "");
+        source2 = source2.pad(length, "");
+        var baseRef     = data.book;
+        var baseSection = data.sections.slice(0,-2).join(":");
+        var delim       = baseSection ? ":" : " ";
+        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
+
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
+        for (var i = 0; i < length; i++) {
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ?
+                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
+                        : n + startSection;
+          var number  = i + start;
+          var ref = baseRef + delim + section + ":" + number;
+          segments.push({
+            ref: ref,
+            translation: translation2[i],
+            source: source2[i],
+            number: number,
+            highlight: highlight &&
+                        ((n == 0 && number >= data.sections.slice(-1)[0]) ||
+                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
+                         (n > 0 && n < topLength -1)),
+            alt: ("alts" in data && n < data.alts.length && i < data.alts[n].length) ? data.alts[n][i] : null
+          });
+        }
+      }
+    }
+    return segments;
+  },
   stripImagesFromSegments: function(segments) {
       // Used by sheets editors.  Sefaria.makeSegments creates a list of segments and this function handles the images.
       return segments.map(x => {

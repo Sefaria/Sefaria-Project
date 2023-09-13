@@ -8,7 +8,7 @@ import Component from 'react-class';
 import {EnglishText, HebrewText} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
-import {getVersionsByRef} from "./sefaria/textManager";
+import {getVersions} from "./sefaria/textManager";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -125,7 +125,7 @@ class TextRange extends Component {
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
     // let data = Sefaria.getTextFromCache(this.props.sref, settings);
-    let data = await getVersionsByRef(this.props.sref, settings);
+    let data = await getVersions(this.props.sref, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
 
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
@@ -134,16 +134,7 @@ class TextRange extends Component {
     } else if (!!data && this.props.isCurrentlyVisible) {
       this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
     }
-    
-    const {source, translation} = data.reduce((acc, item) => item.versions.some(v => v.isBaseText) ? { ...acc, source: item } : { ...acc, translation: item }, {});
-    // this is a hack that takes the first version of the source and translation and puts it in the source object
-    // this is done so that the source object can be passed to the ContentText component. In the past the endpoint returned
-    // the the full version info at the top level of the object, but now it is nested in the versions array
-    const textData = source;
-    textData.he = source?.versions ? source.versions[0].text : null;
-    textData.text = translation?.versions ? translation.versions[0]?.text : null;
-    textData.en = translation?.versions ? translation.versions[0]?.text : null;
-    return textData;
+    return data;
   }
   async onTextLoad(data) {
     // Initiate additional API calls when text data first loads
@@ -226,9 +217,11 @@ class TextRange extends Component {
         translationLanguagePreference: this.props.translationLanguagePreference,
         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
       };
-       const nextTextPromise = getVersionsByRef(data.next, nextSettings);
+       const nextTextPromise = getVersions(data.next, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
       //  const nextTextPromise = Sefaria.getText(data.next, nextSettings);
-      nextTextPromise.then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+      nextTextPromise.then(data => {
+        this._prefetchLinksAndNotes(data);
+      });
      }
      if (data.prev) {
       const prevSettings = {
@@ -239,9 +232,11 @@ class TextRange extends Component {
         translationLanguagePreference: this.props.translationLanguagePreference,
         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
       };
-      const prevTextPromise = getVersionsByRef(data.prev, prevSettings);
+      const prevTextPromise = getVersions(data.prev, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
       // const prevTextPromise = Sefaria.getText(data.prev, prevSettings);
-      prevTextPromise.then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+      prevTextPromise.then(data => {
+        this._prefetchLinksAndNotes(data);
+      });
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
@@ -355,7 +350,7 @@ class TextRange extends Component {
       strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
-    let segments      = Sefaria.makeSegments(data, this.props.withContext);
+    let segments      = Sefaria.makeSegmentsV3(data, this.props.withContext);
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
@@ -380,8 +375,8 @@ class TextRange extends Component {
           );
         }
       }
-      segment.he = strip_vowels_re ? segment.he.replace(strip_vowels_re, "") : segment.he;
-      segment.he = strip_punctuation_re ? segment.he.replace(strip_punctuation_re, "") : segment.he;
+      segment.source = strip_vowels_re ? segment.source.replace(strip_vowels_re, "") : segment.source;
+      segment.source = strip_punctuation_re ? segment.source.replace(strip_punctuation_re, "") : segment.source;
 
       return (
         <span className="rangeSpan" key={i + segment.ref}>
@@ -390,8 +385,8 @@ class TextRange extends Component {
             sref={segment.ref}
             enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en)[1] : 'en'}
             heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he)[1] : 'he'}
-            en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
-            he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
+            en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.translation : null}
+            he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.source : null}
             highlight={highlight}
             showHighlight={this.props.showHighlight}
             textHighlights={textHighlights}
