@@ -71,11 +71,14 @@ const TransLangPrefBanner = ({ setAccepted, setTranslationLanguagePreference }) 
 const TransCallToActionBanner = ({ openTranslations }) => {
     const buttons = [{
         text: "Go to translations",
-        onClick: () => { openTranslations(); }
+        onClick: () => { openTranslations(); },
+        sideEffect: "close",
     }];
-    const reject = () => {};
+    const onClose = () => {
+        cookie("translation_call_to_action_shown", JSON.stringify(1), {path: "/"});
+    };
     return (
-        <TextColumnBanner buttons={buttons} onClose={reject}>
+        <TextColumnBanner buttons={buttons} onClose={onClose}>
             <InterfaceText>
                 <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
                 <HebrewText> Want to <span className="bold">change</span> the translation?</HebrewText>
@@ -107,7 +110,7 @@ const TextColumnBanner = ({ children, buttons, onClose }) => {
                 <div className="transLangPrefCentered">
                     { children }
                     <div className="yesNoGroup">
-                        { buttons?.map(button => <TextColumnBannerButton key={button.text} button={button} setBannerClosed={setClosed}/>) }
+                        { buttons?.map(button => <TextColumnBannerButton key={button.text} button={button} closeBanner={closeBanner}/>) }
                     </div>
                 </div>
                 <CloseButton onClick={closeBanner} />
@@ -116,10 +119,10 @@ const TextColumnBanner = ({ children, buttons, onClose }) => {
     );
 }
 
-const TextColumnBannerButton = ({ button, setBannerClosed }) => {
+const TextColumnBannerButton = ({ button, closeBanner }) => {
     const onClick = () => {
         button.onClick();
-        if (button.sideEffect === "close") { setBannerClosed(true); }
+        if (button.sideEffect === "close") { closeBanner(true); }
     }
     return (
         <a className="yesNoButton" onClick={onClick}>
