@@ -3112,7 +3112,8 @@ def add_new_topic_api(request):
 
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-        t.change_description(data["description"], data.get("catDescription", None))
+        if "description" in data:
+            t.change_description(data["description"], data.get("categoryDescription", None))
         t.save()
 
         library.build_topic_auto_completer()
@@ -3165,8 +3166,6 @@ def topics_api(request, topic, v2=False):
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        if topic_data["category"] == topic_data["origCategory"]:
-            topic_data.pop("category")  # no need to check category in update_topic
         topic_obj = update_topic(topic_obj, **topic_data)
         if author_status_changed:
             library.build_topic_auto_completer()
