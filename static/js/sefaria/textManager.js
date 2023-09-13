@@ -32,10 +32,10 @@ function getRequiredParams(source, translation, translationLanguagePreference) {
     return requiredVersions;
 }
 
-function getVersionsFromCacha(requiredVersions) {
+function getVersionsFromCacha(ref, requiredVersions) {
     let returnObj = {};
     for (const versionType in requiredVersions) {
-        let cacheObj = CACHE.get(ref, data[versionType].language, data[versionType].versionTitle);
+        let cacheObj = CACHE.get(ref, versionType.language, versionType.versionTitle);
         if (cacheObj) {
             if (returnObj === {}) {
                 returnObj = cacheObj;
@@ -62,14 +62,15 @@ function makeParamsString(language, versionTitle) {
 function makeUrl(ref, requiredVersions) {
     const host = Sefaria.apiHost;
     const endPoint = '/api/v3/texts/'
-    let url = `${host}${endPoint}${ref}?version=base&version=translation`;
-    url += `&version=${requiredVersions.translation.language}`
-    for (let [language, versionTitle] of requiredVersions) {
+    const versions = ['base', 'translation']
+    versions.push(requiredVersions.translation.language)
+    for (let [language, versionTitle] in requiredVersions) {
         const paramsString = makeParamsString(language, versionTitle);
         if (paramsString) {
-            url += `&version=${paramsString}`;
+            versions.push(paramsString);
         }
     }
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}`;
     return url;
 }
 
@@ -98,12 +99,11 @@ async function getVersionsFromAPI(ref, requiredVersions) {
     CACHE.set(apiObject);
     apiObject.source = findSource(requiredVersions.source, apiObject)
     apiObject.translation = findTranslation(requiredVersions.translation, apiObject)
-    apiObject.translation = translation;
     delete apiObject.versions;
     return apiObject;
 }
 
-function setVersionsCache(version) {
+function setVersionsCache(book, version) {
     if (version) {
         (defaultVersionsCache?.[book] ?? (defaultVersionsCache[book] = {}))[version.actualLanguage] = version.versionTitle;
     }
@@ -115,7 +115,7 @@ export async function getVersions(ref, source, translation, translationLanguageP
     // translationLanguagePreference is on ReaderApp state and going downward all components. it's not ideal but i don't see another way for now
     const book = getBookFromRef(ref);
     const requiredVersions = getRequiredParams(source, translation, translationLanguagePreference);
-    let returnObj = getVersionsFromCacha(requiredVersions) || await getVersionsFromAPI(ref, requiredVersions);
-    [returnObj.source, returnObj.translation].forEach((version) => setVersionsCache(version));
+    let returnObj = getVersionsFromCacha(ref, requiredVersions) || await getVersionsFromAPI(ref, requiredVersions);
+    [returnObj.source, returnObj.translation].forEach((version) => setVersionsCache(book, version));
     return returnObj;
 }
