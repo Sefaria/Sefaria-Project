@@ -1191,11 +1191,13 @@ const EditorForExistingTopic = ({ toggle, data }) => {
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
     origSlug: data.slug,
-    origCategorySlug: initCatSlug,
-    origEn: data.primaryTitle.en,
-    origHe: data.primaryTitle.he || "",
-    origDesc: data.description || {"en": "", "he": ""},
-    origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
+    origCatSlug: initCatSlug,
+    origEnTitle: data.primaryTitle.en,
+    origHeTitle: data.primaryTitle.he || "",
+    origEnDescription: data.description?.en || "",
+    origHeDescription: data.description?.he || "",
+    origEnCategoryDescription: data.categoryDescription?.en || "",
+    origHeCategoryDescription: data.categoryDescription?.he || "",
     origEnAltTitles: prepAltTitles('en'),
     origHeAltTitles: prepAltTitles('he'),
     origBirthPlace: data?.properties?.birthPlace?.value,
@@ -1257,12 +1259,12 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
 }
 
 const CategoryAdderWrapper = ({toggle, data, type}) => {
-      const origData = {origEn: ""};
+      const origData = {origEnTitle: ""};
       switch (type) {
         case "cats":
           return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
         case "topics":
-          origData['origCategorySlug'] = data;
+          origData['origCatSlug'] = data;
           return <TopicEditor origData={origData} close={toggle} origWasCat={false}/>;
       }
   }

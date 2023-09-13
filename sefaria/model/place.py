@@ -108,12 +108,13 @@ def process_index_place_change(indx, **kwargs):
 def process_topic_place_change(topic_obj, data):
     keys = ["birthPlace", "deathPlace"]
     for key in keys:
-        he_key = get_he_key(key)
-        he_new_val = data.get(he_key, '')
-        new_val = data.get(key, '')
-        if new_val != '':
-            place = Place.create_new_place(en=new_val, he=he_new_val)
-            topic_obj.properties[key] = {"value": place.primary_name('en'), 'dataSource': 'learning-team-editing-tool'}
-        else:
-            topic_obj.properties.pop(key, None)
+        if key in data.keys():  # only change property value if key is in data, otherwise it indicates no change
+            new_val = data[key]
+            if new_val != '':
+                he_key = get_he_key(key)
+                he_new_val = data.get(he_key, '')
+                place = Place.create_new_place(en=new_val, he=he_new_val)
+                topic_obj.properties[key] = {"value": place.primary_name('en'), 'dataSource': 'learning-team-editing-tool'}
+            else:
+                topic_obj.properties.pop(key, None)
 

@@ -1060,15 +1060,24 @@ def update_authors_place_and_time(topic_obj, data, dataSource='learning-team-edi
 
     return topic_obj
 
+def update_properties(topic_obj, dataSource, k, v):
+    if v == '':
+        topic_obj.properties.pop(k, None)
+    else:
+        topic_obj.properties[k] = {'value': v, 'dataSource': dataSource}
+
 def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
     for k in ["birthYear", "deathYear"]:
-        year = data.get(k, '')
-        topic_obj.properties[k] = {'value': year, 'dataSource': dataSource}
+        if k in data.keys():    # only change property value if key is in data, otherwise it indicates no change
+            year = data[k]
+            update_properties(topic_obj, dataSource, k, year)
 
-    prev_era = topic_obj.properties.get('era', {}).get('value')
-    if data.get('era', '') != '' and prev_era != data['era']:
-        topic_obj.properties['era'] = {'value': data['era'], 'dataSource': dataSource}
-        create_era_link(topic_obj, prev_era_to_delete=prev_era)
+    if 'era' in data.keys():    # only change property value if key is in data, otherwise it indicates no change
+        prev_era = topic_obj.properties.get('era', {}).get('value')
+        era = data['era']
+        update_properties(topic_obj, dataSource, 'era', era)
+        if era != '':
+            create_era_link(topic_obj, prev_era_to_delete=prev_era)
     return topic_obj
 
 
@@ -1076,19 +1085,18 @@ def update_topic(topic_obj, **kwargs):
     """
     Can update topic object's title, hebrew title, category, description, and categoryDescription fields
     :param topic_obj: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, catDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `catDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
+         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic_obj.slug
-
     update_topic_titles(topic_obj, kwargs)
-    if kwargs.get('catSlug') == 'authors':
+    if kwargs.get('category') == 'authors':
         topic_obj = update_authors_place_and_time(topic_obj, kwargs)
 
-    if 'category' in kwargs:
+    if 'category' in kwargs and kwargs['category'] != kwargs['origCategory']:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
@@ -1098,8 +1106,8 @@ def update_topic(topic_obj, **kwargs):
         topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic_obj.description_published = True
 
-    if "description" in kwargs:
-        topic_obj.change_description(kwargs["description"], kwargs.get("catDescription", None))
+    if "description" in kwargs or "categoryDescription" in kwargs:
+        topic_obj.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
 
     topic_obj.save()
 
