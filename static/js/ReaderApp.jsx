@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext, AdContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -26,6 +26,7 @@ import {
 import {
   SignUpModal,
   InterruptingMessage,
+  Banner,
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
@@ -199,6 +200,13 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+    if (Sefaria._uid) {
+      // A logged in user is automatically a returning visitor
+      Sefaria.markUserAsReturningVisitor();
+    } else if (Sefaria.isNewVisitor()) {
+      // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
+      Sefaria.markUserAsNewVisitor();
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -2153,20 +2161,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    var interruptingMessage = Sefaria.interruptingMessage ?
-      (<InterruptingMessage
-          messageName={Sefaria.interruptingMessage.name}
-          messageHTML={Sefaria.interruptingMessage.html}
-          style={Sefaria.interruptingMessage.style}
-          repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
-    const sefariaModal = (
+    const signUpModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
         show={this.state.showSignUpModal}
         modalContentKind={this.state.modalContentKind}
       />
     );
+
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
@@ -2177,18 +2179,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-      <div id="readerAppWrap">
-        {interruptingMessage}
-        <div className={classes} onClick={this.handleInAppLinkClick}>
-          {header}
-          {panels}
-          {sefariaModal}
-          {communityPagePreviewControls}
-          <CookiesNotification />
-        </div>
-      </div>
-      </AdContext.Provider>
+      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
+      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <Banner onClose={this.setContainerMode} />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {signUpModal}
+              {communityPagePreviewControls}
+              <CookiesNotification />
+            </div>
+          </div>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
