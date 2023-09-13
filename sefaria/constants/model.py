@@ -10,5 +10,5 @@ ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD = {
     # structure placement (e.g. page transitions): uses 'data-overlay', 'data-value'
     'i': ['data-overlay', 'data-value', 'data-commentator', 'data-order', 'class', 'data-label', 'dir'],
     'img': ['src', 'alt'],
-    'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe"],
+    'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe", 'data-scroll-link'],
 }

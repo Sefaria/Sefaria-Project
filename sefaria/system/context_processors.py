@@ -13,7 +13,6 @@ from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
 from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
-from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
@@ -68,6 +67,8 @@ def global_settings(request):
     return {
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
+        "STRAPI_LOCATION":        STRAPI_LOCATION,
+        "STRAPI_PORT":            STRAPI_PORT,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
         "GOOGLE_GTAG":            GOOGLE_GTAG,
         "HOTJAR_ID":              HOTJAR_ID,

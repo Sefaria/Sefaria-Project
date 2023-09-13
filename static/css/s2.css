@@ -1220,9 +1220,81 @@ div.interfaceLinks-row a {
   margin: 0 0 30px;
   color: #333;
 }
-.interface-hebrew #interruptingMessage h1{
+.interface-hebrew #interruptingMessage h1 {
   font-style: normal;
 }
+
+/* Styles used from previously existing modals */
+
+.line-break {
+  white-space: pre-wrap;
+}
+
+#defaultModal {
+    width: 410px;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.interface-english #defaultModal {
+    text-align: left;
+}
+
+.interface-hebrew #defaultModal {
+    text-align: right;
+    direction: rtl;
+}
+
+#defaultModalBody {
+    color: #555555;
+    margin-top: 0;
+}
+
+#defaultModalBody .reactMarkdown {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#defaultModal #defaultModalBody .sub {
+    color: var(--medium-grey);
+    font-size: 12px;
+    font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+
+#defaultModal .button {
+    margin-bottom: 20px;
+}
+
+#defaultModal img {
+    max-width: 100%;
+}
+
+#defaultModal .buttons {
+    text-align: right;
+}
+
+.leader {
+    font-weight: bold;
+}
+
+.center {
+    text-align: center;
+}
+
+#email-input-wrapper {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.newsletterInput#email-input {
+    width: 300px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 7px;
+    border: 1px solid #EEEEEE;
+    color: var(--beit-midrash-grey);
+}
+
 .header .my-profile img {
   height: 24px;
   width: 24px;
@@ -5360,14 +5432,14 @@ But not to use a display block directive that might break continuous mode for ot
 .readerPanel.hebrew .segment.enOnly .segmentNumber .he {
   display: block;
 }
-.segment .refLink {
+.segment .refLink, .scrollLink {
   font-size: .8em;
   font-weight: bold;
   letter-spacing: 1px;
   cursor: pointer;
   color: #333;
 }
-.refLink:hover {
+.scrollLink:hover, .refLink:hover {
   text-decoration: underline;
 }
 .segment .namedEntityLink {

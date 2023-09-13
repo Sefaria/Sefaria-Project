@@ -252,6 +252,12 @@
         static_url:    {{ STATIC_PREFIX }},
       };
 
+      {% if STRAPI_LOCATION and STRAPI_PORT %}
+          var STRAPI_INSTANCE =  "{{ STRAPI_LOCATION }}:{{ STRAPI_PORT }}";
+      {% else %}
+          var STRAPI_INSTANCE = null;
+      {% endif %}
+
       {% endautoescape %}
     </script>
 
