@@ -32,11 +32,11 @@ class Text(View):
             elif vtitle and vtitle != 'all':
                 warning = APINoVersion(self.oref, vtitle, lang)
             else:
-                warning = APINoLanguageVersion(self.oref, data['availabe_langs'])
+                warning = APINoLanguageVersion(self.oref, data['available_langs'])
             representing_string = f'{lang}|{vtitle}' if vtitle else lang
             data['warnings'].append({representing_string: warning.get_message()})
         data.pop('missings')
-        data.pop('availabe_langs')
+        data.pop('available_langs')
         return data
 
     def get(self, request, *args, **kwargs):

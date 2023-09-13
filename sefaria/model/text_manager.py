@@ -15,10 +15,14 @@ class TextManager:
         self.oref = oref
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
+
+        fields = Version.optional_attrs + Version.required_attrs
+        fields.remove('chapter') # not metadata
         self.return_obj = {
             'versions': [],
             'missings': [],
-            'availabe_langs': sorted({v.actualLanguage for v in self.all_versions})
+            'available_langs': sorted({v.actualLanguage for v in self.all_versions}),
+            'available_versions': [{f: getattr(v, f, "") for f in fields} for v in self.all_versions]
         }
 
     def _append_version(self, version):
