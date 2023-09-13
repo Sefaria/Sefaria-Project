@@ -6,7 +6,6 @@ let defaultVersionsCache = {};
 
 function getBookFromRef(ref) {
     const parsedRef = Sefaria.parseRef(ref);
-    //do we have something for that? maybe it should be passed as param to getVersions?
     return parsedRef.book;
 }
 
@@ -22,95 +21,101 @@ function getLanguageAndVersionTitle(book, language, versionType, translationLang
     return {language: language, versionTitle: versionTitle};
 }
 
+function getRequiredParams(source, translation, translationLanguagePreference) {
+    const requiredVersions = {source: source, translation: translation};
+    for (const versionType in requiredVersions) {
+        let {language, versionTitle} = {...requiredVersions[versionType]};
+        if (!(language && versionTitle)) {
+            requiredVersions[versionType] = getLanguageAndVersionTitle(book, language, versionType, translationLanguagePreference);
+        }
+    }
+    return requiredVersions;
+}
+
+function getVersionsFromCacha(requiredVersions) {
+    let returnObj = {};
+    for (const versionType in requiredVersions) {
+        let cacheObj = CACHE.get(ref, data[versionType].language, data[versionType].versionTitle);
+        if (cacheObj) {
+            if (returnObj === {}) {
+                returnObj = cacheObj;
+                returnObj[versionType] = returnObj.versions[0];
+                delete returnObj.versions;
+            } else {
+                returnObj[versionType] = cacheObj.versions[0];
+            }
+        } else {
+            return; //if one version is missing we'll take all of them form API
+        }
+    }
+    return returnObj;
+}
+
 function makeParamsString(language, versionTitle) {
     if (versionTitle) {
         return `${language}|${versionTitle}`;
     } else if (language) {
         return language;
-    } else {
-        return 'base'; //should be different for translation
     }
 }
 
-async function getVersionFromAPI(ref, requiredVersion) {
+function makeUrl(ref, requiredVersions) {
     const host = Sefaria.apiHost;
     const endPoint = '/api/v3/texts/'
-    let url = `${host}${endPoint}${ref}?`;
-    for (let [language, versionTitle] of requiredVersion) {
+    let url = `${host}${endPoint}${ref}?version=base&version=translation`;
+    url += `&version=${requiredVersions.translation.language}`
+    for (let [language, versionTitle] of requiredVersions) {
         const paramsString = makeParamsString(language, versionTitle);
-        url += `version=${paramsString}&`;
+        if (paramsString) {
+            url += `&version=${paramsString}`;
+        }
     }
-    return await read(url.slice(0, -1));
+    return url;
 }
 
+function findSource(requiredVersion, apiObject) {
+    return apiObject.versions.find((version) =>
+        version.actualLanguage === requiredVersion.language &&
+            version.versionTitle === requiredVersion.versionTitle //the exact required version
+        ) ||
+        apiObject.versions.find((version) => version.isBaseText) || null; //if not a base version
+}
 
-function _complete_text_settings(s = null) {
-    let settings = s || {};
-    settings = {
-      commentary: settings.commentary || 0,
-      context:    settings.context    || 0,
-      pad:        settings.pad        || 0,
-      translation:  {language: 'en', versionTitle: settings.enVersion  || null},
-      source:  {language: 'he', versionTitle: settings.heVersion  || null},
-      multiple:   settings.multiple   || 0,
-      stripItags: settings.stripItags || 0,
-      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
-      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
-      translationLanguagePreference: settings.translationLanguagePreference || null,
-      versionPref: settings.versionPref || null,
-      firstAvailableRef: ("firstAvailableRef" in settings) ? settings.firstAvailableRef : 1,
-      fallbackOnDefaultVersion: ("fallbackOnDefaultVersion" in settings) ? settings.fallbackOnDefaultVersion : 1,
-    };
-    if (settings.versionPref) {
-      // for every lang/vtitle pair in versionPref, update corresponding version url param if it doesn't already exist
-      for (let [vlang, vtitle] of Object.entries(settings.versionPref)) {
-        const versionPrefKey = `${vlang}Version`;
-        if (!settings[versionPrefKey]) {
-          settings[versionPrefKey] = vtitle;
-        }
-      }
+function findTranslation(requiredVersion, apiObject) {
+    return apiObject.versions.find((version) =>
+        version.actualLanguage === requiredVersion.language &&
+            version.versionTitle === requiredVersion.versionTitle //the exact required version
+        ) ||
+        apiObject.versions.find((version) => !version.isSource &&
+            version.actualLanguage === requiredVersion.language //if not, a translation in the required language
+        ) ||
+        apiObject.versions.find((version) => !version.isSource) || null; //if not, a translation
+}
+
+async function getVersionsFromAPI(ref, requiredVersions) {
+    const url = makeUrl(ref, requiredVersions);
+    const apiObject = await read(url);
+    CACHE.set(apiObject);
+    apiObject.source = findSource(requiredVersions.source, apiObject)
+    apiObject.translation = findTranslation(requiredVersions.translation, apiObject)
+    apiObject.translation = translation;
+    delete apiObject.versions;
+    return apiObject;
+}
+
+function setVersionsCache(version) {
+    if (version) {
+        (defaultVersionsCache?.[book] ?? (defaultVersionsCache[book] = {}))[version.actualLanguage] = version.versionTitle;
     }
-    return settings;
-  }
-
-export async function getVersionsByRef(ref, settings) {
-    const {source, translation, translationLanguagePreference} = _complete_text_settings(settings);
-    return await getVersions(ref, source, translation, translationLanguagePreference);
-  }
+}
 
 export async function getVersions(ref, source, translation, translationLanguagePreference) {
     // ref is segment ref or bottom level section ref
     // source, translation are objects that can have language and versionTitle
-    // translationLanguagePreference is on ReaderApp state and goind downward all components. it's not ideal but i don't see another way for now
+    // translationLanguagePreference is on ReaderApp state and going downward all components. it's not ideal but i don't see another way for now
     const book = getBookFromRef(ref);
-    let versions = [];
-    const data = {source: source, translation: translation};
-    const requiredVersion = [];
-    for (const versionType in data) {
-        const requiredVersion = data[versionType];
-        let {language, versionTitle} = {...requiredVersion};
-        if (!(language && versionTitle)) {
-            ({
-                language,
-                versionTitle
-            } = getLanguageAndVersionTitle(book, language, versionType, translationLanguagePreference));
-        }
-        requiredVersion.push([language, versionTitle]);
-    }
-    for (let [language, versionTitle] of requiredVersion) {
-        let version = CACHE.get(ref, language, versionTitle);
-        if (version) {
-            if (versions === []) {
-                versions = version;
-            } else {
-                versions.versions.push(version.versions[0])
-            }
-        } else {
-            versions = await getVersionFromAPI(ref, requiredVersion);
-            CACHE.set(versions);
-            (defaultVersionsCache?.[book] ?? (defaultVersionsCache[book] = {}))[version.actualLanguage] = version.versionTitle;
-            break
-        }
-    }
-    return versions;
+    const requiredVersions = getRequiredParams(source, translation, translationLanguagePreference);
+    let returnObj = getVersionsFromCacha(requiredVersions) || await getVersionsFromAPI(ref, requiredVersions);
+    [returnObj.source, returnObj.translation].forEach((version) => setVersionsCache(version));
+    return returnObj;
 }
