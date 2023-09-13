@@ -323,6 +323,7 @@ const OpenConnectionTabButton = ({srefs, openInTabCallback}) =>{
       event.preventDefault();
       //Click on the body of the TextRange itself from TextList
       openInTabCallback(srefs);
+      gtag("event", "open_text_from_sidebar", {"ref": srefs, "book": srefs.book, "categories": srefs.categories, "click_event": "openlinkINTAB"})
       Sefaria.track.event("Reader", "Click Text from TextList", sref);
     }
   }

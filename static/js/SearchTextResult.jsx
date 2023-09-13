@@ -53,6 +53,7 @@ class SearchTextResult extends Component {
             //console.log(textHighlights);
             if (this.props.searchInBook) {
               Sefaria.track.event("Search", "Sidebar Search Result Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
+              gtag("event", "sefaria_search", {"search_place": "Sidebar Search Result Click", "book": s.ref.book , "categories": s.ref.categories})
             }
             else {
               Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);

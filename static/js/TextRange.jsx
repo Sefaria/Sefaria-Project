@@ -91,6 +91,7 @@ class TextRange extends Component {
     if (this.props.onRangeClick) {
       //Click on the body of the TextRange itself from TextList
       this.props.onRangeClick(this.props.sref);
+      gtag("event", "open side panel", {"ref": this.props.sref, "book": "get form ref", "categories": "get from ref", "open method": "clicked on text"})
       Sefaria.track.event("Reader", "Click Text from TextList", this.props.sref);
     }
   }
@@ -498,31 +499,17 @@ class TextSegment extends Component {
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
     const footnoteLink = $(event.target).is("sup") || $(event.target).parents("sup").size();
     if (refLink) {
-      //Click of citation
-      event.preventDefault();
-      let ref = Sefaria.humanRef(refLink.attr("data-ref"));
-      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
-      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
-      let currVersions = {"en": ven, "he": vhe};
-      this.props.onCitationClick(ref, this.props.sref, true, currVersions);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    } else if (footnoteLink) {
-      this.props.onFootnoteClick(event);
-      event.stopPropagation();
-    } else if (namedEntityLink.length > 0) {
-      //Click of named entity
-      event.preventDefault();
-      if (!this.props.onNamedEntityClick) { return; }
-
-      let topicSlug = namedEntityLink.attr("data-slug");
+      //Click of citationm,nmmn,nm
+      let topicSlug = namedEntityLink.attr("data-slug");wzex
       Sefaria.util.selectElementContents(namedEntityLink[0]);
       this.props.onNamedEntityClick(topicSlug, this.props.sref, namedEntityLink[0].innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
+      gtag("event", "Named Entity Link Click", {"ref": ref, "book": ref.book, "categories": ref.categories, "open method": "clicked on text"})
     } else if (this.props.onSegmentClick) {
       this.props.onSegmentClick(this.props.sref);
       Sefaria.track.event("Reader", "Text Segment Click", this.props.sref);
+      gtag("event", "Text Segment Click", {"ref": ref, "book": ref.book, "categories": ref.categories, "open method": "clicked on text"})
     }
   }
   handleKeyPress(event) {

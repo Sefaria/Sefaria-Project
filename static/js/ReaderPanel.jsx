@@ -129,7 +129,10 @@ class ReaderPanel extends Component {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
+      const oref = Sefaria.getRefFromCache(ref)
+      gtag("event", "open connection panel", {"ref": ref, "book": oref.book, "categories": oref.categories})
       Sefaria.track.event("Reader", "Open Connections Panel", ref);
+      console.log("getRef", oref, oref.book, oref.categories)
       if (this.props.multiPanel) {
         this.conditionalSetState({showHighlight: showHighlight});
         this.props.onSegmentClick(ref);
