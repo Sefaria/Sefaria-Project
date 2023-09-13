@@ -15,14 +15,14 @@ export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, open
         return !cookie("translation_language_preference_suggested") && translation_language_preference_suggestion
     };
     if (shouldTransPrefBannerRender())  {
-        return (<TranslationLanguagePreferenceSuggestionBanner
+        return (<TransLangPrefBanner
             setAccepted={setBannerAccepted}
             setTranslationLanguagePreference={setTranslationLanguagePreference}
         />);
     } else if (bannerAccepted) {
         return <TransLangPrefAcceptedBanner />;
     }
-    return <TranslationCallToActionBanner openTranslations={openTranslations} />;
+    return <TransCallToActionBanner openTranslations={openTranslations} />;
 };
 
 
@@ -40,7 +40,7 @@ const TransLangPrefAcceptedBanner = () => {
 }
 
 
-const TranslationLanguagePreferenceSuggestionBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
+const TransLangPrefBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
     const reject = () => {
         cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
         Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
@@ -64,7 +64,7 @@ const TranslationLanguagePreferenceSuggestionBanner = ({ setAccepted, setTransla
 }
 
 
-const TranslationCallToActionBanner = ({ openTranslations }) => {
+const TransCallToActionBanner = ({ openTranslations }) => {
     const textElement = (
         <InterfaceText>
             <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
