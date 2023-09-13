@@ -136,10 +136,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
         :return:
         """
-
+        if cat_desc is None:
+            cat_desc = {"en": "", "he": ""}
+        if desc is None:
+            desc = {"en": "", "he": ""}
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = cat_desc if cat_desc else {"en": "", "he": ""}
+            self.categoryDescription = cat_desc
         elif getattr(self, "categoryDescription", False):
             delattr(self, "categoryDescription")
 

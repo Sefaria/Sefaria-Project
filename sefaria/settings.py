@@ -70,6 +70,9 @@ STATICFILES_DIRS = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ''
 
+STRAPI_LOCATION = 'https://credible-basketball-a14e66cd27.strapiapp.com'
+STRAPI_PORT = 443
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -296,24 +299,6 @@ CACHES = {
         'LOCATION': '/var/tmp/django_cache',
     }
 }
-
-
-
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name": "2023-09-04-new-year",
-    "style":      "banner",  # "modal" or "banner"
-    "repetition": 1,
-    "is_fundraising": False,
-    "condition":  {
-        "returning_only": False,
-        "english_only": False,
-        "desktop_only": False,
-        "debug": False,
-    }
-}
-
-
-# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 # Grab environment specific settings from a file which

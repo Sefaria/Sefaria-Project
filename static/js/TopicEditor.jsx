@@ -7,11 +7,12 @@ import React, {useState, useEffect} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
-    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug || "",
-                                enTitle: origData.origEn, heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
-                                enDescription: origData?.origDesc?.en || "",
-                                enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he,
+    const [data, setData] = useState({...origData, catSlug: origData.origCatSlug || "",
+                                enTitle: origData.origEnTitle, heTitle: origData.origHeTitle || "",
+                                heDescription: origData?.origHeDescription || "",
+                                enDescription: origData?.origEnDescription || "",
+                                enCategoryDescription: origData?.origEnCategoryDescription || "",
+                                heCategoryDescription: origData?.origHeCategoryDescription || "",
                                 enAltTitles: origData?.origEnAltTitles || [],
                                 heAltTitles: origData?.origHeAltTitles || [],
                                 birthPlace: origData.origBirthPlace || "", heBirthPlace: origData.origHeBirthPlace || "",
@@ -21,7 +22,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
-    const [isAuthor, setIsAuthor] = useState(origData.origCategorySlug === 'authors');
+    const [isAuthor, setIsAuthor] = useState(origData.origCatSlug === 'authors');
     const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
                                                                   // isCategory determines whether user can edit categoryDescriptions of topic
     const subtopics = Sefaria.topicTocPage(origData.origSlug);
@@ -40,6 +41,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
       //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
       const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
+      setIsChanged(true);
       setIsAuthor(data.catSlug === 'authors');
       setData({...data});
     }
@@ -92,25 +94,39 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
 
     const prepData = () => {
-        let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
-            "heTitle": data.heTitle};
-        if (isCategory) {
-            postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
+        // always add category, title, heTitle, altTitles
+        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}};
+        postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
+        postData.altTitles.he = data.heAltTitles.map(x => x.name);
+
+        // add descriptions if they changed
+        const origDescription = {en: origData?.origEnDescription || "", he: origData?.origHeDescription || ""};
+        const origCategoryDescription = {en: origData?.origEnCategoryDescription || "", he: origData?.origHeCategoryDescription || ""};
+        const descriptionChanged = data.enDescription !== origDescription.en || data.heDescription !== origDescription.he;
+        if (descriptionChanged) {
+            postData.description = {en: data.enDescription, he: data.heDescription};
         }
-        if (data?.era && Sefaria.util.inArray(data.era, Sefaria._eras) === -1) {
-            delete postData.era;
+        const categoryDescriptionChanged = data.enCategoryDescription !== origCategoryDescription.en || data.heCategoryDescription !== origCategoryDescription.he
+        if (isCategory && categoryDescriptionChanged) {
+            postData.categoryDescription = {en: data.enCategoryDescription, he: data.heCategoryDescription};
         }
-        postData.altTitles = {};
-         // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
-        postData.altTitles.en = postData.enAltTitles.map(x => x.name);
-        postData.altTitles.he = postData.heAltTitles.map(x => x.name);
-        postData.category = data.catSlug;
+
+        // add author keys if they changed
+        if (isAuthor) {
+            let authorKeys = ['era', 'birthPlace', 'heBirthPlace', 'birthYear', 'deathYear', 'deathPlace', 'heDeathPlace'];
+            authorKeys.map(k => {
+                const firstLetter = k.charAt(0).toUpperCase();
+                const origKey = `orig${firstLetter}${k.slice(1)}`;
+                const origVal = origData[origKey] || "";
+                const newVal = data[k] || "";
+                if (origVal !== newVal) {
+                    postData[k] = data[k];
+                }
+            })
+        }
+
         if (!isNew) {
-          postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
-                    origSlug: data.origSlug};
-          if (isCategory) {
-            postData.origCatDescription = data.origCategoryDesc;
-          }
+          postData = {...postData, origSlug: data.origSlug, origCategory: data.origCatSlug};
         }
 
         return postData;
