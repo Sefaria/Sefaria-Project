@@ -8341,6 +8341,25 @@ h3.aboutSheetHeader {
   border-width: 1px;
 }
 
+.translationsHeader {
+  margin-bottom: 35px;
+}
+
+.translationsHeader h3 {
+  text-transform: none;
+  color: var(--dark-grey);
+  font-size: var(--sans-serif-h3-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.translationsHeader .translationsDesc {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+}
+
 .aboutSheetPanel hr {
   height: 0px;
   border: 1px solid var(--light-grey);

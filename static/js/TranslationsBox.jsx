@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {VersionsBlocksList}  from './VersionBlock';
 import Component             from 'react-class';
-import {LoadingMessage} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import TextRange from "./TextRange";
 import {AddConnectionToSheetButton, ConnectionButtons, OpenConnectionTabButton} from "./TextList";
@@ -78,16 +78,19 @@ class TranslationsBox extends Component {
         );
       }
       return (
-        <VersionsBlocksList
-          versionsByLanguages={this.state.versionLangMap}
-          currObjectVersions={this.props.currObjectVersions}
-          sortPrioritizeLanugage={"en"}
-          currentRef={this.props.srefs[0]}
-          openVersionInReader={this.props.openVersionInReader}
-          openVersionInSidebar={this.openVersionInSidebar}
-          viewExtendedNotes={this.props.viewExtendedNotes}
-          inTranslationBox={true}
-        />
+          <>
+            <TranslationsHeader />
+            <VersionsBlocksList
+                versionsByLanguages={this.state.versionLangMap}
+                currObjectVersions={this.props.currObjectVersions}
+                sortPrioritizeLanugage={"en"}
+                currentRef={this.props.srefs[0]}
+                openVersionInReader={this.props.openVersionInReader}
+                openVersionInSidebar={this.openVersionInSidebar}
+                viewExtendedNotes={this.props.viewExtendedNotes}
+                inTranslationBox={true}
+            />
+          </>
       );
     }
   }
@@ -107,6 +110,21 @@ TranslationsBox.propTypes = {
   translationLanguagePreference: PropTypes.string,
   inTranslationBox:            PropTypes.bool,
 };
+
+
+const TranslationsHeader = () => (
+  <div className="translationsHeader">
+    <h3>
+      <InterfaceText>Translations</InterfaceText>
+    </h3>
+    <div className="translationsDesc sans-serif">
+      <InterfaceText>
+        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below. Learn more…</EnglishText>
+        <HebrewText>TO DO</HebrewText>
+      </InterfaceText>
+    </div>
+  </div>
+);
 
 
 class VersionsTextList extends Component {
