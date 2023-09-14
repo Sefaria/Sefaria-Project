@@ -290,12 +290,6 @@ LOGGING = {
     }
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
 
 
 # Grab environment specific settings from a file which
