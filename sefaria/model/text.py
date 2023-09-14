@@ -1741,7 +1741,7 @@ class TextFamilyDelegator(type):
 
 class TextRange:
 
-    def __init__(self, oref, lang, vtitle):
+    def __init__(self, oref, lang, vtitle, merge_versions=False):
         if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
             self.oref = oref
         elif oref.has_default_child(): #use default child:
@@ -1750,24 +1750,33 @@ class TextRange:
             raise InputError("Can not get TextRange at this level, please provide a more precise reference")
         self.lang = lang
         self.vtitle = vtitle
-        self._version = None #todo - what we want to do if the version doesnt exist. for now the getter will cause error
+        self.merge_versions = merge_versions
+        self._versions = []
         self._text = None
+        self.sources = None
 
     @property
-    def version(self):
-        if self._version is None:  # todo if there is no version it will run any time
-            self._version = Version().load({'title': self.oref.index.title, 'actualLanguage': self.lang, 'versionTitle': self.vtitle},
-                                           self.oref.part_projection())
-        return self._version
+    def versions(self):
+        if self._versions == []:
+            condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
+                {'title': self.oref.index.title, 'actualLanguage': self.lang, 'versionTitle': self.vtitle}
+            self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
+        return self._versions
 
-    @version.setter
-    def version(self, version): #version can be used if version is already in memory
-        self._validate_version(version)
-        self._version = version
+    @versions.setter
+    def versions(self, versions):
+        self._validate_versions(versions)
+        self._versions = versions
 
-    def _validate_version(self, version):
-        if self.lang != version.actualLanguage or self.vtitle != version.versionTitle:
-            raise InputError("Given version is not matching to given language and versionTitle")
+    def _validate_versions(self, versions):
+        if not self.merge_versions and len(versions) > 1:
+            raise InputError("Got many versions instead of one")
+        for version in versions:
+            condition = version.title == self.oref.index.title and version.actualLanguage == self.lang
+            if not self.merge_versions:
+                condition = condition and version.versionTitle == self.vtitle
+            if not condition:
+                raise InputError(f"Given version, {version}, is not matching to title, language or versionTitle")
 
     def _trim_text(self, text):
         """
@@ -1787,10 +1796,15 @@ class TextRange:
     @property
     def text(self):
         if self._text is None:
-            if self.oref.index_node.is_virtual:
+            if self.merge_versions and len(self.versions) > 1:
+                merged_text, sources = self.versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
+                self._text = self._trim_text(merged_text)
+                if len(sources) > 1:
+                    self.sources = sources
+            elif self.oref.index_node.is_virtual:
                 self._text = self.oref.index_node.get_text()
             else:
-                self._text = self._trim_text(self.version.content_node(self.oref.index_node)) #todo if there is no version it will fail
+                self._text = self._trim_text(self.versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
         return self._text
 
 

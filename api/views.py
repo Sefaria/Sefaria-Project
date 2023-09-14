@@ -32,11 +32,11 @@ class Text(View):
             elif vtitle and vtitle != 'all':
                 warning = APINoVersion(self.oref, vtitle, lang)
             else:
-                warning = APINoLanguageVersion(self.oref, data['availabe_langs'])
+                warning = APINoLanguageVersion(self.oref, data['available_langs'])
             representing_string = f'{lang}|{vtitle}' if vtitle else lang
             data['warnings'].append({representing_string: warning.get_message()})
         data.pop('missings')
-        data.pop('availabe_langs')
+        data.pop('available_langs')
         return data
 
     def get(self, request, *args, **kwargs):
@@ -46,7 +46,8 @@ class Text(View):
         if not versions_params:
             versions_params = ['base']
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
-        text_manager = TextManager(self.oref, versions_params)
+        fill_in_missing_segments = request.GET.get('fill_in_missing_segments', False)
+        text_manager = TextManager(self.oref, versions_params, fill_in_missing_segments)
         data = text_manager.get_versions_for_query()
         data = self._handle_warnings(data)
         return jsonResponse(data)

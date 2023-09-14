@@ -150,3 +150,21 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data['warnings'][0]['he|Kishkoosh']['warning_code'], APIWarningCode.APINoVersion.value)
         self.assertEqual(data['warnings'][0]['he|Kishkoosh']['message'],
                          'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')
+
+    def test_fill_in_missing_segments(self):
+        vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=en|{vtitle}&fill_in_missing_segments=true")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue(len(data['versions'][0]['text']) > 2)
+        self.assertTrue(data['versions'][0].get('sources'))
+        self.assertEqual(data['versions'][0]['sources'][0], vtitle)
+        self.assertNotEqual(data['versions'][0]['sources'][2], vtitle)
+
+    def test_without_fill_in_missing_segments(self):
+        vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=en|{vtitle}")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['versions'][0]['text']), 2)
+        self.assertFalse(data['versions'][0].get('sources'))
