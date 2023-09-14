@@ -14,6 +14,16 @@ on:
         required: true
         default: current
         description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
+  workflow_dispatch:
+    inputs:
+      chart_version:
+        type: string
+        required: true
+        default: current
+        description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
+      version:
+        type: string
+        required: true
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
