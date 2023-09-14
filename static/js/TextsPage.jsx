@@ -140,7 +140,8 @@ const Dedication = () => {
 
   function get_google_sheet_data() {
     const url =
-      'https://docs.google.com/spreadsheets/d/11c9Yw9FdfLnfbIWqvUztCt-QICW5790dfFGgXH7IB1k/edit#gid=0';
+      'https://docs.google.com/spreadsheets/d/12U-Rv5sqqduVRJ31XlSjn2PfzzfqSvxCtRcd0HHdsQo/edit#gid=0';
+      /*'https://docs.google.com/spreadsheets/d/11c9Yw9FdfLnfbIWqvUztCt-QICW5790dfFGgXH7IB1k/edit#gid=0';*/
     const query = new google.visualization.Query(url);
     query.setQuery('select A, B, C');
     query.send(processSheetsData);
