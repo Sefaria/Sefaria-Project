@@ -319,3 +319,5 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+    
+FAKE_SETTINGS_VAR = True
