@@ -44,6 +44,11 @@ class TextManager:
             relevant_versions = [version]
         text_range.versions = relevant_versions
         version_details['text'] = text_range.text
+
+        sources = getattr(text_range, 'sources', None)
+        if sources is not None:
+            version_details['sources'] = sources
+
         if self.oref.is_book_level():
             first_section_ref = version.first_section_ref() or version.get_index().nodes.first_leaf().first_section_ref()
             version_details['firstSectionRef'] = first_section_ref.normal()
