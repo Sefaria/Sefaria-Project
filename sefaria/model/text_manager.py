@@ -1,3 +1,5 @@
+import copy
+
 import django
 django.setup()
 from sefaria.model import *
@@ -10,9 +12,10 @@ class TextManager:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]]):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True):
         self.versions_params = versions_params
         self.oref = oref
+        self.fill_in_missing_segments = fill_in_missing_segments
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -31,8 +34,15 @@ class TextManager:
         for attr in ['chapter', 'title', 'language']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle)
-        text_range.version = version
+        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle, True)
+
+        if self.fill_in_missing_segments:
+            # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
+            relevant_versions = copy.copy(self.all_versions)
+            relevant_versions.remove(lambda v: v.actualLanguage != version.actualLanguage)
+        else:
+            relevant_versions = [version]
+        text_range.versions = relevant_versions
         version_details['text'] = text_range.text
         if self.oref.is_book_level():
             first_section_ref = version.first_section_ref() or version.get_index().nodes.first_leaf().first_section_ref()
