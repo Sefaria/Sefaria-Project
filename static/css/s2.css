@@ -720,7 +720,10 @@ input.noselect {
   /*width: 92px;*/
 }
 .interface-hebrew .header .home img {
-  width: 77px;
+  /*width: 77px;*/
+  vertical-align: middle;
+  height: 38px;
+  margin-top: -6px;
 }
 .header .accountLinks {
   display: flex;
