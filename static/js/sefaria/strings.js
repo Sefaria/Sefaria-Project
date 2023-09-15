@@ -1,9 +1,9 @@
 const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
-    "Topics":"נושאים",
-    "Community": "קהילה",
-    "Donate": "תרומה",
+    "Topics":"དཔྱད་གཞི་།",
+    "Community": "སྤྱི་ཚོགས།",
+    "Donate": "ཞལ་འདེབས་",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
     "Recently Viewed" : "נצפו לאחרונה",
@@ -20,11 +20,11 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
-    "Log in": "התחברות",
-    "Sign up": "הרשמה",
+    "Log in": "འཛུལ་བ།",
+    "Sign up": "འགྲོ་བསྡུ་སྒྲིག་པ།",
 
     // Texts Page
-    "Learn More": "לקריאה נוספת",
+    "Learn More": "མུ་མཐུད་གཟིགས་",
     "Learning Schedules": "לוח לימוד יומי",
     "Teach with Sefaria": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
@@ -42,12 +42,13 @@ const Strings = {
     "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא כדי ליצור ולשתף מקורות יהודיים. אנו מזמינים אתכם לקחת חלק בשיח זה.",
     "Create with Sefaria": "צרו בעזרת ספריא",
     "Mobile Apps": "יישומון לטלפון הנייד",
-    "Browse the Library": "བཀྲིས་བདེ་ལེགས་",
+    "Browse the Library": "དཔེ་མཛོད་དུ་གཟིགས་",
     "Weekly Torah Portion": "פרשת השבוע",
     "All Learning Schedules": "לוחות לימוד נוספים",
     "Sponsor A Day of Learning": "תרמו יום לימוד בספריא",
     "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלכם נוכל להוסיף מקורות, תרגומים, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה, בכל מקום ובכל זמן.",
     "Sponsor A Day": "הקדישו יום לימוד",
+    "Buddhist Text Interface": "ནང་ཚོས་ཀྱི་ཡིག་ཆའི་བང་མཛོད་",
 
     // Text Category Pages
     "All Portions": "פרשות השבוע",
@@ -229,7 +230,7 @@ const Strings = {
     "Publish your sheet on Sefaria for others to discover.": "פרסמו את דף המקורות בספריא כדי שאחרים יוכלו ללמוד ממנו.",
 
     // Reader Panel
-    "Search" : "חיפוש",
+    "Search" : "འཚོལ་",
     "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
@@ -237,7 +238,7 @@ const Strings = {
     "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
     "Versions": "מהדורות",
     "Version Open": "מהדורה פתוחה",
-    "About": "אודות",
+    "About": "སྐོར་དུ།",
     "Current Version": "מהדורה נוכחית",
     "Current Translation": "תרגום נוכחי",
     "Select Version": "בחירת מהדורה",
@@ -467,8 +468,8 @@ const Strings = {
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
 
     // Footer
-    "Connect": "צרו קשר",
-    "Site Language": "שפת האתר",
+    "Connect": "འབྲེལ་གཏུགས་",
+    "Site Language": "སྐད་ཡིག",
 
     //Profile
     "Profile": "פרופיל",
@@ -556,7 +557,7 @@ const Strings = {
     "ConnectionPanelSection":{
       "Related Texts": "מקורות לעיון",
       "Resources": "עזרים",
-      "Tools": "כלים",
+      "Tools": "ལག་ཆས།",
       "Share Link": "שיתוף קישור",
       "More Options": "אפשרויות נוספות",
     },
@@ -582,7 +583,7 @@ const Strings = {
       "Newest": "הכי חדש",*/
     },
     "Header": {
-      "Texts": "מקורות",
+      "Texts": "ཡིག་མཛོད་",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",
