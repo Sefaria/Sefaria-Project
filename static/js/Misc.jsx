@@ -367,15 +367,41 @@ ProfilePic.propTypes = {
 };
 
 
+/**
+ * Renders a list of data that can be filtered and sorted
+ * @param filterFunc
+ * @param sortFunc
+ * @param renderItem
+ * @param sortOptions
+ * @param getData
+ * @param data
+ * @param renderEmptyList
+ * @param renderHeader
+ * @param renderFooter
+ * @param showFilterHeader
+ * @param refreshData
+ * @param initialFilter
+ * @param scrollableElement
+ * @param pageSize
+ * @param onDisplayedDataChange
+ * @param initialRenderSize
+ * @param bottomMargin
+ * @param containerClass
+ * @param onSetSort: optional. function that is passed the current sort option when the user changes it. Use this to control sort from outside the component. See `externalSortOption`.
+ * @param externalSortOption: optional. string that is one of the options in `sortOptions`. Use this to control sort from outside the component. See `onSetSort`.
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass
+  bottomMargin, containerClass, onSetSort, externalSortOption,
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [internalSortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
+  const sortOption = externalSortOption || internalSortOption;
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
@@ -427,10 +453,11 @@ const FilterableList = ({
     }, [dataUpToPage]);
   }
 
-  const onSortChange = newSortOption => {
+  const setSort = newSortOption => {
     if (newSortOption === sortOption) { return; }
     setSortOption(newSortOption);
     setDisplaySort(false);
+    onSetSort?.(newSortOption);
   };
 
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -460,7 +487,7 @@ const FilterableList = ({
                 isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
-                handleClick={onSortChange}
+                handleClick={setSort}
               />
             </DropdownModal>
             : null
@@ -487,7 +514,7 @@ const FilterableList = ({
               <span
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
-                onClick={() => onSortChange(option)}
+                onClick={() => setSort(option)}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
