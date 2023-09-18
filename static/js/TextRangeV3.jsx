@@ -115,24 +115,10 @@ class TextRange extends Component {
     }
   }
   async getText() {
-    let settings = {
-      context: this.props.withContext ? 1 : 0,
-      enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null,
-      // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
-      firstAvailableRef: this.props.basetext ? 1 : 0,
-      translationLanguagePreference: this.props.translationLanguagePreference,
-      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
-    };
-    // let data = Sefaria.getTextFromCache(this.props.sref, settings);
     let data = await getVersions(this.props.sref, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
 
-    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
-      this.textLoading = true;
-      let data = await Sefaria.getText(this.props.sref, settings);
-      await this.onTextLoad(data);
-    } else if (!!data && this.props.isCurrentlyVisible) {
-      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    if (!!data && this.props.isCurrentlyVisible) {
+      this._updateCurrVersions(data.translation.versionTitle, data.source.versionTitle);
     }
     return data;
   }
@@ -152,7 +138,7 @@ class TextRange extends Component {
       return;
     }
 
-    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    this._updateCurrVersions(data.translation.versionTitle, data.source.versionTitle);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -209,34 +195,16 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-      const nextSettings = {
-        context: 1,
-        multiple: this.props.prefetchMultiple,
-        enVersion: this.props.currVersions.en || null,
-        heVersion: this.props.currVersions.he || null,
-        translationLanguagePreference: this.props.translationLanguagePreference,
-        versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
-      };
-       const nextTextPromise = getVersions(data.next, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
-      //  const nextTextPromise = Sefaria.getText(data.next, nextSettings);
-      nextTextPromise.then(data => {
-        this._prefetchLinksAndNotes(data);
-      });
+        const nextTextPromise = getVersions(data.next, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
+        nextTextPromise.then(data => {
+          this._prefetchLinksAndNotes(data);
+        });
      }
      if (data.prev) {
-      const prevSettings = {
-        context: 1,
-        multiple: -this.props.prefetchMultiple,
-        enVersion: this.props.currVersions.en || null,
-        heVersion: this.props.currVersions.he || null,
-        translationLanguagePreference: this.props.translationLanguagePreference,
-        versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
-      };
-      const prevTextPromise = getVersions(data.prev, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
-      // const prevTextPromise = Sefaria.getText(data.prev, prevSettings);
-      prevTextPromise.then(data => {
-        this._prefetchLinksAndNotes(data);
-      });
+       const prevTextPromise = getVersions(data.prev, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
+        prevTextPromise.then(data => {
+          this._prefetchLinksAndNotes(data);
+        });
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
@@ -326,8 +294,8 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
-    const formatEnAsPoetry = data && data.formatEnAsPoetry
-    const formatHeAsPoetry = data && data.formatHeAsPoetry
+    const formatEnAsPoetry = data && data.translation.formatAsPoetry
+    const formatHeAsPoetry = data && data.source.formatAsPoetry
 
     const showNumberLabel =  data && data.categories &&
     data.categories[0] !== "Liturgy" &&
