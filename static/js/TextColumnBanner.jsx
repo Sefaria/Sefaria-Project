@@ -9,27 +9,43 @@ const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const { translation_language_preference_suggestion } = Sefaria;
 
 export const TextColumnBannerChooser = ({ setTranslationLanguagePreference, openTranslations, openTransBannerApplies }) => {
-    const [bannerAccepted, setBannerAccepted] = useState(false);
+    const [transLangPrefAccepted, setTransLangPrefAccepted] = useState(false);
     const shouldTransPrefBannerRender = () => {
         // we haven't suggested yet and we have a suggestion
-        return !cookie("translation_language_preference_suggested") && translation_language_preference_suggestion
+        return transLangPrefAccepted || (!cookie("translation_language_preference_suggested") && translation_language_preference_suggestion);
     };
     const shouldOpenTransBannerRender = () => {
         return openTransBannerApplies() && !cookie("open_trans_banner_shown"); // && textMode in (bilingual, english) && category in (Tanakh, Mishnah, Bavli)
     }
+
     if (shouldTransPrefBannerRender())  {
-        return (<TransLangPrefBanner
-            setAccepted={setBannerAccepted}
-            setTranslationLanguagePreference={setTranslationLanguagePreference}
-        />);
-    } else if (bannerAccepted) {
-        return <TransLangPrefAcceptedBanner />;
+        return (
+            <TransLangPrefBanner
+                accepted={transLangPrefAccepted}
+                setAccepted={setTransLangPrefAccepted}
+                setTranslationLanguagePreference={setTranslationLanguagePreference}
+            />
+        );
     }
-    if (shouldOpenTransBannerRender()) {
+    else if (shouldOpenTransBannerRender()) {
         return <OpenTransBanner openTranslations={openTranslations} />;
     }
     return null;
 };
+
+
+const TransLangPrefBanner = ({accepted, setAccepted, setTranslationLanguagePreference}) => {
+    if (accepted) {
+        return <TransLangPrefAcceptedBanner />;
+    }
+
+    return (
+        <TransLangPrefAskBanner
+            setAccepted={setAccepted}
+            setTranslationLanguagePreference={setTranslationLanguagePreference}
+        />
+    );
+}
 
 
 const TransLangPrefAcceptedBanner = () => {
@@ -45,7 +61,7 @@ const TransLangPrefAcceptedBanner = () => {
 }
 
 
-const TransLangPrefBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
+const TransLangPrefAskBanner = ({ setAccepted, setTranslationLanguagePreference }) => {
     const reject = () => {
         cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
         Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
