@@ -96,6 +96,8 @@ function findTranslation(requiredVersion, apiObject) {
 async function getVersionsFromAPI(ref, requiredVersions) {
     const url = makeUrl(ref, requiredVersions);
     const apiObject = await read(url);
+    Sefaria.saveVersions(ref, apiObject.available_versions);
+    delete apiObject.available_versions;
     CACHE.set(apiObject);
     apiObject.source = findSource(requiredVersions.source, apiObject)
     apiObject.translation = findTranslation(requiredVersions.translation, apiObject)
