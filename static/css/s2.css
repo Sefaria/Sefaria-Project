@@ -1782,7 +1782,8 @@ div.interfaceLinks-row a {
   color: inherit;
   cursor: pointer;
 }
-.navSidebar a.inTextLink {
+.navSidebar a.inTextLink,
+.translationsDesc  a.inTextLink {
   color: inherit;
   text-decoration: underline;
   margin-inline-start: 5px;
