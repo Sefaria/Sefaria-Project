@@ -449,7 +449,7 @@ Sefaria = extend(Sefaria, {
             //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
             // This happens before saving the text to cache so that both caches are consistent
             if(d?.versions?.length){
-                let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
+                let versions = Sefaria.saveVersions(d.sectionRef, d.versions);
                 d.versions = Sefaria._makeVersions(versions, false);
             }
             Sefaria._saveText(d, settings);
@@ -514,7 +514,7 @@ Sefaria = extend(Sefaria, {
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
         //save versions and then text so both caches have updated versions
         if(data?.versions?.length){
-            let versions = this._saveVersions(data.sectionRef, data.versions);
+            let versions = this.saveVersions(data.sectionRef, data.versions);
             data.versions = this._makeVersions(versions, false);
         }
         this._saveText(data, settings);
@@ -564,7 +564,7 @@ Sefaria = extend(Sefaria, {
     if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
         await this._ApiPromise(url).then(d => {
-            this._saveVersions(ref, d);
+            this.saveVersions(ref, d);
         });
     }
     return Promise.resolve(this._versions[ref]);
@@ -622,7 +622,7 @@ Sefaria = extend(Sefaria, {
   _makeVersions: function(versions, byLang){
     return byLang ? versions : Object.values(versions).flat();
   },
-  _saveVersions: function(ref, versions){
+  saveVersions: function(ref, versions){
       for (let v of versions) {
         Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
           en: v.versionTitle,
@@ -2968,7 +2968,7 @@ Sefaria.unpackDataFromProps = function(props) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         //save versions first, so their new format is also saved on text cache
         if(panel.text?.versions?.length){
-            let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+            let versions = Sefaria.saveVersions(panel.text.sectionRef, panel.text.versions);
             panel.text.versions = Sefaria._makeVersions(versions, false);
         }
 
@@ -2976,7 +2976,7 @@ Sefaria.unpackDataFromProps = function(props) {
       }
       if(panel.bookRef){
          if(panel.versions?.length){
-            let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
+            let versions = Sefaria.saveVersions(panel.bookRef, panel.versions);
             panel.versions = Sefaria._makeVersions(versions, false);
          }
       }
