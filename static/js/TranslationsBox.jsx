@@ -119,8 +119,8 @@ const TranslationsHeader = () => (
     </h3>
     <div className="translationsDesc sans-serif">
       <InterfaceText>
-        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below. Learn more…</EnglishText>
-        <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי. למידע נוסף…</HebrewText>
+        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below. <a href="https://www.sefaria.org/sheets/511573">Learn more…</a></EnglishText>
+        <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי. <a href="https://www.sefaria.org/sheets/511573">למידע נוסף…</a></HebrewText>
       </InterfaceText>
     </div>
   </div>
