@@ -527,6 +527,9 @@ class ReaderPanel extends Component {
         : false
     this.conditionalSetState({tab: tab})
   }
+  onSetTopicSort(topicSort) {
+    this.conditionalSetState({topicSort});
+  }
   currentMode() {
     return this.state.mode;
   }
@@ -919,6 +922,8 @@ class ReaderPanel extends Component {
           <TopicPage
             tab={this.state.tab}
             setTab={this.setTab}
+            onSetTopicSort={this.onSetTopicSort}
+            topicSort={this.state.topicSort}
             topic={this.state.navigationTopic}
             topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
