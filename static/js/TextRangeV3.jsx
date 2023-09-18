@@ -20,13 +20,12 @@ class TextRange extends Component {
     };
   }
 
-  async componentDidMount() {
-    await this.fetchTextData();
+  componentDidMount() {
+    this.getText().then(this.onTextLoad)
     this._isMounted = true;
     let data = this.state.data;
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
-      await this.onTextLoad(data);
     } else if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
@@ -130,13 +129,14 @@ class TextRange extends Component {
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
       let data = await Sefaria.getText(this.props.sref, settings);
-      await this.onTextLoad(data);
+      this.onTextLoad(data);
     } else if (!!data && this.props.isCurrentlyVisible) {
       this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
     }
     return data;
   }
   async onTextLoad(data) {
+    this.setState({ data });
     // Initiate additional API calls when text data first loads
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
@@ -312,7 +312,7 @@ class TextRange extends Component {
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;
-      const sectionStrings   = Sefaria.sectionString(ref);
+      const sectionStrings   = Sefaria.sectionStringFromData(ref, data) ;
       const oref             = Sefaria.ref(ref);
       const useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;

@@ -2079,10 +2079,13 @@ _media: {},
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
     var data = this.getRefFromCache(ref);
+    return this.sectionStringFromData(ref, data);
+  },
+  sectionStringFromData: function(ref, data) {
     var result = {
-          en: {named: "", numbered: ""},
-          he: {named: "", numbered: ""}
-        };
+        en: {named: "", numbered: ""},
+        he: {named: "", numbered: ""}
+      };
     if (!data) { return result; }
 
     // English
