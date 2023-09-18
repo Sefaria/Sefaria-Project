@@ -1386,12 +1386,12 @@ class ReaderControls extends Component {
           />
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    const transCallToActionApplies = () => Sefaria.transCallToActionApplies(this.props.currentBook(), this.props.settings.language);
+    const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
     let banner = (hideHeader || connectionsHeader) ? null : (
         <TextColumnBannerChooser
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
             openTranslations={this.openTranslations}
-            transCallToActionApplies={transCallToActionApplies}
+            openTransBannerApplies={openTransBannerApplies}
         />
     );
     const classes = classNames({

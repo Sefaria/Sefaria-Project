@@ -1046,9 +1046,9 @@ Sefaria = extend(Sefaria, {
       }
       return ref ? this.getRefFromCache(ref) : null;
   },
-  transCallToActionApplies: (book, textLanguage) => {
+  openTransBannerApplies: (book, textLanguage) => {
       /**
-       * Should we display the translaiton call-to-action banner?
+       * Should we display OpenTransBanner?
        * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
        */
       const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
