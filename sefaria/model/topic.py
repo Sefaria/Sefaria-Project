@@ -542,21 +542,31 @@ class AuthorTopic(PersonTopic):
         from .text import Index
 
         index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        unique_urls = {}  # {url: {lang: title}}. This dict arbitrarily chooses one title per URL.
+        unique_urls = []
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
+            en_desc = getattr(index_or_cat, 'enShortDesc', None)
+            he_desc = getattr(index_or_cat, 'heShortDesc', None)
             if isinstance(index_or_cat, Index):
-                unique_urls[f'/{index_or_cat.title.replace(" ", "_")}'] = {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')}
+                unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
+                                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
+                                    "description":{"en": en_desc, "he": he_desc}
+                                    })
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
                     en_text = cat_term.get_primary_title('en')
                     he_text = cat_term.get_primary_title('he')
+
                 else:
                     base_category_term = Term().load({"name": base_category.sharedTitle})
                     en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                unique_urls[f'/texts/{"/".join(index_or_cat.path)}'] = {"en": en_text, "he": he_text}
-        return list(unique_urls.items())
+
+                unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
+                                    "title": {"en": en_text, "he": he_text},
+                                    "description":{"en": en_desc, "he": he_desc}
+                                    })
+        return(unique_urls)
 
     @staticmethod
     def is_author(slug):
