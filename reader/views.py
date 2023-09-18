@@ -62,7 +62,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link
+                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -78,7 +78,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic
+from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -1670,6 +1670,7 @@ def index_api(request, title, raw=False):
 
     if request.method == "POST":
         # use the update function if update is in the params
+
         func = tracker.update if request.GET.get("update", False) else tracker.add
         j = json.loads(request.POST.get("json"))
         if not j:
@@ -1702,6 +1703,7 @@ def index_api(request, title, raw=False):
             return jsonResponse(
                 func(request.user.id, Index, j, raw=raw).contents(raw=raw)
             )
+
         return protected_index_post(request)
 
     if request.method == "DELETE":
@@ -3119,17 +3121,19 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        t.add_title(data["title"], 'en', True, True)
-        if "heTitle" in data:
-            t.add_title(data["heTitle"], "he", True, True)
+        update_topic_titles(t, data)
 
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
+        if data["category"] == 'authors':
+            t = update_authors_place_and_time(t, data)
+
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-        t.change_description(data["description"], data.get("catDescription", None))
+        if "description" in data:
+            t.change_description(data["description"], data.get("categoryDescription", None))
         t.save()
 
         library.build_topic_auto_completer()
@@ -3182,8 +3186,6 @@ def topics_api(request, topic, v2=False):
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        if topic_data["category"] == topic_data["origCategory"]:
-            topic_data.pop("category")  # no need to check category in update_topic
         topic_obj = update_topic(topic_obj, **topic_data)
         if author_status_changed:
             library.build_topic_auto_completer()

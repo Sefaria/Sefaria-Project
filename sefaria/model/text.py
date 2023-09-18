@@ -182,7 +182,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     criteria_field = 'title'
     criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
     track_pkeys = True
-    pkeys = ["title"]
+    pkeys = ["title", "compPlace", "pubPlace"]
 
     required_attrs = [
         "title",
@@ -316,11 +316,19 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 "he": composition_time_period.period_string("he"),
             }
 
+
         composition_place = self.composition_place()
         if composition_place:
             contents["compPlaceString"] = {
                 "en": composition_place.primary_name("en"),
                 "he": composition_place.primary_name("he"),
+            }
+
+        pub_place = self.publication_place()
+        if pub_place:
+            contents["pubPlaceString"] = {
+                "en": pub_place.primary_name("en"),
+                "he": pub_place.primary_name("he"),
             }
 
         return contents
