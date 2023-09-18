@@ -546,6 +546,9 @@ def hebrew_parasha_name(value):
 # Hebrew Abbrev Matching
 ########
 
+def get_he_key(key):
+	return 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
+
 def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), lang='he'):
 	abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)
 	indexes = [[index for index, letter in enumerate(abbr) if word[0] == letter] for w, word in enumerate(unabbr)]
