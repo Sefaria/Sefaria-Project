@@ -7,6 +7,7 @@ from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog, bleach
+from sefaria.model.place import Place
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -135,10 +136,13 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
         :return:
         """
-
+        if cat_desc is None:
+            cat_desc = {"en": "", "he": ""}
+        if desc is None:
+            desc = {"en": "", "he": ""}
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
-            self.categoryDescription = cat_desc if cat_desc else {"en": "", "he": ""}
+            self.categoryDescription = cat_desc
         elif getattr(self, "categoryDescription", False):
             delattr(self, "categoryDescription")
 
@@ -400,10 +404,23 @@ class PersonTopic(Topic):
         """
         return PersonTopic().load({"alt_ids.old-person-key": key})
 
+    def annotate_place(self, d):
+        properties = d.get('properties', {})
+        for k in ['birthPlace', 'deathPlace']:
+            place = properties.get(k)
+            heKey = 'he' + k[0].upper() + k[1:]  # birthPlace => heBirthPlace
+            if place and heKey not in properties:
+                value, dataSource = place['value'], place['dataSource']
+                place_obj = Place().load({"key": value})
+                name = place_obj.primary_name('he')
+                d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
+        return d
+
     def contents(self, **kwargs):
         annotate_time_period = kwargs.get('annotate_time_period', False)
         d = super(PersonTopic, self).contents(**kwargs)
         if annotate_time_period:
+            d = self.annotate_place(d)
             tp = self.most_accurate_time_period()
             if tp is not None:
                 d['timePeriod'] = {

@@ -1,9 +1,64 @@
 import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
-import {AdminToolHeader, InterfaceText} from "./Misc";
+import {AdminToolHeader, InterfaceText, TitleVariants} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
 import classNames from "classnames";
-
+const options_for_form = {
+    "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
+    "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
+    "English Description": {
+        label: "English Description",
+        field: "enDescription",
+        placeholder: "Add a description.",
+        type: 'textarea'
+    },
+    "Hebrew Description": {
+        label: "Hebrew Description",
+        field: "heDescription",
+        placeholder: "Add a description.",
+        type: 'textarea'
+    },
+    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
+    "English Short Description": {
+        label: "English Short Description for Table of Contents", field: "enCategoryDescription",
+        placeholder: "Add a short description.", type: 'input'
+    },
+    "Hebrew Short Description": {
+        label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
+        placeholder: "Add a short description.", type: 'input'
+    },
+    "English Alternate Titles": {
+        label: "English Alternate Titles", field: "enAltTitles",
+        placeholder: "Add a title.", type: 'title variants'
+    },
+    "Hebrew Alternate Titles": {
+        label: "Hebrew Alternate Titles", field: "heAltTitles",
+        placeholder: "Add a title.", type: 'title variants'
+    },
+    "Birth Place": {
+        label: "Place of Birth", field: "birthPlace", placeholder: "Place of birth", type: 'input'
+    },
+    "Hebrew Birth Place": {
+        label: "Hebrew Place of Birth", field: "heBirthPlace", placeholder: "Place of birth", type: 'input'
+    },
+    "Place of Death": {
+        label: "Place of Death", field: "deathPlace", placeholder: "Place of death", type: 'input'
+    },
+    "Hebrew Place of Death": {
+        label: "Hebrew Place of Death", field: "heDeathPlace", placeholder: "Place of death", type: 'input'
+    },
+    "Birth Year": {
+        label: "Year of Birth", field: "birthYear", placeholder: "Year of birth", type: 'input'
+    },
+    "Death Year": {
+        label: "Year of Death", field: "deathYear", placeholder: "Year of death", type: 'input'
+    },
+    "Era": {
+        label: "Era (GN/Gaonim, RI/Rishonim, AH/Achronim, CO/Contemporary)", field: "era", placeholder: "Choose an era", type: 'dropdown',
+        dropdown_data: Sefaria._eras
+    }
+}
+    
 const AdminEditorButton = ({toggleAddingTopics, text, top=false, bottom=false}) => {
     const classes = classNames({button: 1, extraSmall: 1, topic: 1, top, bottom});
     return <div onClick={toggleAddingTopics}
@@ -70,6 +125,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         }
         updateData({...data});
     }
+    const handleTitleVariants = (newTitles, field) => {
+        const newData = {...data};
+        newData[field] = newTitles.map(x => Object.assign({}, x));
+        updateData(newData);
+    }
     const preprocess = async () => {
         setValidatingLinks(true);
         for (const x of items) {
@@ -85,44 +145,45 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         validate();
         setValidatingLinks(false);
     }
-    const item = ({label, field, placeholder, is_textarea}) => {
+    const getDropdown = (field, dropdown_data, placeholder) => {
+        const chooseCat = <option key={`chooseCategory_${field}`} value={data.origEra}
+                            selected={!dropdown_data.includes(data[field])}>{placeholder}</option>;
+        return <div id={`dropdown_${field}`} className="categoryChooserMenu">
+                          <select key={field} id={field} onChange={setInputValue}>
+                              {chooseCat}
+                              {dropdown_data.map(x =>
+                                  <option key={`${field}_${x}`}
+                                          value={x}
+                                          selected={data[field] === x}>{x}</option>)}
+                          </select>
+                        </div>;
+    }
+    const item = ({label, field, placeholder, type, dropdown_data}) => {
+        let obj;
+        switch(type) {
+            case 'dropdown':
+                obj = getDropdown(field, dropdown_data, placeholder);
+                break;
+            case 'title variants':
+                const titles = data[field];
+                obj = <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>;
+                break;
+            case 'textarea':
+                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
+                         placeholder={Sefaria._(placeholder)}/>;
+                break;
+            default:
+                const inputType = field.includes('Year') ? 'number' : 'text';
+                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
+                         placeholder={Sefaria._(placeholder)}/>;
+        }
+
         return <div className="section">
-            <label><InterfaceText>{label}</InterfaceText></label>
-            {is_textarea ?
-                    // <MDEditor textareaProps={{id: field, placeholder: Sefaria._(placeholder)}}
-                    //      commands={[commands.bold, commands.italic, commands.link]}
-                    //      value={data[field]} onChange={setTextareaValue}/>
-                    <textarea className="default" id={field} onBlur={setInputValue} defaultValue={data[field]}
-                         placeholder={Sefaria._(placeholder)}/>
-                    : <input type='text' id={field} onBlur={setInputValue} defaultValue={data[field]}
-                         placeholder={Sefaria._(placeholder)}/>}
-        </div>;
+                    <label><InterfaceText>{label}</InterfaceText></label>
+                    {obj}
+               </div>;
     }
-    const options_for_form = {
-        "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
-        "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
-        "English Description": {
-            label: "English Description",
-            field: "enDescription",
-            placeholder: "Add a description.",
-            is_textarea: true
-        },
-        "Hebrew Description": {
-            label: "Hebrew Description",
-            field: "heDescription",
-            placeholder: "Add a description.",
-            is_textarea: true
-        },
-        "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
-        "English Short Description": {
-            label: "English Short Description for Table of Contents", field: "enCategoryDescription",
-            placeholder: "Add a short description.", is_textarea: false
-        },
-        "Hebrew Short Description": {
-            label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
-            placeholder: "Add a short description.", is_textarea: false
-        },
-    }
+    
     return <div className="editTextInfo">
         <div className="static">
             <div className="inner">
