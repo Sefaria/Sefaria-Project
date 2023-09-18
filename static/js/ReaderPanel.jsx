@@ -1254,6 +1254,9 @@ class ReaderControls extends Component {
       }
     });
   }
+  openTranslations() {
+    this.props.openConnectionsPanel([this.props.currentRef], null, {"connectionsMode": "Translations"});
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
@@ -1383,12 +1386,11 @@ class ReaderControls extends Component {
           />
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    const openTranslations = this.props.openConnectionsPanel.bind(null, [this.props.currentRef], null, {"connectionsMode": "Translations"});
     const transCallToActionApplies = () => Sefaria.transCallToActionApplies(this.props.currentBook(), this.props.settings.language);
     let banner = (hideHeader || connectionsHeader) ? null : (
         <TextColumnBannerChooser
             setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
-            openTranslations={openTranslations}
+            openTranslations={this.openTranslations}
             transCallToActionApplies={transCallToActionApplies}
         />
     );
