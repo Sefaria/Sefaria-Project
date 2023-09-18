@@ -81,7 +81,7 @@ const TransCallToActionBanner = ({ openTranslations }) => {
         <TextColumnBanner buttons={buttons} onClose={onClose}>
             <InterfaceText>
                 <EnglishText> Want to <span className="bold">change</span> the translation?</EnglishText>
-                <HebrewText> Want to <span className="bold">change</span> the translation?</HebrewText>
+                <HebrewText> מעוניינים בתרגום אחר?</HebrewText>
             </InterfaceText>
         </TextColumnBanner>
     );

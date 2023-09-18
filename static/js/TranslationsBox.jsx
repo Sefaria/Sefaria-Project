@@ -120,7 +120,7 @@ const TranslationsHeader = () => (
     <div className="translationsDesc sans-serif">
       <InterfaceText>
         <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below. Learn more…</EnglishText>
-        <HebrewText>TO DO</HebrewText>
+        <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי. למידע נוסף…</HebrewText>
       </InterfaceText>
     </div>
   </div>
