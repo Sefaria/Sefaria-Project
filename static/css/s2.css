@@ -2219,9 +2219,9 @@ div.interfaceLinks-row a {
     font-family: Roboto;
   }
 .topicImageCaption {
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 15px;
   letter-spacing: 0em;
   color: var(--dark-grey);
   width: 100%;
