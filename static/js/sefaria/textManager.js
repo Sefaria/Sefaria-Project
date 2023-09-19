@@ -70,7 +70,7 @@ function makeUrl(ref, requiredVersions) {
             versions.push(paramsString);
         }
     }
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}`;
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=true`;
     return url;
 }
 
