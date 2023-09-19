@@ -21,7 +21,7 @@ class TextRange extends Component {
   }
 
   componentDidMount() {
-    this.getText().then(this.onTextLoad)
+    this.getText().then(this.onTextLoad);
     this._isMounted = true;
     let data = this.state.data;
     if (data && !this.dataPrefetched) {
@@ -87,16 +87,12 @@ class TextRange extends Component {
     }
   }
 
-  async fetchTextData() {
-    const data = await this.getText();
-    this.setState({ data });
-  }
-
   handleResize() {
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
   }
+
   handleClick(event) {
     if (window.getSelection().type === "Range") {
       // Don't do anything if this click is part of a selection
@@ -113,25 +109,12 @@ class TextRange extends Component {
       this.handleClick(event);
     }
   }
+
   async getText() {
-    let settings = {
-      context: this.props.withContext ? 1 : 0,
-      enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null,
-      // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
-      firstAvailableRef: this.props.basetext ? 1 : 0,
-      translationLanguagePreference: this.props.translationLanguagePreference,
-      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
-    };
-    // let data = Sefaria.getTextFromCache(this.props.sref, settings);
     let data = await getVersions(this.props.sref, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
 
-    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
-      this.textLoading = true;
-      let data = await Sefaria.getText(this.props.sref, settings);
-      this.onTextLoad(data);
-    } else if (!!data && this.props.isCurrentlyVisible) {
-      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    if (!!data && this.props.isCurrentlyVisible) {
+      this._updateCurrVersions(data.translation.versionTitle, data.source.versionTitle);
     }
     return data;
   }
@@ -152,7 +135,7 @@ class TextRange extends Component {
       return;
     }
 
-    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    this._updateCurrVersions(data.translation.versionTitle, data.source.versionTitle);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -169,11 +152,13 @@ class TextRange extends Component {
       }.bind(this));
     }
   }
+
   _updateCurrVersions(enVTitle, heVTitle) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
     if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
     this.props.updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle);
   }
+
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
@@ -197,6 +182,7 @@ class TextRange extends Component {
       }
     }
   }
+
   async prefetchData() {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
@@ -209,29 +195,13 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-      const nextSettings = {
-        context: 1,
-        multiple: this.props.prefetchMultiple,
-        enVersion: this.props.currVersions.en || null,
-        heVersion: this.props.currVersions.he || null,
-        translationLanguagePreference: this.props.translationLanguagePreference,
-        versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
-      };
        const nextTextPromise = getVersions(data.next, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
       //  const nextTextPromise = Sefaria.getText(data.next, nextSettings);
-      nextTextPromise.then(data => {
-        this._prefetchLinksAndNotes(data);
-      });
+        nextTextPromise.then(data => {
+          this._prefetchLinksAndNotes(data);
+        });
      }
      if (data.prev) {
-      const prevSettings = {
-        context: 1,
-        multiple: -this.props.prefetchMultiple,
-        enVersion: this.props.currVersions.en || null,
-        heVersion: this.props.currVersions.he || null,
-        translationLanguagePreference: this.props.translationLanguagePreference,
-        versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
-      };
       const prevTextPromise = getVersions(data.prev, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
       // const prevTextPromise = Sefaria.getText(data.prev, prevSettings);
       prevTextPromise.then(data => {
@@ -326,8 +296,8 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
-    const formatEnAsPoetry = data && data.formatEnAsPoetry
-    const formatHeAsPoetry = data && data.formatHeAsPoetry
+    const formatEnAsPoetry = data && data.translation.formatAsPoetry
+    const formatHeAsPoetry = data && data.source.formatAsPoetry
 
     const showNumberLabel =  data && data.categories &&
     data.categories[0] !== "Liturgy" &&
