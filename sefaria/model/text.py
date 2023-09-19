@@ -1783,6 +1783,7 @@ class TextRange:
         part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
         """
         #TODO can we get the specific text directly from mongo?
+        text = copy.deepcopy(text)
         for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
             subtext = reduce(lambda x, _: x[-1], range(s), text)
             del subtext[section:]

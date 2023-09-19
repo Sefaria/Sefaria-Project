@@ -34,7 +34,7 @@ class TextManager:
         for attr in ['chapter', 'title', 'language']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle, True)
+        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
@@ -42,6 +42,7 @@ class TextManager:
             relevant_versions.remove(lambda v: v.actualLanguage != version.actualLanguage)
         else:
             relevant_versions = [version]
+        print(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments, relevant_versions)
         text_range.versions = relevant_versions
         version_details['text'] = text_range.text
 
@@ -72,7 +73,8 @@ class TextManager:
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
-            if version not in self.return_obj['versions']: #do not return the same version even if included in two different version params
+            if all(version.actualLanguage != v['actualLanguage'] and version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
+                #do not return the same version even if included in two different version params
                 self._append_version(version)
         if not versions:
             self.return_obj['missings'].append((lang, vtitle))
