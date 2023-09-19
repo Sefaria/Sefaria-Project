@@ -34,7 +34,7 @@ class TextManager:
         for attr in ['chapter', 'title', 'language']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle, True)
+        text_range = TextRange(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
@@ -42,6 +42,7 @@ class TextManager:
             relevant_versions.remove(lambda v: v.actualLanguage != version.actualLanguage)
         else:
             relevant_versions = [version]
+        print(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments, relevant_versions)
         text_range.versions = relevant_versions
         version_details['text'] = text_range.text
 
