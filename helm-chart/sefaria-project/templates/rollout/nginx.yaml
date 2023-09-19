@@ -97,7 +97,10 @@ spec:
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
           - name: STRAPI_LOCATION
-            value: "{{ .Values.localSettings.STRAPI_LOCATION }}"
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                key: STRAPI_LOCATION
           {{- if .Values.linker.enabled }}
           - name: LINKER_HOST
             value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
