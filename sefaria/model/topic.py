@@ -536,7 +536,8 @@ class AuthorTopic(PersonTopic):
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
         Aggregates author's works by category when possible and
-        returns list of tuples. Each tuple is of shape (url, {"en", "he"}) corresponding to an index or category of indexes of this author's works.
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        corresponding to an index or category of indexes of this author's works.
         """
         from .schema import Term
         from .text import Index
@@ -549,8 +550,7 @@ class AuthorTopic(PersonTopic):
             if isinstance(index_or_cat, Index):
                 unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
                                     "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
-                                    "description":{"en": en_desc, "he": he_desc}
-                                    })
+                                    "description":{"en": en_desc, "he": he_desc}})
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -564,8 +564,7 @@ class AuthorTopic(PersonTopic):
 
                 unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
                                     "title": {"en": en_text, "he": he_text},
-                                    "description":{"en": en_desc, "he": he_desc}
-                                    })
+                                    "description":{"en": en_desc, "he": he_desc}})
         return(unique_urls)
 
     @staticmethod

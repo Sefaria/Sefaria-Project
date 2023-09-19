@@ -2468,6 +2468,10 @@ input.resourcesLink {
   padding-bottom: 12px;
   border-top: 1px solid #EDEDEC;
 }
+.navBlockAuthorPage {
+  padding-bottom: 12px;
+  width: 50%;
+}
 .navBlock.withColorLine {
   border-top: 4px solid transparent;
 }

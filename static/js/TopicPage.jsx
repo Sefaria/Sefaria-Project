@@ -24,6 +24,7 @@ import {
     SimpleLinkedBlock,
     CategoryHeader,
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 /*
@@ -315,7 +316,6 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  console.log(topicData.indexes)
   return (
     <div>
         <div className="navTitle tight">
@@ -352,13 +352,29 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
           <div className="authorIndexList">
-            {/*{topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}*/}
-            {topicData.indexes.map(({url, title, description}) => <SimpleLinkedBlock key={url} {...title} url={url} classes="authorIndex" />)}
+            {topicData.indexes.map(({url, title, description}) => <AuthorDisplayItem key={url} url={url} enTitle={title.en} heTitle={title.he} enDesc={description.en} heDesc={description.he}/>)}
           </div>
         </div>
        : null}
     </div>
 );}
+
+const AuthorDisplayItem = ({url, enTitle, heTitle, enDesc, heDesc}) => {
+  const classes = classNames({ navBlockTitle: 1 });
+  return (
+    <div className="navBlockAuthorPage" >
+      <a href={url}
+        className   = {classes}
+      >
+        <InterfaceText text={{en: enTitle, he: heTitle}} />
+      </a>
+      <div className="navBlockDescription">
+        <InterfaceText text={{en: enDesc, he: heDesc}} />
+      </div>
+    </div>
+  );
+};
+
 
 const useTabDisplayData = (translationLanguagePreference) => {
   const getTabDisplayData = useCallback(() => [
