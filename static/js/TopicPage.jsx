@@ -831,9 +831,11 @@ const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
         }
       </TopicSideSection>
   ) : null;
+  const tpImgSidebar = topicImageKey in hardcodedTopicImagesMap ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
+      
   return (
     <>
-    {topicImageKey in hardcodedTopicImagesMap && <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/>}
+      {tpImgSidebar}
       { tpSection }
       { propsSection }
     </>
