@@ -3061,6 +3061,7 @@ def topic_page(request, topic, test_version=None):
         "initialMenu": "topics",
         "initialTopic": topic,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
