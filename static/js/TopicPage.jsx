@@ -840,10 +840,10 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
         }
       </TopicSideSection>
   ) : null;
+  const tpSidebarImg = topicImageKey in hardcodedTopicImagesMap && multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
   return (
     <>
-    {/** Raise this up a level, add a ?: for null */}
-    {topicImageKey in hardcodedTopicImagesMap && multiPanel && <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/>}
+      {tpSidebarImg}
       { tpSection }
       { propsSection }
     </>
