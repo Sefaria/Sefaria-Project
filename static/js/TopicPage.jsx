@@ -352,24 +352,21 @@ const TopicHeader = ({ topic, topicData, multiPanel, isCat, setNavTopic, openDis
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
           <div className="authorIndexList">
-            {topicData.indexes.map(({url, title, description}) => <AuthorDisplayItem key={url} url={url} enTitle={title.en} heTitle={title.he} enDesc={description.en} heDesc={description.he}/>)}
+            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
           </div>
         </div>
        : null}
     </div>
 );}
 
-const AuthorDisplayItem = ({url, enTitle, heTitle, enDesc, heDesc}) => {
-  const classes = classNames({ navBlockTitle: 1 });
+const AuthorIndexItem = ({url, title, description}) => {
   return (
-    <div className="navBlockAuthorPage" >
-      <a href={url}
-        className   = {classes}
-      >
-        <InterfaceText text={{en: enTitle, he: heTitle}} />
+      <div className="authorIndex" >
+      <a href={url} className="navBlockTitle">
+        <InterfaceText text={title} />
       </a>
       <div className="navBlockDescription">
-        <InterfaceText text={{en: enDesc, he: heDesc}} />
+        <InterfaceText text={description} />
       </div>
     </div>
   );
