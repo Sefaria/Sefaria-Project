@@ -375,12 +375,12 @@ secrets:
   elasticUser:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
-    ref:
+    ref: elastic-user
     # data:
   elasticAdmin:
     # If you're using a reference to an existing secret then the data: section
     # should be commented out and vice-versa.
-    ref:
+    ref: elastic-admin
     # data:
 
 
