@@ -24,10 +24,7 @@ def test_make_text_index_document():
 
     ref_data = RefData().load({"ref": tref})
     pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
-    content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-    content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
-    content_wo_cant = re.sub(r'\([^)]+\)', '', content_wo_cant)
-
+    content = TI.modify_text_in_doc(content)
     assert doc == {
         "ref": tref,
         "heRef": he_ref,
@@ -40,8 +37,8 @@ def test_make_text_index_document():
         "path": "/".join(categories + [index.title]),
         "pagesheetrank": pagesheetrank,
         "comp_date": comp_date,
-        "exact": content_wo_cant,
-        "naive_lemmatizer": content_wo_cant,
+        "exact": content,
+        "naive_lemmatizer": content,
         'hebrew_version_title': heVtitle,
 
     }

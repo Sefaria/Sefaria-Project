@@ -1,20 +1,28 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, ToggleSet} from "./Misc";
+import {InterfaceText, requestWithCallBack, TitleVariants, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 
 
 const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
-    const [data, setData] = useState({...origData, catSlug: origData.origCategorySlug || "",
-                                enTitle: origData.origEn, heTitle: origData.origHe || "", heDescription: origData?.origDesc?.he || "",
-                                enDescription: origData?.origDesc?.en || "",
-                                enCategoryDescription: origData?.origCategoryDesc?.en,
-                                heCategoryDescription: origData?.origCategoryDesc?.he,
+    const [data, setData] = useState({...origData, catSlug: origData.origCatSlug || "",
+                                enTitle: origData.origEnTitle, heTitle: origData.origHeTitle || "",
+                                heDescription: origData?.origHeDescription || "",
+                                enDescription: origData?.origEnDescription || "",
+                                enCategoryDescription: origData?.origEnCategoryDescription || "",
+                                heCategoryDescription: origData?.origHeCategoryDescription || "",
+                                enAltTitles: origData?.origEnAltTitles || [],
+                                heAltTitles: origData?.origHeAltTitles || [],
+                                birthPlace: origData.origBirthPlace || "", heBirthPlace: origData.origHeBirthPlace || "",
+                                birthYear: origData.origBirthYear || "", heDeathPlace: origData.origHeDeathPlace || "",
+                                deathYear: origData.origDeathYear || "", era: origData.origEra || "",
+                                deathPlace: origData.origDeathPlace || ""
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
+    const [isAuthor, setIsAuthor] = useState(origData.origCatSlug === 'authors');
     const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
                                                                   // isCategory determines whether user can edit categoryDescriptions of topic
     const subtopics = Sefaria.topicTocPage(origData.origSlug);
@@ -33,7 +41,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
       //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
       const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
       setIsCategory(newIsCategory);
-      setData(data);
+      setIsChanged(true);
+      setIsAuthor(data.catSlug === 'authors');
+      setData({...data});
     }
 
     let slugsToTitles = Sefaria.slugsToTitles();
@@ -42,9 +52,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
-    const [catMenu, setCatMenu] =   useState(<div className="section">
+    const catMenu =   <div className="section">
                                             <label><InterfaceText>Parent Topic</InterfaceText></label>
-                                            <div id="categoryChooserMenu">
+                                            <div className="categoryChooserMenu">
                                                 <select key="topicCats" id="topicCats" onChange={handleCatChange}>
                                                     {Object.keys(slugsToTitles).map(function (tempSlug, i) {
                                                         const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
@@ -52,11 +62,12 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                                     })}
                                                 </select>
                                             </div>
-                                    </div>);
+                                    </div>;
 
     const updateData = function(newData) {
         setIsChanged(true);
         setData(newData);
+        console.log(newData);
     }
     const validate = async function () {
         if (!isChanged) {
@@ -81,51 +92,81 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
          const postCategoryData = {topics: sortedSubtopics};
          requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
     }
+
+    const prepData = () => {
+        // always add category, title, heTitle, altTitles
+        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}};
+        postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
+        postData.altTitles.he = data.heAltTitles.map(x => x.name);
+
+        // add descriptions if they changed
+        const origDescription = {en: origData?.origEnDescription || "", he: origData?.origHeDescription || ""};
+        const origCategoryDescription = {en: origData?.origEnCategoryDescription || "", he: origData?.origHeCategoryDescription || ""};
+        const descriptionChanged = data.enDescription !== origDescription.en || data.heDescription !== origDescription.he;
+        if (descriptionChanged) {
+            postData.description = {en: data.enDescription, he: data.heDescription};
+        }
+        const categoryDescriptionChanged = data.enCategoryDescription !== origCategoryDescription.en || data.heCategoryDescription !== origCategoryDescription.he
+        if (isCategory && categoryDescriptionChanged) {
+            postData.categoryDescription = {en: data.enCategoryDescription, he: data.heCategoryDescription};
+        }
+
+        // add author keys if they changed
+        if (isAuthor) {
+            let authorKeys = ['era', 'birthPlace', 'heBirthPlace', 'birthYear', 'deathYear', 'deathPlace', 'heDeathPlace'];
+            authorKeys.map(k => {
+                const firstLetter = k.charAt(0).toUpperCase();
+                const origKey = `orig${firstLetter}${k.slice(1)}`;
+                const origVal = origData[origKey] || "";
+                const newVal = data[k] || "";
+                if (origVal !== newVal) {
+                    postData[k] = data[k];
+                }
+            })
+        }
+
+        if (!isNew) {
+          postData = {...postData, origSlug: data.origSlug, origCategory: data.origCatSlug};
+        }
+
+        return postData;
+    }
+
     const saveTopic = function () {
         toggle();
-        let url = "";
-        let postData = {...data, "description": {"en": data.enDescription, "he": data.heDescription}, "title": data.enTitle,
-            "heTitle": data.heTitle};
-        if (isCategory) {
-            postData = {...postData, "catDescription": {"en": data.enCategoryDescription, "he": data.heCategoryDescription}};
-        }
-        postData.category = data.catSlug;
-
-        if (isNew) {
-          url = "/api/topic/new";
-        }
-        else {
-          url = `/api/topics/${data.origSlug}`;
-          postData = {...postData, origCategory: data.origCategorySlug, origDescription: data.origDesc,
-                    origSlug: data.origSlug};
-          if (isCategory) {
-            postData.origCatDescription = data.origCategoryDesc;
-          }
-        }
-
+        const postData = prepData();
+        let postURL = isNew ? "/api/topic/new" : `/api/topics/${data.origSlug}`;
         const postJSON = JSON.stringify(postData);
-        $.post(url,  {"json": postJSON}, function(result) {
-          if (result.error) {
-            toggle();
-            alert(result.error);
-          } else {
-            const newSlug = result.slug;
-            onCreateSuccess(newSlug);
-          }
-          }).fail( function(xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown.toString());
-          });
+        $.post(postURL, {"json": postJSON}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                const newSlug = result.slug;
+                if (onCreateSuccess) {
+                    onCreateSuccess(newSlug);
+                }
+                else {
+                    window.location.href = `/topics/${newSlug}`;
+                }
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
     }
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-
-    let items = ["Title", "Hebrew Title", "Category Menu", "English Description", "Hebrew Description"];
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");
+    }
+    if (isAuthor) {
+        const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
+        authorItems.forEach(x => items.push(x));
     }
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
@@ -137,5 +178,6 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                             ]
                         } />;
 }
+
 
 export {TopicEditor};

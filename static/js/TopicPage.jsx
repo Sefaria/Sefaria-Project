@@ -390,7 +390,8 @@ const useTabDisplayData = (translationLanguagePreference) => {
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
-  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref, topicTestVersion
+  toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
+  topicTestVersion, onSetTopicSort, topicSort
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic, {with_html: true}) || defaultTopicData);
@@ -504,6 +505,8 @@ const TopicPage = ({
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
                                   renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion)}
+                                  onSetTopicSort={onSetTopicSort}
+                                  topicSort={topicSort}
                                 />
                               );
                             })
@@ -512,21 +515,24 @@ const TopicPage = ({
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 <div className="sideColumn">
-                    { topicData ?
-                    <TopicSideColumn
-                      key={topic}
-                      slug={topic}
-                      links={topicData.links}
-                      clearAndSetTopic={clearAndSetTopic}
-                      setNavTopic={setNavTopic}
-                      parashaData={parashaData}
-                      tref={topicData.ref}
-                      timePeriod={topicData.timePeriod}
-                      properties={topicData.properties} 
-                      topicTitle={topicTitle}
-                      multiPanel={multiPanel} />
-                    : null }
-                    <Promotions adType="sidebar"/>
+                  {topicData ? (
+                    <>
+                      <TopicSideColumn
+                        key={topic}
+                        slug={topic}
+                        links={topicData.links}
+                        clearAndSetTopic={clearAndSetTopic}
+                        setNavTopic={setNavTopic}
+                        parashaData={parashaData}
+                        tref={topicData.ref}
+                        timePeriod={topicData.timePeriod}
+                        properties={topicData.properties}
+                        topicTitle={topicTitle}
+                        multiPanel={multiPanel}
+                      />
+                      {!topicData.isLoading && <Promotions/>}
+                    </>
+                  ) : null}
                 </div>
             </div>
             <Footer />
@@ -551,7 +557,7 @@ TopicPage.propTypes = {
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
-  scrollableElement, onDisplayedDataChange, initialRenderSize
+  scrollableElement, onDisplayedDataChange, initialRenderSize, onSetTopicSort, topicSort
 }) => {
   return (
     <div className="topicTabContents">
@@ -569,6 +575,8 @@ const TopicPageTab = ({
             sortOptions={sortOptions}
             onDisplayedDataChange={onDisplayedDataChange}
             initialRenderSize={initialRenderSize}
+            onSetSort={onSetTopicSort}
+            externalSortOption={topicSort}
             data={data}
           />
         </div> : <LoadingMessage />
