@@ -1047,6 +1047,15 @@ Sefaria = extend(Sefaria, {
       }
       return ref ? this.getRefFromCache(ref) : null;
   },
+  openTransBannerApplies: (book, textLanguage) => {
+      /**
+       * Should we display OpenTransBanner?
+       * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
+       */
+      const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
+      const currCorpus = Sefaria.index(book)?.corpus;
+      return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
+  },
   _lookups: {},
 
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
