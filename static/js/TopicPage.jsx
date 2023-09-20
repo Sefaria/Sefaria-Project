@@ -523,7 +523,8 @@ const TopicPage = ({
                       tref={topicData.ref}
                       timePeriod={topicData.timePeriod}
                       properties={topicData.properties} 
-                      topicTitle={topicTitle}/>
+                      topicTitle={topicTitle}
+                      multiPanel={multiPanel} />
                     : null }
                     <Promotions adType="sidebar"/>
                 </div>
@@ -592,7 +593,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -612,7 +613,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle}/>;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel}/>;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -698,8 +699,8 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 }
 
 const TopicImage = ({photoLink, enCaption, heCaption }) => {
-
-  return(
+  
+  return (
     <div class="topicImageWrapper">
      {/** Todo Break out the classes. add CSS for linebreak via parent */}
         <img class="topicImagePicture" src={photoLink}/>
@@ -766,7 +767,7 @@ const propKeys = [
 ];
 
 
-const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
+const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) => {
   const topicImageKey = topicTitle.en;
   const hardcodedTopicImagesMap = {
     'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
@@ -833,7 +834,8 @@ const TopicMetaData = ({ topicTitle, timePeriod, properties={} }) => {
   ) : null;
   return (
     <>
-    {topicImageKey in hardcodedTopicImagesMap && <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/>}
+    {/** Raise this up a level, add a ?: for null */}
+    {topicImageKey in hardcodedTopicImagesMap && multiPanel && <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/>}
       { tpSection }
       { propsSection }
     </>
