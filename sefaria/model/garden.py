@@ -444,18 +444,18 @@ class GardenStop(abst.AbstractMongoRecord):
             if getattr(i, "compDate", None):
                 errorMargin = int(getattr(i, "errorMargin", 0))
                 self.startIsApprox = self.endIsApprox = errorMargin > 0
-
-                try:
-                    year = int(getattr(i, "compDate"))
-                    self.start = year - errorMargin
-                    self.end = year + errorMargin
-                except ValueError as e:
-                    years = getattr(i, "compDate").split("-")
-                    if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                        years[0] = -int(years[1])
-                        years[1] = int(years[2])
-                    self.start = int(years[0]) - errorMargin
-                    self.end = int(years[1]) + errorMargin
+                self.start = self.end = 3000
+                # try:
+                #     year = int(getattr(i, "compDate"))
+                #     self.start = year - errorMargin
+                #     self.end = year + errorMargin
+                # except ValueError as e:
+                #     years = getattr(i, "compDate").split("-")
+                #     if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                #         years[0] = -int(years[1])
+                #         years[1] = int(years[2])
+                #     self.start = int(years[0]) - errorMargin
+                #     self.end = int(years[1]) + errorMargin
 
             elif author and author.mostAccurateTimePeriod():
                 tp = author.mostAccurateTimePeriod()

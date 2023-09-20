@@ -459,21 +459,21 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if getattr(self, "compDate", None):
             errorMargin = int(getattr(self, "errorMargin", 0))
             self.startIsApprox = self.endIsApprox = errorMargin > 0
-
-            try:
-                year = int(getattr(self, "compDate"))
-                start = year - errorMargin
-                end = year + errorMargin
-            except ValueError as e:
-                years = getattr(self, "compDate").split("-")
-                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                    years[0] = -int(years[1])
-                    years[1] = int(years[2])
-                try:
-                    start = int(years[0]) - errorMargin
-                    end = int(years[1]) + errorMargin
-                except UnicodeEncodeError as e:
-                    pass
+            start = end = 3000
+            # try:
+            #     year = int(getattr(self, "compDate"))
+            #     start = year - errorMargin
+            #     end = year + errorMargin
+            # except ValueError as e:
+            #     years = getattr(self, "compDate").split("-")
+            #     if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+            #         years[0] = -int(years[1])
+            #         years[1] = int(years[2])
+            #     try:
+            #         start = int(years[0]) - errorMargin
+            #         end = int(years[1]) + errorMargin
+            #     except UnicodeEncodeError as e:
+            #         pass
 
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
@@ -510,21 +510,21 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         except ValueError:
             error_margin = 0
         startIsApprox = endIsApprox = error_margin > 0
-
-        try:
-            year = int(getattr(self, date_field))
-            start = year - error_margin
-            end = year + error_margin
-        except ValueError as e:
-            try:
-                years = getattr(self, date_field).split("-")
-                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                    years[0] = -int(years[1])
-                    years[1] = int(years[2])
-                start = int(years[0]) - error_margin
-                end = int(years[1]) + error_margin
-            except ValueError as e:
-                return None
+        start = end = 3000
+        # try:
+        #     year = int(getattr(self, date_field))
+        #     start = year - error_margin
+        #     end = year + error_margin
+        # except ValueError as e:
+        #     try:
+        #         years = getattr(self, date_field).split("-")
+        #         if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+        #             years[0] = -int(years[1])
+        #             years[1] = int(years[2])
+        #         start = int(years[0]) - error_margin
+        #         end = int(years[1]) + error_margin
+        #     except ValueError as e:
+        #         return None
         return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
