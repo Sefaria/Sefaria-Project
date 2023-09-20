@@ -375,6 +375,7 @@ class TextRange extends Component {
             formatEnAsPoetry={formatEnAsPoetry}
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.placeSegmentNumbers}
+            navigatePanel={this.props.navigatePanel}
           />
         </span>
       );
@@ -468,6 +469,7 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
+  navigatePanel:          PropTypes.func
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
@@ -492,21 +494,40 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
+  handleRefLinkClick(refLink, event) {
+    event.preventDefault();
+    let newRef = Sefaria.humanRef(refLink.attr("data-ref"));
+    const newBook = Sefaria.parseRef(newRef)?.book;
+    const currBook = Sefaria.parseRef(this.props.sref)?.book;
+    const isScrollLink = refLink.attr('data-scroll-link');
+
+    // two options: in most cases, we open a new panel, but if isScrollLink is 'true', we should navigate in the same panel to the new location
+    const canNavigatePanel = newBook === currBook && !!this.props.navigatePanel; // navigatePanel only works if we're scrolling to a location in the same book
+    if (isScrollLink === 'true' && canNavigatePanel) {
+      this.props.navigatePanel(newRef);
+    }
+    else {
+      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
+      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
+      let currVersions = {"en": ven, "he": vhe};
+      this.props.onCitationClick(newRef, this.props.sref, true, currVersions);
+    }
+
+    event.stopPropagation();
+    Sefaria.track.event("Reader", "Citation Link Click", ref);
+  }
+  isRefLink (x) {
+    // 'x' is a jquery element
+    return x?.attr('data-ref') && x?.prop('tagName') === 'A';
+  }
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
-    const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
+    const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
     const footnoteLink = $(event.target).is("sup") || $(event.target).parents("sup").size();
     if (refLink) {
       //Click of citation
-      event.preventDefault();
-      let ref = Sefaria.humanRef(refLink.attr("data-ref"));
-      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
-      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
-      let currVersions = {"en": ven, "he": vhe};
-      this.props.onCitationClick(ref, this.props.sref, true, currVersions);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
+      this.handleRefLinkClick(refLink, event);
     } else if (footnoteLink) {
       this.props.onFootnoteClick(event);
       event.stopPropagation();
@@ -663,6 +684,7 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
+  navigatePanel: PropTypes.func
 };
 
 export default TextRange;

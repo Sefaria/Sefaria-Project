@@ -10,7 +10,7 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
   annotations:
     helm.sh/hook: post-delete
-    helm.sh/hook-delete-policy: hook-succeeded
+    helm.sh/hook-delete-policy: hook-succeeded, hook-failed
     helm.sh/hook-weight: "10"
 spec:
   template:
@@ -21,9 +21,12 @@ spec:
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
+              optional: true
           - secretRef:
               name: local-settings-secrets-{{ .Values.deployEnv }}
               optional: true

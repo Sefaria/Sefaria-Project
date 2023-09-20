@@ -9,6 +9,7 @@ spec:
     - name: revision
     - name: deployment
     - name: version
+    - name: chartVersion
   metrics:
     - name: healthcheck-ready
       provider:
@@ -28,7 +29,7 @@ spec:
                         -X
                         POST
                         --data-urlencode
-                        'payload={"channel": "#'$CHANNEL'", "username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION'", "icon_emoji": ":globe_with_meridians:"}'
+                        'payload={"channel": "#'$CHANNEL'", "username": "Deployment Status", "text": "'$ENV' revision '$REVISION' has deployed version '$VERSION' using chart '$CHART_VERSION'", "icon_emoji": ":globe_with_meridians:"}'
                         $SLACK_URL 
                         ||
                         /bin/true
@@ -39,6 +40,8 @@ spec:
                         value: "{{`{{args.deployment}}`}}" # {{`...`}}
                       - name: VERSION
                         value: "{{`{{args.version}}`}}" # {{`...`}}
+                      - name: CHART_VERSION
+                        value: "{{`{{args.chartVersion}}`}}"
                       - name: SLACK_URL
                         valueFrom:
                           secretKeyRef:
