@@ -26,7 +26,7 @@ const Strings = {
     // Texts Page
     "Learn More": "མུ་མཐུད་གཟིགས་",
     "Learning Schedules": "לוח לימוד יומי",
-    "Teach with Sefaria": "מלמדים עם ספריא",
+    "Teach with indrajala": "מלמדים עם ספריא",
     "Visualizations": "תרשימים גרפיים",
     "Torah Tab": "תורה טאב (תוסף)",
     "Get the Mobile App": "הורידו את היישומון",
