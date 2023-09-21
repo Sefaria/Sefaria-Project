@@ -2,7 +2,7 @@ name: Run Integration Tests
 on:
   pull_request:
     branches:
-      - master
+      - playwright_integration
     types:
       - closed
 
