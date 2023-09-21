@@ -614,6 +614,17 @@ class TextIndexer(object):
             return content
 
     @classmethod
+    def modify_text_in_doc(cls, content):
+        content = AbstractTextRecord.strip_imgs(content)
+        content = cls.remove_footnotes(content)
+        content = strip_cantillation(content, strip_vowels=False).strip()
+        content = re.sub(r'<[^>]+>', ' ', content)     # replace HTML tags with space so that words dont get smushed together
+        content = re.sub(r'\([^)]+\)', ' ', content)   # remove all parens
+        while "  " in content:                                 # make sure there are not many spaces in a row
+            content = content.replace("  ", " ")
+        return content
+        
+    @classmethod
     def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
         """
         Create a document for indexing from the text specified by ref/version/lang
@@ -621,15 +632,8 @@ class TextIndexer(object):
         # Don't bother indexing if there's no content
         if not content:
             return False
-        content = AbstractTextRecord.strip_imgs(content)
-        content = cls.remove_footnotes(content)
-        content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
-        content_wo_cant = re.sub(r'\([^)]+\)', ' ', content_wo_cant)   # remove all parens
-        while "  " in content_wo_cant:                                 # make sure there are not many spaces in a row
-            content_wo_cant = content_wo_cant.replace("  ", " ")
-
-        if len(content_wo_cant) == 0:
+        content = cls.modify_text_in_doc(content)
+        if len(content) == 0:
             return False
 
         oref = Ref(tref)
@@ -657,9 +661,9 @@ class TextIndexer(object):
             "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
-            #"hebmorph_semi_exact": content_wo_cant,
-            "exact": content_wo_cant,
-            "naive_lemmatizer": content_wo_cant,
+            #"hebmorph_semi_exact": content,
+            "exact": content,
+            "naive_lemmatizer": content,
             'hebrew_version_title': hebrew_version_title,
         }
 
