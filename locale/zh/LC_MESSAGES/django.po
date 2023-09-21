@@ -1,0 +1,2645 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-21 05:57-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: env/lib/python3.8/site-packages/_pytest/config/argparsing.py:442
+#, python-format
+msgid "ambiguous option: %(option)s could match %(matches)s"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/captcha/fields.py:26
+#: env/lib/python3.8/site-packages/captcha/fields.py:27
+msgid "Error verifying reCAPTCHA, please try again."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/contrib/messages/apps.py:7
+msgid "Messages"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/contrib/sitemaps/apps.py:7
+msgid "Site Maps"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/contrib/staticfiles/apps.py:7
+msgid "Static Files"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/contrib/syndication/apps.py:7
+msgid "Syndication"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/paginator.py:43
+msgid "That page number is not an integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/paginator.py:45
+msgid "That page number is less than 1"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/paginator.py:50
+msgid "That page contains no results"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:34
+msgid "Enter a valid value."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:107
+#: env/lib/python3.8/site-packages/django/forms/fields.py:671
+msgid "Enter a valid URL."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:160
+msgid "Enter a valid integer."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:171
+msgid "Enter a valid email address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:245
+msgid ""
+"Enter a valid 'slug' consisting of letters, numbers, underscores or hyphens."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:252
+msgid ""
+"Enter a valid 'slug' consisting of Unicode letters, numbers, underscores, or "
+"hyphens."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:257
+#: env/lib/python3.8/site-packages/django/core/validators.py:277
+msgid "Enter a valid IPv4 address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:262
+#: env/lib/python3.8/site-packages/django/core/validators.py:278
+msgid "Enter a valid IPv6 address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:272
+#: env/lib/python3.8/site-packages/django/core/validators.py:276
+msgid "Enter a valid IPv4 or IPv6 address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:308
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1131
+msgid "Enter only digits separated by commas."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:314
+#, python-format
+msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:345
+#, python-format
+msgid "Ensure this value is less than or equal to %(limit_value)s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:354
+#, python-format
+msgid "Ensure this value is greater than or equal to %(limit_value)s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:364
+#, python-format
+msgid ""
+"Ensure this value has at least %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at least %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:379
+#, python-format
+msgid ""
+"Ensure this value has at most %(limit_value)d character (it has "
+"%(show_value)d)."
+msgid_plural ""
+"Ensure this value has at most %(limit_value)d characters (it has "
+"%(show_value)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:399
+#, python-format
+msgid "Ensure that there are no more than %(max)s digit in total."
+msgid_plural "Ensure that there are no more than %(max)s digits in total."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:404
+#, python-format
+msgid "Ensure that there are no more than %(max)s decimal place."
+msgid_plural "Ensure that there are no more than %(max)s decimal places."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:409
+#, python-format
+msgid ""
+"Ensure that there are no more than %(max)s digit before the decimal point."
+msgid_plural ""
+"Ensure that there are no more than %(max)s digits before the decimal point."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/core/validators.py:463
+#, python-format
+msgid ""
+"File extension '%(extension)s' is not allowed. Allowed extensions are: "
+"'%(allowed_extensions)s'."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/base.py:1209
+#: env/lib/python3.8/site-packages/django/forms/models.py:749
+msgid "and"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/base.py:1211
+#, python-format
+msgid "%(model_name)s with this %(field_labels)s already exists."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:116
+#, python-format
+msgid "Value %(value)r is not a valid choice."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:117
+msgid "This field cannot be null."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:118
+msgid "This field cannot be blank."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:119
+#, python-format
+msgid "%(model_name)s with this %(field_label)s already exists."
+msgstr ""
+
+#. Translators: The 'lookup_type' is one of 'date', 'year' or 'month'.
+#. Eg: "Title must be unique for pub_date year"
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:123
+#, python-format
+msgid ""
+"%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:140
+#, python-format
+msgid "Field of type: %(field_type)s"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:901
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1809
+msgid "Integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:905
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1807
+#, python-format
+msgid "'%(value)s' value must be an integer."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:978
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1878
+msgid "Big (8 byte) integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:990
+#, python-format
+msgid "'%(value)s' value must be either True or False."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:992
+msgid "Boolean (Either True or False)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1058
+#, python-format
+msgid "String (up to %(max_length)s)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1115
+msgid "Comma-separated integers"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1172
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid date format. It must be in YYYY-MM-DD "
+"format."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1174
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1319
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD) but it is an invalid "
+"date."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1177
+msgid "Date (without time)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1317
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in YYYY-MM-DD HH:MM[:ss[."
+"uuuuuu]][TZ] format."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1321
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
+"[TZ]) but it is an invalid date/time."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1325
+msgid "Date (with time)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1475
+#, python-format
+msgid "'%(value)s' value must be a decimal number."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1477
+msgid "Decimal number"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1628
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in [DD] [HH:[MM:]]ss[."
+"uuuuuu] format."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1631
+msgid "Duration"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1683
+msgid "Email address"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1707
+msgid "File path"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1773
+#, python-format
+msgid "'%(value)s' value must be a float."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1775
+msgid "Floating point number"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1893
+msgid "IPv4 address"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:1924
+msgid "IP address"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2006
+#, python-format
+msgid "'%(value)s' value must be either None, True or False."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2008
+msgid "Boolean (Either True, False or None)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2071
+msgid "Positive integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2083
+msgid "Positive small integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2096
+#, python-format
+msgid "Slug (up to %(max_length)s)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2130
+msgid "Small integer"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2137
+msgid "Text"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2163
+#, python-format
+msgid ""
+"'%(value)s' value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
+"format."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2165
+#, python-format
+msgid ""
+"'%(value)s' value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
+"invalid time."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2168
+msgid "Time"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2296
+msgid "URL"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2319
+msgid "Raw binary data"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/__init__.py:2366
+#, python-format
+msgid "'%(value)s' is not a valid UUID."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/files.py:228
+msgid "File"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/files.py:391
+msgid "Image"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:788
+#, python-format
+msgid "%(model)s instance with %(field)s %(value)r does not exist."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:790
+msgid "Foreign Key (type determined by related field)"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:1029
+msgid "One-to-one relationship"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:1104
+#, python-format
+msgid "%(from)s-%(to)s relationship"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:1105
+#, python-format
+msgid "%(from)s-%(to)s relationships"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/db/models/fields/related.py:1147
+msgid "Many-to-many relationship"
+msgstr ""
+
+#. Translators: If found as last label character, these punctuation
+#. characters will prevent the default label_suffix to be appended to the label
+#: env/lib/python3.8/site-packages/django/forms/boundfield.py:181
+msgid ":?.!"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:56
+msgid "This field is required."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:258
+msgid "Enter a whole number."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:303
+#: env/lib/python3.8/site-packages/django/forms/fields.py:340
+msgid "Enter a number."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:418
+#: env/lib/python3.8/site-packages/django/forms/fields.py:1149
+msgid "Enter a valid date."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:442
+#: env/lib/python3.8/site-packages/django/forms/fields.py:1150
+msgid "Enter a valid time."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:464
+msgid "Enter a valid date/time."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:493
+msgid "Enter a valid duration."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:547
+msgid "No file was submitted. Check the encoding type on the form."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:548
+msgid "No file was submitted."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:549
+msgid "The submitted file is empty."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:551
+#, python-format
+msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
+msgid_plural ""
+"Ensure this filename has at most %(max)d characters (it has %(length)d)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:554
+msgid "Please either submit a file or check the clear checkbox, not both."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:619
+msgid ""
+"Upload a valid image. The file you uploaded was either not an image or a "
+"corrupted image."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:776
+#: env/lib/python3.8/site-packages/django/forms/fields.py:872
+#: env/lib/python3.8/site-packages/django/forms/models.py:1265
+#, python-format
+msgid "Select a valid choice. %(value)s is not one of the available choices."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:873
+#: env/lib/python3.8/site-packages/django/forms/fields.py:990
+#: env/lib/python3.8/site-packages/django/forms/models.py:1264
+msgid "Enter a list of values."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:991
+msgid "Enter a complete value."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/fields.py:1208
+msgid "Enter a valid UUID."
+msgstr ""
+
+#. Translators: This is the default suffix added to form field labels
+#: env/lib/python3.8/site-packages/django/forms/forms.py:87
+msgid ":"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/forms.py:213
+#, python-format
+msgid "(Hidden field %(name)s) %(error)s"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:97
+msgid "ManagementForm data is missing or has been tampered with"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:355
+#, python-format
+msgid "Please submit %d or fewer forms."
+msgid_plural "Please submit %d or fewer forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:362
+#, python-format
+msgid "Please submit %d or more forms."
+msgid_plural "Please submit %d or more forms."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:390
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:392
+msgid "Order"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/formsets.py:394
+msgid "Delete"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:744
+#, python-format
+msgid "Please correct the duplicate data for %(field)s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:748
+#, python-format
+msgid "Please correct the duplicate data for %(field)s, which must be unique."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:754
+#, python-format
+msgid ""
+"Please correct the duplicate data for %(field_name)s which must be unique "
+"for the %(lookup)s in %(date_field)s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:763
+msgid "Please correct the duplicate values below."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:1093
+msgid "The inline foreign key did not match the parent instance primary key."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:1154
+msgid "Select a valid choice. That choice is not one of the available choices."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/models.py:1267
+#, python-format
+msgid "\"%(pk)s\" is not a valid value for a primary key."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/utils.py:172
+#, python-format
+msgid ""
+"%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
+"may be ambiguous or it may not exist."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:377
+msgid "Clear"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:378
+msgid "Currently"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:379
+msgid "Change"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:703
+msgid "Unknown"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:704
+msgid "Yes"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/forms/widgets.py:705
+msgid "No"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:851
+msgid "yes,no,maybe"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:880
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:897
+#, python-format
+msgid "%(size)d byte"
+msgid_plural "%(size)d bytes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:899
+#, python-format
+msgid "%s KB"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:901
+#, python-format
+msgid "%s MB"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:903
+#, python-format
+msgid "%s GB"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:905
+#, python-format
+msgid "%s TB"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/template/defaultfilters.py:907
+#, python-format
+msgid "%s PB"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:66
+msgid "p.m."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:67
+msgid "a.m."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:72
+msgid "PM"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:73
+msgid "AM"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:158
+msgid "midnight"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dateformat.py:160
+msgid "noon"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:6
+msgid "Monday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:6
+msgid "Tuesday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:6
+msgid "Wednesday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:6
+msgid "Thursday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:6
+msgid "Friday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:7
+msgid "Saturday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:7
+msgid "Sunday"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Mon"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Tue"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Wed"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Thu"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:10
+msgid "Fri"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:11
+msgid "Sat"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:11
+msgid "Sun"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "January"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "February"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "March"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "April"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "May"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:18
+msgid "June"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "July"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "August"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "September"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "October"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:19
+msgid "November"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:20
+msgid "December"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "jan"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "feb"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "mar"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "apr"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "may"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:23
+msgid "jun"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "jul"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "aug"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "sep"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "oct"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "nov"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:24
+msgid "dec"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:31
+msgctxt "abbrev. month"
+msgid "Jan."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:32
+msgctxt "abbrev. month"
+msgid "Feb."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:33
+msgctxt "abbrev. month"
+msgid "March"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:34
+msgctxt "abbrev. month"
+msgid "April"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:35
+msgctxt "abbrev. month"
+msgid "May"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:36
+msgctxt "abbrev. month"
+msgid "June"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:37
+msgctxt "abbrev. month"
+msgid "July"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:38
+msgctxt "abbrev. month"
+msgid "Aug."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:39
+msgctxt "abbrev. month"
+msgid "Sept."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:40
+msgctxt "abbrev. month"
+msgid "Oct."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:41
+msgctxt "abbrev. month"
+msgid "Nov."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:42
+msgctxt "abbrev. month"
+msgid "Dec."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:45
+msgctxt "alt. month"
+msgid "January"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:46
+msgctxt "alt. month"
+msgid "February"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:47
+msgctxt "alt. month"
+msgid "March"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:48
+msgctxt "alt. month"
+msgid "April"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:49
+msgctxt "alt. month"
+msgid "May"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:50
+msgctxt "alt. month"
+msgid "June"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:51
+msgctxt "alt. month"
+msgid "July"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:52
+msgctxt "alt. month"
+msgid "August"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:53
+msgctxt "alt. month"
+msgid "September"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:54
+msgctxt "alt. month"
+msgid "October"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:55
+msgctxt "alt. month"
+msgid "November"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/dates.py:56
+msgctxt "alt. month"
+msgid "December"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/ipv6.py:12
+msgid "This is not a valid IPv6 address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/text.py:81
+#, python-format
+msgctxt "String to return when truncating text"
+msgid "%(truncated_text)s..."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/text.py:251
+msgid "or"
+msgstr ""
+
+#. Translators: This string is used as a separator between list elements
+#: env/lib/python3.8/site-packages/django/utils/text.py:270
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:71
+msgid ", "
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:11
+#, python-format
+msgid "%d year"
+msgid_plural "%d years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:12
+#, python-format
+msgid "%d month"
+msgid_plural "%d months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:13
+#, python-format
+msgid "%d week"
+msgid_plural "%d weeks"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:14
+#, python-format
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:15
+#, python-format
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:16
+#, python-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/django/utils/timesince.py:60
+msgid "0 minutes"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:109
+msgid "Forbidden"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:110
+msgid "CSRF verification failed. Request aborted."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:114
+msgid ""
+"You are seeing this message because this HTTPS site requires a 'Referer "
+"header' to be sent by your Web browser, but none was sent. This header is "
+"required for security reasons, to ensure that your browser is not being "
+"hijacked by third parties."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:119
+msgid ""
+"If you have configured your browser to disable 'Referer' headers, please re-"
+"enable them, at least for this site, or for HTTPS connections, or for 'same-"
+"origin' requests."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:124
+msgid ""
+"You are seeing this message because this site requires a CSRF cookie when "
+"submitting forms. This cookie is required for security reasons, to ensure "
+"that your browser is not being hijacked by third parties."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:129
+msgid ""
+"If you have configured your browser to disable cookies, please re-enable "
+"them, at least for this site, or for 'same-origin' requests."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/csrf.py:134
+msgid "More information is available with DEBUG=True."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/debug.py:520
+msgid "Welcome to Django"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/debug.py:521
+msgid "It worked!"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/debug.py:522
+msgid "Congratulations on your first Django-powered page."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/debug.py:524
+msgid ""
+"Next, start your first app by running <code>python manage.py startapp "
+"[app_label]</code>."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/debug.py:527
+msgid ""
+"You're seeing this message because you have <code>DEBUG = True</code> in "
+"your Django settings file and you haven't configured any URLs. Get to work!"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:48
+msgid "No year specified"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:72
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:132
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:249
+msgid "Date out of range"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:107
+msgid "No month specified"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:169
+msgid "No day specified"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:225
+msgid "No week specified"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:387
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:415
+#, python-format
+msgid "No %(verbose_name_plural)s available"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:669
+#, python-format
+msgid ""
+"Future %(verbose_name_plural)s not available because %(class_name)s."
+"allow_future is False."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/dates.py:703
+#, python-format
+msgid "Invalid date string '%(datestr)s' given format '%(format)s'"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/detail.py:55
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/list.py:77
+msgid "Page is not 'last', nor can it be converted to an int."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/list.py:82
+#, python-format
+msgid "Invalid page (%(page_number)s): %(message)s"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/generic/list.py:172
+#, python-format
+msgid "Empty list and '%(class_name)s.allow_empty' is False."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/static.py:44
+msgid "Directory indexes are not allowed here."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/static.py:46
+#, python-format
+msgid "\"%(path)s\" does not exist"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/django/views/static.py:86
+#, python-format
+msgid "Index of %(directory)s"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/admin.py:23
+msgid "Personal info"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/admin.py:24
+msgid "Permissions"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/admin.py:25
+msgid "Important dates"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/admin.py:26
+msgid "Groups"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:10
+msgid "Please enter a correct email and password. "
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:11
+msgid "You do not have permission to access the admin."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:12
+msgid "This account is inactive."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:19
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:60
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:92
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:120
+msgid "Email"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/forms.py:106
+#: sefaria/forms.py:74
+msgid "A user with that email already exists."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/management/commands/createsuperuser.py:26
+msgid "Enter a valid e-mail address."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/templates/email_usernames/login.html:15
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] ""
+msgstr[1] ""
+
+#: env/lib/python3.8/site-packages/emailusernames/templates/email_usernames/login.html:31
+msgid "Email:"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/templates/email_usernames/login.html:35
+msgid "Password:"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/templates/email_usernames/login.html:42
+msgid "Forgotten your password or username?"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/emailusernames/templates/email_usernames/login.html:46
+msgid "Log in"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:470
+#, python-format
+msgid "Content purported to be compressed with %s but failed to decompress."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:656
+#, python-format
+msgid "Unsupported value for qop: %s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:661
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:755
+#, python-format
+msgid "Unsupported value for algorithm: %s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:750
+msgid "The challenge doesn't contain a server nonce, or this one is empty."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:761
+#, python-format
+msgid "Unsupported value for pw-algorithm: %s."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/httplib2/__init__.py:1687
+msgid "Redirected but the response is missing a Location: header."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/ipware/apps.py:10
+msgid "ipware app"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:75
+msgid "Authorization header must contain two space-delimited values"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:96
+msgid "Given token not valid for any token type"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:107
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:129
+msgid "Token contained no recognizable user identification"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:112
+msgid "User not found"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/authentication.py:115
+msgid "User is inactive"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/backends.py:23
+msgid "Unrecognized algorithm type '{}'"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/backends.py:50
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/exceptions.py:40
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:48
+msgid "Token is invalid or expired"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/serializers.py:47
+msgid "No active account found with the given credentials"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/settings.py:55
+msgid ""
+"The '{}' setting has been removed. Please refer to '{}' for available "
+"settings."
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:73
+msgid "jti"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:78
+msgid "user"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:83
+msgid "created at"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/token_blacklist/admin.py:88
+msgid "expires at"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/token_blacklist/apps.py:9
+msgid "Token Blacklist"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:34
+msgid "Cannot create token with no type or lifetime"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:102
+msgid "Token has no id"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:113
+msgid "Token has no type"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:116
+msgid "Token has wrong type"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:153
+msgid "Token has no '{}' claim"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:157
+msgid "Token '{}' claim has expired"
+msgstr ""
+
+#: env/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py:196
+msgid "Token is blacklisted"
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:221 sefaria/settings.py:22
+msgid "English"
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:222 sefaria/settings.py:23
+msgid "Hebrew"
+msgstr ""
+
+#: reader/templatetags/sefaria_tags.py:223
+msgid "Bilingual"
+msgstr ""
+
+#: reader/views.py:646
+#, python-format
+msgid "Read the text of %(book)s online with commentaries and connections."
+msgstr ""
+
+#: reader/views.py:665
+msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:670 reader/views.py:3038 templates/person.html:6
+#: templates/person.html:8 templates/registration/delete_user_account.html:4
+#: templates/registration/password_reset_complete.html:3
+#: templates/registration/password_reset_confirm.html:4
+#: templates/registration/password_reset_done.html:3
+#: templates/registration/password_reset_form.html:4
+#: templates/registration/register.html:4 templates/sheets.html:7
+#: templates/static/home.html:18 templates/static/home.html:32
+#: templates/static/linker.html:4 templates/static/newsletter.html:4
+#: templates/static/privacy-policy.html:4 templates/static/terms.html:4
+#: templates/static/visualizations.html:4
+msgid "Sefaria"
+msgstr ""
+
+#: reader/views.py:672
+msgid "A source sheet created with Sefaria's Source Sheet Builder"
+msgstr ""
+
+#: reader/views.py:709
+msgid "Recently Viewed"
+msgstr ""
+
+#: reader/views.py:710
+msgid "Texts that you've recently viewed on Sefaria."
+msgstr ""
+
+#: reader/views.py:719
+#, python-format
+msgid "Read %(categories)s texts online with commentaries and connections."
+msgstr ""
+
+#: reader/views.py:720
+msgid " | Sefaria"
+msgstr ""
+
+#: reader/views.py:753 reader/views.py:3074
+msgid ""
+"Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish "
+"sources."
+msgstr ""
+
+#: reader/views.py:754 reader/views.py:3075
+#, python-format
+msgid ""
+"Jewish texts and source sheets about %(topic)s from Torah, Talmud and other "
+"sources in Sefaria's library."
+msgstr ""
+
+#: reader/views.py:771
+msgid "Explore Jewish Texts by Topic"
+msgstr ""
+
+#: reader/views.py:772
+msgid ""
+"Explore Jewish texts related to traditional and contemporary topics, coming "
+"from Torah, Talmud, and more."
+msgstr ""
+
+#: reader/views.py:848
+msgid "Sefaria Search"
+msgstr ""
+
+#: reader/views.py:849
+msgid "Search 3,000 years of Jewish texts in Hebrew and English translation."
+msgstr ""
+
+#: reader/views.py:873 reader/views.py:934
+msgid "Sefaria Collections"
+msgstr ""
+
+#: reader/views.py:1032 templates/static/aramaic-translation-contest.html:4
+#: templates/static/home.html:5
+msgid "Indrajala: a Living Library of Buddhist Texts Online"
+msgstr ""
+
+#: reader/views.py:1033 templates/static/home.html:7
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan, English and Chinese"
+msgstr ""
+
+#: reader/views.py:1038
+msgid "Learning Schedules"
+msgstr ""
+
+#: reader/views.py:1039
+msgid ""
+"Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."
+msgstr ""
+
+#: reader/views.py:1045
+msgid "My Saved Content"
+msgstr ""
+
+#: reader/views.py:1046
+msgid "See your saved content on Sefaria"
+msgstr ""
+
+#: reader/views.py:1059
+msgid "My User History"
+msgstr ""
+
+#: reader/views.py:1060
+msgid "See your user history on Sefaria"
+msgstr ""
+
+#: reader/views.py:1065
+msgid "New Additions to the Sefaria Library"
+msgstr ""
+
+#: reader/views.py:1066
+msgid ""
+"See texts, translations and connections that have been recently added to "
+"Sefaria."
+msgstr ""
+
+#: reader/views.py:1072
+msgid "User Stats"
+msgstr ""
+
+#: reader/views.py:1079
+msgid "Sefaria Notifications"
+msgstr ""
+
+#: reader/views.py:1089
+msgid "Moderator Tools"
+msgstr ""
+
+#: reader/views.py:1131 reader/views.py:3038
+msgid "Topics"
+msgstr ""
+
+#: reader/views.py:1133
+msgid "Source Sheet"
+msgstr ""
+
+#: reader/views.py:1164
+msgid "Texts"
+msgstr ""
+
+#: reader/views.py:3039
+msgid "Explore Jewish Texts by Topic on Sefaria"
+msgstr ""
+
+#: reader/views.py:3460
+#, python-format
+msgid "%(full_name)s on Sefaria"
+msgstr ""
+
+#: reader/views.py:3461
+#, python-format
+msgid ""
+"%(full_name)s is on Sefaria. Follow to view their public source sheets, "
+"notes and translations."
+msgstr ""
+
+#: reader/views.py:3474 reader/views.py:3502 reader/views.py:3595
+msgid "You must be logged in to update your profile."
+msgstr ""
+
+#: reader/views.py:3512
+msgid "Email fields did not match"
+msgstr ""
+
+#: reader/views.py:3514
+msgid "Incorrect account password for this account"
+msgstr ""
+
+#: reader/views.py:3561
+msgid "You must be logged in to update your profile photo."
+msgstr ""
+
+#: reader/views.py:3676
+msgid "You must be logged in to delete your account."
+msgstr ""
+
+#: reader/views.py:3821
+msgid "From the Community: Today on Sefaria"
+msgstr ""
+
+#: reader/views.py:3822
+msgid ""
+"New and featured source sheets, divrei torah, articles, sermons and more "
+"created by members of the Sefaria community."
+msgstr ""
+
+#: sefaria/forms.py:30
+msgid "Email Address to delete"
+msgstr ""
+
+#: sefaria/forms.py:31
+msgid "Admin Password"
+msgstr ""
+
+#: sefaria/forms.py:35 sefaria/forms.py:41 sefaria/forms.py:126
+#: templates/messages/2022-01-09-user-testing-modal.html:86
+#: templates/static/aramaic-translation-contest.html:140
+#: templates/static/home.html:362 templates/static/newsletter.html:24
+msgid "Email Address"
+msgstr ""
+
+#: sefaria/forms.py:36 sefaria/forms.py:44 templates/account_settings.html:125
+msgid "Password"
+msgstr ""
+
+#: sefaria/forms.py:42
+msgid "First Name"
+msgstr ""
+
+#: sefaria/forms.py:43
+msgid "Last Name"
+msgstr ""
+
+#: sefaria/forms.py:45
+msgid "I am an educator"
+msgstr ""
+
+#: sefaria/forms.py:117
+msgid "Incorrect mobile_app_key provided"
+msgstr ""
+
+#: sefaria/forms.py:131
+msgid "New password"
+msgstr ""
+
+#: sefaria/forms.py:132
+msgid "Enter New Password"
+msgstr ""
+
+#: sefaria/forms.py:137
+msgid "New password confirmation"
+msgstr ""
+
+#: sefaria/forms.py:139
+msgid "Repeat New Password"
+msgstr ""
+
+#: sefaria/model/collection.py:93
+msgid "Please set a name for your collection."
+msgstr ""
+
+#: sefaria/model/collection.py:117
+msgid ""
+"A public collection with this name already exists. Please choose a different "
+"name before publishing."
+msgstr ""
+
+#: sefaria/model/collection.py:119
+msgid ""
+"Public Collections are required to include a collection image (a square "
+"image will work best)."
+msgstr ""
+
+#: sefaria/model/collection.py:121
+msgid "Public Collections are required to have at least 3 public sheets."
+msgstr ""
+
+#: sefaria/model/collection.py:284
+#, python-format
+msgid "%(name)s invited you to a collection on Sefaria"
+msgstr ""
+
+#: sefaria/model/user_profile.py:283
+msgid "A user with that email already exists"
+msgstr ""
+
+#: sefaria/model/user_profile.py:288
+msgid "The email address is not valid."
+msgstr ""
+
+#: sefaria/settings.py:24
+msgid "Tibetan"
+msgstr ""
+
+#: sefaria/views.py:189 sefaria/views.py:192 sefaria/views.py:241
+#: templates/static/app.html:383
+#: templates/static/aramaic-translation-contest.html:189
+#: templates/static/home.html:392 templates/static/mobile.html:388
+#: templates/static/newsletter.html:56
+msgid "Sorry, there was an error."
+msgstr ""
+
+#: sourcesheets/views.py:395
+msgid "You must be logged in to create a new collection."
+msgstr ""
+
+#: sourcesheets/views.py:556
+msgid ""
+"Leaving this collection would leave it without any owners. Please appoint "
+"another owner before leaving, or delete the collection."
+msgstr ""
+
+#: sourcesheets/views.py:1141
+msgid "You must be logged in to access this api."
+msgstr ""
+
+#: templates/404.html:4
+msgid "Page Not Found | Sefaria"
+msgstr ""
+
+#: templates/500.html:4
+msgid "Internal Server Error"
+msgstr ""
+
+#: templates/account_settings.html:123
+msgid "New Email"
+msgstr ""
+
+#: templates/account_settings.html:124
+msgid "Confirm New Email"
+msgstr ""
+
+#: templates/activity.html:7
+msgid "Revision History of"
+msgstr ""
+
+#: templates/activity.html:9 templates/activity.html:11
+msgid "Sefaria Activity"
+msgstr ""
+
+#: templates/activity.html:17
+msgid "View the complete revision hisotry of this text on Sefaria."
+msgstr ""
+
+#: templates/activity.html:19
+msgid ""
+"View a user's acitvitiy history on Sefaria, including published source "
+"sheets, and text translations, edits or additions."
+msgstr ""
+
+#: templates/activity.html:21
+msgid ""
+"View the complete log of public activity on Sefaria, including published "
+"source sheets, and text translations, edits or additions. "
+msgstr ""
+
+#: templates/activity.html:57
+msgid "All Activity"
+msgstr ""
+
+#: templates/activity.html:58
+msgid "Translations"
+msgstr ""
+
+#: templates/activity.html:59 templates/metrics.html:51
+#: templates/profile.html:106
+msgid "Source Sheets"
+msgstr ""
+
+#: templates/activity.html:60
+msgid "New Texts"
+msgstr ""
+
+#: templates/activity.html:61
+msgid "Edits"
+msgstr ""
+
+#: templates/activity.html:62 templates/profile.html:126
+msgid "Notes"
+msgstr ""
+
+#: templates/activity.html:63
+msgid "Reviews"
+msgstr ""
+
+#: templates/activity.html:64
+msgid "Text Info"
+msgstr ""
+
+#: templates/activity.html:65
+msgid "Reversions"
+msgstr ""
+
+#: templates/activity.html:66
+msgid "Flagged"
+msgstr ""
+
+#: templates/edit_collection.html:9
+msgid "Edit Collection on Sefaria"
+msgstr ""
+
+#: templates/edit_collection.html:20 templates/metrics.html:18
+#: templates/sheets.html:610
+msgid "Loading..."
+msgstr ""
+
+#: templates/edit_profile.html:5
+msgid "Edit Your Profile on Sefaria"
+msgstr ""
+
+#: templates/elements/activity_feed.html:7
+msgid "deleted the text"
+msgstr ""
+
+#: templates/elements/activity_feed.html:12
+msgid "deleted a text version of"
+msgstr ""
+
+#: templates/elements/activity_feed.html:14
+#: templates/elements/activity_feed.html:37
+#: templates/elements/activity_feed.html:140
+msgid "Version"
+msgstr ""
+
+#: templates/elements/activity_feed.html:20
+msgid "translated"
+msgstr ""
+
+#: templates/elements/activity_feed.html:22
+msgid "added"
+msgstr ""
+
+#: templates/elements/activity_feed.html:24
+msgid "edited"
+msgstr ""
+
+#: templates/elements/activity_feed.html:26
+msgid "reverted"
+msgstr ""
+
+#: templates/elements/activity_feed.html:31
+#: templates/elements/activity_feed.html:59
+msgid "and "
+msgstr ""
+
+#: templates/elements/activity_feed.html:31
+msgid "others"
+msgstr ""
+
+#: templates/elements/activity_feed.html:34
+#: templates/elements/activity_feed.html:138
+msgid "history"
+msgstr ""
+
+#: templates/elements/activity_feed.html:46
+msgid "added a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:48
+msgid "edited a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:50
+msgid "deleted a connection"
+msgstr ""
+
+#: templates/elements/activity_feed.html:53
+msgid "between"
+msgstr ""
+
+#: templates/elements/activity_feed.html:68
+msgid "automatic commentary link"
+msgstr ""
+
+#: templates/elements/activity_feed.html:69
+msgid "automatic citation link"
+msgstr ""
+
+#: templates/elements/activity_feed.html:76
+msgid "added a note to "
+msgstr ""
+
+#: templates/elements/activity_feed.html:78
+msgid "edited a note on "
+msgstr ""
+
+#: templates/elements/activity_feed.html:80
+msgid "deleted a note on "
+msgstr ""
+
+#: templates/elements/activity_feed.html:97
+msgid "added text info for the text"
+msgstr ""
+
+#: templates/elements/activity_feed.html:99
+msgid "edited the text info of"
+msgstr ""
+
+#: templates/elements/activity_feed.html:103
+#: templates/elements/activity_feed.html:124
+msgid "details"
+msgstr ""
+
+#: templates/elements/activity_feed.html:116
+msgid "added a term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:118
+msgid "edited the term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:120
+msgid "deleted the term"
+msgstr ""
+
+#: templates/elements/activity_feed.html:136
+msgid "reviewed"
+msgstr ""
+
+#: templates/elements/activity_feed.html:148
+#: templates/email/notification.html:20
+msgid "published a new Source Sheet"
+msgstr ""
+
+#: templates/elements/activity_feed.html:158
+msgid "related"
+msgstr ""
+
+#: templates/elements/activity_feed.html:166
+msgid "No matching public activity yet."
+msgstr ""
+
+#: templates/elements/activity_feed.html:168
+msgid "No public activity yet."
+msgstr ""
+
+#: templates/elements/activity_feed.html:172
+msgid "No matching public history items."
+msgstr ""
+
+#: templates/elements/activity_feed.html:174
+msgid "No public history items."
+msgstr ""
+
+#: templates/elements/activity_feed.html:180
+msgid "Older Activity"
+msgstr ""
+
+#: templates/email/base.html:17
+msgid ""
+"\n"
+"            You're receiving this message because you have an account on\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:22
+#, python-format
+msgid ""
+"\n"
+"            To change your email settings, click <a href=\"%(settings_url)s"
+"\">here</a>\n"
+"        "
+msgstr ""
+
+#: templates/email/base.html:26
+#, python-format
+msgid ""
+"\n"
+"            Your feedback is welcome. Feel free to send us an <a href="
+"\"%(hello_email)s\">email</a>.\n"
+"        "
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:8
+#, python-format
+msgid ""
+"\n"
+"\t\t%(inviter)s invited you to contribute to the collection %(collection)s "
+"on Sefaria.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:14
+#, python-format
+msgid ""
+"\n"
+"\t\tTo accept this invitation, <a href=\"%(register)s\">create a free "
+"Sefaria account</a>.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/collection_signup_invitation_email.html:24
+msgid ""
+"\n"
+"\t\tSefaria is a free living library of Jewish texts. Collections on Sefaria "
+"help you easily build and share collections of source sheets you create or "
+"find on Sefaria.<br>.\n"
+"\t\tFeel free to send any questions over <a href=\"mailto:hello@sefaria.org"
+"\">email</a>.\n"
+"\t\t"
+msgstr ""
+
+#: templates/email/notification.html:8
+msgid "sent you a message:"
+msgstr ""
+
+#: templates/email/notification.html:13
+msgid "Reply to"
+msgstr ""
+
+#: templates/email/notification.html:17
+msgid "likes your Source Sheet"
+msgstr ""
+
+#: templates/email/notification.html:23
+msgid "is now following you"
+msgstr ""
+
+#: templates/email/notification.html:26
+msgid "added you to the collection"
+msgstr ""
+
+#: templates/email/notification.html:29
+msgid "added a note to a"
+msgstr ""
+
+#: templates/email/notification.html:31
+msgid "discussion you follow"
+msgstr ""
+
+#: templates/email/notification.html:35
+msgid "This is a notification without a type, it shouldn't exist."
+msgstr ""
+
+#: templates/email/notifications_email.html:5
+#, python-format
+msgid " Hello %(recipient)s, "
+msgstr ""
+
+#: templates/email/notifications_email.html:9
+msgid " Here's some new activity on Sefaria that you may have missed."
+msgstr ""
+
+#: templates/explore.html:4
+msgid ""
+"Link Explorer - Visualized Connections Between Talmud and Tanakh | Sefaria"
+msgstr ""
+
+#: templates/explore.html:4
+#, python-format
+msgid ""
+"Link Explorer - Visualized Connections Between %(bottomCatTitle)s and "
+"%(topCatTitle)s | Sefaria"
+msgstr ""
+
+#: templates/explore.html:6
+msgid ""
+"Explore over 30,000 examples of the Talmud quoting a verse from Tanakh. Zoom "
+"in to particular books either above or below to explore deeper."
+msgstr ""
+
+#: templates/explore.html:6
+#, python-format
+msgid ""
+"Visually explore quotations and connections between %(bottomCatTitle)s and "
+"%(topCatTitle)s. Zoom in to particular books either above or below to "
+"explore deeper."
+msgstr ""
+
+#: templates/leaderboard.html:4
+msgid "Top Contributors | Sefaria"
+msgstr ""
+
+#: templates/leaderboard.html:6
+msgid ""
+"See who has been contributing most to Sefaria in terms of texts, "
+"translations, and source sheet."
+msgstr ""
+
+#: templates/metrics.html:5
+msgid "Sefaria Metrics"
+msgstr ""
+
+#: templates/metrics.html:7
+msgid ""
+"See graphs charting Sefaria's progress since 2013 across metrics including "
+"word counts, number of links and number of source sheets."
+msgstr ""
+
+#: templates/metrics.html:35
+msgid "Total Words in Library"
+msgstr ""
+
+#: templates/metrics.html:36
+msgid "Words in Hebrew & Aramaic"
+msgstr ""
+
+#: templates/metrics.html:37
+msgid "Words in Translation"
+msgstr ""
+
+#: templates/metrics.html:38
+msgid "Words of Original Translation created by Sefaria Volunteers"
+msgstr ""
+
+#: templates/metrics.html:39
+msgid "Number of Public Contributors"
+msgstr ""
+
+#: templates/metrics.html:40
+msgid "Number of Intertextual Links"
+msgstr ""
+
+#: templates/metrics.html:41
+msgid "Number of Source Sheets"
+msgstr ""
+
+#: templates/metrics.html:45 templates/metrics.html:46
+#: templates/metrics.html:47 templates/metrics.html:48
+msgid "Words"
+msgstr ""
+
+#: templates/metrics.html:49
+msgid "Contributors"
+msgstr ""
+
+#: templates/metrics.html:50
+msgid "Links"
+msgstr ""
+
+#: templates/people.html:5
+msgid "Authors on Sefaria"
+msgstr ""
+
+#: templates/people.html:7
+msgid ""
+"Biographies and information about the authors of Jewish texts on Sefaria, "
+"together with links to their available texts."
+msgstr ""
+
+#: templates/person.html:38
+msgid "Authors"
+msgstr ""
+
+#: templates/person.html:41 templates/talmud_people.html:6
+msgid "People in the Talmud"
+msgstr ""
+
+#: templates/profile.html:4
+msgid "on Sefaria"
+msgstr ""
+
+#: templates/profile.html:6
+msgid ""
+"is on Sefaria. Follow to view their public source sheets, notes and "
+"translations."
+msgstr ""
+
+#: templates/profile.html:20
+msgid "at "
+msgstr ""
+
+#: templates/profile.html:133
+msgid "Activity"
+msgstr ""
+
+#: templates/profile.html:135
+msgid "More Activity"
+msgstr ""
+
+#: templates/profile.html:185
+msgid "Send a message to "
+msgstr ""
+
+#: templates/profile.html:187
+msgid "Send"
+msgstr ""
+
+#: templates/profile.html:188
+msgid "Cancel"
+msgstr ""
+
+#: templates/registration/delete_user_account.html:4
+msgid "Admin: Delete a User"
+msgstr ""
+
+#: templates/registration/logged_out.html:4
+msgid "Logged Out | Sefaria"
+msgstr ""
+
+#: templates/registration/login.html:4
+msgid "Log in to Sefaria"
+msgstr ""
+
+#: templates/registration/login.html:6
+msgid ""
+"Log in to your Sefaria account to make source sheets, write notes, and "
+"follow other Sefaria users."
+msgstr ""
+
+#: templates/registration/password_reset_complete.html:3
+msgid "Password Reset"
+msgstr ""
+
+#: templates/registration/password_reset_confirm.html:4
+msgid "Choose a new Password"
+msgstr ""
+
+#: templates/registration/password_reset_done.html:3
+msgid "Password Reset Link Sent"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:4
+#: templates/registration/password_reset_email.txt:3
+msgid ""
+"A request has been made to reset the password for this email address on "
+"Sefaria.org."
+msgstr ""
+
+#: templates/registration/password_reset_email.html:6
+#: templates/registration/password_reset_email.txt:5
+msgid "Click this link, or copy it to your browser, to choose a new password:"
+msgstr ""
+
+#: templates/registration/password_reset_email.html:12
+#: templates/registration/password_reset_email.txt:9
+msgid "If you did not request this reset, you can safely ignore this email."
+msgstr ""
+
+#: templates/registration/password_reset_form.html:4
+msgid "Forgot your Password"
+msgstr ""
+
+#: templates/registration/password_reset_form.html:6
+msgid "Request a link to change your Sefaria password if you've forgotten it."
+msgstr ""
+
+#: templates/registration/password_reset_subject.txt:2
+msgid "Sefaria.org Password Reset"
+msgstr ""
+
+#: templates/registration/register.html:4
+msgid "Create an Account"
+msgstr ""
+
+#: templates/registration/register.html:6
+msgid ""
+"Create an account on Sefaria to make source sheets, take notes and follow "
+"other people."
+msgstr ""
+
+#: templates/sefer_hachinukh_mitzvot.html:7
+msgid "Sefer HaChinukh Visualization"
+msgstr ""
+
+#: templates/sefer_hachinukh_mitzvot.html:9
+msgid ""
+"Explore how different categories of Mitzvot connect to one another through "
+"this parallel sets chart."
+msgstr ""
+
+#: templates/sheets.html:7 templates/sheets_visual.html:4
+msgid "Start a New Sheet - Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets.html:9 templates/sheets.html:10
+msgid "A source sheet created with Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/sheets.html:9 templates/sheets.html:10
+#: templates/sheets_visual.html:6
+msgid "Create your own source sheet with Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/sheets.html:624 templates/sheets.html:632
+#, python-format
+msgid ""
+"\n"
+"                Assignment Completed by %(owner)s\n"
+"            "
+msgstr ""
+
+#: templates/sheets.html:639
+#, python-format
+msgid ""
+"\n"
+"            Source Sheet by %(owner)s\n"
+"        "
+msgstr ""
+
+#: templates/sheets.html:750
+msgid "Search for a Text or Commentator"
+msgstr ""
+
+#: templates/sheets.html:814
+msgid "Paste URL"
+msgstr ""
+
+#: templates/sheets.html:910
+msgid "Made with the Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets.html:933
+msgid "Create New"
+msgstr ""
+
+#: templates/sheets.html:1006
+msgid "Write a summary to help others understand your sheet..."
+msgstr ""
+
+#: templates/sheets.html:1012
+msgid "Add Tags..."
+msgstr ""
+
+#: templates/sheets.html:1046
+msgid "None"
+msgstr ""
+
+#: templates/sheets.html:1086
+msgid "View"
+msgstr ""
+
+#: templates/sheets.html:1089
+msgid "Add"
+msgstr ""
+
+#: templates/sheets.html:1092
+msgid "Edit"
+msgstr ""
+
+#: templates/sheets.html:1105
+msgid ""
+"\n"
+"            Add <span class=\"sourceName\"></span> to a Source Sheet\n"
+"        "
+msgstr ""
+
+#: templates/sheets_visual.html:4
+msgid "Visualized"
+msgstr ""
+
+#: templates/sheets_visual.html:4
+msgid "Sefaria Source Sheet Builder"
+msgstr ""
+
+#: templates/sheets_visual.html:6
+#, python-format
+msgid ""
+"Visual layout of a source sheet by %(sheet.owner|user_name)s created with "
+"Sefaria's Source Sheet Builder."
+msgstr ""
+
+#: templates/static/all_home.html:4 templates/static/all_home.html:6
+msgid "TBD"
+msgstr ""
+
+#: templates/static/app.html:4
+msgid "Sefaria App"
+msgstr ""
+
+#: templates/static/app.html:6
+msgid "Download the free Sefaria App for iOS and Android."
+msgstr ""
+
+#: templates/static/app.html:314 templates/static/mobile.html:319
+msgid "Sign up for our Newsletter"
+msgstr ""
+
+#: templates/static/app.html:374
+#: templates/static/aramaic-translation-contest.html:180
+#: templates/static/home.html:383 templates/static/mobile.html:379
+#: templates/static/newsletter.html:47
+msgid "<i>Subscribing...</i>"
+msgstr ""
+
+#: templates/static/app.html:380
+#: templates/static/aramaic-translation-contest.html:186
+#: templates/static/home.html:389 templates/static/mobile.html:385
+#: templates/static/newsletter.html:53
+msgid "Subscribed! Welcome to our list."
+msgstr ""
+
+#: templates/static/app.html:386
+#: templates/static/aramaic-translation-contest.html:192
+#: templates/static/home.html:395 templates/static/mobile.html:391
+#: templates/static/newsletter.html:59
+msgid "Please enter a valid email address."
+msgstr ""
+
+#: templates/static/aramaic-translation-contest.html:6
+msgid ""
+"The largest free library of Buddhist texts available to read online in "
+"Tibetan, English and Chinese."
+msgstr ""
+
+#: templates/static/connect.html:4
+msgid "Sefaria Newsletter, Social Media and More"
+msgstr ""
+
+#: templates/static/connect.html:6
+msgid ""
+"Get updates on new texts and features on Sefaria by signing up for our "
+"newsletter or following us on social media."
+msgstr ""
+
+#: templates/static/contest.html:4 templates/static/contest.html:6
+msgid "Powered by Sefaria Contest"
+msgstr ""
+
+#: templates/static/contributed-to-sefaria.html:4
+msgid "Texts Contributed to Sefaria"
+msgstr ""
+
+#: templates/static/contributed-to-sefaria.html:6
+msgid ""
+"Texts on Sefaria that list this page as their source were contributed "
+"directly to Sefaria and have not yet been published elsewhere in print or on "
+"the web."
+msgstr ""
+
+#: templates/static/daf-yomi.html:4
+msgid "Daf Yomi | Sefaria"
+msgstr ""
+
+#: templates/static/daf-yomi.html:6
+msgid "Learn the Talmud each day with Daf Yomi on Sefaria."
+msgstr ""
+
+#: templates/static/dicta-thanks.html:4
+msgid "Dicta Thanks"
+msgstr ""
+
+#: templates/static/dicta-thanks.html:6
+msgid "Sefaria thanks Dicta for all of their help."
+msgstr ""
+
+#: templates/static/digitized-by-sefaria.html:4
+msgid "Texts Digitized by Sefaria"
+msgstr ""
+
+#: templates/static/educators.html:4 templates/static/educators.html:6
+msgid "Teach with Sefaria"
+msgstr ""
+
+#: templates/static/en/about.html:4 templates/static/he/about.html:4
+msgid "About Sefaria"
+msgstr ""
+
+#: templates/static/en/about.html:6 templates/static/he/about.html:6
+msgid ""
+"Sefaria is a non-profit organization dedicated to building the future of "
+"Jewish learning in an open and participatory way."
+msgstr ""
+
+#: templates/static/en/team.html:4 templates/static/he/team.html:4
+msgid "The Sefaria Team"
+msgstr ""
+
+#: templates/static/en/team.html:6 templates/static/he/team.html:6
+msgid "Sefaria's team is working to create the Jewish future."
+msgstr ""
+
+#: templates/static/en/ways-to-give.html:4
+#: templates/static/he/ways-to-give.html:5
+msgid "Donate to Sefaria"
+msgstr ""
+
+#: templates/static/en/ways-to-give.html:6
+#: templates/static/he/ways-to-give.html:7
+msgid ""
+"Support Sefaria by making a tax-deductible donation online or by check or "
+"wire transfer."
+msgstr ""
+
+#: templates/static/ios.html:4
+msgid "Sefaria iOS"
+msgstr ""
+
+#: templates/static/jobs.html:4
+msgid "Jobs at Sefaria"
+msgstr ""
+
+#: templates/static/jobs.html:6
+msgid ""
+"Job openings at Sefaria, a non-profit technology organization dedicated to "
+"building the Jewish future."
+msgstr ""
+
+#: templates/static/linker.html:4
+msgid "Linker Plugin"
+msgstr ""
+
+#: templates/static/linker.html:6
+msgid ""
+"Automatically turn citations on your website into links or dynamic popups "
+"with the full text from Sefaria."
+msgstr ""
+
+#: templates/static/mobile.html:4
+msgid "Sefaria Mobile Apps"
+msgstr ""
+
+#: templates/static/mobile.html:6
+msgid "Download the free Sefaria Apps for iOS and Android."
+msgstr ""
+
+#: templates/static/newsletter.html:4 templates/static/newsletter.html:6
+msgid "Sign up for Sefaria's Newsletter"
+msgstr ""
+
+#: templates/static/powered-by-sefaria-contest-2020.html:4
+#: templates/static/powered-by-sefaria-contest-2020.html:6
+msgid "Powered by Sefaria Contest 2020"
+msgstr ""
+
+#: templates/static/powered-by-sefaria-contest-2021.html:4
+#: templates/static/powered-by-sefaria-contest-2021.html:6
+msgid "Powered by Sefaria Contest 2021"
+msgstr ""
+
+#: templates/static/powered-by.html:4
+msgid "Powered by Sefaria"
+msgstr ""
+
+#: templates/static/powered-by.html:6
+msgid ""
+"Sefaria’s open data and API can be used by anyone.  You can find it all for "
+"free in our GitHub repository!"
+msgstr ""
+
+#: templates/static/privacy-policy.html:4
+msgid "Privacy Policy"
+msgstr ""
+
+#: templates/static/ramban-sponsorships.html:4
+#: templates/static/ramban-sponsorships.html:6
+msgid "Ramban on Torah - Thank you to our Sponsors"
+msgstr ""
+
+#: templates/static/remote-learning.html:4
+msgid "Remote Learning | Sefaria"
+msgstr ""
+
+#: templates/static/remote-learning.html:6
+msgid "Resources for teaching and learning virtually."
+msgstr ""
+
+#: templates/static/sefaria-community-translation.html:4
+msgid "About Sefaria Community Translations"
+msgstr ""
+
+#: templates/static/sefaria-community-translation.html:6
+msgid ""
+"Sefaria Community Translations are open, crowd-sourced translations of texts "
+"available in the Sefaria Library."
+msgstr ""
+
+#: templates/static/sefaria-edition.html:4
+msgid "About Sefaria Editions"
+msgstr ""
+
+#: templates/static/sefaria-edition.html:6
+msgid ""
+"The Sefaria Edition is a Sefaria commissioned translation created by "
+"professional translators."
+msgstr ""
+
+#: templates/static/sheets.html:4
+msgid "Sheets on Sefaria"
+msgstr ""
+
+#: templates/static/sheets.html:6
+msgid ""
+"Mix and match sources from Sefaria’s library of Jewish texts, and add your "
+"comments, images and videos."
+msgstr ""
+
+#: templates/static/shraga-silverstein.html:4
+msgid "In Memory of Rabbi Shraga Silverstein"
+msgstr ""
+
+#: templates/static/strategy.html:4
+msgid "Sefaria Strategy"
+msgstr ""
+
+#: templates/static/supporters.html:4
+msgid "Sefaria's Supporters"
+msgstr ""
+
+#: templates/static/supporters.html:6
+msgid ""
+"Sefaria gratefully acknowledges the following donors whose generosity and "
+"leadership are making Sefaria possible."
+msgstr ""
+
+#: templates/static/terms.html:4
+msgid "Terms of Use"
+msgstr ""
+
+#: templates/static/testimonials.html:4
+msgid "Sefaria Testimonials"
+msgstr ""
+
+#: templates/static/testimonials.html:6
+msgid "Sefaria’s Impact – Reflections and Insights from Users"
+msgstr ""
+
+#: templates/static/the-sefaria-story.html:4
+msgid "The Sefaria Story"
+msgstr ""
+
+#: templates/static/the-sefaria-story.html:6
+msgid "Watch a video about the story of Sefaria."
+msgstr ""
+
+#: templates/static/torah-tab.html:5
+msgid "Sefaria Torah Tab"
+msgstr ""
+
+#: templates/static/torah-tab.html:7
+msgid "Install the free Sefaria Torah Tab for your web browser."
+msgstr ""
+
+#: templates/static/visualizations.html:4
+msgid "Visualizations"
+msgstr ""
+
+#: templates/static/visualizations.html:6
+msgid ""
+"Projects which have been created to make interactive visualizations of the "
+"texts and connections in the Sefaria Library of Torah texts."
+msgstr ""
+
+#: templates/static/william-davidson-talmud.html:4
+#: templates/static/william-davidson-talmud.html:84
+msgid "The William Davidson Talmud"
+msgstr ""
+
+#: templates/static/william-davidson-talmud.html:6
+msgid ""
+"The William Davidson Talmud is a free digital edition of the Babylonian "
+"Talmud with parallel translations, interlinked to major commentaries, "
+"biblical citations, Midrash, Halakhah, and an ever-growing library of Jewish "
+"texts."
+msgstr ""
+
+#: templates/static/word-by-word.html:4
+msgid "Word by Word: A Jewish Women's Writing Circle"
+msgstr ""
+
+#: templates/static/word-by-word.html:6
+msgid ""
+"Word by Word: A Jewish Women's Writing Circle will provide up to 20 Jewish "
+"women writers engaged in serious torah scholarship the support and guidance "
+"to produce publishable books."
+msgstr ""
+
+#: templates/talmud_people.html:8
+msgid ""
+"An index of the sages of the Talmud (Chazal) ordered by generation, "
+"including relationships to one another, time periods and links to learn more."
+msgstr ""
+
+#: templates/talmudic_relationships.html:24
+#: templates/talmudic_relationships.html:26
+msgid "Student-Teacher Relationships in the Talmud"
+msgstr ""
+
+#: templates/timeline.html:4 templates/timeline.html:6
+msgid "Timeline"
+msgstr ""
+
+#: templates/unique_words_viz.html:7
+msgid "Unique Words used by Biblical Commentators"
+msgstr ""
+
+#: templates/unique_words_viz.html:9
+msgid "Explore how unique and verbose biblical commentators were."
+msgstr ""
+
+#: templates/visual_library.html:4
+msgid "Visualizing the Sefaria Library"
+msgstr ""
+
+#: templates/visual_library.html:6
+msgid ""
+"How big is Torah compared to Talmud? This sunburst diagram lets you see the "
+"number of words in the texts and categories of Sefaria's library (which is "
+"growing every day!)."
+msgstr ""
+
+#: templates/visual_parasha_colors.html:6
+msgid "Visualizing the Parshiot"
+msgstr ""
+
+#: templates/visualize_links_through_rashi.html:6
+msgid "Visualizing Torah Connections through Rashi's Commentary"
+msgstr ""
+
+#: templates/visualize_links_through_rashi.html:8
+msgid ""
+"Explore how Rashi connects verses of Torah to one another when he quotes one "
+"verse in his commentary on another."
+msgstr ""
