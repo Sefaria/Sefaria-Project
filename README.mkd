@@ -41,6 +41,13 @@ In your terminal run:
 
 This will build the project and run it. You should now have all the proper services set up, lets add some texts.
 
+Now run:
+    
+        chmod +x docker-setup.sh
+        ./docker-setup.sh
+
+And follow the instructions to set up the project. If you get stuck, follow the instructions below.
+
 ##### 3) Connect to mongo and add texts:
 Connect to mongo running on port 27018. We use 27018 instead of the standard port 27017 to avoid conflicts with any mongo instance you may already have running.
 
