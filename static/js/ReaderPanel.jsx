@@ -182,6 +182,17 @@ class ReaderPanel extends Component {
     if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
     this.conditionalSetState({ currVersions: newVersions });
   }
+  openConnectionsPanel(ref, additionalState) {
+    /**
+     * Decides whether to open a new connections panel or to open connections in the current panel
+     * depending on whether we're in multi-panel mode
+     */
+    if (this.props.multiPanel) {
+      this.props.openConnectionsPanel(ref, null, additionalState);
+    } else {
+      this.openConnectionsInPanel(ref, additionalState);
+    }
+  }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
@@ -1106,7 +1117,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
-            openConnectionsPanel={this.props.openConnectionsPanel}
+            openConnectionsPanel={this.openConnectionsPanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1255,7 +1266,7 @@ class ReaderControls extends Component {
     });
   }
   openTranslations() {
-    this.props.openConnectionsPanel([this.props.currentRef], null, {"connectionsMode": "Translations"});
+    this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
   }
   componentDidMount() {
     const title = this.props.currentRef;
