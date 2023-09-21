@@ -2302,7 +2302,31 @@ div.interfaceLinks-row a {
 .topicImageWrapper{
   padding-left: 44px;
   padding-right: 44px;
-  padding-bottom: 30px;
+}
+@media (max-width: 600px) {
+  .topicImagePicture {
+    max-height: 60vh;
+    height: auto;
+    max-width: 100%; 
+  }
+  .topicImageWrapper{
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .topicImageCaptionWrapper{
+    display: flex;
+    justify-content: center;
+  }
+  .topicImageCaption {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0em;
+    color: var(--dark-grey);
+    width: 80vw;
+    margin-bottom: 30px;
+    text-align: center;
+  }
 }
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;

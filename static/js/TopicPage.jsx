@@ -201,7 +201,7 @@ const hardcodedTopicImagesMap = {
                        'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. המוזיאון היהודי בניו יורק, מתנת דר. הארי ג. פרידמן  '},
 
   'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
-             'enCaption':'Detail of a painting of a sukkah Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library', 
+             'enCaption':'Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library', 
              'heCaption': 'פרט ציור של סוכה עם שולחן פרוס ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
 
   'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
@@ -347,7 +347,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const tpTopImg = topicImageKey in hardcodedTopicImagesMap && !multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
   return (
     <div>
-      {tpTopImg}
+      
         <div className="navTitle tight">
                 <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
                 <h1>
@@ -371,6 +371,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
               <InterfaceText markdown={{en: topicData.description.en, he: topicData.description.he}}/>
             </div>
        : null}
+       {tpTopImg}
        {topicData && topicData.ref ?
          <a href={`/${topicData.ref.url}`} className="resourcesLink button blue">
            <img src="/static/icons/book-icon-black.svg" alt="Book Icon" />
@@ -743,9 +744,11 @@ const TopicImage = ({photoLink, enCaption, heCaption }) => {
     <div class="topicImageWrapper">
      {/** Todo Break out the classes. add CSS for linebreak via parent */}
         <img class="topicImagePicture" src={photoLink}/>
-        <div class="topicImageCaption"> 
-         <InterfaceText text={{en:enCaption, he:heCaption}}  />
-        </div>
+          <div class="topicImageCaptionWrapper">
+            <div class="topicImageCaption"> 
+              <InterfaceText text={{en:enCaption, he:heCaption}}  />
+            </div>
+          </div>
       </div>);
 }
 
