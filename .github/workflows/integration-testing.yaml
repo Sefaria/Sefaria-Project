@@ -1,9 +1,6 @@
 name: Run Integration Tests
 on:
-  check_run:
-    types:
-      - rerequested
-
+  merge_group: {}
 
 concurrency: integration_environment
 
