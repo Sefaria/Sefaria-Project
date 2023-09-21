@@ -198,7 +198,7 @@ const hardcodedTopicImagesMap = {
 
   'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
                        'enCaption':'Etrog container, K B, late 19th century, Germany. The Jewish Museum, Gift of Dr. Harry G. Friedman', 
-                       'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. מתנת הארי ג. פרידמן '},
+                       'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. המוזיאון היהודי בניו יורק, מתנת דר. הארי ג. פרידמן  '},
 
   'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
              'enCaption':'Detail of a painting of a sukkah Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library', 
@@ -210,7 +210,7 @@ const hardcodedTopicImagesMap = {
 
   'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
               'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
-              'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. מתנת מר וגברת מ.ר. שוייצר'},
+              'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר'},
 
 };
 
