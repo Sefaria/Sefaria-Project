@@ -972,10 +972,11 @@ def delete_user_by_email(request):
 
 
 
-def purge_spammer_account_data(spammer_id, delete_from_crm=True):
+def purge_spammer_account_data(spammer_id, delete_from_crm=True, profile=None):
     from django.contrib.auth.models import User
     # Delete from Nationbuilder
-    profile = db.profiles.find_one({"id": spammer_id})
+    if not profile:
+        profile = db.profiles.find_one({"id": spammer_id})
     if delete_from_crm:
         try:
             crm_connection_manager = CrmMediator().get_connection_manager()
