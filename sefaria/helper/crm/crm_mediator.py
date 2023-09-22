@@ -6,6 +6,13 @@ from sefaria import settings as sls
 # todo: task queue, async
 
 class CrmMediator:
+    """
+    Anywhere the *app* wants to perform CRM functions it should be using this,
+    rather than the other CRM classes.
+
+    We do not want the CRM classes (i.e. salesforce.py) to be performing r/w operations outside
+    of r/w to the CRM.
+    """
     def __init__(self):
         self._crm_connection = CrmFactory().get_connection_manager()
 
