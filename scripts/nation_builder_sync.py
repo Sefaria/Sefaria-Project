@@ -35,8 +35,8 @@ while(i < len(sys.argv)):
         gt = int(sys.argv[i][5:])
     i+=1
 
-    crm_mediator = CrmMediator()
-    crm_mediator.sync_sustainers()
+crm_mediator = CrmMediator()
+crm_mediator.sync_sustainers()
 
 # if sustainers_only:
 #     connection_manager = CrmFactory().get_connection_manager()
