@@ -155,7 +155,34 @@ class SalesforceConnectionManager(CrmConnectionManager):
         return res
 
     def get_sustainers(self):
-        pass
+        endpoint = f"{sls.SALESFORCE_BASE_URL}/services/data/v{self.version}/analytics/reports/{sls.SALESFORCE_SUSTAINERS_REPORT}"
+
+        data =None
+        while 1:
+            res = self.post(endpoint, json=data).json()
+            # verify sort
+            metadata = res['reportMetadata']
+            columns = metadata['detailColumns']
+            aggregates = metadata['aggregates']
+            id_i = columns.index('CUST_ID')
+            active_sustainer_i = columns.index('FK_Contact.npsp__Sustainer__c')
+            rowcount_i = aggregates.index('RowCount')
+            # get index of ID
+            # get index of Sustainer
+            if res['factMap']['T!T']['aggregates'][rowcount_i]['value'] == 0:
+                break
+
+            for row in res['factMap']['T!T']['rows']:
+                last_id = row['dataCells'][id_i]
+                yield last_id['value']
+            data = {}
+            data['reportMetadata'] = res['reportMetadata']
+            data["reportMetadata"]["reportFilters"].append({
+                    "value": last_id['value'],
+                    "operator": "greaterThan",
+                    "column": "CUST_ID"
+                })
+        return res.json()
 
     def create_job(self, operation, sobject):
         endpoint = f"{sls.SALESFORCE_BASE_URL}/services/data/v{self.bulk_api_version}/jobs/ingest"
