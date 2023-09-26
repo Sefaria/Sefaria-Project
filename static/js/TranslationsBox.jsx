@@ -89,6 +89,7 @@ class TranslationsBox extends Component {
                 openVersionInSidebar={this.openVersionInSidebar}
                 viewExtendedNotes={this.props.viewExtendedNotes}
                 inTranslationBox={true}
+                showNotes={false}
             />
           </>
       );
