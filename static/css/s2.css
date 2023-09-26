@@ -2277,7 +2277,7 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
-.topicImagePicture{
+.topicPhoto{
   border: 1px solid #EDEDEC;
   max-width: 100%; 
   height: auto;
@@ -2299,24 +2299,24 @@ div.interfaceLinks-row a {
   color: var(--dark-grey);
   width: 100%;
 }
-.topicImageWrapper{
+.topicImage{
   padding-left: 44px;
   padding-right: 44px;
 }
 @media (max-width: 600px) {
-  .topicImagePicture {
-    max-height: 60vh;
+  .topicPhoto{
     height: auto;
-    max-width: 100%;
+    max-width: calc(66.67vw);
+    max-height: calc(66.67vw);
   }
-  .topicImageWrapper{
+  .topicImage{
     padding-left: 0;
     padding-right: 0;
-    margin-top: 30px; 
-  }
-  .topicImageCaptionWrapper{
+    margin-top: 30px;  
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
   }
   .topicImageCaption {
     font-size: 12px;

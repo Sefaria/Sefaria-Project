@@ -741,14 +741,11 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 const TopicImage = ({photoLink, enCaption, heCaption }) => {
   
   return (
-    <div class="topicImageWrapper">
-     {/** Todo Break out the classes. add CSS for linebreak via parent */}
-        <img class="topicImagePicture" src={photoLink}/>
-          <div class="topicImageCaptionWrapper">
-            <div class="topicImageCaption"> 
-              <InterfaceText text={{en:enCaption, he:heCaption}}  />
-            </div>
-          </div>
+    <div class="topicImage">
+        <img class="topicPhoto" src={photoLink}/>
+        <div class="topicImageCaption"> 
+          <InterfaceText text={{en:enCaption, he:heCaption}}  />
+        </div>
       </div>);
 }
 
