@@ -15,7 +15,7 @@ import re
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
 
 logger = structlog.get_logger(__name__)
 
@@ -426,6 +426,12 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         if self.slug_fields is not None:
             for slug_field in self.slug_fields:
                 setattr(self, slug_field, self.normalize_slug_field(slug_field))
+
+    @classmethod
+    def validate_slug_exists(cls, slug):
+        object = cls.init(slug)
+        if not object:
+            raise SluggedMongoRecordMissingError(f"{cls.__name__} with slug '{slug}' does not exist.")
 
 
 class Cloneable:

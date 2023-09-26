@@ -58,3 +58,7 @@ class ManuscriptError(Exception):
 
 class MissingKeyError(Exception):
     pass
+
+
+class SluggedMongoRecordMissingError(Exception):
+    pass

@@ -660,14 +660,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         super(IntraTopicLink, self)._validate()
 
         # check everything exists
-        link_type = TopicLinkType().load({"slug": self.linkType})
-        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
-        from_topic = Topic.init(self.fromTopic)
-        assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
-        to_topic = Topic.init(self.toTopic)
-        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
-        data_source = TopicDataSource().load({"slug": self.dataSource})
-        assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
+        TopicLinkType.validate_slug_exists(self.linkType)
+        Topic.validate_slug_exists(self.fromTopic)
+        Topic.validate_slug_exists(self.toTopic)
+        TopicDataSource.validate_slug_exists(self.dataSource)
 
         # check for duplicates
         duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
@@ -677,6 +673,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                 "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
                     self.linkType, self.fromTopic, self.toTopic))
 
+        link_type = TopicLinkType.init(self.linkType)
         if link_type.slug == link_type.inverseSlug:
             duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
              "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
@@ -686,6 +683,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                         duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
 
         # check types of topics are valid according to validFrom/To
+        from_topic = Topic.init(self.fromTopic)
+        to_topic = Topic.init(self.toTopic)
         if getattr(link_type, 'validFrom', False):
             assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
@@ -781,10 +780,10 @@ class RefTopicLink(abst.AbstractMongoRecord):
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _validate(self):
+        Topic.validate_slug_exists(self.toTopic)
+        TopicLinkType.validate_slug_exists(self.linkType)
         to_topic = Topic.init(self.toTopic)
-        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
-        link_type = TopicLinkType().load({"slug": self.linkType})
-        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
+        link_type = TopicLinkType.init(self.linkType)
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
     
@@ -872,11 +871,10 @@ class TopicLinkType(abst.SluggedAbstractMongoRecord):
         # Check that validFrom and validTo contain valid topic slugs if exist
 
         for validToTopic in getattr(self, 'validTo', []):
-            assert Topic.init(validToTopic) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+            Topic.validate_slug_exists(validToTopic)
 
         for validFromTopic in getattr(self, 'validFrom', []):
-            assert Topic.init(validFromTopic) is not None, "ValidTo topic '{}' does not exist".format(
-                self.validFrom)
+            Topic.validate_slug_exists(validFromTopic)
 
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
