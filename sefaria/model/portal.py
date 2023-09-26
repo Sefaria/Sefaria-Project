@@ -72,8 +72,9 @@ def validate_http_method(method):
     else:
         raise InvalidHTTPMethodException(method)
 
-class Portal(abst.AbstractMongoRecord):
+class Portal(abst.SluggedAbstractMongoRecord):
     collection = 'portals'
+    slug_fields = ['slug']
 
     required_attrs = [
         "about",
