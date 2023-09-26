@@ -2307,11 +2307,12 @@ div.interfaceLinks-row a {
   .topicImagePicture {
     max-height: 60vh;
     height: auto;
-    max-width: 100%; 
+    max-width: 100%;
   }
   .topicImageWrapper{
     padding-left: 0;
     padding-right: 0;
+    margin-top: 30px; 
   }
   .topicImageCaptionWrapper{
     display: flex;
