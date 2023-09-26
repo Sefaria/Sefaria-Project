@@ -2,30 +2,12 @@
 from urllib.parse import urlparse
 from . import abstract as abst
 import urllib.parse
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 import structlog
 logger = structlog.get_logger(__name__)
 
-def get_nested_value(data, key):
-    """
-    Get the value of a key in a dictionary or nested dictionaries.
 
-    Args:
-        data (dict): The dictionary to search.
-        key (str): The key to retrieve the value for.
-
-    Returns:
-        The value associated with the key, or None if the key is not found.
-    """
-    if key in data:
-        return data[key]
-
-    for value in data.values():
-        if isinstance(value, dict):
-            nested_value = get_nested_value(value, key)
-            if nested_value is not None:
-                return nested_value
-
-    return None
 class InvalidURLException(Exception):
     def __init__(self, url):
         self.url = url
@@ -35,14 +17,11 @@ class InvalidURLException(Exception):
 def validate_url(url):
     try:
         # Attempt to parse the URL
-        result = urllib.parse.urlparse(url)
+        validator = URLValidator()
+        validator(url)
+        return True
 
-        # Check if the scheme (e.g., http, https) and netloc (e.g., domain) are present
-        if result.scheme and result.netloc:
-            return True
-        else:
-            raise InvalidURLException(url)
-    except ValueError:
+    except ValidationError:
         # URL parsing failed
         raise InvalidURLException(url)
 class InvalidHTTPMethodException(Exception):
@@ -111,20 +90,23 @@ class Portal(abst.SluggedAbstractMongoRecord):
 
         if hasattr(self, "about"):
             abst.validate_dictionary(self.about, about_schema)
-            title_url = get_nested_value(self.about, "title_url")
+            title_url = self.about.get("title_url")
             if title_url:
                 validate_url(title_url)
         if hasattr(self, "mobile"):
             abst.validate_dictionary(self.mobile, mobile_schema)
-            android_link = get_nested_value(self.mobile,"android_link")
+            android_link = self.mobile.get("android_link")
             if android_link:
                 validate_url(android_link)
-            ios_link = get_nested_value(self.mobile, "ios_link")
+            ios_link = self.mobile.get("ios_link")
             if ios_link:
                 validate_url(ios_link)
         if hasattr(self, "newsletter"):
             abst.validate_dictionary(self.newsletter, newsletter_schema)
-            http_method = get_nested_value(self.newsletter, "http_method")
+            title_url = self.newsletter.get("title_url")
+            if title_url:
+                validate_url(title_url)
+            http_method = self.newsletter.get("api_schema", {}).get("http_method")
             if http_method:
                 validate_http_method(http_method)
         return True
