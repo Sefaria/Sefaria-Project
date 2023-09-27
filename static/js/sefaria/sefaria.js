@@ -569,6 +569,16 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._versions[ref]);
   },
+  _portals: {},
+  getPortal: async function(portalSlug) {
+      const cachedPortal = Sefaria._portals[portalSlug];
+      if (cachedPortal) {
+          return cachedPortal;
+      }
+      const response = await this._ApiPromise(`${Sefaria.apiHost}/api/portals/${portalSlug}`);
+      Sefaria._portals[portalSlug] = response;
+      return response;
+  },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**
        * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)

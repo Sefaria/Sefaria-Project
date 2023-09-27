@@ -50,6 +50,7 @@ const Modules = ({type, props}) => {
     "WhoToFollow":            WhoToFollow,
     "Image":                  Image,
     "Wrapper":                Wrapper,
+    "PortalAbout":            PortalAbout,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -791,6 +792,15 @@ const DownloadVersions = ({sref}) => {
     );
 };
 
+
+const PortalAbout = ({title, description}) => {
+    return (
+        <div>
+            {title.en}
+            {description.en}
+        </div>
+    )
+};
 
 export {
   NavSidebar,

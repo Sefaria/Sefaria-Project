@@ -431,6 +431,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [portal, setPortal] = useState(null);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
     const scrollableElement = useRef();
@@ -498,6 +499,47 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
+    let sidebar = null;
+    if (topicData) {
+        if (topicData.portal_slug) {
+            Sefaria.getPortal(topicData.portal_slug).then(setPortal);
+            if (portal) {
+                const portalModuleTypeMap = {
+                    "about": "PortalAbout",
+                    // "mobile": "PortalMobile",
+                    // "newsletter": "PortalNewsletter",
+                }
+                const modules = [];
+                for (let [key, value] of Object.entries(portal)) {
+                    if (!portalModuleTypeMap[key]) { continue; }
+                    modules.push({
+                        type: portalModuleTypeMap[key],
+                        props: value,
+                    });
+                }
+                sidebar = <NavSidebar modules={modules} />;
+            }
+        } else {
+           sidebar = (
+                <>
+                    <TopicSideColumn
+                        key={topic}
+                        slug={topic}
+                        links={topicData.links}
+                        clearAndSetTopic={clearAndSetTopic}
+                        setNavTopic={setNavTopic}
+                        parashaData={parashaData}
+                        tref={topicData.ref}
+                        timePeriod={topicData.timePeriod}
+                        properties={topicData.properties}
+                        topicTitle={topicTitle}
+                        multiPanel={multiPanel}
+                    />
+                    {!topicData.isLoading && <Promotions/>}
+                </>
+            );
+        }
+    }
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
@@ -547,24 +589,7 @@ const TopicPage = ({
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 <div className="sideColumn">
-                  {topicData ? (
-                    <>
-                      <TopicSideColumn
-                        key={topic}
-                        slug={topic}
-                        links={topicData.links}
-                        clearAndSetTopic={clearAndSetTopic}
-                        setNavTopic={setNavTopic}
-                        parashaData={parashaData}
-                        tref={topicData.ref}
-                        timePeriod={topicData.timePeriod}
-                        properties={topicData.properties}
-                        topicTitle={topicTitle}
-                        multiPanel={multiPanel}
-                      />
-                      {!topicData.isLoading && <Promotions/>}
-                    </>
-                  ) : null}
+                    {sidebar}
                 </div>
             </div>
             <Footer />
