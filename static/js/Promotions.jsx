@@ -61,7 +61,7 @@ const Promotions = () => {
               title: title,
               bodyText: bodyText,
               buttonText: buttonText,
-              buttonUrl: buttonURL,
+              buttonURL: buttonURL,
               buttonIcon: sidebarAd.buttonIcon,
               buttonLocation: sidebarAd.buttonAboveOrBelow,
               hasBlueBackground: sidebarAd.hasBlueBackground,

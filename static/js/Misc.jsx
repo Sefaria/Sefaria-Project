@@ -367,15 +367,41 @@ ProfilePic.propTypes = {
 };
 
 
+/**
+ * Renders a list of data that can be filtered and sorted
+ * @param filterFunc
+ * @param sortFunc
+ * @param renderItem
+ * @param sortOptions
+ * @param getData
+ * @param data
+ * @param renderEmptyList
+ * @param renderHeader
+ * @param renderFooter
+ * @param showFilterHeader
+ * @param refreshData
+ * @param initialFilter
+ * @param scrollableElement
+ * @param pageSize
+ * @param onDisplayedDataChange
+ * @param initialRenderSize
+ * @param bottomMargin
+ * @param containerClass
+ * @param onSetSort: optional. function that is passed the current sort option when the user changes it. Use this to control sort from outside the component. See `externalSortOption`.
+ * @param externalSortOption: optional. string that is one of the options in `sortOptions`. Use this to control sort from outside the component. See `onSetSort`.
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass
+  bottomMargin, containerClass, onSetSort, externalSortOption,
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [internalSortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
+  const sortOption = externalSortOption || internalSortOption;
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
@@ -427,10 +453,11 @@ const FilterableList = ({
     }, [dataUpToPage]);
   }
 
-  const onSortChange = newSortOption => {
+  const setSort = newSortOption => {
     if (newSortOption === sortOption) { return; }
     setSortOption(newSortOption);
     setDisplaySort(false);
+    onSetSort?.(newSortOption);
   };
 
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -460,7 +487,7 @@ const FilterableList = ({
                 isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
-                handleClick={onSortChange}
+                handleClick={setSort}
               />
             </DropdownModal>
             : null
@@ -487,7 +514,7 @@ const FilterableList = ({
               <span
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
-                onClick={() => onSortChange(option)}
+                onClick={() => setSort(option)}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -1025,7 +1052,7 @@ class ToggleOption extends Component {
 
          //style={this.props.style}
 
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}}) => {
+const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
     let ajaxPayload = {url, type};
     if (type === "POST") {
       ajaxPayload.data = {json: JSON.stringify(data)};
@@ -1192,14 +1219,28 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 }
 
 const EditorForExistingTopic = ({ toggle, data }) => {
+  const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+  }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
     origSlug: data.slug,
-    origCategorySlug: initCatSlug,
-    origEn: data.primaryTitle.en,
-    origHe: data.primaryTitle.he || "",
-    origDesc: data.description || {"en": "", "he": ""},
-    origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
+    origCatSlug: initCatSlug,
+    origEnTitle: data.primaryTitle.en,
+    origHeTitle: data.primaryTitle.he || "",
+    origEnDescription: data.description?.en || "",
+    origHeDescription: data.description?.he || "",
+    origEnCategoryDescription: data.categoryDescription?.en || "",
+    origHeCategoryDescription: data.categoryDescription?.he || "",
+    origEnAltTitles: prepAltTitles('en'),
+    origHeAltTitles: prepAltTitles('he'),
+    origBirthPlace: data?.properties?.birthPlace?.value,
+    origHeBirthPlace: data?.properties?.heBirthPlace?.value,
+    origHeDeathPlace: data?.properties?.heDeathPlace?.value,
+    origBirthYear: data?.properties?.birthYear?.value,
+    origDeathPlace: data?.properties?.deathPlace?.value,
+    origDeathYear: data?.properties?.deathYear?.value,
+    origEra: data?.properties?.era?.value
   };
 
   const origWasCat = "displays-above" in data?.links;
@@ -1208,7 +1249,6 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     <TopicEditor
       origData={origData}
       origWasCat={origWasCat}
-      onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
       close={toggle}
     />
   );
@@ -1253,14 +1293,13 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
 }
 
 const CategoryAdderWrapper = ({toggle, data, type}) => {
-      const origData = {origEn: ""};
+      const origData = {origEnTitle: ""};
       switch (type) {
         case "cats":
           return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
         case "topics":
-          origData['origCategorySlug'] = data;
-          return <TopicEditor origData={origData} close={toggle} origWasCat={false}
-                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
+          origData['origCatSlug'] = data;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}/>;
       }
   }
 
@@ -2938,7 +2977,7 @@ const CategoryChooser = function({categories, update}) {
   }
   return <div ref={categoryMenu}>
           {menus.map((menu, index) =>
-            <div id="categoryChooserMenu">
+            <div className="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
               <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
@@ -2950,15 +2989,20 @@ const CategoryChooser = function({categories, update}) {
 
 const TitleVariants = function({titles, update, options}) {
   /*
-  Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
+  Wrapper for ReactTags component.  `titles` is initial list of objects to populate ReactTags component.
+  each item in `titles` should have an 'id' and 'name' field and can have others as well
   and `update` is method to call after deleting or adding to titles. `options` is an object that can have
   the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
+  if (titles.length > 0 && typeof titles[0] === 'string') {  // normalize titles
+    titles = titles.map((item, i) => ({["name"]: item, ["id"]: i}));
+  }
   const onTitleDelete = function(i) {
     const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
+    title.id = Math.max(titles.map(x => x.id)) + 1;  // assign unique id
     const newTitles = [].concat(titles, title);
     update(newTitles);
   }

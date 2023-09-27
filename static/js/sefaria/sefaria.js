@@ -349,6 +349,7 @@ Sefaria = extend(Sefaria, {
         return (text.indexOf(title) > -1);
     });
   },
+  _eras:  ["GN", "RI", "AH", "CO"],
   makeRefRe: function(titles) {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed
@@ -1045,6 +1046,15 @@ Sefaria = extend(Sefaria, {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
       return ref ? this.getRefFromCache(ref) : null;
+  },
+  openTransBannerApplies: (book, textLanguage) => {
+      /**
+       * Should we display OpenTransBanner?
+       * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
+       */
+      const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
+      const currCorpus = Sefaria.index(book)?.corpus;
+      return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
 

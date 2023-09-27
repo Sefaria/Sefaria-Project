@@ -51,6 +51,7 @@ class ReaderApp extends Component {
         searchQuery:             props.initialQuery,
         searchTab:               props.initialSearchTab,
         tab:                     props.initialTab,
+        topicSort:               props.initialTopicSort,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -167,6 +168,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
+      topicSort:               state.topicSort               || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null
@@ -386,6 +388,7 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.tab !== next.tab) ||
+          (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -480,6 +483,7 @@ class ReaderApp extends Component {
             const topicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
             if (state.navigationTopic) {
               hist.url = state.topicTestVersion ? `topics/${state.topicTestVersion}/${state.navigationTopic}` : `topics/${state.navigationTopic}`;
+              hist.url = hist.url + (state.topicSort ? `&sort=${state.topicSort}` : '');
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(topicMsg)}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
@@ -2049,7 +2053,7 @@ class ReaderApp extends Component {
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
-      var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
+      var openConnectionsPanel           = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
       var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
@@ -2088,7 +2092,7 @@ class ReaderApp extends Component {
                       onSearchResultClick={onSearchResultClick}
                       onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
-                      onOpenConnectionsClick={onOpenConnectionsClick}
+                      openConnectionsPanel={openConnectionsPanel}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}

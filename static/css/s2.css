@@ -1860,7 +1860,8 @@ div.interfaceLinks-row a {
   color: inherit;
   cursor: pointer;
 }
-.navSidebar a.inTextLink {
+.navSidebar a.inTextLink,
+.translationsDesc  a.inTextLink {
   color: inherit;
   text-decoration: underline;
   margin-inline-start: 5px;
@@ -2281,6 +2282,59 @@ div.interfaceLinks-row a {
 .topicPanel .resourcesLink.blue .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
+}
+.topicPhoto{
+  border: 1px solid #EDEDEC;
+  max-width: 100%; 
+  height: auto;
+  padding: 0 44;
+  top: 121px;
+  left: 835px;
+}
+.topicImageCaption .int-en {
+  font-family: Roboto;
+}
+.topicImageCaption .int-he {
+    font-family: Roboto;
+  }
+.topicImageCaption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+  letter-spacing: 0em;
+  color: var(--dark-grey);
+  width: 100%;
+}
+.topicImage{
+  padding-left: 44px;
+  padding-right: 44px;
+}
+@media (max-width: 600px) {
+  .topicPhoto{
+    height: auto;
+    max-width: calc(66.67vw);
+    max-height: calc(66.67vw);
+    margin-bottom: 10px;
+  }
+  .topicImage{
+    padding-left: 0;
+    padding-right: 0;
+    margin-top: 30px;  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .topicImageCaption {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0em;
+    color: var(--dark-grey);
+    width: 80vw;
+    margin-bottom: 30px;
+    text-align: center;
+  }
 }
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
@@ -8422,6 +8476,25 @@ h3.aboutSheetHeader {
   border-width: 1px;
 }
 
+.translationsHeader {
+  margin-bottom: 35px;
+}
+
+.translationsHeader h3 {
+  text-transform: none;
+  color: var(--dark-grey);
+  font-size: var(--sans-serif-h3-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.translationsHeader .translationsDesc {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+}
+
 .aboutSheetPanel hr {
   height: 0px;
   border: 1px solid var(--light-grey);
@@ -11289,7 +11362,7 @@ body .homeFeedWrapper.userStats {
   float: right;
   margin-right: 30px;
 }
-#categoryChooserMenu {
+.categoryChooserMenu {
   overflow: hidden;
   background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
   width: 100%;
@@ -11320,7 +11393,7 @@ body .homeFeedWrapper.userStats {
   display: inline-block;
 }
 
-#categoryChooserMenu select {
+.categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
   width: 680px;
@@ -11329,14 +11402,14 @@ body .homeFeedWrapper.userStats {
   padding: 4px 25px 4px 10px;
 }
 
-.connectionsPanel .editTextInfo #categoryChooserMenu {
+.connectionsPanel .editTextInfo .categoryChooserMenu {
   width: 102%;
 }
 
 .connectionsPanel .editTextInfo .collectionsWidget {
   width: 70%;
 }
-.connectionsPanel .editTextInfo #categoryChooserMenu select {
+.connectionsPanel .editTextInfo .categoryChooserMenu select {
   width: 98.5%;
 }
 
@@ -11347,11 +11420,11 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex {
   margin: 50px auto;
 }
-.searchBox #categoryChooserMenu {
+.searchBox .categoryChooserMenu {
   width: 97%;
   background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
 }
-.searchBox #categoryChooserMenu select {
+.searchBox .categoryChooserMenu select {
   width: 100%;
 }
 .searchBox .editTextInfo #newIndex input {
@@ -11360,7 +11433,7 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex #topicDesc {
   width: 92%;
 }
-#categoryChooserMenu img {
+.categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
@@ -11444,14 +11517,14 @@ body .homeFeedWrapper.userStats {
 }
 @media screen and (max-width: 680px) {
 
-  #categoryChooserMenu {
+  .categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
   .editTextInfo .static .headerWithButtons h1 {
     margin: 30px;
   }
-  #categoryChooserMenu select {
+  .categoryChooserMenu select {
     width: 340px;
   }
   .editTextInfo #newIndex input {
