@@ -2360,7 +2360,7 @@ const SubscribeButton = ({enAction, heAction, heLists, enLists, redirectURL}) =>
 }
 
 const HeaderForEducatorsPage = () => {
-  var enTitle="Teach with Sefaria"
+  var enTitle="Teach with Indrajala"
   var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
   var heText="גלו כיצד להעשיר את הלמידה וההוראה באמצעות מאגר מקורות דיגיטלי. באתר אפשרויות רבות ללומדים:  תוכלו למצוא מקורות, להיפגש עם מגוון של חומרי הוראה ולחזק את התלמידים שלכם כלומדים עצמאיים."
   var heTitle="מלמדים עם ספריא"
