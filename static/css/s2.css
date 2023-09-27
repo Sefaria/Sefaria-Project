@@ -2283,6 +2283,59 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.topicPhoto{
+  border: 1px solid #EDEDEC;
+  max-width: 100%; 
+  height: auto;
+  padding: 0 44;
+  top: 121px;
+  left: 835px;
+}
+.topicImageCaption .int-en {
+  font-family: Roboto;
+}
+.topicImageCaption .int-he {
+    font-family: Roboto;
+  }
+.topicImageCaption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+  letter-spacing: 0em;
+  color: var(--dark-grey);
+  width: 100%;
+}
+.topicImage{
+  padding-left: 44px;
+  padding-right: 44px;
+}
+@media (max-width: 600px) {
+  .topicPhoto{
+    height: auto;
+    max-width: calc(66.67vw);
+    max-height: calc(66.67vw);
+    margin-bottom: 10px;
+  }
+  .topicImage{
+    padding-left: 0;
+    padding-right: 0;
+    margin-top: 30px;  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .topicImageCaption {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0em;
+    color: var(--dark-grey);
+    width: 80vw;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+}
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
   font-size: 24px;
