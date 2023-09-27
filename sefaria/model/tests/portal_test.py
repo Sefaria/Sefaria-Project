@@ -2,6 +2,7 @@ import pytest
 from sefaria.model.portal import Portal  # Replace with your actual validation function
 from sefaria.model.topic import Topic
 from sefaria.system.exceptions import SluggedMongoRecordMissingError
+from sefaria.system.database import db
 
 valids = [
     {
@@ -491,6 +492,16 @@ def simple_portal():
 
 
 @pytest.fixture()
+def simple_portal_saved_directly_to_mongo():
+    raw_portal = valids[0]
+    inserted_result = db.portals.insert_one(raw_portal)
+
+    yield Portal(raw_portal)
+
+    db.portals.delete_one({"_id": inserted_result.inserted_id})
+
+
+@pytest.fixture()
 def simple_topic(simple_portal):
     topic = Topic({
         "slug": "blah",
@@ -524,3 +535,7 @@ def test_topic_validation_fails_for_non_existent_portal():
         })
         topic.save()
 
+
+def test_load_portal(simple_portal_saved_directly_to_mongo):
+    portal = Portal().load({"slug": simple_portal_saved_directly_to_mongo.slug})
+    assert portal is not None
