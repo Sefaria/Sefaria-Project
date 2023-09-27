@@ -247,6 +247,14 @@ valids = [
                 }
             }
         }
+    },
+    {
+        "about": {
+            "title": {
+                "en": "About Us",
+                "he": "עלינו"
+            }
+        }
     }
 ]
 
@@ -318,7 +326,7 @@ invalids = [
             }
         }
     },
-    # Missing required "mobile.ios_link"
+    # Including invalid field "newsletter.description.fr"
     {
         "about": {
             "title": {
@@ -341,7 +349,7 @@ invalids = [
         },
         "newsletter": {
             "title": {
-                "en": "Newsletter Title",
+                "fr": "Titre de la newsletter",
                 "he": "Newsletter Hebrew Title"
             },
             "title_url": "https://newsletter-url.com",
@@ -400,10 +408,55 @@ invalids = [
                 }
             }
         }
+    },
+    # Invalid data types:
+    {
+        "about": {
+            "title": {
+                "en": "About Us",
+                "he": "עלינו"
+            },
+            "title_url": 12345,
+            "image_uri": 67890,
+            "description": {
+                "en": "Description in English",
+                "he": "תיאור בעברית"
+            }
+        }
+    },
+{
+    # Incorrect field names
+    "about": {
+        "title": {
+            "en": "About Us",
+            "he": "עלינו"
+        },
+        "image_uri": "gs://bucket/image.jpg",
+        "description": {
+            "en": "Description in English",
+            "he": "תיאור בעברית"
+        }
+    },
+    "mobile": {
+        "title": {
+            "en": "Mobile App",
+            "he": "אפליקציה ניידת"
+        },
+        "android_link": "https://play.google.com/store/apps/details?id=com.example.app",
+        "ios_link": "https://apps.apple.com/us/app/example-app/id1234567890",
+        "invalid_field": "This field should not be here"
     }
-]
-def test_valid_schema():
-    for case in valids:
-        p = Portal(case)
-        assert p._validate() == True
+}
 
+
+]
+@pytest.mark.parametrize("data", valids)
+def test_valid_schema(data):
+    p = Portal(data)
+    assert p._validate() == True
+
+@pytest.mark.parametrize("invalid_case", invalids)
+def test_invalid_schema(invalid_case):
+    with pytest.raises(Exception):
+        p = Portal(invalid_case)
+        p._validate()
