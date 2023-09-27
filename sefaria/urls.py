@@ -268,6 +268,11 @@ urlpatterns += [
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 
+# Portals API
+urlpatterns += [
+    url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
+]
+
 # History API
 urlpatterns += [
     url(r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.texts_history_api),
