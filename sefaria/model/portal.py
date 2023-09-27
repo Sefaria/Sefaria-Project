@@ -61,7 +61,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
     ]
     optional_attrs = [
         "mobile",
-        'api_schema',
+        'newsletter',
     ]
 
     def _validate(self):
