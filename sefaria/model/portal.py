@@ -56,6 +56,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
     slug_fields = ['slug']
 
     required_attrs = [
+        "slug",
         "about",
     ]
     optional_attrs = [

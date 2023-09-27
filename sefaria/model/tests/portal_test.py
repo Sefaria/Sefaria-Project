@@ -3,6 +3,7 @@ from sefaria.model.portal import Portal  # Replace with your actual validation f
 
 valids = [
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -44,6 +45,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -71,6 +73,7 @@ valids = [
         }
     },
 {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -112,6 +115,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -135,6 +139,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -156,6 +161,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -197,6 +203,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -220,6 +227,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -249,6 +257,7 @@ valids = [
         }
     },
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "About Us",
@@ -261,6 +270,7 @@ valids = [
 invalids = [
     # Missing "about" key
     {
+        "slug": "English Title",
         "mobile": {
             "title": {
                 "en": "Mobile Title",
@@ -286,6 +296,7 @@ invalids = [
     },
     # Invalid "about.title_url" (not a URL)
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -328,6 +339,7 @@ invalids = [
     },
     # Including invalid field "newsletter.description.fr"
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -369,6 +381,7 @@ invalids = [
     },
     # Invalid "newsletter.api_schema.http_method" (not a valid HTTP method)
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "English Title",
@@ -411,6 +424,7 @@ invalids = [
     },
     # Invalid data types:
     {
+        "slug": "English Title",
         "about": {
             "title": {
                 "en": "About Us",
@@ -426,6 +440,7 @@ invalids = [
     },
 {
     # Incorrect field names
+    "slug": "English Title",
     "about": {
         "title": {
             "en": "About Us",
