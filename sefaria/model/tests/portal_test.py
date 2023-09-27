@@ -1,5 +1,7 @@
 import pytest
 from sefaria.model.portal import Portal  # Replace with your actual validation function
+from sefaria.model.topic import Topic
+from sefaria.system.exceptions import SluggedMongoRecordMissingError
 
 valids = [
     {
@@ -475,3 +477,50 @@ def test_invalid_schema(invalid_case):
     with pytest.raises(Exception):
         p = Portal(invalid_case)
         p._validate()
+
+
+@pytest.fixture()
+def simple_portal():
+    raw_portal = valids[0]
+    portal = Portal(raw_portal)
+    portal.save()
+
+    yield portal
+
+    portal.delete()
+
+
+@pytest.fixture()
+def simple_topic(simple_portal):
+    topic = Topic({
+        "slug": "blah",
+        "titles": [{"text": "Blah", "lang": "en", "primary": True}],
+        "portal_slug": simple_portal.slug,
+    })
+    topic.save()
+
+    yield topic
+
+    topic.delete()
+
+
+def test_save_simple_portal(simple_portal):
+    """
+    Tests that simple_portal was saved properly and has a normalized slug
+    """
+    assert simple_portal.slug == "english-title"
+
+
+def test_topic_validates_portal_exists(simple_topic):
+    assert simple_topic is not None
+
+
+def test_topic_validation_fails_for_non_existent_portal():
+    with pytest.raises(SluggedMongoRecordMissingError):
+        topic = Topic({
+            "slug": "blah",
+            "titles": [{"text": "Blah", "lang": "en", "primary": True}],
+            "portal_slug": "non-existent-portal",
+        })
+        topic.save()
+
