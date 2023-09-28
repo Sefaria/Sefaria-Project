@@ -609,6 +609,7 @@ class ConnectionsPanel extends Component {
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
         mode={this.props.mode}
+        contextId={this.props.contextId}
         setFilter={this.props.setVersionFilter}
         title={this.props.title}
         srefs={this.props.srefs}
@@ -620,6 +621,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
         key={`Translations`}
+        contextId={this.props.contextId}
         currObjectVersions={this.state.currObjectVersions}
         setConnectionsMode={this.props.setConnectionsMode}
         mode={this.props.mode}
@@ -698,6 +700,7 @@ ConnectionsPanel.propTypes = {
   mode: PropTypes.string.isRequired, // "Resources", "ConnectionsList", "TextList" etc., called `connectionsMode` above
   connectionsCategory: PropTypes.string,            // with mode:"ConnectionsList", which category of connections to show
   setFilter: PropTypes.func.isRequired,
+  contextId: PropTypes.string.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
   setConnectionsCategory: PropTypes.func.isRequired,
   editNote: PropTypes.func.isRequired,

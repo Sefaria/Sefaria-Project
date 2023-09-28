@@ -181,6 +181,7 @@ class AboutBox extends Component {
           key={`${sourceVersion.versionTitle}|${sourceVersion.actualLanguage}`}
           rendermode="about-box"
           sidebarDisplay = {true}
+          contextId={this.props.contextId}
           version={sourceVersion}
           currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
@@ -200,6 +201,7 @@ class AboutBox extends Component {
                   key={`${ve.versionTitle}|${ve.actualLanguage}`}
                   rendermode="about-box"
                   sidebarDisplay = {true}
+                  contextId={this.props.contextId}
                   version={ve}
                   currObjectVersions={this.props.currObjectVersions}
                   currentRef={this.props.srefs[0]}
@@ -219,6 +221,7 @@ class AboutBox extends Component {
               versionsByLanguages={this.state.versionLangMap}
               currObjectVersions={this.props.currObjectVersions}
               showLanguageHeaders={false}
+              contextId={this.props.contextId}
               currentRef={this.props.srefs[0]}
               openVersionInReader={this.props.openVersionInReader}
               openVersionInSidebar={this.openVersionInSidebar}

@@ -7,8 +7,11 @@ import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import TextRange from "./TextRange";
 import {AddConnectionToSheetButton, ConnectionButtons, OpenConnectionTabButton} from "./TextList";
-
+import { ReaderPanelContext } from './readerPanelContext';
 class TranslationsBox extends Component {
+
+  static contextType = ReaderPanelContext;
+
   constructor(props) {
     super(props);
     this._excludedLangs = ["he"];
@@ -44,6 +47,15 @@ class TranslationsBox extends Component {
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+
+    debugger;
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+    const context = readerAppContextObject;
+    if (!context[this.props.contextId]) {
+      context[this.props.contextId] = {};  
+    }
+    context[this.props.contextId].translation = {versionTitle: versionTitle, language: versionLanguage};
+    setReaderAppContextObject(context);
   }
   isSheet(){
     return this.props.srefs[0].startsWith("Sheet");
@@ -84,6 +96,7 @@ class TranslationsBox extends Component {
                 versionsByLanguages={this.state.versionLangMap}
                 currObjectVersions={this.props.currObjectVersions}
                 sortPrioritizeLanugage={"en"}
+                contextId={this.props.contextId}
                 currentRef={this.props.srefs[0]}
                 openVersionInReader={this.props.openVersionInReader}
                 openVersionInSidebar={this.openVersionInSidebar}

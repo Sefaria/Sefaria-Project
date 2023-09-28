@@ -6,10 +6,13 @@ import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import {LoadingMessage} from "./Misc";
-
+import {ReaderPanelContext} from "./readerPanelContext";
 
 
 class VersionBlock extends Component {
+
+  static contextType = ReaderPanelContext;
+
   constructor(props) {
     super(props);
     this.updateableVersionAttributes = [
@@ -38,6 +41,15 @@ class VersionBlock extends Component {
   }
   onVersionTitleClick(e) {
     e.preventDefault();
+    debugger;
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+    const context = readerAppContextObject;
+    if (!context[this.props.contextId]) {
+      context[this.props.contextId] = {};  
+    }
+    const versionType = this.props.inTranslationBox ? "translation" : "source";
+    context[this.props.contextId][versionType] = {versionTitle: this.props.version.versionTitle, language: this.props.version.language};
+    setReaderAppContextObject(context);
     this.index = Sefaria.parseRef(this.props.currentRef).index
     try {
       gtag("event", "onClick_version_title", {element_name: `version_title`, change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`, categories: `${Sefaria.refCategories(this.props.currentRef)}`, book: `${Sefaria.parseRef(this.props.currentRef).index}` })
@@ -57,6 +69,15 @@ class VersionBlock extends Component {
   }
   onSelectVersionClick(e) {
     e.preventDefault();
+    debugger;
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+    const context = readerAppContextObject;
+    if (!context[this.props.contextId]) {
+      context[this.props.contextId] = {};
+    }
+    const versionType = this.props.inTranslationBox ? "translation" : "source";
+    context[this.props.contextId][versionType] = {versionTitle: this.props.version.versionTitle, language: this.props.version.language};
+    setReaderAppContextObject(context);
     try {
       gtag("event", "onClick_select_version", {element_name: `select_version`,
       change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`,
@@ -212,6 +233,8 @@ class VersionBlock extends Component {
     return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.inTranslationBox;
   }
   render() {
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+    
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
     const vtitle = this.makeVersionTitle();
@@ -453,6 +476,7 @@ class VersionsBlocksList extends Component{
                       rendermode="versions-box"
                       sidebarDisplay={true}
                       version={v}
+                      contextId={this.props.contextId}
                       currObjectVersions={this.props.currObjectVersions}
                       currentRef={this.props.currentRef}
                       firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}

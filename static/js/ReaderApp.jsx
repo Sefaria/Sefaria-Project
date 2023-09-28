@@ -10,6 +10,7 @@ import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import {PanelContextWrapper} from './readerPanelContext';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -34,6 +35,8 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import {useState} from "react";
+import { v4 as uuidv4 } from 'uuid';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -259,6 +262,30 @@ class ReaderApp extends Component {
 
     this.setContainerMode();
     this.updateHistoryState(this.replaceHistory);
+  }
+
+
+  setContextIds = () => {
+    for (let i = this.state.panels.length - 1; i >= 0; i--) {
+
+      // If the current panel is in "Connections" mode, assign its contextId to the previous panel
+      if (this.state.panels[i].mode === "Connections" && i > 0) {
+        if (!this.state.panels[i - 1].contextId) {
+          this.state.panels[i - 1].contextId = uuidv4();
+        }
+        this.state.panels[i].contextId = this.state.panels[i - 1].contextId;
+      }
+
+      // If the current panel is "Text" and has the same contextId as the previous panel, assign it a new contextId
+      if (this.state.panels[i].mode === "Text" && i > 0 && this.state.panels[i].contextId === this.state.panels[i - 1].contextId) {
+        this.state.panels[i].contextId = uuidv4();
+      }
+    
+      // Assign a contextId if it doesn't exist
+      if (!this.state.panels[i].contextId) {
+        this.state.panels[i].contextId = uuidv4();
+      }
+    }
   }
 
 
@@ -1987,11 +2014,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
 
   render() {
+    this.setContextIds();
+
     var panelStates = this.state.panels;
     var evenWidth;
     var widths;
     var unit;
     var wrapBoxScroll = false;
+
 
     if (panelStates.length <= this.state.panelCap || !this.state.panelCap) {
       evenWidth = (100.0 / panelStates.length);
@@ -2096,9 +2126,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       // Use a combination of the panel number and text title
       var key   = i + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
+      debugger;
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
                       panelPosition={i}
+                      contextId={panel.contextId}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
                       setCentralState={setPanelState}
@@ -2192,7 +2224,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Banner onClose={this.setContainerMode} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {panels}
+              <PanelContextWrapper>
+                {panels}
+              </PanelContextWrapper>
               {signUpModal}
               {communityPagePreviewControls}
               <CookiesNotification />

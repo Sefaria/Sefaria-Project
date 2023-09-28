@@ -9,10 +9,14 @@ import {EnglishText, HebrewText} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
 import {getVersions} from "./sefaria/textManager";
-
+import { useContext } from "react";
+import {ReaderPanelContext} from "./readerPanelContext";
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
+  
+  static contextType = ReaderPanelContext;
+
   constructor(props) {
     super(props);
     this.state = {
@@ -111,7 +115,10 @@ class TextRange extends Component {
   }
 
   async getText() {
-    let data = await getVersions(this.props.sref, {language: 'he', versionTitle: 'base'}, {language: 'en', versionTitle: 'base'}, null);
+    debugger
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+
+    let data = await getVersions(this.props.sref, {language: 'he', versionTitle: "source"}, {language: 'en', versionTitle: 'base'}, null);
 
     if (!!data && this.props.isCurrentlyVisible) {
       this._updateCurrVersions(data.translation.versionTitle, data.source.versionTitle);
@@ -125,6 +132,7 @@ class TextRange extends Component {
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+      debugger;
       this.props.showBaseText(data.ref, true, this.props.currVersions);
       return;
     } else if (this.props.basetext && data.spanning) {
@@ -277,6 +285,9 @@ class TextRange extends Component {
   }
 
   render() {
+    debugger;
+    const { readerAppContextObject, setReaderAppContextObject } = this.context;
+    const currentContext = readerAppContextObject[this.props.contextId];
     const { data } = this.state;
 
     let title, heTitle, ref;

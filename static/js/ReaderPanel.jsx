@@ -656,6 +656,7 @@ class ReaderPanel extends Component {
       items.push(
         <TextColumn
           panelPosition ={this.props.panelPosition}
+          contextId={this.props.contextId}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
@@ -729,6 +730,7 @@ class ReaderPanel extends Component {
         <ConnectionsPanel
           panelPosition ={this.props.panelPosition}
           selectVersion={this.props.selectVersion}
+          contextId={this.props.contextId}
           srefs={this.state.mode === "Connections" ? this.state.refs.slice() : this.state.highlightedRefs.slice()}
           filter={this.state.filter || []}
           mode={this.state.connectionsMode || "Resources"}
@@ -827,6 +829,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "text toc") {
       menu = (<BookPage
                     tab={this.state.tab}
+                    contextId={this.props.contextId}
                     setTab={this.setTab}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
@@ -853,6 +856,7 @@ class ReaderPanel extends Component {
       menu = (<BookPage
                     tab={this.state.tab}
                     setTab={this.setTab}
+                    contextId={this.props.contextId}
                     mode={this.state.menuOpen}
                     multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
@@ -876,6 +880,7 @@ class ReaderPanel extends Component {
                     tab={this.state.tab}
                     setTab={this.setTab}
                     mode={this.state.menuOpen}
+                    contextId={this.props.contextId}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeMenus}
                     title={this.state.bookRef ? this.state.bookRef : this.currentBook()}

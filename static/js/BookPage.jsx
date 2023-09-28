@@ -290,6 +290,7 @@ class BookPage extends Component {
                    <VersionsList
                      currObjectVersions={currObjectVersions}
                      openVersionInReader={this.openVersion}
+                     contextId={this.props.contextId}
                      currentRef={this.props.currentRef}
                      viewExtendedNotes={this.props.viewExtendedNotes}
                    />
@@ -997,6 +998,7 @@ class VersionsList extends Component {
       <VersionBlock
         rendermode="book-page"
         version={v}
+        contextId={this.props.contextId}
         currObjectVersions={this.props.currObjectVersions}
         currentRef={this.props.currentRef}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}

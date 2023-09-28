@@ -370,6 +370,7 @@ class TextColumn extends Component {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={sref}
+        contextId={this.props.contextId}
         isCurrentlyVisible={isCurrentlyVisible}
         currVersions={this.props.currVersions}
         highlightedRefs={this.props.highlightedRefs}
