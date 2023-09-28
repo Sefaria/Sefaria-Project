@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
 import Cookies from "js-cookie";
 
-export function NewsletterSignUpForm({contextName, includeEducatorOption}) {
+export function NewsletterSignUpForm({contextName, includeEducatorOption=true}) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -113,7 +113,7 @@ export function NewsletterSignUpForm({contextName, includeEducatorOption}) {
             onChange={e => setLastName(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
       </span>
-                    <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} />
+                {includeEducatorOption ? <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} /> : null}
                     <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
                 </>
                 : null}
