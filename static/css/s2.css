@@ -2304,7 +2304,8 @@ div.interfaceLinks-row a {
   padding-right: 44px;
 }
 .portalTopicImageWrapper {
-    padding-top: 10px;
+    padding-top: 5px;
+    margin-bottom: 25px;
 }
 .portalTopicImageWrapper .topicImage {
     padding-left: 0;

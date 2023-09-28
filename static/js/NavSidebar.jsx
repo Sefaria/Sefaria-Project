@@ -799,10 +799,10 @@ const PortalAbout = ({title, description, image_uri}) => {
     return(
         <Module>
             <ModuleTitle en={title.en} he={title.he} />
-            <InterfaceText markdown={{en: description.en, he: description.he}} />
             <div className="portalTopicImageWrapper">
                 <TopicImage photoLink={image_uri}/>
             </div>
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
         </Module>
     )
 };
