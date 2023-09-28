@@ -6,6 +6,9 @@ WEB_CONTAINER_ID=$(docker ps | grep "sefaria" | grep "web" | awk '{print $1}')
 # Get the container ID for the node service
 NODE_CONTAINER_ID=$(docker ps | grep "sefaria" | grep "node" | awk '{print $1}')
 
+# Get the container ID for the node service
+MONGO_CONTAINER_ID=$(docker ps | grep "sefaria" | grep "db" | awk '{print $1}')
+
 # Function to prompt user for action or skip
 prompt_skip() {
     echo "$1 (Press ENTER to continue or 's' to skip)"
@@ -21,11 +24,14 @@ if prompt_skip "Step 1: Load data into the database"; then
     # Download the MongoDB dump
     curl -O https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz
 
-    # Extract the dump
-    tar -xzf dump_small.tar.gz
+    # Copy the downloaded dump to the MongoDB container
+    docker cp dump_small.tar.gz $MONGO_CONTAINER_ID:/dump_small.tar.gz
 
-    # Restore the dump to the local MongoDB instance on port 27018
-    mongorestore --drop --port 27018
+    # Extract the dump
+    docker exec -it $MONGO_CONTAINER_ID bash -c "tar -xzf dump_small.tar.gz"
+
+    # Restore the dump to the local MongoDB instance on MONGO_CONTAINER_ID
+    docker exec -it $MONGO_CONTAINER_ID bash -c "mongorestore --drop"  
 fi
 
 # Step 2: Update local settings file
