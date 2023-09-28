@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {TopicImage} from './TopicPage'
@@ -580,14 +580,16 @@ const GetTheApp = () => (
     <ModuleTitle>Get the Mobile App</ModuleTitle>
     <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
     <br />
-    <a target="_blank" className="button small white appButton ios" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
-      <img src="/static/icons/ios.svg" alt={Sefaria._("Sefaria app on IOS")} />
-      <InterfaceText>iOS</InterfaceText>
-    </a>
-    <a target="_blank" className="button small white appButton" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
-      <img src="/static/icons/android.svg" alt={Sefaria._("Sefaria app on Android")} />
-      <InterfaceText>Android</InterfaceText>
-    </a>
+    <AppStoreButton
+        href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+        platform='ios'
+        altText={Sefaria._("Sefaria app on IOS")}
+    />
+    <AppStoreButton
+        href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        platform='android'
+        altText={Sefaria._("Sefaria app on Android")}
+    />
   </Module>
 );
 
@@ -814,14 +816,8 @@ const PortalMobile = ({title, description, android_link, ios_link}) => {
             <div className="portalMobile">
                 <ModuleTitle en={title.en} he={title.he} />
                 {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
-                <a target="_blank" className="button small white appButton ios" href={ios_link}>
-                    <img src="/static/icons/ios.svg"/>
-                    <InterfaceText>iOS</InterfaceText>
-                </a>
-                <a target="_blank" className="button small white appButton" href={android_link}>
-                    <img src="/static/icons/android.svg" />
-                    <InterfaceText>Android</InterfaceText>
-                </a>
+                <AppStoreButton href={ios_link} platform={'ios'} altText='Steinsaltz app on iOS' />
+                <AppStoreButton href={android_link} platform={'android'} altText='Steinsaltz app on Android' />
             </div>
         </Module>
     )

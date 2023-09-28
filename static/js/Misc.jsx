@@ -3272,7 +3272,23 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+
+const AppStoreButton = ({ platform, href, altText }) => {
+  const isIOS = platform === 'ios';
+  const aClasses = classNames({button: 1, small: 1, white: 1, appButton: 1, ios: isIOS});
+  const iconSrc = `/static/icons/${isIOS ? 'ios' : 'android'}.svg`;
+  const text = isIOS ? 'iOS' : 'Android';
+  return (
+      <a target="_blank" className={aClasses} href={href}>
+        <img src={iconSrc} alt={altText} />
+        <InterfaceText>{text}</InterfaceText>
+      </a>
+  );
+};
+
+
 export {
+  AppStoreButton,
   CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
