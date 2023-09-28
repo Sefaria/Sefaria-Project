@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {AppStoreButton, DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText} from './Misc'
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {TopicImage} from './TopicPage'
