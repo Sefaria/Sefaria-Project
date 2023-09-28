@@ -152,6 +152,14 @@ data:
             proxy_pass http://varnish_upstream;
         }
 
+        location /static/mobile/message-en.json {
+          return 301 ${STRAPI_LOCATION}/api/mobile-message;
+        }
+
+        location /static/mobile/message-he.json {
+          return 301 ${STRAPI_LOCATION}/api/mobile-message-he;
+        }
+
         location /static/ {
           access_log off;
           alias /app/static/;

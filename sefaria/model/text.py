@@ -182,7 +182,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
     criteria_field = 'title'
     criteria_override_field = 'oldTitle'  # used when primary attribute changes. field that holds old value.
     track_pkeys = True
-    pkeys = ["title"]
+    pkeys = ["title", "compPlace", "pubPlace"]
 
     required_attrs = [
         "title",
@@ -200,10 +200,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "enShortDesc",
         "heShortDesc",
         "pubDate",
+        "hasErrorMargin",     # (bool) whether or not compDate is exact.  used to be 'errorMargin' which was an integer amount that compDate was off by
         "compDate",
         "compPlace",
         "pubPlace",
-        "errorMargin",
         "era",
         "dependence",           # (str) Values: "Commentary" or "Targum" - to denote commentaries and other potential not standalone texts
         "base_text_titles",     # (list) the base book(s) this one is dependant on
@@ -307,22 +307,20 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             contents["base_text_titles"] = [{"en": btitle, "he": hebrew_term(btitle)} for btitle in self.base_text_titles]
 
         contents["heCategories"] = list(map(hebrew_term, self.categories))
+        contents = self.time_period_and_place_contents(contents)
+        return contents
 
+    def time_period_and_place_contents(self, contents):
+        """ Used to expand contents for date and time info """
+        for k, f in [("compDateString", self.composition_time_period), ("pubDateString", self.publication_time_period)]:
+            time_period = f()
+            if time_period:
+                contents[k] = {"en": time_period.period_string('en'), 'he': time_period.period_string('he')}
 
-        composition_time_period = self.composition_time_period()
-        if composition_time_period:
-            contents["compDateString"] = {
-                "en": composition_time_period.period_string("en"),
-                "he": composition_time_period.period_string("he"),
-            }
-
-        composition_place = self.composition_place()
-        if composition_place:
-            contents["compPlaceString"] = {
-                "en": composition_place.primary_name("en"),
-                "he": composition_place.primary_name("he"),
-            }
-
+        for k, f in [("compPlaceString", self.composition_place), ("pubPlaceString", self.publication_place)]:
+            place = f()
+            if place:
+                contents[k] = {"en": place.primary_name('en'), 'he': place.primary_name('he')}
         return contents
 
     def _saveable_attrs(self):
@@ -486,93 +484,47 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
     # This is similar to logic on GardenStop
     def composition_time_period(self):
-        return self._get_time_period("compDate", "errorMargin")
+        return self._get_time_period("compDate", margin_field="hasErrorMargin")
 
     def publication_time_period(self):
         return self._get_time_period("pubDate")
 
     def best_time_period(self):
         """
-        :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
-        If no compDate, looks at author info
+        :return: TimePeriod: First tries to return `compDate`.
+        If no compDate or compDate is an empty list, _get_time_period returns None and it then looks at author info
         """
-        start, end, startIsApprox, endIsApprox = None, None, None, None
-
-        if getattr(self, "compDate", None):
-            errorMargin = int(getattr(self, "errorMargin", 0))
-            self.startIsApprox = self.endIsApprox = errorMargin > 0
-
-            try:
-                year = int(getattr(self, "compDate"))
-                start = year - errorMargin
-                end = year + errorMargin
-            except ValueError as e:
-                years = getattr(self, "compDate").split("-")
-                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                    years[0] = -int(years[1])
-                    years[1] = int(years[2])
-                try:
-                    start = int(years[0]) - errorMargin
-                    end = int(years[1]) + errorMargin
-                except UnicodeEncodeError as e:
-                    pass
-
+        compDatePeriod = self._get_time_period('compDate', margin_field="hasErrorMargin")
+        if compDatePeriod:
+            return compDatePeriod
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
             tp = author and author.most_accurate_time_period()
-            if tp is not None:
-                tpvars = vars(tp)
-                start = tp.start if "start" in tpvars else None
-                end = tp.end if "end" in tpvars else None
-                startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
-                endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
+            return tp
 
-        if not start is None:
-            from sefaria.model.timeperiod import TimePeriod
-            if not startIsApprox is None:
-                return TimePeriod({
-                    "start": start,
-                    "end": end,
-                    "startIsApprox": startIsApprox,
-                    "endIsApprox": endIsApprox
-                })
-            else:
-                return TimePeriod({
-                    "start": start,
-                    "end": end
-                })
-
-    def _get_time_period(self, date_field, margin_field=None):
+    def _get_time_period(self, date_field, margin_field=""):
+        """
+        Assumes that value of `date_field` ('pubDate' or 'compDate') is a list of integers.
+        """
         from . import timeperiod
-        if not getattr(self, date_field, None):
+        years = getattr(self, date_field, [])
+        if years is None or len(years) == 0:
             return None
-
         try:
-            error_margin = int(getattr(self, margin_field, 0)) if margin_field else 0
+            error_margin = getattr(self, margin_field, False) if margin_field else False
         except ValueError:
-            error_margin = 0
-        startIsApprox = endIsApprox = error_margin > 0
-
-        try:
-            year = int(getattr(self, date_field))
-            start = year - error_margin
-            end = year + error_margin
-        except ValueError as e:
-            try:
-                years = getattr(self, date_field).split("-")
-                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                    years[0] = -int(years[1])
-                    years[1] = int(years[2])
-                start = int(years[0]) - error_margin
-                end = int(years[1]) + error_margin
-            except ValueError as e:
-                return None
+            error_margin = False
+        startIsApprox = endIsApprox = error_margin
+        if len(years) > 1:
+            start, end = years
+        else:
+            start = end = years[0]
         return timeperiod.TimePeriod({
-            "start": start,
-            "startIsApprox": startIsApprox,
-            "end": end,
-            "endIsApprox": endIsApprox
-        })
+        "start": start,
+        "startIsApprox": startIsApprox,
+        "end": end,
+        "endIsApprox": endIsApprox
+    })
 
     # Index changes behavior of load_from_dict, so this circumvents that changed behavior to call load_from_dict on the abstract superclass
     def update_from_dict(self, d):
@@ -734,12 +686,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         for attr in deprecated_attrs:
             if getattr(self, attr, None):
                 delattr(self, attr)
-        try:
-            error_margin_value = getattr(self, "errorMargin", 0)
-            int(error_margin_value)
-        except ValueError:
-            logger.warning("Index record '{}' has invalid 'errorMargin': {} field, removing".format(self.title, error_margin_value))
-            delattr(self, "errorMargin")
 
     def _update_alt_structs_on_title_change(self):
         old_title = self.pkeys_orig_values["title"]
@@ -799,11 +745,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if getattr(self, "collective_title", None) and not hebrew_term(getattr(self, "collective_title", None)):
             raise InputError("You must add a hebrew translation Term for any new Collective Title: {}.".format(self.collective_title))
-
-        try:
-            int(getattr(self, "errorMargin", 0))
-        except (ValueError):
-            raise InputError("composition date error margin must be an integer")
 
         #complex style records- all records should now conform to this
         if self.nodes:

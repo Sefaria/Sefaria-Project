@@ -404,6 +404,7 @@ const Strings = {
     "Describe the issue..." : "טקסט המשוב",
     "Report an issue with the text" : "דיווח על בעיה בטקסט",
     "Request translation" : "בקשה לתרגום",
+    "Go to translations": "לרשימת התרגומים",
     "Report a bug" : "דיווח על תקלה באתר",
     "Get help" : "עזרה",
     "Help": "עזרה",

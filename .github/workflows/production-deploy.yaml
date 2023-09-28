@@ -164,7 +164,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
+            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

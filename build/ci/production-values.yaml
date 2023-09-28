@@ -2,8 +2,11 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production
 previousServicesCount: "3"
+deploymentMessage: true
 restore:
   enabled: false
+  dynamicName: false
+  cleanup: false
 backup:
   mongo:
     enabled: true
@@ -52,6 +55,7 @@ redis:
   containerImage:
     imageRegistry: redis
     tag: latest
+  pdb: true
   resources:
     requests:
       memory: "500Mi"
@@ -138,6 +142,7 @@ nginx:
     imageRegistry:
     tag:
   SEARCH_HOST: elasticsearch-data
+  disableScraping: false
   replicaCount: 2
   resources:
     requests:
@@ -216,3 +221,4 @@ localSettings:
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
   CRM_TYPE: "SALESFORCE"
+  FAIL_GRACEFULLY: "True"

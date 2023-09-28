@@ -94,7 +94,6 @@ urlpatterns += [
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api), 
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
-    url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 
 # Topics

@@ -5,6 +5,7 @@ from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
+from sefaria.model.place import process_topic_place_change
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
@@ -12,6 +13,7 @@ from sefaria.system.cache import django_cache
 
 import structlog
 from sefaria import tracker
+from sefaria.helper.descriptions import create_era_link
 logger = structlog.get_logger(__name__)
 
 def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=None, with_indexes=True):
@@ -107,6 +109,67 @@ def group_links_by_type(link_class, links, annotate_links, group_related):
                 grouped_links[link_type_slug]['pluralTitle'] = link_type.get('pluralDisplayName', is_inverse)
     return grouped_links
 
+def merge_props_for_similar_refs(curr_link, new_link):
+    # when grouping similar refs, make sure the source to display has the maximum curatedPrimacy of all the similar refs,
+    # as well as datasource and descriptions of all the similar refs
+    data_source = new_link.get('dataSource', None)
+    if data_source:
+        curr_link = update_refs(curr_link, new_link, data_source)
+        curr_link = update_data_source_in_link(curr_link, new_link, data_source)
+
+    if not curr_link['is_sheet']:
+        curr_link = update_descriptions_in_link(curr_link, new_link)
+        curr_link = update_curated_primacy(curr_link, new_link)
+    return curr_link
+
+def update_data_source_in_link(curr_link, new_link, data_source):
+    data_source_obj = library.get_topic_data_source(data_source)
+    curr_link['dataSources'][data_source] = data_source_obj.displayName
+    del new_link['dataSource']
+    return curr_link
+
+def is_data_source_learning_team(func):
+    def wrapper(curr_link, new_link, data_source):
+        if data_source == 'learning-team':
+            return func(curr_link, new_link)
+        else:
+            return curr_link
+    return wrapper
+
+@is_data_source_learning_team
+def update_refs(curr_link, new_link):
+    # in case the new_link was created by the learning team, we want to use ref of learning team link
+    # in the case when both links are from the learning team, use whichever ref covers a smaller range
+    if 'learning-team' not in curr_link['dataSources'] or len(curr_link['expandedRefs']) > len(
+            new_link['expandedRefs']):
+        curr_link['ref'] = new_link['ref']
+        curr_link['expandedRefs'] = new_link['expandedRefs']
+    return curr_link
+
+def update_descriptions_in_link(curr_link, new_link):
+    # merge new link descriptions into current link
+    new_description = new_link.get('descriptions', {})
+    if new_description:
+        curr_link_description = curr_link.get('descriptions', {})
+        for lang in ['en', 'he']:
+            if lang not in curr_link_description and lang in new_description:
+                curr_link_description[lang] = new_description[lang]
+        curr_link['descriptions'] = curr_link_description
+    return curr_link
+
+def update_curated_primacy(curr_link, new_link):
+    # make sure curr_link has the maximum curated primacy value of itself and new_link
+    new_curated_primacy = new_link.get('order', {}).get('curatedPrimacy', {})
+    if new_curated_primacy:
+        if 'order' not in curr_link:
+            curr_link['order'] = new_link['order']
+            return
+        curr_curated_primacy = curr_link['order'].get('curatedPrimacy', {})
+        for lang in ['en', 'he']:
+            # front-end sorting considers 0 to be default for curatedPrimacy
+            curr_curated_primacy[lang] = max(curr_curated_primacy.get(lang, 0), new_curated_primacy.get(lang, 0))
+        curr_link['order']['curatedPrimacy'] = curr_curated_primacy
+    return curr_link
 
 def sort_and_group_similar_refs(ref_links):
     ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
@@ -118,10 +181,7 @@ def sort_and_group_similar_refs(ref_links):
         for seg_ref in temp_subset_refs:
             for index in subset_ref_map[seg_ref]:
                 new_ref_links[index]['similarRefs'] += [link]
-                if link.get('dataSource', None):
-                    data_source = library.get_topic_data_source(link['dataSource'])
-                    new_ref_links[index]['dataSources'][link['dataSource']] = data_source.displayName
-                    del link['dataSource']
+                new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], link)
         if len(temp_subset_refs) == 0:
             link['similarRefs'] = []
             link['dataSources'] = {}
@@ -653,7 +713,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         else:
             sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
             includedRefs = []
-            for tref in sheet['includedRefs']:                
+            for tref in sheet['includedRefs']:
                 try:
                     oref = get_ref_safely(tref)
                     if oref is None:
@@ -853,7 +913,7 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
             continue
         if getattr(oref.index, 'authors', None) is None: continue
         for author in oref.index.authors:
-            by_author[author] += [rd.contents()]    
+            by_author[author] += [rd.contents()]
     for author, rd_list in by_author.items():
         rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
         if len(rd_list) == 0: continue
@@ -979,27 +1039,64 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
+def update_topic_titles(topic_obj, data):
+    for lang in ['en', 'he']:
+        for title in topic_obj.get_titles(lang):
+            topic_obj.remove_title(title, lang)
+        for title in data['altTitles'][lang]:
+            topic_obj.add_title(title, lang)
+
+    topic_obj.add_title(data['title'], 'en', True, True)
+    topic_obj.add_title(data['heTitle'], 'he', True, True)
+    return topic_obj
+
+
+def update_authors_place_and_time(topic_obj, data, dataSource='learning-team-editing-tool'):
+    # update place info added to author, then update year and era info
+    if not hasattr(topic_obj, 'properties'):
+        topic_obj.properties = {}
+    process_topic_place_change(topic_obj, data)
+    topic_obj = update_author_era(topic_obj, data, dataSource=dataSource)
+
+    return topic_obj
+
+def update_properties(topic_obj, dataSource, k, v):
+    if v == '':
+        topic_obj.properties.pop(k, None)
+    else:
+        topic_obj.properties[k] = {'value': v, 'dataSource': dataSource}
+
+def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
+    for k in ["birthYear", "deathYear"]:
+        if k in data.keys():    # only change property value if key is in data, otherwise it indicates no change
+            year = data[k]
+            update_properties(topic_obj, dataSource, k, year)
+
+    if 'era' in data.keys():    # only change property value if key is in data, otherwise it indicates no change
+        prev_era = topic_obj.properties.get('era', {}).get('value')
+        era = data['era']
+        update_properties(topic_obj, dataSource, 'era', era)
+        if era != '':
+            create_era_link(topic_obj, prev_era_to_delete=prev_era)
+    return topic_obj
 
 
 def update_topic(topic_obj, **kwargs):
     """
     Can update topic object's title, hebrew title, category, description, and categoryDescription fields
     :param topic_obj: (Topic) The topic to update
-    :param **kwargs can be title, heTitle, category, description, catDescription, and rebuild_toc where `title`, `heTitle`,
-         and `category` are strings. `description` and `catDescription` are dictionaries where the fields are `en` and `he`.
+    :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
+         and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
     orig_slug = topic_obj.slug
+    update_topic_titles(topic_obj, kwargs)
+    if kwargs.get('category') == 'authors':
+        topic_obj = update_authors_place_and_time(topic_obj, kwargs)
 
-    if 'title' in kwargs and kwargs['title'] != topic_obj.get_primary_title('en'):
-        topic_obj.add_title(kwargs['title'], 'en', True, True)
-
-    if 'heTitle' in kwargs and kwargs['heTitle'] != topic_obj.get_primary_title('he'):
-        topic_obj.add_title(kwargs['heTitle'], 'he', True, True)
-
-    if 'category' in kwargs:
+    if 'category' in kwargs and kwargs['category'] != kwargs['origCategory']:
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
@@ -1009,11 +1106,10 @@ def update_topic(topic_obj, **kwargs):
         topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         topic_obj.description_published = True
 
-    if "description" in kwargs:
-        topic_obj.change_description(kwargs["description"], kwargs.get("catDescription", None))
+    if "description" in kwargs or "categoryDescription" in kwargs:
+        topic_obj.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
 
     topic_obj.save()
-
 
     if kwargs.get('rebuild_topic_toc', True):
         rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
@@ -1070,8 +1166,8 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
         current_descriptions[interface_lang] = description
         link.descriptions = current_descriptions
 
-    if getattr(link, 'generatedBy', TopicLinkHelper.generated_by_sheets):
-        del link.generatedBy
+    if hasattr(link, 'generatedBy') and getattr(link, 'generatedBy', "") == TopicLinkHelper.generated_by_sheets:
+        del link.generatedBy  # prevent link from getting deleted when topic cronjob runs
 
     if not creating_new_link and link is None:
         return {"error": f"Can't edit link because link does not currently exist."}
@@ -1154,7 +1250,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
-    if lang in link.order['availableLangs']:   
+    if lang in link.order['availableLangs']:
         link.order['availableLangs'].remove(lang)
     if lang in link.order['curatedPrimacy']:
         link.order['curatedPrimacy'].pop(lang)
