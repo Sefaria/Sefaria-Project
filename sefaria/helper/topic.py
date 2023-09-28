@@ -129,10 +129,8 @@ def update_data_source_in_link(curr_link, new_link, data_source):
     return curr_link
 
 def update_refs(curr_link, new_link):
-    # in case the new_link was created by the learning team, we want to use ref of learning team link
-    # in the case when neither link is from the learning team, use whichever ref covers a smaller range
-    if is_learning_team(curr_link['dataSources']) or len(curr_link['expandedRefs']) > len(
-            new_link['expandedRefs']):
+    # use whichever ref covers a smaller range
+    if len(curr_link['expandedRefs']) > len(new_link['expandedRefs']):
         curr_link['ref'] = new_link['ref']
         curr_link['expandedRefs'] = new_link['expandedRefs']
     return curr_link
@@ -172,7 +170,7 @@ def iterate_and_merge(new_ref_links, new_link, subset_ref_map, temp_subset_refs)
         for index in subset_ref_map[seg_ref]:
             new_ref_links[index]['similarRefs'] += [new_link]
             curr_link_learning_team = any([is_learning_team(dataSource) for dataSource in new_ref_links[index]['dataSources']])
-            if not curr_link_learning_team:  # if learning team, ignore overlapping refs
+            if not curr_link_learning_team:  # if learning team, ignore source with overlapping refs
                 new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], new_link)
     return new_ref_links
 
