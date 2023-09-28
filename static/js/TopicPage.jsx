@@ -506,10 +506,11 @@ const TopicPage = ({
             if (portal) {
                 const portalModuleTypeMap = {
                     "about": "PortalAbout",
-                    // "mobile": "PortalMobile",
-                    // "newsletter": "PortalNewsletter",
+                    "mobile": "PortalMobile",
+                    "newsletter": "PortalNewsletter",
                 }
                 const modules = [];
+                console.log("portal", portal)
                 for (let [key, value] of Object.entries(portal)) {
                     if (!portalModuleTypeMap[key]) { continue; }
                     modules.push({
@@ -764,11 +765,11 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 }
 
 const TopicImage = ({photoLink, enCaption, heCaption }) => {
-  
+
   return (
     <div class="topicImage">
         <img class="topicPhoto" src={photoLink}/>
-        <div class="topicImageCaption"> 
+        <div class="topicImageCaption">
           <InterfaceText text={{en:enCaption, he:heCaption}}  />
         </div>
       </div>);
@@ -884,5 +885,6 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
 export {
   TopicPage,
   TopicCategory,
-  refSort
+  refSort,
+  TopicImage
 }

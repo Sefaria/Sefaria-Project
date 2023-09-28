@@ -2303,6 +2303,13 @@ div.interfaceLinks-row a {
   padding-left: 44px;
   padding-right: 44px;
 }
+.portalTopicImageWrapper {
+    padding-top: 10px;
+}
+.portalTopicImageWrapper .topicImage {
+    padding-left: 0;
+    padding-right: 0;
+}
 @media (max-width: 600px) {
   .topicPhoto{
     height: auto;
@@ -2329,6 +2336,7 @@ div.interfaceLinks-row a {
     margin-bottom: 30px;
     text-align: center;
   }
+
 }
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;

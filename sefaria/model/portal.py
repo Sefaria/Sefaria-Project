@@ -76,6 +76,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
 
         mobile_schema = {
             "title": ({"en": (str, "required"), "he": (str, "required")}, "required"),
+            "description": ({"en": (str, "optional"), "he": (str, "optional")}, "optional"),
             "android_link": (str, "optional"),
             "ios_link": (str, "optional")
         }
