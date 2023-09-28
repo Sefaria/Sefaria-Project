@@ -2,8 +2,7 @@ import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
 import Cookies from "js-cookie";
 
-export function NewsletterSignUpForm(props) {
-    const {contextName, includeEducatorOption} = props;
+export function NewsletterSignUpForm({contextName, includeEducatorOption}) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -114,25 +113,8 @@ export function NewsletterSignUpForm(props) {
             onChange={e => setLastName(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
       </span>
-                    <div className="newsletterEducatorOption">
-          <span className="int-en">
-            <input
-                type="checkbox"
-                className="educatorNewsletterInput"
-                checked={educatorCheck}
-                onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> I am an educator</span>
-          </span>
-                        <span className="int-he">
-            <input
-                type="checkbox"
-                className="educatorNewsletterInput"
-                checked={educatorCheck}
-                onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> מורים/ אנשי הוראה</span>
-          </span>
-                        <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
-                    </div>
+                    <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} />
+                    <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
                 </>
                 : null}
             {subscribeMessage ?
@@ -141,3 +123,27 @@ export function NewsletterSignUpForm(props) {
         </div>
     );
 }
+
+
+const EducatorCheckbox = ({ educatorCheck, setEducatorCheck }) => {
+    return (
+        <div className="newsletterEducatorOption">
+          <span className="int-en">
+            <input
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)}/>
+            <span> I am an educator</span>
+          </span>
+            <span className="int-he">
+            <input
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)}/>
+            <span> מורים/ אנשי הוראה</span>
+          </span>
+        </div>
+    );
+};
