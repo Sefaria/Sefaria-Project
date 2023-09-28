@@ -811,16 +811,18 @@ const PortalAbout = ({title, description, image_uri, image_caption}) => {
 const PortalMobile = ({title, description, android_link, ios_link}) => {
     return(
         <Module>
-            <ModuleTitle en={title.en} he={title.he} />
-            <InterfaceText markdown={{en: description.en, he: description.he}} />
-            <a target="_blank" className="button small white appButton ios" href={ios_link}>
-              <img src="/static/icons/ios.svg"/>
-              <InterfaceText>iOS</InterfaceText>
-            </a>
-            <a target="_blank" className="button small white appButton" href={android_link}>
-              <img src="/static/icons/android.svg" />
-              <InterfaceText>Android</InterfaceText>
-            </a>
+            <div className="portalMobile">
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
+                <a target="_blank" className="button small white appButton ios" href={ios_link}>
+                    <img src="/static/icons/ios.svg"/>
+                    <InterfaceText>iOS</InterfaceText>
+                </a>
+                <a target="_blank" className="button small white appButton" href={android_link}>
+                    <img src="/static/icons/android.svg" />
+                    <InterfaceText>Android</InterfaceText>
+                </a>
+            </div>
         </Module>
     )
 };

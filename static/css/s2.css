@@ -2303,6 +2303,9 @@ div.interfaceLinks-row a {
   padding-left: 44px;
   padding-right: 44px;
 }
+.navSidebarModule .portalMobile .button {
+  margin-top: 0;
+}
 .portalTopicImageWrapper {
     padding-top: 5px;
     margin-bottom: 25px;
