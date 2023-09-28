@@ -58,8 +58,15 @@ class CrmInfoStore(object):
 
     @staticmethod
     def find_sustainer_profile(sustainer):
-        if sustainer['email']:
-            return UserProfile(email=sustainer['email'])
+        if sls.CRM_TYPE == "SALESFORCE":
+            try:
+                mongo_prof = db.profiles.find_one({"sf_app_user_id": sustainer})
+                return UserProfile(id=mongo_prof['id'])
+            except:
+                return None
+        else:
+            if sustainer['email']:
+                return UserProfile(email=sustainer['email'])
 
     @staticmethod
     def mark_sustainer(profile, is_sustainer=True):
