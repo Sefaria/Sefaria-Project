@@ -3,10 +3,11 @@ import Sefaria from './sefaria/sefaria';
 import Cookies from "js-cookie";
 
 export function NewsletterSignUpForm({
-    contextName,
-    includeEducatorOption=true,
-    emailPlaceholder={en: 'Sign up for Newsletter', he: "הרשמו לניוזלטר"},
-}) {
+                                         contextName,
+                                         includeEducatorOption = true,
+                                         emailPlaceholder = {en: 'Sign up for Newsletter', he: "הרשמו לניוזלטר"},
+                                         onSubscribe,
+                                     }) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -22,26 +23,9 @@ export function NewsletterSignUpForm({
 
     function handleSubscribe() {
         if (showNameInputs === true) { // submit
-            if (firstName.length > 0 & lastName.length > 0) {
+            if (firstName.length > 0 && lastName.length > 0) {
                 setSubscribeMessage("Subscribing...");
-                const request = new Request(
-                    '/api/subscribe/'+email,
-                    {headers: {'X-CSRFToken': Cookies.get('csrftoken')},
-                        'Content-Type': 'application/json'}
-                );
-                fetch(request,
-                    {
-                        method: "POST",
-                        mode: 'same-origin',
-                        credentials: 'same-origin',
-                        body: JSON.stringify({
-                            language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-                            educator: educatorCheck,
-                            firstName: firstName,
-                            lastName: lastName
-                        })
-                    }
-                ).then(res => {
+                Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck).then(res => {
                     if ("error" in res) {
                         setSubscribeMessage(res.error);
                         setShowNameInputs(false);
@@ -117,7 +101,8 @@ export function NewsletterSignUpForm({
             onChange={e => setLastName(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
       </span>
-                {includeEducatorOption ? <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} /> : null}
+                    {includeEducatorOption ?
+                        <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck}/> : null}
                     <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
                 </>
                 : null}
@@ -129,7 +114,7 @@ export function NewsletterSignUpForm({
 }
 
 
-const EducatorCheckbox = ({ educatorCheck, setEducatorCheck }) => {
+const EducatorCheckbox = ({educatorCheck, setEducatorCheck}) => {
     return (
         <div className="newsletterEducatorOption">
           <span className="int-en">

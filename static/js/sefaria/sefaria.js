@@ -579,6 +579,28 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
+  subscribeSefariaNewsletter: function(firstName, lastName, email, educatorCheck) {
+    const request = new Request(
+        '/api/subscribe/' + email,
+        {
+            headers: {'X-CSRFToken': Cookies.get('csrftoken')},
+            'Content-Type': 'application/json'
+        }
+    );
+    return fetch(request,
+        {
+            method: "POST",
+            mode: 'same-origin',
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+                educator: educatorCheck,
+                firstName: firstName,
+                lastName: lastName
+            })
+        }
+    );
+  },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**
        * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
