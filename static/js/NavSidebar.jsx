@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {TopicImage} from './TopicPage'
-import Component from "react-class";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -800,36 +798,40 @@ const DownloadVersions = ({sref}) => {
 const PortalAbout = ({title, description, image_uri}) => {
     return(
         <Module>
-        <ModuleTitle en={title.en} he={title.he} />
-        <InterfaceText markdown={{en: description.en, he: description.he}} />
-        <div  class="portalTopicImageWrapper">
-        <TopicImage photoLink={image_uri}/>
-        </div>
+            <ModuleTitle en={title.en} he={title.he} />
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+            <div className="portalTopicImageWrapper">
+                <TopicImage photoLink={image_uri}/>
+            </div>
         </Module>
     )
 };
+
+
 const PortalMobile = ({title, description, android_link, ios_link}) => {
     return(
         <Module>
-    <ModuleTitle en={title.en} he={title.he} />
-    <InterfaceText markdown={{en: description.en, he: description.he}} />
-        <a target="_blank" className="button small white appButton ios" href={ios_link}>
-          <img src="/static/icons/ios.svg"/>
-          <InterfaceText>iOS</InterfaceText>
-        </a>
-        <a target="_blank" className="button small white appButton" href={android_link}>
-          <img src="/static/icons/android.svg" />
-          <InterfaceText>Android</InterfaceText>
-        </a>
+            <ModuleTitle en={title.en} he={title.he} />
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+            <a target="_blank" className="button small white appButton ios" href={ios_link}>
+              <img src="/static/icons/ios.svg"/>
+              <InterfaceText>iOS</InterfaceText>
+            </a>
+            <a target="_blank" className="button small white appButton" href={android_link}>
+              <img src="/static/icons/android.svg" />
+              <InterfaceText>Android</InterfaceText>
+            </a>
         </Module>
     )
 };
+
+
 const PortalNewsletter = ({title, title_url, description}) => {
     return(
         <Module>
-        <a href={title_url}><ModuleTitle en={title.en} he={title.he} /></a>
-        <InterfaceText markdown={{en: description.en, he: description.he}} />
-        <NewsletterSignUpForm/>
+            <a href={title_url}><ModuleTitle en={title.en} he={title.he} /></a>
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+            <NewsletterSignUpForm/>
         </Module>
     )
 };
