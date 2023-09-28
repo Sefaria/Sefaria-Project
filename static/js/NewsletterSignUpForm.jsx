@@ -2,7 +2,11 @@ import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
 import Cookies from "js-cookie";
 
-export function NewsletterSignUpForm({contextName, includeEducatorOption=true}) {
+export function NewsletterSignUpForm({
+    contextName,
+    includeEducatorOption=true,
+    emailPlaceholder={en: 'Sign up for Newsletter', he: "הרשמו לניוזלטר"},
+}) {
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -65,7 +69,7 @@ export function NewsletterSignUpForm({contextName, includeEducatorOption=true}) 
       <span className="int-en">
         <input
             className="newsletterInput"
-            placeholder="Sign up for Newsletter"
+            placeholder={emailPlaceholder.en}
             value={email}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>
@@ -73,7 +77,7 @@ export function NewsletterSignUpForm({contextName, includeEducatorOption=true}) 
             <span className="int-he">
         <input
             className="newsletterInput"
-            placeholder="הרשמו לניוזלטר"
+            placeholder={emailPlaceholder.he}
             value={email}
             onChange={e => setEmail(e.target.value)}
             onKeyUp={handleSubscribeKeyUp}/>

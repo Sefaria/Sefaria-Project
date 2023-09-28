@@ -830,7 +830,10 @@ const PortalNewsletter = ({title, title_url, description}) => {
         <Module>
             <a href={title_url}><ModuleTitle en={title.en} he={title.he} /></a>
             <InterfaceText markdown={{en: description.en, he: description.he}} />
-            <NewsletterSignUpForm includeEducatorOption={false}/>
+            <NewsletterSignUpForm
+                includeEducatorOption={false}
+                emailPlaceholder={{en: "Email Address", he: "מייל"}}
+            />
         </Module>
     )
 };
