@@ -522,7 +522,7 @@ const TopicPage = ({
             }
         } else {
            sidebar = (
-                <>
+               <div className="sideColumn">
                     <TopicSideColumn
                         key={topic}
                         slug={topic}
@@ -537,7 +537,7 @@ const TopicPage = ({
                         multiPanel={multiPanel}
                     />
                     {!topicData.isLoading && <Promotions/>}
-                </>
+                </div>
             );
         }
     }
@@ -589,9 +589,7 @@ const TopicPage = ({
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
-                <div className="sideColumn">
-                    {sidebar}
-                </div>
+                {sidebar}
             </div>
             <Footer />
           </div>
