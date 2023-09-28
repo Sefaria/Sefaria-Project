@@ -795,12 +795,12 @@ const DownloadVersions = ({sref}) => {
 };
 
 
-const PortalAbout = ({title, description, image_uri}) => {
+const PortalAbout = ({title, description, image_uri, image_caption}) => {
     return(
         <Module>
             <ModuleTitle en={title.en} he={title.he} />
             <div className="portalTopicImageWrapper">
-                <TopicImage photoLink={image_uri}/>
+                <TopicImage photoLink={image_uri} enCaption={image_caption.en} heCaption={image_caption.he} />
             </div>
             <InterfaceText markdown={{en: description.en, he: description.he}} />
         </Module>

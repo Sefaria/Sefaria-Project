@@ -71,6 +71,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
             "title": ({"en": (str, "required"), "he": (str, "required")}, "required"),
             "title_url": (str, "optional"),
             "image_uri": (str, "optional"),
+            "image_caption": ({"en": (str, "optional"), "he": (str, "optional")}, "optional"),
             "description": ({"en": (str, "required"), "he": (str, "required")}, "optional"),
         }
 
