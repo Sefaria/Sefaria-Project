@@ -178,7 +178,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
                 last_id = row['dataCells'][id_i]
                 yield last_id['value']
             data = {}
-            data['reportMetadata'] = res['reportMetadata']
+            data['reportMetadata'] = metadata
             data["reportMetadata"]["reportFilters"].append({
                     "value": last_id['value'],
                     "operator": "greaterThan",
