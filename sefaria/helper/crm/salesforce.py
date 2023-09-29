@@ -152,12 +152,14 @@ class SalesforceConnectionManager(CrmConnectionManager):
     def get_spam_users(self):
         endpoint = f"{sls.SALESFORCE_BASE_URL}/services/data/v{self.version}/analytics/reports/{sls.SALESFORCE_SPAM_REPORT}"
         res = self.post(endpoint)
-        return res
-
+        return res.json()
+    
     def get_sustainers(self):
+        """
+        This function queries a report it expects to contain only active sustainers and returns their salesforce IDs
+        """
         endpoint = f"{sls.SALESFORCE_BASE_URL}/services/data/v{self.version}/analytics/reports/{sls.SALESFORCE_SUSTAINERS_REPORT}"
-
-        data =None
+        data = None
         while 1:
             res = self.post(endpoint, json=data).json()
             # verify sort
@@ -197,7 +199,7 @@ class SalesforceConnectionManager(CrmConnectionManager):
     def find_job(self, operation, sobject):
         endpoint = f"{sls.SALESFORCE_BASE_URL}/services/data/v{self.bulk_api_version}/jobs/ingest"
         res = self.get(endpoint)
-        job_id = list(filter(lambda x: x['operation'] == operation and x['object'] == 'sobject' and x['state'] == 'Open'))[0]['id']
+        job_id = list(filter(lambda x: x['operation'] == operation and x['object'] == 'sobject' and x['state'] == 'Open'), res.json())[0]['id']
         return job_id
 
     def sf15to18(self, id):

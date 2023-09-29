@@ -53,6 +53,13 @@ class CrmInfoStore(object):
             return True
 
     @staticmethod
+    def get_by_crm_id(crm_id, crm_type=sls.CRM_TYPE):
+        if crm_type == "SALESFORCE":
+            return db.profiles.find_one({"sf_app_user_id": crm_id})
+        else:
+            return None
+
+    @staticmethod
     def get_current_sustainers():
         return {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
 
