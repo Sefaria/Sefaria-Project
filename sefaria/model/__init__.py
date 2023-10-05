@@ -24,7 +24,6 @@ from .note import Note, NoteSet
 from .layer import Layer, LayerSet
 from .notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
 from .trend import get_session_traits
-from .interrupting_message import InterruptingMessage
 from .queue import IndexQueue, IndexQueueSet
 from .lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from .following import FollowRelationship, FollowersSet, FolloweesSet
@@ -45,8 +44,6 @@ from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLin
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
 from .linker.ref_resolver import RefResolver
-from .chatroom import Chatroom, ChatroomSet, Message, MessageSet
-
 from . import dependencies
 
 library._build_index_maps()

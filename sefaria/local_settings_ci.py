@@ -48,7 +48,6 @@ DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
-# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 SECRET_KEY = 'insert your long random secret key here !'
@@ -84,9 +83,6 @@ NODE_TIMEOUT = 10
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-
-# DafRoulette server
-RTC_SERVER = '' # Root URL/IP of the server
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
@@ -196,6 +192,9 @@ LOGGING = {
         },
     }
 }
+
+STRAPI_LOCATION = None
+STRAPI_PORT = None
 
 structlog.configure(
     processors=[

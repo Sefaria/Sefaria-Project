@@ -1,5 +1,4 @@
 import {
-  ContentText,
   LoadingMessage
 } from './Misc';
 import React  from 'react';
@@ -10,6 +9,7 @@ import TextRange  from './TextRange';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+import {ContentText} from "./ContentText";
 
 
 class TextColumn extends Component {
@@ -393,6 +393,7 @@ class TextColumn extends Component {
         panelsOpen={this.props.panelsOpen}
         layoutWidth={this.props.layoutWidth}
         unsetTextHighlight={this.props.unsetTextHighlight}
+        navigatePanel={this.props.navigatePanel}
         translationLanguagePreference={this.props.translationLanguagePreference}
         updateCurrVersionsToMatchAPIResult={this.props.updateCurrVersionsToMatchAPIResult}
         key={sref} />);
@@ -458,6 +459,7 @@ TextColumn.propTypes = {
   textHighlights:         PropTypes.array,
   unsetTextHighlight:     PropTypes.func,
   translationLanguagePreference: PropTypes.string,
+  navigatePanel:          PropTypes.func,
 };
 
 

@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, garden, notification, collection, library, category, ref_data, user_profile, manuscript, topic, place
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -11,7 +11,8 @@ import sefaria.system.cache as scache
 subscribe(text.process_index_change_in_core_cache,                      text.Index, "save")
 subscribe(version_state.create_version_state_on_index_creation,         text.Index, "save")
 subscribe(text.process_index_change_in_toc,                             text.Index, "save")
-
+subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'compPlace')
+subscribe(place.process_index_place_change, text.Index, 'attributeChange', 'pubPlace')
 
 # Index Name Change
 subscribe(text.process_index_title_change_in_core_cache,                text.Index, "attributeChange", "title")
@@ -74,6 +75,7 @@ subscribe(layer.process_note_deletion_in_layer,                         note.Not
 subscribe(topic.process_topic_delete,                                 topic.Topic, "delete")
 subscribe(topic.process_topic_description_change,                       topic.Topic, "attributeChange", "description")
 subscribe(topic.process_topic_delete,                                 topic.AuthorTopic, "delete")
+
 
 # Terms
 # TODO cascade change to Term.name.

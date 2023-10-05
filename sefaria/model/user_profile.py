@@ -355,7 +355,6 @@ class UserProfile(object):
         self.twitter               = ""
         self.linkedin              = ""
         self.pinned_sheets         = []
-        self.interrupting_messages = ["newUserWelcome"]
         self.last_sync_web        = 0  # epoch time for last sync of web app
         self.profile_pic_url      = ""
         self.profile_pic_url_small = ""
@@ -413,7 +412,6 @@ class UserProfile(object):
             # create a profile for them. This allows two enviornments to share a user database,
             # while maintaining separate profiles (e.g. Sefaria and S4D).
             self.assign_slug()
-            self.interrupting_messages = []
             self.save()
 
     @property
@@ -602,21 +600,6 @@ class UserProfile(object):
         from sefaria.model.notification import NotificationSet
         return NotificationSet().unread_for_user(self.id).count()
 
-    def interrupting_message(self):
-        """
-        Returns the next message to interupt the user with, if any are queued up.
-        """
-        messages = self.interrupting_messages
-        return messages[0] if len(messages) > 0 else None
-
-    def mark_interrupting_message_read(self, message):
-        """
-        Removes `message` from the users list of queued interrupting_messages.
-        """
-        if message in self.interrupting_messages:
-            self.interrupting_messages.remove(message)
-            self.save()
-
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
         if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
@@ -680,7 +663,6 @@ class UserProfile(object):
             "settings":              self.settings,
             "version_preferences_by_corpus": self.version_preferences_by_corpus,
             "attr_time_stamps":      self.attr_time_stamps,
-            "interrupting_messages": getattr(self, "interrupting_messages", []),
             "is_sustainer":          self.is_sustainer,
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,

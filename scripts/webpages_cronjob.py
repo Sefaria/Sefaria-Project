@@ -29,6 +29,8 @@ def run_job(test=True, board_id="", idList_mapping={}):
 	clean_webpages(test=test)
 	print("Find sites that no longer have linker...")
 	sites["Linker uninstalled"] = find_sites_that_may_have_removed_linker(last_linker_activity_day=sites_that_may_have_removed_linker_days)
+	print("Deduping identical urls...")
+	dedupe_identical_urls(test=test)
 	while (skip + limit) < orig_count:
 		webpages = WebPageSet(limit=limit, skip=skip)
 		print("Deduping...")

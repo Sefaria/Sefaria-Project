@@ -3,7 +3,8 @@ import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component      from 'react-class';
-import {ContentText} from "./Misc";
+import {ContentText} from "./ContentText";
+
 
 
 class CategoryFilter extends Component {

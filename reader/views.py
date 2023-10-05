@@ -46,9 +46,9 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
-from sefaria.utils.hebrew import hebrew_term, is_hebrew
+from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -62,13 +62,13 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link
+                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
-from sefaria.settings import NODE_TIMEOUT, DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.category import TocCollectionNode
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
@@ -78,7 +78,7 @@ from io import BytesIO
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
 from babel import Locale
-from sefaria.helper.topic import update_topic
+from sefaria.helper.topic import update_topic, update_topic_titles
 from sefaria.helper.category import update_order_of_category_children, check_term
 
 if USE_VARNISH:
@@ -197,7 +197,6 @@ def base_props(request):
 
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
@@ -205,6 +204,7 @@ def base_props(request):
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+            "is_sustainer": profile.is_sustainer,
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
@@ -216,8 +216,7 @@ def base_props(request):
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
             "saved": {"loaded": False, "items": profile.get_history(saved=True, secondary=False, serialized=True, annotate=False)}, # saved is initially loaded without text annotations so it can quickly immediately mark any texts/sheets as saved, but marks as `loaded: false` so the full annotated data will be requested if the user visits the saved/history page
-            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True),
-            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
+            "last_place": profile.get_history(last_place=True, secondary=False, sheets=False, serialized=True)
         }
     else:
         user_data = {
@@ -226,6 +225,7 @@ def base_props(request):
             "slug": "",
             "is_moderator": False,
             "is_editor": False,
+            "is_sustainer": False,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
@@ -237,8 +237,7 @@ def base_props(request):
             "notificationCount": 0,
             "notifications": [],
             "saved": {"loaded": False, "items": []},
-            "last_place": [],
-            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
+            "last_place": []
         }
     user_data.update({
         "last_cached": library.get_last_cached_time(),
@@ -260,8 +259,7 @@ def base_props(request):
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG,
-        "rtc_server": RTC_SERVER
+        "_debug": DEBUG
     })
     return user_data
 
@@ -632,7 +630,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
-        "customBeitMidrashId":            request.GET.get("beitMidrash", None)
     }
     if sheet is None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -1665,6 +1662,7 @@ def index_api(request, title, raw=False):
 
     if request.method == "POST":
         # use the update function if update is in the params
+
         func = tracker.update if request.GET.get("update", False) else tracker.add
         j = json.loads(request.POST.get("json"))
         if not j:
@@ -1697,6 +1695,7 @@ def index_api(request, title, raw=False):
             return jsonResponse(
                 func(request.user.id, Index, j, raw=raw).contents(raw=raw)
             )
+
         return protected_index_post(request)
 
     if request.method == "DELETE":
@@ -2605,7 +2604,7 @@ def terms_api(request, name):
 
 
 def get_name_completions(name, limit, ref_only, topic_override=False):
-    lang = "he" if is_hebrew(name) else "en"
+    lang = "he" if has_hebrew(name) else "en"
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
     ref = None
@@ -2905,27 +2904,6 @@ def notifications_read_api(request):
 
 
 @catch_error_as_json
-def messages_api(request):
-    """
-    API for posting user to user messages
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to access your messages."})
-
-    if request.method == "POST":
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        Notification({"uid": j["recipient"]}).make_message(sender_id=request.user.id, message=j["message"]).save()
-        return jsonResponse({"status": "ok"})
-
-    elif request.method == "GET":
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@catch_error_as_json
 def follow_api(request, action, uid):
     """
     API for following and unfollowing another user.
@@ -3083,6 +3061,7 @@ def topic_page(request, topic, test_version=None):
         "initialMenu": "topics",
         "initialTopic": topic,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
@@ -3123,17 +3102,19 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        t.add_title(data["title"], 'en', True, True)
-        if "heTitle" in data:
-            t.add_title(data["heTitle"], "he", True, True)
+        update_topic_titles(t, data)
 
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
+        if data["category"] == 'authors':
+            t = update_authors_place_and_time(t, data)
+
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-        t.change_description(data["description"], data.get("catDescription", None))
+        if "description" in data:
+            t.change_description(data["description"], data.get("categoryDescription", None))
         t.save()
 
         library.build_topic_auto_completer()
@@ -3186,8 +3167,6 @@ def topics_api(request, topic, v2=False):
         topic_obj = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        if topic_data["category"] == topic_data["origCategory"]:
-            topic_data.pop("category")  # no need to check category in update_topic
         topic_obj = update_topic(topic_obj, **topic_data)
         if author_status_changed:
             library.build_topic_auto_completer()
@@ -3461,40 +3440,6 @@ def leaderboard(request):
         'leaders1': top_contributors(1),
     })
 
-@catch_error_as_json
-def chat_message_api(request):
-    if request.method == "POST":
-        messageJSON = request.POST.get("json")
-        messageJSON = json.loads(messageJSON)
-
-        room_id = messageJSON["roomId"]
-        uids = room_id.split("-")
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can post to it."})
-
-
-        message = Message({"room_id": room_id,
-                        "sender_id": messageJSON["senderId"],
-                        "timestamp": messageJSON["timestamp"],
-                        "message": messageJSON["messageContent"]})
-        message.save()
-        return jsonResponse({"status": "ok"})
-
-    if request.method == "GET":
-        room_id = request.GET.get("room_id")
-        uids = room_id.split("-")
-
-
-        if str(request.user.id) not in uids:
-            return jsonResponse({"error": "Only members of a chatroom can view it."})
-
-        skip = int(request.GET.get("skip", 0))
-        limit = int(request.GET.get("limit", 10))
-
-        messages = MessageSet({"room_id": room_id}, sort=[("timestamp", -1)], limit=limit, skip=skip).client_contents()
-        return jsonResponse(messages)
-
-    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -3823,15 +3768,6 @@ def my_profile(request):
     if "tab" in request.GET:
         url += "?tab=" + request.GET.get("tab")
     return redirect(url)
-
-
-def interrupting_messages_read_api(request, message):
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to use this API."})
-    profile = UserProfile(id=request.user.id)
-    profile.mark_interrupting_message_read(message)
-    return jsonResponse({"status": "ok"})
-
 
 @login_required
 @ensure_csrf_cookie
@@ -4629,16 +4565,3 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
-@login_required
-def beit_midrash(request, slug):
-    chavrutaId = request.GET.get("cid", None)
-    starting_ref = request.GET.get("ref", None)
-
-    if starting_ref:
-        return redirect(f"/{urllib.parse.quote(starting_ref)}?beitMidrash={slug}")
-
-    else:
-        props = {"customBeitMidrashId": slug,}
-        title = _("Sefaria Beit Midrash")
-        desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-        return menu_page(request, props, "navigation", title, desc)
