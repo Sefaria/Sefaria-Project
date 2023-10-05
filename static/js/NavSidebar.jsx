@@ -156,7 +156,7 @@ const Resources = () => (
       <IconLink text="Mobile Apps" url="/mobile" icon="mobile.svg" />
       <IconLink text="Create with Sefaria" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
-      <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
+      <IconLink text="Teach with Dharma" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
       <IconLink text="Help" url="/help" icon="help.svg" />
