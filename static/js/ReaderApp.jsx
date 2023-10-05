@@ -429,7 +429,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Indrajala: a Living Library of Buddhist Texts Online");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Dharma: a Living Library of Buddhist Texts Online");
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
