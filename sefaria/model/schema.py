@@ -5,6 +5,10 @@ from typing import Optional, List
 
 import structlog
 from functools import reduce
+
+from sefaria.system.decorators import conditional_graceful_exception
+
+
 logger = structlog.get_logger(__name__)
 
 try:
@@ -210,6 +214,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
         self._process_terms()
 
+    @conditional_graceful_exception()
     def _process_terms(self):
         # To be called after raw data load
         from sefaria.model import library

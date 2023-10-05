@@ -12,6 +12,38 @@ from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 
+def create_era_link(topic, prev_era_to_delete=None):
+    era_slug_map = {
+        "GN": "geon-person",
+        "RI": "rishon-person",
+        "AH": "achron-person",
+        "CO": "modern-person",
+        "KG": "mishnaic-people",
+        "PT": "mishnaic-people",
+        "T": "mishnaic-people",
+        "A": "talmudic-people",
+    }
+
+    isa_object_aggregate_map = {
+        'tosafot': 'group-of-rishon-people'
+    }
+
+    if prev_era_to_delete:
+        to_topic = isa_object_aggregate_map.get(topic.slug, era_slug_map[prev_era_to_delete])
+        prev_link = IntraTopicLink().load({'toTopic': to_topic, 'fromTopic': topic.slug, 'linkType': 'is-a'})
+        if prev_link:
+            prev_link.delete()
+
+    to_topic = isa_object_aggregate_map.get(topic.slug, era_slug_map[topic.get_property('era')])
+    itl = IntraTopicLink({
+        "toTopic": to_topic,
+        "fromTopic": topic.slug,
+        "linkType": "is-a",
+        "dataSource": "sefaria",
+        "generatedBy": "update_authors_data"
+    })
+    itl.save()
+
 
 
 def update_authors_data():
@@ -40,20 +72,6 @@ def update_authors_data():
         "Rishonim": "RI",
         "Achronim": "AH",
         "Contemporary": "CO"
-    }
-    era_slug_map = {
-        "GN": "geon-person",
-        "RI": "rishon-person",
-        "AH": "achron-person",
-        "CO": "modern-person",
-        "KG": "mishnaic-people",
-        "PT": "mishnaic-people",
-        "T": "mishnaic-people",
-        "A": "talmudic-people",
-    }
-
-    isa_object_aggregate_map = {
-        'tosafot': 'group-of-rishon-people'
     }
 
     url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=0&single=true&output=csv'
@@ -166,16 +184,8 @@ def update_authors_data():
             error_texts.append(str(e))
 
         if p.get_property('era'):
-            to_topic = isa_object_aggregate_map.get(p.slug, era_slug_map[p.get_property('era')])
-            itl = IntraTopicLink({
-                "toTopic": to_topic,
-                "fromTopic": p.slug,
-                "linkType": "is-a",
-                "dataSource": "sefaria",
-                "generatedBy": "update_authors_data"
-            })
             try:
-                itl.save()
+                create_era_link(p)
             except DuplicateRecordError as e:
                 error_texts.append(str(e))
 

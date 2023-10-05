@@ -14,9 +14,9 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
-  ContentText,
   CategoryHeader
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
@@ -71,7 +71,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
 
   const title = compare ? null :
     <div className="navTitle tight sans-serif">
-        <CategoryHeader type="books">
+        <CategoryHeader type="cats" buttonsToDisplay={["subcategory", "reorder"]}>
             <h1><InterfaceText>Browse the Library</InterfaceText></h1>
         </CategoryHeader>
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -171,8 +171,7 @@ const Dedication = () => {
         dedicationData && (dedicationData.en || dedicationData.he) ?
         <div className="dedication">
           <span>
-              <span className="int-en">{dedicationData?.en}</span>
-              <span className="int-he">{dedicationData?.he}</span>
+              <InterfaceText markdown={{en: dedicationData?.en, he: dedicationData?.he}}/>
           </span>
         </div>
         : null

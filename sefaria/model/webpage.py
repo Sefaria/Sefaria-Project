@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 import regex as re
 from collections import defaultdict
 from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 from . import abstract as abst
 from . import text
 from sefaria.system.database import db
@@ -224,7 +225,11 @@ class WebPage(abst.AbstractMongoRecord):
 
         if add_hit:
             webpage.add_hit()
-        webpage.save()
+        try:
+            webpage.save()
+        except ValidationError:
+            # something is wrong with the webpage URL
+            return "excluded", None
         return "saved", webpage
 
     def client_contents(self):
@@ -314,7 +319,7 @@ class WebSite(abst.AbstractMongoRecord):
 
     def get_num_webpages(self):
         if getattr(self, 'num_webpages', None) is None:
-            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(website.domains)}})
+            self.num_webpages = WebPageSet({"url": {"$regex": "|".join(self.domains)}}).count()
             self.save()
         return self.num_webpages
 
@@ -415,7 +420,6 @@ def dedupe_webpages(webpages, test=True):
     print("{} pages removed as duplicates".format(dedupe_count))
     print("{} pages normalized".format(norm_count))
 
-    dedupe_identical_urls(test=test)
 
 
 def dedupe_identical_urls(test=True):

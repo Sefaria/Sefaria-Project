@@ -9,6 +9,8 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import {useContext} from "react";
+import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
@@ -347,6 +349,7 @@ Sefaria = extend(Sefaria, {
         return (text.indexOf(title) > -1);
     });
   },
+  _eras:  ["GN", "RI", "AH", "CO"],
   makeRefRe: function(titles) {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed
@@ -1002,6 +1005,15 @@ Sefaria = extend(Sefaria, {
             }, error);
     });
   },
+  isFullSegmentImage: function(text) {
+    /**
+     * Is `text` a segment with only an image
+     * To distinguish from inline images
+     * Returns `true` if yes.
+     */
+    const pattern = /^\s*<img\b[^>]*>\s*$/i;
+    return pattern.test(text);
+  },
   getRefFromCache: function(ref) {
     if (!ref) return null;
     const versionedKey = this._refmap[this._refKey(ref)] || this._refmap[this._refKey(ref, {context:1})];
@@ -1034,6 +1046,15 @@ Sefaria = extend(Sefaria, {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
       return ref ? this.getRefFromCache(ref) : null;
+  },
+  openTransBannerApplies: (book, textLanguage) => {
+      /**
+       * Should we display OpenTransBanner?
+       * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
+       */
+      const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
+      const currCorpus = Sefaria.index(book)?.corpus;
+      return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
 
@@ -1926,7 +1947,7 @@ _media: {},
     // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
-  makeSegments: function(data, withContext) {
+  makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
     if (!data || "error" in data) { return []; }
@@ -1992,6 +2013,14 @@ _media: {},
       }
     }
     return segments;
+  },
+  stripImagesFromSegments: function(segments) {
+      // Used by sheets editors.  Sefaria.makeSegments creates a list of segments and this function handles the images.
+      return segments.map(x => {
+          x.he = Sefaria.util.stripImgs(x.he);
+          x.en = Sefaria.util.stripImgs(x.en);
+          return x;
+      })
   },
   sectionString: function(ref) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
@@ -2235,6 +2264,29 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+    isNewVisitor: () => {
+        return (
+            ("isNewVisitor" in sessionStorage &&
+                JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
+            (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage))
+        );
+    },
+    isReturningVisitor: () => {
+        return (
+            !Sefaria.isNewVisitor() &&
+            "isReturningVisitor" in localStorage &&
+            JSON.parse(localStorage.getItem("isReturningVisitor"))
+        );
+    },
+    markUserAsNewVisitor: () => {
+        sessionStorage.setItem("isNewVisitor", "true");
+        // Setting this at this time will make the current new visitor a returning one once their session is cleared
+        localStorage.setItem("isReturningVisitor", "true");
+    },
+    markUserAsReturningVisitor: () => {
+      sessionStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true");
+    },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
@@ -2299,6 +2351,7 @@ _media: {},
 
   },
   _tableOfContentsDedications: {},
+    _strapiContent: null,
   _inAppAds: null,
   _stories: {
     stories: [],
@@ -2939,6 +2992,7 @@ Sefaria.unpackBaseProps = function(props){
       "slug",
       "is_moderator",
       "is_editor",
+      "is_sustainer",
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
@@ -2953,14 +3007,11 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "interruptingMessage",
-
       "community",
       "followRecommendations",
       "trendingTopics",
       "_siteSettings",
-      "_debug",
-      "rtc_server"
+      "_debug"
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

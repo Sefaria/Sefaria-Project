@@ -120,11 +120,24 @@ class AddToSourceSheetBox extends Component {
           source[language.slice(0,2)] = selectedWords;
         }
       }
-      let postData = {source: JSON.stringify(source)};
-      if (this.props.note) {
-        postData.note = this.props.note;
+      if (this.checkContentForImages(source.refs)) {
+        let postData = {source: JSON.stringify(source)};
+        if (this.props.note) {
+          postData.note = this.props.note;
+        }
+        $.post(url, postData, this.confirmAdd);
       }
-      $.post(url, postData, this.confirmAdd);
+  }
+  checkContentForImages(refs) {
+    // validate texts corresponding to refs have no images before posting them to sheet
+    for (let i = 0; i < refs.length; i++) {
+      let ref = Sefaria.getRefFromCache(refs[i]);
+      if (ref && (Sefaria.isFullSegmentImage(ref.he) || Sefaria.isFullSegmentImage(ref.text))) {
+        alert("We do not currently support adding images to source sheets.");
+        return false;
+      }
+    }
+    return true;
   }
   createSheet(refs) {
     const title = $(ReactDOM.findDOMNode(this)).find("input").val();

@@ -1868,7 +1868,6 @@ const insertMedia = (editor, mediaUrl) => {
 
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-
     if (!s[lang]) {return ""}
 
     let numStr = "";
@@ -1894,7 +1893,8 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const segments = Sefaria.makeSegments(text);
+        let segments = Sefaria.makeSegments(text, false);
+        segments = Sefaria.stripImagesFromSegments(segments);
 
         let includeNumbers = $.inArray("Talmud", text.categories) == -1;
         includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
@@ -2563,7 +2563,7 @@ const SefariaEditor = (props) => {
         () => {
             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
             for (const [node, path] of nodes) {
-                if (node.text) {
+                if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
                         Transforms.insertText(editor, newStr, { at: path })

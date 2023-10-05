@@ -167,6 +167,11 @@ def test_invalid_index_save_no_category():
     assert "You must create category Mishnah/Commentary/Bartenura/Gargamel before adding texts to it." in str(e_info.value)
     assert model.IndexSet({"title": title}).count() == 0
 
+def test_best_time_period():
+    i = model.library.get_index("Rashi on Genesis")
+    assert i.best_time_period().period_string('en') == ' (c.1075  - c.1105 CE)'
+    i.compDate = None
+    assert i.best_time_period().period_string('en') == ' (1040  - 1105 CE)'  # now that compDate is None, period_string should return Rashi's birth to death years
 
 def test_invalid_index_save_no_hebrew_collective_title():
     title = 'Bartenura (The Next Generation)'

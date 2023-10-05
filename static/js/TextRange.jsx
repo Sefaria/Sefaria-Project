@@ -5,7 +5,9 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import {ContentText, EnglishText, HebrewText} from "./Misc";
+import {EnglishText, HebrewText} from "./Misc";
+import {VersionContent} from "./ContentText";
+import {ContentText} from "./ContentText";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -52,6 +54,7 @@ class TextRange extends Component {
 
     return false;
   }
+
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
@@ -371,6 +374,8 @@ class TextRange extends Component {
             unsetTextHighlight={this.props.unsetTextHighlight}
             formatEnAsPoetry={formatEnAsPoetry}
             formatHeAsPoetry={formatHeAsPoetry}
+            placeSegmentNumbers={this.placeSegmentNumbers}
+            navigatePanel={this.props.navigatePanel}
           />
         </span>
       );
@@ -409,11 +414,10 @@ class TextRange extends Component {
     } else if (showNumberLabel && this.props.numberLabel) {
       sidebarNum = <div className="numberLabel sans-serif">
         <span className="numberLabelInner">
-          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
+          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else { sidebarNum = null;}
-
     return (
       <div className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={ref}>
         {sidebarNum}
@@ -465,11 +469,11 @@ TextRange.propTypes = {
   inlineReference:        PropTypes.object,
   textHighlights:         PropTypes.array,
   translationLanguagePreference: PropTypes.string,
+  navigatePanel:          PropTypes.func
 };
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
 };
-
 
 class TextSegment extends Component {
   shouldComponentUpdate(nextProps) {
@@ -490,21 +494,40 @@ class TextSegment extends Component {
       this.props.unsetTextHighlight();
     }
   }
+  handleRefLinkClick(refLink, event) {
+    event.preventDefault();
+    let newRef = Sefaria.humanRef(refLink.attr("data-ref"));
+    const newBook = Sefaria.parseRef(newRef)?.book;
+    const currBook = Sefaria.parseRef(this.props.sref)?.book;
+    const isScrollLink = refLink.attr('data-scroll-link');
+
+    // two options: in most cases, we open a new panel, but if isScrollLink is 'true', we should navigate in the same panel to the new location
+    const canNavigatePanel = newBook === currBook && !!this.props.navigatePanel; // navigatePanel only works if we're scrolling to a location in the same book
+    if (isScrollLink === 'true' && canNavigatePanel) {
+      this.props.navigatePanel(newRef);
+    }
+    else {
+      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
+      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
+      let currVersions = {"en": ven, "he": vhe};
+      this.props.onCitationClick(newRef, this.props.sref, true, currVersions);
+    }
+
+    event.stopPropagation();
+    Sefaria.track.event("Reader", "Citation Link Click", ref);
+  }
+  isRefLink (x) {
+    // 'x' is a jquery element
+    return x?.attr('data-ref') && x?.prop('tagName') === 'A';
+  }
   handleClick(event) {
     // grab refLink from target or parent (sometimes there is an <i> within refLink forcing us to look for the parent)
-    const refLink = $(event.target).hasClass("refLink") ? $(event.target) : ($(event.target.parentElement).hasClass("refLink") ? $(event.target.parentElement) : null);
+    const refLink = this.isRefLink($(event.target)) ? $(event.target) : this.isRefLink($(event.target.parentElement)) ? $(event.target.parentElement) : null;
     const namedEntityLink = $(event.target).closest("a.namedEntityLink");
     const footnoteLink = $(event.target).is("sup") || $(event.target).parents("sup").size();
     if (refLink) {
       //Click of citation
-      event.preventDefault();
-      let ref = Sefaria.humanRef(refLink.attr("data-ref"));
-      const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
-      const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
-      let currVersions = {"en": ven, "he": vhe};
-      this.props.onCitationClick(ref, this.props.sref, true, currVersions);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
+      this.handleRefLinkClick(refLink, event);
     } else if (footnoteLink) {
       this.props.onFootnoteClick(event);
       event.stopPropagation();
@@ -637,7 +660,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]}/>
+          <VersionContent overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }} bilingualOrder={["he", "en"]} imageLoadCallback={this.props.placeSegmentNumbers}/>
         </p>
 
         <div className="clearFix"></div>
@@ -661,6 +684,7 @@ TextSegment.propTypes = {
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
+  navigatePanel: PropTypes.func
 };
 
 export default TextRange;
