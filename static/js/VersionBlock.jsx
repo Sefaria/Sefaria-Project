@@ -38,6 +38,13 @@ class VersionBlock extends Component {
   }
   onVersionTitleClick(e) {
     e.preventDefault();
+    this.index = Sefaria.parseRef(this.props.currentRef).index
+    try {
+      gtag("event", "onClick_version_title", {element_name: `version_title`, change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`, categories: `${Sefaria.refCategories(this.props.currentRef)}`, book: `${Sefaria.parseRef(this.props.currentRef).index}` })
+    }
+    catch(err) {
+      console.log(err);
+    }
     if (!this.props.openVersionInSidebar && !this.props.openVersionInReader) return;
     if (this.props.firstSectionRef) {
       window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle.replace(/\s/g,'_')}`;
@@ -50,6 +57,14 @@ class VersionBlock extends Component {
   }
   onSelectVersionClick(e) {
     e.preventDefault();
+    try {
+      gtag("event", "onClick_select_version", {element_name: `select_version`,
+      change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`,
+      categories: `${Sefaria.refCategories(this.props.currentRef)}`, book: `${Sefaria.parseRef(this.props.currentRef).index}` })
+    }
+    catch(err) {
+      console.log(err);
+    }
     if (this.props.openVersionInReader) {
       this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
       Sefaria.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
@@ -156,6 +171,9 @@ class VersionBlock extends Component {
     }
   }
   makeVersionNotes(){
+    if (!this.props.showNotes) {
+      return null;
+    }
     if(Sefaria.interfaceLang=="english" && !!this.props.version.versionNotes){
       return this.props.version.versionNotes;
     }else if(Sefaria.interfaceLang=="hebrew" && !!this.props.version.versionNotesInHebrew){
@@ -169,11 +187,8 @@ class VersionBlock extends Component {
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
-    const langMap = {
-      "en": "Translation",
-      "he" : "Version"
-    }
-    let voc = langMap[this.props.version.actualLanguage] || "Translation";
+    if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
+    let voc = this.props.version.isBaseText ? 'Version' : "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
 
@@ -193,6 +208,9 @@ class VersionBlock extends Component {
     return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
   }
 
+  isHeTranslation() {
+    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.inTranslationBox;
+  }
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
@@ -276,9 +294,9 @@ class VersionBlock extends Component {
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
-              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
+              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": this.isHeTranslation() ? "heTranslation" : ""}`}
                    href={this.makeVersionLink(v.language)}
-                   onClick={this.onSelectVersionClick}>
+                   onClick={this.isHeTranslation() ? this.onVersionTitleClick : this.onSelectVersionClick}>
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
@@ -355,6 +373,7 @@ VersionBlock.propTypes = {
   viewExtendedNotes:      PropTypes.func,
   sidebarDisplay:         PropTypes.bool,
   rendermode:             PropTypes.string,
+  inTranslationBox:          PropTypes.bool,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -388,17 +407,24 @@ class VersionsBlocksList extends Component{
     );
   }
   componentDidMount() {
+    this.updateCurrentVersionKeys();
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (!Sefaria.util.object_equals(this.props.currObjectVersions, prevProps.currObjectVersions)) {
+      this.updateCurrentVersionKeys();
+    }
+  }
+  updateCurrentVersionKeys() {
     this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
   }
   isVersionCurrent(version){
     //make versions string key and check if that key is in the current keys array (hashing for morons)
-    let {actualLanguage, versionTitle} = version;
+    const {actualLanguage, versionTitle} = version;
     return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
   }
   getCurrentVersionsKeys(currentVersions){
     //make an array of strings that are keys of the current versions
-    let currs = Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
-    return currs
+    return Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
   }
   render(){
       const sortedLanguages = this.sortVersions(this.props.sortPrioritizeLanugage);
@@ -435,6 +461,8 @@ class VersionsBlocksList extends Component{
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
+                      inTranslationBox={this.props.inTranslationBox}
+                      showNotes={this.props.showNotes}
                     />
                   ))
                 }
@@ -455,6 +483,8 @@ VersionsBlocksList.propTypes={
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
+  inTranslationBox: PropTypes.bool,
+  showNotes: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,

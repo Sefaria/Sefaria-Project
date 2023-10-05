@@ -870,8 +870,45 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         Transforms.move(editor);
     }
 
-    const selectedRefCallback = (ref) => {
-          insertSource(editor, ref)
+    const getSuggestions = async (input) => {
+        let results = {
+            "previewText": null, "helperPromptText": null, "currentSuggestions": null,
+            "showAddButton": false
+        };
+        setInputValue(input);
+        if (input === "") {
+            return results;
+        }
+        const d = await Sefaria.getName(input, true, 5);
+        if (d.is_section || d.is_segment) {
+            results.helperPromptText = null;
+            results.currentSuggestions = null;
+            results.previewText = input;
+            results.showAddButton = true;
+            return results;
+        } else {
+            results.showAddButton = false;
+            results.previewText = null;
+        }
+
+        //We want to show address completions when book exists but not once we start typing further
+        if (d.is_book && isNaN(input.trim().slice(-1)) && !!d?.addressExamples) {
+            results.helperPromptText = <InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}}/>;
+        } else {
+            results.helperPromptText = null;
+        }
+
+        results.currentSuggestions = d.completion_objects
+            .map(suggestion => ({
+                name: suggestion.title,
+                key: suggestion.key,
+                border_color: Sefaria.palette.refColor(suggestion.key)
+            }))
+        return results;
+    }
+
+    const selectedCallback = () => {
+          insertSource(editor, inputValue)
     }
 
 
@@ -894,15 +931,21 @@ const AddInterfaceInput = ({ inputType, resetInterface }) => {
         )
     }
 
-    else if (inputType == "source") {
+    else if (inputType === "source") {
         return (
             <Autocompleter
-                selectedRefCallback={selectedRefCallback}
-            />
-        )
+                selectedCallback={selectedCallback}
+                getSuggestions={getSuggestions}
+                inputValue={inputValue}
+                changeInputValue={setInputValue}
+                inputPlaceholder="Search for a Text or Commentator."
+                buttonTitle="Add Source"
+                autocompleteClassNames="addInterfaceInput"
+                showSuggestionsOnSelect={true}
+            />)
     }
 
-        else {return(null)}
+    else {return(null)}
 
 }
 
@@ -1825,7 +1868,6 @@ const insertMedia = (editor, mediaUrl) => {
 
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
-
     if (!s[lang]) {return ""}
 
     let numStr = "";
@@ -1851,7 +1893,8 @@ const insertSource = (editor, ref) => {
     const nodeBelow = getNodeBelow(path, editor)
 
     Sefaria.getText(ref, {stripItags: 1}).then(text => {
-        const segments = Sefaria.makeSegments(text);
+        let segments = Sefaria.makeSegments(text, false);
+        segments = Sefaria.stripImagesFromSegments(segments);
 
         let includeNumbers = $.inArray("Talmud", text.categories) == -1;
         includeNumbers = text.indexTitle === "Pesach Haggadah" ? false : includeNumbers;
@@ -2520,7 +2563,7 @@ const SefariaEditor = (props) => {
         () => {
             const nodes = (Editor.nodes(editor, {at: [], match: Text.isText}))
             for (const [node, path] of nodes) {
-                if (node.text) {
+                if (node.text && props.divineNameReplacement) {
                     const newStr = replaceDivineNames(node.text, props.divineNameReplacement)
                     if (newStr != node.text) {
                         Transforms.insertText(editor, newStr, { at: path })

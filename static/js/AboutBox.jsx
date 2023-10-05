@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
-import {ContentText, InterfaceText} from "./Misc";
+import {InterfaceText} from "./Misc";
+import {ContentText} from "./ContentText";
 import { Modules } from './NavSidebar';
 
 
@@ -38,14 +39,17 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (prevProps.title !== this.props.title || prevProps.masterPanelLanguage != this.props.masterPanelLanguage) {
-      this.setState({details: null});
-      this.setTextMetaData();
-      Sefaria.getVersions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
-    }
+      if (prevProps.title !== this.props.title ||
+          prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
+          !Sefaria.util.object_equals(prevProps.currObjectVersions, this.props.currObjectVersions)
+      ) {
+          this.setState({details: null});
+          this.setTextMetaData();
+          Sefaria.getSourceVersions(this.props.sectionRef).then(this.onVersionsLoad);
+      }
   }
   onVersionsLoad(versions) {
     //rearrange the current selected versions to be mapped by their real language,
@@ -110,7 +114,6 @@ class AboutBox extends Component {
           authorsElems[lang] = authorArray.map((author, iauthor) => <span>{iauthor > 0 ? ", " : ""}<a key={author.slug} href={`/topics/${author.slug}`}>{author[lang]}</a></span> );
         }
       }
-      // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
       if (d.compPlaceString) {
         placeTextEn = d.compPlaceString.en;
@@ -127,22 +130,11 @@ class AboutBox extends Component {
       if (d.compDateString) {
         dateTextEn = d.compDateString.en;
         dateTextHe = d.compDateString.he
-      } else if (d.compDate) {
-        if (d.errorMargin !== 0) {
-          //I don't think there are any texts which are mixed BCE/CE
-          const lowerDate = Math.abs(d.compDate - d.errorMargin);
-          const upperDate = Math.abs(d.compDate - d.errorMargin);
-          dateTextEn = `(c.${lowerDate} - c.${upperDate} ${d.compDate < 0 ? "BCE" : "CE"})`;
-          dateTextHe = `(${lowerDate} - ${upperDate} ${d.compDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
-        } else {
-          dateTextEn = `(${Math.abs(d.compDate)} ${d.compDate < 0 ? "BCE" : "CE"})`;
-          dateTextHe = `(${Math.abs(d.compDate)} ${d.compDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
-        }
-      } else if (d.pubDate) {
-        dateTextEn = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? "BCE" : "CE"})`;
-        dateTextHe = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
+      } else if (d.pubDateString) {
+        dateTextEn = d.pubDateString.en;
+        dateTextHe = d.pubDateString.he;
       }
-      const bookPageUrl = "/" + Sefaria.normRef(d.title);
+      const bookPageUrl = "/" + Sefaria.normRef(d.title);  //comment for the sake of commit
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
@@ -167,7 +159,7 @@ class AboutBox extends Component {
             </div> : null
           }
           <div className="aboutDesc">
-            <ContentText text={{en: d?.enDesc, he: d?.heDesc}} />
+            <ContentText markdown={{en: d?.enDesc, he: d?.heDesc || d?.heShortDesc}}/>
           </div>
 
           { !!placeTextEn || !!dateTextEn ?

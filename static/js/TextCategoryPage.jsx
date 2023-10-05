@@ -1,4 +1,4 @@
-import React, { useContext }  from 'react';
+import React, { useContext, useState }  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -12,14 +12,15 @@ import {
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
-  ContentText,
+  CategoryHeader
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare }) => {
-
+  const contentLang = useContext(ContentLanguageContext).language;
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
                       ["Talmud", "Bavli"]
@@ -47,7 +48,6 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   }
 
   const tocObject = Sefaria.tocObjectByCategories(cats);
-
   const catContents = Sefaria.tocItemsByCategories(cats);
   const nestLevel   = category === "Commentary" ? 1 : 0;
   const aboutModule = [
@@ -55,14 +55,14 @@ const TextCategoryPage = ({category, categories, setCategories, toggleLanguage,
   ];
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
-
   const categoryToggle = (<SubCategoryToggle categories={cats} setCategories={setCategories} />);
-  
   const title = compare ? categoryToggle :
     <div className="navTitle">
-      <h1>
-        <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
-      </h1>
+        <CategoryHeader data={cats} type="cats">
+            <h1>
+            <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+            </h1>
+        </CategoryHeader>
       {categoryToggle}
       {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
@@ -117,7 +117,6 @@ TextCategoryPage.propTypes = {
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
 };
-
 
 // Recursive content of text category listing (including category title and lists of texts/subcategories)
 const TextCategoryContents = ({category, contents, categories, setCategories, openTextTOC, initialWidth, nestLevel}) => {
@@ -174,20 +173,21 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
         const hasDesc  = !!shortDesc;
         const longDesc = hasDesc && shortDesc.split(" ").length > 5;
         shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
-
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
-            <h2>
-              <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
-              {hasDesc && !longDesc ? 
-              <span className="categoryDescription">
+            <CategoryHeader data={newCats} type="cats">
+                 <h2>
+                 <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
+                 {hasDesc && !longDesc ?
+                 <span className="categoryDescription">
+                   <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
+                 </span> : null }
+               </h2>
+            </CategoryHeader>
+            {hasDesc && longDesc ?
+              <div className="categoryDescription long sans-serif">
                 <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-              </span> : null }
-            </h2>
-            {hasDesc && longDesc ? 
-            <div className="categoryDescription long sans-serif">
-              <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
-            </div> : null }
+              </div> : null }
             <TextCategoryContents
               contents      = {item.contents}
               categories    = {newCats}
@@ -195,7 +195,8 @@ const TextCategoryContents = ({category, contents, categories, setCategories, op
               setCategories = {setCategories}
               openTextTOC   = {openTextTOC}
               initialWidth  = {initialWidth}
-              nestLevel     = {nestLevel + 1} />
+              nestLevel     = {nestLevel + 1}
+            />
           </div>
         );
       }
@@ -342,8 +343,12 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     if (title === "Pesach Haggadah") {
         return ["Pesach Haggadah Ashkenaz", "הגדה של פסח אשכנז"]
     }
+
+    // Don't remove category strings at the beginning of these titles
     const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
-        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah'];
+        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah',
+        "Baal HaSulam's Preface to Zohar", "Baal HaSulam's Introduction to Zohar", 'Zohar Chadash',
+        'Midrash Shmuel', 'Midrash Tannaim on Deuteronomy'];
     if (whiteList.indexOf(title) > -1 || categories.slice(-1)[0] === "Siddur") {
         return [title, heTitle];
     }

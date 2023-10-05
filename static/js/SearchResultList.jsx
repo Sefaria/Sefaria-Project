@@ -125,7 +125,7 @@ class SearchResultList extends Component {
         $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
     }
     componentWillReceiveProps(newProps) {
-      if(this.props.query != newProps.query) {
+      if(this.props.query !== newProps.query) {
         this.setState({
           totals: this._typeObjDefault(0),
           hits: this._typeObjDefault([]),
@@ -149,8 +149,8 @@ class SearchResultList extends Component {
     async addRefTopic(topic) {
         const book = await Sefaria.getIndexDetails(topic.key);
         return {
-            enDesc: book.enDesc,
-            heDesc: book.heDesc,
+            enDesc: book.enDesc || book.enShortDesc,
+            heDesc: book.heDesc || book.heShortDesc,
             title: book.title,
             heTitle: book.heTitle,
             topicCat: book.categories[0],
@@ -176,7 +176,7 @@ class SearchResultList extends Component {
         }
     }
     async addGeneralTopic(topic) {
-        const d = await Sefaria.getTopic(topic.key, {annotate_time_period: true});
+        const d = await Sefaria.getTopic(topic.key, {annotated: false});
         let searchTopic = {
             analyticCat: "Topic",
             title: d.primaryTitle["en"],

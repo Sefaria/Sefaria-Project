@@ -1,0 +1,105 @@
+{% load i18n %}
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">
+Friend,
+        </span>
+        <span class="int-he">
+שלום חברים,
+        </span>
+    </p>
+
+
+
+    <p>
+        <span class="int-en">
+Sefaria is your library, here to support all your learning needs. As a nonprofit, we rely on the generosity of learners like you to keep our website and app growing. And thanks to your support, we are on track to raise the final $200,000 we need to meet Sefaria's budgeted expenses for the year.        </span>
+        <span class="int-he">
+כמו שאתם יודעים, ספריא היא הספרייה שלכם ומטרתה לתמוך בכל צרכי הלימוד שלכם.
+על מנת שנוכל להמשיך לעשות זאת, שמנו לעצמנו מטרה: לגייס 200,000$ עד ה-31/12/22 על מנת שנוכל להמשיך לצמוח ולשפר את הספרייה שלנו עבורכם.        </span>
+    </p>
+
+
+    <p>
+        <span class="int-en">
+If you’ve benefited from our texts, translations, or learning opportunities in 2022, please make an investment in the future of the library today, and help us meet our goal. Thank you.        </span>
+        <span class="int-he">
+אם בשנה החולפת מצאתם תועלת במקורות השונים בספריא, בתרגומים או בהזדמנויות הלימוד, נשמח אם תשקלו להשקיע בעתיד של הספרייה.        </span>
+    </p>
+
+    <div class="buttons">
+        <a class="button int-en" target="_blank" href="https://sefaria.nationbuilder.com/supportsefaria_web">
+            <span class="int-en">DONATE TODAY</span>
+        </a>
+        <a class="button int-he" target="_blank" href="https://sefaria.nationbuilder.com/il_whb">
+            <span class="int-he">תרמו עכשיו</span>
+        </a>
+    </div>
+
+
+</div>

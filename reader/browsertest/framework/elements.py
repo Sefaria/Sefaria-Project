@@ -344,13 +344,6 @@ class SefariaTest(AbstractTest):
     # Initial Setup
     ################
 
-    def set_modal_cookie(self):
-        # # set cookie to avoid popup interruption
-        # # We now longer set the welcomeToS2LoggedOut message by default.
-        # # TODO is this method still needed? YES
-        # pass
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
-
     def set_cookies_cookie(self):
         # set cookie to avoid popup interruption
         # We now longer set the welcomeToS2LoggedOut message by default.
@@ -362,37 +355,6 @@ class SefariaTest(AbstractTest):
             elem = self.driver.find_element_by_css_selector(".cookiesNotification .button")
             elem.click()
         except NoSuchElementException:
-            pass
-
-    def close_modal_popup(self):
-        """
-        :return: Boolean - did we manage to close the popup?
-        """
-        message = self.driver.execute_script('return Sefaria.interruptingMessage')
-        if not message:
-            return True
-
-        time.sleep(3)
-        try:
-            self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
-            self.click('#interruptingMessage #interruptingMessageClose')
-            return True
-        except NoSuchElementException:
-            pass
-
-        try:
-            self.driver.find_element_by_css_selector('#bannerMessageClose')
-            self.click('#bannerMessageClose')
-            return True
-        except NoSuchElementException:
-            return False
-
-    def close_popup_with_accept(self):
-        try:
-            alert = self.driver.switch_to.alert
-            alert.accept()
-        except NoAlertPresentException:
-            print('A <<NoAlertPresentException>> was thrown')
             pass
 
     # Login

@@ -9,6 +9,11 @@ on:
       version:
         type: string
         required: true
+      chart_version:
+        type: string
+        required: true
+        default: current
+        description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -23,13 +28,20 @@ jobs:
       - id: check
         run: |
           if [[ "${{ inputs.version }}" == "" ]]; then
-            echo "::set-output name=ref::${{ github.ref_name }}" 
+            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=ref::v${{ inputs.version }}" 
+            if [[ ${{ inputs.version }} == v* ]]; then
+              echo "ref=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            else
+              echo "ref=v${{ inputs.version }}" >> $GITHUB_OUTPUT
+            fi
           fi
   build-generic:
     needs: workflow-check
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     strategy:
       matrix:
         app: [ web, node ]
@@ -41,21 +53,35 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
           registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.PROD_GKE_SA_KEY }}
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: |
             gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -65,20 +91,26 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
-          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache, mode=max
+#         cache-from: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  build-asset:
+  build-derived:
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs:
       - build-generic
       - workflow-check
+    strategy:
+      matrix:
+        app: [ asset, linker ]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -87,21 +119,35 @@ jobs:
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
       - name: Login to GCR
         uses: docker/login-action@v1
         with:
           registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.PROD_GKE_SA_KEY }}
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - name: Login to GAR
+        uses: docker/login-action@v1
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y%m%d%H%M')"
+        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-asset
+            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -111,40 +157,58 @@ jobs:
           flavor: |
             latest=true
       - name: build and push
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
-          cache-from: type=registry, ref=${{ secrets.IMAGE_NAME }}-asset/cache
-          cache-to: type=registry, ref=${{ secrets.IMAGE_NAME }}-asset/cache, mode=max
+#         cache-from: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
+#         cache-to: type=registry,ref=${{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           build-args: |
-            SRC_IMG=gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
-          file: ./build/nginx/Dockerfile
+            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-web:${{ needs.workflow-check.outputs.ref }}
+          file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   prod-deploy:
     runs-on: ubuntu-latest
-    needs: 
-      - build-asset
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    needs:
+      - build-derived
       - workflow-check
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.workflow-check.outputs.ref }}
-      - name: Authenticate GHA Runner to GCP
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.PROD_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.PROD_GKE_SA }}'
+      - name: Setup GCloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ secrets.PROD_GKE_SA_KEY }}
           project_id: ${{ secrets.PROD_GKE_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: ${{secrets.PROD_GKE_CLUSTER}}
+          location: ${{secrets.PROD_GKE_REGION}}
+          project_id: ${{secrets.PROD_GKE_PROJECT}}
       - name: Set up yq
         uses: frenck/action-setup-yq@v1
-      - name: setup helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.9.0
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.PROD_GKE_CLUSTER}} --zone ${{secrets.PROD_GKE_REGION}} --project ${{secrets.PROD_GKE_PROJECT}}
+      - name: Determine chart version
+        id: chart_version
+        run: |
+          if [[ "${{ inputs.chart_version }}" == "current" ]]; then
+            echo "chart_version=${{ vars.CHART_VERSION }}" >> $GITHUB_OUTPUT
+          else
+            echo "chart_version=${{ inputs.chart_version }}" >> $GITHUB_OUTPUT
+          fi
       - name: Deploy Production
         run: ./build/ci/production-helm-deploy.sh build/ci/production-values.yaml
         env:
@@ -152,4 +216,14 @@ jobs:
           PROJECT_ID: "${{ secrets.PROD_GKE_PROJECT }}"
           NAMESPACE: "${{secrets.PROD_GKE_NAMESPACE}}"
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
-          CHART_VERSION: 0.4.0
+          CHART_VERSION: "${{ steps.chart_version.outputs.chart_version }}"
+      - name: Update workflow default chart
+        if: github.ref == 'refs/heads/master'
+        run: > 
+          curl -L 
+          -X PATCH 
+          -H "Accept: application/vnd.github+json" 
+          -H "Authorization: Bearer ${{ secrets.WORKFLOW_AUTOMATION_TOKEN }}" 
+          -H "X-GitHub-Api-Version: 2022-11-28"
+          https://api.github.com/repos/Sefaria/Sefaria-Project/actions/variables/CHART_VERSION
+          -d '{"name":"CHART_VERSION","value":"${{ steps.chart_version.outputs.chart_version }}"}'

@@ -152,6 +152,17 @@ class TestTopics():
             {"slug": '30', 'asTyped': 'thirty'}
         ]
 
+    def test_sanitize(self):
+        t = Topic()
+        t.slug = "sdfsdg<script/>"
+        t.description={"en":"<b>Foo</b> <script>balrg</script>", "he": "snurg <script> gdgf </script>"}
+        t._sanitize()
+        assert "<b>" not in t.description["en"]
+        assert "<script>" not in t.description["en"]
+        assert "<script>" not in t.description["he"]
+        assert "<script>" not in t.slug
+
+
 
 class TestTopicLinkHelper():
 

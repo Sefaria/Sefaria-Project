@@ -1,7 +1,6 @@
 from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
-
-
+from sefaria import tracker
 def move_index_into(index, cat):
     """
     :param index: (String)  The primary name of the Index to move.
@@ -122,7 +121,7 @@ def move_category_into(cat, parent):
         ind.save(override_dependencies=True)
 
 
-def create_category(path, en=None, he=None, searchRoot=None):
+def create_category(path, en=None, he=None, searchRoot=None, order=None):
     """
     Will create a new category at the location in the TOC indicated by `path`.
     If there is a term for `path[-1]`, then that term will be used for this category.
@@ -132,6 +131,7 @@ def create_category(path, en=None, he=None, searchRoot=None):
     :param en: (String, optional)
     :param he: (String, optional)
     :param searchRoot: (String, optional) If this is present, then in the context of search filters, this category will appear under `searchRoot`.
+    :param order: (int) the order of the category in the location (negative for the end)
     :return: (model.Category) the new category object
     """
     c = Category()
@@ -147,8 +147,12 @@ def create_category(path, en=None, he=None, searchRoot=None):
     c.add_shared_term(path[-1])
     c.path = path
     c.lastPath = path[-1]
+    if order:
+        c.order = order
     if searchRoot is not None:
         c.searchRoot = searchRoot
+    if order is not None:
+        c.order = order
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
     return c
@@ -163,3 +167,61 @@ def get_category_paths(path):
     from sefaria.model.category import TocCategory
     root = library.get_toc_tree().lookup(path)
     return [cat.full_path for cat in root.children if isinstance(cat, TocCategory)]
+
+
+def update_order_of_category_children(cat, uid, subcategoriesAndBooks):
+    """
+    Used by ReorderEditor and CategoryEditor.  Reorders subcategories and books.
+    :param cat: (model.Category or List) Either a Category object, a list of category keys defining a category, or None.
+                If empty list or None, assumed to be at the root of the TOC tree.
+    :param uid: (int) UID of user modifying categories and/or books
+    :param subcategoriesAndBooks: (list) List of strings of titles of books and/or categories
+    """
+    if isinstance(cat, list):
+        cat = Category().load({"path": cat})
+    assert isinstance(cat, Category) or cat is None
+    cat_path = cat.path if cat else []
+
+    order = 0
+    results = []
+    for subcategoryOrBook in subcategoriesAndBooks:
+        order += 5
+        try:
+            obj = library.get_index(subcategoryOrBook).contents(raw=True)
+            obj['order'] = [order]
+            result = tracker.update(uid, Index, obj)
+        except BookNameError as e:
+            obj = Category().load({"path": cat_path+[subcategoryOrBook]}).contents()
+            obj['order'] = order
+            result = tracker.update(uid, Category, obj)
+        results.append(result.contents())
+    return results
+
+
+
+
+
+def check_term(last_path, he_last_path):
+    """
+     if Category Editor is used, make sure English and Hebrew titles correspond to the same term.
+     if neither of the titles correspond to a term, create the appropriate term
+    :param last_path: (str) Corresponds to lastPath of Category and english title of Term
+    :param he_last_path: (str) Corresponds to a hebrew title of Term
+    """
+
+    error_msg = ""
+    en_term = Term().load_by_title(last_path)
+    he_term = Term().load_by_title(he_last_path)
+
+    if en_term == he_term:
+        pass
+    if (en_term and he_term != en_term) or (he_term and he_term != en_term):
+        # they do not correspond, either because both terms exist but are not the same, or one term already
+        # exists but the other one doesn't exist
+        error_msg = f"English and Hebrew titles, {last_path} and {he_last_path}, do not correspond to the same term.  Please use the term editor."
+    elif en_term is None and he_term is None:
+        t = Term()
+        t.name = last_path
+        t.add_primary_titles(last_path, he_last_path)
+        t.save()
+    return error_msg

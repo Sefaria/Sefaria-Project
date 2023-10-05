@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Word by Word: A Jewish Women's Writing Circle" %}{% endblock %}
+
+{% block description %}{% trans "Word by Word: A Jewish Women's Writing Circle will provide up to 20 Jewish women writers engaged in serious torah scholarship the support and guidance to produce publishable books." %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'WordByWordInner';
+    DJANGO_VARS.reactComponentName = 'WordByWordPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="WordByWordOuter" class="staticPageFrame">
+  <div id="WordByWordInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}

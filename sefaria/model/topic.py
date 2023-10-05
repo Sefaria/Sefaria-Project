@@ -1,11 +1,13 @@
 from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref, IndexSet
+from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
-from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
-import structlog
+from sefaria.system.database import db
+import structlog, bleach
+from sefaria.model.place import Place
 import regex as re
 logger = structlog.get_logger(__name__)
 
@@ -19,6 +21,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'person': 'PersonTopic',
         'author': 'AuthorTopic',
     }
+    pkeys = ["description"]
+    track_pkeys = True
     reverse_subclass_map = {v: k for k, v in subclass_map.items()}
     required_attrs = [
         'slug',
@@ -28,8 +32,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'subclass',  # str which indicates which subclass of `Topic` this instance is
         'alt_ids',
         'properties',
-        'description',
-        'categoryDescription',
+        'description',  # dictionary, keys are 2-letter language codes
+        'categoryDescription',  # dictionary, keys are 2-letter language codes
         'isTopLevelDisplay',
         'displayOrder',
         'numSources',
@@ -40,8 +44,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
-
     ]
+    ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
+                        # this constant is helpful in the topic editor tool functions in this file
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -69,9 +74,27 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for title in self.title_group.titles:
             title['text'] = title['text'].strip()
         self.titles = self.title_group.titles
+        slug_field = self.slug_fields[0]
+        slug = getattr(self, slug_field)
+        displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
+        if getattr(displays_under_link, "toTopic", "") == "authors":
+            self.subclass = "author"
+
+    def _sanitize(self):
+        super()._sanitize()
+        for attr in ['description', 'categoryDescription']:
+            p = getattr(self, attr, {})
+            for k, v in p.items():
+                p[k] = bleach.clean(v, tags=[], strip=True)
+            setattr(self, attr, p)
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
+
+    def add_title(self, text, lang, primary=False, replace_primary=False):
+        super(Topic, self).add_title(text, lang, primary=primary, replace_primary=replace_primary)
+        if lang == 'en' and primary:
+            self.set_slug_to_primary_title()
 
     def title_is_transliteration(self, title, lang):
         return self.title_group.get_title_attr(title, lang, 'transliteration') is not None
@@ -104,11 +127,19 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def change_description(self, desc, cat_desc):
+
+    def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
+
+        :param desc: Dictionary of descriptions, with keys being two letter language codes
+        :param cat_desc: Optional. Dictionary of category descriptions, with keys being two letter language codes
+        :return:
         """
-        self.description_published = True # because this function is used as part of the manual topic editor, we can assume 'description_published' should be True
+        if cat_desc is None:
+            cat_desc = {"en": "", "he": ""}
+        if desc is None:
+            desc = {"en": "", "he": ""}
         self.description = desc
         if getattr(self, "isTopLevelDisplay", False):
             self.categoryDescription = cat_desc
@@ -207,6 +238,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
+
     def merge(self, other: Union['Topic', str]) -> None:
         """
         :param other: Topic or old slug to migrate from
@@ -222,15 +254,18 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
-            setattr(link, attr, self.slug)
-            if getattr(link, 'fromTopic', None) == link.toTopic:
-                # self-link
-                link.delete()
-                continue
+            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
+                link.fromTopic = self.slug
+                link.toTopic = self.slug
+            else:
+                attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
+                setattr(link, attr, self.slug)
+                if getattr(link, 'fromTopic', None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
+                    link.delete()
+                    continue
             try:
                 link.save()
-            except DuplicateRecordError:
+            except (InputError, DuplicateRecordError) as e:
                 link.delete()
             except AssertionError as e:
                 link.delete()
@@ -300,6 +335,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if not kwargs.get("with_html"):
+            for k, v in d.get("description", {}).items():
+                d["description"][k] = re.sub("<[^>]+>", "", v or "")
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -366,10 +404,23 @@ class PersonTopic(Topic):
         """
         return PersonTopic().load({"alt_ids.old-person-key": key})
 
+    def annotate_place(self, d):
+        properties = d.get('properties', {})
+        for k in ['birthPlace', 'deathPlace']:
+            place = properties.get(k)
+            heKey = 'he' + k[0].upper() + k[1:]  # birthPlace => heBirthPlace
+            if place and heKey not in properties:
+                value, dataSource = place['value'], place['dataSource']
+                place_obj = Place().load({"key": value})
+                name = place_obj.primary_name('he')
+                d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
+        return d
+
     def contents(self, **kwargs):
         annotate_time_period = kwargs.get('annotate_time_period', False)
         d = super(PersonTopic, self).contents(**kwargs)
         if annotate_time_period:
+            d = self.annotate_place(d)
             tp = self.most_accurate_time_period()
             if tp is not None:
                 d['timePeriod'] = {
@@ -491,10 +542,10 @@ class AuthorTopic(PersonTopic):
         from .text import Index
 
         index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        link_names = []  # [(href, en, he)]
+        unique_urls = {}  # {url: {lang: title}}. This dict arbitrarily chooses one title per URL.
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
-                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
+                unique_urls[f'/{index_or_cat.title.replace(" ", "_")}'] = {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')}
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -504,8 +555,8 @@ class AuthorTopic(PersonTopic):
                     base_category_term = Term().load({"name": base_category.sharedTitle})
                     en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
-        return link_names
+                unique_urls[f'/texts/{"/".join(index_or_cat.path)}'] = {"en": en_text, "he": he_text}
+        return list(unique_urls.items())
 
     @staticmethod
     def is_author(slug):
@@ -678,8 +729,41 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+
+    # is_sheet and expandedRef: defaulted automatically in normalize
+    required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']
+
+    # unambiguousToTopic: used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+    # descriptions: Titles and learning prompts for this Ref in this Topic context.  Structured as follows:
+    # descriptions: {
+    #     en: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     },
+    #     he: {
+    #         title: Str,
+    #         prompt: Str,
+    #         primacy: Int
+    #     }
+    # }
+    optional_attrs = TopicLinkHelper.optional_attrs + ['charLevelData', 'unambiguousToTopic', 'descriptions']
+
+    def set_description(self, lang, title, prompt):
+        d = getattr(self, "descriptions", {})
+        d[lang] = {
+            "title": title,
+            "prompt": prompt,
+        }
+        self.descriptions = d
+        return self
+
+    def _sanitize(self):
+        super()._sanitize()
+        for lang, d in getattr(self, "descriptions", {}).items():
+            for k, v in d.items():
+                if isinstance(v, str):
+                    self.descriptions[lang][k] = bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS)
 
     def load(self, query, proj=None):
         query = TopicLinkSetHelper.init_query(query, 'refTopic')
@@ -692,6 +776,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         if self.is_sheet:
             self.expandedRefs = [self.ref]
         else:  # Ref is a regular Sefaria Ref
+            self.ref = Ref(self.ref).normal()
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _validate(self):
@@ -723,7 +808,6 @@ class RefTopicLink(abst.AbstractMongoRecord):
             d['topic'] = d['toTopic']
             d.pop('toTopic')
         return d
-
 
 class TopicLinkSetHelper():
     @staticmethod
@@ -841,3 +925,51 @@ def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+
+def process_topic_delete(topic):
+    RefTopicLinkSet({"toTopic": topic.slug}).delete()
+    IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]}).delete()
+    for sheet in db.sheets.find({"topics.slug": topic.slug}):
+        sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
+        db.sheets.save(sheet)
+
+def process_topic_description_change(topic, **kwargs):
+    """
+    Upon topic description change, get rid of old markdown links and save any new ones
+    """
+    # need to delete currently existing links but dont want to delete link if its still in the description
+    # so load up a dictionary of relevant data -> link
+    IntraTopicLinkSet({"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
+    refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
+    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
+
+    markdown_links = set()
+    for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
+        for m in re.findall('\[.*?\]\((.*?)\)', val):
+            markdown_links.add(m)
+
+    for markdown_link in markdown_links:
+        if markdown_link.startswith("/topics"):
+            other_slug = markdown_link.split("/")[-1]
+            intra_topic_dict = {"toTopic": topic.slug, "linkType": "related-to",
+                                "dataSource": "learning-team-editing-tool", 'fromTopic': other_slug}
+            try:
+                IntraTopicLink(intra_topic_dict).save()
+            except DuplicateRecordError as e:  # there may be identical IntraTopicLinks with a different dataSource or inverted fromTopic and toTopic
+                pass
+        else:
+            if markdown_link.startswith("/"):
+                markdown_link = markdown_link[1:]  # assume link starts with a '/'
+            try:
+                ref = Ref(markdown_link).normal()
+            except InputError as e:
+                continue
+            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
+                              'ref': ref}
+            RefTopicLink(ref_topic_dict).save()
+
+
+
+
+
+

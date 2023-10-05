@@ -48,7 +48,6 @@ DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
-# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 SECRET_KEY = 'insert your long random secret key here !'
@@ -85,17 +84,21 @@ SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
 
-# DafRoulette server
-RTC_SERVER = '' # Root URL/IP of the server
-
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
+# Determine which CRM connection implementations to use
+CRM_TYPE = "NONE"  # "SALESFORCE" || "NATIONBUILDER" || "NONE"
+
 # Integration with a NationBuilder list
-NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
 NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
+
+# Integration with Salesforce
+SALESFORCE_BASE_URL = ""
+SALESFORCE_CLIENT_ID = ""
+SALESFORCE_CLIENT_SECRET = ""
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False
@@ -189,6 +192,9 @@ LOGGING = {
         },
     }
 }
+
+STRAPI_LOCATION = None
+STRAPI_PORT = None
 
 structlog.configure(
     processors=[

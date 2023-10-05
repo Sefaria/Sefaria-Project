@@ -54,16 +54,9 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         com["sourceVersion"] = {"title": link.versions[linkPos]["title"], "language": link.versions[linkPos].get("language", None)}
         com["displayedText"] = link.displayedText[linkPos]  # we only want source displayedText
 
-    compDate = getattr(linkRef.index, "compDate", None)
+    compDate = getattr(linkRef.index, "compDate", None)  # default comp date to in the future
     if compDate:
-        try:
-            com["compDate"] = int(compDate)
-        except ValueError:
-            com["compDate"] = 3000  # default comp date to in the future
-        try:
-            com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
-        except ValueError:
-            com["errorMargin"] = 0
+        com["compDate"] = compDate
 
     # Pad out the sections list, so that comparison between comment numbers are apples-to-apples
     lsections = linkRef.sections[:] + [0] * (linkRef.index_node.depth - len(linkRef.sections))

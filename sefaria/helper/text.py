@@ -15,7 +15,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
-from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.hebrew import has_hebrew
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -234,7 +234,8 @@ def merge_text(a, b):
 
 def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
-    Walks ever segment contained in title, calls func on the text and saves the result.
+    Walks ever segment contained in title, calls rewrite_function on the text and saves the result.
+    rewrite_function should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
     """
     from sefaria.tracker import modify_text
 
@@ -662,7 +663,7 @@ class WorkflowyParser():
         spl_title = title.split(self.title_lang_delim)
         titles = {}
         if len(spl_title) == 2:
-            he_pos = 1 if is_hebrew(spl_title[1]) else 0
+            he_pos = 1 if has_hebrew(spl_title[1]) else 0
             he = spl_title[he_pos].split(self.alt_title_delim)
             titles["hePrim"] = he[0].strip()
             titles["heAltList"] = [t.strip() for t in he[1:]]

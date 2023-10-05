@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Admin: Delete a User" %} | {% trans "Sefaria" %}{% endblock %}
+
+{% block content %}
+
+<div id="deleteUser" class="static">
+    <div class="inner">
+        <h1>
+            <span class="int-en">Delete User</span>
+        </h1>
+        <h2> CAUTION THIS WILL DELETE THE USER ASSOCIATED WITH THE EMAIL YOU INPUT</h2>
+        <h3>IT CANNOT BE UNDONE.</h3>
+        <form method="post" autocomplete="off" if="delete-form" action="{% url "delete/user-account" %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="button control-elem">
+                <span class="int-en">Delete User</span>
+            </button>
+        </form>
+        Note: deleting a user can take a while; once you hit "Delete User" please be patient as the user is deleted
+        from our system, and do not leave the page.
+    </div>
+</div>
+{% endblock %}

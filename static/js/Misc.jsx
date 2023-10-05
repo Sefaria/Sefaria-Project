@@ -1,19 +1,28 @@
 //const React      = require('react');
-import React, { useState, useEffect, useContext, useRef } from 'react';
-import ReactDOM  from 'react-dom';
-import $  from './sefaria/sefariaJquery';
-import { CollectionsModal } from "./CollectionsWidget";
-import Sefaria  from './sefaria/sefaria';
-import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import ReactDOM from 'react-dom';
+import $ from './sefaria/sefariaJquery';
+import {CollectionsModal} from "./CollectionsWidget";
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import {Editor} from "slate";
+import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
-
+import {AdminEditorButton, useEditToggle} from "./AdminEditor";
+import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
+import {refSort} from "./TopicPage";
+import {TopicEditor} from "./TopicEditor";
+import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
+import {SourceEditor} from "./SourceEditor";
+import Cookies from "js-cookie";
+import {EditTextInfo} from "./BookPage";
+import ReactMarkdown from 'react-markdown';
+import TrackG4 from "./sefaria/trackG4";
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -51,7 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -60,18 +69,18 @@ const InterfaceText = ({text, html, children, context}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let textResponse = null;
-  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
     let {he, en} = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
     elemclasses += fallbackCls;
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
-    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
+    if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       textResponse = Sefaria._(children, context);
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
@@ -81,10 +90,10 @@ const InterfaceText = ({text, html, children, context}) => {
     }
   }
   return (
-    isDangerouslySetInnerHTML ?
+    html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-      :
-      <span className={elemclasses}>{textResponse}</span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+                    : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -99,70 +108,31 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual=false, bilingualOrder = null}) => {
-  /**
-   * Renders content language throughout the site (content that comes from the database and is not interface language)
-   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
-   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
-   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
-   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
-   */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
-  const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
-  const langShort = languageToFilter.slice(0,2);
-  let renderedItems = Object.entries(contentVariable);
-  if(languageToFilter == "bilingual"){
-    if(bilingualOrder !== null){
-      //nifty function that sorts one array according to the order of a second array.
-      renderedItems.sort(function(a, b){
-        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
-      });
-    }
-  }else{
-    renderedItems = renderedItems.filter(([lang, _])=>{
-      return lang === langShort;
-    });
-  }
-  return renderedItems.map( x =>
-      isDangerouslySetInnerHTML ?
-          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
-          :
-          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
-  );
-};
-
-
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
 const DonateLink = ({children, classes, source, link}) => {
   link = link || "default";
+  source = source || "undefined";
   const linkOptions = {
     default: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il"
+      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
     },
-    header: {
-      en: "https://sefaria.nationbuilder.com/supportsefaria_w",
-      he: "https://sefaria.nationbuilder.com/supportsefaria_il_w"
+    sustainer: {
+      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
     },
-    sponsor: {
-      en: "https://sefaria.nationbuilder.com/sponsor",
-      he: "https://sefaria.nationbuilder.com/sponsor",
+    dayOfLearning: {
+      en: "https://donate.sefaria.org/sponsor",
+      he: "https://donate.sefaria.org/sponsorhe",
     }
   };
-  const url = Sefaria._v(linkOptions[link]);
-  const trackClick = () => {
-    Sefaria.track.event("Donations", "Donation Click", source);
-  };
+  const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
 
   return (
-    <a href={url} className={classes} target="_blank" onClick={trackClick}>
+    <a href={url} className={classes} target="_blank">
       {children}
     </a>
   );
@@ -390,15 +360,41 @@ ProfilePic.propTypes = {
 };
 
 
+/**
+ * Renders a list of data that can be filtered and sorted
+ * @param filterFunc
+ * @param sortFunc
+ * @param renderItem
+ * @param sortOptions
+ * @param getData
+ * @param data
+ * @param renderEmptyList
+ * @param renderHeader
+ * @param renderFooter
+ * @param showFilterHeader
+ * @param refreshData
+ * @param initialFilter
+ * @param scrollableElement
+ * @param pageSize
+ * @param onDisplayedDataChange
+ * @param initialRenderSize
+ * @param bottomMargin
+ * @param containerClass
+ * @param onSetSort: optional. function that is passed the current sort option when the user changes it. Use this to control sort from outside the component. See `externalSortOption`.
+ * @param externalSortOption: optional. string that is one of the options in `sortOptions`. Use this to control sort from outside the component. See `onSetSort`.
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass
+  bottomMargin, containerClass, onSetSort, externalSortOption,
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [internalSortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
+  const sortOption = externalSortOption || internalSortOption;
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
@@ -450,10 +446,11 @@ const FilterableList = ({
     }, [dataUpToPage]);
   }
 
-  const onSortChange = newSortOption => {
+  const setSort = newSortOption => {
     if (newSortOption === sortOption) { return; }
     setSortOption(newSortOption);
     setDisplaySort(false);
+    onSetSort?.(newSortOption);
   };
 
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -483,7 +480,7 @@ const FilterableList = ({
                 isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
                 currOptionSelected={sortOption}
-                handleClick={onSortChange}
+                handleClick={setSort}
               />
             </DropdownModal>
             : null
@@ -510,7 +507,7 @@ const FilterableList = ({
               <span
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
-                onClick={() => onSortChange(option)}
+                onClick={() => setSort(option)}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -1046,7 +1043,258 @@ class ToggleOption extends Component {
   }
 }
 
-        //style={this.props.style}
+         //style={this.props.style}
+
+const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
+    let ajaxPayload = {url, type};
+    if (type === "POST") {
+      ajaxPayload.data = {json: JSON.stringify(data)};
+    }
+    $.ajax({
+      ...ajaxPayload,
+      success: function(result) {
+        if ("error" in result) {
+          if (setSavingStatus) {
+            setSavingStatus(false);
+          }
+          alert(result.error);
+        } else {
+          redirect();
+        }
+      }
+    }).fail(function() {
+      alert(Sefaria._("Something went wrong. Sorry!"));
+    });
+}
+
+ const TopicToCategorySlug = function(topic, category=null) {
+   //helper function for AdminEditor
+   if (!category) {
+     category = Sefaria.topicTocCategory(topic.slug);
+   }
+   let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
+   // so all category topics initialized to "Main Menu"
+   if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+     // this case handles categories that are not top level but have children under them
+     const displayUnderLinks = topic.links["displays-under"]?.links;
+     if (displayUnderLinks && displayUnderLinks.length === 1) {
+       initCatSlug = displayUnderLinks[0].topic;
+     }
+   }
+   return initCatSlug;
+ }
+
+function useHiddenButtons() {
+    const [hideButtons, setHideButtons] = useState(true);
+    const handleMouseOverAdminButtons = () => {
+        setHideButtons(false);
+        setTimeout(() => setHideButtons(true), 3000);
+    }
+    return [hideButtons, handleMouseOverAdminButtons];
+}
+
+const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+  return (
+    <span className={adminClasses}>
+      {buttonsToDisplay.map((key, i) => {
+        const top = i === 0;
+        const bottom = i === buttonsToDisplay.length - 1;
+        const [buttonText, toggleAddingTopics] = buttonOptions[key];
+        return (
+          <AdminEditorButton
+            text={buttonText}
+            top={top}
+            bottom={bottom}
+            toggleAddingTopics={toggleAddingTopics}
+          />
+        );
+      })}
+    </span>
+  );
+};
+
+
+const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
+  /*
+  Provides an interface for using admin tools.
+  `type` is 'sources', 'cats', 'books' or 'topics'
+  `data` is list when `type` === 'cats' which tells us where we are in the TOC tree,
+        for `type` === 'books' it's the name of the book
+        for `type` === 'topics' it's a dictionary of the topic object
+        for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
+  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
+   */
+  const [editCategory, toggleEditCategory] = useEditToggle();
+  const [addCategory, toggleAddCategory] = useEditToggle();
+  const [reorderCategory, toggleReorderCategory] = useEditToggle();
+  const [addSource, toggleAddSource] = useEditToggle();
+  const [addSection, toggleAddSection] = useEditToggle();
+  const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
+  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+                          "source": ["Add a source", toggleAddSource],
+                          "section": ["Add section", toggleAddSection],
+                          "reorder": ["Reorder sources", toggleReorderCategory],
+                          "edit": ["Edit", toggleEditCategory]};
+
+
+  let wrapper = "";
+  let adminButtonsSpan = null;
+  if (Sefaria.is_moderator) {
+    if (editCategory) {
+      adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
+    } else if (addSource) {
+      adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
+    } else if (addCategory) {
+      adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;
+    } else if (addSection) {
+      window.location = `/add/${data}`;
+    } else if (reorderCategory) {
+      adminButtonsSpan = <ReorderEditorWrapper toggle={toggleReorderCategory} data={data} type={type}/>;  // reordering sources on a topic page
+    } else {
+      wrapper = "headerWithAdminButtons";
+      const adminClasses = classNames({adminButtons: 1, hiddenButtons});
+        adminButtonsSpan = <AllAdminButtons
+        buttonOptions={buttonOptions}
+        buttonsToDisplay={buttonsToDisplay}
+        adminClasses={adminClasses}
+      />;
+    }
+  }
+  return <span className={wrapper}><span onMouseEnter={() => setHiddenButtons()}>{children}</span><span>{adminButtonsSpan}</span></span>;
+}
+const ReorderEditorWrapper = ({toggle, type, data}) => {
+    /*
+    Wrapper for ReorderEditor that can reorder topics, categories, and sources.  It is only used for reordering topics and categories at the
+    root of the topic or category TOC, so an empty array for `data` is passed indicating these cases.  In the case of reordering sources, `data`
+    is a dictionary of the topic whose sources can be accessed via its `refs` field.
+     */
+    const reorderingSources = data.length !== 0;
+    const _filterAndSortRefs = (refs) => {
+        if (!refs) {
+            return [];
+        }
+        // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
+        refs = refs.filter((x) => !x.is_sheet && x?.order?.availableLangs?.includes(Sefaria.interfaceLang.slice(0, 2)));
+        // then sort the refs and take only first 30 sources because admins don't want to reorder hundreds of sources
+        return refs.sort((a, b) => refSort('relevance', [a.ref, a], [b.ref, b])).slice(0, 30);
+    }
+    const _createURLs = (type, data) => {
+      if (reorderingSources) {
+        return {
+          url: `/api/source/reorder?topic=${data.slug}&lang=${Sefaria.interfaceLang}`,
+          redirect: `/topics/${data.slug}`,
+          origItems: _filterAndSortRefs(data.refs?.about?.refs) || [],
+        }
+      }
+      switch (type) {  // at /texts or /topics
+        case 'topics':
+            return {
+              url: '/api/topic/reorder',
+              redirect: '/topics',
+              origItems: Sefaria.topic_toc
+            };
+        case 'cats':
+          return {
+            url: '/api/category?reorder=1',
+            redirect: '/texts',
+            origItems: Sefaria.toc
+          };
+      }
+    }
+    const {url, redirect, origItems} = _createURLs(type, data);
+    return <ReorderEditor
+            close={toggle}
+            type={!reorderingSources ? type : 'sources'}
+            origItems={origItems}
+            postURL={url}
+            redirect={redirect}
+          />;
+}
+
+const EditorForExistingTopic = ({ toggle, data }) => {
+  const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
+    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
+  }
+  const initCatSlug = TopicToCategorySlug(data);
+  const origData = {
+    origSlug: data.slug,
+    origCatSlug: initCatSlug,
+    origEnTitle: data.primaryTitle.en,
+    origHeTitle: data.primaryTitle.he || "",
+    origEnDescription: data.description?.en || "",
+    origHeDescription: data.description?.he || "",
+    origEnCategoryDescription: data.categoryDescription?.en || "",
+    origHeCategoryDescription: data.categoryDescription?.he || "",
+    origEnAltTitles: prepAltTitles('en'),
+    origHeAltTitles: prepAltTitles('he'),
+    origBirthPlace: data?.properties?.birthPlace?.value,
+    origHeBirthPlace: data?.properties?.heBirthPlace?.value,
+    origHeDeathPlace: data?.properties?.heDeathPlace?.value,
+    origBirthYear: data?.properties?.birthYear?.value,
+    origDeathPlace: data?.properties?.deathPlace?.value,
+    origDeathYear: data?.properties?.deathYear?.value,
+    origEra: data?.properties?.era?.value
+  };
+
+  const origWasCat = "displays-above" in data?.links;
+
+  return (
+    <TopicEditor
+      origData={origData}
+      origWasCat={origWasCat}
+      close={toggle}
+    />
+  );
+};
+
+
+
+const EditorForExistingCategory = ({ toggle, data }) => {
+  let tocObject = Sefaria.tocObjectByCategories(data);
+  const origDesc = {en: tocObject.enDesc, he: tocObject.heDesc};
+  const origCategoryDesc = {en: tocObject.enShortDesc, he: tocObject.heShortDesc};
+  const origData = {
+    origEn: tocObject.category,
+    origHe: tocObject.heCategory,
+    origDesc,
+    origCategoryDesc,
+    isPrimary: tocObject.isPrimary
+  };
+
+  return (
+    <CategoryEditor
+      origData={origData}
+      close={toggle}
+      origPath={data.slice(0, -1)}
+    />
+  );
+};
+
+
+const CategoryEditorWrapper = ({toggle, data, type}) => {
+  switch (type) {
+    case "books":
+      return <EditTextInfo initTitle={data} close={toggle}/>;
+    case "sources":
+        const [topicSlug, refData] = data;
+        return <SourceEditor topic={topicSlug} origData={refData} close={toggle}/>;
+    case "cats":
+        return <EditorForExistingCategory toggle={toggle} data={data} />;
+    case "topics":
+        return <EditorForExistingTopic toggle={toggle} data={data} />;
+  }
+}
+
+const CategoryAdderWrapper = ({toggle, data, type}) => {
+      const origData = {origEnTitle: ""};
+      switch (type) {
+        case "cats":
+          return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
+        case "topics":
+          origData['origCatSlug'] = data;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}/>;
+      }
+  }
 
 class SearchButton extends Component {
   render() {
@@ -1216,7 +1464,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
         .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
         .finally(() => { setPosting(false); });
   }
 
@@ -1238,14 +1486,16 @@ SaveButton.propTypes = {
 };
 
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => {
+  const analyticsContext = useContext(AdContext)
+  return (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={onClick}
+    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
     onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
     { children }
   </div>
-);
+)};
 
 
 class FollowButton extends Component {
@@ -1278,7 +1528,7 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal();
+      this.props.toggleSignUpModal(SignUpModalKind.Follow);
       return;
     }
     if (this.state.following && !this.props.disableUnfollow) {
@@ -1299,7 +1549,7 @@ class FollowButton extends Component {
     });
     let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
     buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
-    return ( 
+    return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
@@ -1412,7 +1662,7 @@ const SheetListing = ({
     if (Sefaria._uid) {
       setShowCollectionsModal(!showCollectionsModal);
     } else {
-      toggleSignUpModal();
+      toggleSignUpModal(SignUpModalKind.AddToSheet);
     }
   };
 
@@ -1428,7 +1678,7 @@ const SheetListing = ({
     </>
   );
 
-  const sheetSummary = showSheetSummary && sheet.summary? 
+  const sheetSummary = showSheetSummary && sheet.summary?
   <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
 
   const sheetInfo = hideAuthor ? null :
@@ -1634,59 +1884,14 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
-
-
-class MessageModal extends Component {
-  constructor(props) {
-    super(props);
-    this.textarea = React.createRef();
-    this.state = {
-      visible: false,
-      message: '',
-    };
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.visible && !prevState.visible) {
-      this.textarea.current.focus();
-    }
-  }
-  onChange(e) { this.setState({ message: e.target.value }); }
-  onSend(e) {
-    if (!this.state.message) { return; }
-    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
-      this.setState({ visible: false });
-      alert("Message Sent");
-      Sefaria.track.event("Messages", "Message Sent", "");
-    });
-  }
-  makeVisible() { this.setState({ visible: true }); }
-  onCancel(e) { this.setState({ visible: false }); }
-  render() {
-    if (!this.state.visible) { return null; }
-    return (
-      <div id="interruptingMessageBox" className="sefariaModalBox sans-serif">
-        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
-        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
-          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
-          <textarea value={this.state.message} onChange={this.onChange} ref={this.textarea} />
-          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
-          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
-        </div>
-      </div>
-    );
-  }
-}
-MessageModal.propTypes = {
-  name: PropTypes.string.isRequired,
-  uid:  PropTypes.number.isRequired,
-};
-
-
 function NewsletterSignUpForm(props) {
   const {contextName, includeEducatorOption} = props;
-  const [input, setInput] = useState('');
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [educatorCheck, setEducatorCheck] = useState(false);
   const [subscribeMessage, setSubscribeMessage] = useState(null);
+  const [showNameInputs, setShowNameInputs] = useState(false);
 
   function handleSubscribeKeyUp(e) {
     if (e.keyCode === 13) {
@@ -1695,67 +1900,128 @@ function NewsletterSignUpForm(props) {
   }
 
   function handleSubscribe() {
-    const email = input;
-    if (Sefaria.util.isValidEmailAddress(email)) {
-      setSubscribeMessage("Subscribing...");
-      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General";
-      if (educatorCheck) {
-        list += "|" + (Sefaria.interfaceLang == "hebrew" ? "Announcements_Edu_Hebrew" : "Announcements_Edu");
-      }
-      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
-        if ("error" in data) {
-          setSubscribeMessage(data.error);
-        } else {
+    if (showNameInputs === true) { // submit
+      if (firstName.length > 0 & lastName.length > 0) {
+        setSubscribeMessage("Subscribing...");
+        const request = new Request(
+        '/api/subscribe/'+email,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')},
+        'Content-Type': 'application/json'}
+        );
+        fetch(request,
+            {
+              method: "POST",
+              mode: 'same-origin',
+              credentials: 'same-origin',
+              body: JSON.stringify({
+                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+                educator: educatorCheck,
+                firstName: firstName,
+                lastName: lastName
+              })
+            }
+        ).then(res => {
+          if ("error" in res) {
+            setSubscribeMessage(res.error);
+            setShowNameInputs(false);
+          } else {
           setSubscribeMessage("Subscribed! Welcome to our list.");
           Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
         }
-      }).error(data => setSubscribeMessage("Sorry, there was an error."));
+        }).catch(data => {
+          setSubscribeMessage("Sorry, there was an error.");
+          setShowNameInputs(false);
+        });
+      } else {
+        setSubscribeMessage("Please enter a valid first and last name");// get he copy
+      }
+    } else if (Sefaria.util.isValidEmailAddress(email)) {
+      setShowNameInputs(true);
     } else {
+      setShowNameInputs(false);
       setSubscribeMessage("Please enter a valid email address.");
     }
   }
 
   return (
-    <div className="newsletterSignUpBox">
+      <div className="newsletterSignUpBox">
       <span className="int-en">
         <input
-          className="newsletterInput"
-          placeholder="Sign up for Newsletter"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyUp={handleSubscribeKeyUp} />
+            className="newsletterInput"
+            placeholder="Sign up for Newsletter"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
       </span>
-      <span className="int-he">
+        <span className="int-he">
         <input
-          className="newsletterInput"
-          placeholder="הרשמו לניוזלטר"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyUp={handleSubscribeKeyUp} />
+            className="newsletterInput"
+            placeholder="הרשמו לניוזלטר"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
       </span>
-      <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      {includeEducatorOption ?
-        <div className="newsletterEducatorOption">
+        {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/> : null}
+        {showNameInputs ?
+            <><span className="int-en">
+        <input
+            className="newsletterInput firstNameInput"
+            placeholder="First Name"
+            value={firstName}
+            autoFocus
+            onChange={e => setFirstName(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
+      </span>
+              <span className="int-he">
+        <input
+            className="newsletterInput firstNameInput"
+            placeholder="שם פרטי"
+            value={firstName}
+            onChange={e => setFirstName(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
+      </span>
+              <span className="int-en">
+        <input
+            className="newsletterInput"
+            placeholder="Last Name"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
+      </span>
+              <span className="int-he">
+        <input
+            className="newsletterInput"
+            placeholder="שם משפחה"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp}/>
+      </span>
+              <div className="newsletterEducatorOption">
           <span className="int-en">
             <input
-              type="checkbox"
-              checked={educatorCheck}
-              onChange={e => setEducatorCheck(e.target.checked)} />
-            <span>I am an educator</span>
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)}/>
+            <span> I am an educator</span>
           </span>
-          <span className="int-he">
+                <span className="int-he">
             <input
-              type="checkbox"
-              checked={educatorCheck}
-              onChange={e => setEducatorCheck(e.target.checked)} />
-            <span>מורים/ אנשי הוראה</span>
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)}/>
+            <span> מורים/ אנשי הוראה</span>
           </span>
-        </div>
-      : null}
-      { subscribeMessage ?
-      <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
-      : null }
-    </div>);
+                <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
+              </div>
+            </>
+            : null}
+        {subscribeMessage ?
+            <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
+            : null}
+      </div>
+  );
 }
 
 
@@ -1770,11 +2036,11 @@ class LoginPrompt extends Component {
         </div>
         <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
-          <span className="int-he">התחבר</span>
+          <span className="int-he">התחברות</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
-          <span className="int-he">הרשם</span>
+          <span className="int-he">הרשמה</span>
         </a>
       </div>);
   }
@@ -1783,18 +2049,14 @@ LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
 
-
 class SignUpModal extends Component {
   render() {
-    const innerContent = [
-      ["star-white.png", "Save texts"],
-      ["sheet-white.png", "Make source sheets"],
-      ["note-white.png", "Take notes"],
-      ["email-white.png", "Stay in the know"],
-    ].map(x => (
-      <div key={x[0]}>
-        <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        <InterfaceText>{ x[1] }</InterfaceText>
+    let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
+
+    const innerContent = modalContent.contentList.map(bullet => (
+      <div key={bullet.icon}>
+        <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
+        <InterfaceText text={bullet.bulletContent} />
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1806,10 +2068,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText>Love Learning?</InterfaceText>
+              <InterfaceText text={modalContent.h2} />
             </h2>
             <h3>
-              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
+              <InterfaceText text={modalContent.h3} />
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -1830,112 +2092,363 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
+  modalContent: PropTypes.object.isRequired,
 };
 
 
-class InterruptingMessage extends Component {
-  constructor(props) {
-    super(props);
-    this.displayName = 'InterruptingMessage';
-    this.state = {
-      timesUp: false,
-      animationStarted: false
-    };
-    this.settings = {
-      "modal": {
-        "trackingName": "Interrupting Message",
-        "showDelay": 30000,
+function OnInView({ children, onVisible }) {
+  /**
+   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
+   *  `children` single element or nested group of elements wrapped in a div
+   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
+   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
+   */
+  const elementRef = useRef(); 
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      // Callback function will be invoked whenever the visibility of the observed element changes
+      (entries) => {
+        const entry = entries[0];
+        // Check if the observed element is intersecting with the viewport (it's visible)
+        // Invoke provided prop callback for analytics purposes
+        if (entry.isIntersecting) {
+          onVisible();
+        }
       },
-      "banner": {
-        "trackingName": "Banner Message",
-        "showDelay": 1,
+      // The entire element must be entirely visible
+      { threshold: 1 }
+    );
+
+    // Start observing the element, but wait until the element exists
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    // Cleanup when the component unmounts
+    return () => {
+      // Stop observing the element when it's no longer on the screen and can't be visible
+      if (elementRef.current) {
+        observer.unobserve(elementRef.current);
       }
-    }[this.props.style];
-  }
-  componentDidMount() {
-    if (this.shouldShow()) {
-      this.delayedShow();
-    }
-  }
-  shouldShow() {
-    const exlcudedPaths = ["/donate", "/mobile", "/app"];
-    return exlcudedPaths.indexOf(window.location.pathname) === -1;
-  }
-  delayedShow() {
-    setTimeout(function() {
-      this.setState({timesUp: true});
-      $("#interruptingMessage .button").click(this.close);
-      $("#interruptingMessage .trackedAction").click(this.trackAction);
-      this.showAorB();
-      this.animateOpen();
-    }.bind(this), this.settings.showDelay);
-  }
-  animateOpen() {
-    setTimeout(function() {
-      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
-      this.setState({animationStarted: true});
-      this.trackOpen();
-    }.bind(this), 50);
-  }
-  showAorB() {
-    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
-    const $message = $(ReactDOM.findDOMNode(this));
-    if ($message.find(".optionA").length) {
-      console.log("rand show")
-      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
-    }
-  }
-  close() {
-    this.markAsRead();
-    this.props.onClose();
-    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
-  }
-  trackOpen() {
-    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
-  }
-  trackAction() {
-    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
-  }
-  markAsRead() {
-    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) {});
-    var cookieName = this.props.messageName + "_" + this.props.repetition;
-    $.cookie(cookieName, true, { path: "/", expires: 14 });
-    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
-    Sefaria.interruptingMessage = null;
-  }
-  render() {
-    if (!this.state.timesUp) { return null; }
+    };
+  }, [onVisible]);
 
-    if (this.props.style === "banner") {
-      return  <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
-                <div id="bannerMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
-                <div id="bannerMessageClose" onClick={this.close}>×</div>
-              </div>;
+  // Attach elementRef to a div wrapper and pass the children to be rendered within it
+  return <div ref={elementRef}>{children}</div>;
+}
 
-    } else if (this.props.style === "modal") {
-      return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+const transformValues = (obj, callback) => {
+  const newObj = {};
+  for (let key in obj) {
+    newObj[key] = obj[key] !== null ? callback(obj[key]) : null;
+  }
+  return newObj;
+};
+
+const replaceNewLinesWithLinebreaks = (content) => {
+  return transformValues(
+    content,
+    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
+  );
+}
+
+const InterruptingMessage = ({
+  onClose,
+}) => {
+  const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
+  const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+
+  const markModalAsHasBeenInteractedWith = (modalName) => {
+    localStorage.setItem("modal_" + modalName, "true");
+  };
+
+  const hasModalBeenInteractedWith = (modalName) => {
+    return JSON.parse(localStorage.getItem("modal_" + modalName));
+  };
+
+  const trackModalInteraction = (modalName, eventDescription) => {
+    gtag("event", "modal_interacted_with_" + eventDescription, {
+      campaignID: modalName,
+      adType: "modal",
+    });
+  };
+
+  const trackModalImpression = () => {
+    console.log("We've got visibility!");
+    gtag("event", "modal_viewed", {
+      campaignID: strapi.modal.internalModalName,
+      adType: "modal",
+    });
+  };
+
+  const shouldShow = () => {
+    if (!strapi.modal) return false;
+    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
+    if (
+      hasModalBeenInteractedWith(
+        strapi.modal.internalModalName
+      )
+    )
+      return false;
+
+    let shouldShowModal = false;
+
+    let noUserKindIsSet = ![
+      strapi.modal.showToReturningVisitors,
+      strapi.modal.showToNewVisitors,
+      strapi.modal.showToSustainers,
+      strapi.modal.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer &&
+        strapi.modal.showToSustainers) ||
+        (!Sefaria.is_sustainer &&
+          strapi.modal.showToNonSustainers))
+    )
+      shouldShowModal = true;
+    else if (
+      (Sefaria.isReturningVisitor() &&
+        strapi.modal.showToReturningVisitors) ||
+      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
+    )
+      shouldShowModal = true;
+    else if (noUserKindIsSet) shouldShowModal = true;
+    if (!shouldShowModal) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeModal = (eventDescription) => {
+    if (onClose) onClose();
+    markModalAsHasBeenInteractedWith(
+      strapi.modal.internalModalName
+    );
+    setHasInteractedWithModal(true);
+    trackModalInteraction(
+      strapi.modal.internalModalName,
+      eventDescription
+    );
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+      const timeoutId = setTimeout(() => {
+        setInterruptingMessageShowDelayHasElapsed(true);
+      }, strapi.modal.showDelay * 1000);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+    }
+  }, [strapi.modal]); // execute useEffect when the modal changes
+
+  if (!interruptingMessageShowDelayHasElapsed) return null;
+
+  if (!hasInteractedWithModal) {
+    return (
+      <OnInView onVisible={trackModalImpression}>
+        <div id="interruptingMessageBox" className={interruptingMessageShowDelayHasElapsed ? "" : "hidden"}>
           <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div className="colorLine"></div>
             <div id="interruptingMessageContentBox" className="hasColorLine">
-              <div id="interruptingMessageClose" onClick={this.close}>×</div>
-              <div id="interruptingMessageContent" dangerouslySetInnerHTML={ {__html: this.props.messageHTML} }></div>
+              <div
+                id="interruptingMessageClose"
+                onClick={() => {
+                  closeModal("close_clicked");
+                }}
+              >
+                ×
+              </div>
+              <div id="interruptingMessageContent">
+                <div id="defaultModal">
+                  {strapi.modal.modalHeader.en && (
+                    <h1 className="int-en">{strapi.modal.modalHeader.en}</h1>
+                  )}
+                  {strapi.modal.modalHeader.he && (
+                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
+                  )}
+                  <div id="defaultModalBody" className="line-break">
+                    <InterfaceText
+                      markdown={replaceNewLinesWithLinebreaks(
+                        strapi.modal.modalText
+                      )}
+                    />
+                  </div>
+                  <div className="buttons">
+                    <a
+                      className="button int-en"
+                      target="_blank"
+                      href={strapi.modal.buttonURL.en}
+                      onClick={() => {
+                        closeModal("modal_button_clicked");
+                      }}
+                    >
+                      <span className="int-en">
+                        {strapi.modal.buttonText.en}
+                      </span>
+                    </a>
+                    <a
+                      className="button int-he"
+                      target="_blank"
+                      href={strapi.modal.buttonURL.he}
+                      onClick={() => {
+                        closeModal("modal_button_clicked");
+                      }}
+                    >
+                      <span className="int-he">
+                        {strapi.modal.buttonText.he}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </div>
               <div className="colorLine"></div>
             </div>
           </div>
-        </div>;
-    }
+        </div>
+      </OnInView>
+    );
+  } else {
     return null;
   }
-}
-InterruptingMessage.propTypes = {
-  messageName: PropTypes.string.isRequired,
-  messageHTML: PropTypes.string.isRequired,
-  style:       PropTypes.string.isRequired,
-  repetition:  PropTypes.number.isRequired, // manual toggle to refresh an existing message
-  onClose:     PropTypes.func.isRequired
+};
+InterruptingMessage.displayName = "InterruptingMessage";
+
+const Banner = ({ onClose }) => {
+  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
+    useState(false);
+  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
+  const strapi = useContext(StrapiDataContext);
+
+  const markBannerAsHasBeenInteractedWith = (bannerName) => {
+    localStorage.setItem("banner_" + bannerName, "true");
+  };
+
+  const hasBannerBeenInteractedWith = (bannerName) => {
+    return JSON.parse(localStorage.getItem("banner_" + bannerName));
+  };
+
+  const trackBannerInteraction = (bannerName, eventDescription) => {
+    gtag("event", "banner_interacted_with_" + eventDescription, {
+      campaignID: bannerName,
+      adType: "banner",
+    });
+  };
+
+  const trackBannerImpression = () => {
+    gtag("event", "banner_viewed", {
+      campaignID: strapi.banner.internalBannerName,
+      adType: "banner",
+    });
+  };
+
+  const shouldShow = () => {
+    if (!strapi.banner) return false;
+    if (
+      Sefaria.interfaceLang === "hebrew" &&
+      !strapi.banner.locales.includes("he")
+    )
+      return false;
+    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
+      return false;
+
+    let shouldShowBanner = false;
+
+    let noUserKindIsSet = ![
+      strapi.banner.showToReturningVisitors,
+      strapi.banner.showToNewVisitors,
+      strapi.banner.showToSustainers,
+      strapi.banner.showToNonSustainers,
+    ].some((p) => p);
+    if (
+      Sefaria._uid &&
+      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
+        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
+    )
+      shouldShowBanner = true;
+    else if (
+      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
+      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
+    )
+      shouldShowBanner = true;
+    else if (noUserKindIsSet) shouldShowBanner = true;
+    if (!shouldShowBanner) return false;
+
+    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    return excludedPaths.indexOf(window.location.pathname) === -1;
+  };
+
+  const closeBanner = (eventDescription) => {
+    if (onClose) onClose();
+    markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
+    setHasInteractedWithBanner(true);
+    trackBannerInteraction(strapi.banner.internalBannerName, eventDescription);
+  };
+
+  useEffect(() => {
+    if (shouldShow()) {
+      const timeoutId = setTimeout(() => {
+        // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
+        if (document.getElementById("s2").classList.contains("headerOnly")) {
+          document.body.classList.add("hasBannerMessage");
+        }
+        setBannerShowDelayHasElapsed(true);
+      }, strapi.banner.showDelay * 1000);
+      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+    }
+  }, [strapi.banner]); // execute useEffect when the banner changes
+
+  if (!bannerShowDelayHasElapsed) return null;
+
+  if (!hasInteractedWithBanner) {
+    return (
+      <OnInView onVisible={trackBannerImpression}>
+        <div
+          id="bannerMessage"
+          className={bannerShowDelayHasElapsed ? "" : "hidden"}
+          style={
+            strapi.banner.bannerBackgroundColor && {
+              backgroundColor: strapi.banner.bannerBackgroundColor,
+            }
+          }
+        >
+          <div id="bannerMessageContent">
+            <div id="bannerTextBox">
+              <InterfaceText
+                markdown={replaceNewLinesWithLinebreaks(
+                  strapi.banner.bannerText
+                )}
+              />
+            </div>
+            <div id="bannerButtonBox">
+              <a
+                className="button white int-en"
+                href={strapi.banner.buttonURL.en}
+              >
+                <span>{strapi.banner.buttonText.en}</span>
+              </a>
+              <a
+                className="button white int-he"
+                href={strapi.banner.buttonURL.he}
+              >
+                <span>{strapi.banner.buttonText.he}</span>
+              </a>
+            </div>
+          </div>
+          <div id="bannerMessageClose" onClick={closeBanner}>
+            ×
+          </div>
+        </div>
+      </OnInView>
+    );
+  } else {
+    return null;
+  }
 };
 
+Banner.displayName = "Banner";
 
 const NBox = ({ content, n, stretch, gap=0  }) => {
   // Wrap a list of elements into an n-column flexbox
@@ -2390,14 +2903,13 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
-const AdminToolHeader = function({en, he, validate, close}) {
+const AdminToolHeader = function({title, validate, close}) {
   /*
-  Save and Cancel buttons with a header using the 'en'/'he' text.  Save button calls 'validate' and cancel button calls 'close'.
+  Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
   return    <div className="headerWithButtons">
               <h1 className="pageTitle">
-                <span className="int-en">{en}</span>
-                <span className="int-he">{he}</span>
+                <InterfaceText>{title}</InterfaceText>
               </h1>
               <div className="end">
                 <a onClick={close} id="cancel" className="button small transparent control-elem">
@@ -2422,12 +2934,13 @@ const CategoryChooser = function({categories, update}) {
     let newCategories = [];
     for (let i=0; i<categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
-      if (el.options[el.selectedIndex].value === "Choose a category" || (i > 0 && Sefaria.tocItemsByCategories(newCategories.slice(0, i+1)).length === 0)) {
-        //first test says dont include "Choose a category" and anything after it in categories.
-        //second test is if categories are ["Talmud", "Prophets"], set categories to ["Talmud"]
+      let elValue = el.options[el.selectedIndex].value;
+      let possCategories = newCategories.concat([elValue]);
+      if (!Sefaria.tocObjectByCategories(possCategories)) {
+        // if possCategories are ["Talmud", "Prophets"], break out and leave newCategories as ["Talmud"]
         break;
       }
-      newCategories.push(el.options[el.selectedIndex].value);
+      newCategories.push(elValue);
     }
     update(newCategories); //tell parent of new values
   }
@@ -2437,10 +2950,10 @@ const CategoryChooser = function({categories, update}) {
   //create a menu of first level categories
   let options = Sefaria.toc.map(function(child, key) {
     if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key} value={categories[0]} selected>{categories[0]}</option>;
+      return <option key={key+1} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
-      return <option key={key} value={child.category}>{child.category}</option>
+      return <option key={key+1} value={child.category}>{child.category}</option>
     }
   });
   menus.push(options);
@@ -2448,17 +2961,11 @@ const CategoryChooser = function({categories, update}) {
   //now add to menu second and/or third level categories found in categories
   for (let i=0; i<categories.length; i++) {
     let options = [];
-    let subcats = Sefaria.tocItemsByCategories(categories.slice(0, i+1));
+    const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i+1));
+    const subcats = !tocObject?.contents ? [] : tocObject.contents.filter(x => x.hasOwnProperty("category")); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
     for (let j=0; j<subcats.length; j++) {
-      if (subcats[j].hasOwnProperty("contents")) {
-        if (categories.length >= i && categories[i+1] === subcats[j].category) {
-          options.push(<option key={j} value={categories[i+1]} selected>{subcats[j].category}</option>);
-        }
-        else
-        {
-          options.push(<option key={j} value={subcats[j].category}>{subcats[j].category}</option>);
-        }
-      }
+      const selected = categories.length >= i && categories[i+1] === subcats[j].category;
+      options.push(<option key={j} value={subcats[j].category} selected={selected}>{subcats[j].category}</option>);
     }
     if (options.length > 0) {
       menus.push(options);
@@ -2466,9 +2973,9 @@ const CategoryChooser = function({categories, update}) {
   }
   return <div ref={categoryMenu}>
           {menus.map((menu, index) =>
-            <div id="categoryChooserMenu">
+            <div className="categoryChooserMenu">
               <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Choose a category</option>
+              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
               {menu}
               </select>
             </div>)}
@@ -2476,23 +2983,29 @@ const CategoryChooser = function({categories, update}) {
 }
 
 
-const TitleVariants = function({titles, update}) {
+const TitleVariants = function({titles, update, options}) {
   /*
-  Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
-  and `update` is method to call after deleting or adding to titles
+  Wrapper for ReactTags component.  `titles` is initial list of objects to populate ReactTags component.
+  each item in `titles` should have an 'id' and 'name' field and can have others as well
+  and `update` is method to call after deleting or adding to titles. `options` is an object that can have
+  the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
+  if (titles.length > 0 && typeof titles[0] === 'string') {  // normalize titles
+    titles = titles.map((item, i) => ({["name"]: item, ["id"]: i}));
+  }
   const onTitleDelete = function(i) {
-    let newTitles = titles.filter(t => t !== titles[i]);
+    const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
   const onTitleAddition = function(title) {
-    let newTitles = [].concat(titles, title);
+    title.id = Math.max(titles.map(x => x.id)) + 1;  // assign unique id
+    const newTitles = [].concat(titles, title);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title+" already exists.");
+      alert(title.name+" already exists.");
     }
     return validTitle;
   }
@@ -2501,11 +3014,11 @@ const TitleVariants = function({titles, update}) {
                 <ReactTags
                     allowNew={true}
                     tags={titles}
-                    onDelete={onTitleDelete}
+                    onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
                     placeholderText={Sefaria._("Add a title...")}
                     delimiters={["Enter", "Tab"]}
-                    onAddition={onTitleAddition}
-                    onValidate={onTitleValidate}
+                    onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
+                    onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
                   />
          </div>
 }
@@ -2537,17 +3050,28 @@ const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) =
   )
 
 }
-
-const Autocompleter = ({selectedRefCallback}) => {
-  const [inputValue, setInputValue] = useState("");
+const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
+                         buttonTitle, autocompleteClassNames }) => {
+  /*
+  Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
+  select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
+  `getSuggestions` is a callback function that is called whenever the user types in the input box, which causes the select menu to be populated.
+  It returns an object with the necessary props of "currentSuggestions" and "showAddButton" and optional props "previewText" and "helperPromptText" (latter are used in Editor.jsx)
+  `showSuggestionsOnSelect` is a boolean; if true, when the user selects an option from the suggestions,`getSuggestions` will be called. Useful when autocompleting a Ref in AddInterfaceInput.
+  `inputPlaceholder` is the placeholder for the input component.
+  `inputValue` and `changeInputValue` are passed from the parent so that when there is a change in the input box, the parent knows about it.  Useful in TopicSearch for the case "Create new topic: [new topic]"
+  `selectedCallback` is a callback function called when the user submits an autocomplete suggestion.
+  `autocompleteClassNames` are styling options
+   */
   const [currentSuggestions, setCurrentSuggestions] = useState(null);
   const [previewText, setPreviewText] = useState(null);
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
-
+  const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
+  const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-
+  const buttonClassNames = classNames({button: 1, small: 1});
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -2583,71 +3107,49 @@ const Autocompleter = ({selectedRefCallback}) => {
     }, [previewText]
   )
 
-
-
-
-  const getSuggestions = (input) => {
-    setInputValue(input)
-    if (input == "") {
-      setPreviewText(null)
-      setHelperPromptText(null)
-      setCurrentSuggestions(null)
-      return
-    }
-    Sefaria.getName(input, true, 5).then(d => {
-
-      if (d.is_section || d.is_segment) {
-        setCurrentSuggestions(null)
-        generatePreviewText(input);
-        setHelperPromptText(null)
-        setShowAddButton(true)
-        return
-      }
-      else {
-        setShowAddButton(false)
-        setPreviewText(null)
-      }
-
-      //We want to show address completions when book exists but not once we start typing further
-      if (d.is_book && isNaN(input.trim().slice(-1))) {
-        setHelperPromptText(<InterfaceText text={{en: d.addressExamples[0], he: d.heAddressExamples[0]}} />)
-        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
-      }
-      else {
-        setHelperPromptText(null)
-      }
-
-      const suggestions = d.completion_objects
-          .map((suggestion, index) => ({
-            name: suggestion.title,
-            key: suggestion.key,
-            border_color: Sefaria.palette.refColor(suggestion.key)
-          })
-      )
-      setCurrentSuggestions(suggestions);
-    })
-  }
-
   const resizeInputIfNeeded = () => {
-    const currentWidth = getWidthOfInput()
+    const currentWidth = getWidthOfInput();
     if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
   }
 
-  const onChange = (input) => {
-    getSuggestions(input);
-    resizeInputIfNeeded()
+  const processSuggestions = (resultsPromise) => {
+    resultsPromise.then(results => {
+      setCurrentSuggestions(results.currentSuggestions);
+      setShowAddButton(results.showAddButton);
+      setHelperPromptText(results.helperPromptText);
+      if (!!results.previewText) {
+        generatePreviewText(results.previewText);
+      }
+      if (!!results.helperPromptText) {
+        document.querySelector('.addInterfaceInput input+span.helperCompletionText').style.insetInlineStart = `${getWidthOfInput()}px`;
+      }
+    });
   }
 
+  const onChange = (input) => {
+    setInputClassNames(classNames({selected: 0}));
+    setShowCurrentSuggestions(true);
+    processSuggestions(getSuggestions(input));
+    resizeInputIfNeeded();
+  }
+
+  const handleOnClickSuggestion = (title) => {
+      changeInputValue(title);
+      setShowCurrentSuggestions(showSuggestionsOnSelect);
+      if (showSuggestionsOnSelect) {
+        processSuggestions(getSuggestions(title));
+      }
+      setInputClassNames(classNames({selected: 1}));
+      resizeInputIfNeeded();
+      inputEl.current.focus();
+  }
 
   const Suggestion = ({title, color}) => {
     return(<option
               className="suggestion"
               onClick={(e)=>{
                   e.stopPropagation()
-                  setInputValue(title)
-                  getSuggestions(title)
-                  resizeInputIfNeeded()
-                  inputEl.current.focus()
+                  handleOnClickSuggestion(title)
                 }
               }
               style={{"borderInlineStartColor": color}}
@@ -2668,23 +3170,32 @@ const Autocompleter = ({selectedRefCallback}) => {
   return(div)
   }
 
+  const handleSelection = () => {
+    selectedCallback(inputValue, currentSuggestions);
+    setPreviewText(null);
+    setShowAddButton(false);
+  }
+
   const onKeyDown = e => {
     if (e.key === 'Enter' && showAddButton) {
-      selectedRefCallback(inputValue)
+      handleSelection(inputValue, currentSuggestions);
     }
 
     else if (e.key === 'ArrowDown' && currentSuggestions && currentSuggestions.length > 0) {
       suggestionEl.current.focus();
       (suggestionEl.current).firstChild.selected = 'selected';
     }
-
+    else
+    {
+      changeInputValue(inputEl.current.value);
+    }
   }
 
 
   const generatePreviewText = (ref) => {
         Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
-           const segments = Sefaria.makeSegments(text, true);
-           console.log(segments)
+           let segments = Sefaria.makeSegments(text, true);
+           segments = Sefaria.stripImagesFromSegments(segments);
            const previewHTML =  segments.map((segment, i) => {
             {
               const heOnly = !segment.en;
@@ -2703,38 +3214,35 @@ const Autocompleter = ({selectedRefCallback}) => {
               )
             }
           })
-          setPreviewText(previewHTML)
+          setPreviewText(previewHTML);
         })
   }
 
    const checkEnterOnSelect = (e) => {
-      console.log(e.key)
       if (e.key === 'Enter') {
-        setInputValue(e.target.value);
-        getSuggestions(e.target.value);
-        inputEl.current.focus();
+          handleOnClickSuggestion(e.target.value);
       }
     }
 
-
   return(
-    <div className="addInterfaceInput" onClick={(e) => {e.stopPropagation()}} title="Add a source from Sefaria's library">
+    <div className={autocompleteClassNames} onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
       <input
           type="text"
-          placeholder={Sefaria._("Search for a text...")}
-          className="serif"
+          placeholder={Sefaria._(inputPlaceholder)}
           onKeyDown={(e) => onKeyDown(e)}
           onClick={(e) => {e.stopPropagation()}}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => setPreviewText(null) }
           value={inputValue}
           ref={inputEl}
-          size={inputValue.length}
-      /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
-      {showAddButton ? <button className="button small" onClick={(e) => {
-                    selectedRefCallback(inputValue)
-      }}><InterfaceText>Add Source</InterfaceText></button> : null}
+          className={inputClassNames}
 
-      {currentSuggestions && currentSuggestions.length > 0 ?
+      /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
+      {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
+                    handleSelection(inputValue, currentSuggestions)
+                }}>{buttonTitle}</button> : null}
+
+      {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
           <div className="suggestionBoxContainer">
           <select
               ref={suggestionEl}
@@ -2765,6 +3273,7 @@ const Autocompleter = ({selectedRefCallback}) => {
 }
 
 export {
+  CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
   SimpleContentBlock,
@@ -2785,8 +3294,8 @@ export {
   FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
+  Banner,
   InterfaceText,
-  ContentText,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,
@@ -2795,7 +3304,6 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
-  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,
@@ -2826,5 +3334,7 @@ export {
   DivineNameReplacer,
   AdminToolHeader,
   CategoryChooser,
-  TitleVariants
+  TitleVariants,
+  requestWithCallBack,
+  OnInView
 };

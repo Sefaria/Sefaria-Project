@@ -125,3 +125,11 @@ class Test_Link_Save():
         with pytest.raises(DuplicateRecordError) as e_info:
             link2.save()
         l1.delete()
+
+    def test_section_ref_in_default_node(self):
+        for ref in ['Genesis 1', 'Zechariah 1']:
+            link = Link({"auto": True,
+                     "generated_by": "link_tester",
+                      "type": "quotation_auto_tanakh",
+                      "refs": [ref, "Ramban on Genesis 2:1"]})
+            assert link._pre_save() == None

@@ -71,7 +71,7 @@ origin-il-tls-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
-{{- define "sefaria.tarballName" }} 
+{{- define "sefaria.tarballName" }}
 {{- if .Values.restore.tarball -}}
 {{- .Values.restore.tarball }}
 {{- else -}}
