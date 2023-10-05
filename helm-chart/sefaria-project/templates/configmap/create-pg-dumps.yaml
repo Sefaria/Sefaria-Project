@@ -10,9 +10,8 @@ data:
   create-dumps.sh: |-
     #!/usr/bin/env bash
 
-    set -x
     DATADIR="/pgdumps/shared_volume"
-    
+
     DUMP_CMD="pg_dump --file $DATADIR/pg.dump --host $DATABASES_HOST"
     if [[ $DATABASES_PORT ]]; then
       DUMPCMD+=" --port $DATABASES_PORT"
@@ -23,12 +22,10 @@ data:
     if [[ ! $DATABASES_PASSWORD ]]; then
       DUMP_CMD+=" --no_password"
     else
-      SET PGPASSWORD='$DATABASES_PASSWORD'
+      export PGPASSWORD="${DATABASES_PASSWORD}"
     fi
     DUMP_CMD+=" --verbose --format=c --no-owner --section=pre-data --section=data --no-privileges"
     DUMP_CMD+=" --no-tablespaces --no-unlogged-table-data 'sefaria_auth'"
-    
+
     eval $DUMP_CMD
-    
-    tar cvzf "${DATADIR}/postgres_dump.tar.gz" -C "${DATADIR}" ./dump
 {{- end }}

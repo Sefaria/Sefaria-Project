@@ -1,17 +1,23 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 from datetime import timedelta
+import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
-
+import os
 
 # These are things you need to change!
 
-################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE (If the db.sqlite file does not exist, simply create it) ########################################
+################
+# YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE
+# If the db.sqlite file does not exist, simply list a path where it can be created.
+# You can set the path to /path/to/Sefaria-Project/db.sqlite, since we git-ignore all sqlite files
+# (you do not need to create the empty db.sqlite file, as Django will handle that later)
+# ########################################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/path/to/your/sefaria/data/db.sqlite', # Or path to database file if using sqlite3.
+        'NAME': '/path/to/Sefaria-Project/db.sqlite', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -48,6 +54,17 @@ ADMINS = (
      ('Your Name', 'you@example.com'),
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
+
+MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
+# This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017 # Not used if the above is a list
+# Name of the MongoDB database to use.
+SEFARIA_DB = 'sefaria' # Change if you named your db something else
+SEFARIA_DB_USER = '' # Leave user and password blank if not using Mongo Auth
+SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
+
 
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
@@ -115,16 +132,10 @@ OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-"""
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "messageName",
-    "repetition": 1,
-    "is_fundraising": True,
-    "style":      "modal" # "modal" or "banner"
-    "condition":  {"returning_only": True}
-}
-"""
+# Location of Strapi CMS instance
+# For local development, Strapi is located at http://localhost:1337 by default
+STRAPI_LOCATION = None
+STRAPI_PORT = None
 
 
 MANAGERS = ADMINS
@@ -143,14 +154,6 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
-MONGO_HOST = "localhost"
-MONGO_PORT = 27017
-# Name of the MongoDB database to use.
-SEFARIA_DB = 'sefaria'
-# Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = ''
-SEFARIA_DB_PASSWORD = ''
-APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_ADMIN = "http://localhost:9200"
@@ -167,19 +170,24 @@ SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
 
-# DafRoulette server
-RTC_SERVER = '' # Root URL/IP of the server
-
+GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 
 HOTJAR_ID = None
 
+# Determine which CRM connection implementations to use
+CRM_TYPE = "NONE"  # "SALESFORCE" || "NATIONBUILDER" || "NONE"
+
 # Integration with a NationBuilder list
-NATIONBUILDER = False
 NATIONBUILDER_SLUG = ""
 NATIONBUILDER_TOKEN = ""
 NATIONBUILDER_CLIENT_ID = ""
 NATIONBUILDER_CLIENT_SECRET = ""
+
+# Integration with Salesforce
+SALESFORCE_BASE_URL = ""
+SALESFORCE_CLIENT_ID = ""
+SALESFORCE_CLIENT_SECRET = ""
 
 # Issue bans to Varnish on update.
 USE_VARNISH = False
@@ -195,7 +203,7 @@ USE_VARNISH_ESI = False
 DISABLE_INDEX_SAVE = False
 
 # Turns off search autocomplete suggestions, which are reinitialized on every server reload
-# which can be annoying for local development. 
+# which can be annoying for local development.
 DISABLE_AUTOCOMPLETER = False
 
 # Turns on loading of machine learning models to run linker
@@ -296,3 +304,12 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+SENTRY_DSN = None
+CLIENT_SENTRY_DSN = None
+
+# Fail gracefully when decorator conditional_graceful_exception on function. This should be set to True on production
+# Example: If a text or ref cannot be properly loaded, fail gracefully and let the server continue to run
+FAIL_GRACEFULLY = False
+if "pytest" in sys.modules:
+    FAIL_GRACEFULLY = False

@@ -20,7 +20,7 @@ class FollowRelationship(object):
         self.follow_date = datetime.now()
 
     def exists(self):
-        bool(db.following.find_one({"follower": self.follower, "followee": self.followee}))
+        return bool(db.following.find_one({"follower": self.follower, "followee": self.followee}))
 
     def follow(self):
         from sefaria.model.notification import Notification

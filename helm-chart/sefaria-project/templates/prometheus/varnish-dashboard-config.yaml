@@ -8,29 +8,43 @@ metadata:
   namespace: monitoring
 data:
   {{ .Values.deployEnv }}-varnish-dashboard.json: |2-
-
     {
       "annotations": {
         "list": [
           {
             "builtIn": 1,
-            "datasource": "-- Grafana --",
+            "datasource": {
+              "type": "datasource",
+              "uid": "grafana"
+            },
             "enable": true,
             "hide": true,
             "iconColor": "rgba(0, 211, 255, 1)",
             "name": "Annotations & Alerts",
+            "target": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            },
             "type": "dashboard"
           }
         ]
       },
       "editable": true,
-      "gnetId": null,
+      "fiscalYearStartMonth": 0,
       "graphTooltip": 1,
-      "iteration": 1563214363724,
+      "id": 42,
+      "iteration": 1667984023214,
       "links": [],
+      "liveNow": false,
       "panels": [
         {
           "collapsed": false,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -44,26 +58,49 @@ data:
           "type": "row"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": null,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "",
-          "editable": true,
-          "error": false,
-          "format": "percentunit",
-          "gauge": {
-            "maxValue": 1,
-            "minValue": 0,
-            "show": true,
-            "thresholdLabels": false,
-            "thresholdMarkers": false
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "max": 1,
+              "min": 0,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "rgba(245, 54, 54, 0.9)",
+                    "value": null
+                  },
+                  {
+                    "color": "rgba(237, 129, 40, 0.89)",
+                    "value": 0
+                  },
+                  {
+                    "color": "rgba(50, 172, 45, 0.97)",
+                    "value": 0
+                  }
+                ]
+              },
+              "unit": "percentunit"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -71,46 +108,29 @@ data:
             "x": 0,
             "y": 1
           },
-          "height": "",
           "hideTimeOverride": false,
           "id": 6,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "100%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": false
           },
-          "tableColumn": "Value",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "avg(\n  (\n    rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))\n  )\n)",
               "format": "time_series",
               "hide": false,
@@ -122,40 +142,48 @@ data:
               "step": 1800
             }
           ],
-          "thresholds": "0,0,0.1",
           "title": "Cache Hit Rate",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "70%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "gauge"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": 1,
-          "editable": true,
-          "error": false,
-          "format": "none",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -164,43 +192,29 @@ data:
             "y": 1
           },
           "id": 9,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": " / sec",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "100%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])) + sum(irate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
@@ -212,41 +226,48 @@ data:
               "step": 900
             }
           ],
-          "thresholds": "",
-          "timeFrom": null,
           "title": "Frontend Requests",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "70%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "stat"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": 1,
-          "editable": true,
-          "error": false,
-          "format": "short",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "short"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -255,43 +276,29 @@ data:
             "y": 1
           },
           "id": 11,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": " / sec",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "/^sum\\(irate\\(varnish_main_sessions_total\\{service=\"varnish\\-production\", pod=~\"\\^\\(production\\-varnish\\-865db987f8\\-bfj7k\\)\\.\\*\"\\}\\[1m\\]\\)\\)$/",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "frontend_for",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_sessions_total{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
@@ -302,40 +309,48 @@ data:
               "step": 900
             }
           ],
-          "thresholds": "",
           "title": "Sessions",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "70%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "stat"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": 1,
-          "editable": true,
-          "error": false,
-          "format": "none",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "decimals": 1,
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -343,45 +358,30 @@ data:
             "x": 6,
             "y": 1
           },
-          "height": "",
           "id": 4,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": " / sec",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "100%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "15s",
@@ -392,37 +392,47 @@ data:
               "step": 900
             }
           ],
-          "thresholds": "",
           "title": "Cache Hit",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "70%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "stat"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": false,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgba(237, 129, 40, 0.89)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "format": "none",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "none"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -431,43 +441,29 @@ data:
             "y": 1
           },
           "id": 16,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "none",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "mean"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "max(varnish_main_vmods{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "interval": "",
@@ -477,40 +473,47 @@ data:
               "step": 1800
             }
           ],
-          "thresholds": "",
           "title": "Loaded VMODs",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "70%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "avg"
+          "type": "stat"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": true,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgb(96, 96, 96)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": null,
-          "editable": true,
-          "error": false,
-          "format": "dtdurations",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "dtdurations"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -519,43 +522,29 @@ data:
             "y": 1
           },
           "id": 18,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "/^__name__$/",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "__name__",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "min(varnish_main_uptime{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "intervalFactor": 2,
@@ -564,40 +553,47 @@ data:
               "step": 1800
             }
           ],
-          "thresholds": "",
           "title": "Uptime",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "50%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "stat"
         },
         {
-          "cacheTimeout": null,
-          "colorBackground": false,
-          "colorValue": true,
-          "colors": [
-            "rgba(245, 54, 54, 0.9)",
-            "rgb(96, 96, 96)",
-            "rgba(50, 172, 45, 0.97)"
-          ],
-          "datasource": "prometheus",
-          "decimals": null,
-          "editable": true,
-          "error": false,
-          "format": "dtdurations",
-          "gauge": {
-            "maxValue": 100,
-            "minValue": 0,
-            "show": false,
-            "thresholdLabels": false,
-            "thresholdMarkers": true
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "mappings": [
+                {
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "N/A"
+                    }
+                  },
+                  "type": "special"
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "dtdurations"
+            },
+            "overrides": []
           },
           "gridPos": {
             "h": 4,
@@ -606,43 +602,29 @@ data:
             "y": 1
           },
           "id": 10,
-          "interval": null,
           "links": [],
-          "mappingType": 1,
-          "mappingTypes": [
-            {
-              "name": "value to text",
-              "value": 1
-            },
-            {
-              "name": "range to text",
-              "value": 2
-            }
-          ],
           "maxDataPoints": 100,
-          "nullPointMode": "connected",
-          "nullText": null,
-          "options": {},
-          "postfix": "",
-          "postfixFontSize": "50%",
-          "prefix": "",
-          "prefixFontSize": "50%",
-          "rangeMaps": [
-            {
-              "from": "null",
-              "text": "N/A",
-              "to": "null"
-            }
-          ],
-          "sparkline": {
-            "fillColor": "rgba(31, 118, 189, 0.18)",
-            "full": false,
-            "lineColor": "rgb(31, 120, 193)",
-            "show": false
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "/^version$/",
+              "values": false
+            },
+            "textMode": "auto"
           },
-          "tableColumn": "version",
+          "pluginVersion": "8.5.5",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "varnish_version{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}",
               "format": "table",
               "intervalFactor": 2,
@@ -651,22 +633,16 @@ data:
               "step": 1800
             }
           ],
-          "thresholds": "",
           "title": "Version",
           "transparent": true,
-          "type": "singlestat",
-          "valueFontSize": "50%",
-          "valueMaps": [
-            {
-              "op": "=",
-              "text": "N/A",
-              "value": "null"
-            }
-          ],
-          "valueName": "current"
+          "type": "stat"
         },
         {
           "collapsed": false,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -683,14 +659,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 0,
             "y": 6
           },
+          "hiddenSeries": false,
           "id": 27,
           "legend": {
             "avg": false,
@@ -705,9 +686,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -717,7 +701,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\" }[1m])) + sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m])) + sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 1,
@@ -726,9 +714,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Varnish Overall Req/sec",
           "tooltip": {
             "shared": true,
@@ -737,9 +723,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -747,24 +731,18 @@ data:
             {
               "decimals": 0,
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -772,14 +750,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 5,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 8,
             "y": 6
           },
+          "hiddenSeries": false,
           "id": 29,
           "legend": {
             "avg": false,
@@ -794,9 +777,12 @@ data:
           "linewidth": 0,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -806,14 +792,22 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_cache_hit{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "cache hits",
               "refId": "A"
             },
             {
-              "expr": "sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_cache_miss{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "cache misses",
@@ -821,9 +815,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Cache Hit/Miss Reqs/sec",
           "tooltip": {
             "shared": true,
@@ -832,9 +824,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -842,24 +832,18 @@ data:
             {
               "decimals": 0,
               "format": "reqps",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -867,14 +851,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 16,
             "y": 6
           },
+          "hiddenSeries": false,
           "id": 41,
           "legend": {
             "avg": false,
@@ -889,9 +878,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -901,7 +893,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_thread_queue_len{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_thread_queue_len{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "queued requests",
@@ -909,9 +905,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Queued Requests/sec",
           "tooltip": {
             "shared": true,
@@ -920,9 +914,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -930,24 +922,18 @@ data:
             {
               "decimals": 0,
               "format": "none",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -955,14 +941,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 6,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 0,
             "y": 11
           },
+          "hiddenSeries": false,
           "id": 14,
           "legend": {
             "alignAsTable": true,
@@ -981,9 +972,12 @@ data:
           "linewidth": 0,
           "links": [],
           "nullPointMode": "connected",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1002,6 +996,10 @@ data:
           "steppedLine": true,
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "avg(rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])))",
               "format": "time_series",
               "hide": false,
@@ -1012,6 +1010,10 @@ data:
               "step": 240
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "avg(1 - (rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) / (rate(varnish_main_cache_miss{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])+rate(varnish_main_cache_hit{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))))",
               "format": "time_series",
               "hide": false,
@@ -1023,9 +1025,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Cache hit rate",
           "tooltip": {
             "shared": true,
@@ -1034,9 +1034,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1051,16 +1049,12 @@ data:
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": false
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1068,14 +1062,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 8,
             "y": 11
           },
+          "hiddenSeries": false,
           "id": 31,
           "legend": {
             "avg": false,
@@ -1090,9 +1089,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1102,7 +1104,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_cache_hitpass{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "varnish_main_cache_hitpass",
               "format": "time_series",
               "hide": true,
               "intervalFactor": 1,
@@ -1111,9 +1117,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Cache Pass Reqs/sec",
           "tooltip": {
             "shared": true,
@@ -1122,9 +1126,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1134,22 +1136,17 @@ data:
               "format": "none",
               "label": "",
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1157,14 +1154,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 16,
             "y": 11
           },
+          "hiddenSeries": false,
           "id": 39,
           "legend": {
             "avg": false,
@@ -1179,9 +1181,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1191,7 +1196,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_req_dropped{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_req_dropped{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "instant": false,
               "intervalFactor": 1,
@@ -1200,9 +1209,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Dropped Requests/sec",
           "tooltip": {
             "shared": true,
@@ -1211,9 +1218,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1221,28 +1226,26 @@ data:
             {
               "decimals": 0,
               "format": "none",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
           "collapsed": false,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -1251,7 +1254,6 @@ data:
           },
           "id": 21,
           "panels": [],
-          "repeat": null,
           "title": "Varnish memory",
           "type": "row"
         },
@@ -1260,14 +1262,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 0,
             "y": 17
           },
+          "hiddenSeries": false,
           "id": 43,
           "legend": {
             "avg": false,
@@ -1282,9 +1289,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1294,17 +1304,19 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "varnish_sma_g_bytes{service=\"$varnish_service\", type=\"s0\"}",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "varnish_sma_g_bytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\", type=\"s0\"}",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": {{`"{{pod}}"`}},
+              "legendFormat": {{ `"{{pod}}"` }},
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Memory",
           "tooltip": {
             "shared": true,
@@ -1313,33 +1325,25 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "bytes",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1347,11 +1351,15 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "decimals": 2,
           "editable": true,
           "error": false,
           "fill": 4,
+          "fillGradient": 0,
           "grid": {},
           "gridPos": {
             "h": 10,
@@ -1359,6 +1367,7 @@ data:
             "x": 8,
             "y": 17
           },
+          "hiddenSeries": false,
           "hideTimeOverride": false,
           "id": 13,
           "legend": {
@@ -1370,8 +1379,6 @@ data:
             "min": true,
             "rightSide": false,
             "show": true,
-            "sort": null,
-            "sortDesc": null,
             "total": true,
             "values": true
           },
@@ -1379,9 +1386,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "connected",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1410,6 +1420,10 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_n_expired{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
@@ -1420,6 +1434,10 @@ data:
               "step": 240
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_n_lru_moved{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
@@ -1429,6 +1447,10 @@ data:
               "step": 240
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_n_lru_nuked{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "interval": "",
@@ -1438,6 +1460,10 @@ data:
               "step": 240
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(varnish_sma_g_bytes{service=\"$varnish_service\", type=\"s0\", pod=~\"^($varnish_pod).*\"})",
               "format": "time_series",
               "intervalFactor": 2,
@@ -1448,9 +1474,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Cache",
           "tooltip": {
             "shared": true,
@@ -1459,9 +1483,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1469,21 +1491,18 @@ data:
             {
               "format": "none",
               "logBase": 1,
-              "max": null,
               "min": 1,
               "show": true
             },
             {
               "format": "bytes",
               "logBase": 1,
-              "max": null,
               "min": 1,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1491,14 +1510,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 16,
             "y": 17
           },
+          "hiddenSeries": false,
           "id": 35,
           "legend": {
             "avg": false,
@@ -1513,9 +1537,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1525,7 +1552,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_n_expired{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_n_expired{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "expired objects",
@@ -1533,9 +1564,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Expired Objects/sec",
           "tooltip": {
             "shared": true,
@@ -1544,9 +1573,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1556,22 +1583,17 @@ data:
               "format": "none",
               "label": "",
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1579,11 +1601,14 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
-          "decimals": null,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "editable": true,
           "error": false,
           "fill": 5,
+          "fillGradient": 0,
           "grid": {},
           "gridPos": {
             "h": 5,
@@ -1591,6 +1616,7 @@ data:
             "x": 0,
             "y": 22
           },
+          "hiddenSeries": false,
           "hideTimeOverride": false,
           "id": 12,
           "legend": {
@@ -1604,8 +1630,6 @@ data:
             "rightSide": false,
             "show": true,
             "sideWidth": 400,
-            "sort": null,
-            "sortDesc": null,
             "total": true,
             "values": true
           },
@@ -1613,9 +1637,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "connected",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1643,6 +1670,10 @@ data:
           "steppedLine": false,
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_main_s_resp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_main_s_resp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
@@ -1653,6 +1684,10 @@ data:
               "step": 60
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]))",
               "format": "time_series",
               "hide": false,
@@ -1664,18 +1699,20 @@ data:
               "step": 60
             },
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "expr": "sum(irate(varnish_backend_beresp_hdrbytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m]) + irate(varnish_backend_beresp_bodybytes{service=\"$varnish_service\", pod=~\"^($varnish_pod).*\"}[1m])) by (backend)",
               "format": "time_series",
               "intervalFactor": 2,
-              "legendFormat": {{`"backend {{ backend }}"`}},
+              "legendFormat": {{ `"backend {{ backend }}"` }},
               "refId": "C",
               "step": 120
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Network",
           "tooltip": {
             "shared": true,
@@ -1684,9 +1721,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1695,21 +1730,17 @@ data:
               "format": "bytes",
               "label": "",
               "logBase": 1,
-              "max": null,
               "min": "1024",
               "show": true
             },
             {
               "format": "short",
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1717,14 +1748,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 5,
             "w": 8,
             "x": 16,
             "y": 22
           },
+          "hiddenSeries": false,
           "id": 37,
           "legend": {
             "avg": false,
@@ -1739,9 +1775,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1751,7 +1790,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_n_lru_nuked{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_n_lru_nuked{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "nuked",
@@ -1759,9 +1802,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Nuked Objects/sec",
           "tooltip": {
             "shared": true,
@@ -1770,9 +1811,7 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
@@ -1780,28 +1819,26 @@ data:
             {
               "decimals": 0,
               "format": "none",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
           "collapsed": false,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
           "gridPos": {
             "h": 1,
             "w": 24,
@@ -1818,15 +1855,20 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "Number of requests sent to sleep without a worker thread because\n        they found a busy object.",
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 0,
             "y": 28
           },
+          "hiddenSeries": false,
           "id": 71,
           "legend": {
             "avg": false,
@@ -1841,9 +1883,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1853,7 +1898,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_busy_sleep{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_busy_sleep{ service=\"$varnish_service\",pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "requests",
@@ -1861,9 +1910,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Requests sent to sleep per seconds",
           "tooltip": {
             "shared": true,
@@ -1872,33 +1919,25 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1906,14 +1945,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 8,
             "y": 28
           },
+          "hiddenSeries": false,
           "id": 67,
           "legend": {
             "avg": false,
@@ -1928,9 +1972,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1940,7 +1987,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_backend_retry{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_backend_retry{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "retries ",
@@ -1948,9 +1999,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Backend retries per second",
           "tooltip": {
             "shared": true,
@@ -1959,33 +2008,25 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -1993,15 +2034,20 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "Number of times more threads were needed, but limit was reached in\n        a thread pool. See also parameter thread_pool_max.",
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 16,
             "y": 28
           },
+          "hiddenSeries": false,
           "id": 69,
           "legend": {
             "avg": false,
@@ -2016,9 +2062,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -2028,7 +2077,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_threads_limited{ service=\"$varnish_service\" }[1m]))",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_threads_limited{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m]))",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "threads",
@@ -2036,9 +2089,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Threads limited per second",
           "tooltip": {
             "shared": true,
@@ -2047,33 +2098,25 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -2081,14 +2124,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 0,
             "y": 34
           },
+          "hiddenSeries": false,
           "id": 77,
           "legend": {
             "avg": false,
@@ -2103,9 +2151,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -2115,18 +2166,20 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_sessions{ service=\"$varnish_service\" }[1m])) by (type)",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_sessions{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m])) by (type)",
               "format": "time_series",
               "hide": false,
               "intervalFactor": 1,
-              "legendFormat": {{`"{{type}}",`}}
+              "legendFormat": {{ `"{{type}}"` }},
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Number of sessions",
           "tooltip": {
             "shared": true,
@@ -2135,33 +2188,24 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -2169,15 +2213,20 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "description": "Number of times session was queued waiting for a thread. See also\n        parameter thread_queue_limit.",
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 8,
             "y": 34
           },
+          "hiddenSeries": false,
           "id": 73,
           "legend": {
             "avg": false,
@@ -2192,9 +2241,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -2204,7 +2256,11 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(varnish_main_thread_queue_len{ service=\"$varnish_service\" })",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(varnish_main_thread_queue_len{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" })",
               "format": "time_series",
               "intervalFactor": 1,
               "legendFormat": "queue",
@@ -2212,9 +2268,7 @@ data:
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Length of session queue",
           "tooltip": {
             "shared": true,
@@ -2223,33 +2277,25 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
               "min": "0",
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         },
         {
@@ -2257,14 +2303,19 @@ data:
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "prometheus",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
           "fill": 1,
+          "fillGradient": 0,
           "gridPos": {
             "h": 6,
             "w": 8,
             "x": 16,
             "y": 34
           },
+          "hiddenSeries": false,
           "id": 75,
           "legend": {
             "avg": false,
@@ -2279,9 +2330,12 @@ data:
           "linewidth": 1,
           "links": [],
           "nullPointMode": "null",
-          "options": {},
+          "options": {
+            "alertThreshold": true
+          },
           "paceLength": 10,
           "percentage": false,
+          "pluginVersion": "8.5.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -2291,17 +2345,19 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(irate(varnish_main_fetch{ service=\"$varnish_service\" }[1m])) by (type)",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "expr": "sum(irate(varnish_main_fetch{ service=\"$varnish_service\", pod=~\"^($varnish_pod).*\" }[1m])) by (type)",
               "format": "time_series",
               "intervalFactor": 1,
-              "legendFormat": {{`"{{type}}"`}},
+              "legendFormat": {{ `"{{type}}"` }},
               "refId": "A"
             }
           ],
           "thresholds": [],
-          "timeFrom": null,
           "timeRegions": [],
-          "timeShift": null,
           "title": "Number of fetches per second",
           "tooltip": {
             "shared": true,
@@ -2310,38 +2366,29 @@ data:
           },
           "type": "graph",
           "xaxis": {
-            "buckets": null,
             "mode": "time",
-            "name": null,
             "show": true,
             "values": []
           },
           "yaxes": [
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             },
             {
               "format": "short",
-              "label": null,
               "logBase": 1,
-              "max": null,
-              "min": null,
               "show": true
             }
           ],
           "yaxis": {
-            "align": false,
-            "alignLevel": null
+            "align": false
           }
         }
       ],
       "refresh": "5s",
-      "schemaVersion": 18,
+      "schemaVersion": 36,
       "style": "dark",
       "tags": [],
       "templating": {
@@ -2350,21 +2397,21 @@ data:
             "description": "vanish service to monitor",
             "hide": 2,
             "name": "varnish_service",
-            "query": "varnish-{{ .Values.deployEnv }}",
+            "query": "varnish-production",
             "skipUrlSync": false,
             "type": "constant"
           },
           {
-            "allValue": null,
             "current": {
               "selected": false,
               "text": "All",
               "value": "$__all"
             },
-            "datasource": "prometheus",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "${datasource}"
+            },
             "definition": "label_values(varnish_up{ service=\"$varnish_service\" }, pod)",
-            "description": null,
-            "error": null,
             "hide": 0,
             "includeAll": true,
             "label": "Pod",
@@ -2375,15 +2422,32 @@ data:
               "query": "label_values(varnish_up{ service=\"$varnish_service\" }, pod)",
               "refId": "StandardVariableQuery"
             },
-            "refresh": 1,
+            "refresh": 2,
             "regex": "",
             "skipUrlSync": false,
             "sort": 1,
             "tagValuesQuery": "",
-            "tags": [],
             "tagsQuery": "",
             "type": "query",
             "useTags": false
+          },
+          {
+            "current": {
+              "selected": true,
+              "text": "prometheus",
+              "value": "prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "queryValue": "",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
           }
         ]
       },
@@ -2421,6 +2485,7 @@ data:
       "timezone": "browser",
       "title": "Varnish (default/varnish-{{ .Values.deployEnv }})",
       "uid": "",
-      "version": 1
+      "version": 2,
+      "weekStart": ""
     }
 {{ end }}

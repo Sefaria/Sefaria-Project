@@ -17,6 +17,7 @@ if not hasattr(sys, '_doc_build'):
     from django.core.cache import caches
 
 SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
+LONG_TERM_CACHE_ALIAS = getattr(settings, 'LONG_TERM_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
@@ -31,18 +32,21 @@ def get_cache_factory(cache_type):
 
 
 #get the cache key for storage
-def cache_get_key(*args, **kwargs):
-    serialise = []
+def cache_get_key_arr(*args, **kwargs):
+    args_key_array = []
     for arg in args:
-        serialise.append(str(arg))
+        args_key_array.append(str(arg))
     for key,arg in sorted(list(kwargs.items()), key=lambda x: x[0]):
-        serialise.append(str(key))
-        serialise.append(str(arg))
-    key = hashlib.md5("".join(serialise).encode('utf-8')).hexdigest()
-    return key
+        args_key_array.append(str(key))
+        args_key_array.append(str(arg))
+    return args_key_array
 
 
-def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None):
+def cache_get_key(key_arr):
+    return hashlib.md5("".join(key_arr).encode('utf-8')).hexdigest()
+
+
+def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None, decorate_data_with_key=False):
     """
     Easily add caching to a function in django
     """
@@ -63,7 +67,8 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
                 cachekey_args = args[:]
                 if len(cachekey_args) and isinstance(cachekey_args[0], HttpRequest): # we dont want a HttpRequest to form part of the cache key, it wont be replicatable.
                     cachekey_args = cachekey_args[1:]
-                _cache_key = cache_get_key(cache_prefix if cache_prefix else fn.__name__, *cachekey_args, **kwargs)
+                _cache_ke_arr = cache_get_key_arr(cache_prefix if cache_prefix else fn.__name__, *cachekey_args, **kwargs)
+                _cache_key = cache_get_key(_cache_ke_arr)
 
             if action in ["reset", "set"]:
                 do_actual_func = True
@@ -75,10 +80,17 @@ def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, de
             else:
                 #logger.debug(['_cach_key.......',_cache_key])
                 result = get_cache_elem(_cache_key, cache_type=cache_type)
+                if decorate_data_with_key:
+                    result = result["data"]
 
             if not result:
                 if default_on_miss is False or do_actual_func:
                     result = fn(*args, **kwargs)
+                    if decorate_data_with_key:
+                        result = {
+                            'key': "_".join(_cache_ke_arr),
+                            'data': result
+                        }
                     set_cache_elem(_cache_key, result, timeout=timeout, cache_type=cache_type)
                 else:
                     result = default_on_miss_value

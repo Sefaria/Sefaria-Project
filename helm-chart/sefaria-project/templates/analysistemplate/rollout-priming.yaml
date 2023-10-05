@@ -20,7 +20,7 @@ spec:
                   - name: primer
                     image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
                     command: [ "/app/build/startup/primeAll.bash" ]
-                    env: 
+                    env:
                       - name: TARGET_HOSTNAME
                         value: "{{`{{args.healthcheck-hostname}}`}}" # {{`...`}}
                 restartPolicy: Never

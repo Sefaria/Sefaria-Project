@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {VersionsBlocksList}  from './VersionBlock';
 import Component             from 'react-class';
-import {LoadingMessage} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import TextRange from "./TextRange";
 import {AddConnectionToSheetButton, ConnectionButtons, OpenConnectionTabButton} from "./TextList";
@@ -18,13 +18,13 @@ class TranslationsBox extends Component {
     };
   }
   componentDidMount() {
-    if(!this.isSheet()){
-      Sefaria.getVersions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
+    if(!this.isSheet()) {
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   componentDidUpdate(prevProps, prevState) {
     if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.getVersions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
+      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -35,7 +35,7 @@ class TranslationsBox extends Component {
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
       if (!this._excludedLangs.includes(lang)) {
         versionsByLang[lang].sort((a, b) => {
-          return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;
+          return a.versionTitle === ver.versionTitle ? -1 : b.versionTitle === ver.versionTitle ? 1 : 0;
         });
       }
     }
@@ -56,7 +56,7 @@ class TranslationsBox extends Component {
           </div>
       );
     }
-    if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
+    if (this.props.mode === "Translation Open") { // A single translation open in the sidebar
       return (
         <VersionsTextList
           srefs={this.props.srefs}
@@ -69,7 +69,7 @@ class TranslationsBox extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
         />
       );
-    }else if(this.props.mode == "Translations"){
+    }else if(this.props.mode === "Translations"){
       if (!this.state.versionLangMap) {
         return (
           <div className="versionsBox">
@@ -78,15 +78,20 @@ class TranslationsBox extends Component {
         );
       }
       return (
-        <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
-          versionsByLanguages={this.state.versionLangMap}
-          currObjectVersions={this.props.currObjectVersions}
-          sortPrioritizeLanugage={"en"}
-          currentRef={this.props.srefs[0]}
-          openVersionInReader={this.props.openVersionInReader}
-          openVersionInSidebar={this.openVersionInSidebar}
-          viewExtendedNotes={this.props.viewExtendedNotes}
-        />
+          <>
+            <TranslationsHeader />
+            <VersionsBlocksList
+                versionsByLanguages={this.state.versionLangMap}
+                currObjectVersions={this.props.currObjectVersions}
+                sortPrioritizeLanugage={"en"}
+                currentRef={this.props.srefs[0]}
+                openVersionInReader={this.props.openVersionInReader}
+                openVersionInSidebar={this.openVersionInSidebar}
+                viewExtendedNotes={this.props.viewExtendedNotes}
+                inTranslationBox={true}
+                showNotes={false}
+            />
+          </>
       );
     }
   }
@@ -104,7 +109,29 @@ TranslationsBox.propTypes = {
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
   translationLanguagePreference: PropTypes.string,
+  inTranslationBox:            PropTypes.bool,
 };
+
+
+const TranslationsHeader = () => (
+  <div className="translationsHeader">
+    <h3>
+      <InterfaceText>Translations</InterfaceText>
+    </h3>
+    <div className="translationsDesc sans-serif">
+      <InterfaceText>
+        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
+        <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי.</HebrewText>
+      </InterfaceText>
+      <a href="/sheets/511573" target="_blank" className="inTextLink">
+        <InterfaceText>
+          <EnglishText>Learn more ›</EnglishText>
+          <HebrewText>למידע נוסף ›</HebrewText>
+        </InterfaceText>
+      </a>
+    </div>
+  </div>
+);
 
 
 class VersionsTextList extends Component {

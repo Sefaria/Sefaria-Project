@@ -12,10 +12,10 @@ import {
   SheetListing,
   ProfileListing,
   ProfilePic,
-  MessageModal,
   FollowButton,
   InterfaceText,
 } from './Misc';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -50,7 +50,6 @@ class UserProfile extends Component {
       tabs,
     };
   }
-  _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
   getCollections() {
     return Sefaria.getUserCollections(this.props.profile.id);
@@ -327,11 +326,6 @@ class UserProfile extends Component {
       </div>
     );
   }
-  message(e) {
-    e.preventDefault();
-    if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
-    this._messageModalRef.makeVisible();
-  }
   follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
@@ -354,7 +348,6 @@ class UserProfile extends Component {
               <div>
                 <ProfileSummary
                   profile={this.props.profile}
-                  message={this.message}
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
@@ -441,7 +434,6 @@ class UserProfile extends Component {
                 </TabView>
             </div>
             }
-            <MessageModal uid={this.props.profile.id} name={this.props.profile.full_name} ref={this._getMessageModalRef} />
           </div>
           <Footer />
         </div>
@@ -499,7 +491,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
       <ul>
         <li><InterfaceText>Technical problems</InterfaceText></li>
         <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features </InterfaceText></li>
+        <li><InterfaceText>Missing features</InterfaceText></li>
       </ul>
 
       <p>
@@ -562,7 +554,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
 }
 
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
@@ -632,10 +624,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               following={Sefaria.following.indexOf(p.id) > -1}
               toggleSignUpModal={toggleSignUpModal}
             />
-            <a href="#" className="resourcesLink sans-serif" onClick={message}>
-              <span className="int-en">Message</span>
-              <span className="int-he">שליחת הודעה</span>
-            </a>
           </div>)
         }
         <div className="follow">
@@ -664,7 +652,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
 };
 ProfileSummary.propTypes = {
   profile:       PropTypes.object.isRequired,
-  message:       PropTypes.func.isRequired,
   follow:        PropTypes.func.isRequired,
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,

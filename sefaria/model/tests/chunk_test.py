@@ -4,6 +4,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 import re
+from sefaria.model.text import AbstractTextRecord
 from sefaria.utils.util import list_depth
 
 
@@ -453,6 +454,13 @@ def test_complex_with_depth_2():
     pass
 
 
+def test_strip_imgs():
+    text = "text with an image"
+    image = "<img src='src.jpg' alt='image caption'>"
+    assert AbstractTextRecord.strip_imgs(f"{text}{image}") == text
+    assert AbstractTextRecord.strip_imgs(text) == text
+
+
 @pytest.mark.xfail(reason="<br/> tags become <br>, so don't match exactly.")
 def test_strip_itags():
     vs = ["Hadran Test"]
@@ -464,12 +472,12 @@ def test_strip_itags():
 
     r = Ref("Genesis 1:1")
     c = TextChunk(r, "he")
-    text = c._get_text_after_modifications([c._strip_itags])
+    text = c._get_text_after_modifications([c.strip_itags])
     assert text == TextChunk(r, "he").text
 
     r = Ref("Genesis 1")
     c = TextChunk(r, "he")
-    modified_text = c._get_text_after_modifications([c._strip_itags])
+    modified_text = c._get_text_after_modifications([c.strip_itags])
     original_text = TextChunk(r, "he").text
     for mod, ori in zip(modified_text, original_text):
         assert mod == ori
@@ -487,11 +495,11 @@ def test_strip_itags():
     }).save()
     modified_text = ['Cool text', 'Silly text', 'More text and yet more']
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
-    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x, _: ' '.join(x.split()).strip()])
+    test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
-    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x, _: ' '.join(x.split()).strip()])
+    test_modified_text = v._get_text_after_modifications([v.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
@@ -505,5 +513,5 @@ def test_strip_itags():
         assert m == t
 
     text = '<i></i>Lo, his spirit.'
-    assert TextChunk._strip_itags(text) == text
+    assert TextChunk.strip_itags(text) == text
 

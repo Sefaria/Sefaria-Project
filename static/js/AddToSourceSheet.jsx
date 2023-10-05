@@ -10,6 +10,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
+import { SignUpModalKind } from './sefaria/signupModalContent';
 
 
 class AddToSourceSheetBox extends Component {
@@ -60,9 +61,10 @@ class AddToSourceSheetBox extends Component {
       }
     }
   }
+
   toggleSheetList() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal()
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
     } else {
       this.setState({sheetListOpen: !this.state.sheetListOpen});
     }
@@ -71,7 +73,9 @@ class AddToSourceSheetBox extends Component {
     this.setState({selectedSheet: sheet, sheetListOpen: false});
   }
   copyNodeToSourceSheet() {
-    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+    if (!Sefaria._uid) {
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+    }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
     if (!this.props.nodeRef) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
@@ -84,7 +88,9 @@ class AddToSourceSheetBox extends Component {
     }
   }
   addToSourceSheet() {
-    if (!Sefaria._uid) { this.props.toggleSignUpModal() }
+    if (!Sefaria._uid) {
+      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+    }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
       const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
       const language = this.props.contentLanguage;
@@ -114,11 +120,24 @@ class AddToSourceSheetBox extends Component {
           source[language.slice(0,2)] = selectedWords;
         }
       }
-      let postData = {source: JSON.stringify(source)};
-      if (this.props.note) {
-        postData.note = this.props.note;
+      if (this.checkContentForImages(source.refs)) {
+        let postData = {source: JSON.stringify(source)};
+        if (this.props.note) {
+          postData.note = this.props.note;
+        }
+        $.post(url, postData, this.confirmAdd);
       }
-      $.post(url, postData, this.confirmAdd);
+  }
+  checkContentForImages(refs) {
+    // validate texts corresponding to refs have no images before posting them to sheet
+    for (let i = 0; i < refs.length; i++) {
+      let ref = Sefaria.getRefFromCache(refs[i]);
+      if (ref && (Sefaria.isFullSegmentImage(ref.he) || Sefaria.isFullSegmentImage(ref.text))) {
+        alert("We do not currently support adding images to source sheets.");
+        return false;
+      }
+    }
+    return true;
   }
   createSheet(refs) {
     const title = $(ReactDOM.findDOMNode(this)).find("input").val();

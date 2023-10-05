@@ -31,6 +31,9 @@ spec:
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: nodejs
         releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Values.instrumentation.enabled }}
+        instrumentation.opentelemetry.io/inject-nodejs: "true" 
+        {{- end }}
     spec:
       affinity:
         podAntiAffinity:
@@ -55,10 +58,10 @@ spec:
             value: web-{{ .Values.deployEnv }}-{{ .Release.Revision }}
           - name: DJANGO_PORT
             value: "80"
-          - name: DEBUG
-            value: {{ if eq .Values.sandbox "true" }}"true"{{ else }}"false"{{ end }}
           - name: REDIS_HOST
             value: redis-{{ .Values.deployEnv }}
+          - name: DEBUG
+            value: {{ .Values.localSettings.DEBUG | quote }}
         envFrom:
           - configMapRef:
               name: local-settings-node-{{ .Values.deployEnv }}

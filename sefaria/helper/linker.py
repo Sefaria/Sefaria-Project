@@ -1,185 +1,183 @@
+import dataclasses
+import json
 import spacy
-from sefaria.model.linker import ResolvedRef, AmbiguousResolvedRef, TermContext, RefPartType
-from sefaria.model import text
-from typing import List, Union, Optional
-from collections import defaultdict
+import structlog
+from sefaria.model.linker.ref_part import TermContext, RefPartType
+from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
+from sefaria.model import text, library
+from sefaria.model.webpage import WebPage
+from sefaria.system.cache import django_cache
+from typing import List, Union, Optional, Tuple
+
+logger = structlog.get_logger(__name__)
 
 
-def make_html(bulk_resolved_list: List[List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]], texts: List[List[str]], output_filename, lang='he'):
-    from sefaria.utils.util import wrap_chars_with_overlaps
+def load_spacy_model(path: str) -> spacy.Language:
+    import re, tarfile
+    from tempfile import TemporaryDirectory
+    from sefaria.google_storage_manager import GoogleStorageManager
+    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
 
-    def get_resolved_metadata(resolved: ResolvedRef, i: int) -> dict:
-        metadata =  {
-            "i": i,
-            "ref": resolved.ref,
-            "orig_part_strs": [p.text for p in resolved.raw_ref.raw_ref_parts],
-            "orig_part_types": [p.type.name for p in resolved.raw_ref.raw_ref_parts],
-            "final_part_strs": [p.text for p in resolved.raw_ref.parts_to_match],
-            "final_part_types": [p.type.name for p in resolved.raw_ref.parts_to_match],
-            "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved.resolved_parts],
-            "resolved_part_types": [p.type.name for p in resolved.resolved_parts],
-            "resolved_part_classes": [p.__class__.__name__ for p in resolved.resolved_parts],
-            "context_ref": resolved.context_ref.normal() if resolved.context_ref else "N/A",
-            "context_type": resolved.context_type.name if resolved.context_type else "N/A",
-        }
-        if RefPartType.RANGE.name in metadata['final_part_types']:
-            range_part = next((p for p in resolved.raw_ref.parts_to_match if p.type == RefPartType.RANGE), None)
-            metadata['input_range_sections'] = [p.text for p in range_part.sections]
-            metadata['input_range_to_sections'] = [p.text for p in range_part.toSections]
-        # dont think this is necessary if we already have input range sections
-        # if RefPartType.RANGE.name in metadata['resolved_part_types']:
-        #     range_part = next((p for p in resolved.resolved_parts if p.type == RefPartType.RANGE), None)
-        #     metadata['resolved_range_sections'] = [p.text for p in range_part.sections]
-        #     metadata['resolved_range_to_sections'] = [p.text for p in range_part.toSections]
-        return metadata
+    using_gpu = spacy.prefer_gpu()
+    logger.info(f"Spacy successfully connected to GPU: {using_gpu}")
 
-    def get_inspect_html(metadata: dict, mention: str) -> str:
-        show_final_ref_parts = metadata['orig_part_strs'] != metadata['final_part_strs']
-        inspect_window = f'''
-        <span id="inspect-window-{metadata['i']}" class="hidden inspect-window">
-            <b>Input:</b>
-            {mention}
-            </br>
-            <b>Resolved Ref:</b>
-            {metadata['ref'].normal() if metadata['ref'] else 'N/A'}
-            </br>
-            <b>Context Ref</b>
-            <table>
-                <tr><td>Ref</td><td>{metadata['context_ref']}</td></tr>
-                <tr><td>Type</td><td>{metadata['context_type']}</td></tr>          
-            </table>
-            <b>Input Ref Parts</b>
-            <table>
-                <tr><td>Text</td><td>{'</td><td>'.join(metadata['orig_part_strs'])}</td></tr>
-                <tr><td>Type</td><td>{'</td><td>'.join(metadata['orig_part_types'])}</td></tr>
-            </table>
-            {f"""<b>Final Ref Parts</b>
-            <table>
-                <tr><td>Text</td><td>{'</td><td>'.join(metadata['final_part_strs'])}</td></tr>
-                <tr><td>Type</td><td>{'</td><td>'.join(metadata['final_part_types'])}</td></tr>
-            </table>""" if show_final_ref_parts else ''}
-            {f"""<b>Input Range Sections: </b>{' | '.join(metadata['input_range_sections'])}</br>""" if metadata.get('input_range_sections', False) else ''}
-            {f"""<b>Input Range To Sections: </b>{' | '.join(metadata['input_range_to_sections'])}</br>""" if metadata.get('input_range_to_sections', False) else ''}
-            <b>Resolved Parts</b>
-            <table>
-                <tr><td>Text</td><td>{'</td><td>'.join(metadata['resolved_part_strs'])}</td></tr>
-                <tr><td>Type</td><td>{'</td><td>'.join(metadata['resolved_part_types'])}</td></tr>
-                <tr><td>Class</td><td>{'</td><td>'.join(metadata['resolved_part_classes'])}</td></tr>
-            </table>
-            {f"""<b>Resolved Range Sections: </b>{' | '.join(metadata['resolved_range_sections'])}</br>""" if metadata.get('resolved_range_sections', False) else ''}
-            {f"""<b>Resolved Range To Sections: </b>{' | '.join(metadata['resolved_range_to_sections'])}</br>""" if metadata.get('resolved_range_to_sections', False) else ''}
-            <button onclick="toggleWindow({metadata['i']})">Close</button>
-        </span>
-        '''
-        return f"""
-        <button class="inspect-btn" onclick="onInspectClick({metadata['i']})">Inspect</button>
-        {inspect_window}
-        """
+    if path.startswith("gs://"):
+        # file is located in Google Cloud
+        # file is expected to be a tar.gz of the model folder
+        match = re.match(r"gs://([^/]+)/(.+)$", path)
+        bucket_name = match.group(1)
+        blob_name = match.group(2)
+        model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
+        tar_buffer = tarfile.open(fileobj=model_buffer)
+        with TemporaryDirectory() as tempdir:
+            tar_buffer.extractall(tempdir)
+            nlp = spacy.load(tempdir)
+    else:
+        nlp = spacy.load(path)
+    return nlp
 
-    def get_wrapped_text(mention, metadata):
-        start = f'<span class="{metadata["true condition"]} tag">'
-        end = f'''
-        <span class="label">{metadata["label"]}</span>
-        {" ".join([get_inspect_html(inner_metadata, mention) for inner_metadata in metadata['data']])}
-        </span>
-        '''
-        d = metadata['data']
-        if len(d) == 1 and d[0]['ref'] is not None:
-            ref = d[0]['ref']
-            start += f'<a href="https://www.sefaria.org/{ref.url()}" target="_blank">'
-            end = '</a>' + end
-        return f'{start}{mention}{end}', len(start), len(end)
 
-    html = """
-    <html>
-      <head>
-        <style>
-        body { max-width: 800px; margin-right: auto; margin-left: auto; }
-        .doc { line-height: 200%; border-bottom: 2px black solid; padding-bottom: 20px; }
-        .tag { padding: 5px; }
-        .tp { background-color: greenyellow; border: 5px lightgreen solid; }
-        .ambig { background-color: orange; border: 5px red solid; }
-        .fp { background-color: pink; border: 5px lightgreen solid; }
-        .fn { background-color: greenyellow; border: 5px pink solid; }
-        .label { font-weight: bold; font-size: 75%; color: #666; padding-right: 5px; }
-        .inspect-btn { margin: 0 5px; }
-        .hidden { display: none; }
-        td { border: 1px solid black; padding: 5px }
-        table { margin-bottom: 20px; }
-        .inspect-window {
-            position: fixed;
-            direction: ltr;
-            top: 10px;
-            right: 10px;
-            background-color: #eee;
-            border: 3px solid black;
-            padding: 10px;
-            overflow-y: auto;
-            height: calc(100% - 40px);
-        }
-        </style>
-        <script>
-          let currIOpen = null;
-          function onInspectClick(i) {
-            toggleWindow(currIOpen);
-            currIOpen = i;
-            toggleWindow(i);
-          }
-          function toggleWindow(i) {
-           const curr_window = document.getElementById("inspect-window-" + i);
-           if (!curr_window) {
-            console.log("Couldn't find window for ID", i);
-            return;
-            }
-            if (curr_window.classList.contains("hidden")) {
-                currIOpen = i;
-                curr_window.classList.remove("hidden");
-            } else {
-                currIOpen = null;
-                curr_window.classList.add("hidden");
-            }
-          }
-        </script>
-      </head>
-      <body>
+def make_find_refs_response(request):
+    request_text, options, meta_data = _unpack_find_refs_request(request)
+    if meta_data:
+        _add_webpage_hit_for_url(meta_data.get("url", None))
+    return _make_find_refs_response_with_cache(request_text, options, meta_data)
+
+
+@dataclasses.dataclass
+class _FindRefsTextOptions:
     """
-    iwrapped = 0
-    for bulk_resolved, inner_texts in zip(bulk_resolved_list, texts):
-        for temp_resolved_list, input_text in zip(bulk_resolved, inner_texts):
-            chars_to_wrap = []
-            for resolved in temp_resolved_list:
-                rlist = resolved.resolved_raw_refs if resolved.is_ambiguous else [resolved]
-                start_char, end_char = rlist[0].raw_ref.char_indices
-                metadata = {
-                    "label": "מקור",
-                    "true condition": "ambig" if resolved.is_ambiguous else "tp",
-                    "data": [],
-                }
-                for r in rlist:
-                    metadata['data'] += [get_resolved_metadata(r, iwrapped)]
-                    iwrapped += 1
-                chars_to_wrap += [(start_char, end_char, metadata)]
-            wrapped_text = wrap_chars_with_overlaps(input_text, chars_to_wrap, get_wrapped_text)
-            html += f"""
-            <p dir="{'rtl' if lang == 'he' else 'ltr'}" class="doc">{wrapped_text}</p>
-            """
-    html += """
-      </body>
-    </html>
-    """
-    with open(output_filename, "w") as fout:
-        fout.write(html)
-
-
-def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], with_text=False, debug=False, max_segments=0):
+    @attr debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
+    @attr max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
+    @attr version_preferences_by_corpus: dict of dicts of the form { <corpus>: { <lang>: <vtitle> }}
     """
 
-    @param resolved:
-    @param with_text:
-    @param debug: If True, adds field "debugData" to returned dict with debug information for matched refs.
-    @param max_segments: Maximum number of segments to return when `with_text` is true. 0 means no limit.
-    @return:
-    """
+    debug: bool = False
+    with_text: bool = False
+    max_segments: int = 0
+    version_preferences_by_corpus: dict = None
+
+
+@dataclasses.dataclass
+class _FindRefsText:
+    title: str
+    body: str
+    lang: str
+
+    # def __post_init__(self):
+    #     from sefaria.utils.hebrew import is_mostly_hebrew
+    #     self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
+
+
+def _unpack_find_refs_request(request):
+    post_body = json.loads(request.body)
+    meta_data = post_body.get('metaDataForTracking')
+    return _create_find_refs_text(post_body), _create_find_refs_options(request.GET, post_body), meta_data
+
+
+def _create_find_refs_text(post_body) -> _FindRefsText:
+    from sefaria.utils.hebrew import is_mostly_hebrew
+    title = post_body['text']['title']
+    body = post_body['text']['body']
+    lang = post_body['lang'] if 'lang' in post_body else 'he' if is_mostly_hebrew(body) else 'en'
+    return _FindRefsText(title, body, lang)
+
+
+def _create_find_refs_options(get_body: dict, post_body: dict) -> _FindRefsTextOptions:
+    with_text: bool = bool(int(get_body.get("with_text", False)))
+    debug: bool = bool(int(get_body.get("debug", False)))
+    max_segments: int = int(get_body.get("max_segments", 0))
+    version_preferences_by_corpus: dict = post_body.get("version_preferences_by_corpus")
+    return _FindRefsTextOptions(with_text, debug, max_segments, version_preferences_by_corpus)
+
+
+def _add_webpage_hit_for_url(url):
+    if url is None: return
+    webpage = WebPage().load(url)
+    if not webpage: return
+    webpage.add_hit()
+    webpage.save()
+
+
+@django_cache(cache_type="persistent")
+def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
+    if request_text.lang == 'he':
+        response = _make_find_refs_response_linker_v3(request_text, options)
+    else:
+        response = _make_find_refs_response_linker_v2(request_text, options)
+
+    if meta_data:
+        _, webpage = WebPage.add_or_update_from_linker({
+            "url": meta_data['url'],
+            "title": meta_data['title'],
+            "description": meta_data['description'],
+            "refs": _get_trefs_from_response(response),
+        }, add_hit=False)
+        if webpage:
+            response['url'] = webpage.url
+    return response
+
+
+def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
+    resolver = library.get_ref_resolver()
+    resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
+    context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
+    resolved_body = resolver.bulk_resolve_refs(request_text.lang, [context_ref], [request_text.body], with_failures=True)
+
+    response = {
+        "title": _make_find_refs_response_inner(resolved_title, options),
+        "body": _make_find_refs_response_inner(resolved_body, options),
+    }
+
+    return response
+
+
+def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
+    response = {
+        "title": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.title, options),
+        "body": _make_find_refs_response_inner_linker_v2(request_text.lang, request_text.body, options),
+    }
+    return response
+
+
+def _make_find_refs_response_inner_linker_v2(lang, text, options: _FindRefsTextOptions):
+    import re
+    ref_results = []
+    ref_data = {}
+
+    def _find_refs_action(ref, match: re.Match):
+        nonlocal ref_results, ref_data
+        tref = ref.normal()
+        ref_results += [{
+            "startChar": match.start(0),
+            "endChar": match.end(0),
+            "text": match.group(0),
+            "linkFailed": False,
+            "refs": [tref]
+        }]
+        ref_data[tref] = _make_ref_response_for_linker(ref, options)
+
+    library.apply_action_for_all_refs_in_string(text, _find_refs_action, lang, citing_only=True)
+    response = {
+        "results": ref_results,
+        "refData": ref_data
+    }
+    if options.debug:
+        # debugData has no meaning for linker v2 since there are no ref parts
+        response['debugData'] = []
+
+    return response
+
+
+def _get_trefs_from_response(response):
+    trefs = []
+    for key, value in response.items():
+        if isinstance(value, dict) and 'refData' in value:
+            trefs += list(value['refData'].keys())
+    return trefs
+
+
+def _make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: _FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
@@ -204,29 +202,29 @@ def make_find_refs_response(resolved: List[List[Union[AmbiguousResolvedRef, Reso
             tref = rr.ref.normal()
             if tref in ref_data:
                 continue
-            ref_data[tref] = make_ref_response_for_linker(rr.ref, with_text, max_segments)
-        if debug:
-            debug_data += [[make_debug_response_for_linker(rr) for rr in resolved_refs]]
+            ref_data[tref] = _make_ref_response_for_linker(rr.ref, options)
+        if options.debug:
+            debug_data += [[_make_debug_response_for_linker(rr) for rr in resolved_refs]]
 
     response = {
         "results": ref_results,
         "refData": ref_data
     }
-    if debug:
+    if options.debug:
         response['debugData'] = debug_data
 
     return response
 
 
-def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0) -> dict:
+def _make_ref_response_for_linker(oref: text.Ref, options: _FindRefsTextOptions) -> dict:
     res = {
         'heRef': oref.he_normal(),
         'url': oref.url(),
         'primaryCategory': oref.primary_category,
     }
-    he, he_truncated = get_ref_text_by_lang_for_linker(oref, "he", max_segments)
-    en, en_truncated = get_ref_text_by_lang_for_linker(oref, "en", max_segments)
-    if with_text:
+    he, he_truncated = _get_ref_text_by_lang_for_linker(oref, "he", options)
+    en, en_truncated = _get_ref_text_by_lang_for_linker(oref, "en", options)
+    if options.with_text:
         res.update({
             'he': he,
             'en': en,
@@ -236,13 +234,25 @@ def make_ref_response_for_linker(oref: text.Ref, with_text=False, max_segments=0
     return res
 
 
-def get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, max_segments: int = 0):
-    chunk = text.TextChunk(oref, lang=lang)
-    as_array = [chunk._strip_itags(s) for s in chunk.ja().flatten_to_array()]
-    return as_array[:max_segments or None], (len(as_array) > max_segments)
+def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corpus: dict) -> Optional[str]:
+    vprefs = version_preferences_by_corpus
+    corpus = oref.index.get_primary_corpus()
+    # Make sure ref's corpus and current lang are specified in version_preferences_by_corpus.
+    # If not, use default version
+    if vprefs is None or corpus not in vprefs or lang not in vprefs[corpus]:
+        return
+    return vprefs[corpus][lang]
 
 
-def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
+def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions) -> Tuple[List[str], bool]:
+    vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
+    chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
+    as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
+    was_truncated = 0 < options.max_segments < len(as_array)
+    return as_array[:options.max_segments or None], was_truncated
+
+
+def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
     debug_data = {
         "orig_part_strs": [p.text for p in resolved_ref.raw_ref.raw_ref_parts],
         "orig_part_types": [p.type.name for p in resolved_ref.raw_ref.raw_ref_parts],
@@ -261,26 +271,3 @@ def make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
             'input_range_to_sections': [p.text for p in range_part.toSections]
         })
     return debug_data
-
-
-def load_spacy_model(path: str) -> spacy.Language:
-    import re, tarfile
-    from tempfile import TemporaryDirectory
-    from sefaria.google_storage_manager import GoogleStorageManager
-    from sefaria.spacy_function_registry import inner_punct_tokenizer_factory  # this looks unused, but spacy.load() expects this function to be in scope
-
-    spacy.prefer_gpu()
-    if path.startswith("gs://"):
-        # file is located in Google Cloud
-        # file is expected to be a tar.gz of the model folder
-        match = re.match(r"gs://([^/]+)/(.+)$", path)
-        bucket_name = match.group(1)
-        blob_name = match.group(2)
-        model_buffer = GoogleStorageManager.get_filename(blob_name, bucket_name)
-        tar_buffer = tarfile.open(fileobj=model_buffer)
-        with TemporaryDirectory() as tempdir:
-            tar_buffer.extractall(tempdir)
-            nlp = spacy.load(tempdir)
-    else:
-        nlp = spacy.load(path)
-    return nlp

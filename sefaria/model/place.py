@@ -3,8 +3,9 @@ import geojson
 from . import abstract as abst
 from . import schema
 from sefaria.system.exceptions import InputError
-
 import structlog
+from geopy.geocoders import Nominatim
+from sefaria.utils.hebrew import get_he_key
 logger = structlog.get_logger(__name__)
 
 class Place(abst.AbstractMongoRecord):
@@ -46,8 +47,24 @@ class Place(abst.AbstractMongoRecord):
 
     def secondary_names(self, lang=None):
         return self.name_group.secondary_titles(lang)
+    
+    @classmethod 
+    def create_new_place(cls, en, he=None):
+        p = cls().load({'key': en})
+        if p:
+            return p
+        p = cls({'key': en})
+        p.name_group.add_title(en, 'en', True, True)
+        if he:
+            p.name_group.add_title(he, 'he', True, True)
+        p.city_to_coordinates(en)
+        p.save()
+        return p
 
-    ###
+    def city_to_coordinates(self, city):
+        geolocator = Nominatim(user_agent='hello@sefaria.org')
+        location = geolocator.geocode(city)
+        self.point_location(lon=location.longitude, lat=location.latitude)
 
     def point_location(self, lon=None, lat=None):
         if lat is None and lon is None:
@@ -80,3 +97,24 @@ class PlaceSet(abst.AbstractMongoSet):
             return geojson.dumps(geojson.FeatureCollection(features))
         else:
             return geojson.FeatureCollection(features)
+
+def process_index_place_change(indx, **kwargs):
+    key = kwargs['attr']
+    he_key = get_he_key(key)
+    he_new_val = getattr(indx, he_key, '')
+    if kwargs['new'] != '':
+        Place.create_new_place(en=kwargs['new'], he=he_new_val)
+
+def process_topic_place_change(topic_obj, data):
+    keys = ["birthPlace", "deathPlace"]
+    for key in keys:
+        if key in data.keys():  # only change property value if key is in data, otherwise it indicates no change
+            new_val = data[key]
+            if new_val != '':
+                he_key = get_he_key(key)
+                he_new_val = data.get(he_key, '')
+                place = Place.create_new_place(en=new_val, he=he_new_val)
+                topic_obj.properties[key] = {"value": place.primary_name('en'), 'dataSource': 'learning-team-editing-tool'}
+            else:
+                topic_obj.properties.pop(key, None)
+

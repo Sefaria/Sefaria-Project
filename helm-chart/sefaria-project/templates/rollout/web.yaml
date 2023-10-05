@@ -23,6 +23,20 @@ spec:
         args:
           - name: healthcheck-hostname
             value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- if .Values.deploymentMessage }} 
+      postPromotionAnalysis:
+        templates: 
+          - templateName: rollout-complete-{{ .Values.deployEnv }}
+        args:
+          - name: revision
+            value: "{{ .Release.Revision }}"
+          - name: deployment
+            value: {{ .Values.deployEnv }}
+          - name: version
+            value: {{ .Values.web.containerImage.tag }}
+          - name: chartVersion
+            value: {{ .Chart.Version }}
+      {{- end }}
   selector:
     matchLabels:
       app: web-{{ .Values.deployEnv }}
@@ -83,6 +97,26 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
+          {{- if .Values.instrumentation.enabled }}
+          - name: OTEL_SERVICE_NAME
+            value: {{ .Values.deployEnv }}-web
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: {{ .Values.instrumentation.otelEndpoint }} 
+          - name: OTEL_PROPAGATORS
+            value: tracecontext,baggage,b3,jaeger
+          - name: OTEL_RESOURCE_ATTRIBUTES_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OTEL_RESOURCE_ATTRIBUTES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.nodeName
+          - name: OTEL_RESOURCE_ATTRIBUTES
+            value: k8s.container.name=app,k8s.deployment.name={{ .Values.deployEnv }}-web,k8s.namespace.name={{ .Release.Namespace }},k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)
+          {{- end }}
         envFrom:
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
@@ -102,8 +136,6 @@ spec:
           - containerPort: 80
             protocol: TCP
         resources: {{ toYaml .Values.web.resources.web.resources | nindent 10 }}
-        # turn off health checks for content sandboxes
-        {{ if ne .Values.contentSandbox "true" }}
         # set failure thresholds
         startupProbe:
           httpGet:
@@ -126,7 +158,6 @@ spec:
           # initialDelaySeconds: 120
           periodSeconds: 60
           timeoutSeconds: 60
-        {{ end }}
         volumeMounts:
         # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
         - mountPath: /app/sefaria/local_settings.py
@@ -166,7 +197,7 @@ spec:
                 path: local_settings.py
         - name: elastic-cert
           secret:
-            secretName: {{ template "sefaria.secrets.elasticCertificate" . }} 
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
             optional: true
         - name: client-secret
           secret:

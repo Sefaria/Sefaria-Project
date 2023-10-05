@@ -1,10 +1,7 @@
 import {
     InterfaceText,
-    ContentText,
-    ResponsiveNBox, AdminToolHeader,
-    CategoryChooser
+    ResponsiveNBox
 } from './Misc';
-import {TopicEditor, TopicEditorButton, useTopicToggle} from './TopicEditor';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -12,11 +9,11 @@ import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
 import Footer  from './Footer';
+import {CategoryHeader} from "./Misc";
 import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
 const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
-  const [addingTopics, toggleAddingTopics] = useTopicToggle();
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
     return (
@@ -57,21 +54,17 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
-  let topicStatus = null;
-  if (Sefaria.is_moderator && addingTopics) {
-      topicStatus = <TopicEditor close={toggleAddingTopics}/>;
-  }
-  else if (Sefaria.is_moderator) {
-      topicStatus = <TopicEditorButton text="Create a Topic" toggleAddingTopics={toggleAddingTopics}/>;
-  }
+
+
   return (
     <div className="readerNavMenu noLangToggleInHebrew" key="0">
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
               <div className="navTitle tight sans-serif">
-                <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
-                {topicStatus}
+                  <CategoryHeader type="topics" buttonsToDisplay={["subcategory", "reorder"]}>
+                    <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+                  </CategoryHeader>
               </div>
               { about }
               { categoryListings }

@@ -1,168 +1,183 @@
-import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
+import {InterfaceText, requestWithCallBack, TitleVariants, ToggleSet} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
-import {AdminToolHeader, InterfaceText} from "./Misc";
+import {AdminEditor} from "./AdminEditor";
+import {Reorder} from "./CategoryEditor";
+import React, {useState, useEffect} from "react";
 
-const TopicEditorButton = ({toggleAddingTopics, text}) => {
-    return <div onClick={toggleAddingTopics} id="editTopic" className="button extraSmall topic" role="button">
-        <InterfaceText>{text}</InterfaceText>
-    </div>;
-}
 
-function useTopicToggle() {
-  const [addingTopics, setAddingTopics] = useState(false);
-  const toggleAddingTopics = function(e) {
-      if (e.currentTarget.id === "editTopic") {
-        setAddingTopics(true);
-      }
-      else if(e.currentTarget.id === "cancel") {
-        setAddingTopics(false);
-     }
-  }
-  return [addingTopics, toggleAddingTopics];
-}
-
-const TopicEditor = ({origEn="", origHe="", origSlug="", origDesc="", origCategoryDesc="", origCategorySlug="", close}) => {
+const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
+    const [data, setData] = useState({...origData, catSlug: origData.origCatSlug || "",
+                                enTitle: origData.origEnTitle, heTitle: origData.origHeTitle || "",
+                                heDescription: origData?.origHeDescription || "",
+                                enDescription: origData?.origEnDescription || "",
+                                enCategoryDescription: origData?.origEnCategoryDescription || "",
+                                heCategoryDescription: origData?.origHeCategoryDescription || "",
+                                enAltTitles: origData?.origEnAltTitles || [],
+                                heAltTitles: origData?.origHeAltTitles || [],
+                                birthPlace: origData.origBirthPlace || "", heBirthPlace: origData.origHeBirthPlace || "",
+                                birthYear: origData.origBirthYear || "", heDeathPlace: origData.origHeDeathPlace || "",
+                                deathYear: origData.origDeathYear || "", era: origData.origEra || "",
+                                deathPlace: origData.origDeathPlace || ""
+                                });
+    const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
-    const [catSlug, setCatSlug] = useState(origCategorySlug);
-    const [description, setDescription] = useState(origDesc?.en);
-    const [catDescription, setCatDescription] = useState(origCategoryDesc?.en);
-    const [enTitle, setEnTitle] = useState(origEn);
-    const [heTitle, setHeTitle] = useState(origHe);
-    const isNewTopic = origEn === "";
-    const [isCategory, setIsCategory] = useState(catSlug === "Main Menu");
+    const [isAuthor, setIsAuthor] = useState(origData.origCatSlug === 'authors');
+    const [isCategory, setIsCategory] = useState(origWasCat);  // initialize to True if the topic originally was a category
+                                                                  // isCategory determines whether user can edit categoryDescriptions of topic
+    const subtopics = Sefaria.topicTocPage(origData.origSlug);
+    const [sortedSubtopics, setSortedSubtopics] = useState(subtopics?.sort(Sefaria.sortTopicsCompareFn)
+                                                                                .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
+                                                                                || []);
+    const [isChanged, setIsChanged] = useState(false);
 
-    const slugsToTitles = Sefaria.slugsToTitles();
-    let catMenu = Object.keys(slugsToTitles).map(function (tempSlug, i) {
-      const tempTitle = slugsToTitles[tempSlug];
-      return <option key={i} value={tempSlug} selected={catSlug === tempSlug}>{tempTitle}</option>;
-    });
-
-    const validate = function () {
-        if (catSlug === "") {
-          alert("Please choose a category.");
-          return false;
-        }
-        if (enTitle.length === 0) {
-          alert("Title must be provided.");
-          return false;
-        }
-        save();
-    }
-    const save = function () {
-        toggleInProgress();
-        let url = "";
-        let data = {"description": {"en": description, "he": description}, "title": enTitle, "category": catSlug};
-        if (isNewTopic) {
-          url = "/api/topic/new";
-          if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": catDescription};
-          }
-        }
-        else {
-          url = `/api/topics/${origSlug}`;
-          data["origCategory"] = origCategorySlug;
-          data["origDescription"] = origDesc;
-          data["origTitle"] = origEn;
-          data["origSlug"] = origSlug;
-          if (isCategory) {
-            data["catDescription"] = {"en": catDescription, "he": catDescription};
-            data["origCatDescription"] = origCategoryDesc;
-          }
-        }
-
-        const postJSON = JSON.stringify(data);
-        $.post(url,  {"json": postJSON}, function(data) {
-          if (data.error) {
-            toggleInProgress();
-            alert(data.error);
-          } else {
-            const newSlug = data["slug"];
-            $.get("/admin/reset/toc", function(data) {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    window.location.href = "/topics/" + newSlug;
-                }
-            }).fail(function(xhr, status, errorThrown) {
-                alert("Please reset TOC manually: "+errorThrown);
-              });
-            }
-          }).fail( function(xhr, status, errorThrown) {
-            alert("Unfortunately, there may have been an error saving this topic information: "+errorThrown);
-          });
-    }
-    const toggleInProgress = function() {
+    const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
     }
-    const deleteTopic = function() {
-      $.ajax({
-        url: "/api/topic/delete/"+origSlug,
-        type: "DELETE",
-        success: function(data) {
-          if ("error" in data) {
-            alert(data.error);
-          } else {
-            alert("Topic Deleted.");
-            window.location = "/topics";
-          }
-        }
-      }).fail(function() {
-        alert("Something went wrong. Sorry!");
-      });
-    }
+
+
     const handleCatChange = function(e) {
-      setCatSlug(e.target.value);
-      setIsCategory(e.target.value === "Main Menu");
+      data.catSlug = e.target.value;
+      //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
+      const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
+      setIsCategory(newIsCategory);
+      setIsChanged(true);
+      setIsAuthor(data.catSlug === 'authors');
+      setData({...data});
     }
-    const setValues = function(e) {
-        if (e.target.id === "topicTitle") {
-            setEnTitle(e.target.value);
-        }
-        else if (e.target.id === "topicDesc") {
-            setDescription(e.target.value);
-        }
-        else if (e.target.id === "topicCatDesc") {
-            setCatDescription(e.target.value);
-        }
+
+    let slugsToTitles = Sefaria.slugsToTitles();
+    let specialCases = {
+        "": {"en": "Choose a Parent Topic", "he": Sefaria.translation('he', "Choose a Parent Topic")},
+        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
+    };
+    slugsToTitles = Object.assign(specialCases, slugsToTitles);
+    const catMenu =   <div className="section">
+                                            <label><InterfaceText>Parent Topic</InterfaceText></label>
+                                            <div className="categoryChooserMenu">
+                                                <select key="topicCats" id="topicCats" onChange={handleCatChange}>
+                                                    {Object.keys(slugsToTitles).map(function (tempSlug, i) {
+                                                        const tempTitle = Sefaria.interfaceLang === 'english' ? slugsToTitles[tempSlug].en : slugsToTitles[tempSlug].he;
+                                                        return <option key={i} value={tempSlug} selected={data.catSlug === tempSlug}>{tempTitle}</option>;
+                                                    })}
+                                                </select>
+                                            </div>
+                                    </div>;
+
+    const updateData = function(newData) {
+        setIsChanged(true);
+        setData(newData);
+        console.log(newData);
     }
-    return <div className="editTextInfo">
-            <div className="static">
-                <div className="inner">
-                    {savingStatus ?
-                        <div className="collectionsWidget">Saving topic information...<br/><br/>(processing title changes
-                            may take some time)</div> : null}
-                    <div id="newIndex">
-                        <AdminToolHeader en="Topic Editor" he="Topic Editor" close={close} validate={validate}/>
-                        <div className="section">
-                            <label><InterfaceText>Topic Title</InterfaceText></label>
-                            <input id="topicTitle" onBlur={setValues} defaultValue={enTitle} placeholder="Add a title."/>
-                        </div>
-                        <div className="section">
-                          <label><InterfaceText>Category</InterfaceText></label>
-                          <div id="categoryChooserMenu">
-                              <select key="topicCats" id="topicCats" onChange={handleCatChange}>
-                                {catMenu}
-                              </select>
-                          </div>
-                        </div>
-                        <div className="section">
-                            <label><InterfaceText>Topic Description</InterfaceText></label>
-                            <textarea id="topicDesc" onBlur={setValues}
-                                   defaultValue={description} placeholder="Add a description."/>
-                        </div>
-                       {isCategory ? <div className="section">
-                                      <label><InterfaceText>Short Description for Topic Table of Contents</InterfaceText></label>
-                                      <textarea id="topicCatDesc" onBlur={setValues}
-                                             defaultValue={catDescription} placeholder="Add a short description."/>
-                                  </div> : null}
-                      {!isNewTopic ? <div onClick={deleteTopic} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                                      <InterfaceText>Delete Topic</InterfaceText>
-                                    </div> : null}
-                    </div>
-                </div>
-            </div>
-     </div>
+    const validate = async function () {
+        if (!isChanged) {
+            alert("You haven't changed any of the fields.");
+            return false;
+        }
+        if (data.catSlug === "") {
+          alert(Sefaria._("Please choose a category."));
+          return false;
+        }
+        if (data.enTitle.length === 0) {
+          alert(Sefaria._("Title must be provided."));
+          return false;
+        }
+        if (sortedSubtopics.length > 0 && !isNew) {
+            await saveReorderedSubtopics();  // make sure subtopics reordered before saving topic information below
+        }
+        saveTopic();
+    }
+    const saveReorderedSubtopics = function () {
+         const url = `/api/topic/reorder`;
+         const postCategoryData = {topics: sortedSubtopics};
+         requestWithCallBack({url, data: postCategoryData, setSavingStatus, redirect: () => window.location.href = "/topics"});
+    }
+
+    const prepData = () => {
+        // always add category, title, heTitle, altTitles
+        let postData = { category: data.catSlug, title: data.enTitle, heTitle: data.heTitle, altTitles: {}};
+        postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
+        postData.altTitles.he = data.heAltTitles.map(x => x.name);
+
+        // add descriptions if they changed
+        const origDescription = {en: origData?.origEnDescription || "", he: origData?.origHeDescription || ""};
+        const origCategoryDescription = {en: origData?.origEnCategoryDescription || "", he: origData?.origHeCategoryDescription || ""};
+        const descriptionChanged = data.enDescription !== origDescription.en || data.heDescription !== origDescription.he;
+        if (descriptionChanged) {
+            postData.description = {en: data.enDescription, he: data.heDescription};
+        }
+        const categoryDescriptionChanged = data.enCategoryDescription !== origCategoryDescription.en || data.heCategoryDescription !== origCategoryDescription.he
+        if (isCategory && categoryDescriptionChanged) {
+            postData.categoryDescription = {en: data.enCategoryDescription, he: data.heCategoryDescription};
+        }
+
+        // add author keys if they changed
+        if (isAuthor) {
+            let authorKeys = ['era', 'birthPlace', 'heBirthPlace', 'birthYear', 'deathYear', 'deathPlace', 'heDeathPlace'];
+            authorKeys.map(k => {
+                const firstLetter = k.charAt(0).toUpperCase();
+                const origKey = `orig${firstLetter}${k.slice(1)}`;
+                const origVal = origData[origKey] || "";
+                const newVal = data[k] || "";
+                if (origVal !== newVal) {
+                    postData[k] = data[k];
+                }
+            })
+        }
+
+        if (!isNew) {
+          postData = {...postData, origSlug: data.origSlug, origCategory: data.origCatSlug};
+        }
+
+        return postData;
+    }
+
+    const saveTopic = function () {
+        toggle();
+        const postData = prepData();
+        let postURL = isNew ? "/api/topic/new" : `/api/topics/${data.origSlug}`;
+        const postJSON = JSON.stringify(postData);
+        $.post(postURL, {"json": postJSON}, function (result) {
+            if (result.error) {
+                toggle();
+                alert(result.error);
+            } else {
+                const newSlug = result.slug;
+                if (onCreateSuccess) {
+                    onCreateSuccess(newSlug);
+                }
+                else {
+                    window.location.href = `/topics/${newSlug}`;
+                }
+            }
+        }).fail(function (xhr, status, errorThrown) {
+            alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
+        });
+    }
+
+    const deleteObj = function() {
+        const url = `/api/topic/delete/${data.origSlug}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
+    }
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
+    if (isCategory) {
+        items.push("English Short Description");
+        items.push("Hebrew Short Description");
+    }
+    if (isAuthor) {
+        const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
+        authorItems.forEach(x => items.push(x));
+    }
+    return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
+                        items={items} extras={
+                            [isNew ? null :
+                                <Reorder subcategoriesAndBooks={sortedSubtopics}
+                                         updateOrder={setSortedSubtopics}
+                                         displayType="topics"/>,
+                            ]
+                        } />;
 }
 
-export {TopicEditor, TopicEditorButton, useTopicToggle};
+
+export {TopicEditor};

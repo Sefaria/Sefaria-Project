@@ -9,14 +9,14 @@ import {HDate, months} from '@hebcal/core';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
-    
+
     /**
      * Method to scroll into view port, if it's outside the viewport
      * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
      * @param {Object} target - DOM Element
      * @returns {undefined}
      * See also: https://www.javascripttutorial.net/dom/css/check-if-an-element-is-visible-in-the-viewport/
-     * 
+     *
      */
     static scrollIntoViewIfNeeded(target, scrollIntoViewOptions) {
         // Target is outside the viewport from the bottom
@@ -24,7 +24,7 @@ class Util {
             //  The bottom of the target will be aligned to the bottom of the visible area of the scrollable ancestor.
             target.scrollIntoView(scrollIntoViewOptions);
         }
-    
+
         // Target is outside the view from the top
         if (target.getBoundingClientRect().top < 0) {
             // The top of the target will be aligned to the top of the visible area of the scrollable ancestor
@@ -86,7 +86,7 @@ class Util {
         //returns a fully qualified Hebrew calendar date from a Gregorian input. Can output in English or Hebrew
         const hd = new HDate(new Date(dateObjStr));
         //Up to this we could have gotten away with built in international date objects in js:
-        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above. 
+        // By specifying dateOptions['calendar'] = 'hebrew'; as in the function above.
         //That would result in a hybrid hebrew date though, that still uses English numerals for day and year.
         //So we use Hebcal's renderGematriya()
         return Sefaria.interfaceLang === 'english' ? hd.render() : hd.renderGematriya();
@@ -112,6 +112,19 @@ class Util {
         };
         const postData = {json: JSON.stringify(feedback)};
         $.post('/api/send_feedback', postData);
+    }
+     static subscribeToNbList(email, lists) {
+        if (Sefaria.util.isValidEmailAddress(email)) {
+            $.post("/api/subscribe/" + email + "?lists=" + lists, function(data) {
+                if ("error" in data) {
+                    console.log(data.error);
+                } else {
+                    console.log("Subscribed! Welcome to our list.");
+                }
+            }).error(data => console.log("Sorry, there was an error."));
+        } else {
+        console.log("not valid email address")
+        }
     }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
@@ -150,43 +163,46 @@ class Util {
                                now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds());
       return Math.round(nowUTC/1000);
     }
+    static stripImgs(s) {
+      return !s ? "" : sanitizeHtml(s, {
+          allowedTags: sanitizeHtml.defaults.allowedTags.filter(tag => tag !== 'img'),
+          allowedAttributes: sanitizeHtml.defaults.allowedAttributes
+      });
+    }
     static zip(...rows) {
       // rows is an array
       // corrolary to zip in python
       return rows[0].map((_,c)=>rows.map(row=>row[c]));
     }
-    static clone(obj, trimFilters) {
+    static clone(obj, prepareForSerialization) {
         // Handle the 3 simple types, and null or undefined
-        if (null == obj || "object" != typeof obj) return obj;
+        if (null == obj || "object" != typeof obj) {
+            return obj;
+        }
 
         if (typeof obj.clone === 'function') {
           // this handles any object with a clone function which currently
           // includes SearchState and FilterNode
-          return obj.clone(trimFilters);
+          return obj.clone(prepareForSerialization);
         }
 
         // Handle Date
         if (obj instanceof Date) {
-            var copy = new Date();
+            const copy = new Date();
             copy.setTime(obj.getTime());
             return copy;
         }
 
         // Handle Array
         if (obj instanceof Array) {
-            var copy = [];
-            var len = obj.length;
-            for (var i = 0; i < len; ++i) {
-                copy[i] = this.clone(obj[i]);
-            }
-            return copy;
+            return obj.map(item => this.clone(item, prepareForSerialization));
         }
 
         // Handle Object
         if (obj instanceof Object) {
-            var copy = {};
-            for (var attr in obj) {
-                if (obj.hasOwnProperty(attr)) copy[attr] = this.clone(obj[attr]);
+            const copy = {};
+            for (const [attr, value] of Object.entries(obj)) {
+                copy[attr] = this.clone(value, prepareForSerialization);
             }
             return copy;
         }
@@ -206,6 +222,30 @@ class Util {
             }
         }
     }
+
+    static htmlToText(html){
+        //remove code brakes and tabs
+        html = html.replace(/\n/g, "");
+        html = html.replace(/\t/g, "");
+
+        //keep html brakes and tabs
+        html = html.replace(/<\/td>/g, "\t");
+        html = html.replace(/<\/table>/g, "\n");
+        html = html.replace(/<\/tr>/g, "\n");
+        html = html.replace(/<\/p>/g, "\n");
+        html = html.replace(/<\/div>/g, "\n");
+        html = html.replace(/<br>/g, "\n");
+        html = html.replace(/<br( )*\/>/g, "\n");
+
+
+        //parse html into text
+        const dom = (new DOMParser()).parseFromString('<!doctype html><body>' + html, 'text/html');
+        //remove duplicate line breaks
+        const text = dom.body.textContent.replace(/\n\s*\n/g, "\n");
+
+        return text
+      }
+
 
 
     static cleanHTML(html) {
@@ -530,9 +570,9 @@ class Util {
         */
 
         Number.prototype.addCommas = function() {
-          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+          return this.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         };
-        
+
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -720,7 +760,7 @@ class Util {
       return vars;
     }
     static replaceUrlParam(paramName, paramValue){
-      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end  
+      //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end
       var url = INBROWSER ? window.location.href : this._initialPath;
       if(paramValue == null)
           paramValue = '';
@@ -951,6 +991,7 @@ Util.RefValidator.prototype = {
         if (!this.$preview) { return; }
 
         var segments = Sefaria.makeSegments(data);
+        segments = Sefaria.stripImagesFromSegments(segments);
         var en = segments.map(this._preview_segment_mapper.bind(this, "en")).filter(Boolean);
         var he = segments.map(this._preview_segment_mapper.bind(this, "he")).filter(Boolean);
 

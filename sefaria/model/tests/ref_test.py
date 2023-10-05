@@ -177,9 +177,9 @@ class Test_Ref(object):
         assert Ref("Shabbat 4b").next_section_ref().normal() == "Shabbat 5a"
         assert Ref("Shabbat 5a").next_section_ref().normal() == "Shabbat 5b"
         assert Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
-        assert Ref("Mekhilta 35.3").next_section_ref() is None
+        assert Ref("Mekhilta_DeRabbi_Yishmael.35.3").next_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta d'Rabbi Yishmael 23:19").next_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 31:12"
+        assert Ref("Mekhilta_DeRabbi_Yishmael.23.19").next_section_ref().normal() == "Mekhilta DeRabbi Yishmael 31:12"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
@@ -199,7 +199,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
         assert Ref("Mekhilta 12:1").prev_section_ref() is None
         # This will start to fail when we fill in this text
-        assert Ref("Mekhilta d'Rabbi Yishmael 31:12").prev_section_ref().normal() == "Mekhilta d'Rabbi Yishmael 23:19"
+        assert Ref("Mekhilta_DeRabbi_Yishmael.31.12").prev_section_ref().normal() == "Mekhilta DeRabbi Yishmael 23:19"
 
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
@@ -388,13 +388,13 @@ class Test_Ref(object):
                                                          Ref('Exodus 16:1')]
 
     def test_stating_refs_of_span(self):
-        assert Ref("Zohar 1:3b:12-3:12b:1").starting_refs_of_span() == [Ref("Zohar 1:3b:12"), Ref("Zohar 2"), Ref("Zohar 3")]
+        assert Ref("Rashi on Berakhot 3a:2:1-4a:3:1").starting_refs_of_span() == [Ref("Rashi on Berakhot 3a:2:1"), Ref("Rashi on Berakhot 3b"), Ref("Rashi on Berakhot 4a")]
         assert Ref("Genesis 12:1-14:3").starting_refs_of_span() == [Ref("Genesis 12:1"), Ref("Genesis 13"), Ref("Genesis 14")]
-        assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span() == [Ref("Zohar 1:3b:12")]
-        assert Ref("Zohar 1:3b:12-1:4b:12").starting_refs_of_span(True) == [Ref("Zohar 1:3b:12"), Ref("Zohar 1:4a"), Ref("Zohar 1:4b")]
+        assert Ref("Rashi on Berakhot 3a:2:1-5:1").starting_refs_of_span() == [Ref("Rashi on Berakhot 3a:2:1")]
+        assert Ref("Rashi on Berakhot 3a:4:1-6:1").starting_refs_of_span(True) == [Ref("Rashi on Berakhot 3a:4:1"), Ref("Rashi on Berakhot 3a:5"), Ref("Rashi on Berakhot 3a:6")]
 
     def test_as_ranged_segment_ref(self):
-        assert Ref("Zohar").as_ranged_segment_ref() == Ref("Zohar 1:1a:1-4:211b:1")
+        assert Ref("Rashi on Berakhot").as_ranged_segment_ref() == Ref("Rashi on Berakhot 2a:1:1-64a:15:1")
         assert Ref("Berakhot").as_ranged_segment_ref() == Ref("Berakhot 2a:1-64a:15")
         assert Ref('Genesis').as_ranged_segment_ref() == Ref('Genesis.1.1-50.26')
         assert Ref('Shabbat.3a.1').as_ranged_segment_ref() == Ref('Shabbat.3a.1')
@@ -627,16 +627,19 @@ class Test_normal_forms(object):
         assert Ref("Berakhot 2a") == Ref("Berakhot 2A")
         assert Ref("Berakhot 2B") == Ref("Berakhot 2B")
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")
         assert oref.normal() == "Zohar 1-2"
         assert oref.he_normal() == "ספר הזהר א׳-ב׳"
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_daf_range(self):
         oref = Ref("Zohar 1:25a-27b")
         assert oref.normal() == "Zohar 1:25-27"
         assert oref.he_normal() == "ספר הזהר א׳:כ״ה-כ״ז"
 
+    @pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
     def test_zohar_volume_daf_range(self):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
@@ -851,6 +854,7 @@ class Test_comparisons(object):
         assert Ref("Shabbat 5b:23-29").follows(Ref("Shabbat 5b:10-20"))
         assert not Ref("Shabbat 5b:15-29").follows(Ref("Shabbat 5b:10-20"))
 
+@pytest.mark.skip(reason='Zohar structure has been changed. We currently have no index with talmud at second place')
 class Test_Talmud_at_Second_Place(object):
     def test_simple_ref(self):
         assert Ref("Zohar 1.15b.3").sections[1] == 30

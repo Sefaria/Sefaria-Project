@@ -55,3 +55,6 @@ class SheetNotFoundError(InputError):
 
 class ManuscriptError(Exception):
     pass
+
+class MissingKeyError(Exception):
+    pass

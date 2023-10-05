@@ -137,6 +137,9 @@ class Search {
                 resolve({total: 0, hits: []});
             }
         }).then(x => {
+            if (args.type === "sheet") {
+                return null;
+            }
             let adaptedHits = [];
             x.hits.forEach(hit => {
                 const bookData = hit.xmlId.split(".");
@@ -167,7 +170,7 @@ class Search {
                     total: x.total,
                     hits: adaptedHits
                 },
-                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length
+                lastSeen: ('start' in args) ? this.dictaQueryQueue.lastSeen + adaptedHits.length : adaptedHits.length - 1
 
             }
         }).catch(x => {
@@ -223,25 +226,11 @@ class Search {
         });
     }
     isDictaQuery(args) {
-        return Sefaria.hebrew.isHebrew(args.query);
+        return Sefaria.hebrew.isHebrew(args.query) && !args.exact;
     }
     sortedJSON(obj) {
         // Returns JSON with keys sorted consistently, suitable for a cache key
         return JSON.stringify(obj, Object.keys(obj).sort());
-    }
-    getPivot(queue, minValue, sortType) {
-
-        // if this is the last query, this will be the last chance to return results
-        if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total &&
-            this.sefariaQueryQueue.lastSeen + 1 >= this.sefariaQueryQueue.hits.total)
-            return queue.length;
-
-        // return whole queue if the last item in queue is equal to minValue
-        if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
-            return queue.length;
-
-        const pivot = queue.findIndex(x => x[sortType] > minValue);
-        return (pivot >= 0) ? pivot : 0;
     }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
@@ -298,7 +287,6 @@ class Search {
                 for (let i=0; i<dictaHits.length; i++) {
                     dictaHits[i].score = dictaHits[i].score * factor;
                 }
-
                 dictaMeanScore = dictaHits.reduce(
                     (total, nextValue) => total + nextValue.score / sefariaHits.length, 0
                 );
@@ -308,14 +296,6 @@ class Search {
                 }
             }
 
-            const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
-            const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
-
-            this.sefariaQueryQueue.hits.hits = sefariaHits.slice(sefariaPivot);
-            sefariaHits = sefariaHits.slice(0, sefariaPivot);
-            this.dictaQueryQueue.hits.hits = dictaHits.slice(dictaPivot);
-            dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
 
@@ -369,9 +349,15 @@ class Search {
                 }
                 else {
                     const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters); 
-                    this._cacheQuery(args, mergedQueries);
-                    args.success(mergedQueries);
+                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters);
+                    const cacheResult = this.getCachedQuery(args);
+                    if (!cacheResult) {
+                        this._cacheQuery(args, mergedQueries);
+                        args.success(mergedQueries);
+                    }
+                    else {
+                        args.success(cacheResult);
+                    }
                 }
             }).catch(x => console.log(x));
         }

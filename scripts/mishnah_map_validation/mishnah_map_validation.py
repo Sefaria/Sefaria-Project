@@ -14,7 +14,7 @@ from sefaria.model.schema import AddressTalmud
 # the mishnah and talmud refs as found in the German text.
 def clean_text(german_text):
     german_text = str(german_text)
-    german_text = TextChunk._strip_itags(german_text)
+    german_text = TextChunk.strip_itags(german_text)
     text_array = re.sub(r"\[|\]|\{|\}|<small>|<\/small>", "", german_text)
     return text_array
 

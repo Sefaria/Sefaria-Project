@@ -49,15 +49,27 @@ def test_br_tag_html_composer():
     assert text[start4:end4] == '</b> '
 
 
-def test_normalizer_composer():
+def test_simpler_normalizer_composer():
+    text = ' [sup'
+    normalized = " sup"
+    nsc = NormalizerComposer(['brackets', 'double-space'])
+    assert nsc.normalize(text) == normalized
+    text_to_remove = nsc.find_text_to_remove(text)
+    assert len(text_to_remove) == 2
+    (start0, end0), repl0 = text_to_remove[0]
+    assert text[start0:end0] == " "
+    assert repl0 == ' '
+
+
+def test_complicated_normalizer_composer():
     text = """(<i>hello</i> other stuff) [sup] <b>(this is) a test</b>"""
     normalized = """ sup a test """
     nsc = NormalizerComposer(['html', "parens-plus-contents", 'brackets', 'double-space'])
     assert nsc.normalize(text) == normalized
     text_to_remove = nsc.find_text_to_remove(text)
-    assert len(text_to_remove) == 5
+    assert len(text_to_remove) == 6
     (start0, end0), repl0 = text_to_remove[0]
-    assert text[start0:end0] == "(<i>hello</i> other stuff) ["
+    assert text[start0:end0] == "(<i>hello</i> other stuff) "
     assert repl0 == ' '
 
 
@@ -96,7 +108,7 @@ def test_word_to_char():
     word_indices = (2, 4)
     result = char_indices_from_word_indices(test_string, [word_indices])[0]
     start, end = result
-    assert test_string[start:end] == 'go here\n\nhello '  # TODO used to not have trailing space. not sure how critical this is.
+    assert test_string[start:end] == 'go here\n\nhello'
     assert test_string[start:end].split() == words
 
 

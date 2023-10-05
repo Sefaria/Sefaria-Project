@@ -5,10 +5,10 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data: 
+data:
   robots.txt: |-
     User-agent: *
-{{- if eq .Values.sandbox "true" }}
+{{- if .Values.nginx.disableScraping }}
     Disallow: /
 {{- else }}
     Disallow: /activity/
