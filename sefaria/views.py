@@ -1001,13 +1001,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            # try:
-            #     es_index_name = search.get_new_and_current_index_names("sheet")['current']
-            #     search.delete_sheet(es_index_name, id)
-            # except NewConnectionError as e:
-            #     logger.warn("Failed to connect to elastic search server on sheet delete.")
-            # except AuthorizationException as e:
-            #     logger.warn("Failed to connect to elastic search server on sheet delete.")
+            try:
+                es_index_name = search.get_new_and_current_index_names("sheet")['current']
+                search.delete_sheet(es_index_name, id)
+            except NewConnectionError as e:
+                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            except AuthorizationException as e:
+                logger.warn("Failed to connect to elastic search server on sheet delete.")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
