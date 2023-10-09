@@ -9,7 +9,7 @@ Check out [Contextus](https://github.com/Sefaria/Contextus), an instance of the 
 ---------------------------
 ## TO DO
 
-- Replace Django Runserver by [Gunicorn](https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/gunicorn/)
+- add the localization
 
 ---------------------------
 [Sefaria](https://www.sefaria.org) is creating interfaces, apps (like a source sheet builder), and infrastructure (like an API and a structured dataset) for Jewish texts and textual learning.
