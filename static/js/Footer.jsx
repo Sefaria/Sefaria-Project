@@ -41,43 +41,43 @@ class Footer extends Component {
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="དཔེ་ཆའི་སྐོར་འབྲེལ་">
-                <Link href="/about" en="What is Pecha?" he="מהי ספריא" />
-                <Link href="/help" en="Help" he="עזרה" />
-                <Link href="/team" en="Team" he="צוות" />
-                <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
-                <Link href="/metrics" en="Metrics" he="מדדים" />
-                <Link href="/annualreport/2022" en="Annual Report" he='דו"ח שנתי' />
-                <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
-                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
+                <Link href="/about" en="What is Pecha?" he="དཔེ་ཆ་གང་ཡིན་ནམ་།" />
+                <Link href="/help" en="Help" he="རོགས་རམ་།" />
+                <Link href="/team" en="Team" he="ལས་མི་།" />
+                <Link href="/testimonials" en="Testimonials" he="ཡ་ལན་།" />
+                <Link href="/metrics" en="Metrics" he="ཚད་གཞི་།" />
+                <Link href="/annualreport/2022" en="Annual Report" he='ལོ་རེའི་ཞུ་ཐོ་།' />
+                <Link href="/terms" en="Terms of Use" he="བེད་སྤྱད་སྒྲིག་གཞི་།" />
+                <Link href="/privacy-policy" en="Privacy Policy" he="གསང་དོན་།" />
             </Section>
 
             <Section en="Tools" he="ལག་ཆ་།">
-                <Link href="/educators" en="Teach with Pecha" he="מלמדים עם ספריא" />
-                <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />
-                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
-                <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
-                <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
+                <Link href="/educators" en="Teach with Pecha" he="དཔེ་ཆའི་མཉམ་དུ་སློབ་།" />
+                <Link href="/calendars" en="Learning Schedules" he="སྦྱང་བྱའི་རེའུ་མིག" />
+                <Link href="/sheets" en="Source Sheets" he="འབྱུང་ཁུངས་རེའུ་མིག" />
+                <Link href="/visualizations" en="Visualizations" he="པར་སྟོན་།" />
+                <Link href="/mobile" en="Mobile Apps" he="ཁ་པར་གཉམ་ཆས་།" />
                 {/*<Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />*/}
                 {/*<Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />*/}
-                <Link href="/people" en="Authors" he="מחברים" />
-                <Link href="/collections" en="Collections" he="אסופות" />
-                <Link href="/updates" en="New Additions" he="עדכונים" />
-                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
+                <Link href="/people" en="Authors" he="རྩོམ་པ་པོ་།" />
+                <Link href="/collections" en="Collections" he="གསོག་འཇོག་བྱེད་ས་།" />
+                <Link href="/updates" en="New Additions" he="གསར་སྡོམ་བྱེད་ཡུལ་།" />
+                <Link href="/remote-learning" en="Remote Learning" he="ཐག་རིང་ནས་སྦྱང་ས་།" />
             </Section>
 
             <Section en="Developers" he="གློག་ཀླད་ལས་མཁན་">
-                <Link href="/developers" en="Get Involved" he="མཉམ་གཞུགས་།" blank={true} />
-                <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
+                <Link href="/developers" en="Get Involved" he="མཉམ་ལས་བྱེད་ས་།" blank={true} />
+                <Link href="/developers#api" en="API Docs" he="APIཡི་ཡིག་ཆ་།" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="בסיס נתונים" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="དཔྱད་གཞི་ཕབས་ལེན་།" blank={true} />
             </Section>
 
             <Section en="Join Us" he="མཉམ་གཞུགས་།">
-                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
-                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
-                <Link href="/supporters" en="Supporters" he="תומכים" />
-                <Link href="/jobs" en="Jobs" he="דרושים" />
-                <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
+                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"ཞལ་འདེབས་།"}}/></DonateLink>
+                <Link href="/ways-to-give" en="Ways to Give" he="གཞན་རོགས་ཀྱི་ལམ་།" />
+                <Link href="/supporters" en="Supporters" he="རོགས་སྐྱོར་མཁན་རྣམས་།" />
+                <Link href="/jobs" en="Jobs" he="ལས་ཀ་།" />
+                <Link href="https://store.sefaria.org" en="Shop" he="ཉོ་ཡུལ་།" />
             </Section>
 
           <div className="section last connect">
@@ -87,19 +87,19 @@ class Footer extends Component {
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
               <div className="socialLinks">
-                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true}/>
+                  <Link href={fbURL} en="Facebook" he="ངོ་དེབ་།" blank={true}/>
                   &bull;
-                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="טוויטר" />
+                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="ཏྲི་དབི་ཏྲར་།" />
                   <br />
 
-                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" />
+                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="ཡུ་ཀྲུབ་།" />
                   &bull;
-                  <Link href={blgURL} en="Blog" he="בלוג" blank={true}/>
+                  <Link href={blgURL} en="Blog" he="འབྲི་དྲ་།" blank={true}/>
                   <br />
 
-                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" />
+                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="ཨིན་ས་ཀྲ་རྒ་རམ་།" />
                   &bull;
-                  <Link href="mailto:hello@sefaria.org" en="Email" he="דוא&quot;ל" />
+                  <Link href="mailto:hello@sefaria.org" en="Email" he="དྲ་ཚིག" />
               </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
