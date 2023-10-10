@@ -40,7 +40,7 @@ class Footer extends Component {
     return (
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
-            <Section en="About" he="אודות">
+            <Section en="About" he="དཔེ་ཆའི་སྐོར་འབྲེལ་">
                 <Link href="/about" en="What is Pecha?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
@@ -51,7 +51,7 @@ class Footer extends Component {
                 <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
             </Section>
 
-            <Section en="Tools" he="כלים">
+            <Section en="Tools" he="ལག་ཆ་།">
                 <Link href="/educators" en="Teach with Pecha" he="מלמדים עם ספריא" />
                 <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />
                 <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
@@ -65,14 +65,14 @@ class Footer extends Component {
                 <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
 
-            <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="ལག་ཆ་" blank={true} />
+            <Section en="Developers" he="གློག་ཀླད་ལས་མཁན་">
+                <Link href="/developers" en="Get Involved" he="མཉམ་གཞུགས་།" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="בסיס נתונים" blank={true} />
             </Section>
 
-            <Section en="Join Us" he="ལག་ཆ་">
+            <Section en="Join Us" he="མཉམ་གཞུགས་།">
                 <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
                 <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
