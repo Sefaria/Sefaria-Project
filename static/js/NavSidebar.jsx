@@ -103,7 +103,7 @@ const AboutSefaria = ({hideTitle}) => (
     <a href="/about" className="inTextLink">
       <InterfaceText>
           <EnglishText>Learn More ›</EnglishText>
-          <HebrewText>לקריאה נוספת ›</HebrewText>
+          <HebrewText>མུ་མཐུད་གཟིགས་›</HebrewText>
       </InterfaceText>
     </a>
   </Module>
