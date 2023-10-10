@@ -861,7 +861,7 @@ input.noselect {
   display: block;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
   direction: ltr;
