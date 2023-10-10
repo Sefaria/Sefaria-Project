@@ -508,7 +508,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
 
         <a href="/about">
           <img src="/static/icons/info.svg" />
-          <InterfaceText>About Dharma</InterfaceText>
+          <InterfaceText>About Pecha</InterfaceText>
         </a>
 
         {Sefaria._uid ?
