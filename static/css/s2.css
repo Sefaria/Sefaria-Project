@@ -516,7 +516,7 @@ input.noselect {
   justify-content: flex-start;
 }
 .headerInner .headerNavSection a {
-  font-size: 16px;
+  font-size: 22px;
   color: #666;
   margin-inline-end: 30px;
   font-weight: 500;
@@ -1626,7 +1626,7 @@ div.interfaceLinks-row a {
   border: none;
 }
 .navSidebarModule {
-  font-size: 16px;
+  font-size: 19px;
   color: #666;
   margin-bottom: 34px;
   padding: 0 44px;
@@ -8800,7 +8800,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section .header {
   color: #000;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
   font-weight: normal;
   font-size: 16px;
 }
@@ -8895,7 +8895,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 30px;
-  font-size: 15px;
+  font-size: 22px;
 }
 #footer #siteLanguageToggle #siteLanguageToggleLabel {
   display: block;
