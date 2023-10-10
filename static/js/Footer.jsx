@@ -67,7 +67,7 @@ class Footer extends Component {
 
             <Section en="Developers" he="གློག་ཀླད་ལས་མཁན་">
                 <Link href="/developers" en="Get Involved" he="མཉམ་ལས་བྱེད་ས་།" blank={true} />
-                <Link href="/developers#api" en="API Docs" he="APIཡི་ཡིག་ཆ་།" blank={true} />
+                <Link href="/developers#api" en="API Docs" he="API་ཡི་ཡིག་ཆ་།" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="དཔྱད་གཞི་ཕབས་ལེན་།" blank={true} />
             </Section>
