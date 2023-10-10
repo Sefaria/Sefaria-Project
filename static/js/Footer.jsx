@@ -66,13 +66,13 @@ class Footer extends Component {
             </Section>
 
             <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="הצטרפו אלינו" blank={true} />
+                <Link href="/developers" en="Get Involved" he="ལག་ཆ་" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="בסיס נתונים" blank={true} />
             </Section>
 
-            <Section en="Join Us" he="הצטרפו אלינו">
+            <Section en="Join Us" he="ལག་ཆ་">
                 <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
                 <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
