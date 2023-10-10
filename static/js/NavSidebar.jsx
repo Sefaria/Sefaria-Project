@@ -93,7 +93,7 @@ const AboutSefaria = ({hideTitle}) => (
     <ModuleTitle h1={true}>Buddhist Text Interface</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
-      Indrajala is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
+      Pecha is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
       and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Buddhist text library.
         </EnglishText>
         <HebrewText>
@@ -134,7 +134,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
           <EnglishText>
-          Indrajala is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
+          Pecha is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Buddhist text library.
         </EnglishText>
         <HebrewText>

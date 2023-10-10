@@ -1958,7 +1958,7 @@ function NewsletterSignUpForm(props) {
       <span className="int-he">
         <input
           className="newsletterInput"
-          placeholder="הרשמו לניוזלטר"
+          placeholder="གནས་ཚུལ་རགས་ཆེད་ཡར་འཛུལ་བྱེད་།"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyUp={handleSubscribeKeyUp} />
