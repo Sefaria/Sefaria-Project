@@ -516,7 +516,7 @@ input.noselect {
   justify-content: flex-start;
 }
 .headerInner .headerNavSection a {
-  font-size: 22px;
+  font-size: 16px;
   color: #666;
   margin-inline-end: 30px;
   font-weight: 500;
@@ -728,7 +728,7 @@ input.noselect {
 .header .accountLinks {
   display: flex;
   align-items: center;
-  font-size: 22px;
+  font-size: 16px;
   margin-top: 2px;
   color: #666;
 }
@@ -1626,7 +1626,7 @@ div.interfaceLinks-row a {
   border: none;
 }
 .navSidebarModule {
-  font-size: 19px;
+  font-size: 16px;
   color: #666;
   margin-bottom: 34px;
   padding: 0 44px;
@@ -8802,7 +8802,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #000;
   margin-bottom: 18px;
   font-weight: normal;
-  font-size: 22px;
+  font-size: 16px;
 }
 #footer .section.last {
   float: right;
@@ -8895,7 +8895,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 30px;
-  font-size: 22px;
+  font-size: 16px;
 }
 #footer #siteLanguageToggle #siteLanguageToggleLabel {
   display: block;
