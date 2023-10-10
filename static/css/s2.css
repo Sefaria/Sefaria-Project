@@ -728,7 +728,7 @@ input.noselect {
 .header .accountLinks {
   display: flex;
   align-items: center;
-  font-size: 16px;
+  font-size: 22px;
   margin-top: 2px;
   color: #666;
 }
