@@ -8772,7 +8772,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
 }
 .interface-hebrew #footer{
-  direction: ltr;
+  direction: rtl;
   text-align: right;
 }
 .interface-english #footer .int-he {
