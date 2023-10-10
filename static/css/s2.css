@@ -8800,9 +8800,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section .header {
   color: #000;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   font-weight: normal;
-  font-size: 16px;
+  font-size: 22px;
 }
 #footer .section.last {
   float: right;
