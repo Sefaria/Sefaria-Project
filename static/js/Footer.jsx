@@ -110,7 +110,7 @@ class Footer extends Component {
                   </a>
                   |
                   <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew"
-                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>עברית
+                      onClick={this.trackLanguageClick.bind(null, "Hebrew")}>བོད་ཡིག
                   </a>
               </div>
           </div>

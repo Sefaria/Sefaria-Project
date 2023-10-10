@@ -177,7 +177,7 @@ body, .en, .int-en {
 }
 
 .he {
-  font-size: 122%;
+  font-size: 100%;
 }
 .int-he {
   direction: ltr;
@@ -2437,7 +2437,7 @@ display: none;
 }
 
 .navBlockTitle .int-he, .navBlockDescription .int-he{
-  font-size: 122%;
+  font-size: 100%;
 }
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {
@@ -3247,7 +3247,7 @@ display: none;
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after,
 .readerApp.interface-hebrew .noLangToggleInHebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title:not(.fixed):after {
   content: "\f104";
-  font-size: 122%;
+  font-size: 100%;
   margin-inline-start: 9px;
 }
 .readerPanel.hebrew .textTableOfContents .schema-node-toc:not(.linked) > .schema-node-title.open:not(.fixed):after,
@@ -6516,7 +6516,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicButtonTitle .he {
-  font-size: 122%;
+  font-size: 100%;
 }
 .topicButton .three-dots-button.tooltip-toggle::before,
 .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
@@ -6568,7 +6568,7 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.textTypeface .toolsButtonText span.int-he,
 .toolsButton.textTypeface .toolsButtonText span.he{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  font-size: 122%;
+  font-size: 100%;
 }
 .toolsButton .toolsButtonIcon {
   color: #999;
@@ -8895,7 +8895,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 30px;
-  font-size: 15px;
+  font-size: 16px;
 }
 #footer #siteLanguageToggle #siteLanguageToggleLabel {
   display: block;

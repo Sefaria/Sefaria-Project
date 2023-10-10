@@ -1029,7 +1029,7 @@ def _get_user_calendar_params(request):
 
 
 def texts_list(request):
-    title = _("Pecha: a Living Library of Buddhist Texts Online")
+    title = _("Pecha - Buddhist texts in your own words")
     desc  = _("The largest free library of Buddhist texts available to read online in Tibetan, English and Chinese")
     return menu_page(request, page="navigation", title=title, desc=desc)
 
