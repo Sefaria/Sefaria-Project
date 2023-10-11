@@ -34,9 +34,9 @@ const Strings = {
     "Sefaria mobile app.": "אפליקציית ספריא לנייד.",
     "Stay Connected": "הישארו מעודכנים",
     "Get updates on new texts, learning resources, features, and more.": "קבלו עדכונים על מקורות חדשים, כלי למידה חדשים ועוד.",
-    "Support Sefaria": "תמכו בספריא",
-    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה.",
-    "Make a Donation": "לתרומה",
+    "Support Sefaria": "དཔེ་ཆའི་དྲ་ཚིག་ལ་རམ་འདེགས།",
+    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "དཔེ་ཆའི་དྲ་ཚིག་ལ་ཞལ་འདེབས་ཀྱི་ལམ་ནས་རམ་འདེགས་གནང་རོགས་།",
+    "Make a Donation": "ཞལ་འདེབས་འདིར་གནང་རོགས།",
     "Join the Conversation": "קחו חלק בשיח" ,
     "Explore the Community": "לעמוד הקהילה",
     "People around the world use Sefaria to create and share Torah resources. You're invited to add your voice.": "לומדים ולומדות מכל רחבי העולם משתמשים בספריא כדי ליצור ולשתף מקורות יהודיים. אנו מזמינים אתכם לקחת חלק בשיח זה.",
@@ -236,7 +236,7 @@ const Strings = {
     "Search for:": "חיפוש:",
     "Views": "צפיות",
     "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-    "Versions": "מהדורות",
+    "Versions": "གསར་ཐོན་དུས་ཚོད།",
     "Version Open": "מהדורה פתוחה",
     "About": "སྐོར་དུ།",
     "Current Version": "מהדורה נוכחית",
@@ -361,7 +361,7 @@ const Strings = {
     "Since ancient times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "מימי קדם חולקה התורה לקטעי קריאה שבועיים שנועדו לסיום הספר כולו במשך תקופת זמן של שנה. בעקבות המנהג הזה התפתחו לאורך השנים סדרי לימוד תקופתיים רבים נוספים, ובעזרתם יכולות קהילות וקבוצות של לומדים ללמוד יחד טקסטים שלמים.",
 
     //languages
-    "English": "אנגלית",
+    "English": "དབྱིན་ཡིག",
     "Hebrew": "עברית",
     "Yiddish": "יידיש",
     "Finnish": "פינית",
@@ -496,12 +496,12 @@ const Strings = {
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
-    "Contents": "תוכן",
-    "Download": "הורדה",
+    "Contents": "རེའུ་མིག",
+    "Download": "ཕབས་ལེན།",
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
-    "Continue Reading": "המשך קריאה",
+    "Continue Reading": "མུ་མཐུད་ཀློག་རོགས་",
     "Start Reading": "התחלת קריאה",
     "Composed": "זמן חיבור",
     "Author": "מחבר",
@@ -514,7 +514,7 @@ const Strings = {
     "Works on Sefaria": "חיבורים וכתבים בספריא",
 
     //Module Names
-    "Download Text": "הורדת טקסט",
+    "Download Text": "ཡི་གེ་ཕབས་ལེན།",
     "About this Text" : "אודות ספר זה",
     "About This Text" : "אודות ספר זה",
     "Related Topics": "נושאים קשורים",
@@ -571,8 +571,8 @@ const Strings = {
       "Select Format": "בחירת פורמט הורדה",
       "Text (with Tags)": "טקסט (עם תיוגים)",
       "Text (without Tags)": "טקסט (ללא תיוגים)",
-      "Select Version": "בחירת מהדורה/תרגום",
-      "Merged Version": "גרסה משולבת"
+      "Select Version": "གསར་ཐོན་རིམ་པ་འདེམས།",
+      "Merged Version": "མཉམ་བསྡུ་བྱས་པའི་གསར་ཐོན་རིམ་པ།"
     },
     "FilterableList": {
       "Alphabetical": "אלפביתי",
