@@ -249,7 +249,7 @@ const Strings = {
     "Sources": "מקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
-    "Revision History" : "היסטורית עריכה",
+    "Revision History" : "བསྐྱར་ཞིབ་ཟིན་ཐོ།",
     "Buy in Print" : "לרכישה בדפוס",
     "Buy Now" : "רכישה",
     "Read More": "קרא עוד",

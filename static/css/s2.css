@@ -8810,8 +8810,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 16px;
 }
 #footer .section.last {
-  float: left;
-  text-align: left;
+  float: right;
+  text-align: right;
 }
 .interface-hebrew #footer .section.last {
   float: right;
