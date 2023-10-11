@@ -502,7 +502,7 @@ const Strings = {
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
     "Continue Reading": "མུ་མཐུད་ཀློག་རོགས་",
-    "Start Reading": "התחלת קריאה",
+    "Start Reading": "གློག་སྒོ་ཚུགས་",
     "Composed": "זמן חיבור",
     "Author": "מחבר",
     "Authors": "מחברים",
