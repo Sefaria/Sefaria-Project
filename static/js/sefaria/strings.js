@@ -3,7 +3,7 @@ const Strings = {
     "Sefaria": "ספריא",
     "Topics":"ཉེར་མཁོ།",
     "Community": "འཛོམས་ས།",
-    "Donate": "ཞལ་འདེབས་",
+    "Donate": "ཞལ་འདེབས།",
     "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספריה יהודית דינמית",
     "Recently Viewed" : "נצפו לאחרונה",
@@ -468,7 +468,7 @@ const Strings = {
     "Sorry, there was an error.": "סליחה, ארעה שגיאה",
 
     // Footer
-    "Connect": "འབྲེལ་གཏུགས་",
+    "Connect": "འབྲེལ་གཏུགས།",
     "Site Language": "སྐད་ཡིག",
 
     //Profile
