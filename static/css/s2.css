@@ -8814,7 +8814,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 .interface-hebrew #footer .section.last {
-  float: left;
+  float: right;
   text-align: left;
 }
 #footer .section a {
