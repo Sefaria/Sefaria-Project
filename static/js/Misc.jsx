@@ -2426,18 +2426,29 @@ const Banner = ({ onClose }) => {
               <a
                 className="button white int-en"
                 href={strapi.banner.buttonURL.en}
+                onClick={() => {
+                  closeBanner("banner_button_clicked");
+                }}
               >
                 <span>{strapi.banner.buttonText.en}</span>
               </a>
               <a
                 className="button white int-he"
                 href={strapi.banner.buttonURL.he}
+                onClick={() => {
+                  closeBanner("banner_button_clicked");
+                }}
               >
                 <span>{strapi.banner.buttonText.he}</span>
               </a>
             </div>
           </div>
-          <div id="bannerMessageClose" onClick={closeBanner}>
+          <div
+            id="bannerMessageClose"
+            onClick={() => {
+              closeBanner("close_clicked");
+            }}
+          >
             ×
           </div>
         </div>
