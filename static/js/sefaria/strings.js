@@ -362,7 +362,7 @@ const Strings = {
 
     //languages
     "English": "དབྱིན་ཡིག",
-    "Hebrew": "עברית",
+    "Hebrew": "བོད་ཡིག",
     "Yiddish": "יידיש",
     "Finnish": "פינית",
     "Portuguese": "פורטוגזית",
