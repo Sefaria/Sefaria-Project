@@ -723,13 +723,13 @@ input.noselect {
   vertical-align: middle;
   height: 33px;
   margin-top: -8px;
-  width: 92px;
+  width: 77px;
 }
 .interface-hebrew .header .home img {
-  /*width: 77px;*/
   vertical-align: middle;
-  height: 38px;
-  margin-top: -6px;
+  height: 33px;
+  margin-top: -8px;
+  width: 77px;
 }
 .header .accountLinks {
   display: flex;
