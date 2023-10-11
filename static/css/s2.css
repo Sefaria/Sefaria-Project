@@ -1410,9 +1410,8 @@ div.interfaceLinks-row a {
 }
 .readerPanel .he {
   direction: ltr;
-  text-align: right;
+  text-align: left;
   unicode-bidi: initial;
-}
 }
 .interface-hebrew .readerPanel .en {
   direction: ltr;
@@ -8778,15 +8777,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
 }
 .interface-hebrew #footer{
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
 }
 .interface-english #footer .int-he {
   display: none;
 }
 .interface-hebrew #footer .int-he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 #footerInner {
   max-width: 1000px;
@@ -8802,7 +8801,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 .interface-hebrew #footer .section {
-  text-align: right;
+  text-align: left;
 }
 #footer .section .header {
   color: #000;
@@ -8811,8 +8810,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 16px;
 }
 #footer .section.last {
-  float: right;
-  text-align: right;
+  float: left;
+  text-align: left;
 }
 .interface-hebrew #footer .section.last {
   float: left;
