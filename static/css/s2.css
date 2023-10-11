@@ -1410,9 +1410,8 @@ div.interfaceLinks-row a {
 }
 .readerPanel .he {
   direction: ltr;
-  text-align: right;
+  text-align: left;
   unicode-bidi: initial;
-}
 }
 .interface-hebrew .readerPanel .en {
   direction: ltr;
