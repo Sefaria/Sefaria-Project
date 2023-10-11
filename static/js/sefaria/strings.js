@@ -164,8 +164,8 @@ const Strings = {
     "Source Sheet by" : "דף מקורות מאת",
     "Created with": 'נוצר עבורך ע"י',
     " hasn't shared any sheets yet.": " טרם שיתפ/ה דפי מקורות כלשהם",
-    "Loading..." : "טוען...",
-    "Saving..." : "שומר...",
+    "Loading..." : "ཏོག་ཙམ་སྒུགས་རོག...",
+    "Saving..." : "ཉར་བཞིན་པ་...",
     "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
     "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
     "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
