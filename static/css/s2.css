@@ -515,7 +515,7 @@ input.noselect {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .interface-hebrew .header {
-  direction: ltr;
+  direction: rtl;
 }
 .headerInner .headerNavSection {
   display: flex;
