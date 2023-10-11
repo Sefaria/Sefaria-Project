@@ -568,9 +568,9 @@ const Strings = {
       "Follow Back": "עקבו בחזרה",
     },
     "DownloadVersions":{
-      "Select Format": "בחירת פורמט הורדה",
-      "Text (with Tags)": "טקסט (עם תיוגים)",
-      "Text (without Tags)": "טקסט (ללא תיוגים)",
+      "Select Format": "Format འདེམས།",
+      "Text (with Tags)": "Tagsཡོད་པའི་ཚིག",
+      "Text (without Tags)": "Tagsམེད་པའི་ཚིག",
       "Select Version": "གསར་ཐོན་རིམ་པ་འདེམས།",
       "Merged Version": "མཉམ་བསྡུ་བྱས་པའི་གསར་ཐོན་རིམ་པ།"
     },
