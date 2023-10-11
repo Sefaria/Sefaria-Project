@@ -569,8 +569,8 @@ const Strings = {
     },
     "DownloadVersions":{
       "Select Format": "Format འདེམས།",
-      "Text (with Tags)": "Tagsཡོད་པའི་ཚིག",
-      "Text (without Tags)": "Tagsམེད་པའི་ཚིག",
+      "Text (with Tags)": "Tags ཡོད་པའི་ཚིག",
+      "Text (without Tags)": "Tags མེད་པའི་ཚིག",
       "Select Version": "གསར་ཐོན་རིམ་པ་འདེམས།",
       "Merged Version": "མཉམ་བསྡུ་བྱས་པའི་གསར་ཐོན་རིམ་པ།"
     },

@@ -41,7 +41,7 @@ class Footer extends Component {
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="དཔེ་ཆའི་སྐོར་འབྲེལ།">
-                <Link href="/about" en="What is Pecha?" he="དཔེ་ཆ་གང་ཡིན་ནམ།" />
+                <Link href="/about" en="What is Pecha?" he="དཔེ་ཆ་དྲ་ཚིག་ངོ་སྤྲོད།" />
                 <Link href="/help" en="Help" he="རོགས་རམ།" />
                 <Link href="/team" en="Team" he="ལས་མི།" />
                 <Link href="/testimonials" en="Testimonials" he="ཡ་ལན།" />
