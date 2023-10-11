@@ -2217,8 +2217,14 @@ const InterruptingMessage = ({
       shouldShowModal = true;
     else if (noUserKindIsSet) shouldShowModal = true;
     if (!shouldShowModal) return false;
-
+    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    if (strapi.modal.buttonURL) {
+      excludedPaths.push(
+        new URL(strapi.modal.buttonURL.en).pathname,
+        new URL(strapi.modal.buttonURL.he).pathname
+      );
+    }
     return excludedPaths.indexOf(window.location.pathname) === -1;
   };
 
@@ -2377,6 +2383,13 @@ const Banner = ({ onClose }) => {
     if (!shouldShowBanner) return false;
 
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the banner on pages where the button link goes to since you're already there
+    if (strapi.banner.buttonURL) {
+      excludedPaths.push(
+        new URL(strapi.banner.buttonURL.en).pathname,
+        new URL(strapi.banner.buttonURL.he).pathname
+      );
+    }
     return excludedPaths.indexOf(window.location.pathname) === -1;
   };
 
