@@ -1454,7 +1454,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.hebrew .he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -5012,7 +5012,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .bilingual .segment > .he,
 .bilingual .segment > p > .he {
-  text-align: right;
+  text-align: left;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
@@ -9023,7 +9023,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
-  text-align: right;
+  text-align: left;
 }
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
