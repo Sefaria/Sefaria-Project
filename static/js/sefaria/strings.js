@@ -583,7 +583,7 @@ const Strings = {
       "Newest": "הכי חדש",*/
     },
     "Header": {
-      "Texts": "ཆོས་མཛོད་",
+      "Texts": "ཆོས་མཛོད།",
     },
     "RecentlyPublished": {
       "Load More": "דפי מקורות נוספים",

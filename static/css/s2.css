@@ -97,17 +97,17 @@ a, a:hover {
 }
 @font-face {
   /*Tibetan*/
-  font-family: 'Qomolangma-Uchensarchen';
-    src: url('/static/fonts/Qomolangma-Uchensarchen.woff2');
+  font-family: 'Qomolangma-Uchen Sarchen';
+    src: url('/static/fonts/Qomolangma-Uchen Sarchen.woff2');
   unicode-range: U+0F00-0FFF, U+10300-1032F,  U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --hebrew-sans-serif-font-family: "Qomolangma-Uchensarchen", "Heebo", "Roboto", sans-serif;
+  --hebrew-sans-serif-font-family: "Qomolangma-Uchen Sarchen", "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  --hebrew-serif-font-family: "Qomolangma-Uchensarchen", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Qomolangma-Uchen Sarchen", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -1454,7 +1454,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.hebrew .he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -5012,7 +5012,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .bilingual .segment > .he,
 .bilingual .segment > p > .he {
-  text-align: right;
+  text-align: left;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
@@ -9023,7 +9023,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
-  text-align: right;
+  text-align: left;
 }
 .aboutBox .versionDetails .separator,
 .versionsBox .versionDetails .separator {
