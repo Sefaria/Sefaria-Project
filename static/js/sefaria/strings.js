@@ -164,8 +164,8 @@ const Strings = {
     "Source Sheet by" : "דף מקורות מאת",
     "Created with": 'נוצר עבורך ע"י',
     " hasn't shared any sheets yet.": " טרם שיתפ/ה דפי מקורות כלשהם",
-    "Loading..." : "טוען...",
-    "Saving..." : "שומר...",
+    "Loading..." : "ཏོག་ཙམ་སྒུགས་རོག...",
+    "Saving..." : "ཉར་བཞིན་པ་...",
     "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
     "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
     "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
@@ -249,7 +249,7 @@ const Strings = {
     "Sources": "מקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
-    "Revision History" : "היסטורית עריכה",
+    "Revision History" : "བསྐྱར་ཞིབ་ཟིན་ཐོ།",
     "Buy in Print" : "לרכישה בדפוס",
     "Buy Now" : "רכישה",
     "Read More": "קרא עוד",
@@ -569,8 +569,8 @@ const Strings = {
     },
     "DownloadVersions":{
       "Select Format": "Format འདེམས།",
-      "Text (with Tags)": "Tagsཡོད་པའི་ཚིག",
-      "Text (without Tags)": "Tagsམེད་པའི་ཚིག",
+      "Text (with Tags)": "Tags ཡོད་པའི་ཚིག",
+      "Text (without Tags)": "Tags མེད་པའི་ཚིག",
       "Select Version": "གསར་ཐོན་རིམ་པ་འདེམས།",
       "Merged Version": "མཉམ་བསྡུ་བྱས་པའི་གསར་ཐོན་རིམ་པ།"
     },
