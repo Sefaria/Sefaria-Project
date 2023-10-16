@@ -171,6 +171,9 @@ class VersionBlock extends Component {
     }
   }
   makeVersionNotes(){
+    if (!this.props.showNotes) {
+      return null;
+    }
     if(Sefaria.interfaceLang=="english" && !!this.props.version.versionNotes){
       return this.props.version.versionNotes;
     }else if(Sefaria.interfaceLang=="hebrew" && !!this.props.version.versionNotesInHebrew){
@@ -459,6 +462,7 @@ class VersionsBlocksList extends Component{
                       viewExtendedNotes={this.props.viewExtendedNotes}
                       isCurrent={this.isVersionCurrent(v)}
                       inTranslationBox={this.props.inTranslationBox}
+                      showNotes={this.props.showNotes}
                     />
                   ))
                 }
@@ -480,6 +484,7 @@ VersionsBlocksList.propTypes={
   viewExtendedNotes: PropTypes.func,
   showLanguageHeaders: PropTypes.bool,
   inTranslationBox: PropTypes.bool,
+  showNotes: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,
