@@ -9,6 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
+import Cookies from "js-cookie";
 import {useContext} from "react";
 import {ContentLanguageContext} from "../context";
 
@@ -579,18 +580,15 @@ Sefaria = extend(Sefaria, {
       Sefaria._portals[portalSlug] = response;
       return response;
   },
-  subscribeSefariaNewsletter: function(firstName, lastName, email, educatorCheck) {
-    const request = new Request(
-        '/api/subscribe/' + email,
-        {
-            headers: {'X-CSRFToken': Cookies.get('csrftoken')},
-            'Content-Type': 'application/json'
-        }
-    );
-    return fetch(request,
+  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
+    const response = await fetch(`/api/subscribe/${email}`,
         {
             method: "POST",
             mode: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': Cookies.get('csrftoken'),
+            },
             credentials: 'same-origin',
             body: JSON.stringify({
                 language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
@@ -600,6 +598,25 @@ Sefaria = extend(Sefaria, {
             })
         }
     );
+    if (!response.ok) { throw "error"; }
+    const json = await response.json();
+    if (json.error) { throw json; }
+    return json;
+  },
+  subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
+      const response = fetch('https://steinsaltz-center.org/api/mailer',
+          {
+              method: "POST",
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({
+                  first_name: firstName,
+                  last_name: lastName,
+                  email: email,
+              })
+          }
+      );
+      if (!response.ok) { throw "error"; }
+      return await response.json();
   },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**

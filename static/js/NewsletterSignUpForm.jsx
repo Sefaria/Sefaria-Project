@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import Sefaria from './sefaria/sefaria';
-import Cookies from "js-cookie";
 
 export function NewsletterSignUpForm({
                                          contextName,
@@ -26,15 +25,10 @@ export function NewsletterSignUpForm({
             if (firstName.length > 0 && lastName.length > 0) {
                 setSubscribeMessage("Subscribing...");
                 Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck).then(res => {
-                    if ("error" in res) {
-                        setSubscribeMessage(res.error);
-                        setShowNameInputs(false);
-                    } else {
-                        setSubscribeMessage("Subscribed! Welcome to our list.");
-                        Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
-                    }
-                }).catch(data => {
-                    setSubscribeMessage("Sorry, there was an error.");
+                    setSubscribeMessage("Subscribed! Welcome to our list.");
+                    Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+                }).catch(error => {
+                    setSubscribeMessage(error?.error || "Sorry, there was an error.");
                     setShowNameInputs(false);
                 });
             } else {
