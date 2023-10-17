@@ -687,11 +687,11 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
-        for dateKey in ['compDate', 'pubDate']:
-            if hasattr(self, dateKey):
-                val = getattr(self, dateKey)
+        for date_key in ['compDate', 'pubDate']:
+            if hasattr(self, date_key):
+                val = getattr(self, date_key)
                 if not isinstance(val, list) or not all([isinstance(x, int) for x in val]):
-                    raise InputError(f"Optional attribute '{dateKey}' must be list of integers.")
+                    raise InputError(f"Optional attribute '{date_key}' must be list of integers.")
 
         '''
         for cat in self.categories:
