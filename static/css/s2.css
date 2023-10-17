@@ -104,10 +104,10 @@ a, a:hover {
 :root {
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --hebrew-sans-serif-font-family: "Qomolangma-Uchen Sarchen", "Heebo", "Roboto", sans-serif;
+  --hebrew-sans-serif-font-family: "Qomolangma-Uchen Sarchen Regular", "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  --hebrew-serif-font-family: "Qomolangma-Uchen Sarchen", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Qomolangma-Uchen Sarchen Regular", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
