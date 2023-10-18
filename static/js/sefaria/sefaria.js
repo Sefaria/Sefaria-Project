@@ -1228,9 +1228,9 @@ Sefaria = extend(Sefaria, {
                             (index.categories[0] == "Commentary" || index.primary_category == "Commentary");
 
     return links.filter(function(link){
+      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText["en"], filter) !== -1; } // check first because isCommentary can also be True
       if (isCommentary && link.category !== "Commentary") { return false; }
       if (isQuoting && link.category !== "Quoting Commentary") { return false; }
-      if (isEssay) { return link.type === "essay" && Sefaria.util.inArray(link.displayedText["en"], filter) !== -1; }
 
       return (Sefaria.util.inArray(link.category, filter) !== -1 ||
               Sefaria.util.inArray(link["collectiveTitle"]["en"], filter) !== -1 );
