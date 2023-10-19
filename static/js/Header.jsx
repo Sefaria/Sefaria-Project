@@ -605,7 +605,7 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
               <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
