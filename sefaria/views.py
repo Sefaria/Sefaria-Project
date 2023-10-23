@@ -169,7 +169,33 @@ def accounts(request):
     })
 
 
-def subscribe(request, email):
+def generic_subscribe_to_newsletter_api(request, email, subscribe):
+    """
+    Generic view for subscribing a user to a newsletter
+    """
+    body = json.loads(request.body)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
+    try:
+        if subscribe(request, email, first_name, last_name):
+            return jsonResponse({"status": "ok"})
+        else:
+            logger.error(f"Failed to subscribe to list")
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
+        return jsonResponse({"error": _("Sorry, there was an error.")})
+
+
+def subscribe_sefaria_newsletter_view(request, email):
+    return generic_subscribe_to_newsletter_api(request, email, subscribe_sefaria_newsletter)
+
+
+def subscribe_steinsaltz_newsletter_view(request, email):
+    return generic_subscribe_to_newsletter_api(request, email, subscribe_steinsaltz)
+
+
+def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     """
     API for subscribing to mailing lists, in `lists` url param.
     Currently active lists are:
@@ -178,18 +204,26 @@ def subscribe(request, email):
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
-    first_name = body.get("firstName", None)
-    last_name = body.get("lastName", None)
-    try:
-        crm_mediator = CrmMediator()
-        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
-            return jsonResponse({"status": "ok"})
-        else:
-            logger.error("Failed to subscribe to list")
-            return jsonResponse({"error": _("Sorry, there was an error.")})
-    except ValueError as e:
-        logger.error(f"Failed to subscribe to list: {e}")
-        return jsonResponse({"error": _("Sorry, there was an error.")})
+    crm_mediator = CrmMediator()
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+
+
+def subscribe_steinsaltz(request, email, first_name, last_name):
+    """
+    API for subscribing to Steinsaltz newsletter
+    """
+    import requests
+
+    data = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post('https://steinsaltz-center.org/api/mailer',
+                             data=json.dumps(data), headers=headers)
+    return response.ok
+
 
 @login_required
 def unlink_gauth(request):

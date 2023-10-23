@@ -24,7 +24,7 @@ export function NewsletterSignUpForm({
         if (showNameInputs === true) { // submit
             if (firstName.length > 0 && lastName.length > 0) {
                 setSubscribeMessage("Subscribing...");
-                Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck).then(res => {
+                Sefaria.subscribeSefariaAndSteinsaltzNewsletter(firstName, lastName, email, educatorCheck).then(res => {
                     setSubscribeMessage("Subscribed! Welcome to our list.");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {

@@ -604,19 +604,29 @@ Sefaria = extend(Sefaria, {
     return json;
   },
   subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
-      const response = fetch('https://steinsaltz-center.org/api/mailer',
+      const response = await fetch(`/api/subscribe/steinsaltz/${email}`,
           {
               method: "POST",
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({
-                  first_name: firstName,
-                  last_name: lastName,
-                  email: email,
-              })
+              mode: 'same-origin',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify({firstName, lastName}),
           }
       );
       if (!response.ok) { throw "error"; }
-      return await response.json();
+      const json = await response.json();
+      if (json.error) { throw json; }
+      return json;
+  },
+  subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
+      const responses = await Promise.all([
+          Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),
+          Sefaria.subscribeSteinsaltzNewsletter(firstName, lastName, email),
+      ]);
+      return {status: "ok"};
   },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**
