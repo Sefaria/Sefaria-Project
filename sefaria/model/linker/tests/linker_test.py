@@ -385,16 +385,17 @@ def test_map_new_indices(crrd_params):
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
     ref_resolver = library.get_ref_resolver(lang)
-    doc = ref_resolver.get_raw_ref_model().make_doc(text)
+    nlp = ref_resolver.get_ner().raw_ref_model
+    doc = nlp.make_doc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
 
     # norm data
-    n = ref_resolver._normalizer
-    norm_text = n.normalize(text, lang=lang)
-    norm_doc = ref_resolver.get_raw_ref_model().make_doc(norm_text)
-    mapping = n.get_mapping_after_normalization(text, reverse=True, lang=lang)
+    n = ref_resolver.get_ner()._normalizer
+    norm_text = n.normalize(text)
+    norm_doc = nlp.make_doc(norm_text)
+    mapping = n.get_mapping_after_normalization(text, reverse=True)
     norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
     norm_part_token_inds = []

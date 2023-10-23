@@ -5609,6 +5609,7 @@ class Library(object):
     def build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
+        from .linker.named_entity_resolver import NamedEntityRecognizer
         from sefaria.model.schema import NonUniqueTermSet
         from sefaria.helper.linker import load_spacy_model
 
@@ -5617,10 +5618,14 @@ class Library(object):
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
+        ner = NamedEntityRecognizer(
+            lang,
+            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+        )
+
         self._ref_resolver[lang] = RefResolver(
-           lang,
-           load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-           load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang]),
+           lang, ner,
            MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
            TermMatcher(lang, non_unique_terms),
         )

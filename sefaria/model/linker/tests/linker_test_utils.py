@@ -56,7 +56,7 @@ class EncodedPart:
 
     @staticmethod
     def convert_to_raw_encoded_part_list(lang, text, span_inds, part_types):
-        nlp = library.get_ref_resolver(lang).get_raw_ref_part_model()
+        nlp = library.get_ref_resolver(lang).get_ner().raw_ref_part_model
         doc = nlp.make_doc(text)
         span = doc[0:]
         raw_encoded_part_list = []
@@ -102,7 +102,7 @@ class EncodedPartList:
     @property
     def span(self):
         if not self._span:
-            nlp = library.get_ref_resolver(self.lang).get_raw_ref_part_model()
+            nlp = library.get_ref_resolver(self.lang).get_ner().raw_ref_part_model
             doc = nlp.make_doc(self.input_str)
             self._span = doc[0:]
         return self._span

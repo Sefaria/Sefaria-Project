@@ -1,12 +1,12 @@
 from collections import defaultdict
-from typing import List, Union, Dict, Optional, Tuple, Generator, Iterable, Set
+from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
 from enum import IntEnum, Enum
-from functools import reduce
 from tqdm import tqdm
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
+from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
 from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -241,50 +241,18 @@ class IbidHistory:
 
 class RefResolver:
 
-    def __init__(self, lang: str, raw_ref_model:  Language, raw_ref_part_model: Language,
+    def __init__(self, lang: str, named_entity_recognizer: NamedEntityRecognizer,
                  ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
-        from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
 
         self._lang = lang
-        self._raw_ref_model = raw_ref_model
-        self._raw_ref_part_model = raw_ref_part_model
+        self._named_entity_recognizer = named_entity_recognizer
         self._ref_part_title_trie = ref_part_title_trie
         self._term_matcher = term_matcher
         self._ibid_history = IbidHistory()
         self._thoroughness = ResolutionThoroughness.NORMAL
 
-        # see ML Repo library_exporter.py:TextWalker.__init__() which uses same normalization
-        # important that normalization is equivalent to normalization done at training time
-        base_normalizer_steps = ['unidecode', 'html', 'double-space']
-        self._normalizer = NormalizerByLang({
-            'en': NormalizerComposer(base_normalizer_steps),
-            'he': NormalizerComposer(base_normalizer_steps + ['maqaf', 'cantillation']),
-        })
-
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
-
-    def _normalize_input(self, input: List[str]):
-        """
-        Normalize input text to match normalization that happened at training time
-        """
-        return [self._normalizer.normalize(s, lang=self._lang) for s in input]
-
-    def _map_normal_output_to_original_input(self, input: List[str], resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]) -> None:
-        """
-        Ref resolution ran on normalized input. Remap resolved refs to original (non-normalized) input
-        """
-        for temp_input, temp_resolved in zip(input, resolved):
-            unnorm_doc = self.get_raw_ref_model().make_doc(temp_input)
-            mapping = self._normalizer.get_mapping_after_normalization(temp_input, lang=self._lang)
-            conv = self._normalizer.convert_normalized_indices_to_unnormalized_indices  # this function name is waaay too long
-            norm_inds = [rr.raw_ref.char_indices for rr in temp_resolved]
-            unnorm_inds = conv(norm_inds, mapping)
-            unnorm_part_inds = []
-            for (rr, (norm_raw_ref_start, _)) in zip(temp_resolved, norm_inds):
-                unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices] for part in rr.raw_ref.raw_ref_parts], mapping)]
-            for resolved_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(temp_resolved, unnorm_inds, unnorm_part_inds):
-                resolved_ref.raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
 
     def bulk_resolve_refs(self, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
         """
@@ -299,8 +267,7 @@ class RefResolver:
         """
         self._thoroughness = thoroughness
         self.reset_ibid_history()
-        normalized_input = self._normalize_input(input)
-        all_raw_refs = self._bulk_get_raw_refs(normalized_input)
+        all_raw_refs = self._named_entity_recognizer.bulk_get_raw_refs(input)
         resolved = []
         iter = zip(book_context_refs, all_raw_refs)
         if verbose:
@@ -323,85 +290,18 @@ class RefResolver:
                     self._ibid_history.last_refs = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
-        self._map_normal_output_to_original_input(input, resolved)
+        raw_ref_list_list = [[rr.raw_ref for rr in inner_resolved] for inner_resolved in resolved]
+        self._named_entity_recognizer.bulk_map_normal_output_to_original_input(input, raw_ref_list_list)
         return resolved
 
-    def _bulk_get_raw_refs(self, input: List[str]) -> List[List[RawRef]]:
-        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(input))
-        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
-        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
-        all_raw_ref_part_span_map = defaultdict(list)
-        for ref_part_span, input_idx in all_raw_ref_part_spans:
-            all_raw_ref_part_span_map[input_idx] += [ref_part_span]
-
-        all_raw_refs = []
-        for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
-            raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
-            raw_refs = []
-            for ispan, (span, part_span_list) in enumerate(zip(raw_ref_spans, raw_ref_part_spans)):
-                raw_ref_parts = []
-                for ipart, part_span in enumerate(part_span_list):
-                    part_type = RefPartType.span_label_to_enum(part_span.label_)
-                    dh_continuation = None
-                    if part_type == RefPartType.DH:
-                        dh_continuation = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
-                    raw_ref_parts += [RawRefPart(part_type, part_span, dh_continuation)]
-                raw_refs += [RawRef(self._lang, raw_ref_parts, span)]
-            all_raw_refs += [raw_refs]
-        return all_raw_refs
-    
-    @staticmethod
-    def _get_dh_continuation(ispan: int, ipart: int, raw_ref_spans: List[SpanOrToken], part_span_list: List[SpanOrToken], span: SpanOrToken, part_span: SpanOrToken) -> Optional[SpanOrToken]:
-        if ipart == len(part_span_list) - 1:
-            curr_doc = span.doc
-            _, span_end = span_inds(span)
-            if ispan == len(raw_ref_spans) - 1:
-                dh_cont = curr_doc[span_end:]
-            else:
-                next_span_start, _ = span_inds(raw_ref_spans[ispan + 1])
-                dh_cont = curr_doc[span_end:next_span_start]
-        else:
-            _, part_span_end = span_inds(part_span)
-            next_part_span_start, _ = span_inds(part_span_list[ipart + 1])
-            dh_cont = part_span.doc[part_span_end:next_part_span_start]
-
-        return dh_cont
-
-    def get_raw_ref_model(self) -> Language:
-        return self._raw_ref_model
-
-    def get_raw_ref_part_model(self) -> Language:
-        return self._raw_ref_part_model
+    def get_ner(self) -> NamedEntityRecognizer:
+        return self._named_entity_recognizer
 
     def get_ref_part_title_trie(self) -> MatchTemplateTrie:
         return self._ref_part_title_trie
 
     def get_term_matcher(self) -> TermMatcher:
         return self._term_matcher
-
-    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
-        doc = self.get_raw_ref_model()(st)
-        return doc.ents
-
-    def _bulk_get_raw_ref_spans(self, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model().pipe(input, batch_size=batch_size, **kwargs):
-            if kwargs.get('as_tuples', False):
-                doc, context = doc
-                yield doc.ents, context
-            else:
-                yield doc.ents
-
-    def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
-        doc = self.get_raw_ref_part_model()(st)
-        return doc.ents
-
-    def _bulk_get_raw_ref_part_spans(self, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model().pipe(input, batch_size=batch_size or len(input), **kwargs):
-            if kwargs.get('as_tuples', False):
-                doc, context = doc
-                yield doc.ents, context
-            else:
-                yield doc.ents
 
     def split_non_cts_parts(self, raw_ref: RawRef) -> List[RawRef]:
         if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
