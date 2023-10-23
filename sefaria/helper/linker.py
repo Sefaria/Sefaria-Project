@@ -119,10 +119,10 @@ def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _F
 
 
 def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
-    resolver = library.get_ref_resolver()
-    resolved_title = resolver.bulk_resolve_refs(request_text.lang, [None], [request_text.title])
+    resolver = library.get_ref_resolver(request_text.lang)
+    resolved_title = resolver.bulk_resolve_refs([None], [request_text.title])
     context_ref = resolved_title[0][0].ref if (len(resolved_title[0]) == 1 and not resolved_title[0][0].is_ambiguous) else None
-    resolved_body = resolver.bulk_resolve_refs(request_text.lang, [context_ref], [request_text.body], with_failures=True)
+    resolved_body = resolver.bulk_resolve_refs([context_ref], [request_text.body], with_failures=True)
 
     response = {
         "title": _make_find_refs_response_inner(resolved_title, options),

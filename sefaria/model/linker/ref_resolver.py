@@ -241,15 +241,15 @@ class IbidHistory:
 
 class RefResolver:
 
-    def __init__(self, raw_ref_model_by_lang: Dict[str, Language], raw_ref_part_model_by_lang: Dict[str, Language],
-                 ref_part_title_trie_by_lang: Dict[str, MatchTemplateTrie],
-                 term_matcher_by_lang: Dict[str, TermMatcher]) -> None:
+    def __init__(self, lang: str, raw_ref_model:  Language, raw_ref_part_model: Language,
+                 ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
         from sefaria.helper.normalization import NormalizerByLang, NormalizerComposer
 
-        self._raw_ref_model_by_lang = raw_ref_model_by_lang
-        self._raw_ref_part_model_by_lang = raw_ref_part_model_by_lang
-        self._ref_part_title_trie_by_lang = ref_part_title_trie_by_lang
-        self._term_matcher_by_lang = term_matcher_by_lang
+        self._lang = lang
+        self._raw_ref_model = raw_ref_model
+        self._raw_ref_part_model = raw_ref_part_model
+        self._ref_part_title_trie = ref_part_title_trie
+        self._term_matcher = term_matcher
         self._ibid_history = IbidHistory()
         self._thoroughness = ResolutionThoroughness.NORMAL
 
@@ -264,19 +264,19 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def _normalize_input(self, lang: str, input: List[str]):
+    def _normalize_input(self, input: List[str]):
         """
         Normalize input text to match normalization that happened at training time
         """
-        return [self._normalizer.normalize(s, lang=lang) for s in input]
+        return [self._normalizer.normalize(s, lang=self._lang) for s in input]
 
-    def _map_normal_output_to_original_input(self, lang: str, input: List[str], resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]) -> None:
+    def _map_normal_output_to_original_input(self, input: List[str], resolved: List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]) -> None:
         """
         Ref resolution ran on normalized input. Remap resolved refs to original (non-normalized) input
         """
         for temp_input, temp_resolved in zip(input, resolved):
-            unnorm_doc = self.get_raw_ref_model(lang).make_doc(temp_input)
-            mapping = self._normalizer.get_mapping_after_normalization(temp_input, lang=lang)
+            unnorm_doc = self.get_raw_ref_model().make_doc(temp_input)
+            mapping = self._normalizer.get_mapping_after_normalization(temp_input, lang=self._lang)
             conv = self._normalizer.convert_normalized_indices_to_unnormalized_indices  # this function name is waaay too long
             norm_inds = [rr.raw_ref.char_indices for rr in temp_resolved]
             unnorm_inds = conv(norm_inds, mapping)
@@ -286,10 +286,9 @@ class RefResolver:
             for resolved_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(temp_resolved, unnorm_inds, unnorm_part_inds):
                 resolved_ref.raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
 
-    def bulk_resolve_refs(self, lang: str, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+    def bulk_resolve_refs(self, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
         """
         Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
-        @param lang:
         @param book_context_refs:
         @param input:
         @param with_failures:
@@ -300,8 +299,8 @@ class RefResolver:
         """
         self._thoroughness = thoroughness
         self.reset_ibid_history()
-        normalized_input = self._normalize_input(lang, input)
-        all_raw_refs = self._bulk_get_raw_refs(lang, normalized_input)
+        normalized_input = self._normalize_input(input)
+        all_raw_refs = self._bulk_get_raw_refs(normalized_input)
         resolved = []
         iter = zip(book_context_refs, all_raw_refs)
         if verbose:
@@ -311,7 +310,7 @@ class RefResolver:
                 self.reset_ibid_history()
             inner_resolved = []
             for raw_ref in raw_refs:
-                temp_resolved = self.resolve_raw_ref(lang, book_context_ref, raw_ref)
+                temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
                 if len(temp_resolved) == 0:
                     self.reset_ibid_history()
                     if with_failures:
@@ -324,13 +323,13 @@ class RefResolver:
                     self._ibid_history.last_refs = temp_resolved[-1].ref
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
-        self._map_normal_output_to_original_input(lang, input, resolved)
+        self._map_normal_output_to_original_input(input, resolved)
         return resolved
 
-    def _bulk_get_raw_refs(self, lang: str, input: List[str]) -> List[List[RawRef]]:
-        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(lang, input))
+    def _bulk_get_raw_refs(self, input: List[str]) -> List[List[RawRef]]:
+        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(input))
         ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
-        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(lang, ref_part_input, as_tuples=True))
+        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
         all_raw_ref_part_span_map = defaultdict(list)
         for ref_part_span, input_idx in all_raw_ref_part_spans:
             all_raw_ref_part_span_map[input_idx] += [ref_part_span]
@@ -347,7 +346,7 @@ class RefResolver:
                     if part_type == RefPartType.DH:
                         dh_continuation = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
                     raw_ref_parts += [RawRefPart(part_type, part_span, dh_continuation)]
-                raw_refs += [RawRef(lang, raw_ref_parts, span)]
+                raw_refs += [RawRef(self._lang, raw_ref_parts, span)]
             all_raw_refs += [raw_refs]
         return all_raw_refs
     
@@ -368,50 +367,43 @@ class RefResolver:
 
         return dh_cont
 
-    def __get_attr_by_lang(self, lang: str, by_lang_attr: dict, error_msg: str):
-        try:
-            return by_lang_attr[lang]
-        except KeyError as e:
-            raise KeyError(f"{error_msg} for lang `{lang}`")
+    def get_raw_ref_model(self) -> Language:
+        return self._raw_ref_model
 
-    def get_raw_ref_model(self, lang: str) -> Language:
-        return self.__get_attr_by_lang(lang, self._raw_ref_model_by_lang, 'No Raw Ref Model')
+    def get_raw_ref_part_model(self) -> Language:
+        return self._raw_ref_part_model
 
-    def get_raw_ref_part_model(self, lang: str) -> Language:
-        return self.__get_attr_by_lang(lang, self._raw_ref_part_model_by_lang, 'No Raw Ref Model')
+    def get_ref_part_title_trie(self) -> MatchTemplateTrie:
+        return self._ref_part_title_trie
 
-    def get_ref_part_title_trie(self, lang: str) -> MatchTemplateTrie:
-        return self.__get_attr_by_lang(lang, self._ref_part_title_trie_by_lang, 'No Raw Ref Part Title Trie')
+    def get_term_matcher(self) -> TermMatcher:
+        return self._term_matcher
 
-    def get_term_matcher(self, lang: str) -> TermMatcher:
-        return self.__get_attr_by_lang(lang, self._term_matcher_by_lang, 'No Term Matcher')
-
-    def _get_raw_ref_spans_in_string(self, lang: str, st: str) -> List[Span]:
-        doc = self.get_raw_ref_model(lang)(st)
+    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
+        doc = self.get_raw_ref_model()(st)
         return doc.ents
 
-    def _bulk_get_raw_ref_spans(self, lang: str, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_model(lang).pipe(input, batch_size=batch_size, **kwargs):
+    def _bulk_get_raw_ref_spans(self, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
+        for doc in self.get_raw_ref_model().pipe(input, batch_size=batch_size, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
             else:
                 yield doc.ents
 
-    def _get_raw_ref_part_spans_in_string(self, lang: str, st: str) -> List[Span]:
-        doc = self.get_raw_ref_part_model(lang)(st)
+    def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
+        doc = self.get_raw_ref_part_model()(st)
         return doc.ents
 
-    def _bulk_get_raw_ref_part_spans(self, lang: str, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self.get_raw_ref_part_model(lang).pipe(input, batch_size=batch_size or len(input), **kwargs):
+    def _bulk_get_raw_ref_part_spans(self, input: List[str], batch_size=None, **kwargs) -> Generator[List[Span], None, None]:
+        for doc in self.get_raw_ref_part_model().pipe(input, batch_size=batch_size or len(input), **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
             else:
                 yield doc.ents
 
-    @staticmethod
-    def split_non_cts_parts(lang, raw_ref: RawRef) -> List[RawRef]:
+    def split_non_cts_parts(self, raw_ref: RawRef) -> List[RawRef]:
         if not any(part.type == RefPartType.NON_CTS for part in raw_ref.raw_ref_parts): return [raw_ref]
         split_raw_refs = []
         curr_parts = []
@@ -426,7 +418,7 @@ class RefResolver:
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
                     curr_parts = [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
-                    split_raw_refs += [RawRef(lang, curr_parts, raw_ref_span)]
+                    split_raw_refs += [RawRef(self._lang, curr_parts, raw_ref_span)]
                 except AssertionError:
                     pass
                 curr_parts = []
@@ -436,8 +428,8 @@ class RefResolver:
     def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
         self._thoroughness = thoroughness
 
-    def resolve_raw_ref(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
-        split_raw_refs = self.split_non_cts_parts(lang, raw_ref)
+    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
+        split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
             is_non_cts = i > 0 and len(resolved_list) > 0
@@ -446,8 +438,8 @@ class RefResolver:
                 book_context_ref = resolved_list[0].ref
             context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
                                                                         'ref_resolver_context_swaps', None)
-            self._apply_context_swaps(lang, raw_ref, context_swap_map)
-            unrefined_matches = self.get_unrefined_ref_part_matches(lang, book_context_ref, temp_raw_ref)
+            self._apply_context_swaps(raw_ref, context_swap_map)
+            unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, temp_raw_ref)
             if is_non_cts:
                 # filter unrefined matches to matches that resolved previously
                 resolved_titles = {r.ref.index.title for r in resolved_list}
@@ -458,7 +450,7 @@ class RefResolver:
                         match.ref = match.ref.subref(book_context_ref.sections[:-len(temp_raw_ref.raw_ref_parts)])
                     except (InputError, AttributeError):
                         continue
-            temp_resolved_list = self.refine_ref_part_matches(lang, book_context_ref, unrefined_matches)
+            temp_resolved_list = self.refine_ref_part_matches(book_context_ref, unrefined_matches)
             if len(temp_resolved_list) > 1:
                 resolved_list += [AmbiguousResolvedRef(temp_resolved_list)]
             else:
@@ -477,25 +469,25 @@ class RefResolver:
         except:
             return []
 
-    def get_unrefined_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
+    def get_unrefined_ref_part_matches(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[
             'ResolvedRef']:
-        context_free_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=raw_ref.parts_to_match)
+        context_free_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=raw_ref.parts_to_match)
         contexts = [(book_context_ref, ContextType.CURRENT_BOOK)] + [(ibid_ref, ContextType.IBID) for ibid_ref in self._ibid_history.last_refs]
         matches = context_free_matches
         if len(matches) == 0:
             context_full_matches = []
             for context_ref, context_type in contexts:
-                context_full_matches += self._get_unrefined_ref_part_matches_for_title_context(lang, context_ref, raw_ref, context_type)
+                context_full_matches += self._get_unrefined_ref_part_matches_for_title_context(context_ref, raw_ref, context_type)
             matches = context_full_matches + context_free_matches
         return matches
 
-    def _get_unrefined_ref_part_matches_for_title_context(self, lang: str, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
+    def _get_unrefined_ref_part_matches_for_title_context(self, context_ref: Optional[text.Ref], raw_ref: RawRef, context_type: ContextType) -> List[ResolvedRef]:
         matches = []
         if context_ref is None: return matches
         term_contexts = self._get_term_contexts(context_ref.index.nodes)
         if len(term_contexts) == 0: return matches
         temp_ref_parts = raw_ref.parts_to_match + term_contexts
-        temp_matches = self._get_unrefined_ref_part_matches_recursive(lang, raw_ref, ref_parts=temp_ref_parts)
+        temp_matches = self._get_unrefined_ref_part_matches_recursive(raw_ref, ref_parts=temp_ref_parts)
         for match in temp_matches:
             if match.num_resolved(include={TermContext}) == 0: continue
             match.context_ref = context_ref
@@ -504,7 +496,7 @@ class RefResolver:
             matches += [match]
         return matches
 
-    def _apply_context_swaps(self, lang: str, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
+    def _apply_context_swaps(self, raw_ref: RawRef, context_swap_map: Dict[str, str]=None):
         """
         Use `context_swap_map` to swap matching element of `ref_parts`
         Allows us to redefine how a ref part is interpreted depending on the context
@@ -513,7 +505,7 @@ class RefResolver:
         Modifies `raw_ref` with updated ref_parts
         """
         swapped_ref_parts = []
-        term_matcher = self.get_term_matcher(lang)
+        term_matcher = self.get_term_matcher()
         if context_swap_map is None: return
         for part in raw_ref.raw_ref_parts:
             # TODO assumes only one match in term_matches
@@ -527,8 +519,8 @@ class RefResolver:
             if not found_match: swapped_ref_parts += [part]
         raw_ref.parts_to_match = swapped_ref_parts
 
-    def _get_unrefined_ref_part_matches_recursive(self, lang: str, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
-        title_trie = title_trie or self.get_ref_part_title_trie(lang)
+    def _get_unrefined_ref_part_matches_recursive(self, raw_ref: RawRef, title_trie: MatchTemplateTrie = None, ref_parts: list = None, prev_ref_parts: list = None) -> List[ResolvedRef]:
+        title_trie = title_trie or self.get_ref_part_title_trie()
         prev_ref_parts = prev_ref_parts or []
         matches = []
         for part in ref_parts:
@@ -555,16 +547,16 @@ class RefResolver:
                         continue
                     matches += [ResolvedRef(temp_raw_ref, temp_prev_ref_parts, node, ref, _thoroughness=self._thoroughness)]
             temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
-            matches += self._get_unrefined_ref_part_matches_recursive(lang, temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
+            matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
         return ResolvedRefPruner.prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, lang: str, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef]) -> List[ResolvedRef]:
+    def refine_ref_part_matches(self, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef]) -> List[ResolvedRef]:
         temp_matches = []
         refs_matched = {match.ref.normal() for match in matches}
         for unrefined_match in matches:
             unused_parts = list(set(unrefined_match.raw_ref.parts_to_match) - set(unrefined_match.resolved_parts))
-            context_free_matches = self._get_refined_ref_part_matches_recursive(lang, unrefined_match, unused_parts)
+            context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
 
             # context
             # if unrefined_match already used context, make sure it continues to use it
@@ -573,7 +565,7 @@ class RefResolver:
             context_type_list = [ContextType.CURRENT_BOOK, ContextType.IBID] if unrefined_match.context_ref is None else [unrefined_match.context_type]
             context_full_matches = []
             for context_ref, context_type in zip(context_ref_list, context_type_list):
-                context_full_matches += self._get_refined_ref_part_matches_for_section_context(lang, context_ref, context_type, unrefined_match, unused_parts)
+                context_full_matches += self._get_refined_ref_part_matches_for_section_context(context_ref, context_type, unrefined_match, unused_parts)
 
             # combine
             if len(context_full_matches) > 0:
@@ -641,8 +633,7 @@ class RefResolver:
         longest_template = min(match_templates, key=lambda x: len(list(x.terms)))
         return [TermContext(term) for term in longest_template.terms]
 
-    @staticmethod
-    def _get_refined_ref_part_matches_for_section_context(lang: str, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
+    def _get_refined_ref_part_matches_for_section_context(self, context_ref: Optional[text.Ref], context_type: ContextType, ref_part_match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         """
         Tries to infer sections from context ref and uses them to refine `ref_part_match`
         """
@@ -655,7 +646,7 @@ class RefResolver:
             sec_contexts = RefResolver._get_section_contexts(context_ref, ref_part_match.ref.index, common_index)
             term_contexts = RefResolver._get_all_term_contexts(context_ref.index_node, include_root=False)
             context_to_consider = sec_contexts + term_contexts
-            temp_matches = RefResolver._get_refined_ref_part_matches_recursive(lang, ref_part_match, ref_parts + context_to_consider)
+            temp_matches = self._get_refined_ref_part_matches_recursive(ref_part_match, ref_parts + context_to_consider)
 
             # remove matches which don't use context
             temp_matches = list(filter(lambda x: len(set(x.get_resolved_parts(include={ContextPart})) & set(context_to_consider)) > 0, temp_matches))
@@ -667,17 +658,16 @@ class RefResolver:
             matches += temp_matches
         return matches
 
-    @staticmethod
-    def _get_refined_ref_part_matches_recursive(lang: str, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
+    def _get_refined_ref_part_matches_recursive(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         fully_refined = []
         children = match.get_node_children()
         for part in ref_parts:
             for child in children:
                 resolved_ref_refiner = resolved_ref_refiner_factory.create(part, child, match)
-                temp_matches = resolved_ref_refiner.refine(lang)
+                temp_matches = resolved_ref_refiner.refine(self._lang)
                 for temp_match in temp_matches:
                     temp_ref_parts = list(set(ref_parts) - set(temp_match.resolved_parts))
-                    fully_refined += RefResolver._get_refined_ref_part_matches_recursive(lang, temp_match, temp_ref_parts)
+                    fully_refined += self._get_refined_ref_part_matches_recursive(temp_match, temp_ref_parts)
         if len(fully_refined) == 0:
             # original match is better than no matches
             return [match]

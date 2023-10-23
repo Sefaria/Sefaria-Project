@@ -8,8 +8,6 @@ from sefaria.settings import ENABLE_LINKER
 if not ENABLE_LINKER:
     pytest.skip("Linker not enabled", allow_module_level=True)
 
-ref_resolver = library.get_ref_resolver()
-
 
 def test_referenceable_child():
     i = library.get_index("Rashi on Berakhot")
@@ -233,8 +231,9 @@ crrd = create_raw_ref_data
     [crrd(['@Rashi on Genesis', '#1', '#1', '#1'], lang='en'), ["Rashi on Genesis 1:1:1"]],
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
-    ref_resolver.reset_ibid_history()  # reset from previous test runs
     raw_ref, context_ref, lang, prev_trefs = resolver_data
+    ref_resolver = library.get_ref_resolver(lang)
+    ref_resolver.reset_ibid_history()  # reset from previous test runs
     if prev_trefs:
         for prev_tref in prev_trefs:
             if prev_tref is None:
@@ -243,7 +242,7 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
                 ref_resolver._ibid_history.last_refs = Ref(prev_tref)
     print_spans(raw_ref)
     ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
-    matches = ref_resolver.resolve_raw_ref(lang, context_ref, raw_ref)
+    matches = ref_resolver.resolve_raw_ref(context_ref, raw_ref)
     matched_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in matches], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(matched_orefs):
         print(f"Found {len(matched_orefs)} refs instead of {len(expected_trefs)}")
@@ -265,7 +264,8 @@ class TestResolveRawRef:
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
-    resolved = ref_resolver.bulk_resolve_refs(lang, [context_oref], [input_str])[0]
+    ref_resolver = library.get_ref_resolver(lang)
+    resolved = ref_resolver.bulk_resolve_refs([context_oref], [input_str])[0]
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
@@ -384,7 +384,8 @@ def test_map_new_indices(crrd_params):
     # unnorm data
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
-    doc = ref_resolver.get_raw_ref_model(lang).make_doc(text)
+    ref_resolver = library.get_ref_resolver(lang)
+    doc = ref_resolver.get_raw_ref_model().make_doc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
@@ -392,7 +393,7 @@ def test_map_new_indices(crrd_params):
     # norm data
     n = ref_resolver._normalizer
     norm_text = n.normalize(text, lang=lang)
-    norm_doc = ref_resolver.get_raw_ref_model(lang).make_doc(norm_text)
+    norm_doc = ref_resolver.get_raw_ref_model().make_doc(norm_text)
     mapping = n.get_mapping_after_normalization(text, reverse=True, lang=lang)
     norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]

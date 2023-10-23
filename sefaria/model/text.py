@@ -4865,7 +4865,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._ref_resolver = None
+        self._ref_resolver = {}
 
         # Topics
         self._topic_mapping = {}
@@ -5600,13 +5600,13 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_ref_resolver(self, rebuild=False):
-        resolver = self._ref_resolver
+    def get_ref_resolver(self, lang: str, rebuild=False):
+        resolver = self._ref_resolver.get(lang)
         if not resolver or rebuild:
-            resolver = self.build_ref_resolver()
+            resolver = self.build_ref_resolver(lang)
         return resolver
 
-    def build_ref_resolver(self):
+    def build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
@@ -5617,19 +5617,14 @@ class Library(object):
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        self._ref_resolver = RefResolver(
-            {k: load_spacy_model(v) for k, v in RAW_REF_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {k: load_spacy_model(v) for k, v in RAW_REF_PART_MODEL_BY_LANG_FILEPATH.items() if v is not None},
-            {
-                "en": MatchTemplateTrie('en', nodes=(root_nodes + alone_nodes), scope='alone'),
-                "he": MatchTemplateTrie('he', nodes=(root_nodes + alone_nodes), scope='alone')
-            },
-            {
-                "en": TermMatcher('en', non_unique_terms),
-                "he": TermMatcher('he', non_unique_terms),
-            }
+        self._ref_resolver[lang] = RefResolver(
+           lang,
+           load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+           load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang]),
+           MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
+           TermMatcher(lang, non_unique_terms),
         )
-        return self._ref_resolver
+        return self._ref_resolver[lang]
 
     def get_index_forest(self):
         """
