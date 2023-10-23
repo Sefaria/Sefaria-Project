@@ -166,7 +166,10 @@ class WebPage(abst.AbstractMongoRecord):
         bad_urls = []
         sites = get_website_cache()
         for site in sites:
-            if looking_for_domain is None or looking_for_domain in site["domains"]:
+            if not site['is_whitelisted'] or looking_for_domain is None or looking_for_domain in site["domains"]:
+                # is site is not whitelisted, consider its bad urls,
+                # if looking_for_domain is None, consider all bad URLs,
+                # otherwise check that 'looking_for_domain' is in the site['domains'] to shorten the regex
                 bad_urls += site.get("bad_urls", [])
                 for domain_in_site in site["domains"]:
                     if site["is_whitelisted"]:
