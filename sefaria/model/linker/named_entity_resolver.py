@@ -13,6 +13,13 @@ except ImportError:
 
 
 class NamedEntityRecognizer:
+    """
+    Given models, runs them and returns named entity results
+    Currently, named entities include:
+    - refs
+    - people
+    - groups of people
+    """
 
     def __init__(self, lang: str, raw_ref_model: Language, raw_ref_part_model: Language):
         self._lang = lang
@@ -29,6 +36,13 @@ class NamedEntityRecognizer:
         return NormalizerComposer(normalizer_steps)
 
     def bulk_get_raw_refs(self, input: List[str]) -> List[List[RawRef]]:
+        """
+        Runs models on input to locate all refs and ref parts
+        Note: takes advantage of bulk spaCy operations. It is more efficient to pass multiple strings in input than to
+        run this function multiple times
+        @param input: List of strings to search for refs in.
+        @return: 2D list of RawRefs. Each inner list corresponds to the refs found in a string of the input.
+        """
         normalized_input = self._normalize_input(input)
         all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(normalized_input))
         ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
