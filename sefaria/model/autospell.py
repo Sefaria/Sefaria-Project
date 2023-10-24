@@ -36,7 +36,7 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
 
 def normalizer(lang):
     if lang == "he":
-        return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in hebrew.normalize_final_letters_in_str(x)])
+        return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in hebrew.normalize_final_letters_in_str(x)]).replace('"', '״')
     return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in str.lower(x)])
 
 
@@ -218,6 +218,7 @@ class AutoCompleter(object):
         :return: completions list, completion objects list
         """
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
+        instring = self.normalizer(instring)
         if len(instring) >= self.max_completion_length:
             return [], []
         cm = Completions(self, self.lang, instring, limit,
