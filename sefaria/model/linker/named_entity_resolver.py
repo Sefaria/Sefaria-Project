@@ -3,6 +3,7 @@ from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, RawNamedEntity, NamedEntityType
 from sefaria.helper.normalization import NormalizerComposer
+from sefaria.model.topic import Topic, TopicSet
 
 try:
     import spacy
@@ -176,3 +177,48 @@ class NamedEntityRecognizer:
             dh_cont = part_span.doc[part_span_end:next_part_span_start]
 
         return dh_cont
+
+
+class ResolvedNamedEntity:
+
+    def __init__(self, raw_named_entity: RawNamedEntity, topic: Topic):
+        self.raw_named_entity = raw_named_entity
+        self.topic = topic
+
+
+class TopicMatcher:
+
+    def __init__(self, lang: str, topics=None):
+        topics = topics or TopicSet()
+        self._slug_topic_map = {t.slug: t for t in topics}
+        self._title_slug_map = {}
+        for topic in topics:
+            for title in topic.get_titles(lang=lang, with_disambiguation=False):
+                self._title_slug_map[title] = topic.slug
+
+    def match(self, text) -> Optional[Topic]:
+        slug = self._title_slug_map.get(text)
+        if slug:
+            return self._slug_topic_map[slug]
+
+
+class NamedEntityResolver:
+
+    def __init__(self, named_entity_recognizer: NamedEntityRecognizer, topic_matcher: TopicMatcher):
+        self._named_entity_recognizer = named_entity_recognizer
+        self._topic_matcher = topic_matcher
+
+    def bulk_resolve_named_entities(self, inputs: List[str]) -> List[List[ResolvedNamedEntity]]:
+        all_named_entities = self._named_entity_recognizer.bulk_get_raw_named_entities(inputs)
+        resolved = []
+        for named_entities in all_named_entities:
+            temp_resolved = []
+            for named_entity in named_entities:
+                matched_topic = self._topic_matcher.match(named_entity.text)
+                if matched_topic:
+                    temp_resolved += [ResolvedNamedEntity(named_entity, matched_topic)]
+            resolved += [temp_resolved]
+        return resolved
+
+
+
