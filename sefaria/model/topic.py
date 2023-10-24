@@ -412,8 +412,9 @@ class PersonTopic(Topic):
             if place and heKey not in properties:
                 value, dataSource = place['value'], place['dataSource']
                 place_obj = Place().load({"key": value})
-                name = place_obj.primary_name('he')
-                d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
+                if place_obj:   
+                    name = place_obj.primary_name('he')
+                    d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
         return d
 
     def contents(self, **kwargs):
