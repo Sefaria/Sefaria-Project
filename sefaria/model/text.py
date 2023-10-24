@@ -4865,7 +4865,8 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._ref_resolver = {}
+        self._ref_resolver_by_lang = {}
+        self._named_entity_resolver_by_lang = {}
 
         # Topics
         self._topic_mapping = {}
@@ -5600,8 +5601,35 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
+    def get_named_entity_resolver(self, lang: str, rebuild=False):
+        resolver = self._named_entity_resolver_by_lang.get(lang)
+        if not resolver or rebuild:
+            resolver = self.build_named_entity_resolver(lang)
+        return resolver
+
+    def build_named_entity_resolver(self, lang: str):
+        from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
+        from .topic import Topic
+
+        ontology_topics = Topic.init('entity').topics_by_link_type_recursively()
+        self._named_entity_resolver_by_lang[lang] = NamedEntityResolver(
+            self._build_named_entity_recognizer(lang), TopicMatcher(lang, topics=ontology_topics)
+        )
+        return self._named_entity_resolver_by_lang[lang]
+
+    @staticmethod
+    def _build_named_entity_recognizer(lang: str):
+        from .linker.named_entity_resolver import NamedEntityRecognizer
+        from sefaria.helper.linker import load_spacy_model
+
+        return NamedEntityRecognizer(
+            lang,
+            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
+            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
+        )
+
     def get_ref_resolver(self, lang: str, rebuild=False):
-        resolver = self._ref_resolver.get(lang)
+        resolver = self._ref_resolver_by_lang.get(lang)
         if not resolver or rebuild:
             resolver = self.build_ref_resolver(lang)
         return resolver
@@ -5609,27 +5637,21 @@ class Library(object):
     def build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
-        from .linker.named_entity_resolver import NamedEntityRecognizer
         from sefaria.model.schema import NonUniqueTermSet
-        from sefaria.helper.linker import load_spacy_model
 
         logger.info("Loading Spacy Model")
 
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ner = NamedEntityRecognizer(
-            lang,
-            load_spacy_model(RAW_REF_MODEL_BY_LANG_FILEPATH[lang]),
-            load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
-        )
+        ner = self._build_named_entity_recognizer(lang)
 
-        self._ref_resolver[lang] = RefResolver(
+        self._ref_resolver_by_lang[lang] = RefResolver(
            lang, ner,
            MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
            TermMatcher(lang, non_unique_terms),
         )
-        return self._ref_resolver[lang]
+        return self._ref_resolver_by_lang[lang]
 
     def get_index_forest(self):
         """
