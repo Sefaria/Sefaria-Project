@@ -318,7 +318,7 @@ class RefResolver:
                 try:
                     raw_ref_span = raw_ref.subspan(slice(curr_part_start, curr_part_end))
                     curr_parts = [p.realign_to_new_raw_ref(raw_ref.span, raw_ref_span) for p in curr_parts]
-                    split_raw_refs += [RawRef(self._lang, curr_parts, raw_ref_span)]
+                    split_raw_refs += [RawRef(raw_ref_span, self._lang, curr_parts)]
                 except AssertionError:
                     pass
                 curr_parts = []

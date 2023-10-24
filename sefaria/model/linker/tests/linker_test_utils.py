@@ -129,7 +129,7 @@ class EncodedPartList:
         return raw_ref_parts
 
     def get_raw_ref_params(self):
-        return self.lang, self.raw_ref_parts, self.span
+        return self.span, self.lang, self.raw_ref_parts
 
     def print_debug_info(self):
         print('Input:', self.input_str)

@@ -306,7 +306,7 @@ def test_get_all_possible_sections_from_string(input_addr_str, AddressClass, exp
 ])
 def test_group_ranged_parts(raw_ref_params, expected_section_slices):
     lang, raw_ref_parts, span = raw_ref_params
-    raw_ref = RawRef(lang, raw_ref_parts, span)
+    raw_ref = RawRef(span, lang, raw_ref_parts)
     exp_sec_slice, exp2sec_slice = expected_section_slices
     if exp_sec_slice is None:
         expected_raw_ref_parts = raw_ref_parts

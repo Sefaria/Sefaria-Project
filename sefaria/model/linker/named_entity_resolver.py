@@ -1,7 +1,7 @@
 from typing import List, Generator, Optional
 from functools import reduce
 from collections import defaultdict
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, RawNamedEntity, NamedEntityType
 from sefaria.helper.normalization import NormalizerComposer
 
 try:
@@ -35,6 +35,23 @@ class NamedEntityRecognizer:
             normalizer_steps += ['maqaf', 'cantillation']
         return NormalizerComposer(normalizer_steps)
 
+    def bulk_get_raw_named_entities(self, inputs: List[str]) -> List[List[RawNamedEntity]]:
+        normalized_inputs = self._normalize_input(inputs)
+        all_raw_ref_spans = list(self._bulk_get_raw_named_entity_spans(normalized_inputs))
+        all_raw_named_entities = []
+        for raw_ref_spans in all_raw_ref_spans:
+            temp_raw_named_entities = []
+            for span in raw_ref_spans:
+                type = NamedEntityType.span_label_to_enum(span.label_)
+                temp_raw_named_entities += [RawNamedEntity(span, type)]
+            all_raw_named_entities += [temp_raw_named_entities]
+        return all_raw_named_entities
+
+    def bulk_get_raw_named_entities_by_type(self, inputs: List[str], type_filter: NamedEntityType):
+        all_raw_named_entities = self.bulk_get_raw_named_entities(inputs)
+        return [[named_entity for named_entity in sublist if named_entity.type == type_filter]
+                for sublist in all_raw_named_entities]
+
     def bulk_get_raw_refs(self, inputs: List[str]) -> List[List[RawRef]]:
         """
         Runs models on inputs to locate all refs and ref parts
@@ -43,18 +60,17 @@ class NamedEntityRecognizer:
         @param inputs: List of strings to search for refs in.
         @return: 2D list of RawRefs. Each inner list corresponds to the refs found in a string of the input.
         """
-        normalized_inputs = self._normalize_input(inputs)
-        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(normalized_inputs))
-        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
+        all_ref_entities = self.bulk_get_raw_named_entities_by_type(inputs, NamedEntityType.CITATION)
+        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_ref_entities), [])
         all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
         all_raw_ref_part_span_map = defaultdict(list)
         for ref_part_span, input_idx in all_raw_ref_part_spans:
             all_raw_ref_part_span_map[input_idx] += [ref_part_span]
 
         all_raw_refs = []
-        for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
+        for input_idx, named_entities in enumerate(all_ref_entities):
             raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
-            all_raw_refs += [self._bulk_make_raw_refs(raw_ref_spans, raw_ref_part_spans)]
+            all_raw_refs += [self._bulk_make_raw_refs(named_entities, raw_ref_part_spans)]
         return all_raw_refs
 
     def bulk_map_normal_output_to_original_input(self, input: List[str], raw_ref_list_list: List[List[RawRef]]):
@@ -92,15 +108,15 @@ class NamedEntityRecognizer:
         """
         return [self._normalizer.normalize(s) for s in input]
 
-    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
+    def _get_raw_named_entity_spans(self, st: str) -> List[SpanOrToken]:
         doc = self._raw_ref_model(st)
         return doc.ents
 
-    def _get_raw_ref_part_spans_in_string(self, st: str) -> List[Span]:
+    def _get_raw_ref_part_spans(self, st: str) -> List[SpanOrToken]:
         doc = self._raw_ref_part_model(st)
         return doc.ents
 
-    def _bulk_get_raw_ref_spans(self, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
+    def _bulk_get_raw_named_entity_spans(self, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
         for doc in self._raw_ref_model.pipe(input, batch_size=batch_size, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
@@ -116,11 +132,11 @@ class NamedEntityRecognizer:
             else:
                 yield doc.ents
 
-    def _bulk_make_raw_refs(self, raw_ref_spans: List[SpanOrToken], raw_ref_part_spans: List[List[SpanOrToken]]) -> List[RawRef]:
+    def _bulk_make_raw_refs(self, named_entities: List[RawNamedEntity], raw_ref_part_spans: List[List[SpanOrToken]]) -> List[RawRef]:
         raw_refs = []
-        dh_continuations = self._bulk_make_dh_continuations(raw_ref_spans, raw_ref_part_spans)
-        for span, part_span_list, temp_dh_continuations in zip(raw_ref_spans, raw_ref_part_spans, dh_continuations):
-            raw_refs += [self._make_raw_ref(span, part_span_list, temp_dh_continuations)]
+        dh_continuations = self._bulk_make_dh_continuations(named_entities, raw_ref_part_spans)
+        for named_entity, part_span_list, temp_dh_continuations in zip(named_entities, raw_ref_part_spans, dh_continuations):
+            raw_refs += [self._make_raw_ref(named_entity.span, part_span_list, temp_dh_continuations)]
         return raw_refs
 
     def _make_raw_ref(self, span: SpanOrToken, part_span_list: List[SpanOrToken], dh_continuations: List[SpanOrToken]) -> RawRef:
@@ -128,30 +144,31 @@ class NamedEntityRecognizer:
         for part_span, dh_continuation in zip(part_span_list, dh_continuations):
             part_type = RefPartType.span_label_to_enum(part_span.label_)
             raw_ref_parts += [RawRefPart(part_type, part_span, dh_continuation)]
-        return RawRef(self._lang, raw_ref_parts, span)
+        return RawRef(span, self._lang, raw_ref_parts)
 
-    def _bulk_make_dh_continuations(self, raw_ref_spans, raw_ref_part_spans) -> List[List[SpanOrToken]]:
+    def _bulk_make_dh_continuations(self, named_entities: List[RawNamedEntity], raw_ref_part_spans) -> List[List[SpanOrToken]]:
         dh_continuations = []
-        for ispan, (span, part_span_list) in enumerate(zip(raw_ref_spans, raw_ref_part_spans)):
+        for ispan, (named_entity, part_span_list) in enumerate(zip(named_entities, raw_ref_part_spans)):
             temp_dh_continuations = []
             for ipart, part_span in enumerate(part_span_list):
                 part_type = RefPartType.span_label_to_enum(part_span.label_)
                 dh_continuation = None
                 if part_type == RefPartType.DH:
-                    dh_continuation = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
+                    dh_continuation = self._get_dh_continuation(ispan, ipart, named_entities, part_span_list,
+                                                                named_entity.span, part_span)
                 temp_dh_continuations += [dh_continuation]
             dh_continuations += [temp_dh_continuations]
         return dh_continuations
 
     @staticmethod
-    def _get_dh_continuation(ispan: int, ipart: int, raw_ref_spans: List[SpanOrToken], part_span_list: List[SpanOrToken], span: SpanOrToken, part_span: SpanOrToken) -> Optional[SpanOrToken]:
+    def _get_dh_continuation(ispan: int, ipart: int, named_entities: List[RawNamedEntity], part_span_list: List[SpanOrToken], span: SpanOrToken, part_span: SpanOrToken) -> Optional[SpanOrToken]:
         if ipart == len(part_span_list) - 1:
             curr_doc = span.doc
             _, span_end = span_inds(span)
-            if ispan == len(raw_ref_spans) - 1:
+            if ispan == len(named_entities) - 1:
                 dh_cont = curr_doc[span_end:]
             else:
-                next_span_start, _ = span_inds(raw_ref_spans[ispan + 1])
+                next_span_start, _ = span_inds(named_entities[ispan + 1].span)
                 dh_cont = curr_doc[span_end:next_span_start]
         else:
             _, part_span_end = span_inds(part_span)

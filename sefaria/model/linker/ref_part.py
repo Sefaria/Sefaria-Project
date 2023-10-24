@@ -34,6 +34,18 @@ LABEL_TO_REF_PART_TYPE_ATTR = {
     "non-cts": "NON_CTS",
 }
 
+
+# keys correspond named entity labels in spacy models
+# values are properties in NamedEntityType
+LABEL_TO_NAMED_ENTITY_TYPE_ATTR = {
+    # HE
+    "מקור": "CITATION",
+    # EN
+    "Person": "PERSON",
+    "Group": "GROUP",
+    "Citation": "CITATION",
+}
+
 SpanOrToken = Union[Span, Token]  # convenience type since Spans and Tokens are very similar
 
 
@@ -74,6 +86,19 @@ def span_char_inds(span: SpanOrToken) -> Tuple[int, int]:
     elif isinstance(span, Token):
         idx = span.idx
         return idx, idx + len(span)
+
+
+class NamedEntityType(Enum):
+    PERSON = "person"
+    GROUP = "group"
+    CITATION = "citation"
+
+    @classmethod
+    def span_label_to_enum(cls, span_label: str) -> 'NamedEntityType':
+        """
+        Convert span label from spacy named entity to NamedEntityType
+        """
+        return getattr(cls, LABEL_TO_NAMED_ENTITY_TYPE_ATTR[span_label])
 
 
 class RefPartType(Enum):
@@ -282,12 +307,36 @@ class RangedRawRefParts(RawRefPart):
         return start_span.doc[start_token_i:end_token_i]
 
 
-class RawRef(abst.Cloneable):
+class RawNamedEntity(abst.Cloneable):
+    """
+    Span of text which represents a named entity before it has been identified with an object in Sefaria's DB
+    """
+
+    def __init__(self, span: SpanOrToken, type: NamedEntityType, **cloneable_kwargs) -> None:
+        self.span = span
+        self.type = type
+
+    @property
+    def text(self):
+        """
+        Return text of underlying span
+        """
+        return self.span.text
+
+    @property
+    def char_indices(self) -> Tuple[int, int]:
+        """
+        Return start and end char indices of underlying text
+        """
+        return span_char_inds(self.span)
+
+
+class RawRef(RawNamedEntity):
     """
     Span of text which may represent one or more Refs
     Contains RawRefParts
     """
-    def __init__(self, lang: str, raw_ref_parts: list, span: SpanOrToken, **clonable_kwargs) -> None:
+    def __init__(self, span: SpanOrToken, lang: str, raw_ref_parts: list, **clonable_kwargs) -> None:
         """
 
         @param lang:
@@ -295,6 +344,7 @@ class RawRef(abst.Cloneable):
         @param span:
         @param clonable_kwargs: kwargs when running Clonable.clone()
         """
+        super().__init__(span, NamedEntityType.CITATION)
         self.lang = lang
         self.raw_ref_parts = self._group_ranged_parts(raw_ref_parts)
         self.parts_to_match = self.raw_ref_parts  # actual parts that will be matched. different when their are context swaps
@@ -396,20 +446,6 @@ class RawRef(abst.Cloneable):
         except ValueError:
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
-
-    @property
-    def text(self):
-        """
-        Return text of underlying span
-        """
-        return self.span.text
-
-    @property
-    def char_indices(self) -> Tuple[int, int]:
-        """
-        Return start and end char indices of underlying text
-        """
-        return span_char_inds(self.span)
 
     def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
         """
