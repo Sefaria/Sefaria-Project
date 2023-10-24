@@ -28,19 +28,20 @@ class NamedEntityRecognizer:
             normalizer_steps += ['maqaf', 'cantillation']
         return NormalizerComposer(normalizer_steps)
 
-    def _normalize_input(self, input: List[str]):
-        """
-        Normalize input text to match normalization that happened at training time
-        """
-        return [self._normalizer.normalize(s) for s in input]
+    def bulk_get_raw_refs(self, input: List[str]) -> List[List[RawRef]]:
+        normalized_input = self._normalize_input(input)
+        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(normalized_input))
+        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
+        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
+        all_raw_ref_part_span_map = defaultdict(list)
+        for ref_part_span, input_idx in all_raw_ref_part_spans:
+            all_raw_ref_part_span_map[input_idx] += [ref_part_span]
 
-    @property
-    def raw_ref_model(self):
-        return self._raw_ref_model
-
-    @property
-    def raw_ref_part_model(self):
-        return self._raw_ref_part_model
+        all_raw_refs = []
+        for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
+            raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
+            all_raw_refs += [self._bulk_make_raw_refs(raw_ref_spans, raw_ref_part_spans)]
+        return all_raw_refs
 
     def bulk_map_normal_output_to_original_input(self, input: List[str], raw_ref_list_list: List[List[RawRef]]):
         for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
@@ -62,6 +63,20 @@ class NamedEntityRecognizer:
                                        for part in raw_ref.raw_ref_parts], mapping)]
         for raw_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(raw_ref_list, unnorm_inds, unnorm_part_inds):
             raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
+
+    @property
+    def raw_ref_model(self):
+        return self._raw_ref_model
+
+    @property
+    def raw_ref_part_model(self):
+        return self._raw_ref_part_model
+
+    def _normalize_input(self, input: List[str]):
+        """
+        Normalize input text to match normalization that happened at training time
+        """
+        return [self._normalizer.normalize(s) for s in input]
 
     def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
         doc = self._raw_ref_model(st)
@@ -86,21 +101,6 @@ class NamedEntityRecognizer:
                 yield doc.ents, context
             else:
                 yield doc.ents
-
-    def bulk_get_raw_refs(self, input: List[str]) -> List[List[RawRef]]:
-        normalized_input = self._normalize_input(input)
-        all_raw_ref_spans = list(self._bulk_get_raw_ref_spans(normalized_input))
-        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_raw_ref_spans), [])
-        all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
-        all_raw_ref_part_span_map = defaultdict(list)
-        for ref_part_span, input_idx in all_raw_ref_part_spans:
-            all_raw_ref_part_span_map[input_idx] += [ref_part_span]
-
-        all_raw_refs = []
-        for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
-            raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
-            all_raw_refs += [self._bulk_make_raw_refs(raw_ref_spans, raw_ref_part_spans)]
-        return all_raw_refs
 
     def _bulk_make_raw_refs(self, raw_ref_spans: List[SpanOrToken], raw_ref_part_spans: List[List[SpanOrToken]]) -> List[RawRef]:
         raw_refs = []
