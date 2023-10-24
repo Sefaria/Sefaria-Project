@@ -1943,6 +1943,17 @@ _media: {},
           data["completions"][0].toLowerCase().replace('״','"') == query.slice(0, data["completions"][0].length).toLowerCase().replace('״','"') &&
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
+  isGershayimVariant: function(query, data) {
+    function replace_gershayim_by_merkhaot(string) {
+        return string.replace('"', '״');
+    }
+    return (
+      !(data["is_ref"]) &&
+      data.completions &&
+      !data.completions.includes(query) &&
+      data.completions.map(x => replace_gershayim_by_merkhaot(x)).includes(replace_gershayim_by_merkhaot(query))
+    );
+  },
   repairCaseVariant: function(query, data) {
     // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);

@@ -310,6 +310,14 @@ class SearchBar extends Component {
           this.submitSearch(Sefaria.repairCaseVariant(query, d));
           return;
         }
+        if (Sefaria.isGershayimVariant(query, d)) {
+          if (query.includes('"')) {
+            this.submitSearch(query.replace('"', '״'));
+          } else {
+            this.submitSearch(query.replace('״', '"'));
+          }
+          return;
+        }
 
         if (d["is_ref"]) {
           var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
