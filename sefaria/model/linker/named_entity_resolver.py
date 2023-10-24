@@ -63,7 +63,7 @@ class NamedEntityRecognizer:
         for raw_ref, temp_unnorm_inds, temp_unnorm_part_inds in zip(raw_ref_list, unnorm_inds, unnorm_part_inds):
             raw_ref.map_new_indices(unnorm_doc, temp_unnorm_inds, temp_unnorm_part_inds)
 
-    def get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
+    def _get_raw_ref_spans_in_string(self, st: str) -> List[Span]:
         doc = self._raw_ref_model(st)
         return doc.ents
 
@@ -99,18 +99,35 @@ class NamedEntityRecognizer:
         all_raw_refs = []
         for input_idx, raw_ref_spans in enumerate(all_raw_ref_spans):
             raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
-            raw_refs = []
-            for ispan, (span, part_span_list) in enumerate(zip(raw_ref_spans, raw_ref_part_spans)):
-                raw_ref_parts = []
-                for ipart, part_span in enumerate(part_span_list):
-                    part_type = RefPartType.span_label_to_enum(part_span.label_)
-                    dh_continuation = None
-                    if part_type == RefPartType.DH:
-                        dh_continuation = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
-                    raw_ref_parts += [RawRefPart(part_type, part_span, dh_continuation)]
-                raw_refs += [RawRef(self._lang, raw_ref_parts, span)]
-            all_raw_refs += [raw_refs]
+            all_raw_refs += [self._bulk_make_raw_refs(raw_ref_spans, raw_ref_part_spans)]
         return all_raw_refs
+
+    def _bulk_make_raw_refs(self, raw_ref_spans: List[SpanOrToken], raw_ref_part_spans: List[List[SpanOrToken]]) -> List[RawRef]:
+        raw_refs = []
+        dh_continuations = self._bulk_make_dh_continuations(raw_ref_spans, raw_ref_part_spans)
+        for span, part_span_list, temp_dh_continuations in zip(raw_ref_spans, raw_ref_part_spans, dh_continuations):
+            raw_refs += [self._make_raw_ref(span, part_span_list, temp_dh_continuations)]
+        return raw_refs
+
+    def _make_raw_ref(self, span: SpanOrToken, part_span_list: List[SpanOrToken], dh_continuations: List[SpanOrToken]) -> RawRef:
+        raw_ref_parts = []
+        for part_span, dh_continuation in zip(part_span_list, dh_continuations):
+            part_type = RefPartType.span_label_to_enum(part_span.label_)
+            raw_ref_parts += [RawRefPart(part_type, part_span, dh_continuation)]
+        return RawRef(self._lang, raw_ref_parts, span)
+
+    def _bulk_make_dh_continuations(self, raw_ref_spans, raw_ref_part_spans) -> List[List[SpanOrToken]]:
+        dh_continuations = []
+        for ispan, (span, part_span_list) in enumerate(zip(raw_ref_spans, raw_ref_part_spans)):
+            temp_dh_continuations = []
+            for ipart, part_span in enumerate(part_span_list):
+                part_type = RefPartType.span_label_to_enum(part_span.label_)
+                dh_continuation = None
+                if part_type == RefPartType.DH:
+                    dh_continuation = self._get_dh_continuation(ispan, ipart, raw_ref_spans, part_span_list, span, part_span)
+                temp_dh_continuations += [dh_continuation]
+            dh_continuations += [temp_dh_continuations]
+        return dh_continuations
 
     @staticmethod
     def _get_dh_continuation(ispan: int, ipart: int, raw_ref_spans: List[SpanOrToken], part_span_list: List[SpanOrToken], span: SpanOrToken, part_span: SpanOrToken) -> Optional[SpanOrToken]:
