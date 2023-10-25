@@ -109,7 +109,7 @@ class AbstractNormalizer:
                 start, end = removal.start(), removal.end()
             normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
             curr_removed = end - start - len(subst)
-            if curr_removed > 0:
+            if curr_removed != 0:
                 total_removed += curr_removed
                 removal_map[normalized_text_index] = total_removed
         return removal_map
