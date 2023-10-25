@@ -42,6 +42,27 @@ const EnglishText = ({ children }) => (
   <>{children}</>
 );
 
+function he2tib(input, lang){
+  if(lang!=='he') return input
+  let output = input.replace("א", "༡");
+   output = output.replace("ב","༢");
+  output = output.replace("ג","༣");
+   output = output.replace("ד","༤");
+   output = output.replace("ה","༥");
+   output = output.replace("ו","༦");
+   output = output.replace("ז","༧");
+   output = output.replace("ח","༨");
+  output = output.replace("ט", "༩");
+  if (input.length === 1) {
+      output = output.replace("י","༡༠");
+  }
+  else {
+      output = output.replace("י","༠");
+
+  }
+  return output
+}
+
 const AvailableLanguages = () => {
   return { "english": EnglishText, "hebrew": HebrewText };
 };
@@ -139,9 +160,9 @@ const ContentText = ({ text, html, overrideLanguage, defaultToInterfaceOnBilingu
   }
   return renderedItems.map(x =>
     isDangerouslySetInnerHTML ?
-      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: x[1] }} />
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: he2tib(x[1],x[0]), }} />
       :
-      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{he2tib(x[1],x[0])}</span>
   );
 };
 
