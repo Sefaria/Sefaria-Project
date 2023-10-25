@@ -395,10 +395,10 @@ const AuthorIndexItem = ({url, title, description}) => {
   return (
       <div className="authorIndex" >
       <a href={url} className="navBlockTitle">
-        <InterfaceText text={title} />
+        <ContentText text={title} defaultToInterfaceOnBilingual />
       </a>
       <div className="navBlockDescription">
-        <InterfaceText text={description} />
+        <ContentText text={description} defaultToInterfaceOnBilingual />
       </div>
     </div>
   );
