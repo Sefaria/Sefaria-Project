@@ -856,8 +856,9 @@ def search(request):
     desc = _("Search 3,000 years of Jewish texts in Hebrew and English translation.") if SITE_SETTINGS["TORAH_SPECIFIC"] else _("Search")
 
     return render_template(request,'base.html', props, {
-        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _(SITE_SETTINGS["SITE_NAME"]["en"]+" Search"),
-        "desc":      desc
+        "title":     (search_params["query"] + " | " if search_params["query"] else "") + _(SITE_SETTINGS["SITE_NAME"]["en"],
+        "desc":      desc,
+        "noindex": True
     })
 
 

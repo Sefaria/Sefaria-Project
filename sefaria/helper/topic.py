@@ -114,7 +114,7 @@ def merge_props_for_similar_refs(curr_link, new_link):
     # as well as datasource and descriptions of all the similar refs
     data_source = new_link.get('dataSource', None)
     if data_source:
-        curr_link = update_refs(curr_link, new_link, data_source)
+        curr_link = update_refs(curr_link, new_link)
         curr_link = update_data_source_in_link(curr_link, new_link, data_source)
 
     if not curr_link['is_sheet']:
@@ -128,20 +128,9 @@ def update_data_source_in_link(curr_link, new_link, data_source):
     del new_link['dataSource']
     return curr_link
 
-def is_data_source_learning_team(func):
-    def wrapper(curr_link, new_link, data_source):
-        if data_source == 'learning-team':
-            return func(curr_link, new_link)
-        else:
-            return curr_link
-    return wrapper
-
-@is_data_source_learning_team
 def update_refs(curr_link, new_link):
-    # in case the new_link was created by the learning team, we want to use ref of learning team link
-    # in the case when both links are from the learning team, use whichever ref covers a smaller range
-    if 'learning-team' not in curr_link['dataSources'] or len(curr_link['expandedRefs']) > len(
-            new_link['expandedRefs']):
+    # use whichever ref covers a smaller range
+    if len(curr_link['expandedRefs']) > len(new_link['expandedRefs']):
         curr_link['ref'] = new_link['ref']
         curr_link['expandedRefs'] = new_link['expandedRefs']
     return curr_link
@@ -171,6 +160,20 @@ def update_curated_primacy(curr_link, new_link):
         curr_link['order']['curatedPrimacy'] = curr_curated_primacy
     return curr_link
 
+def is_learning_team(dataSource):
+    return dataSource == 'learning-team' or dataSource == 'learning-team-editing-tool'
+
+def iterate_and_merge(new_ref_links, new_link, subset_ref_map, temp_subset_refs):
+    # temp_subset_refs contains the refs within link's expandedRefs that overlap with other refs
+    # subset_ref_map + new_ref_links contain mappings to get from the temp_subset_refs to the actual link objects
+    for seg_ref in temp_subset_refs:
+        for index in subset_ref_map[seg_ref]:
+            new_ref_links[index]['similarRefs'] += [new_link]
+            curr_link_learning_team = any([is_learning_team(dataSource) for dataSource in new_ref_links[index]['dataSources']])
+            if not curr_link_learning_team:  # if learning team, ignore source with overlapping refs
+                new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], new_link)
+    return new_ref_links
+
 def sort_and_group_similar_refs(ref_links):
     ref_links.sort(key=cmp_to_key(sort_refs_by_relevance))
     subset_ref_map = defaultdict(list)
@@ -178,11 +181,11 @@ def sort_and_group_similar_refs(ref_links):
     for link in ref_links:
         del link['topic']
         temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
-        for seg_ref in temp_subset_refs:
-            for index in subset_ref_map[seg_ref]:
-                new_ref_links[index]['similarRefs'] += [link]
-                new_ref_links[index] = merge_props_for_similar_refs(new_ref_links[index], link)
-        if len(temp_subset_refs) == 0:
+        new_data_source = link.get("dataSource", None)
+        should_merge = len(temp_subset_refs) > 0 and not is_learning_team(new_data_source) # learning team links should be handled separately from one another and not merged
+        if should_merge:
+            new_ref_links = iterate_and_merge(new_ref_links, link, subset_ref_map, temp_subset_refs)
+        else:
             link['similarRefs'] = []
             link['dataSources'] = {}
             if link.get('dataSource', None):
@@ -1250,12 +1253,12 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
-    if lang in link.order['availableLangs']:
+    if lang in link.order.get('availableLangs', []):
         link.order['availableLangs'].remove(lang)
-    if lang in link.order['curatedPrimacy']:
+    if lang in link.order.get('curatedPrimacy', []):
         link.order['curatedPrimacy'].pop(lang)
 
-    if len(link.order['availableLangs']) > 0:
+    if len(link.order.get('availableLangs', [])) > 0:
         link.save()
         return {"status": "ok"}
     else:   # deleted in both hebrew and english so delete link object

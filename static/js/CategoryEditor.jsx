@@ -22,7 +22,7 @@ const Reorder = ({subcategoriesAndBooks, updateOrder, displayType, updateParentC
     const clickHandler = (dir, child) => {
         const index = subcategoriesAndBooks.indexOf(child);
         let index_to_swap = -1;
-        if (dir === 'down' && index < subcategoriesAndBooks.length)
+        if (dir === 'down' && index < subcategoriesAndBooks.length - 1)
         {
             index_to_swap = index + 1;
         }
