@@ -41,18 +41,18 @@ const HebrewText = ({ children }) => (
 const EnglishText = ({ children }) => (
   <>{children}</>
 );
-
+/*
 function he2tib(input, lang){
   if(lang!=='he') return input
   let output = input.replace("א", "༡");
    output = output.replace("ב","༢");
-  output = output.replace("ג","༣");
+   output = output.replace("ג","༣");
    output = output.replace("ד","༤");
    output = output.replace("ה","༥");
    output = output.replace("ו","༦");
    output = output.replace("ז","༧");
    output = output.replace("ח","༨");
-  output = output.replace("ט", "༩");
+   output = output.replace("ט", "༩");
   if (input.length === 1) {
       output = output.replace("י","༡༠");
   }
@@ -61,7 +61,30 @@ function he2tib(input, lang){
 
   }
   return output
+}*/
+
+function he2tib(input, lang) {
+  if (lang !== 'he') return input;
+
+  let output = input.replace(/א/g, "༡");
+  output = output.replace(/ב/g, "༢");
+  output = output.replace(/ג/g, "༣");
+  output = output.replace(/ד/g, "༤");
+  output = output.replace(/ה/g, "༥");
+  output = output.replace(/ו/g, "༦");
+  output = output.replace(/ז/g, "༧");
+  output = output.replace(/ח/g, "༨");
+  output = output.replace(/ט/g, "༩");
+
+  for (let i = 10; i <= 50; i++) {
+    const hebrewNumber = i.toString();
+    const tibetanNumber = "༠" + hebrewNumber;
+    output = output.replace(new RegExp(hebrewNumber, 'g'), tibetanNumber);
+  }
+
+  return output;
 }
+
 
 const AvailableLanguages = () => {
   return { "english": EnglishText, "hebrew": HebrewText };
