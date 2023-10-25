@@ -501,8 +501,13 @@ const AboutTopics = ({hideTitle}) => (
   <Module>
     {hideTitle ? null :
     <ModuleTitle>About Topics</ModuleTitle> }
-    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects.</InterfaceText>
-
+    <InterfaceText>
+        <HebrewText>
+דפי הנושא מציגים מקורות נבחרים מארון הספרים היהודי עבור אלפי נושאים. ניתן לדפדף לפי קטגוריה או לחפש לפי נושא ספציפי, ובסרגל הצד מוצגים הנושאים הפופולריים ביותר ואלה הקשורים אליהם.  הקליקו ושוטטו בין הנושאים השונים כדי ללמוד עוד.
+        </HebrewText>
+        <EnglishText>
+Topics bring you straight to selections of texts and user created source sheets about thousands of subjects.        </EnglishText>
+    </InterfaceText>
   </Module>
 );
 
