@@ -845,7 +845,8 @@ def search(request):
     }
     return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
-        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
+        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation."),
+        "noindex": True
     })
 
 
