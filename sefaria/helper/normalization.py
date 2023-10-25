@@ -295,7 +295,14 @@ class NormalizerComposer(AbstractNormalizer):
             else:
                 # some sort of overlap
                 curr_merged_inds = (last_inds[0], max(last_inds[1], curr_inds[1]))
-                curr_merged_repl = last_repl[:curr_inds[0]-last_inds[0]] + curr_repl + last_repl[(curr_inds[1]+1)-last_inds[0]:]
+                if curr_inds[0] == last_inds[0] and last_inds[1] <= curr_inds[1]:
+                    # last is subset. use curr_repl
+                    curr_merged_repl = curr_repl
+                elif curr_inds[0] >= last_inds[0] and curr_inds[1] <= last_inds[1]:
+                    # curr is subset. use last_repl
+                    curr_merged_repl = last_repl
+                else:
+                    raise Exception(f"partial overlap. not sure how to reconcile. curr_inds: {curr_inds}. last_inds: {last_inds}")
                 merged_removal_inds[-1] = (curr_merged_inds, curr_merged_repl)
 
         return merged_removal_inds
