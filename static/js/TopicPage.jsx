@@ -24,6 +24,7 @@ import {
     SimpleLinkedBlock,
     CategoryHeader,
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 /*
@@ -383,12 +384,26 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
           <div className="authorIndexList">
-            {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
+            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
           </div>
         </div>
        : null}
     </div>
 );}
+
+const AuthorIndexItem = ({url, title, description}) => {
+  return (
+      <div className="authorIndex" >
+      <a href={url} className="navBlockTitle">
+        <InterfaceText text={title} />
+      </a>
+      <div className="navBlockDescription">
+        <InterfaceText text={description} />
+      </div>
+    </div>
+  );
+};
+
 
 const useTabDisplayData = (translationLanguagePreference) => {
   const getTabDisplayData = useCallback(() => [
