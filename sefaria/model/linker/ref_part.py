@@ -316,6 +316,13 @@ class RawNamedEntity(abst.Cloneable):
         self.span = span
         self.type = type
 
+    def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int]) -> None:
+        """
+        Remap self.span to new indices
+        """
+        self.span = new_doc.char_span(*new_indices)
+        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+
     @property
     def text(self):
         """
@@ -447,13 +454,13 @@ class RawRef(RawNamedEntity):
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
 
-    def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int], new_part_indices: List[Tuple[int, int]]) -> None:
+    def map_new_part_indices(self, new_part_indices: List[Tuple[int, int]]) -> None:
         """
         Remap self.span and all spans of parts to new indices
         """
-        self.span = new_doc.char_span(*new_indices)
-        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        start_char, _ = self.char_indices
         doc_span = self.span.as_doc()
         for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
-            part.span = doc_span.char_span(*[i-new_indices[0] for i in temp_part_indices])
-            if part.span is None: raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}. Using 'expand' alignment mode text is '{new_doc.char_span(*temp_part_indices, alignment_mode='expand')}'")
+            part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices])
+            if part.span is None:
+                raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}.")
