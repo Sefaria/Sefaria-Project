@@ -832,6 +832,7 @@ const PortalNewsletter = ({title, title_url, description}) => {
             <NewsletterSignUpForm
                 includeEducatorOption={false}
                 emailPlaceholder={{en: "Email Address", he: "מייל"}}
+                subscribe={Sefaria.subscribeSefariaAndSteinsaltzNewsletter}
             />
         </Module>
     )
