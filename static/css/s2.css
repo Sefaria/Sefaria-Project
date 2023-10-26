@@ -606,7 +606,7 @@ input.noselect {
   font-size: 18px;
 }
 .mobileNavMenu {
-  position: fixed;
+  position: absolute;
   height: calc(100% - 60px);
   box-sizing: border-box;
   top: 60px;
