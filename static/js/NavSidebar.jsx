@@ -825,9 +825,12 @@ const PortalMobile = ({title, description, android_link, ios_link}) => {
 
 
 const PortalNewsletter = ({title, title_url, description}) => {
+    let titleElement = <ModuleTitle en={title.en} he={title.he} />;
+    if (title_url) { titleElement = <a href={title_url}>{titleElement}</a>; }
+
     return(
         <Module>
-            <a href={title_url}><ModuleTitle en={title.en} he={title.he} /></a>
+            {titleElement}
             <InterfaceText markdown={{en: description.en, he: description.he}} />
             <NewsletterSignUpForm
                 includeEducatorOption={false}
