@@ -310,12 +310,10 @@ class SearchBar extends Component {
           this.submitSearch(Sefaria.repairCaseVariant(query, d));
           return;
         }
-        if (Sefaria.isGershayimVariant(query, d)) {
-          if (query.includes('"')) {
-            this.submitSearch(query.replace('"', '״'));
-          } else {
-            this.submitSearch(query.replace('״', '"'));
-          }
+        const repairedQuery = Sefaria.repairGershayimVariant(query, d);
+        if (repairedQuery !== query) {
+          console.log(query, d);
+          this.submitSearch(repairedQuery);
           return;
         }
 
