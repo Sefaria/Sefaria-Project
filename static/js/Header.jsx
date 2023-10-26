@@ -312,7 +312,6 @@ class SearchBar extends Component {
         }
         const repairedQuery = Sefaria.repairGershayimVariant(query, d);
         if (repairedQuery !== query) {
-          console.log(query, d);
           this.submitSearch(repairedQuery);
           return;
         }
