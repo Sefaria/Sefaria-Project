@@ -525,7 +525,6 @@ const TopicPage = ({
                     "newsletter": "PortalNewsletter",
                 }
                 const modules = [];
-                console.log("portal", portal)
                 for (let [key, value] of Object.entries(portal)) {
                     if (!portalModuleTypeMap[key]) { continue; }
                     modules.push({
