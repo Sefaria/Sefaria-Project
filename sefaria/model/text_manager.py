@@ -42,7 +42,6 @@ class TextManager:
             relevant_versions.remove(lambda v: v.actualLanguage != version.actualLanguage)
         else:
             relevant_versions = [version]
-        print(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments, relevant_versions)
         text_range.versions = relevant_versions
         version_details['text'] = text_range.text
 
