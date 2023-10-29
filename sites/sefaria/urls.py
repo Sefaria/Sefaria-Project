@@ -47,12 +47,12 @@ static_pages = [
     "word-by-word",
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
+    "team",
 ]
 
 static_pages_by_lang = [
     "about",
     "ways-to-give",
-    "team"
 ]
 
 
