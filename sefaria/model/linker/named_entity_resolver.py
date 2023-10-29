@@ -1,4 +1,4 @@
-from typing import List, Generator, Optional
+from typing import List, Generator, Optional, Dict
 from functools import reduce
 from collections import defaultdict
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, RawNamedEntity, NamedEntityType
@@ -184,37 +184,36 @@ class NamedEntityRecognizer:
 
 class ResolvedNamedEntity:
 
-    def __init__(self, raw_named_entity: RawNamedEntity, topic: Topic):
+    def __init__(self, raw_named_entity: RawNamedEntity, topics: List[Topic]):
         self.raw_named_entity = raw_named_entity
-        self.topic = topic
+        self.topics = topics
 
-    def to_ref_topic_link(self) -> RefTopicLink:
-        start_char, end_char = self.raw_named_entity.char_indices
-        return RefTopicLink({
-            "ref": "",
-            "toTopic": self.topic.slug if self.topic else "N/A",
-            "charLevelData": {
-                "startChar": start_char,
-                "endChar": end_char,
-                "text": self.raw_named_entity.text,
-            }
-        })
+    @property
+    def is_ambiguous(self) -> bool:
+        return len(self.topics) > 1
 
 
 class TopicMatcher:
 
-    def __init__(self, lang: str, topics=None):
-        topics = topics or TopicSet()
-        self._slug_topic_map = {t.slug: t for t in topics}
-        self._title_slug_map = {}
-        for topic in topics:
-            for title in topic.get_titles(lang=lang, with_disambiguation=False):
-                self._title_slug_map[title] = topic.slug
+    def __init__(self, lang: str, topics_by_type: Dict[str, List[Topic]]):
+        self._lang = lang
+        all_topics = reduce(lambda a, b: a + b, topics_by_type.values())
+        self._slug_topic_map = {t.slug: t for t in all_topics}
+        self._title_slug_map_by_type = {
+            named_entity_type: self.__get_title_map_for_topics(topics)
+            for named_entity_type, topics in topics_by_type.items()
+        }
 
-    def match(self, text) -> Optional[Topic]:
-        slug = self._title_slug_map.get(text)
-        if slug:
-            return self._slug_topic_map[slug]
+    def __get_title_map_for_topics(self, topics) -> Dict[str, List[str]]:
+        title_slug_map = defaultdict(list)
+        for topic in topics:
+            for title in topic.get_titles(lang=self._lang, with_disambiguation=False):
+                title_slug_map[title] += [topic.slug]
+        return title_slug_map
+
+    def match(self, named_entity: RawNamedEntity) -> List[Topic]:
+        slugs = self._title_slug_map_by_type.get(named_entity.type.name, {}).get(named_entity.text, [])
+        return [self._slug_topic_map[slug] for slug in slugs]
 
 
 class NamedEntityResolver:
@@ -229,9 +228,9 @@ class NamedEntityResolver:
         for named_entities in all_named_entities:
             temp_resolved = []
             for named_entity in named_entities:
-                matched_topic = self._topic_matcher.match(named_entity.text)
-                if matched_topic or with_failures:
-                    temp_resolved += [ResolvedNamedEntity(named_entity, matched_topic)]
+                matched_topics = self._topic_matcher.match(named_entity)
+                if len(matched_topics) > 0 or with_failures:
+                    temp_resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
             resolved += [temp_resolved]
         named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
         self._named_entity_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)

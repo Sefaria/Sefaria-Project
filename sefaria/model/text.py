@@ -5611,9 +5611,17 @@ class Library(object):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
         from .topic import Topic
 
-        ontology_topics = Topic.init('entity').topics_by_link_type_recursively()
+        ontology_roots_to_named_entity_types = {
+            "people": "PERSON",
+            "group-of-people": "GROUP",
+        }
+        yo = Topic.init('people').topics_by_link_type_recursively()
         self._named_entity_resolver_by_lang[lang] = NamedEntityResolver(
-            self._build_named_entity_recognizer(lang), TopicMatcher(lang, topics=ontology_topics)
+            self._build_named_entity_recognizer(lang),
+            TopicMatcher(lang, {
+                named_entity_type: Topic.init(ontology_root).topics_by_link_type_recursively()
+                for ontology_root, named_entity_type in ontology_roots_to_named_entity_types.items()
+            })
         )
         return self._named_entity_resolver_by_lang[lang]
 
