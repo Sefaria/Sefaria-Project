@@ -1,4 +1,5 @@
 FROM gcr.io/production-deployment/base-node:v13.0.0
+ARG TYPE=build-prod
 
 WORKDIR /app/
 
@@ -7,7 +8,7 @@ RUN npm install --unsafe-perm
 
 COPY ./node /app/node
 COPY ./static/js /app/static/js
-RUN npm run build-prod
+RUN npm run $TYPE
 
 COPY . /app/
 EXPOSE 3000
