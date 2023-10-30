@@ -834,7 +834,7 @@ const PortalNewsletter = ({title, title_url, description}) => {
             <InterfaceText markdown={{en: description.en, he: description.he}} />
             <NewsletterSignUpForm
                 includeEducatorOption={false}
-                emailPlaceholder={{en: "Email Address", he: "מייל"}}
+                emailPlaceholder={{en: "Email Address", he: "כתובת מייל"}}
                 subscribe={Sefaria.subscribeSefariaAndSteinsaltzNewsletter}
             />
         </Module>
