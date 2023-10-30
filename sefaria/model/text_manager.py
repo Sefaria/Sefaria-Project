@@ -72,7 +72,7 @@ class TextManager:
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
-            if all(version.actualLanguage != v['actualLanguage'] and version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
+            if all(version.actualLanguage != v['actualLanguage'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
                 self._append_version(version)
         if not versions:
