@@ -2720,7 +2720,8 @@ class Ref(object, metaclass=RefCacheType):
 
         try:
             # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-            tref = tref[0].upper() + tref[1:]
+            # tref = tref[0].upper() + tref[1:]
+            tref = tref.title()
         except IndexError:
             pass
 
@@ -4903,6 +4904,8 @@ class Library(object):
                     tree_titles = tree.title_dict(lang)
                     self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                     self._title_node_maps[lang].update(tree_titles)
+                    this_node = list(self._title_node_maps[lang].values())[-1]
+                    self._title_node_maps[lang].update({tree.index.title.title(): this_node})  # Add 'Song Of Songs'
             except IndexSchemaError as e:
                 logger.error("Error in generating title node dictionary: {}".format(e))
 
