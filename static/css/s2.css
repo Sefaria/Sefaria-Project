@@ -11014,6 +11014,11 @@ body .homeFeedWrapper .content {
     border: 0;
     margin: 0;
   }
+  .topicPanel .navSidebar {
+    width: unset;
+    border-top: 30px solid #FBFBFA;
+    margin: 0;
+  }
 }
 .sideColumn .topicSideColumn {
   margin-bottom: 20px;
