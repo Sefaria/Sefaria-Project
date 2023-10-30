@@ -2717,14 +2717,26 @@ class Ref(object, metaclass=RefCacheType):
             return tref
 
         tref = tref.replace(":", ".")
-
-        try:
-            # capitalize first letter (don't title case all to avoid e.g., "Song Of Songs")
-            tref = tref[0].upper() + tref[1:]
-        except IndexError:
-            pass
-
+        tref = Ref.__capitalize_non_stop_words(tref)
         return tref
+
+    @staticmethod
+    def __capitalize_non_stop_words(tref):
+        stop_words = ['a', 'haRashba', 'in', 'leYom', 'as', 'min', 'footnotes', 'to', "d'Garmei", 'ben', 'di', 'on',
+                      'he', 'of', 'part', 'wont', 'haHalakhah', 'or', 'shel', 'by', "la'Nefesh", 'ibn', 'leCheker',
+                      'according', 'the', 'within', 'haLevanon', 'leYaakov', 'and', 'when', "d'Rav", 'al', 'uMeshiv',
+                      'with', 'haShamayim', 'who', 'into', 'their', 'is', 'veHaDeot', 'debei', 'other', 'his', 'from',
+                      'for', 'him']     #  currently lowercased words in the titles of books
+        tref = tref.lower()
+        temp_tref = ""
+        prev_w = ""
+        for i, w in enumerate(tref.split()):
+            if i == 0 or w not in stop_words or prev_w.endswith(","):
+                # check previous word ends with comma so that we capitalize 'the' in 'Pesach Haggadah, Magid, The Four Sons 1'
+                w = w[0].upper() + w[1:]
+            temp_tref += w + " "
+            prev_w = w
+        return temp_tref.strip()
 
     def __reinit_tref(self, new_tref):
         logger.debug("__reinit_tref from {} to {}".format(self.tref, new_tref))
