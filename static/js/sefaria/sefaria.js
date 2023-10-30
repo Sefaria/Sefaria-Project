@@ -1947,6 +1947,20 @@ _media: {},
     // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
+  repairGershayimVariant: function(query, data) {
+    if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
+      function normalize_gershayim(string) {
+          return string.replace('״', '"');
+      }
+      const normalized_query = normalize_gershayim(query);
+      for (let c of data.completions) {
+          if (normalize_gershayim(c) === normalized_query) {
+              return c;
+          }
+      }
+    }
+    return query;
+  },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
