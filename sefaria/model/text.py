@@ -1390,7 +1390,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "actualLanguage",
         "isBaseText",
         'isSource',
-        'isBaseText2', #temp
+        'isPrimary',
         'direction', # 1 for rtl, 2 for ltr
     ]
 

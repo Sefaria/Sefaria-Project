@@ -56,7 +56,7 @@ class TextManager:
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
         if lang == self.BASE:
-            lang_condition = lambda v: getattr(v, 'isBaseText', False)
+            lang_condition = lambda v: getattr(v, 'isPrimary', False)
         elif lang == self.SOURCE:
             lang_condition = lambda v: getattr(v, 'isSource', False)
         elif lang == self.TRANSLATION:
