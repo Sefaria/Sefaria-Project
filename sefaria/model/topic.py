@@ -451,6 +451,11 @@ class PersonTopic(Topic):
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
             })
+        elif self.get_property("deathYear"):
+            return TimePeriod({
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
         elif self.get_property("generation"):
             return TimePeriod().load({"symbol": self.get_property("generation")})
         elif self.get_property("era"):

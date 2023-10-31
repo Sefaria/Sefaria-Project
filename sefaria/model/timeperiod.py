@@ -116,8 +116,10 @@ class TimePeriod(abst.AbstractMongoRecord):
     def getYearLabels(self, lang):
         start = getattr(self, "start", None)
         end = getattr(self, "end", None)
-        if start is None:
+        if start is None and end is None:
             return "", ""
+        elif start is None:
+            start = end
         if end is None:
             end = start
 
@@ -138,12 +140,17 @@ class TimePeriod(abst.AbstractMongoRecord):
     def period_string(self, lang):
         name = ""
 
-        if getattr(self, "start", None) is not None:  # and getattr(self, "end", None) is not None:
+        if getattr(self, "start", None) is not None or getattr(self, "end", None):
             labels = self.getYearLabels(lang)
             approxMarker = self.getApproximateMarkers(lang)
 
             if lang == "en":
-                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
+                if getattr(self, "start", None) is None:
+                    name += " ( - {}{} {})".format(
+                        approxMarker[1],
+                        abs(int(self.end)),
+                        labels[1])
+                elif getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
                     name += " ({}{} {} - )".format(
                         approxMarker[0],
                         abs(int(self.start)),
@@ -163,7 +170,12 @@ class TimePeriod(abst.AbstractMongoRecord):
                         abs(int(self.end)),
                         labels[1])
             if lang == "he":
-                if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
+                if getattr(self, "start", None) is None:
+                    name += " ( - {}{} {})".format(
+                        abs(int(self.end)),
+                        labels[1],
+                        approxMarker[1])
+                elif getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
                     name += " ({} {} {} - )".format(
                         abs(int(self.start)),
                         labels[1],
