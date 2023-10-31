@@ -744,6 +744,17 @@ class Test_comparisons(object):
         assert not Ref("Exodus 6:2").contains(Ref("Exodus"))
         assert not Ref("Exodus 6:2-12").contains(Ref("Exodus"))
 
+        assert Ref("Leviticus").contains(Ref("Leviticus 1:1-27.34"))
+        assert Ref("Leviticus").contains(Ref("Leviticus 1-27"))
+        assert Ref("Leviticus 1:1-27.34").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 1:1-27.30").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 1:2-27.30").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 2:2-27.30").contains(Ref("Leviticus"))
+
+        # These fail, and always did
+        # assert not Ref("Leviticus").contains(Ref("Leviticus 1:1-27.35"))
+        # assert not Ref("Leviticus").contains(Ref("Leviticus 1-28"))
+
         assert Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:18-20"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:21-25"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:15-25"))

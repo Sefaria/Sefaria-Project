@@ -6,6 +6,7 @@ from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
 from typing import List
 
+
 class TextManager:
     ALL = 'all'
     BASE = 'base'
