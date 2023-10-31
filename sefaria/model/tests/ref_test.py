@@ -744,6 +744,7 @@ class Test_comparisons(object):
         assert not Ref("Exodus 6:2").contains(Ref("Exodus"))
         assert not Ref("Exodus 6:2-12").contains(Ref("Exodus"))
 
+        assert Ref("Leviticus").contains(Ref("Leviticus"))
         assert Ref("Leviticus").contains(Ref("Leviticus 1:1-27.34"))
         assert Ref("Leviticus").contains(Ref("Leviticus 1-27"))
         assert Ref("Leviticus 1:1-27.34").contains(Ref("Leviticus"))
