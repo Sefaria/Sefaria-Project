@@ -7,6 +7,10 @@ on:
     branches:
       - "*"
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   duplication-check:
     runs-on: ubuntu-latest
@@ -89,6 +93,8 @@ jobs:
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
+          build-args: |
+            TYPE=build
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -240,7 +246,7 @@ jobs:
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
-        run: ./build/ci/sandbox-helm-deploy.sh build/ci/values.yaml
+        run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
           BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
