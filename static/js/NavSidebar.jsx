@@ -53,7 +53,8 @@ const Modules = ({type, props}) => {
     "Wrapper":                Wrapper,
     "PortalAbout":            PortalAbout,
     "PortalMobile":           PortalMobile,
-    "PortalNewsletter":       PortalNewsletter
+    "PortalOrganization":     PortalOrganization,
+    "PortalNewsletter":       PortalNewsletter,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -819,6 +820,14 @@ const PortalMobile = ({title, description, android_link, ios_link}) => {
                 <AppStoreButton href={ios_link} platform={'ios'} altText='Steinsaltz app on iOS' />
                 <AppStoreButton href={android_link} platform={'android'} altText='Steinsaltz app on Android' />
             </div>
+        </Module>
+    )
+};
+const PortalOrganization = ({title, description}) => {
+    return(
+        <Module>
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
         </Module>
     )
 };

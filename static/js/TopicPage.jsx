@@ -450,7 +450,6 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
             props: portal[key],
         });
     }
-    console.log(modules)
     return(
         <NavSidebar modules={modules} />
     )
