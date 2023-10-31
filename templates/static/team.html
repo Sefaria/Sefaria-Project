@@ -6,8 +6,16 @@
 
 {% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
 
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'teamMembersPageContent';
+    DJANGO_VARS.reactComponentName = 'TeamMembersPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
+
 {% block content %}
-    <script src="https://www.unpkg.com/redom@3.29.1/dist/redom.min.js"></script>
 
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
@@ -18,18 +26,9 @@
                 </h1>
             </header>
             <div class="row static-text">
-                <!-- Team members will be inserted through RE:DOM -->
-                <section class="main-text team-members"></section>
-                <header>
-                    <h2>
-                        <span class="int-en">BOARD OF DIRECTORS</span>
-                        <span class="int-he">מועצת המנהלים</span>
-                    </h2>
-                </header>
-                <!-- Board members will be inserted through RE:DOM -->
-                <section class="main-text board-members"></section>
-
-                <script src="static/js/strapi_helpers/team_page.js" defer></script>
+                <div id="teamMembersPageContent">
+                    <h1 id="appLoading">Loading...</h1>
+                </div>
 
                 <section id="teamContact">
                     <div>
