@@ -171,7 +171,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                         labels[1])
             if lang == "he":
                 if getattr(self, "start", None) is None:
-                    name += " ( - {}{} {})".format(
+                    name += " ( - {} {} {})".format(
                         abs(int(self.end)),
                         labels[1],
                         approxMarker[1])
