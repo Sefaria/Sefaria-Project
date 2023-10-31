@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, memo} from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
@@ -2641,126 +2641,121 @@ const ConditionalLink = ({ link, children }) =>
 */
 
 const byLastName = (a, b) => {
-  const lastNameA = a.teamMemberDetails.teamName.en.split(" ").pop();
-  const lastNameB = b.teamMemberDetails.teamName.en.split(" ").pop();
-  return lastNameA.localeCompare(lastNameB);
+    const lastNameA = a.teamMemberDetails.teamName.en.split(" ").pop();
+    const lastNameB = b.teamMemberDetails.teamName.en.split(" ").pop();
+    return lastNameA.localeCompare(lastNameB);
 };
 
 const partition = (arr, prop) =>
-  arr.reduce(
-    (accumulator, currentValue) => {
-      accumulator[prop(currentValue) ? 0 : 1].push(currentValue);
-      return accumulator;
-    },
-    [[], []]
-  );
-
-const LocalizedText = ({ text }) => (
-  <>
-    <span className="int-en">{text.en}</span>
-    <span className="int-he">{text.he}</span>
-  </>
-);
+    arr.reduce(
+        (accumulator, currentValue) => {
+            accumulator[prop(currentValue) ? 0 : 1].push(currentValue);
+            return accumulator;
+        },
+        [[], []]
+    );
 
 const TeamTitle = ({ teamTitle }) => (
-  <div className="teamTitle">
-    <LocalizedText text={teamTitle} />
-  </div>
+    <div className="teamTitle">
+        <InterfaceText text={teamTitle} />
+    </div>
 );
 
 const TeamName = ({ teamName }) => (
-  <div className="teamName">
-    <LocalizedText text={teamName} />
-  </div>
+    <div className="teamName">
+        <InterfaceText text={teamName} />
+    </div>
 );
 
 const TeamMemberDetails = ({ teamMemberDetails }) => (
-  <div className="teamMemberDetails">
-    <TeamName teamName={teamMemberDetails.teamName} />
-    <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
-  </div>
+    <div className="teamMemberDetails">
+        <TeamName teamName={teamMemberDetails.teamName} />
+        <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
+    </div>
 );
 
 const TeamMemberImage = ({ teamMember }) => (
-  <div className="teamMemberImage">
-    <img
-      src={teamMember.teamMemberImage}
-      alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
-    />
-  </div>
+    <div className="teamMemberImage">
+        <img
+            src={teamMember.teamMemberImage}
+            alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
+        />
+    </div>
 );
 
 const TeamMember = ({ teamMember }) => (
-  <div className="teamMember">
-    <TeamMemberImage teamMember={teamMember} />
-    <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
-  </div>
+    <div className="teamMember">
+        <TeamMemberImage teamMember={teamMember} />
+        <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
+    </div>
 );
 
 const TeamMembers = ({ teamMembers }) => (
-  <>
-    {teamMembers.map((teamMember) => (
-      <TeamMember key={teamMember.id} teamMember={teamMember} />
-    ))}
-  </>
+    <>
+        {teamMembers.map((teamMember) => (
+            <TeamMember key={teamMember.id} teamMember={teamMember} />
+        ))}
+    </>
 );
 
 const Placeholders = ({ teamMembersCount, cls }) => {
-  const placeholdersCount =
-    3 - (teamMembersCount - 3 * Math.floor(teamMembersCount / 3));
-  return (
-    <>
-      {Array.from({ length: placeholdersCount }, (_, index) => (
-        <div key={index} className={`${cls} placeholder`} />
-      ))}
-    </>
-  );
+    const placeholdersCount =
+        3 - (teamMembersCount - 3 * Math.floor(teamMembersCount / 3));
+    return (
+        <>
+            {Array.from({ length: placeholdersCount }, (_, index) => (
+                <div key={index} className={`${cls} placeholder`} />
+            ))}
+        </>
+    );
 };
 
 const BoardMember = ({ boardMember }) => (
-  <div className="teamBoardMember">
-    <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
-  </div>
+    <div className="teamBoardMember">
+        <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
+    </div>
 );
 
 const BoardMembers = ({ boardMembers }) => {
-  let chairmanBoardMember;
-  const chairmanIndex = boardMembers.findIndex(
-    (boardMember) =>
-      boardMember.teamMemberDetails.teamTitle.en.toLowerCase() === "chairman"
-  );
-  if (chairmanIndex !== -1) {
-    chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
-  }
-  const [cofounderBoardMembers, regularBoardMembers] = partition(
-    boardMembers,
-    (boardMember) =>
-      boardMember.teamMemberDetails.teamTitle.en.toLowerCase() === "co-founder"
-  );
+    let chairmanBoardMember;
+    const chairmanIndex = boardMembers.findIndex(
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "chairman"
+    );
+    if (chairmanIndex !== -1) {
+        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+    }
+    const [cofounderBoardMembers, regularBoardMembers] = partition(
+        boardMembers,
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "co-founder"
+    );
 
-  return (
-    <>
-      {chairmanBoardMember && (
-        <BoardMember boardMember={chairmanBoardMember[0]} />
-      )}
-      {cofounderBoardMembers.map((boardMember) => (
-        <BoardMember key={boardMember.id} boardMember={boardMember} />
-      ))}
-      {regularBoardMembers.sort(byLastName).map((boardMember) => (
-        <BoardMember key={boardMember.id} boardMember={boardMember} />
-      ))}
-    </>
-  );
+    return (
+        <>
+            {chairmanBoardMember && (
+                <BoardMember boardMember={chairmanBoardMember[0]} />
+            )}
+            {cofounderBoardMembers.map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+            {regularBoardMembers.sort(byLastName).map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+        </>
+    );
 };
 
-const TeamMembersPage = () => {
-  const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
-  const [teamBoardMembers, setTeamBoardMembers] = useState([]);
-  const [error, setError] = useState(null);
+const TeamMembersPage = memo(() => {
+    const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
+    const [teamBoardMembers, setTeamBoardMembers] = useState([]);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchTeamMembersJSON = async () => {
-      const query = `
+    useEffect(() => {
+        const fetchTeamMembersJSON = async () => {
+            const query = `
         query {
           teamMembers(pagination: { limit: -1 }) {
             data {
@@ -2790,108 +2785,115 @@ const TeamMembersPage = () => {
           }
         }
         `;
-      try {
-        const response = await fetch(STRAPI_INSTANCE + "/graphql", {
-          method: "POST",
-          mode: "cors",
-          cache: "no-cache",
-          credentials: "omit",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          redirect: "follow",
-          referrerPolicy: "no-referrer",
-          body: JSON.stringify({ query }),
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        throw error;
-      }
-    };
+            try {
+                const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                    method: "POST",
+                    mode: "cors",
+                    cache: "no-cache",
+                    credentials: "omit",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    redirect: "follow",
+                    referrerPolicy: "no-referrer",
+                    body: JSON.stringify({ query }),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.statusText}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        };
 
-    const loadTeamMembers = async () => {
-      if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
-        try {
-          const teamMembersData = await fetchTeamMembersJSON();
+        const loadTeamMembers = async () => {
+            if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+                try {
+                    const teamMembersData = await fetchTeamMembersJSON();
 
-          const teamMembersFromStrapi =
-            teamMembersData.data.teamMembers.data.map((teamMember) => {
-              const heLocalization =
-                teamMember.attributes.localizations.data[0];
+                    const teamMembersFromStrapi =
+                        teamMembersData.data.teamMembers.data.map(
+                            (teamMember) => {
+                                const heLocalization =
+                                    teamMember.attributes.localizations.data[0];
 
-              return {
-                id: teamMember.id,
-                isTeamBoardMember: teamMember.attributes.isTeamBoardMember,
-                teamMemberImage:
-                  teamMember.attributes.teamMemberImage?.data?.attributes?.url,
-                teamMemberDetails: {
-                  teamName: {
-                    en: teamMember.attributes.teamName,
-                    he: heLocalization.attributes.teamName,
-                  },
-                  teamTitle: {
-                    en: teamMember.attributes.teamTitle,
-                    he: heLocalization.attributes.teamTitle,
-                  },
-                },
-              };
-            });
+                                return {
+                                    id: teamMember.id,
+                                    isTeamBoardMember:
+                                        teamMember.attributes.isTeamBoardMember,
+                                    teamMemberImage:
+                                        teamMember.attributes.teamMemberImage
+                                            ?.data?.attributes?.url,
+                                    teamMemberDetails: {
+                                        teamName: {
+                                            en: teamMember.attributes.teamName,
+                                            he: heLocalization.attributes
+                                                .teamName,
+                                        },
+                                        teamTitle: {
+                                            en: teamMember.attributes.teamTitle,
+                                            he: heLocalization.attributes
+                                                .teamTitle,
+                                        },
+                                    },
+                                };
+                            }
+                        );
 
-          const [ordinaryMembers, boardMembers] = partition(
-            teamMembersFromStrapi,
-            (teamMember) => !teamMember.isTeamBoardMember
-          );
+                    const [ordinaryMembers, boardMembers] = partition(
+                        teamMembersFromStrapi,
+                        (teamMember) => !teamMember.isTeamBoardMember
+                    );
 
-          setOrdinaryTeamMembers(ordinaryMembers);
-          setTeamBoardMembers(boardMembers);
-        } catch (error) {
-          console.error("Fetch error:", error);
-          setError("Error: Sefaria's CMS cannot be reached");
-        }
-      } else {
-        setError("Error: Sefaria's CMS cannot be reached");
-      }
-    };
+                    setOrdinaryTeamMembers(ordinaryMembers);
+                    setTeamBoardMembers(boardMembers);
+                } catch (error) {
+                    console.error("Fetch error:", error);
+                    setError("Error: Sefaria's CMS cannot be reached");
+                }
+            } else {
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        };
 
-    loadTeamMembers();
-  }, []);
+        loadTeamMembers();
+    }, []);
 
-  return (
-    <div>
-      {error ? (
-        <h1>{error}</h1>
-      ) : (
-        <>
-          <section className="main-text team-members">
-            <TeamMembers teamMembers={ordinaryTeamMembers.sort(byLastName)} />
-            <Placeholders
-              teamMembersCount={ordinaryTeamMembers.length}
-              cls="teamMember"
-            />
-          </section>
-          <header>
-            <h2>
-                <span class="int-en">BOARD OF DIRECTORS</span>
-                <span class="int-he">מועצת המנהלים</span>
-            </h2>
-          </header>
-          <section className="main-text board-members">
-            <BoardMembers boardMembers={teamBoardMembers} />
-            <Placeholders
-              teamMembersCount={teamBoardMembers.length}
-              cls="teamBoardMember"
-            />
-          </section>
-        </>
-      )}
-    </div>
-  );
-};
-
+    return (
+        <div>
+            {error ? (
+                <h1>{error}</h1>
+            ) : (
+                <>
+                    <section className="main-text team-members">
+                        <TeamMembers
+                            teamMembers={ordinaryTeamMembers.sort(byLastName)}
+                        />
+                        <Placeholders
+                            teamMembersCount={ordinaryTeamMembers.length}
+                            cls="teamMember"
+                        />
+                    </section>
+                    <header>
+                        <h2>
+                            <span class="int-en">BOARD OF DIRECTORS</span>
+                            <span class="int-he">מועצת המנהלים</span>
+                        </h2>
+                    </header>
+                    <section className="main-text board-members">
+                        <BoardMembers boardMembers={teamBoardMembers} />
+                        <Placeholders
+                            teamMembersCount={teamBoardMembers.length}
+                            cls="teamBoardMember"
+                        />
+                    </section>
+                </>
+            )}
+        </div>
+    );
+});
 
 export {
     RemoteLearningPage,
@@ -2905,5 +2907,5 @@ export {
     RabbisPage,
     DonatePage,
     WordByWordPage,
-    TeamMembersPage
-}
+    TeamMembersPage,
+};
