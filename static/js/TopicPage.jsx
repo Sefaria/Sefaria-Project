@@ -435,6 +435,27 @@ const useTabDisplayData = (translationLanguagePreference) => {
   return getTabDisplayData();
 };
 
+const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
+   const portalModuleTypeMap = {
+    "about": "PortalAbout",
+    "mobile": "PortalMobile",
+    "organization": "PortalOrganization",
+    "newsletter": "PortalNewsletter"
+    }
+    const modules = [];
+    for (let key of entriesToDisplayList) {
+        if (!portal[key]) { continue; }
+        modules.push({
+            type: portalModuleTypeMap[key],
+            props: portal[key],
+        });
+    }
+    console.log(modules)
+    return(
+        <NavSidebar modules={modules} />
+    )
+};
+
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
@@ -519,20 +540,7 @@ const TopicPage = ({
         if (topicData.portal_slug) {
             Sefaria.getPortal(topicData.portal_slug).then(setPortal);
             if (portal) {
-                const portalModuleTypeMap = {
-                    "about": "PortalAbout",
-                    "mobile": "PortalMobile",
-                    "newsletter": "PortalNewsletter",
-                }
-                const modules = [];
-                for (let [key, value] of Object.entries(portal)) {
-                    if (!portalModuleTypeMap[key]) { continue; }
-                    modules.push({
-                        type: portalModuleTypeMap[key],
-                        props: value,
-                    });
-                }
-                sidebar = <NavSidebar modules={modules} />;
+                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about", "mobile", "organization", "newsletter"]}/>
             }
         } else {
            sidebar = (
