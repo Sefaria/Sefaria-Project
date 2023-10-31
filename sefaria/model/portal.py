@@ -61,7 +61,8 @@ class Portal(abst.SluggedAbstractMongoRecord):
     ]
     optional_attrs = [
         "mobile",
-        'newsletter',
+        "newsletter",
+        "organization"
     ]
 
     def _validate(self):
@@ -80,6 +81,11 @@ class Portal(abst.SluggedAbstractMongoRecord):
             "description": ({"en": (str, "optional"), "he": (str, "optional")}, "optional"),
             "android_link": (str, "optional"),
             "ios_link": (str, "optional")
+        }
+
+        organization_schema = {
+            "title": ({"en": (str, "required"), "he": (str, "required")}, "required"),
+            "description": ({"en": (str, "required"), "he": (str, "required")}, "optional"),
         }
 
         newsletter_schema = {
@@ -104,6 +110,8 @@ class Portal(abst.SluggedAbstractMongoRecord):
             ios_link = self.mobile.get("ios_link")
             if ios_link:
                 validate_url(ios_link)
+        if hasattr(self, "organization"):
+            abst.validate_dictionary(self.organization, organization_schema)
         if hasattr(self, "newsletter"):
             abst.validate_dictionary(self.newsletter, newsletter_schema)
             title_url = self.newsletter.get("title_url")
