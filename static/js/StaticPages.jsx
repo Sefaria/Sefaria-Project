@@ -2640,10 +2640,13 @@ const ConditionalLink = ({ link, children }) =>
 * Team Page
 */
 
-const byLastName = (a, b) => {
-    const lastNameA = a.teamMemberDetails.teamName.en.split(" ").pop();
-    const lastNameB = b.teamMemberDetails.teamName.en.split(" ").pop();
-    return lastNameA.localeCompare(lastNameB);
+const byLastName = () => {
+    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    return (a, b) => {
+        const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
+        const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
+        return lastNameA.localeCompare(lastNameB, locale);
+    };
 };
 
 const partition = (arr, prop) =>
@@ -2741,7 +2744,7 @@ const BoardMembers = ({ boardMembers }) => {
             {cofounderBoardMembers.map((boardMember) => (
                 <BoardMember key={boardMember.id} boardMember={boardMember} />
             ))}
-            {regularBoardMembers.sort(byLastName).map((boardMember) => (
+            {regularBoardMembers.sort(byLastName()).map((boardMember) => (
                 <BoardMember key={boardMember.id} boardMember={boardMember} />
             ))}
         </>
@@ -2869,7 +2872,7 @@ const TeamMembersPage = memo(() => {
                 <>
                     <section className="main-text team-members">
                         <TeamMembers
-                            teamMembers={ordinaryTeamMembers.sort(byLastName)}
+                            teamMembers={ordinaryTeamMembers.sort(byLastName())}
                         />
                         <Placeholders
                             teamMembersCount={ordinaryTeamMembers.length}
