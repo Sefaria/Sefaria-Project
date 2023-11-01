@@ -1944,7 +1944,7 @@ _media: {},
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
   repairCaseVariant: function(query, data) {
-    // Used by isACaseVariant() to prepare the alternative
+    // Used when isACaseVariant() is true to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
   titleCaseExceptStopWords: function(str) {
