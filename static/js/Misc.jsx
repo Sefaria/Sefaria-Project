@@ -111,13 +111,13 @@ function he2tib(input, lang){
    output = output.replace("סה", "༦༥");
    output = output.replace("סו", "༦༦");
    output = output.replace("סז", "༦༧");
-  if (input.length === 1) {
+  /*if (input.length === 1) {
       output = output.replace("י","༡༠");
   }
   else {
       output = output.replace("י","༠");
 
-  }
+  }*/
   return output
 }
 /*
