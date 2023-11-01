@@ -1944,7 +1944,7 @@ _media: {},
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
   repairCaseVariant: function(query, data) {
-    // Used by getCaseVariants() to prepare the alternative
+    // Used by isACaseVariant() to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
   titleCaseExceptStopWords: function(str) {
@@ -1965,6 +1965,20 @@ _media: {},
     }
     return result.join(' ');
     },
+  repairGershayimVariant: function(query, data) {
+    if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
+      function normalize_gershayim(string) {
+          return string.replace('״', '"');
+      }
+      const normalized_query = normalize_gershayim(query);
+      for (let c of data.completions) {
+          if (normalize_gershayim(c) === normalized_query) {
+              return c;
+          }
+      }
+    }
+    return query;
+  },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data

@@ -67,7 +67,8 @@ data:
     sleep 2
     done
 
-    until mongodump --uri="$URI" -v -d $DATABASE --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links --excludeCollection=user_history -o "${DATADIR}/dump"
+    until mongodump --uri="$URI" -v -d $DATABASE --excludeCollection=history --excludeCollection=texts --excludeCollection=sheets --excludeCollection=links 
+    --excludeCollection=django_cache  --excludeCollection=user_history -o "${DATADIR}/dump"
     do
     echo "trying to dump other stuff again"
     sleep 2
