@@ -2878,8 +2878,8 @@ const TeamMembersPage = memo(() => {
                     </section>
                     <header>
                         <h2>
-                            <span class="int-en">BOARD OF DIRECTORS</span>
-                            <span class="int-he">מועצת המנהלים</span>
+                            <span className="int-en">BOARD OF DIRECTORS</span>
+                            <span className="int-he">מועצת המנהלים</span>
                         </h2>
                     </header>
                     <section className="main-text board-members">
