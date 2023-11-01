@@ -1944,9 +1944,27 @@ _media: {},
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
   repairCaseVariant: function(query, data) {
-    // Used when isACaseVariant() is true to prepare the alternative
+    // Used by getCaseVariants() to prepare the alternative
     return data["completions"][0] + query.slice(data["completions"][0].length);
   },
+  titleCaseExceptStopWords: function(str) {
+    const stopWords = ["and", "or", "the", "a", "in", "an", "is", "of", "for"];
+    let result = [];
+    if (str[0] === ' ') {
+        result.push("");
+        str = str.trim();
+    }
+    const words = str.split(' ');
+    for (let i = 0; i < words.length; i++) {
+        // title case each word except for stop words.
+        if (stopWords.includes(words[i])) {
+            result.push(words[i].replace(words[i][0], words[i][0].toLowerCase()));
+        } else {
+            result.push(words[i].replace(words[i][0], words[i][0].toUpperCase()));
+        }
+    }
+    return result.join(' ');
+    },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data
