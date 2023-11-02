@@ -4,7 +4,7 @@ from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.timeperiod import TimePeriod
+from sefaria.model.timeperiod import PersonTimePeriod
 from sefaria.system.database import db
 import structlog, bleach
 from sefaria.model.place import Place
@@ -438,23 +438,28 @@ class PersonTopic(Topic):
     
     # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
     # They may also have none of these...
-    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+    def most_accurate_time_period(self) -> Optional[PersonTimePeriod]:
         if self.get_property("birthYear") and self.get_property("deathYear"):
-            return TimePeriod({
+            return PersonTimePeriod({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
                 "end": self.get_property("deathYear"),
                 "endIsApprox": self.get_property("deathYearIsApprox", False)
             })
         elif self.get_property("birthYear") and self.get_property("era", "CO"):
-            return TimePeriod({
+            return PersonTimePeriod({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
             })
+        elif self.get_property("deathYear"):
+            return PersonTimePeriod({
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
         elif self.get_property("generation"):
-            return TimePeriod().load({"symbol": self.get_property("generation")})
+            return PersonTimePeriod().load({"symbol": self.get_property("generation")})
         elif self.get_property("era"):
-            return TimePeriod().load({"symbol": self.get_property("era")})
+            return PersonTimePeriod().load({"symbol": self.get_property("era")})
         else:
             return None
 
