@@ -320,7 +320,7 @@ class RawNamedEntity(abst.Cloneable):
         """
         Remap self.span to new indices
         """
-        self.span = new_doc.char_span(*new_indices)
+        self.span = new_doc.char_span(*new_indices, alignment_mode='expand')
         if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
 
     @property
