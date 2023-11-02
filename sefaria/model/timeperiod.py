@@ -144,7 +144,7 @@ class TimePeriod(abst.AbstractMongoRecord):
 
             if lang == "en":
                 if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
-                    name += " ({}{} {} - )".format(
+                    name += " ({}{} {} – )".format(
                         approxMarker[0],
                         abs(int(self.start)),
                         labels[1])
@@ -155,7 +155,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                         abs(int(self.start)),
                         labels[1])
                 else:
-                    name += " ({}{} {} - {}{} {})".format(
+                    name += " ({}{} {} – {}{} {})".format(
                         approxMarker[0],
                         abs(int(self.start)),
                         labels[0],
@@ -164,7 +164,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                         labels[1])
             if lang == "he":
                 if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
-                    name += " ({} {} {} - )".format(
+                    name += " ({} {} {} – )".format(
                         abs(int(self.start)),
                         labels[1],
                         approxMarker[0])
@@ -177,7 +177,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                 else:
                     both_approx = approxMarker[0] and approxMarker[1]
                     if both_approx:
-                        name += " ({}{} - {}{} {})".format(
+                        name += " ({}{} – {}{} {})".format(
                             abs(int(self.start)),
                             " " + labels[0] if labels[0] else "",
                             abs(int(self.end)),
@@ -185,7 +185,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                             approxMarker[1]
                         )
                     else:
-                        name += " ({}{}{} - {}{}{})".format(
+                        name += " ({}{}{} – {}{}{})".format(
                             abs(int(self.start)),
                             " " + labels[0] if labels[0] else "",
                             " " + approxMarker[0] if approxMarker[0] else "",
