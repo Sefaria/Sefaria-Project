@@ -461,6 +461,6 @@ class RawRef(RawNamedEntity):
         start_char, _ = self.char_indices
         doc_span = self.span.as_doc()
         for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
-            part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices])
+            part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices], alignment_mode='expand')
             if part.span is None:
                 raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}.")
