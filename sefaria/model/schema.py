@@ -2075,7 +2075,7 @@ class AddressType(object):
     def stop_parsing(self, lang):
         """
         If this is true, the regular expression will stop parsing at this address level for this language.
-        It is currently checked for only in the first address position, and is used for Hebrew Talmud addresses.
+        It is currently checked for only in the first address position, and is used for Hebrew Folio addresses (since Folios are just in alt_structs maybe it hos no effect)_.
         :param lang: "en" or "he"
         :return bool:
         """
