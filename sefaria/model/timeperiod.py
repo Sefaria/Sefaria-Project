@@ -241,7 +241,7 @@ class TimePeriodSet(abst.AbstractMongoSet):
         arg = {"$in": ["Generation", "Two Generations"]} if include_doubles else "Generation"
         return TimePeriodSet._get_typed_set(arg)
 
-class PersonTimePeriod(TimePeriod):
+class LifePeriod(TimePeriod):
 
     def period_string(self, lang):
 
