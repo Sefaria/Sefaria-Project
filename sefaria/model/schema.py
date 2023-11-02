@@ -2351,11 +2351,6 @@ class AddressTalmud(AddressType):
 
         return reg
 
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
-
     def toNumber(self, lang, s, **kwargs):
         amud_b_list = ['b', 'B', 'ᵇ']
         if lang == "en":
