@@ -5609,19 +5609,14 @@ class Library(object):
 
     def build_named_entity_resolver(self, lang: str):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
-        from .topic import Topic
 
-        ontology_roots_to_named_entity_types = {
-            "people": "PERSON",
-            "group-of-people": "GROUP",
+        named_entity_types_to_topics = {
+            "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
+            "GROUP": {'ontology_roots': ["group-of-people"]},
         }
-        yo = Topic.init('people').topics_by_link_type_recursively()
         self._named_entity_resolver_by_lang[lang] = NamedEntityResolver(
             self._build_named_entity_recognizer(lang),
-            TopicMatcher(lang, {
-                named_entity_type: Topic.init(ontology_root).topics_by_link_type_recursively()
-                for ontology_root, named_entity_type in ontology_roots_to_named_entity_types.items()
-            })
+            TopicMatcher(lang, named_entity_types_to_topics)
         )
         return self._named_entity_resolver_by_lang[lang]
 
