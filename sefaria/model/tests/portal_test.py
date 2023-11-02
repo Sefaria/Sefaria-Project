@@ -32,7 +32,6 @@ valids = [
                 "en": "Newsletter Title",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -102,7 +101,6 @@ valids = [
                 "en": "Newsletter Title",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -190,7 +188,6 @@ valids = [
                 "en": "Newsletter Title",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -325,7 +322,6 @@ invalids = [
                 "en": "Newsletter Title",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -367,7 +363,6 @@ invalids = [
                 "fr": "Titre de la newsletter",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -390,7 +385,6 @@ invalids = [
                 "en": "English Title",
                 "he": "Hebrew Title"
             },
-            "title_url": "https://example.com",
             "image_uri": "gs://your-bucket/image.jpg",
             "description": {
                 "en": "English Description",
@@ -410,7 +404,6 @@ invalids = [
                 "en": "Newsletter Title",
                 "he": "Newsletter Hebrew Title"
             },
-            "title_url": "https://newsletter-url.com",
             "description": {
                 "en": "Newsletter English Description",
                 "he": "Newsletter Hebrew Description"
@@ -433,7 +426,6 @@ invalids = [
                 "en": "About Us",
                 "he": "עלינו"
             },
-            "title_url": 12345,
             "image_uri": 67890,
             "description": {
                 "en": "Description in English",

@@ -833,9 +833,8 @@ const PortalOrganization = ({title, description}) => {
 };
 
 
-const PortalNewsletter = ({title, title_url, description}) => {
+const PortalNewsletter = ({title, description}) => {
     let titleElement = <ModuleTitle en={title.en} he={title.he} />;
-    if (title_url) { titleElement = <a href={title_url}>{titleElement}</a>; }
 
     return(
         <Module>

@@ -90,7 +90,6 @@ class Portal(abst.SluggedAbstractMongoRecord):
 
         newsletter_schema = {
             "title": ({"en": (str, "required"), "he": (str, "required")}, "required"),
-            "title_url": (str, "optional"),
             "description": ({"en": (str, "required"), "he": (str, "required")}, "optional"),
             "api_schema": ({"http_method": (str, "required"),
                             "payload": ({"first_name_key": (str, "optional"), "last_name_key": (str, "optional"), "email_key": (str, "optional")}, "optional")}
@@ -114,9 +113,6 @@ class Portal(abst.SluggedAbstractMongoRecord):
             abst.validate_dictionary(self.organization, organization_schema)
         if hasattr(self, "newsletter"):
             abst.validate_dictionary(self.newsletter, newsletter_schema)
-            title_url = self.newsletter.get("title_url")
-            if title_url:
-                validate_url(title_url)
             http_method = self.newsletter.get("api_schema", {}).get("http_method")
             if http_method:
                 validate_http_method(http_method)
