@@ -254,7 +254,9 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve_refs(self, book_context_refs: List[Optional[text.Ref]], input: List[str], with_failures=False, verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+    def bulk_resolve(self, input: List[str], book_context_refs: Optional[List[Optional[text.Ref]]] = None, with_failures=False,
+                     verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) \
+            -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
         """
         Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
         @param book_context_refs:
@@ -269,6 +271,7 @@ class RefResolver:
         self.reset_ibid_history()
         all_raw_refs = self._named_entity_recognizer.bulk_get_raw_refs(input)
         resolved = []
+        book_context_refs = book_context_refs or [None]*len(all_raw_refs)
         iter = zip(book_context_refs, all_raw_refs)
         if verbose:
             iter = tqdm(iter, total=len(book_context_refs))

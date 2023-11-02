@@ -265,7 +265,7 @@ class TestResolveRawRef:
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
     ref_resolver = library.get_ref_resolver(lang)
-    resolved = ref_resolver.bulk_resolve_refs([context_oref], [input_str])[0]
+    resolved = ref_resolver.bulk_resolve([input_str], [context_oref])[0]
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):

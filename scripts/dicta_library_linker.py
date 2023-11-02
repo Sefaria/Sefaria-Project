@@ -17,7 +17,7 @@ def run_on_page(path, tref):
     text = get_text(jin)
     #text = """וכן כתב הרמב"ם ז"ל בהלכות טוען ונטען פ"ב"""
     ref_resolver = library.get_ref_resolver()
-    resolved = ref_resolver.bulk_resolve_refs("he", [None], [text], with_failures=True)
+    resolved = ref_resolver.bulk_resolve("he", [None], [text], with_failures=True)
     make_html([resolved], [[text]], f"../data/private/linker_results/{tref}.html")
 
 

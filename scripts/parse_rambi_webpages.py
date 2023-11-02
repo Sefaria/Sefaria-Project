@@ -62,7 +62,7 @@ class Record():
             string = translliterate_russian_to_latin(string)
         ref_resolver = library.get_ref_resolver()
         if lang == 'he':  # remove this line when linker v3 is availabe in English
-            refs = ref_resolver.bulk_resolve_refs(lang, [None], [string])
+            refs = ref_resolver.bulk_resolve(lang, [None], [string])
             refs = {y.ref for x in refs for y in x if type(y) != AmbiguousResolvedRef}
         else:  # remove else statement (with its content) when linker v3 is availabe in English
             refs = set()
