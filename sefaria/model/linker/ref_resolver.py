@@ -172,6 +172,9 @@ class AmbiguousResolvedRef:
         return self.resolved_raw_refs[0].pretty_text
 
 
+PossiblyAmbigResolvedRef = Union[ResolvedRef, AmbiguousResolvedRef]
+
+
 class TermMatcher:
     """
     Used to match raw ref parts to non-unique terms naively.
@@ -256,7 +259,7 @@ class RefResolver:
 
     def bulk_resolve(self, input: List[str], book_context_refs: Optional[List[Optional[text.Ref]]] = None, with_failures=False,
                      verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) \
-            -> List[List[Union[ResolvedRef, AmbiguousResolvedRef]]]:
+            -> List[List[PossiblyAmbigResolvedRef]]:
         """
         Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
         @param book_context_refs:
@@ -280,22 +283,29 @@ class RefResolver:
                 self.reset_ibid_history()
             inner_resolved = []
             for raw_ref in raw_refs:
-                temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
-                if len(temp_resolved) == 0:
-                    self.reset_ibid_history()
-                    if with_failures:
-                        inner_resolved += [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
-                elif any(r.is_ambiguous for r in temp_resolved):
-                    # can't be sure about future ibid inferences
-                    # TODO can probably salvage parts of history if matches are ambiguous within one book
-                    self.reset_ibid_history()
-                else:
-                    self._ibid_history.last_refs = temp_resolved[-1].ref
+                temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
                 inner_resolved += temp_resolved
             resolved += [inner_resolved]
         raw_ref_list_list = [[rr.raw_ref for rr in inner_resolved] for inner_resolved in resolved]
         self._named_entity_recognizer.bulk_map_normal_output_to_original_input(input, raw_ref_list_list)
         return resolved
+
+    def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:
+        temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
+        self._update_ibid_history(temp_resolved)
+        if len(temp_resolved) == 0 and with_failures:
+            return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
+        return temp_resolved
+
+    def _update_ibid_history(self, temp_resolved: List[PossiblyAmbigResolvedRef]):
+        if len(temp_resolved) == 0:
+            self.reset_ibid_history()
+        elif any(r.is_ambiguous for r in temp_resolved):
+            # can't be sure about future ibid inferences
+            # TODO can probably salvage parts of history if matches are ambiguous within one book
+            self.reset_ibid_history()
+        else:
+            self._ibid_history.last_refs = temp_resolved[-1].ref
 
     def get_ner(self) -> NamedEntityRecognizer:
         return self._named_entity_recognizer
@@ -331,7 +341,7 @@ class RefResolver:
     def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
         self._thoroughness = thoroughness
 
-    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[Union[ResolvedRef, AmbiguousResolvedRef]]:
+    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> List[PossiblyAmbigResolvedRef]:
         split_raw_refs = self.split_non_cts_parts(raw_ref)
         resolved_list = []
         for i, temp_raw_ref in enumerate(split_raw_refs):
