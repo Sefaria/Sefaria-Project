@@ -465,9 +465,15 @@ class PersonTopic(Topic):
             return None
 
     def most_accurate_time_period(self):
+        '''
+        :return: most accurate period as TimePeriod (used when a person's LifePeriod is using as a a general TimePeriod)
+        '''
         return self._most_accurate_period(TimePeriod)
 
     def most_accurate_life_period(self):
+        '''
+        :return: most accurate period as LifePeriod. currently the difference from TimePeriod is only the string
+        '''
         return self._most_accurate_period(LifePeriod)
 
 class AuthorTopic(PersonTopic):
