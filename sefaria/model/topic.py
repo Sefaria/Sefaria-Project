@@ -9,6 +9,7 @@ from sefaria.system.database import db
 import structlog, bleach
 from sefaria.model.place import Place
 import regex as re
+from typing import Type
 logger = structlog.get_logger(__name__)
 
 
@@ -438,28 +439,28 @@ class PersonTopic(Topic):
     
     # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
     # They may also have none of these...
-    def _most_accurate_period(self, obj) -> Optional[LifePeriod]:
+    def _most_accurate_period(self, time_period_class: Type[TimePeriod]) -> Optional[LifePeriod]:
         if self.get_property("birthYear") and self.get_property("deathYear"):
-            return obj({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
                 "end": self.get_property("deathYear"),
                 "endIsApprox": self.get_property("deathYearIsApprox", False)
             })
         elif self.get_property("birthYear") and self.get_property("era", "CO"):
-            return obj({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
             })
         elif self.get_property("deathYear"):
-            return obj({
+            return time_period_class({
                 "end": self.get_property("deathYear"),
                 "endIsApprox": self.get_property("deathYearIsApprox", False)
             })
         elif self.get_property("generation"):
-            return obj().load({"symbol": self.get_property("generation")})
+            return time_period_class().load({"symbol": self.get_property("generation")})
         elif self.get_property("era"):
-            return obj().load({"symbol": self.get_property("era")})
+            return time_period_class().load({"symbol": self.get_property("era")})
         else:
             return None
 
