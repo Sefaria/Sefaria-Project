@@ -472,7 +472,7 @@ class PersonTopic(Topic):
 
     def most_accurate_life_period(self):
         '''
-        :return: most accurate period as LifePeriod. currently the difference from TimePeriod is only the string
+        :return: most accurate period as LifePeriod. currently the only difference from TimePeriod is the way the time period is formatted as a string.
         '''
         return self._most_accurate_period(LifePeriod)
 
