@@ -1046,8 +1046,9 @@ def update_topic_titles(topic_obj, data):
     for lang in ['en', 'he']:
         for title in topic_obj.get_titles(lang):
             topic_obj.remove_title(title, lang)
-        for title in data['altTitles'][lang]:
-            topic_obj.add_title(title, lang)
+        if 'altTitles' in data:
+            for title in data['altTitles'][lang]:
+                topic_obj.add_title(title, lang)
 
     topic_obj.add_title(data['title'], 'en', True, True)
     topic_obj.add_title(data['heTitle'], 'he', True, True)
@@ -1099,7 +1100,7 @@ def update_topic(topic_obj, **kwargs):
     if kwargs.get('category') == 'authors':
         topic_obj = update_authors_place_and_time(topic_obj, kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs['origCategory']:
+    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
         orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:

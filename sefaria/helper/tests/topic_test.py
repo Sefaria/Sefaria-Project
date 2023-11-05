@@ -83,31 +83,36 @@ def child_of_root_wout_self_link(root_wout_self_link):
 
 def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	for t in [root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]:
-		new_values = {"title": "new title", "heTitle": "new hebrew title", "description": {"en": "desc", "he": "hebrew desc"}}
+		new_values = {"title": "new title",
+					  "altTitles": {"en": ["New Alt title 1"], "he": ["New He Alt Title 1"]},
+					  "heTitle": "new hebrew title", "description": {"en": "new desc", "he": "new hebrew desc"}}
 		update_topic(t["topic"], **new_values)
+		t["topic"] = Topic.init(t["topic"].slug)
 		assert t["topic"].description == new_values["description"]
-		assert t["topic"].get_primary_title('en') == new_values['title']
 		assert t["topic"].get_primary_title('he') == new_values['heTitle']
+		assert t["topic"].get_titles('en') == ['New Alt title 1', 'new title']
 
 
 def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):
 	# tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
 	# and assert that moving it back to the root position yields the original tree.
-	# also tests
-
 	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	orig_trees = [orig_tree_from_normal_root, orig_tree_from_root_with_self_link]
 	roots = [root_wout_self_link["topic"], root_with_self_link["topic"]]
 	orig_titles = [roots[0].get_primary_title('en'), roots[1].get_primary_title('en')]
+	orig_he_titles = [roots[0].get_primary_title('he'), roots[1].get_primary_title('he')]
 	for i, root in enumerate(roots):
 		other_root = roots[1 - i]
-		update_topic(root, title=f"fake new title {i+1}", category=other_root.slug)  # move root to be child of other root
+		update_topic(root, title=f"fake new title {i+1}", heTitle=f"fake new he title {i+1}", category=other_root.slug)  # move root to be child of other root
 		new_tree = library.get_topic_toc_json_recursive(other_root)
 		assert new_tree != orig_trees[i]  # assert that the changes in the tree have occurred
-		assert root.get_primary_title('en') != orig_titles[i]
-		update_topic(root, title=orig_titles[i], category=Topic.ROOT)  # move it back to the main menu
-		assert root.get_primary_title('en') == orig_titles[i]
+		assert root.get_titles('en') != [orig_titles[i]]
+		assert root.get_titles('he') != [orig_he_titles[i]]
+		update_topic(root, title=orig_titles[i], heTitle=orig_he_titles[i], category=Topic.ROOT)  # move it back to the main menu
+		assert root.get_titles('en') == [orig_titles[i]]
+		assert root.get_titles('he') == [orig_he_titles[i]]
+
 
 	final_tree_from_normal_root = library.get_topic_toc_json_recursive(roots[0])
 	final_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(roots[1])
