@@ -82,15 +82,14 @@ def child_of_root_wout_self_link(root_wout_self_link):
 
 
 def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
-	for t in [root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]:
-		new_values = {"title": "new title",
-					  "altTitles": {"en": ["New Alt title 1"], "he": ["New He Alt Title 1"]},
-					  "heTitle": "new hebrew title", "description": {"en": "new desc", "he": "new hebrew desc"}}
+	for count, t in enumerate([root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]):
+		new_values = {"title": f"new title {count+1}",
+					  "altTitles": {"en": [f"New Alt title {count+1}"], "he": [f"New He Alt Title {count+1}"]},
+					  "heTitle": f"new hebrew title {count+1}", "description": {"en": f"new desc", "he": "new hebrew desc"}}
 		update_topic(t["topic"], **new_values)
-		t["topic"] = Topic.init(t["topic"].slug)
 		assert t["topic"].description == new_values["description"]
 		assert t["topic"].get_primary_title('he') == new_values['heTitle']
-		assert t["topic"].get_titles('en') == ['New Alt title 1', 'new title']
+		assert t["topic"].get_titles('en') == [new_values["title"]]+new_values["altTitles"]['en']
 
 
 def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):

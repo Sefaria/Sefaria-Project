@@ -1043,15 +1043,16 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
     return topic_obj
 
 def update_topic_titles(topic_obj, data):
-    for lang in ['en', 'he']:
+    new_primary = {"en": data['title'], "he": data["heTitle"]}
+    for lang in ['en', 'he']:   # first add new primary titles then remove old alt titles and add new alt titles
+        topic_obj.add_title(new_primary[lang], lang, True, True)
         for title in topic_obj.get_titles(lang):
-            topic_obj.remove_title(title, lang)
+            if title != new_primary[lang]:
+                topic_obj.remove_title(title, lang)
         if 'altTitles' in data:
             for title in data['altTitles'][lang]:
                 topic_obj.add_title(title, lang)
 
-    topic_obj.add_title(data['title'], 'en', True, True)
-    topic_obj.add_title(data['heTitle'], 'he', True, True)
     return topic_obj
 
 
