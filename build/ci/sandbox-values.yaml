@@ -1,6 +1,8 @@
 sandbox: "true"
 contentSandbox: "true"
-deployEnv:  
+restore:
+  cleanup: false
+deployEnv:
 previousServicesCount: "1"
 web:
   containerImage: 
