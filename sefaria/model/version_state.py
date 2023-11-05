@@ -20,73 +20,42 @@ try:
 except ImportError:
     USE_VARNISH = False
 '''
-old count docs were:
-    c["allVersionCounts"]
-    c["availableTexts"] = {
-        "en":
-        "he":
-    }
-
-    c["availableCounts"] = {   #
-        "en":
-        "he":
-    }
-
-    c["percentAvailable"] = {
-        "he":
-        "en":
-    }
-
-    c["textComplete"] = {
-        "he":
-        "en"
-    }
-
-    c['estimatedCompleteness'] = {
-        "he": {
-            'estimatedPercent':
-            'availableSegmentCount':   # is availableCounts[-1]
-            'percentAvailableInvalid':
-            'percentAvailable':        # duplicate
-            'isSparse':
-        }
-        "en":
-    }
-
-
-and now self.content is:
-    {
-        "_en": {
-            "availableTexts":
-            "availableCounts":
-            "percentAvailable":
-            "textComplete":
-            'completenessPercent':
-            'percentAvailableInvalid':
-            'sparseness':  # was isSparse
-        }
-        "_he": ...
-        "_all" {
-            "availableTexts":
-            "shape":
-                For depth 1: Integer - length
-                For depth 2: List of chapter lengths
-                For depth 3: List of list of chapter lengths?
-        }
-    }
-
 '''
 
 
 class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     This model overrides default init/load/save behavior, since there is one and only one VersionState record for each Index record.
+
+    The `content` attribute is a dictionary which is the root of a tree, mirroring the shape of a Version, where the leaf nodes of the tree are dictionaries with a shape like the following::
+        {
+            "_en": {
+                "availableTexts":
+                "availableCounts":
+                "percentAvailable":
+                "textComplete":
+                'completenessPercent':
+                'percentAvailableInvalid':
+                'sparseness':  # was isSparse
+            }
+            "_he": ...
+            "_all" {
+                "availableTexts":
+                "shape":
+                    For depth 1: Integer - length
+                    For depth 2: List of chapter lengths
+                    For depth 3: List of list of chapter lengths?
+            }
+        }
+
+    For example, the `content` attribute for `Pesach Haggadah` will be a dictionary with keys: "Kadesh", "Urchatz", "Karpas" ... each with a value of a dictionary like the above.  They key "Magid" has a value of dictionary with keys "Ha Lachma Anya", etc.
+
     """
     collection = 'vstate'
 
     required_attrs = [
         "title",  # Index title
-        "content"  # tree of data about nodes
+        "content"  # tree of data about nodes.  See above.
     ]
     optional_attrs = [
         "flags",
