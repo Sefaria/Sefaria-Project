@@ -615,6 +615,7 @@ input.noselect {
   left: 0;
   z-index: 1000;
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   position: fixed; /*This takes the 60px of the header plus 120px of the banner into account */
