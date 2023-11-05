@@ -43,7 +43,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
-        "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        'image'
     ]
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
