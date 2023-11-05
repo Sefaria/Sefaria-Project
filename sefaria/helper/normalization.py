@@ -115,18 +115,21 @@ class AbstractNormalizer:
         return removal_map
 
     @staticmethod
-    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, reverse=False):
+    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, reverse=False, alignment_mode='contract'):
         """
         normalized_indices - list of tuples where each tuple is (x, y) x being start index, y is end index + 1
         removal_map - return value of get_mapping_after_normalization()
         reverse - if True, normalized_indices are actually unnormalized indices and removal_map was calculated using reverse=True in get_mapping_after_normalization()
+        alignment_mode - How to deal with cases where the end of a range touches a removal. Use "expand" if the removal should be included in the range. "contract" if it should be excluded.
         """
         removal_keys = sorted(removal_map.keys())
         unnormalized_indices = []
         sign = -1 if reverse else 1
         for start, end in normalized_indices:
             unnorm_start_index = bisect_right(removal_keys, start) - 1
-            unnorm_end_index = bisect_right(removal_keys, end) - 1
+
+            bisect_end_index = end if (start == end or alignment_mode == 'expand') else end - 1
+            unnorm_end_index = bisect_right(removal_keys, bisect_end_index) - 1
 
             unnorm_start = start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
             unnorm_end = end if unnorm_end_index < 0 else end + (sign * removal_map[removal_keys[unnorm_end_index]])
@@ -266,7 +269,7 @@ class NormalizerComposer(AbstractNormalizer):
             else:
                 text_to_remove_inds, text_to_remove_repls = zip(*curr_text_to_remove)
             for mapping in reversed(mappings):
-                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping)
+                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping, alignment_mode='expand')
             curr_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
 
             # merge any overlapping ranges
