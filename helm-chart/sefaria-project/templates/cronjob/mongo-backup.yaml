@@ -58,6 +58,8 @@ spec:
             command: ["bash"]
             args: ["-c", "/scripts/create-dumps.sh"]
             resources:
+              requests:
+                ephemeral-storage: 20Gi
               limits:
                 memory: "500Mi"
           containers:
