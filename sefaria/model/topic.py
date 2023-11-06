@@ -72,7 +72,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
 
-        Portal.validate_slug_exists(self.portal_slug)
+        if getattr(self, 'portal_slug', None):
+            Portal.validate_slug_exists(self.portal_slug)
 
     def _normalize(self):
         super()._normalize()
