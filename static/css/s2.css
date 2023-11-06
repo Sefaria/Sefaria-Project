@@ -4702,6 +4702,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   cursor: pointer;
 }
+.readerOptions .int-en {
+  font-size: 25px;
+  line-height: 63px;
+  margin-right: 8px;
+}
+.readerOptions .int-he {
+  font-size: 28px;
+  line-height: 67px;
+  margin-left: 6px;
+}
 .rightButtons .readerOptions {
   vertical-align: middle;
 }

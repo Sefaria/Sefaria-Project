@@ -1343,9 +1343,17 @@ class CloseButton extends Component {
 class DisplaySettingsButton extends Component {
   render() {
     var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
-      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
-      <span className="textIcon">Aa</span>;
+    var icon;
+
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+      icon =
+        <InterfaceText>
+        <EnglishText>A</EnglishText>
+        <HebrewText>א</HebrewText>
+        </InterfaceText>;
+    } else {
+      icon = <span className="textIcon">Aa</span>;
+    }
     return (<a
               className="readerOptions"
               tabIndex="0"
