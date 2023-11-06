@@ -9,9 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import Cookies from "js-cookie";
-import {useContext} from "react";
-import {ContentLanguageContext} from "../context";
+import Cookies from 'js-cookie';
 
 
 let Sefaria = Sefaria || {
@@ -569,64 +567,6 @@ Sefaria = extend(Sefaria, {
         });
     }
     return Promise.resolve(this._versions[ref]);
-  },
-  _portals: {},
-  getPortal: async function(portalSlug) {
-      const cachedPortal = Sefaria._portals[portalSlug];
-      if (cachedPortal) {
-          return cachedPortal;
-      }
-      const response = await this._ApiPromise(`${Sefaria.apiHost}/api/portals/${portalSlug}`);
-      Sefaria._portals[portalSlug] = response;
-      return response;
-  },
-  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
-    const response = await fetch(`/api/subscribe/${email}`,
-        {
-            method: "POST",
-            mode: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': Cookies.get('csrftoken'),
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-                educator: educatorCheck,
-                firstName: firstName,
-                lastName: lastName
-            })
-        }
-    );
-    if (!response.ok) { throw "error"; }
-    const json = await response.json();
-    if (json.error) { throw json; }
-    return json;
-  },
-  subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
-      const response = await fetch(`/api/subscribe/steinsaltz/${email}`,
-          {
-              method: "POST",
-              mode: 'same-origin',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': Cookies.get('csrftoken'),
-              },
-              credentials: 'same-origin',
-              body: JSON.stringify({firstName, lastName}),
-          }
-      );
-      if (!response.ok) { throw "error"; }
-      const json = await response.json();
-      if (json.error) { throw json; }
-      return json;
-  },
-  subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
-      const responses = await Promise.all([
-          Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),
-          Sefaria.subscribeSteinsaltzNewsletter(firstName, lastName, email),
-      ]);
-      return {status: "ok"};
   },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**

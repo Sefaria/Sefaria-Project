@@ -607,7 +607,7 @@ input.noselect {
 }
 .mobileNavMenu {
   position: fixed;
-  height: calc(100% - 60px);
+  height: calc(100vh - 60px);
   box-sizing: border-box;
   top: 60px;
   width: 100%;
@@ -616,6 +616,18 @@ input.noselect {
   z-index: 1000;
   overflow-y: scroll;
 }
+div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
+  position: fixed; /*This takes the 60px of the header plus 120px of the banner into account */
+  height: calc(100vh - 180px);
+  top: 180px;
+}
+@supports not selector(:has(a, b)) {
+  /* Fallback for when :has() is unsupported */
+  .mobileNavMenu {
+    position: absolute;
+  }
+}
+
 .mobileNavMenu.closed {
   display: none;
 }
