@@ -1,59 +1,7 @@
-# coding=utf-8
-from urllib.parse import urlparse
 from . import abstract as abst
-import urllib.parse
-from django.core.validators import URLValidator
-from django.core.exceptions import ValidationError
+from sefaria.system.validators import validate_dictionary, validate_url, validate_http_method
 import structlog
 logger = structlog.get_logger(__name__)
-
-
-class InvalidURLException(Exception):
-    def __init__(self, url):
-        self.url = url
-        self.message = f"'{url}' is not a valid URL."
-        super().__init__(self.message)
-
-
-def validate_url(url):
-    try:
-        # Attempt to parse the URL
-        validator = URLValidator()
-        validator(url)
-        return True
-
-    except ValidationError:
-        # URL parsing failed
-        raise InvalidURLException(url)
-
-
-class InvalidHTTPMethodException(Exception):
-    def __init__(self, method):
-        self.method = method
-        self.message = f"'{method}' is not a valid HTTP API method."
-        super().__init__(self.message)
-
-
-def validate_http_method(method):
-    """
-    Validate if a string represents a valid HTTP API method.
-
-    Args:
-        method (str): The HTTP method to validate.
-
-    Raises:
-        InvalidHTTPMethodException: If the method is not valid.
-
-    Returns:
-        bool: True if the method is valid, False otherwise.
-    """
-    valid_methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
-
-    # Convert the method to uppercase and check if it's in the list of valid methods
-    if method.upper() in valid_methods:
-        return True
-    else:
-        raise InvalidHTTPMethodException(method)
 
 
 class Portal(abst.SluggedAbstractMongoRecord):
@@ -102,15 +50,15 @@ class Portal(abst.SluggedAbstractMongoRecord):
                            , "optional")
         }
 
-        abst.validate_dictionary(self.name, {"en": (str, "required"), "he": (str, "required")})
+        validate_dictionary(self.name, {"en": (str, "required"), "he": (str, "required")})
 
         if hasattr(self, "about"):
-            abst.validate_dictionary(self.about, about_schema)
+            validate_dictionary(self.about, about_schema)
             title_url = self.about.get("title_url")
             if title_url:
                 validate_url(title_url)
         if hasattr(self, "mobile"):
-            abst.validate_dictionary(self.mobile, mobile_schema)
+            validate_dictionary(self.mobile, mobile_schema)
             android_link = self.mobile.get("android_link")
             if android_link:
                 validate_url(android_link)
@@ -118,9 +66,9 @@ class Portal(abst.SluggedAbstractMongoRecord):
             if ios_link:
                 validate_url(ios_link)
         if hasattr(self, "organization"):
-            abst.validate_dictionary(self.organization, organization_schema)
+            validate_dictionary(self.organization, organization_schema)
         if hasattr(self, "newsletter"):
-            abst.validate_dictionary(self.newsletter, newsletter_schema)
+            validate_dictionary(self.newsletter, newsletter_schema)
             http_method = self.newsletter.get("api_schema", {}).get("http_method")
             if http_method:
                 validate_http_method(http_method)

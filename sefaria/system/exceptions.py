@@ -56,9 +56,46 @@ class SheetNotFoundError(InputError):
 class ManuscriptError(Exception):
     pass
 
+
 class MissingKeyError(Exception):
     pass
 
 
 class SluggedMongoRecordMissingError(Exception):
     pass
+
+
+class SchemaValidationException(Exception):
+    def __init__(self, key, expected_type):
+        self.key = key
+        self.expected_type = expected_type
+        self.message = f"Invalid value for key '{key}'. Expected type: {expected_type}"
+        super().__init__(self.message)
+
+
+class SchemaRequiredFieldException(Exception):
+    def __init__(self, key):
+        self.key = key
+        self.message = f"Required field '{key}' is missing."
+        super().__init__(self.message)
+
+
+class SchemaInvalidKeyException(Exception):
+    def __init__(self, key):
+        self.key = key
+        self.message = f"Invalid key '{key}' found in data dictionary."
+        super().__init__(self.message)
+
+
+class InvalidURLException(Exception):
+    def __init__(self, url):
+        self.url = url
+        self.message = f"'{url}' is not a valid URL."
+        super().__init__(self.message)
+
+
+class InvalidHTTPMethodException(Exception):
+    def __init__(self, method):
+        self.method = method
+        self.message = f"'{method}' is not a valid HTTP API method."
+        super().__init__(self.message)
