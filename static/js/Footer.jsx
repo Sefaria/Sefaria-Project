@@ -73,8 +73,8 @@ class Footer extends Component {
             </Section>
 
             <Section en="Join Us" he="ང་ཚོར་མཉམ་ཞུགས་བྱོས།">
-                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"ཞལ་འདེབས།"}}/></DonateLink>
-                <Link href="/ways-to-give" en="Ways to Give" he="འབུལ་ཐབས།" />
+                {/*<DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"ཞལ་འདེབས།"}}/></DonateLink>
+                <Link href="/ways-to-give" en="Ways to Give" he="འབུལ་ཐབས།" />*/}
                 <Link href="/supporters" en="Supporters" he="རྒྱབ་སྐྱོར་བ་རྣམས།" />
                 <Link href="/jobs" en="Jobs" he="ལས་རིགས།" />
                 <Link href="https://store.sefaria.org" en="Shop" he="ཚོང་ཁང་" />
