@@ -14,6 +14,7 @@ class InvalidURLException(Exception):
         self.message = f"'{url}' is not a valid URL."
         super().__init__(self.message)
 
+
 def validate_url(url):
     try:
         # Attempt to parse the URL
@@ -24,11 +25,14 @@ def validate_url(url):
     except ValidationError:
         # URL parsing failed
         raise InvalidURLException(url)
+
+
 class InvalidHTTPMethodException(Exception):
     def __init__(self, method):
         self.method = method
         self.message = f"'{method}' is not a valid HTTP API method."
         super().__init__(self.message)
+
 
 def validate_http_method(method):
     """
@@ -50,6 +54,7 @@ def validate_http_method(method):
         return True
     else:
         raise InvalidHTTPMethodException(method)
+
 
 class Portal(abst.SluggedAbstractMongoRecord):
     collection = 'portals'
