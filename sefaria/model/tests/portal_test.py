@@ -7,6 +7,7 @@ from sefaria.system.database import db
 valids = [
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -48,6 +49,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -76,6 +78,7 @@ valids = [
     },
 {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -117,6 +120,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -141,6 +145,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -163,6 +168,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -204,6 +210,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -228,6 +235,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -258,6 +266,7 @@ valids = [
     },
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "About Us",
@@ -271,6 +280,7 @@ invalids = [
     # Missing "about" key
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "mobile": {
             "title": {
                 "en": "Mobile Title",
@@ -297,6 +307,7 @@ invalids = [
     # Invalid "about.title_url" (not a URL)
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -339,6 +350,7 @@ invalids = [
     # Including invalid field "newsletter.description.fr"
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -380,6 +392,7 @@ invalids = [
     # Invalid "newsletter.api_schema.http_method" (not a valid HTTP method)
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "English Title",
@@ -421,6 +434,7 @@ invalids = [
     # Invalid data types:
     {
         "slug": "English Title",
+        "name": {"en": "a", "he": "b"},
         "about": {
             "title": {
                 "en": "About Us",
@@ -436,6 +450,7 @@ invalids = [
 {
     # Incorrect field names
     "slug": "English Title",
+    "name": {"en": "a", "he": "b"},
     "about": {
         "title": {
             "en": "About Us",

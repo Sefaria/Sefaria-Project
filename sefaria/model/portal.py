@@ -63,6 +63,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
     required_attrs = [
         "slug",
         "about",
+        "name",
     ]
     optional_attrs = [
         "mobile",
@@ -100,6 +101,8 @@ class Portal(abst.SluggedAbstractMongoRecord):
                             "payload": ({"first_name_key": (str, "optional"), "last_name_key": (str, "optional"), "email_key": (str, "optional")}, "optional")}
                            , "optional")
         }
+
+        abst.validate_dictionary(self.name, {"en": (str, "required"), "he": (str, "required")})
 
         if hasattr(self, "about"):
             abst.validate_dictionary(self.about, about_schema)
