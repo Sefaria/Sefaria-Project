@@ -191,7 +191,7 @@ class TimePeriod(abst.AbstractMongoRecord):
                             approxMarker[1]
                         )
                     else:
-                        name += " ({}{}{} { {}{}{})".format(
+                        name += " ({}{}{} {} {}{}{})".format(
                             abs(int(self.start)),
                             " " + labels[0] if labels[0] else "",
                             " " + approxMarker[0] if approxMarker[0] else "",
