@@ -30,25 +30,28 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     The `content` attribute is a dictionary which is the root of a tree, mirroring the shape of a Version, where the leaf nodes of the tree are dictionaries with a shape like the following::
         {
             "_en": {
-                "availableTexts":
-                "availableCounts":
-                "percentAvailable":
-                "textComplete":
-                'completenessPercent':
-                'percentAvailableInvalid':
-                'sparseness':  # was isSparse
+                "availableTexts":  Mask of what texts are available in this language.  Boolean values (0 or 1) in the shape of the JaggedArray
+                "availableCounts":  Array, with length == depth of the node.  Each element is the number of available elements at that depth.  e.g [chapters, verses]
+                "percentAvailable":  Percent of this text available in this language TODO: Only used on the dashboard. Remove?
+                'percentAvailableInvalid':  Boolean. Whether the value of "percentAvailable" can be trusted.  TODO: Only used on the dashboard. Remove?
+                "textComplete":  Boolean. Whether the text is complete in this language. TODO: Not used outside of this file. Should be removed.
+                'completenessPercent':  Percent of this text complete in this language TODO: Not used outside of this file. Should be removed.
+                'sparseness': Legacy - present on some records, but no longer in code TODO: remove
             }
-            "_he": ...
+            "_he": {...} # same keys as _en
             "_all" {
-                "availableTexts":
+                "availableTexts": Mask what texts are available in this text overall.  Boolean values (0 or 1) in the shape of the JaggedArray
                 "shape":
-                    For depth 1: Integer - length
-                    For depth 2: List of chapter lengths
-                    For depth 3: List of list of chapter lengths?
+                    For depth 1: Integer -length
+                    For depth 2: List of section lengths
+                    For depth 3: List of list of section lengths
             }
         }
 
-    For example, the `content` attribute for `Pesach Haggadah` will be a dictionary with keys: "Kadesh", "Urchatz", "Karpas" ... each with a value of a dictionary like the above.  They key "Magid" has a value of dictionary with keys "Ha Lachma Anya", etc.
+    For example:
+    - the `content` attribute for a simple text like `Genesis` will be a dictionary with keys "_en", "_he", and "_all", as above.
+    - the `content` attribute for `Pesach Haggadah` will be a dictionary with keys: "Kadesh", "Urchatz", "Karpas" ... each with a value of a dictionary like the above.
+        The key "Magid" has a value of dictionary with keys "Ha Lachma Anya", etc.
 
     """
     collection = 'vstate'
@@ -58,9 +61,9 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
         "content"  # tree of data about nodes.  See above.
     ]
     optional_attrs = [
-        "flags",
-        "linksCount",
-        "first_section_ref"
+        "flags",  # "heComplete" : Bool, "enComplete" : Bool
+        "linksCount",  # Integer
+        "first_section_ref"  # Normal text Ref
     ]
 
     langs = ["en", "he"]
