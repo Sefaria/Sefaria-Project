@@ -71,7 +71,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
         if getattr(self, 'image', False):
             try:
-                self.image.index("https://storage.googleapis.com/img.sefaria.org/topics/")
+                self.image["image_uri"].index("https://storage.googleapis.com/img.sefaria.org/topics/")
             except ExternalImageError:
                 print("The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory.")
 
