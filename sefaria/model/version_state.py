@@ -27,7 +27,7 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     This model overrides default init/load/save behavior, since there is one and only one VersionState record for each Index record.
 
-    The `content` attribute is a dictionary which is the root of a tree, mirroring the shape of a Version, where the leaf nodes of the tree are dictionaries with a shape like the following::
+    The `content` attribute is a dictionary which is the root of a tree, mirroring the shape of a Version, where the leaf nodes of the tree are dictionaries with a shape like the following:
         {
             "_en": {
                 "availableTexts":  Mask of what texts are available in this language.  Boolean values (0 or 1) in the shape of the JaggedArray
@@ -51,8 +51,11 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     For example:
     - the `content` attribute for a simple text like `Genesis` will be a dictionary with keys "_en", "_he", and "_all", as above.
     - the `content` attribute for `Pesach Haggadah` will be a dictionary with keys: "Kadesh", "Urchatz", "Karpas" ... each with a value of a dictionary like the above.
-        The key "Magid" has a value of dictionary with keys "Ha Lachma Anya", etc.
+        The key "Magid" has a value of a dictionary, where each key is a different sub-section of Magid.
+        The value for each key is a dictionary as detailed above, specific to each sub-section.
+        So for example, one key will be "Ha Lachma Anya" and the value will be a dictionary, like the above, specific to the details of "Ha Lachma Anya".
 
+    Every JaggedArrayNode has a corresponding vstate dictionary. So for complex texts, each leaf node (and leaf nodes by definition must be JaggedArrayNodes) has this corresponding dictionary.
     """
     collection = 'vstate'
 
