@@ -58,3 +58,7 @@ class ManuscriptError(Exception):
 
 class MissingKeyError(Exception):
     pass
+
+class ExternalImageError(Exception):
+    """Thrown when an image is added to the database that is not hosted in our GCP bucket"""
+    pass
