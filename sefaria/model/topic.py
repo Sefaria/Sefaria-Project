@@ -689,7 +689,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         super(IntraTopicLink, self)._validate()
 
         # check everything exists
-        TopicLinkType.validate_slug_exists(self.linkType)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
         Topic.validate_slug_exists(self.fromTopic)
         Topic.validate_slug_exists(self.toTopic)
         TopicDataSource.validate_slug_exists(self.dataSource)
@@ -702,7 +702,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                 "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
                     self.linkType, self.fromTopic, self.toTopic))
 
-        link_type = TopicLinkType.init(self.linkType)
+        link_type = TopicLinkType.init(self.linkType, 0)
         if link_type.slug == link_type.inverseSlug:
             duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
              "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
@@ -810,9 +810,9 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
     def _validate(self):
         Topic.validate_slug_exists(self.toTopic)
-        TopicLinkType.validate_slug_exists(self.linkType)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
         to_topic = Topic.init(self.toTopic)
-        link_type = TopicLinkType.init(self.linkType)
+        link_type = TopicLinkType.init(self.linkType, 0)
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
     
