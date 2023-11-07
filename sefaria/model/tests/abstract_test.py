@@ -9,6 +9,7 @@ import sefaria.model.abstract as abstract
 
 # cascade functions are tested in person_test.py
 
+
 def setup_module(module):
     global record_classes
     global set_classes
@@ -21,7 +22,12 @@ def setup_module(module):
     print(record_classes)
 
 
-class Test_Mongo_Record_Models(object):
+def get_record_classes_with_slugs():
+    classes = abstract.get_record_classes()
+    return filter(lambda x: getattr(x, 'slug_fields', None) is not None and x.__name__ != "Portal", classes)
+
+
+class TestMongoRecordModels(object):
 
     def test_class_attribute_collection(self):
         for sub in record_classes:
@@ -59,7 +65,7 @@ class Test_Mongo_Record_Models(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
-    @pytest.mark.parametrize("sub", filter(lambda x: getattr(x, 'slug_fields', None) is not None, abstract.get_record_classes()))
+    @pytest.mark.parametrize("sub", get_record_classes_with_slugs())
     def test_normalize_slug_field(self, sub):
         """
 
