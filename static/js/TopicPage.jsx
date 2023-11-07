@@ -744,7 +744,7 @@ const TopicImage = ({photoLink, enCaption, heCaption }) => {
   return (
     <div class="topicImage">
       <ImageWithCaption photoLink={photoLink} enCaption={enCaption} heCaption={heCaption} />
-      </div>);
+    </div>);
 }
 
 
