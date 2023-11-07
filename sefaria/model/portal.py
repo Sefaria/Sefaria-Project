@@ -45,6 +45,7 @@ class Portal(abst.SluggedAbstractMongoRecord):
         newsletter_schema = {
             "title": ({"en": (str, "required"), "he": (str, "required")}, "required"),
             "description": ({"en": (str, "required"), "he": (str, "required")}, "optional"),
+            "title_url": (str, "optional"),
             "api_schema": ({"http_method": (str, "required"),
                             "payload": ({"first_name_key": (str, "optional"), "last_name_key": (str, "optional"), "email_key": (str, "optional")}, "optional")}
                            , "optional")
@@ -73,6 +74,11 @@ class Portal(abst.SluggedAbstractMongoRecord):
             if http_method:
                 validate_http_method(http_method)
         return True
+
+
+class PortalSet(abst.AbstractMongoSet):
+    recordClass = Portal
+
 
 
 
