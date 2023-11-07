@@ -3,7 +3,7 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
-from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.exceptions import InputError, DuplicateRecordError, ExternalImageError
 from sefaria.model.timeperiod import TimePeriod
 from sefaria.system.database import db
 import structlog, bleach
@@ -69,6 +69,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
+        if getattr(self, 'image', False):
+            try:
+                self.image.index("https://storage.googleapis.com/img.sefaria.org/topics/")
+            except ExternalImageError:
+                print("The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory.")
 
     def _normalize(self):
         super()._normalize()
