@@ -390,7 +390,7 @@ urlpatterns += [
 
 # Email Subscribe
 urlpatterns += [
-    url(r'^api/subscribe/steinsaltz/(?P<email>.+)$', sefaria_views.subscribe_steinsaltz_newsletter_view),
+    url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
     url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
 ]
 

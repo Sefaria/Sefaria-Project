@@ -170,14 +170,21 @@ def accounts(request):
     })
 
 
-def generic_subscribe_to_newsletter_api(request, email, subscribe):
+def generic_subscribe_to_newsletter_api(request, org, email):
     """
     Generic view for subscribing a user to a newsletter
     """
+    org_subscribe_fn_map = {
+        "sefaria": subscribe_sefaria_newsletter,
+        "steinsaltz": subscribe_steinsaltz,
+    }
     body = json.loads(request.body)
     first_name = body.get("firstName", None)
     last_name = body.get("lastName", None)
     try:
+        subscribe = org_subscribe_fn_map.get(org)
+        if not subscribe:
+            return jsonResponse({"error": f"Organization '{org}' not recognized."})
         if subscribe(request, email, first_name, last_name):
             return jsonResponse({"status": "ok"})
         else:
@@ -189,11 +196,7 @@ def generic_subscribe_to_newsletter_api(request, email, subscribe):
 
 
 def subscribe_sefaria_newsletter_view(request, email):
-    return generic_subscribe_to_newsletter_api(request, email, subscribe_sefaria_newsletter)
-
-
-def subscribe_steinsaltz_newsletter_view(request, email):
-    return generic_subscribe_to_newsletter_api(request, email, subscribe_steinsaltz)
+    return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
 
 
 def subscribe_sefaria_newsletter(request, email, first_name, last_name):
