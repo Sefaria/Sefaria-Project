@@ -382,17 +382,20 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
     cacheable = False
 
     @classmethod
-    def init(cls, slug: str) -> 'AbstractMongoRecord':
+    def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
         """
         Convenience func to avoid using .load() when you're only passing a slug
         Applicable only if class defines `slug_fields`
-        :param slug:
-        :return:
+        @param slug:
+        @param slug_field_idx: Optional index of slug field in case `cls` has multiple slug fields. Index should be between 0 and len(cls.slug_fields) - 1
+        @return: instance of `cls` with slug `slug`
         """
-        if len(cls.slug_fields) != 1:
-            raise Exception("Can only call init() if exactly one slug field is defined.")
+        if len(cls.slug_fields) != 1 and slug_field_idx is None:
+            raise Exception("Can only call init() if exactly one slug field is defined or `slug_field_idx` is passed as"
+                            " a parameter.")
+        slug_field_idx = slug_field_idx or 0
         if not cls.cacheable or slug not in cls._init_cache:
-            instance = cls().load({cls.slug_fields[0]: slug})
+            instance = cls().load({cls.slug_fields[slug_field_idx]: slug})
             if cls.cacheable:
                 cls._init_cache[slug] = instance
             else:
@@ -428,9 +431,17 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
                 setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
     @classmethod
-    def validate_slug_exists(cls, slug):
-        object = cls.init(slug)
-        if not object:
+    def validate_slug_exists(cls, slug: str, slug_field_idx: int = None):
+        """
+        Validate that `slug` points to an existing object of type `cls`. Pass `slug_field` if `cls` has multiple slugs
+        associated with it (e.g. TopicLinkType)
+        @param slug: Slug to look up
+        @param slug_field_idx: Optional index of slug field in case `cls` has multiple slug fields. Index should be
+        between 0 and len(cls.slug_fields) - 1
+        @return: raises SluggedMongoRecordMissingError is slug doesn't match an existing object
+        """
+        instance = cls.init(slug, slug_field_idx)
+        if not instance:
             raise SluggedMongoRecordMissingError(f"{cls.__name__} with slug '{slug}' does not exist.")
 
 
