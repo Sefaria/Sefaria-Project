@@ -3,6 +3,7 @@
 """
 abstract.py - abstract classes for Sefaria models
 """
+from cerberus import Validator
 import collections
 import structlog
 import copy
@@ -31,6 +32,7 @@ class AbstractMongoRecord(object):
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
+    attr_schemas = {}    # schemas to validate that an attribute is in the right format. Keys are attribute names, values are schemas in Cerberus format.
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
@@ -242,6 +244,16 @@ class AbstractMongoRecord(object):
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
         """
+        for attr, schema in self.attr_schemas.items():
+            v = Validator(schema)
+            try:
+                value = getattr(self, attr)
+                if not v.validate(value):
+                    raise InputError(v.errors)
+            except AttributeError:
+                # not checking here if value exists, that is done above.
+                # assumption is if value doesn't exist, it's optional
+                pass
         return True
 
     def _normalize(self):
