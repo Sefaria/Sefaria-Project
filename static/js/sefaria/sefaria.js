@@ -1945,26 +1945,20 @@ _media: {},
   },
   repairCaseVariant: function(query, data) {
     // Used when isACaseVariant() is true to prepare the alternative
-    return data["completions"][0] + query.slice(data["completions"][0].length);
-  },
-  titleCaseExceptStopWords: function(str) {
-    const stopWords = ["and", "or", "the", "a", "in", "an", "is", "of", "for"];
-    let result = [];
-    if (str[0] === ' ') {
-        result.push("");
-        str = str.trim();
-    }
-    const words = str.split(' ');
-    for (let i = 0; i < words.length; i++) {
-        // title case each word except for stop words.
-        if (stopWords.includes(words[i])) {
-            result.push(words[i].replace(words[i][0], words[i][0].toLowerCase()));
-        } else {
-            result.push(words[i].replace(words[i][0], words[i][0].toUpperCase()));
+    const completionArray = data["completion_objects"].filter(x => x.type === 'ref').map(x => x.title);
+    let normalizedQuery = query.toLowerCase();
+    let bestMatch = "";
+    let bestMatchLength = 0;
+
+    completionArray.forEach((completion) => {
+        let normalizedCompletion = completion.toLowerCase();
+        if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
+            bestMatch = completion;
+            bestMatchLength = completion.length;
         }
-    }
-    return result.join(' ');
-    },
+    });
+    return bestMatch + query.slice(bestMatch.length);
+  },
   repairGershayimVariant: function(query, data) {
     if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
       function normalize_gershayim(string) {
