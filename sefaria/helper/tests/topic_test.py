@@ -52,10 +52,10 @@ def grandchild_of_root_with_self_link(child_of_root_with_self_link):
 
 
 @pytest.fixture(autouse=True, scope='module')
-def root_wout_self_link():
-	# create second branch of tree starting with root_wout_self_link
+def author_root():
+	# create second branch of tree starting with author_root
 	t = Topic({'slug': "", "isTopLevelDisplay": True, "data_source": "sefaria", "numSources": 0})
-	title = "Normal Root"
+	title = "Authors"
 	he_title = title[::-1]
 	t.add_primary_titles(title, he_title)
 	t.set_slug_to_primary_title()
@@ -66,23 +66,23 @@ def root_wout_self_link():
 
 
 @pytest.fixture(autouse=True, scope='module')
-def child_of_root_wout_self_link(root_wout_self_link):
+def actual_author(author_root):
 	t = Topic({'slug': "", "isTopLevelDisplay": False, "data_source": "sefaria", "numSources": 0})
-	title = "Normal Root Leaf Node"
+	title = "Author Dude"
 	he_title = title[::-1]
 	t.add_primary_titles(title, he_title)
 	t.set_slug_to_primary_title()
 	t.save()
 	l = IntraTopicLink({"linkType": "displays-under", "fromTopic": t.slug,
-						"toTopic": root_wout_self_link["topic"].slug, "dataSource": "sefaria",
-						"class": "intraTopic"}).save()  # root_wout_self_link has child leaf_node
+						"toTopic": author_root["topic"].slug, "dataSource": "sefaria",
+						"class": "intraTopic"}).save()  # author_root has child leaf_node
 	yield {"topic": t, "link": l}
 	t.delete()
 	l.delete()
 
 
-def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
-	for count, t in enumerate([root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]):
+def test_title_and_desc(author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+	for count, t in enumerate([author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link]):
 		new_values = {"title": f"new title {count+1}",
 					  "altTitles": {"en": [f"New Alt title {count+1}"], "he": [f"New He Alt Title {count+1}"]},
 					  "heTitle": f"new hebrew title {count+1}", "description": {"en": f"new desc", "he": "new hebrew desc"}}
@@ -91,14 +91,22 @@ def test_title_and_desc(root_wout_self_link, child_of_root_wout_self_link, root_
 		assert t["topic"].get_primary_title('he') == new_values['heTitle']
 		assert t["topic"].get_titles('en') == [new_values["title"]]+new_values["altTitles"]['en']
 
+def test_author_root(author_root, actual_author):
+	new_values = {"category": "authors", "title": actual_author["topic"].get_primary_title('en'),
+				  "heTitle": actual_author["topic"].get_primary_title('he'),
+				  "birthPlace": "Kyoto, Japan", "birthYear": 1300}
+	assert Place().load({'key': new_values["birthPlace"]}) is None
+	update_topic(actual_author["topic"], **new_values)
+	assert Place().load({'key': new_values["birthPlace"]})
+	assert actual_author["topic"].properties["birthYear"]["value"] == 1300
 
-def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):
+def test_change_categories_and_titles(author_root, root_with_self_link):
 	# tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
 	# and assert that moving it back to the root position yields the original tree.
-	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
+	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(author_root["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	orig_trees = [orig_tree_from_normal_root, orig_tree_from_root_with_self_link]
-	roots = [root_wout_self_link["topic"], root_with_self_link["topic"]]
+	roots = [author_root["topic"], root_with_self_link["topic"]]
 	orig_titles = [roots[0].get_primary_title('en'), roots[1].get_primary_title('en')]
 	orig_he_titles = [roots[0].get_primary_title('he'), roots[1].get_primary_title('he')]
 	for i, root in enumerate(roots):
@@ -119,24 +127,24 @@ def test_change_categories_and_titles(root_wout_self_link, root_with_self_link):
 	assert final_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
-def test_change_categories(root_wout_self_link, child_of_root_wout_self_link, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
+def test_change_categories(author_root, actual_author, root_with_self_link, child_of_root_with_self_link, grandchild_of_root_with_self_link):
 	# tests moving topics across the tree to a different root
 
-	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
+	orig_tree_from_normal_root = library.get_topic_toc_json_recursive(author_root["topic"])
 	orig_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 
-	topic_change_category(child_of_root_with_self_link["topic"], root_wout_self_link["topic"].slug)
-	topic_change_category(child_of_root_wout_self_link["topic"], root_with_self_link["topic"].slug)
+	topic_change_category(child_of_root_with_self_link["topic"], author_root["topic"].slug)
+	topic_change_category(actual_author["topic"], root_with_self_link["topic"].slug)
 
-	new_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
+	new_tree_from_normal_root = library.get_topic_toc_json_recursive(author_root["topic"])
 	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	assert new_tree_from_normal_root != orig_tree_from_normal_root
 	assert new_tree_from_root_with_self_link != orig_tree_from_root_with_self_link
 
 	topic_change_category(child_of_root_with_self_link["topic"], root_with_self_link["topic"].slug)
-	topic_change_category(child_of_root_wout_self_link["topic"], root_wout_self_link["topic"].slug)
+	topic_change_category(actual_author["topic"], author_root["topic"].slug)
 
-	new_tree_from_normal_root = library.get_topic_toc_json_recursive(root_wout_self_link["topic"])
+	new_tree_from_normal_root = library.get_topic_toc_json_recursive(author_root["topic"])
 	new_tree_from_root_with_self_link = library.get_topic_toc_json_recursive(root_with_self_link["topic"])
 	assert new_tree_from_normal_root == orig_tree_from_normal_root
 	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link

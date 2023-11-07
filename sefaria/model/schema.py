@@ -125,6 +125,9 @@ class TitleGroup(object):
         return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
+        is_primary = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text and t.get('primary'))]
+        if is_primary:
+            self._primary_title[lang] = None
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
         return self
 
