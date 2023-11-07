@@ -3296,6 +3296,17 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const ImageWithCaption = ({photoLink, enCaption, heCaption }) => {
+  
+  return (
+    <div>
+        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <div class="imageCaption"> 
+          <InterfaceText text={{en:enCaption, he:heCaption}}  />
+        </div>
+      </div>);
+}
+
 export {
   CategoryHeader,
   SimpleInterfaceBlock,
@@ -3360,5 +3371,6 @@ export {
   CategoryChooser,
   TitleVariants,
   requestWithCallBack,
-  OnInView
+  OnInView,
+  ImageWithCaption
 };

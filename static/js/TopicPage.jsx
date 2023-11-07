@@ -23,6 +23,7 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
+    ImageWithCaption
 } from './Misc';
 
 
@@ -742,10 +743,7 @@ const TopicImage = ({photoLink, enCaption, heCaption }) => {
   
   return (
     <div class="topicImage">
-        <img class="topicPhoto" src={photoLink}/>
-        <div class="topicImageCaption"> 
-          <InterfaceText text={{en:enCaption, he:heCaption}}  />
-        </div>
+      <ImageWithCaption photoLink={photoLink} enCaption={enCaption} heCaption={heCaption} />
       </div>);
 }
 
