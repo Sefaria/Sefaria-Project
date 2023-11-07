@@ -4,11 +4,12 @@ from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.timeperiod import TimePeriod
+from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.system.database import db
 import structlog, bleach
 from sefaria.model.place import Place
 import regex as re
+from typing import Type
 logger = structlog.get_logger(__name__)
 
 
@@ -422,7 +423,7 @@ class PersonTopic(Topic):
         d = super(PersonTopic, self).contents(**kwargs)
         if annotate_time_period:
             d = self.annotate_place(d)
-            tp = self.most_accurate_time_period()
+            tp = self.most_accurate_life_period()
             if tp is not None:
                 d['timePeriod'] = {
                     "name": {
@@ -438,26 +439,42 @@ class PersonTopic(Topic):
     
     # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
     # They may also have none of these...
-    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+    def _most_accurate_period(self, time_period_class: Type[TimePeriod]) -> Optional[LifePeriod]:
         if self.get_property("birthYear") and self.get_property("deathYear"):
-            return TimePeriod({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
                 "end": self.get_property("deathYear"),
                 "endIsApprox": self.get_property("deathYearIsApprox", False)
             })
         elif self.get_property("birthYear") and self.get_property("era", "CO"):
-            return TimePeriod({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
             })
+        elif self.get_property("deathYear"):
+            return time_period_class({
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
         elif self.get_property("generation"):
-            return TimePeriod().load({"symbol": self.get_property("generation")})
+            return time_period_class().load({"symbol": self.get_property("generation")})
         elif self.get_property("era"):
-            return TimePeriod().load({"symbol": self.get_property("era")})
+            return time_period_class().load({"symbol": self.get_property("era")})
         else:
             return None
 
+    def most_accurate_time_period(self):
+        '''
+        :return: most accurate period as TimePeriod (used when a person's LifePeriod should be formatted like a general TimePeriod)
+        '''
+        return self._most_accurate_period(TimePeriod)
+
+    def most_accurate_life_period(self):
+        '''
+        :return: most accurate period as LifePeriod. currently the only difference from TimePeriod is the way the time period is formatted as a string.
+        '''
+        return self._most_accurate_period(LifePeriod)
 
 class AuthorTopic(PersonTopic):
     """

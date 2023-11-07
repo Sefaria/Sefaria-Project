@@ -64,7 +64,11 @@ class Place(abst.AbstractMongoRecord):
     def city_to_coordinates(self, city):
         geolocator = Nominatim(user_agent='hello@sefaria.org')
         location = geolocator.geocode(city)
-        self.point_location(lon=location.longitude, lat=location.latitude)
+        if location and location.raw['type'] in ['administrative', 'city', 'town', 'municipality']:
+            self.point_location(lon=location.longitude, lat=location.latitude)
+        else:
+            raise InputError(f"{city} is not a real city.")
+
 
     def point_location(self, lon=None, lat=None):
         if lat is None and lon is None:

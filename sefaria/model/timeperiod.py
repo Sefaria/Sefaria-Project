@@ -56,6 +56,8 @@ Loaded from MySQL DB with Sefaria-Data/sources/Sages_DB/parse_eras_from_sages.py
 +---------------+------------+-----------------+-------------------------------+-----------------------+
 """
 
+DASH = '–'
+
 class TimePeriod(abst.AbstractMongoRecord):
     """
     TimePeriod is used both for the saved time periods - Eras and Generations
@@ -144,10 +146,11 @@ class TimePeriod(abst.AbstractMongoRecord):
 
             if lang == "en":
                 if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
-                    name += " ({}{} {} - )".format(
+                    name += " ({}{} {} {} )".format(
                         approxMarker[0],
                         abs(int(self.start)),
-                        labels[1])
+                        labels[1],
+                        DASH)
                     return name
                 elif int(self.start) == int(self.end):
                     name += " ({}{} {})".format(
@@ -155,19 +158,21 @@ class TimePeriod(abst.AbstractMongoRecord):
                         abs(int(self.start)),
                         labels[1])
                 else:
-                    name += " ({}{} {} - {}{} {})".format(
+                    name += " ({}{} {} {} {}{} {})".format(
                         approxMarker[0],
                         abs(int(self.start)),
                         labels[0],
+                        DASH,
                         approxMarker[1],
                         abs(int(self.end)),
                         labels[1])
             if lang == "he":
                 if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
-                    name += " ({} {} {} - )".format(
+                    name += " ({} {} {} {} )".format(
                         abs(int(self.start)),
                         labels[1],
-                        approxMarker[0])
+                        approxMarker[0],
+                        DASH)
                     return name
                 elif int(self.start) == int(self.end):
                     name += " ({}{}{})".format(
@@ -177,18 +182,20 @@ class TimePeriod(abst.AbstractMongoRecord):
                 else:
                     both_approx = approxMarker[0] and approxMarker[1]
                     if both_approx:
-                        name += " ({}{} - {}{} {})".format(
+                        name += " ({}{} {} {}{} {})".format(
                             abs(int(self.start)),
                             " " + labels[0] if labels[0] else "",
+                            DASH,
                             abs(int(self.end)),
                             " " + labels[1] if labels[1] else "",
                             approxMarker[1]
                         )
                     else:
-                        name += " ({}{}{} - {}{}{})".format(
+                        name += " ({}{}{} {} {}{}{})".format(
                             abs(int(self.start)),
                             " " + labels[0] if labels[0] else "",
                             " " + approxMarker[0] if approxMarker[0] else "",
+                            DASH,
                             abs(int(self.end)),
                             " " + labels[1] if labels[1] else "",
                             " " + approxMarker[1] if approxMarker[1] else ""
@@ -218,6 +225,16 @@ class TimePeriod(abst.AbstractMongoRecord):
             else:
                 return topic.Topic({"properties.generation.value": self.symbol})
 
+    def determine_year_estimate(self):
+        start = getattr(self, 'start', None)
+        end = getattr(self, 'end', None)
+        if start != None and end != None:
+            return round((int(start) + int(end)) / 2)
+        elif start != None:
+            return int(start)
+        elif end != None:
+            return int(end)
+
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod
 
@@ -233,4 +250,42 @@ class TimePeriodSet(abst.AbstractMongoSet):
     def get_generations(include_doubles = False):
         arg = {"$in": ["Generation", "Two Generations"]} if include_doubles else "Generation"
         return TimePeriodSet._get_typed_set(arg)
+
+class LifePeriod(TimePeriod):
+
+    def period_string(self, lang):
+
+        if getattr(self, "start", None) == None and getattr(self, "end", None) == None:
+            return
+
+        labels = self.getYearLabels(lang)
+        approxMarker = self.getApproximateMarkers(lang)
+        abs_birth = abs(int(getattr(self, "start", 0)))
+        abs_death = abs(int(getattr(self, "end", 0)))
+        if lang == "en":
+            birth = 'b.'
+            death = 'd.'
+            order_vars_by_lang = lambda year, label, approx: (approx, '', year, label)
+        else:
+            birth = 'נו׳'
+            death = 'נפ׳'
+            order_vars_by_lang = lambda year, label, approx: (year, ' ', label, approx)
+
+        if getattr(self, "symbol", "") == "CO" or getattr(self, "end", None) is None:
+            name = '{} {}{}{} {}'.format(birth, *order_vars_by_lang(abs_birth, labels[1], approxMarker[0]))
+        elif getattr(self, "start", None) is None:
+            name = '{} {}{}{} {}'.format(death, *order_vars_by_lang(abs_death, labels[1], approxMarker[0]))
+        elif int(self.start) == int(self.end):
+            name = '{}{}{} {}'.format(*order_vars_by_lang(abs_birth, labels[1], approxMarker[0]))
+        else:
+            both_approx = approxMarker[0] and approxMarker[1]
+            if lang == 'he' and  both_approx:
+                birth_string = '{}{}{}'.format(*order_vars_by_lang(abs_birth, labels[0], approxMarker[0])[:-1])
+            else:
+                birth_string = '{}{}{} {}'.format(*order_vars_by_lang(abs_birth, labels[0], approxMarker[0]))
+            death_string = '{}{}{} {}'.format(*order_vars_by_lang(abs_death, labels[1], approxMarker[0]))
+            name = f'{birth_string} {DASH} {death_string}'
+
+        name = f' ({" ".join(name.split())})'
+        return name
 

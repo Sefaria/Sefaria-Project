@@ -9,8 +9,6 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import {useContext} from "react";
-import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
