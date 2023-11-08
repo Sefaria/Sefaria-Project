@@ -11,6 +11,7 @@ from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_
 from sefaria.helper.normalization import NormalizerComposer
 from sefaria.model.topic import Topic, TopicSet, RefTopicLink
 from sefaria.utils.hebrew import strip_cantillation
+from sefaria.system.exceptions import InputError
 
 try:
     import spacy
@@ -223,14 +224,25 @@ class NamedEntityRecognizer:
 
 
 class ResolvedNamedEntity:
+    is_ambiguous = False
 
-    def __init__(self, raw_named_entity: RawNamedEntity, topics: List[Topic]):
-        self.raw_named_entity = raw_named_entity
-        self.topics = topics
+    def __init__(self, raw_named_entity: RawNamedEntity, topic: Topic):
+        self.raw_entity = raw_named_entity
+        self.topic = topic
 
-    @property
-    def is_ambiguous(self) -> bool:
-        return len(self.topics) > 1
+
+class AmbiguousNamedEntity:
+    """
+    Container for multiple ambiguous ResolvedNamedEntity's
+    """
+    is_ambiguous = True
+
+    def __init__(self, resolved_named_entities: List[ResolvedNamedEntity]):
+        if len(resolved_named_entities) == 0:
+            raise InputError("Length of `resolved_named_entities` must be at least 1")
+        self.resolved_named_entities = resolved_named_entities
+        # assumption is all resolved_refs share same raw_entity. expose at top level
+        self.raw_entity = resolved_named_entities[0].raw_entity
 
 
 class TitleGenerator:

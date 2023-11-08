@@ -6,7 +6,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer
+from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer, ResolvedNamedEntity, AmbiguousNamedEntity
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext, RawNamedEntity
 from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -42,14 +42,14 @@ class ResolutionThoroughness(IntEnum):
     HIGH = 2
 
 
-class ResolvedRef(abst.Cloneable):
+class ResolvedRef(abst.Cloneable, ResolvedNamedEntity):
     """
     Partial or complete resolution of a RawRef
     """
-    is_ambiguous = False
 
     def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
-        self.raw_ref = raw_ref
+        super().__init__(raw_ref)
+        self.raw_entity = raw_ref
         self.resolved_parts = resolved_parts
         self.node: ReferenceableBookNode = node
         self.ref = ref
@@ -71,7 +71,7 @@ class ResolvedRef(abst.Cloneable):
         - adds extra DH words that were matched but aren't in span
         @return:
         """
-        new_raw_ref_span = self._get_pretty_dh_span(self.raw_ref.span)
+        new_raw_ref_span = self._get_pretty_dh_span(self.raw_entity.span)
         new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
         return new_raw_ref_span.text
 
@@ -154,17 +154,10 @@ class ResolvedRef(abst.Cloneable):
         return len(explicit_matched), num_context_parts_matched
 
 
-class AmbiguousResolvedRef:
+class AmbiguousResolvedRef(AmbiguousNamedEntity):
     """
     Container for multiple ambiguous ResolvedRefs
     """
-    is_ambiguous = True
-
-    def __init__(self, resolved_refs: List[ResolvedRef]):
-        if len(resolved_refs) == 0:
-            raise InputError("Length of `resolved_refs` must be at least 1")
-        self.resolved_raw_refs = resolved_refs
-        self.raw_ref = resolved_refs[0].raw_ref  # assumption is all resolved_refs share same raw_ref. expose at top level
 
     @property
     def pretty_text(self):
@@ -453,7 +446,7 @@ class RefResolver:
         temp_matches = []
         refs_matched = {match.ref.normal() for match in matches}
         for unrefined_match in matches:
-            unused_parts = list(set(unrefined_match.raw_ref.parts_to_match) - set(unrefined_match.resolved_parts))
+            unused_parts = list(set(unrefined_match.raw_entity.parts_to_match) - set(unrefined_match.resolved_parts))
             context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
 
             # context
@@ -601,7 +594,7 @@ class ResolvedRefPruner:
     @staticmethod
     def matched_all_explicit_sections(match: ResolvedRef) -> bool:
         resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
-        to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
+        to_match_explicit = {part for part in match.raw_entity.parts_to_match if not part.is_context}
 
         if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
             # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate
@@ -672,7 +665,7 @@ class ResolvedRefPruner:
     @staticmethod
     def get_context_free_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         def match_is_context_free(match: ResolvedRef) -> bool:
-            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_ref.parts_to_match)
+            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_entity.parts_to_match)
         return list(filter(match_is_context_free, resolved_refs))
 
     @staticmethod
