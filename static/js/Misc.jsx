@@ -3300,13 +3300,13 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
-const ImageWithCaption = ({photoLink, enCaption, heCaption }) => {
+const ImageWithCaption = ({photoLink, caption }) => {
   
   return (
     <div>
         <img class="imageWithCaptionPhoto" src={photoLink}/>
         <div class="imageCaption"> 
-          <InterfaceText text={{en:enCaption, he:heCaption}}  />
+          <InterfaceText text={{en:caption.en, he:caption.he}}  />
         </div>
       </div>);
 }

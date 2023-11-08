@@ -316,7 +316,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
 
-  const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} enCaption={topicImage.image_caption.en} heCaption={topicImage.image_caption.he}/> : null;
+  const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <div>
       
@@ -713,11 +713,11 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
-const TopicImage = ({photoLink, enCaption, heCaption }) => {
+const TopicImage = ({photoLink, caption }) => {
   
   return (
     <div class="topicImage">
-      <ImageWithCaption photoLink={photoLink} enCaption={enCaption} heCaption={heCaption} />
+      <ImageWithCaption photoLink={photoLink} caption={caption} />
     </div>);
 }
 
@@ -817,7 +817,7 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, propert
       </TopicSideSection>
   ) : null;
 
-  const tpSidebarImg = multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} enCaption={topicImage.image_caption.en} heCaption={topicImage.image_caption.he}/> : null;
+  const tpSidebarImg = multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <>
       {tpSidebarImg}
