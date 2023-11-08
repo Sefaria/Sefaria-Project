@@ -184,7 +184,7 @@ def _make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRe
     resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
-        start_char, end_char = resolved_ref.raw_ref.char_indices
+        start_char, end_char = resolved_ref.raw_entity.char_indices
         text = resolved_ref.pretty_text
         link_failed = resolved_refs[0].ref is None
         if not link_failed and resolved_refs[0].ref.is_book_level(): continue
@@ -251,10 +251,10 @@ def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRe
 
 def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
     debug_data = {
-        "orig_part_strs": [p.text for p in resolved_ref.raw_ref.raw_ref_parts],
-        "orig_part_types": [p.type.name for p in resolved_ref.raw_ref.raw_ref_parts],
-        "final_part_strs": [p.text for p in resolved_ref.raw_ref.parts_to_match],
-        "final_part_types": [p.type.name for p in resolved_ref.raw_ref.parts_to_match],
+        "orig_part_strs": [p.text for p in resolved_ref.raw_entity.raw_ref_parts],
+        "orig_part_types": [p.type.name for p in resolved_ref.raw_entity.raw_ref_parts],
+        "final_part_strs": [p.text for p in resolved_ref.raw_entity.parts_to_match],
+        "final_part_types": [p.type.name for p in resolved_ref.raw_entity.parts_to_match],
         "resolved_part_strs": [p.term.slug if isinstance(p, TermContext) else p.text for p in resolved_ref.resolved_parts],
         "resolved_part_types": [p.type.name for p in resolved_ref.resolved_parts],
         "resolved_part_classes": [p.__class__.__name__ for p in resolved_ref.resolved_parts],
@@ -262,7 +262,7 @@ def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
         "context_type": resolved_ref.context_type.name if resolved_ref.context_type else None,
     }
     if RefPartType.RANGE.name in debug_data['final_part_types']:
-        range_part = next((p for p in resolved_ref.raw_ref.parts_to_match if p.type == RefPartType.RANGE), None)
+        range_part = next((p for p in resolved_ref.raw_entity.parts_to_match if p.type == RefPartType.RANGE), None)
         debug_data.update({
             'input_range_sections': [p.text for p in range_part.sections],
             'input_range_to_sections': [p.text for p in range_part.toSections]
