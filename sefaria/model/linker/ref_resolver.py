@@ -7,7 +7,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
 from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext, RawNamedEntity
 from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
@@ -257,37 +257,22 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve(self, input: List[str], book_context_refs: Optional[List[Optional[text.Ref]]] = None, with_failures=False,
-                     verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) \
-            -> List[List[PossiblyAmbigResolvedRef]]:
+    def bulk_resolve(self, raw_refs: List[RawRef], book_context_ref: Optional[text.Ref] = None,
+                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL) -> List[PossiblyAmbigResolvedRef]:
         """
-        Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
-        @param book_context_refs:
-        @param input:
+        Main function for resolving refs in text. Given a list of RawRefs, returns ResolvedRefs for each
+        @param raw_refs:
+        @param book_context_ref:
         @param with_failures:
-        @param verbose:
-        @param reset_ibids_every_context_ref:
         @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
         @return:
         """
         self._thoroughness = thoroughness
         self.reset_ibid_history()
-        all_raw_refs = self._named_entity_recognizer.bulk_get_raw_refs(input)
         resolved = []
-        book_context_refs = book_context_refs or [None]*len(all_raw_refs)
-        iter = zip(book_context_refs, all_raw_refs)
-        if verbose:
-            iter = tqdm(iter, total=len(book_context_refs))
-        for book_context_ref, raw_refs in iter:
-            if reset_ibids_every_context_ref:
-                self.reset_ibid_history()
-            inner_resolved = []
-            for raw_ref in raw_refs:
-                temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
-                inner_resolved += temp_resolved
-            resolved += [inner_resolved]
-        raw_ref_list_list = [[rr.raw_ref for rr in inner_resolved] for inner_resolved in resolved]
-        self._named_entity_recognizer.bulk_map_normal_output_to_original_input(input, raw_ref_list_list)
+        for raw_ref in raw_refs:
+            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
+            resolved += temp_resolved
         return resolved
 
     def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:

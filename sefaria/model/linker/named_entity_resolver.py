@@ -341,18 +341,12 @@ class NamedEntityResolver:
         self._named_entity_recognizer = named_entity_recognizer
         self._topic_matcher = topic_matcher
 
-    def bulk_resolve_named_entities(self, inputs: List[str], with_failures=False) -> List[List[ResolvedNamedEntity]]:
-        all_named_entities = self._named_entity_recognizer.bulk_get_raw_named_entities(inputs)
+    def bulk_resolve(self, raw_named_entities: List[RawNamedEntity], with_failures=False) -> List[ResolvedNamedEntity]:
         resolved = []
-        for named_entities in all_named_entities:
-            temp_resolved = []
-            for named_entity in named_entities:
-                matched_topics = self._topic_matcher.match(named_entity)
-                if len(matched_topics) > 0 or with_failures:
-                    temp_resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
-            resolved += [temp_resolved]
-        named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
-        self._named_entity_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        for named_entity in raw_named_entities:
+            matched_topics = self._topic_matcher.match(named_entity)
+            if len(matched_topics) > 0 or with_failures:
+                resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
         return resolved
 
 
