@@ -194,7 +194,6 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 
 
 
-
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initialWidth,
   openDisplaySettings, openSearch}) => {
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
@@ -312,12 +311,12 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
+const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  const topicImageKey = topicTitle.en;
-  const tpTopImg = topicImageKey in hardcodedTopicImagesMap && !multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
+
+  const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} enCaption={topicImage.image_caption.en} heCaption={topicImage.image_caption.he}/> : null;
   return (
     <div>
       
@@ -405,6 +404,7 @@ const TopicPage = ({
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
+    const topicImage = topicData.image;
 
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
@@ -471,11 +471,12 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
+
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
+                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabName={tab}
@@ -534,6 +535,7 @@ const TopicPage = ({
                         properties={topicData.properties}
                         topicTitle={topicTitle}
                         multiPanel={multiPanel}
+                        topicImage={topicImage}
                       />
                       {!topicData.isLoading && <Promotions/>}
                     </>
@@ -606,7 +608,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -626,7 +628,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel}/>;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -776,7 +778,7 @@ const propKeys = [
 ];
 
 
-const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) => {
+const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, properties={} }) => {
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
@@ -814,8 +816,8 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
         }
       </TopicSideSection>
   ) : null;
-  const topicImageKey = topicTitle.en;
-  const tpSidebarImg = topicImageKey in hardcodedTopicImagesMap && multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
+
+  const tpSidebarImg = multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} enCaption={topicImage.image_caption.en} heCaption={topicImage.image_caption.he}/> : null;
   return (
     <>
       {tpSidebarImg}
