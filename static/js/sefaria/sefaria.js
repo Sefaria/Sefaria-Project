@@ -9,8 +9,6 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import {useContext} from "react";
-import {ContentLanguageContext} from "../context";
 
 
 let Sefaria = Sefaria || {
@@ -1945,7 +1943,19 @@ _media: {},
   },
   repairCaseVariant: function(query, data) {
     // Used when isACaseVariant() is true to prepare the alternative
-    return data["completions"][0] + query.slice(data["completions"][0].length);
+    const completionArray = data["completion_objects"].filter(x => x.type === 'ref').map(x => x.title);
+    let normalizedQuery = query.toLowerCase();
+    let bestMatch = "";
+    let bestMatchLength = 0;
+
+    completionArray.forEach((completion) => {
+        let normalizedCompletion = completion.toLowerCase();
+        if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
+            bestMatch = completion;
+            bestMatchLength = completion.length;
+        }
+    });
+    return bestMatch + query.slice(bestMatch.length);
   },
   repairGershayimVariant: function(query, data) {
     if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {

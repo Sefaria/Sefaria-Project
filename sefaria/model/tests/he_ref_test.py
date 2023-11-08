@@ -100,6 +100,10 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 58
         assert len(r.sections) == 1
 
+        r = m.Ref("סוטה לה א:יא")
+        assert r.book == 'Sotah'
+        assert r.sections == [69, 11]
+
     def test_length_catching(self):
         with pytest.raises(InputError):
             r = m.Ref('דברים שם')
