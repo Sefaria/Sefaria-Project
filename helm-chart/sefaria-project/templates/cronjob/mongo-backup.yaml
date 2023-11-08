@@ -58,8 +58,6 @@ spec:
             command: ["bash"]
             args: ["-c", "/scripts/create-dumps.sh"]
             resources:
-              requests:
-                ephemeral-storage: 30Gi
               limits:
                 memory: "500Mi"
           containers:
@@ -100,8 +98,7 @@ spec:
               name: upload-dumps-{{ .Values.deployEnv }}
               defaultMode: 0755
           - name: shared-volume
-            emptyDir:
-              sizeLimit: 30Gi
+            emptyDir: {}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}
