@@ -1042,8 +1042,8 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic, **kwargs):
-    new_primary = {"en": kwargs['title'], "he": kwargs["heTitle"]}
+def update_topic_titles(topic, title="", heTitle="", **kwargs):
+    new_primary = {"en": title, "he": heTitle}
     for lang in ['en', 'he']:   # first add new primary titles then remove old alt titles and add new alt titles
         for title in topic.get_titles(lang):
             topic.remove_title(title, lang)
@@ -1059,7 +1059,7 @@ def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool'
     if not hasattr(topic, 'properties'):
         topic.properties = {}
     process_topic_place_change(topic, **kwargs)
-    return update_author_era(topic, **kwargs, dataSource=dataSource)
+    return update_author_era(topic, dataSource=dataSource, **kwargs)
 
 def update_properties(topic_obj, dataSource, k, v):
     if v == '':

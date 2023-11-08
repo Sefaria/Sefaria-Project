@@ -99,6 +99,7 @@ def test_author_root(author_root, actual_author):
 	update_topic(actual_author["topic"], **new_values)
 	assert Place().load({'key': new_values["birthPlace"]})
 	assert actual_author["topic"].properties["birthYear"]["value"] == 1300
+	Place().load({'key': new_values["birthPlace"]}).delete()
 
 def test_change_categories_and_titles(author_root, root_with_self_link):
 	# tests moving both root categories down the tree and back up and asserting that moving down the tree changes the tree
