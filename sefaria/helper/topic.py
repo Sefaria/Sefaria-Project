@@ -1044,7 +1044,7 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
 
 def update_topic_titles(topic, title="", heTitle="", **kwargs):
     new_primary = {"en": title, "he": heTitle}
-    for lang in ['en', 'he']:   # first add new primary titles then remove old alt titles and add new alt titles
+    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
         for title in topic.get_titles(lang):
             topic.remove_title(title, lang)
         topic.add_title(new_primary[lang], lang, True, False)
