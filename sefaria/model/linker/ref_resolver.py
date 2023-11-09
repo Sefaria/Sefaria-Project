@@ -1,14 +1,12 @@
 from collections import defaultdict
 from typing import List, Union, Dict, Optional, Tuple, Iterable, Set
 from enum import IntEnum, Enum
-from tqdm import tqdm
 from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer, ResolvedNamedEntity
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext, RawNamedEntity
-from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog

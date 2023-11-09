@@ -4,7 +4,8 @@ from tqdm import tqdm
 from sefaria.model.text import Ref
 from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef
-from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, NamedEntityRecognizer, ResolvedNamedEntity
+from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
+from sefaria.model.linker.named_entity_recognizer import NamedEntityRecognizer
 
 
 @dataclasses.dataclass

@@ -5629,7 +5629,7 @@ class Library(object):
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
-        from .linker.named_entity_resolver import NamedEntityRecognizer
+        from .linker.named_entity_recognizer import NamedEntityRecognizer
         from sefaria.helper.linker import load_spacy_model
 
         return NamedEntityRecognizer(
