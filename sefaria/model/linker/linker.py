@@ -20,10 +20,10 @@ class LinkedDoc:
 
 class Linker:
 
-    def __init__(self, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, ne_recognizer: NamedEntityRecognizer):
+    def __init__(self, ner: NamedEntityRecognizer, ref_resolver: RefResolver, ne_resolver: NamedEntityResolver, ):
+        self._ner = ner
         self._ref_resolver = ref_resolver
         self._ne_resolver = ne_resolver
-        self._ne_recognizer = ne_recognizer
 
     def bulk_link(self, inputs: List[str], book_context_refs: Optional[List[Optional[Ref]]] = None, with_failures=False,
                   verbose=False, thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> List[LinkedDoc]:
@@ -39,7 +39,7 @@ class Linker:
         @param type_filter: Type of entities to return, either 'all', 'citation' or 'named entity'
         @return: list of LinkedDocs
         """
-        all_named_entities = self._ne_recognizer.bulk_recognize(inputs)
+        all_named_entities = self._ner.bulk_recognize(inputs)
         docs = []
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
@@ -53,7 +53,7 @@ class Linker:
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
 
         named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
-        self._ne_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        self._ner.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
         return docs
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
@@ -67,13 +67,23 @@ class Linker:
         @param type_filter: Type of entities to return, either 'all', 'citation' or 'named entity'
         @return:
         """
-        raw_refs, named_entities = self._ne_recognizer.recognize(input_str)
+        raw_refs, named_entities = self._ner.recognize(input_str)
         resolved_refs, resolved_named_entities = [], []
         if type_filter in {'all', 'citation'}:
             resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
         if type_filter in {'all', 'named entity'}:
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+
+    def get_ner(self) -> NamedEntityRecognizer:
+        return self._ner
+
+    def reset_ibid_history(self) -> None:
+        """
+        Reflecting this function out
+        @return:
+        """
+        self._ref_resolver.reset_ibid_history()
 
     @staticmethod
     def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \

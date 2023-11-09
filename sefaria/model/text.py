@@ -5614,7 +5614,7 @@ class Library(object):
         named_entity_resolver = self._build_named_entity_resolver(lang)
         ref_resolver = self._build_ref_resolver(lang)
         named_entity_recognizer = self._build_named_entity_recognizer(lang)
-        self._linker_by_lang[lang] = Linker(ref_resolver, named_entity_resolver, named_entity_recognizer)
+        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver)
         return self._linker_by_lang[lang]
 
     @staticmethod

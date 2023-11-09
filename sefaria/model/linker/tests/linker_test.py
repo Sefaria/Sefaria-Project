@@ -232,7 +232,8 @@ crrd = create_raw_ref_data
 ])
 def test_resolve_raw_ref(resolver_data, expected_trefs):
     raw_ref, context_ref, lang, prev_trefs = resolver_data
-    ref_resolver = library.get_ref_resolver(lang)
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
     ref_resolver.reset_ibid_history()  # reset from previous test runs
     if prev_trefs:
         for prev_tref in prev_trefs:
@@ -264,8 +265,9 @@ class TestResolveRawRef:
 ])
 def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts):
     context_oref = context_tref and Ref(context_tref)
-    ref_resolver = library.get_ref_resolver(lang)
-    resolved = ref_resolver.bulk_resolve([input_str], [context_oref])[0]
+    linker = library.get_linker(lang)
+    doc = linker.link(input_str, context_oref, type_filter='citation')
+    resolved = doc.resolved_refs
     assert len(resolved) == len(expected_trefs)
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
     if len(expected_trefs) != len(resolved_orefs):
@@ -384,15 +386,15 @@ def test_map_new_indices(crrd_params):
     # unnorm data
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
-    ref_resolver = library.get_ref_resolver(lang)
-    nlp = ref_resolver.get_ner().raw_ref_model
+    linker = library.get_linker(lang)
+    nlp = linker.get_ner().raw_ref_model
     doc = nlp.make_doc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]
     print_spans(raw_ref)
 
     # norm data
-    n = ref_resolver.get_ner()._normalizer
+    n = linker.get_ner()._normalizer
     norm_text = n.normalize(text)
     norm_doc = nlp.make_doc(norm_text)
     mapping = n.get_mapping_after_normalization(text, reverse=True)
