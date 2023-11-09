@@ -13,6 +13,10 @@ class LinkedDoc:
     resolved_refs: List[PossiblyAmbigResolvedRef]
     resolved_named_entities: List[ResolvedNamedEntity]
 
+    @property
+    def all_resolved(self) -> List[Union[PossiblyAmbigResolvedRef, ResolvedNamedEntity]]:
+        return self.resolved_refs + self.resolved_named_entities
+
 
 class Linker:
 
@@ -36,7 +40,7 @@ class Linker:
         @return: list of LinkedDocs
         """
         all_named_entities = self._ne_recognizer.bulk_recognize(inputs)
-        resolved = []
+        docs = []
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
@@ -46,11 +50,11 @@ class Linker:
                 resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
             if type_filter in {'all', 'named entity'}:
                 resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-            resolved += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
+            docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
 
-        named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
+        named_entity_list_list = [[rr.raw_entity for rr in doc.all_resolved] for doc in docs]
         self._ne_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
-        return resolved
+        return docs
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
              thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> LinkedDoc:
