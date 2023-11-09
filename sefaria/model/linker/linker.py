@@ -9,6 +9,7 @@ from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, Name
 
 @dataclasses.dataclass
 class LinkedDoc:
+    text: str
     resolved_refs: List[PossiblyAmbigResolvedRef]
     resolved_named_entities: List[ResolvedNamedEntity]
 
@@ -22,14 +23,26 @@ class Linker:
 
     def bulk_link(self, inputs: List[str], book_context_refs: Optional[List[Optional[Ref]]] = None, with_failures=False,
                   verbose=False, thoroughness=ResolutionThoroughness.NORMAL) -> List[LinkedDoc]:
+        """
+        Bulk operation to link every string in `inputs` with citations and named entities
+        `bulk_link()` is faster than running `link()` in a loop because it can pass all strings to the relevant models
+        at once.
+        @param inputs: String inputs. Each input is processed independently.
+        @param book_context_refs: Additional context references that represents the source book that the input came from.
+        @param with_failures: True to return all recognized entities, even if they weren't linked.
+        @param verbose: True to print progress to the console
+        @param thoroughness: How thorough the search to link entities should be. HIGH increases the processing time.
+        @return: list of LinkedDocs
+        """
         all_named_entities = self._ne_recognizer.bulk_recognize(inputs)
         resolved = []
-        iterable = self._get_bulk_link_iterable(all_named_entities, book_context_refs, verbose)
-        for book_context_ref, inner_named_entities in iterable:
+        book_context_refs = book_context_refs or [None]*len(all_named_entities)
+        iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
+        for input_str, book_context_ref, inner_named_entities in iterable:
             raw_refs, named_entities = self._partition_raw_refs_and_named_entities(inner_named_entities)
             resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-            resolved += [LinkedDoc(resolved_refs, resolved_named_entities)]
+            resolved += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
 
         named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
         self._ne_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
@@ -37,10 +50,18 @@ class Linker:
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
              thoroughness=ResolutionThoroughness.NORMAL) -> LinkedDoc:
+        """
+        Link `input_str` with citations and named entities
+        @param input_str:
+        @param book_context_ref: Additional context reference that represents the source book that the input came from.
+        @param with_failures: True to return all recognized entities, even if they weren't linked.
+        @param thoroughness: How thorough the search to link entities should be. HIGH increases the processing time.
+        @return:
+        """
         raw_refs, named_entities = self._ne_recognizer.recognize(input_str)
         resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
         resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-        return LinkedDoc(resolved_refs, resolved_named_entities)
+        return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
 
     @staticmethod
     def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \
@@ -50,10 +71,10 @@ class Linker:
         return raw_refs, named_entities
 
     @staticmethod
-    def _get_bulk_link_iterable(all_named_entities: List[List[RawNamedEntity]],
+    def _get_bulk_link_iterable(inputs: List[str], all_named_entities: List[List[RawNamedEntity]],
                                 book_context_refs: Optional[List[Optional[Ref]]] = None, verbose=False
                                 ) -> Iterable[Tuple[Ref, List[RawNamedEntity]]]:
-        iterable = zip(book_context_refs, all_named_entities)
+        iterable = zip(inputs, book_context_refs, all_named_entities)
         if verbose:
             iterable = tqdm(iterable, total=len(book_context_refs))
         return iterable
