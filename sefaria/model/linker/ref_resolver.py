@@ -6,7 +6,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer, ResolvedNamedEntity, AmbiguousNamedEntity
+from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer, ResolvedNamedEntity
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext, RawNamedEntity
 from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
@@ -42,14 +42,14 @@ class ResolutionThoroughness(IntEnum):
     HIGH = 2
 
 
-class ResolvedRef(abst.Cloneable, ResolvedNamedEntity):
+class ResolvedRef(abst.Cloneable):
     """
     Partial or complete resolution of a RawRef
     """
+    is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
-        super().__init__(raw_ref)
-        self.raw_entity = raw_ref
+    def __init__(self, raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+        self.raw_entity = raw_entity
         self.resolved_parts = resolved_parts
         self.node: ReferenceableBookNode = node
         self.ref = ref
@@ -154,10 +154,17 @@ class ResolvedRef(abst.Cloneable, ResolvedNamedEntity):
         return len(explicit_matched), num_context_parts_matched
 
 
-class AmbiguousResolvedRef(AmbiguousNamedEntity):
+class AmbiguousResolvedRef:
     """
     Container for multiple ambiguous ResolvedRefs
     """
+    is_ambiguous = True
+
+    def __init__(self, resolved_refs: List[ResolvedRef]):
+        if len(resolved_refs) == 0:
+            raise InputError("Length of `resolved_refs` must be at least 1")
+        self.resolved_raw_refs = resolved_refs
+        self.raw_ref = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
 
     @property
     def pretty_text(self):

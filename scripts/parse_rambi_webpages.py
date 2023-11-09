@@ -63,7 +63,7 @@ class Record():
         ref_resolver = library.get_ref_resolver()
         if lang == 'he':  # remove this line when linker v3 is availabe in English
             refs = ref_resolver.bulk_resolve(lang, [None], [string])
-            refs = {y.ref for x in refs for y in x if type(y) != AmbiguousResolvedRef}
+            refs = {y.ref for x in refs for y in x if not y.is_ambiguous}
         else:  # remove else statement (with its content) when linker v3 is availabe in English
             refs = set()
             library.apply_action_for_all_refs_in_string(re.sub('[\(\)]', '', string), lambda x, y: refs.add(x), 'en', citing_only=True)

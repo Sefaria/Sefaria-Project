@@ -224,25 +224,21 @@ class NamedEntityRecognizer:
 
 
 class ResolvedNamedEntity:
-    is_ambiguous = False
 
-    def __init__(self, raw_named_entity: RawNamedEntity, topic: Topic):
+    def __init__(self, raw_named_entity: RawNamedEntity, topics: List[Topic]):
         self.raw_entity = raw_named_entity
-        self.topic = topic
+        self.topics = topics
 
+    @property
+    def topic(self):
+        if len(self.topics) != 1:
+            raise InputError(f"ResolvedNamedEntity is ambiguous and has {len(self.topics)} topics so you can't access "
+                             ".topic.")
+        return self.topics[0]
 
-class AmbiguousNamedEntity:
-    """
-    Container for multiple ambiguous ResolvedNamedEntity's
-    """
-    is_ambiguous = True
-
-    def __init__(self, resolved_named_entities: List[ResolvedNamedEntity]):
-        if len(resolved_named_entities) == 0:
-            raise InputError("Length of `resolved_named_entities` must be at least 1")
-        self.resolved_named_entities = resolved_named_entities
-        # assumption is all resolved_refs share same raw_entity. expose at top level
-        self.raw_entity = resolved_named_entities[0].raw_entity
+    @property
+    def is_ambiguous(self):
+        return len(self.topics) != 1
 
 
 class TitleGenerator:
