@@ -4511,6 +4511,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
+  z-index: 99;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4706,11 +4707,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-en {
   font-size: 25px;
   line-height: 63px;
-  margin-right: 8px;
+  margin-right: 5px;
 }
 .readerOptions .int-he {
-  font-size: 28px;
-  line-height: 67px;
+  font-size: 32px;
+  line-height: 65px;
   margin-left: 6px;
 }
 .rightButtons .readerOptions {
