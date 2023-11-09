@@ -275,7 +275,7 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
     for match, expected_pretty_text in zip(resolved, expected_pretty_texts):
-        assert input_str[slice(*match.raw_ref.char_indices)] == match.raw_ref.text
+        assert input_str[slice(*match.raw_entity.char_indices)] == match.raw_entity.text
         assert match.pretty_text == expected_pretty_text
 
 

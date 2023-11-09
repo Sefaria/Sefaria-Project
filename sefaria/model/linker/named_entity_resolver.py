@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Generator, Optional, Dict, Type, Set
+from typing import List, Generator, Optional, Dict, Type, Set, Tuple
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
@@ -11,6 +11,7 @@ from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_
 from sefaria.helper.normalization import NormalizerComposer
 from sefaria.model.topic import Topic, TopicSet, RefTopicLink
 from sefaria.utils.hebrew import strip_cantillation
+from sefaria.system.exceptions import InputError
 
 try:
     import spacy
@@ -43,24 +44,85 @@ class NamedEntityRecognizer:
             normalizer_steps += ['maqaf', 'cantillation']
         return NormalizerComposer(normalizer_steps)
 
-    def bulk_get_raw_named_entities(self, inputs: List[str]) -> List[List[RawNamedEntity]]:
+    def bulk_recognize(self, inputs: List[str]) -> List[List[RawNamedEntity]]:
+        """
+        Return all RawNamedEntity's in `inputs`. If the entity is a citation, parse out the inner RawRefParts and create
+        RawRefs.
+        @param inputs: List of strings to search for named entities in.
+        @return: 2D list of RawNamedEntity's. Includes RawRefs which are a subtype of RawNamedEntity
+        """
+        all_raw_named_entities = self._bulk_get_raw_named_entities_wo_raw_refs(inputs)
+        all_citations, all_non_citations = self._bulk_partition_named_entities_by_citation_type(all_raw_named_entities)
+        all_raw_refs = self._bulk_parse_raw_refs(all_citations)
+        merged_entities = []
+        for inner_non_citations, inner_citations in zip(all_non_citations, all_raw_refs):
+            merged_entities += [inner_non_citations + inner_citations]
+        return merged_entities
+
+    def recognize(self, input_str: str) -> Tuple[List[RawRef], List[RawNamedEntity]]:
+        raw_named_entities = self._get_raw_named_entities_wo_raw_refs(input_str)
+        citations, non_citations = self._partition_named_entities_by_citation_type(raw_named_entities)
+        raw_refs = self._parse_raw_refs(citations)
+        return raw_refs, non_citations
+
+    def _bulk_get_raw_named_entities_wo_raw_refs(self, inputs: List[str]) -> List[List[RawNamedEntity]]:
+        """
+        Finds RawNamedEntities in `inputs` but doesn't parse citations into RawRefs with RawRefParts
+        @param inputs:
+        @return:
+        """
         normalized_inputs = self._normalize_input(inputs)
-        all_raw_ref_spans = list(self._bulk_get_raw_named_entity_spans(normalized_inputs))
+        all_raw_named_entity_spans = list(self._bulk_get_raw_named_entity_spans(normalized_inputs))
         all_raw_named_entities = []
-        for raw_ref_spans in all_raw_ref_spans:
+        for raw_named_entity_spans in all_raw_named_entity_spans:
             temp_raw_named_entities = []
-            for span in raw_ref_spans:
-                type = NamedEntityType.span_label_to_enum(span.label_)
-                temp_raw_named_entities += [RawNamedEntity(span, type)]
+            for span in raw_named_entity_spans:
+                ne_type = NamedEntityType.span_label_to_enum(span.label_)
+                temp_raw_named_entities += [RawNamedEntity(span, ne_type)]
             all_raw_named_entities += [temp_raw_named_entities]
         return all_raw_named_entities
 
-    def bulk_get_raw_named_entities_by_type(self, inputs: List[str], type_filter: NamedEntityType):
-        all_raw_named_entities = self.bulk_get_raw_named_entities(inputs)
-        return [[named_entity for named_entity in sublist if named_entity.type == type_filter]
-                for sublist in all_raw_named_entities]
+    def _get_raw_named_entities_wo_raw_refs(self, input_str: str) -> List[RawNamedEntity]:
+        """
+        Finds RawNamedEntities in `input_str` but doesn't parse citations into RawRefs with RawRefParts
+        @param input_str:
+        @return:
+        """
+        normalized_input = self._normalize_input([input_str])[0]
+        raw_named_entity_spans = self._get_raw_named_entity_spans(normalized_input)
+        raw_named_entities = []
+        for span in raw_named_entity_spans:
+            ne_type = NamedEntityType.span_label_to_enum(span.label_)
+            raw_named_entities += [RawNamedEntity(span, ne_type)]
+        return raw_named_entities
 
-    def bulk_get_raw_refs(self, inputs: List[str]) -> List[List[RawRef]]:
+    @staticmethod
+    def _bulk_partition_named_entities_by_citation_type(
+            all_raw_named_entities: List[List[RawNamedEntity]]
+            ) -> Tuple[List[List[RawNamedEntity]], List[List[RawNamedEntity]]]:
+        """
+        Given named entities, partition them into two lists; list of entities that are citations and those that aren't.
+        @param all_raw_named_entities:
+        @return:
+        """
+        citations, non_citations = [], []
+        for sublist in all_raw_named_entities:
+            inner_citations, inner_non_citations = NamedEntityRecognizer._partition_named_entities_by_citation_type(sublist)
+            citations += [inner_citations]
+            non_citations += [inner_non_citations]
+        return citations, non_citations
+
+    @staticmethod
+    def _partition_named_entities_by_citation_type(
+            raw_named_entities: List[RawNamedEntity]
+    ) -> Tuple[List[RawNamedEntity], List[RawNamedEntity]]:
+        citations, non_citations = [], []
+        for named_entity in raw_named_entities:
+            curr_list = citations if named_entity.type == NamedEntityType.CITATION else non_citations
+            curr_list += [named_entity]
+        return citations, non_citations
+
+    def _bulk_parse_raw_refs(self, all_citation_entities: List[List[RawNamedEntity]]) -> List[List[RawRef]]:
         """
         Runs models on inputs to locate all refs and ref parts
         Note: takes advantage of bulk spaCy operations. It is more efficient to pass multiple strings in input than to
@@ -68,18 +130,21 @@ class NamedEntityRecognizer:
         @param inputs: List of strings to search for refs in.
         @return: 2D list of RawRefs. Each inner list corresponds to the refs found in a string of the input.
         """
-        all_ref_entities = self.bulk_get_raw_named_entities_by_type(inputs, NamedEntityType.CITATION)
-        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_ref_entities), [])
+        ref_part_input = reduce(lambda a, b: a + [(sub_b.text, b[0]) for sub_b in b[1]], enumerate(all_citation_entities), [])
         all_raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans(ref_part_input, as_tuples=True))
         all_raw_ref_part_span_map = defaultdict(list)
         for ref_part_span, input_idx in all_raw_ref_part_spans:
             all_raw_ref_part_span_map[input_idx] += [ref_part_span]
 
         all_raw_refs = []
-        for input_idx, named_entities in enumerate(all_ref_entities):
+        for input_idx, named_entities in enumerate(all_citation_entities):
             raw_ref_part_spans = all_raw_ref_part_span_map[input_idx]
             all_raw_refs += [self._bulk_make_raw_refs(named_entities, raw_ref_part_spans)]
         return all_raw_refs
+
+    def _parse_raw_refs(self, citation_entities: List[RawNamedEntity]) -> List[RawRef]:
+        raw_ref_part_spans = list(self._bulk_get_raw_ref_part_spans([e.text for e in citation_entities]))
+        return self._bulk_make_raw_refs(citation_entities, raw_ref_part_spans)
 
     def bulk_map_normal_output_to_original_input(self, input: List[str], raw_ref_list_list: List[List[RawRef]]):
         for temp_input, raw_ref_list in zip(input, raw_ref_list_list):
@@ -192,12 +257,19 @@ class NamedEntityRecognizer:
 class ResolvedNamedEntity:
 
     def __init__(self, raw_named_entity: RawNamedEntity, topics: List[Topic]):
-        self.raw_named_entity = raw_named_entity
+        self.raw_entity = raw_named_entity
         self.topics = topics
 
     @property
-    def is_ambiguous(self) -> bool:
-        return len(self.topics) > 1
+    def topic(self):
+        if len(self.topics) != 1:
+            raise InputError(f"ResolvedNamedEntity is ambiguous and has {len(self.topics)} topics so you can't access "
+                             ".topic.")
+        return self.topics[0]
+
+    @property
+    def is_ambiguous(self):
+        return len(self.topics) != 1
 
 
 class TitleGenerator:
@@ -304,22 +376,15 @@ class TopicMatcher:
 
 class NamedEntityResolver:
 
-    def __init__(self, named_entity_recognizer: NamedEntityRecognizer, topic_matcher: TopicMatcher):
-        self._named_entity_recognizer = named_entity_recognizer
+    def __init__(self, topic_matcher: TopicMatcher):
         self._topic_matcher = topic_matcher
 
-    def bulk_resolve_named_entities(self, inputs: List[str], with_failures=False) -> List[List[ResolvedNamedEntity]]:
-        all_named_entities = self._named_entity_recognizer.bulk_get_raw_named_entities(inputs)
+    def bulk_resolve(self, raw_named_entities: List[RawNamedEntity], with_failures=False) -> List[ResolvedNamedEntity]:
         resolved = []
-        for named_entities in all_named_entities:
-            temp_resolved = []
-            for named_entity in named_entities:
-                matched_topics = self._topic_matcher.match(named_entity)
-                if len(matched_topics) > 0 or with_failures:
-                    temp_resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
-            resolved += [temp_resolved]
-        named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
-        self._named_entity_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
+        for named_entity in raw_named_entities:
+            matched_topics = self._topic_matcher.match(named_entity)
+            if len(matched_topics) > 0 or with_failures:
+                resolved += [ResolvedNamedEntity(named_entity, matched_topics)]
         return resolved
 
 

@@ -6,8 +6,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
-from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer
-from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext
+from sefaria.model.linker.named_entity_resolver import NamedEntityRecognizer, ResolvedNamedEntity
+from sefaria.model.linker.ref_part import RawRef, RawRefPart, SpanOrToken, span_inds, RefPartType, SectionContext, ContextPart, TermContext, RawNamedEntity
 from sefaria.model.linker.referenceable_book_node import NamedReferenceableBookNode, ReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
@@ -48,8 +48,8 @@ class ResolvedRef(abst.Cloneable):
     """
     is_ambiguous = False
 
-    def __init__(self, raw_ref: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
-        self.raw_ref = raw_ref
+    def __init__(self, raw_entity: RawRef, resolved_parts: List[RawRefPart], node, ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+        self.raw_entity = raw_entity
         self.resolved_parts = resolved_parts
         self.node: ReferenceableBookNode = node
         self.ref = ref
@@ -71,7 +71,7 @@ class ResolvedRef(abst.Cloneable):
         - adds extra DH words that were matched but aren't in span
         @return:
         """
-        new_raw_ref_span = self._get_pretty_dh_span(self.raw_ref.span)
+        new_raw_ref_span = self._get_pretty_dh_span(self.raw_entity.span)
         new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
         return new_raw_ref_span.text
 
@@ -164,7 +164,7 @@ class AmbiguousResolvedRef:
         if len(resolved_refs) == 0:
             raise InputError("Length of `resolved_refs` must be at least 1")
         self.resolved_raw_refs = resolved_refs
-        self.raw_ref = resolved_refs[0].raw_ref  # assumption is all resolved_refs share same raw_ref. expose at top level
+        self.raw_entity = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
 
     @property
     def pretty_text(self):
@@ -244,11 +244,9 @@ class IbidHistory:
 
 class RefResolver:
 
-    def __init__(self, lang: str, named_entity_recognizer: NamedEntityRecognizer,
-                 ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
+    def __init__(self, lang: str, ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
 
         self._lang = lang
-        self._named_entity_recognizer = named_entity_recognizer
         self._ref_part_title_trie = ref_part_title_trie
         self._term_matcher = term_matcher
         self._ibid_history = IbidHistory()
@@ -257,37 +255,22 @@ class RefResolver:
     def reset_ibid_history(self):
         self._ibid_history = IbidHistory()
 
-    def bulk_resolve(self, input: List[str], book_context_refs: Optional[List[Optional[text.Ref]]] = None, with_failures=False,
-                     verbose=False, reset_ibids_every_context_ref=True, thoroughness=ResolutionThoroughness.NORMAL) \
-            -> List[List[PossiblyAmbigResolvedRef]]:
+    def bulk_resolve(self, raw_refs: List[RawRef], book_context_ref: Optional[text.Ref] = None,
+                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL) -> List[PossiblyAmbigResolvedRef]:
         """
-        Main function for resolving refs in text. Given a list of texts, returns ResolvedRefs for each
-        @param book_context_refs:
-        @param input:
+        Main function for resolving refs in text. Given a list of RawRefs, returns ResolvedRefs for each
+        @param raw_refs:
+        @param book_context_ref:
         @param with_failures:
-        @param verbose:
-        @param reset_ibids_every_context_ref:
         @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
         @return:
         """
         self._thoroughness = thoroughness
         self.reset_ibid_history()
-        all_raw_refs = self._named_entity_recognizer.bulk_get_raw_refs(input)
         resolved = []
-        book_context_refs = book_context_refs or [None]*len(all_raw_refs)
-        iter = zip(book_context_refs, all_raw_refs)
-        if verbose:
-            iter = tqdm(iter, total=len(book_context_refs))
-        for book_context_ref, raw_refs in iter:
-            if reset_ibids_every_context_ref:
-                self.reset_ibid_history()
-            inner_resolved = []
-            for raw_ref in raw_refs:
-                temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
-                inner_resolved += temp_resolved
-            resolved += [inner_resolved]
-        raw_ref_list_list = [[rr.raw_ref for rr in inner_resolved] for inner_resolved in resolved]
-        self._named_entity_recognizer.bulk_map_normal_output_to_original_input(input, raw_ref_list_list)
+        for raw_ref in raw_refs:
+            temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
+            resolved += temp_resolved
         return resolved
 
     def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:
@@ -306,9 +289,6 @@ class RefResolver:
             self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
-
-    def get_ner(self) -> NamedEntityRecognizer:
-        return self._named_entity_recognizer
 
     def get_ref_part_title_trie(self) -> MatchTemplateTrie:
         return self._ref_part_title_trie
@@ -468,7 +448,7 @@ class RefResolver:
         temp_matches = []
         refs_matched = {match.ref.normal() for match in matches}
         for unrefined_match in matches:
-            unused_parts = list(set(unrefined_match.raw_ref.parts_to_match) - set(unrefined_match.resolved_parts))
+            unused_parts = list(set(unrefined_match.raw_entity.parts_to_match) - set(unrefined_match.resolved_parts))
             context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
 
             # context
@@ -616,7 +596,7 @@ class ResolvedRefPruner:
     @staticmethod
     def matched_all_explicit_sections(match: ResolvedRef) -> bool:
         resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
-        to_match_explicit = {part for part in match.raw_ref.parts_to_match if not part.is_context}
+        to_match_explicit = {part for part in match.raw_entity.parts_to_match if not part.is_context}
 
         if match.context_type in CONTEXT_TO_REF_PART_TYPE.keys():
             # remove an equivalent number of context parts that were resolved from to_match_explicit to approximate
@@ -687,7 +667,7 @@ class ResolvedRefPruner:
     @staticmethod
     def get_context_free_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         def match_is_context_free(match: ResolvedRef) -> bool:
-            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_ref.parts_to_match)
+            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_entity.parts_to_match)
         return list(filter(match_is_context_free, resolved_refs))
 
     @staticmethod

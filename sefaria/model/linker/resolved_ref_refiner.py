@@ -36,7 +36,7 @@ class ResolvedRefRefiner(ABC):
         Helper function to avoid matching AddressInteger sections out of order
         Returns True if there is a RawRefPart which immediately precedes `raw_ref_part` and is not yet included in this match
         """
-        prev_part = self.resolved_ref.raw_ref.prev_num_parts_map.get(self.part_to_match, None)
+        prev_part = self.resolved_ref.raw_entity.prev_num_parts_map.get(self.part_to_match, None)
         if prev_part is None: return False
         return prev_part not in set(self.resolved_ref.resolved_parts)
 
