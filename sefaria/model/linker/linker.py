@@ -22,7 +22,7 @@ class Linker:
         self._ne_recognizer = ne_recognizer
 
     def bulk_link(self, inputs: List[str], book_context_refs: Optional[List[Optional[Ref]]] = None, with_failures=False,
-                  verbose=False, thoroughness=ResolutionThoroughness.NORMAL) -> List[LinkedDoc]:
+                  verbose=False, thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> List[LinkedDoc]:
         """
         Bulk operation to link every string in `inputs` with citations and named entities
         `bulk_link()` is faster than running `link()` in a loop because it can pass all strings to the relevant models
@@ -32,6 +32,7 @@ class Linker:
         @param with_failures: True to return all recognized entities, even if they weren't linked.
         @param verbose: True to print progress to the console
         @param thoroughness: How thorough the search to link entities should be. HIGH increases the processing time.
+        @param type_filter: Type of entities to return, either 'all', 'citation' or 'named entity'
         @return: list of LinkedDocs
         """
         all_named_entities = self._ne_recognizer.bulk_recognize(inputs)
@@ -40,8 +41,11 @@ class Linker:
         iterable = self._get_bulk_link_iterable(inputs, all_named_entities, book_context_refs, verbose)
         for input_str, book_context_ref, inner_named_entities in iterable:
             raw_refs, named_entities = self._partition_raw_refs_and_named_entities(inner_named_entities)
-            resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
-            resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+            resolved_refs, resolved_named_entities = [], []
+            if type_filter in {'all', 'citation'}:
+                resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
+            if type_filter in {'all', 'named entity'}:
+                resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
             resolved += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
 
         named_entity_list_list = [[rr.raw_named_entity for rr in inner_resolved] for inner_resolved in resolved]
@@ -49,18 +53,22 @@ class Linker:
         return resolved
 
     def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
-             thoroughness=ResolutionThoroughness.NORMAL) -> LinkedDoc:
+             thoroughness=ResolutionThoroughness.NORMAL, type_filter='all') -> LinkedDoc:
         """
         Link `input_str` with citations and named entities
         @param input_str:
         @param book_context_ref: Additional context reference that represents the source book that the input came from.
         @param with_failures: True to return all recognized entities, even if they weren't linked.
         @param thoroughness: How thorough the search to link entities should be. HIGH increases the processing time.
+        @param type_filter: Type of entities to return, either 'all', 'citation' or 'named entity'
         @return:
         """
         raw_refs, named_entities = self._ne_recognizer.recognize(input_str)
-        resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
-        resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+        resolved_refs, resolved_named_entities = [], []
+        if type_filter in {'all', 'citation'}:
+            resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
+        if type_filter in {'all', 'named entity'}:
+            resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
 
     @staticmethod
