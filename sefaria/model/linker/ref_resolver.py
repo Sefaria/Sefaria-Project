@@ -164,7 +164,7 @@ class AmbiguousResolvedRef:
         if len(resolved_refs) == 0:
             raise InputError("Length of `resolved_refs` must be at least 1")
         self.resolved_raw_refs = resolved_refs
-        self.raw_ref = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
+        self.raw_entity = resolved_refs[0].raw_entity  # assumption is all resolved_refs share same raw_ref. expose at top level
 
     @property
     def pretty_text(self):
