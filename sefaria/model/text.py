@@ -5618,7 +5618,7 @@ class Library(object):
         return self._linker_by_lang[lang]
 
     @staticmethod
-    def _build_named_entity_resolver(self, lang: str):
+    def _build_named_entity_resolver(lang: str):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
 
         named_entity_types_to_topics = {
