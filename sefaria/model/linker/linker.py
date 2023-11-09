@@ -35,6 +35,13 @@ class Linker:
         self._ne_recognizer.bulk_map_normal_output_to_original_input(inputs, named_entity_list_list)
         return resolved
 
+    def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
+             thoroughness=ResolutionThoroughness.NORMAL) -> LinkedDoc:
+        raw_refs, named_entities = self._ne_recognizer.recognize(input_str)
+        resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
+        resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
+        return LinkedDoc(resolved_refs, resolved_named_entities)
+
     @staticmethod
     def _partition_raw_refs_and_named_entities(raw_refs_and_named_entities: List[RawNamedEntity]) \
             -> Tuple[List[RawRef], List[RawNamedEntity]]:
@@ -50,10 +57,3 @@ class Linker:
         if verbose:
             iterable = tqdm(iterable, total=len(book_context_refs))
         return iterable
-
-    def link(self, input_str: str, book_context_ref: Optional[Ref] = None, with_failures=False,
-             thoroughness=ResolutionThoroughness.NORMAL) -> LinkedDoc:
-        raw_refs, named_entities = self._ne_recognizer.recognize(input_str)
-        resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
-        resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-        return LinkedDoc(resolved_refs, resolved_named_entities)
