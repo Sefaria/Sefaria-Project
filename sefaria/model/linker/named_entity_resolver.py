@@ -376,8 +376,7 @@ class TopicMatcher:
 
 class NamedEntityResolver:
 
-    def __init__(self, named_entity_recognizer: NamedEntityRecognizer, topic_matcher: TopicMatcher):
-        self._named_entity_recognizer = named_entity_recognizer
+    def __init__(self, topic_matcher: TopicMatcher):
         self._topic_matcher = topic_matcher
 
     def bulk_resolve(self, raw_named_entities: List[RawNamedEntity], with_failures=False) -> List[ResolvedNamedEntity]:

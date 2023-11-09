@@ -4865,8 +4865,7 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
-        self._ref_resolver_by_lang = {}
-        self._named_entity_resolver_by_lang = {}
+        self._linker_by_lang = {}
 
         # Topics
         self._topic_mapping = {}
@@ -5601,24 +5600,32 @@ class Library(object):
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
 
-    def get_named_entity_resolver(self, lang: str, rebuild=False):
-        resolver = self._named_entity_resolver_by_lang.get(lang)
-        if not resolver or rebuild:
-            resolver = self.build_named_entity_resolver(lang)
-        return resolver
+    def get_linker(self, lang: str, rebuild=False):
+        linker = self._linker_by_lang.get(lang)
+        if not linker or rebuild:
+            linker = self.build_linker(lang)
+        return linker
 
-    def build_named_entity_resolver(self, lang: str):
+    def build_linker(self, lang: str):
+        from sefaria.model.linker.linker import Linker
+
+        logger.info("Loading Spacy Model")
+
+        named_entity_resolver = self._build_named_entity_resolver(lang)
+        ref_resolver = self._build_ref_resolver(lang)
+        named_entity_recognizer = self._build_named_entity_recognizer(lang)
+        self._linker_by_lang[lang] = Linker(ref_resolver, named_entity_resolver, named_entity_recognizer)
+        return self._linker_by_lang[lang]
+
+    @staticmethod
+    def _build_named_entity_resolver(self, lang: str):
         from .linker.named_entity_resolver import TopicMatcher, NamedEntityResolver
 
         named_entity_types_to_topics = {
             "PERSON": {"ontology_roots": ['people'], "single_slugs": ['god', 'the-tetragrammaton']},
             "GROUP": {'ontology_roots': ["group-of-people"]},
         }
-        self._named_entity_resolver_by_lang[lang] = NamedEntityResolver(
-            self._build_named_entity_recognizer(lang),
-            TopicMatcher(lang, named_entity_types_to_topics)
-        )
-        return self._named_entity_resolver_by_lang[lang]
+        return NamedEntityResolver(TopicMatcher(lang, named_entity_types_to_topics))
 
     @staticmethod
     def _build_named_entity_recognizer(lang: str):
@@ -5631,30 +5638,19 @@ class Library(object):
             load_spacy_model(RAW_REF_PART_MODEL_BY_LANG_FILEPATH[lang])
         )
 
-    def get_ref_resolver(self, lang: str, rebuild=False):
-        resolver = self._ref_resolver_by_lang.get(lang)
-        if not resolver or rebuild:
-            resolver = self.build_ref_resolver(lang)
-        return resolver
-
-    def build_ref_resolver(self, lang: str):
+    def _build_ref_resolver(self, lang: str):
         from .linker.match_template import MatchTemplateTrie
         from .linker.ref_resolver import RefResolver, TermMatcher
         from sefaria.model.schema import NonUniqueTermSet
 
-        logger.info("Loading Spacy Model")
-
         root_nodes = list(filter(lambda n: getattr(n, 'match_templates', None) is not None, self.get_index_forest()))
         alone_nodes = reduce(lambda a, b: a + b.index.get_referenceable_alone_nodes(), root_nodes, [])
         non_unique_terms = NonUniqueTermSet()
-        ner = self._build_named_entity_recognizer(lang)
 
-        self._ref_resolver_by_lang[lang] = RefResolver(
-           lang, ner,
-           MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
+        return RefResolver(
+           lang, MatchTemplateTrie(lang, nodes=(root_nodes + alone_nodes), scope='alone'),
            TermMatcher(lang, non_unique_terms),
         )
-        return self._ref_resolver_by_lang[lang]
 
     def get_index_forest(self):
         """

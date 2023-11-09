@@ -244,11 +244,9 @@ class IbidHistory:
 
 class RefResolver:
 
-    def __init__(self, lang: str, named_entity_recognizer: NamedEntityRecognizer,
-                 ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
+    def __init__(self, lang: str, ref_part_title_trie: MatchTemplateTrie, term_matcher: TermMatcher) -> None:
 
         self._lang = lang
-        self._named_entity_recognizer = named_entity_recognizer
         self._ref_part_title_trie = ref_part_title_trie
         self._term_matcher = term_matcher
         self._ibid_history = IbidHistory()
@@ -291,9 +289,6 @@ class RefResolver:
             self.reset_ibid_history()
         else:
             self._ibid_history.last_refs = temp_resolved[-1].ref
-
-    def get_ner(self) -> NamedEntityRecognizer:
-        return self._named_entity_recognizer
 
     def get_ref_part_title_trie(self) -> MatchTemplateTrie:
         return self._ref_part_title_trie
