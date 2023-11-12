@@ -97,16 +97,10 @@ class AbstractNormalizer:
             meaning by the 2nd index, 5 chars have been removed
             then if you have a range (0,3) in the normalized string "abc" you will know that maps to (0, 8) in the original string
         """
-        if removal_list is None:
-            removal_list = self.find_text_to_remove(text, **kwargs)
+        removal_list = removal_list or self.find_text_to_remove(text, **kwargs)
         total_removed = 0
         removal_map = {}
-        for removal, subst in removal_list:
-            try:
-                start, end = removal
-            except TypeError:
-                # must be match object
-                start, end = removal.start(), removal.end()
+        for (start, end), subst in removal_list:
             normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
             curr_removed = end - start - len(subst)
             if curr_removed != 0:
