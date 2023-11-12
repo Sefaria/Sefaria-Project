@@ -65,7 +65,7 @@ OpenVersion.prototypes = {
   currRef: PropTypes.string.isRequired,
   className: PropTypes.string,
   openVersionInSidebar: PropTypes.func,
-  openVersionInReader: PropTypes.func.isRequired,
+  openVersionInReader: PropTypes.func,
   targetPanel: PropTypes.string.isRequired,
   text: PropTypes.string,
   rendermode: PropTypes.string.isRequired,
