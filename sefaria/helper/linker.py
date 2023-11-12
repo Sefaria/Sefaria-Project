@@ -3,7 +3,7 @@ import json
 import spacy
 import structlog
 from sefaria.model.linker.ref_part import TermContext, RefPartType
-from sefaria.model.linker.ref_resolver import ResolvedRef, AmbiguousResolvedRef
+from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.system.cache import django_cache
@@ -101,10 +101,7 @@ def _add_webpage_hit_for_url(url):
 
 @django_cache(cache_type="persistent")
 def _make_find_refs_response_with_cache(request_text: _FindRefsText, options: _FindRefsTextOptions, meta_data: dict) -> dict:
-    if request_text.lang == 'he':
-        response = _make_find_refs_response_linker_v3(request_text, options)
-    else:
-        response = _make_find_refs_response_linker_v2(request_text, options)
+    response = _make_find_refs_response_linker_v3(request_text, options)
 
     if meta_data:
         _, webpage = WebPage.add_or_update_from_linker({
@@ -179,11 +176,10 @@ def _get_trefs_from_response(response):
     return trefs
 
 
-def _make_find_refs_response_inner(resolved: List[List[Union[AmbiguousResolvedRef, ResolvedRef]]], options: _FindRefsTextOptions):
+def _make_find_refs_response_inner(resolved_ref_list: List[PossiblyAmbigResolvedRef], options: _FindRefsTextOptions):
     ref_results = []
     ref_data = {}
     debug_data = []
-    resolved_ref_list = [resolved_ref for inner_resolved in resolved for resolved_ref in inner_resolved]
     for resolved_ref in resolved_ref_list:
         resolved_refs = resolved_ref.resolved_raw_refs if resolved_ref.is_ambiguous else [resolved_ref]
         start_char, end_char = resolved_ref.raw_entity.char_indices
@@ -251,7 +247,7 @@ def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRe
     return as_array[:options.max_segments or None], was_truncated
 
 
-def _make_debug_response_for_linker(resolved_ref: ResolvedRef) -> dict:
+def _make_debug_response_for_linker(resolved_ref: PossiblyAmbigResolvedRef) -> dict:
     debug_data = {
         "orig_part_strs": [p.text for p in resolved_ref.raw_entity.raw_ref_parts],
         "orig_part_types": [p.type.name for p in resolved_ref.raw_entity.raw_ref_parts],
