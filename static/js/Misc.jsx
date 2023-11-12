@@ -1348,8 +1348,8 @@ class DisplaySettingsButton extends Component {
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
         <InterfaceText>
-        <EnglishText>A</EnglishText>
-        <HebrewText>א</HebrewText>
+        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
+        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
         </InterfaceText>;
     } else {
       icon = <span className="textIcon">Aa</span>;
