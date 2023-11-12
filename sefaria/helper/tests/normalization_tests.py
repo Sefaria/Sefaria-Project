@@ -56,9 +56,9 @@ def test_simpler_normalizer_composer():
     nsc = NormalizerComposer(['brackets', 'double-space'])
     assert nsc.normalize(text) == normalized
     text_to_remove = nsc.find_text_to_remove(text)
-    assert len(text_to_remove) == 1
+    assert len(text_to_remove) == 2
     (start0, end0), repl0 = text_to_remove[0]
-    assert text[start0:end0] == " ["
+    assert text[start0:end0] == " "
     assert repl0 == ' '
 
 
@@ -68,24 +68,23 @@ def test_complicated_normalizer_composer():
     nsc = NormalizerComposer(['html', "parens-plus-contents", 'brackets', 'double-space'])
     assert nsc.normalize(text) == normalized
     text_to_remove = nsc.find_text_to_remove(text)
-    assert len(text_to_remove) == 5
+    assert len(text_to_remove) == 6
     (start0, end0), repl0 = text_to_remove[0]
-    assert text[start0:end0] == "(<i>hello</i> other stuff) ["
+    assert text[start0:end0] == "(<i>hello</i> other stuff) "
     assert repl0 == ' '
 
 
-def test_mapping():
-    text = """<b><i> test"""
-    normalized = """ test"""
-    nsc = NormalizerComposer(['html', 'double-space'])
-    assert nsc.normalize(text) == normalized
-    mapping = nsc.get_mapping_after_normalization(text)
-    test_word = "test"
-    start_norm_ind = normalized.index(test_word)
+@pytest.mark.parametrize(('unnorm', 'norm', 'normalizer_steps', 'test_word'), [
+    ["<b><i> test", " test", ['html', 'double-space'], 'test'],
+    ["\n\n\nThe rest of Chapter 1.\n \n", " The rest of Chapter 1. ", ['unidecode', 'html', 'double-space'], 'Chapter 1'],
+])
+def test_mapping(unnorm, norm, normalizer_steps, test_word):
+    nsc = NormalizerComposer(normalizer_steps)
+    assert nsc.normalize(unnorm) == norm
+    start_norm_ind = norm.index(test_word)
     norm_inds = (start_norm_ind, start_norm_ind+len(test_word))
-    unnorm_inds = nsc.convert_normalized_indices_to_unnormalized_indices([norm_inds], mapping)[0]
-    # actual test
-    assert text[slice(*unnorm_inds)] == normalized[slice(*norm_inds)]
+    unnorm_inds = nsc.norm_to_unnorm_indices(unnorm, [norm_inds])[0]
+    assert unnorm[slice(*unnorm_inds)] == norm[slice(*norm_inds)]
 
 
 def test_html_normalizer_for_empty_prefix():
@@ -97,8 +96,7 @@ def test_html_normalizer_for_empty_prefix():
     ne_start = norm_text.index(ne)
     ne_norm_prefix_inds = (ne_start, ne_start)
     assert norm_text[ne_norm_prefix_inds[0]:ne_norm_prefix_inds[0]+len(ne)] == ne
-    mapping = normalizer.get_mapping_after_normalization(text)
-    ne_inds = normalizer.convert_normalized_indices_to_unnormalized_indices([ne_norm_prefix_inds], mapping)[0]
+    ne_inds = normalizer.norm_to_unnorm_indices(text, [ne_norm_prefix_inds])[0]
     # actual test
     assert ne_inds[0] == ne_inds[1]
     assert text[ne_inds[0]:ne_inds[0]+len(ne)] == ne
