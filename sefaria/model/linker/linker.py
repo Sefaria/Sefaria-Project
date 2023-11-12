@@ -74,7 +74,9 @@ class Linker:
             resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
         if type_filter in {'all', 'named entity'}:
             resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
-        return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+        doc = LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+        self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
+        return doc
 
     def get_ner(self) -> NamedEntityRecognizer:
         return self._ner
