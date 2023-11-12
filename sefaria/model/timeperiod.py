@@ -225,6 +225,16 @@ class TimePeriod(abst.AbstractMongoRecord):
             else:
                 return topic.Topic({"properties.generation.value": self.symbol})
 
+    def determine_year_estimate(self):
+        start = getattr(self, 'start', None)
+        end = getattr(self, 'end', None)
+        if start != None and end != None:
+            return round((int(start) + int(end)) / 2)
+        elif start != None:
+            return int(start)
+        elif end != None:
+            return int(end)
+
 class TimePeriodSet(abst.AbstractMongoSet):
     recordClass = TimePeriod
 
