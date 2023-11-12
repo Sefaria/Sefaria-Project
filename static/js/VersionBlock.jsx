@@ -6,6 +6,7 @@ import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import {LoadingMessage} from "./Misc";
+import OpenVersion from "./OpenVersion";
 
 
 
@@ -35,40 +36,6 @@ class VersionBlock extends Component {
     };
     this.updateableVersionAttributes.forEach(attr => s[attr] = props.version[attr]);
     this.state = s;
-  }
-  onVersionTitleClick(e) {
-    e.preventDefault();
-    this.index = Sefaria.parseRef(this.props.currentRef).index
-    try {
-      gtag("event", "onClick_version_title", {element_name: `version_title`, change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`, categories: `${Sefaria.refCategories(this.props.currentRef)}`, book: `${Sefaria.parseRef(this.props.currentRef).index}` })
-    }
-    catch(err) {
-      console.log(err);
-    }
-    if (!this.props.openVersionInSidebar && !this.props.openVersionInReader) return;
-    if (this.props.firstSectionRef) {
-      window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle.replace(/\s/g,'_')}`;
-    } else {
-      const action = this.props.openVersionInSidebar ? this.props.openVersionInSidebar : this.props.openVersionInReader;
-      if (action) {
-        action(this.props.version.versionTitle, this.props.version.language);
-      }
-    }
-  }
-  onSelectVersionClick(e) {
-    e.preventDefault();
-    try {
-      gtag("event", "onClick_select_version", {element_name: `select_version`,
-      change_to: `${this.props.version.versionTitle}`, change_from: `${this.props.currObjectVersions[this.props.version.language]['versionTitle']}`,
-      categories: `${Sefaria.refCategories(this.props.currentRef)}`, book: `${Sefaria.parseRef(this.props.currentRef).index}` })
-    }
-    catch(err) {
-      console.log(err);
-    }
-    if (this.props.openVersionInReader) {
-      this.props.openVersionInReader(this.props.version.versionTitle, this.props.version.language);
-      Sefaria.setVersionPreference(this.props.currentRef, this.props.version.versionTitle, this.props.version.language);
-    }
   }
   handleInputChange(event) {
     const target = event.target;
@@ -145,22 +112,6 @@ class VersionBlock extends Component {
     e.preventDefault();
     this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
   }
-  makeVersionLink(versionParam) {
-    //versionParam - either version language (e.g. 'en') in the case when you're making a link for versions in reader
-    //otherwise, 'side' for making link for versions in sidebar
-
-    // maintain all versions for languages you're not currently selecting
-    if (this.props.version.merged) {
-      return "#"; // there's no url for a merged version
-    }
-    const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.entries(this.props.currObjectVersions)
-                                      .filter(([vlang, version])=>!!version &&!!version?.versionTitle && !version?.merged && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(([vlang, version])=>`&v${vlang}=${version.versionTitle.replace(/\s/g,'_')}`)
-                                      .join("");
-    const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
-    return versionLink;
-  }
   makeVersionTitle(){
     if(this.props.version.merged){
       return {"className": "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ")};
@@ -187,7 +138,6 @@ class VersionBlock extends Component {
     return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
   }
   makeSelectVersionLanguage(){
-    if (this.isHeTranslation() && !this.props.isCurrent) { return Sefaria._("View in Sidebar"); }
     let voc = this.props.version.isBaseText ? 'Version' : "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
@@ -208,9 +158,6 @@ class VersionBlock extends Component {
     return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
   }
 
-  isHeTranslation() {
-    return this.props.version.actualLanguage === 'he' && !this.props.version.isBaseText && this.props.inTranslationBox;
-  }
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
@@ -286,19 +233,34 @@ class VersionBlock extends Component {
         <div className="versionBlock">
             <div className="versionBlockHeading">
               <div className="versionTitle" role="heading">
-                  <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
-                    {vtitle["text"]}
-                  </a>
+                <OpenVersion
+                  version={this.props.version}
+                  currRef={this.props.currentRef}
+                  currObjectVersions={this.props.currObjectVersions}
+                  className={vtitle["className"]}
+                  openVersionInSidebar={this.props.openVersionInSidebar}
+                  openVersionInReader={this.props.openVersionInReader}
+                  targetPanel={this.props.rendermode === 'book-page' ? 'main' : 'side'}
+                  string={vtitle["text"]}
+                  rendermode={this.props.rendermode}
+                  firstSectionRef={this.props.firstSectionRef}
+                 />
               </div>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "book-page") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
               <div className="versionLanguage sans-serif">{showLanguagLabel ? Sefaria._(Sefaria.translateISOLanguageCode(v.actualLanguage)) : ""}</div>
             </div>
             <div className="versionSelect sans-serif">
-              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": this.isHeTranslation() ? "heTranslation" : ""}`}
-                   href={this.makeVersionLink(v.language)}
-                   onClick={this.isHeTranslation() ? this.onVersionTitleClick : this.onSelectVersionClick}>
-                  {this.makeSelectVersionLanguage()}
-              </a>
+              <OpenVersion
+                   version={this.props.version}
+                   currRef={this.props.currentRef}
+                   currObjectVersions={this.props.currObjectVersions}
+                   className={`selectButton ${this.props.isCurrent ? "currSelectButton" : ""}`}
+                   openVersionInSidebar={this.props.openVersionInSidebar}
+                   openVersionInReader={this.props.openVersionInReader}
+                   targetPanel='main'
+                   string={this.makeSelectVersionLanguage()}
+                   rendermode={this.props.rendermode}
+             />
             </div>
             <div className={classNames(this.makeAttrClassNames({"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
