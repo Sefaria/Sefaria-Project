@@ -241,7 +241,7 @@ class VersionBlock extends Component {
                   openVersionInSidebar={this.props.openVersionInSidebar}
                   openVersionInReader={this.props.openVersionInReader}
                   targetPanel={this.props.rendermode === 'book-page' ? 'main' : 'side'}
-                  string={vtitle["text"]}
+                  text={vtitle["text"]}
                   rendermode={this.props.rendermode}
                   firstSectionRef={this.props.firstSectionRef}
                  />

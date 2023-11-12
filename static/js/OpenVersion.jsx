@@ -2,7 +2,7 @@ import React from 'react';
 import Sefaria from "./sefaria/sefaria";
 import PropTypes from "prop-types";
 
-function OpenVersion({currRef, version, currObjectVersions, targetPanel, string, className, openVersionInSidebar, openVersionInReader, rendermode, firstSectionRef}) {
+function OpenVersion({currRef, version, currObjectVersions, targetPanel, text, className, openVersionInSidebar, openVersionInReader, rendermode, firstSectionRef}) {
 
     const mainPanel = targetPanel === 'main';
     function makeVersionLink() {
@@ -55,7 +55,7 @@ function OpenVersion({currRef, version, currObjectVersions, targetPanel, string,
           <a className={className}
               href={makeVersionLink()}
               onClick={mainPanel ? openInMainPanel : openInSidebar}>
-              {string}
+              {text}
           </a>
     );
 }
@@ -67,7 +67,7 @@ OpenVersion.prototypes = {
   openVersionInSidebar: PropTypes.func,
   openVersionInReader: PropTypes.func.isRequired,
   targetPanel: PropTypes.string.isRequired,
-  string: PropTypes.string,
+  text: PropTypes.string,
   rendermode: PropTypes.string.isRequired,
   firstSectionRef: PropTypes.string,
 }
