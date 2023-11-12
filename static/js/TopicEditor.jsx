@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, TitleVariants, ToggleSet} from "./Misc";
+import {InterfaceText, requestWithCallBack, ProfilePic} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -18,7 +18,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 birthPlace: origData.origBirthPlace || "", heBirthPlace: origData.origHeBirthPlace || "",
                                 birthYear: origData.origBirthYear || "", heDeathPlace: origData.origHeDeathPlace || "",
                                 deathYear: origData.origDeathYear || "", era: origData.origEra || "",
-                                deathPlace: origData.origDeathPlace || ""
+                                deathPlace: origData.origDeathPlace || "",
+                                picture: origData?.origPicture || ""
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -159,7 +160,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "Picture"];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");

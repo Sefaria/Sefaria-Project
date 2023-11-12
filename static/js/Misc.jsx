@@ -262,10 +262,11 @@ class ProfilePic extends Component {
       if (response.error) {
         throw new Error(response.error);
       } else {
-        this.closePopup({ cb: () => {
+        const defaultCallback = () => {
           window.location = "/profile/" + Sefaria.slug; // reload to get update
           return;
-        }});
+        };                                                
+        this.closePopup({ cb: this.props.saveCallback ? this.props.saveCallback(response.urls[0]) : defaultCallback});
       }
     } catch (e) {
       errored = true;
@@ -352,11 +353,12 @@ class ProfilePic extends Component {
   }
 }
 ProfilePic.propTypes = {
-  url:     PropTypes.string,
-  name:    PropTypes.string,
-  len:     PropTypes.number,
+  url:           PropTypes.string,
+  saveCallback:  PropTypes.func,  // used by AdminEditor to override default callback upon save
+  name:          PropTypes.string,
+  len:           PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
-  showButtons: PropTypes.bool,  // show profile pic action buttons
+  showButtons:   PropTypes.bool,  // show profile pic action buttons
 };
 
 
@@ -1234,6 +1236,7 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origDeathPlace: data?.properties?.deathPlace?.value,
     origDeathYear: data?.properties?.deathYear?.value,
     origEra: data?.properties?.era?.value
+
   };
 
   const origWasCat = "displays-above" in data?.links;
