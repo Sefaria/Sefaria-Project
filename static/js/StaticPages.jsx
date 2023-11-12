@@ -1,11 +1,11 @@
 import React, {useState, useRef} from 'react';
 import {
     SimpleInterfaceBlock,
-    NewsletterSignUpForm,
     TwoOrThreeBox,
     ResponsiveNBox,
     NBox, InterfaceText,
 } from './Misc';
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';

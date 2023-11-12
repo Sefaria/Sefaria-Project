@@ -845,7 +845,8 @@ def search(request):
     }
     return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
-        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
+        "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation."),
+        "noindex": True
     })
 
 
@@ -3290,6 +3291,16 @@ def recommend_topics_api(request, ref_list=None):
     response = {"topics": recommend_topics(refs)}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
+
+
+@api_view(["GET"])
+@catch_error_as_json
+def portals_api(request, slug):
+    """
+    API to get data for a Portal object by slug
+    """
+    portal = Portal.init(slug)
+    return jsonResponse(portal.contents(), callback=request.GET.get("callback", None))
 
 
 @ensure_csrf_cookie
