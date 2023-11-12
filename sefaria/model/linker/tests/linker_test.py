@@ -397,8 +397,7 @@ def test_map_new_indices(crrd_params):
     n = linker.get_ner()._normalizer
     norm_text = n.normalize(text)
     norm_doc = nlp.make_doc(norm_text)
-    mapping = n.get_mapping_after_normalization(text, reverse=True)
-    norm_part_indices = n.convert_normalized_indices_to_unnormalized_indices(part_indices, mapping, reverse=True)
+    norm_part_indices = n.norm_to_unnorm_indices(text, part_indices, reverse=True)
     norm_part_spans = [norm_doc.char_span(s, e) for (s, e) in norm_part_indices]
     norm_part_token_inds = []
     for span in norm_part_spans:

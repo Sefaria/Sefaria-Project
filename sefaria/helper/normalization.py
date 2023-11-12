@@ -100,21 +100,28 @@ class AbstractNormalizer:
         removal_list = removal_list or self.find_text_to_remove(text, **kwargs)
         total_removed = 0
         removal_map = {}
+        subst_end_indexes = set()
         for (start, end), subst in removal_list:
             normalized_text_index = start if reverse else (start + min(len(subst), end-start) - total_removed)
             curr_removed = end - start - len(subst)
             if curr_removed != 0:
                 total_removed += curr_removed
                 removal_map[normalized_text_index] = total_removed
-        return removal_map
+                if len(subst) > 0:
+                    subst_end_indexes.add(normalized_text_index + 1)
+        return removal_map, subst_end_indexes
+
+    def norm_to_unnorm_indices(self, text, normalized_indices, removal_list=None, reverse=False, **kwargs):
+        removal_map, subst_end_indices = self.get_mapping_after_normalization(text, removal_list, reverse, **kwargs)
+        return self.convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, subst_end_indices, reverse)
 
     @staticmethod
-    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, reverse=False, alignment_mode='contract'):
+    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, subst_end_indices, reverse=False):
         """
         normalized_indices - list of tuples where each tuple is (x, y) x being start index, y is end index + 1
         removal_map - return value of get_mapping_after_normalization()
+        subst_end_indices -
         reverse - if True, normalized_indices are actually unnormalized indices and removal_map was calculated using reverse=True in get_mapping_after_normalization()
-        alignment_mode - How to deal with cases where the end of a range touches a removal. Use "expand" if the removal should be included in the range. "contract" if it should be excluded.
         """
         removal_keys = sorted(removal_map.keys())
         unnormalized_indices = []
@@ -122,7 +129,7 @@ class AbstractNormalizer:
         for start, end in normalized_indices:
             unnorm_start_index = bisect_right(removal_keys, start) - 1
 
-            bisect_end_index = end if (start == end or alignment_mode == 'expand') else end - 1
+            bisect_end_index = end if (start == end or end in subst_end_indices) else end - 1
             unnorm_end_index = bisect_right(removal_keys, bisect_end_index) - 1
 
             unnorm_start = start if unnorm_start_index < 0 else start + (sign * removal_map[removal_keys[unnorm_start_index]])
@@ -262,8 +269,8 @@ class NormalizerComposer(AbstractNormalizer):
                 text_to_remove_inds, text_to_remove_repls = [], []
             else:
                 text_to_remove_inds, text_to_remove_repls = zip(*curr_text_to_remove)
-            for mapping in reversed(mappings):
-                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping, alignment_mode='expand')
+            for mapping, subst_end_indices in reversed(mappings):
+                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping, subst_end_indices)
             curr_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
 
             # merge any overlapping ranges
@@ -433,7 +440,6 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
         count += len(word)
         end = count
         word_indices.append((start, end))
-    removal_map = regex_normalizer.get_mapping_after_normalization(input_string)
     normalized_char_indices = []
     for i, words in enumerate(word_ranges):
         first_word, last_word = [w if w < len(word_indices) else -1 for w in words]
@@ -443,7 +449,7 @@ def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
                 word_indices[last_word][1] if last_word >= 0 else -1
             )
         )
-    return regex_normalizer.convert_normalized_indices_to_unnormalized_indices(normalized_char_indices, removal_map)
+    return regex_normalizer.norm_to_unnorm_indices(input_string, normalized_char_indices)
 
 
 @lru_cache(maxsize=32)
@@ -461,9 +467,8 @@ def word_index_from_char_index(full_string, char_index, split_regex=r'\s+'):
 
 def sanitized_words_to_unsanitized_words(input_string, sanitized_string, sanitization_method, sanitized_word_ranges):
     normalizer = FunctionNormalizer(sanitization_method)
-    removal_map = normalizer.get_mapping_after_normalization(input_string)
     sanitized_char_ranges = char_indices_from_word_indices(sanitized_string, sanitized_word_ranges)
-    unsanitzied_char_ranges = normalizer.convert_normalized_indices_to_unnormalized_indices(sanitized_char_ranges, removal_map)
+    unsanitzied_char_ranges = normalizer.norm_to_unnorm_indices(input_string, sanitized_char_ranges)
     # for char_range in unsanitied_char_ranges:
     #     word_range = tuple(word_index_from_char_index(input_string, i) for i in char_range)
     #     stuff.append(word_range)

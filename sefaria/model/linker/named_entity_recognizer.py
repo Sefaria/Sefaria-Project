@@ -145,16 +145,16 @@ class NamedEntityRecognizer:
         Ref resolution ran on normalized input. Remap raw refs to original (non-normalized) input
         """
         unnorm_doc = self._raw_ref_model.make_doc(input)
-        mapping = self._normalizer.get_mapping_after_normalization(input)
+        mapping, subst_end_indices = self._normalizer.get_mapping_after_normalization(input)
         # this function name is waaay too long
         conv = self._normalizer.convert_normalized_indices_to_unnormalized_indices
         norm_inds = [named_entity.char_indices for named_entity in named_entities]
-        unnorm_inds = conv(norm_inds, mapping)
+        unnorm_inds = conv(norm_inds, mapping, subst_end_indices)
         unnorm_part_inds = []
         for (named_entity, (norm_raw_ref_start, _)) in zip(named_entities, norm_inds):
             raw_ref_parts = named_entity.raw_ref_parts if isinstance(named_entity, RawRef) else []
             unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices]
-                                       for part in raw_ref_parts], mapping)]
+                                       for part in raw_ref_parts], mapping, subst_end_indices)]
         for named_entity, temp_unnorm_inds, temp_unnorm_part_inds in zip(named_entities, unnorm_inds, unnorm_part_inds):
             named_entity.map_new_indices(unnorm_doc, temp_unnorm_inds)
             if isinstance(named_entity, RawRef):
