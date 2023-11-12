@@ -2315,6 +2315,17 @@ div.interfaceLinks-row a {
   padding-left: 44px;
   padding-right: 44px;
 }
+.navSidebarModule .portalMobile .button {
+  margin-top: 0;
+}
+.portalTopicImageWrapper {
+    padding-top: 5px;
+    margin-bottom: 25px;
+}
+.portalTopicImageWrapper .topicImage {
+    padding-left: 0;
+    padding-right: 0;
+}
 @media (max-width: 600px) {
   .topicPhoto{
     height: auto;
@@ -2341,6 +2352,7 @@ div.interfaceLinks-row a {
     margin-bottom: 30px;
     text-align: center;
   }
+
 }
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
@@ -2398,7 +2410,6 @@ h1 .languageToggle .he {
 }
 .authorIndexTitle {
   margin-top: 30px;
-  margin-bottom: 17px;
 }
 .sectionTitleText.authorIndexTitle .int-en {
   text-transform: none;
@@ -11024,6 +11035,11 @@ body .homeFeedWrapper .content {
     max-width: 100%;
     align-self: stretch;
     border: 0;
+    margin: 0;
+  }
+  .topicPanel .navSidebar {
+    width: unset;
+    border-top: 30px solid #FBFBFA;
     margin: 0;
   }
 }
