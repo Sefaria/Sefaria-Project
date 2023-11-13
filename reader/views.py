@@ -3312,6 +3312,16 @@ def recommend_topics_api(request, ref_list=None):
     return response
 
 
+@api_view(["GET"])
+@catch_error_as_json
+def portals_api(request, slug):
+    """
+    API to get data for a Portal object by slug
+    """
+    portal = Portal.init(slug)
+    return jsonResponse(portal.contents(), callback=request.GET.get("callback", None))
+
+
 @ensure_csrf_cookie
 @sanitize_get_params
 def global_activity(request, page=1):

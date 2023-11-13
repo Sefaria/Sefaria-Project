@@ -2,7 +2,8 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
-import { InterfaceText, NewsletterSignUpForm, DonateLink } from './Misc';
+import { InterfaceText, DonateLink } from './Misc';
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (

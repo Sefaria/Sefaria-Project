@@ -270,6 +270,11 @@ urlpatterns += [
     url(r'^api/topic/delete/(<?P<topic>.+)$', reader_views.delete_topic)
 ]
 
+# Portals API
+urlpatterns += [
+    url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
+]
+
 # History API
 urlpatterns += [
     url(r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.texts_history_api),
@@ -387,7 +392,8 @@ urlpatterns += [
 
 # Email Subscribe
 urlpatterns += [
-    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe),
+    url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
+    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
 ]
 
 # Admin
