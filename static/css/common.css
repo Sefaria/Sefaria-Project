@@ -249,7 +249,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 .textSyncNumbers .segmentLabel {  
   font-size: 16px;
-  direction: rtl;
+  direction: ltr;
   line-height: 1.7;
   background: #3A87AD;
   color: white;
@@ -369,7 +369,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 .interface-hebrew #textBrowser {
   text-align: right;
-  direction: rtl;
+  direction: ltr;
 }
 #textBrowser.absolute {
   position: absolute;
@@ -478,7 +478,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   font-size: 130%;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   text-align: right;
-  direction: rtl;
+  direction: ltr;
 }
 #browserPreview .empty {
   text-align: center;

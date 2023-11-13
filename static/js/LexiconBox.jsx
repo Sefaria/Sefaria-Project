@@ -215,18 +215,18 @@ class LexiconEntry extends Component {
       headwords = headwords.concat(entry['alt_headwords']);
     }
     return headwords
-          .map((e,i) => <span className="headword" key={i} dir="rtl">{e}</span>)
+          .map((e,i) => <span className="headword" key={i} dir="ltr">{e}</span>)
           .reduce((prev, curr) => [prev, ', ', curr]);
   }
   bdbHeadwordString(entry) {
     const peculiar = entry.peculiar ? '‡ ' : '';
     const allCited = entry.all_cited ? '† ' : '';
     const ordinal = entry.ordinal ? `${entry["ordinal"]} ` : '';
-    const hw = (<span dir="rtl">{entry['headword'].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]*$/, '')}</span>);
+    const hw = (<span dir="ltr">{entry['headword'].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]*$/, '')}</span>);
     const occurrences = entry.occurrence ? (<sub>{entry['occurrences']}</sub>) : '';
     const alts = entry.alt_headwords ? entry['alt_headwords']
         .map(alt => {
-            const ahw = <span dir="rtl">{alt['word']}</span>;
+            const ahw = <span dir="ltr">{alt['word']}</span>;
             const aocc = ('occurrences' in alt) ? <sub>{alt['occurrences']}</sub> : '';
           return <span>, {ahw}{aocc}</span>
         })
