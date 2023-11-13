@@ -488,6 +488,9 @@ class RefResolver:
             return []
 
         context_node = context_ref.index_node
+        if not hasattr(context_node, 'addressType'):
+            # complex text
+            return []
         referenceable_sections = getattr(context_node, 'referenceableSections', [True]*len(context_node.addressTypes))
         context_sec_list = list(zip(context_node.addressTypes, context_node.sectionNames, referenceable_sections))
         match_sec_set  = get_section_set(match_index)
