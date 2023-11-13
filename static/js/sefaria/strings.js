@@ -1,8 +1,8 @@
 const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "Sefaria",
-    "Topics": "ཉེར་མཁོ།",
-    "Community": "ཚོགས་སྡེ།",
+    "Topics": "བརྗོད་གཞི།",
+    "Community": "ཟིན་བྲིས།",
     "Donate": "ཞལ་འདེབས།",
     "Sefaria Notifications": "Sefaria གསར་བརྡ་ཁག",
     "Sefaria: a Living Library of Jewish Texts Online": "Sefaria ནི་དྲ་ཐོག་གི་ནང་བསྟན་གསུང་རབ་ཀྱི་དཔེ་མཛོད་ཅིག་ཡིན།",
@@ -573,7 +573,7 @@ const Strings = {
       "Newest": "הכי חדש",*/
     },
     "Header": {
-      "Texts": "དཔེ་དེབ་ཁག",
+      "Texts": "ཆོས་མཛོད།",
     },
     "RecentlyPublished": {
       "Load More": "འདི་ལས་མང་བ་ལོངས།",
@@ -582,8 +582,8 @@ const Strings = {
       "Resources": "རྒྱུ་ཆ་ཁག",
     },
     "SearchFilters": {
-      "Texts": "དཔེ་དེབ་ཁག",
-      "Topics": "ཉེར་མཁོ།",
+      "Texts": "ཆོས་མཛོད།",
+      "Topics": "བརྗོད་གཞི།",
       "Collections": "ཕྱོགས་བསྒྲིགས་ཁག",
       "See More": "འདི་ལས་མང་བར་གཟིགས།",
     },
