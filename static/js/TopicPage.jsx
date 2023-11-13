@@ -24,6 +24,7 @@ import {
     SimpleLinkedBlock,
     CategoryHeader,
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 /*
 *** Helper functions
@@ -378,12 +379,26 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on {Sefaria._siteSettings.SITE_NAME.en}</InterfaceText></div>
           <div className="authorIndexList">
-            {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
+            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
           </div>
         </div>
        : null}
     </div>
 );}
+
+const AuthorIndexItem = ({url, title, description}) => {
+  return (
+      <div className="authorIndex" >
+      <a href={url} className="navBlockTitle">
+        <ContentText text={title} defaultToInterfaceOnBilingual />
+      </a>
+      <div className="navBlockDescription">
+        <ContentText text={description} defaultToInterfaceOnBilingual />
+      </div>
+    </div>
+  );
+};
+
 
 const useTabDisplayData = (translationLanguagePreference) => {
   const getTabDisplayData = useCallback(() => [
@@ -415,6 +430,26 @@ const useTabDisplayData = (translationLanguagePreference) => {
   return getTabDisplayData();
 };
 
+const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
+   const portalModuleTypeMap = {
+    "about": "PortalAbout",
+    "mobile": "PortalMobile",
+    "organization": "PortalOrganization",
+    "newsletter": "PortalNewsletter"
+    }
+    const modules = [];
+    for (let key of entriesToDisplayList) {
+        if (!portal[key]) { continue; }
+        modules.push({
+            type: portalModuleTypeMap[key],
+            props: portal[key],
+        });
+    }
+    return(
+        <NavSidebar modules={modules} />
+    )
+};
+
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
@@ -426,6 +461,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [portal, setPortal] = useState(null);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
 
     const scrollableElement = useRef();
@@ -493,6 +529,34 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
+    let sidebar = null;
+    if (topicData) {
+        if (topicData.portal_slug) {
+            Sefaria.getPortal(topicData.portal_slug).then(setPortal);
+            if (portal) {
+                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about", "mobile", "organization", "newsletter"]}/>
+            }
+        } else {
+           sidebar = (
+               <div className="sideColumn">
+                    <TopicSideColumn
+                        key={topic}
+                        slug={topic}
+                        links={topicData.links}
+                        clearAndSetTopic={clearAndSetTopic}
+                        setNavTopic={setNavTopic}
+                        parashaData={parashaData}
+                        tref={topicData.ref}
+                        timePeriod={topicData.timePeriod}
+                        properties={topicData.properties}
+                        topicTitle={topicTitle}
+                        multiPanel={multiPanel}
+                    />
+                    {!topicData.isLoading && <Promotions/>}
+                </div>
+            );
+        }
+    }
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
@@ -541,26 +605,7 @@ const TopicPage = ({
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
-                <div className="sideColumn">
-                  {topicData ? (
-                    <>
-                      <TopicSideColumn
-                        key={topic}
-                        slug={topic}
-                        links={topicData.links}
-                        clearAndSetTopic={clearAndSetTopic}
-                        setNavTopic={setNavTopic}
-                        parashaData={parashaData}
-                        tref={topicData.ref}
-                        timePeriod={topicData.timePeriod}
-                        properties={topicData.properties}
-                        topicTitle={topicTitle}
-                        multiPanel={multiPanel}
-                      />
-                      {!topicData.isLoading && <Promotions/>}
-                    </>
-                  ) : null}
-                </div>
+                {sidebar}
             </div>
             <Footer />
           </div>
@@ -734,11 +779,11 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 }
 
 const TopicImage = ({photoLink, enCaption, heCaption }) => {
-  
+
   return (
     <div class="topicImage">
         <img class="topicPhoto" src={photoLink}/>
-        <div class="topicImageCaption"> 
+        <div class="topicImageCaption">
           <InterfaceText text={{en:enCaption, he:heCaption}}  />
         </div>
       </div>);
@@ -854,5 +899,6 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
 export {
   TopicPage,
   TopicCategory,
-  refSort
+  refSort,
+  TopicImage
 }

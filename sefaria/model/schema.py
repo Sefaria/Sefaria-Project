@@ -1073,12 +1073,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_regex(self, lang, **kwargs):
         group = "a0"
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
-        if not self._addressTypes[0].stop_parsing(lang):
-            for i in range(1, self.depth):
-                group = "a{}".format(i)
-                reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
-                if not kwargs.get("strict", False):
-                    reg += "?"
+        for i in range(1, self.depth):
+            group = "a{}".format(i)
+            reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
+            if not kwargs.get("strict", False):
+                reg += "?"
 
         if kwargs.get("match_range"):
             # TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
@@ -1089,14 +1088,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += r"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0"
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
-            if not self._addressTypes[0].stop_parsing(lang):
-                reg += "?"
-                for i in range(1, self.depth):
-                    reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
-                    group = "ar{}".format(i)
-                    reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
-                    # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
-                    reg += ")?"
+            reg += "?"
+            for i in range(1, self.depth):
+                reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
+                group = "ar{}".format(i)
+                reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
+                # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
+                reg += ")?"
             reg += r")?"  # end range clause
         return reg
 
@@ -2072,15 +2070,6 @@ class AddressType(object):
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
         )"""
 
-    def stop_parsing(self, lang):
-        """
-        If this is true, the regular expression will stop parsing at this address level for this language.
-        It is currently checked for only in the first address position, and is used for Hebrew Talmud addresses.
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return False
-
     def toNumber(self, lang, s):
         """
         Return the numerical form of s in this address scheme
@@ -2350,11 +2339,6 @@ class AddressTalmud(AddressType):
 
         return reg
 
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
-
     def toNumber(self, lang, s, **kwargs):
         amud_b_list = ['b', 'B', 'ᵇ']
         if lang == "en":
@@ -2487,11 +2471,6 @@ class AddressFolio(AddressType):
             reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
         return reg
-
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
 
     def toNumber(self, lang, s, **kwargs):
         if lang == "en":

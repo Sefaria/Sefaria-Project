@@ -50,12 +50,7 @@ def get_topic(v2, topic, with_html=True, with_links=True, annotate_links=True, w
             ref_links = group_links_by_type('refTopic', ref_links, False, False)
         response['refs'] = ref_links
     if with_indexes and isinstance(topic_obj, AuthorTopic):
-        response['indexes'] = [
-            {
-                "text": text_dict,
-                "url": url
-            } for (url, text_dict) in topic_obj.get_aggregated_urls_for_authors_indexes()
-        ]
+        response['indexes'] = topic_obj.get_aggregated_urls_for_authors_indexes()
 
     if getattr(topic_obj, 'isAmbiguous', False):
         possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
