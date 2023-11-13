@@ -4720,6 +4720,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerOptions .int-he {
   margin-left: 8px;
 }
+.readerOptions .int-he img {
+    height: 18px;
+}
 .rightButtons .readerOptions {
   vertical-align: middle;
 }
