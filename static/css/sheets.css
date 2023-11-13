@@ -18,7 +18,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   display: none;
 }
 .interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
-	direction: rtl;
+	direction: ltr;
 }
 .he, .int-he {
     font-size: 100%;
@@ -125,7 +125,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 #bsdHeader {
 	display: none;
-	direction: rtl;
+	direction: ltr;
 	font-size: 18px;
 	position: relative;
 	top: -40px;
@@ -360,7 +360,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding: 10px;
 }
 #textPreview .he , #inlineTextPreview .he {
-	direction: rtl;
+	direction: ltr;
 }
 #textPreview .previewNoText, #inlineTextPreview .previewNoText {
 	direction: ltr;
@@ -383,7 +383,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	--hebrew-font: var(--hebrew-serif-font-family);
 }
 #title.heTitle {
-	direction: rtl;
+	direction: ltr;
 }
 #author {
 	text-align: center;
@@ -661,7 +661,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	text-align: left;
 }
 #sheet .he {
-	direction: rtl;
+	direction: ltr;
 	text-align: right;
 	font-size: 24px;
 }
@@ -835,7 +835,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	padding: 0;
 }
 .interface-hebrew #addParashaToSheetModal{
-	direction: rtl;
+	direction: ltr;
 }
 #addToSheetModal .header {
 	font-size: 22px;
@@ -1338,7 +1338,7 @@ line-height: normal;
 	z-index:101;
 }
 .alertBox.interface-hebrew{
-	direction: rtl;
+	direction: ltr;
 }
 .mediaWrapper.hidden {
 	display: none;
@@ -1529,7 +1529,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	display:flex;
 }
 .interface-hebrew #addInterface .buttonBar{
-	direction: rtl;
+	direction: ltr;
 }
 
 .contentDiv > div {
@@ -1669,7 +1669,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	width:100%;
 }
 .interface-hebrew .blockContainer{
-	direction: rtl;
+	direction: ltr;
 }
 #customTextContainer{
 	margin-bottom: 40px;
@@ -1832,7 +1832,7 @@ label[for="sourceSheetShareSelect"] {
 	width: 400px;
 }
 .interface-hebrew .s2Modal, .interface-hebrew.s2Modal{
-	direction: rtl;
+	direction: ltr;
 }
 .s2Modal .title {
 	font-size: 20px;
@@ -2107,5 +2107,5 @@ a.tagit-close {
 	display: block;
 }  /* TODO add ability to set outside text source formatting from menu bar like real sources to remove need for this. Allow overrides to occur like real source texts */
 #peopleListModal.interface-hebrew{
-	direction: rtl;
+	direction: ltr;
 }

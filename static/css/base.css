@@ -40,7 +40,7 @@ p {
 	padding: 0px 2%;
 }
 #content.hebrew .biReady {
-	direction: rtl;
+	direction: ltr;
 }
 #content.english .biReady .he {
 	display: none;
@@ -715,7 +715,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textsList .heTitle {
-  direction: rtl;
+  direction: ltr;
   text-align: right;
   font-family: "Times New Roman", serif;
   font-size: 24px;
@@ -1196,7 +1196,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #activityList .text.he {
-	direction: rtl;
+	direction: ltr;
 }
 
 #activityList .time {
@@ -1255,7 +1255,7 @@ body.hebrew #aboutPage .span5 {
 
 .textPreview .he {
     font-size: 28px;
-    direction: rtl;
+    direction: ltr;
     text-align: right;
     line-height: 1.3;
     font-family: "Times New Roman", Serif;
@@ -1328,7 +1328,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #textHeTitleVariants {
-	direction: rtl;
+	direction: ltr;
 }
 
 #newIndex #textTitle {
@@ -1339,7 +1339,7 @@ body.hebrew #aboutPage .span5 {
 #newIndex #heTitle {
 	font-size: 20px;
 	padding: 4px;
-	direction: rtl;
+	direction: ltr;
 }
 
 #newIndex select {
@@ -1632,7 +1632,7 @@ body.hebrew #aboutPage .span5 {
 }
 
 #translateCampaign #original {
-	direction: rtl;
+	direction: ltr;
 	font-size: 30px;
 	font-family: "Times New Roman", serif;
 	line-height: 39px;
@@ -2672,7 +2672,7 @@ text-align: left;width: 250px;display: inline-block;}
 }
 
 body.hebrew #footer {
-	direction: rtl;
+	direction: ltr;
 }
 body.english #footer .he {
 	display: none;

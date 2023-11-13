@@ -618,7 +618,7 @@ body.newText #newTextCompare {
 .verse > .he, .hebrew .verse {
 	font-family: "Times New Roman";
 	font-size: 36px;
-	direction: rtl;
+	direction: ltr;
 }
 
 .verse > .he big {
@@ -666,7 +666,7 @@ body.newText #newTextCompare {
 }
 
 .basetext.hebrew{
-	direction: rtl;
+	direction: ltr;
 	left: 4%;
 	width: 58%;
 	top: 85px;
@@ -733,7 +733,7 @@ body.newText #newTextCompare {
 	text-align: right;
 	float: right;
 	margin-left: 0px;
-	direction: rtl;
+	direction: ltr;
 	margin-top: -6px;
 }
 
@@ -762,7 +762,7 @@ body.newText #newTextCompare {
 
 .he {
 	display: none;
-	direction: rtl;
+	direction: ltr;
 	text-align: right;
 	font-family: "Times New Roman", serif;
 }
@@ -1201,7 +1201,7 @@ body.noCommentary .aboutBarBox {
 }
 
 body.hebrew .commentaryBox .commentary{
-	direction: rtl;
+	direction: ltr;
 	text-align: right;
 }		
 
@@ -1240,7 +1240,7 @@ body .note .anchorText {
 	display: inline !important;
 }
 .heNote {
-	direction: rtl !important;
+	direction: ltr !important;
 	text-align: right !important;
 }
 .heNote .en {
@@ -1724,7 +1724,7 @@ body .screen .commentaryBox .noteMessage {
 }		
 
 body.hebrew .open {
-	direction: rtl;
+	direction: ltr;
 }
 
 body.hebrew .open.edit {

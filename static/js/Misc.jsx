@@ -2432,7 +2432,7 @@ Dropdown.propTypes = {
 class LoadingMessage extends Component {
   render() {
     var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "טוען מידע...";
+    var heMessage = this.props.heMessage || "ལེན་བཞིན་པ་་་";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
       <InterfaceText>

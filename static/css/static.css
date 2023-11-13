@@ -1614,7 +1614,7 @@ p.registration-links a:hover{
   margin: 0 0 30px 0;
 }
 body.interface-hebrew #visualGardenPage .reset {
-  direction: rtl;
+  direction: ltr;
   float: right;
 }
 body.interface-hebrew #visualGardenPage .filter-title .reset {
@@ -1661,7 +1661,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 #visualGardenPage #results .result-text span.he,
 #visualGardenPage #results .result-text span.int-he {
-   direction: rtl;
+   direction: ltr;
 }
 #visualGardenPage #results .result-text span.he {
  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
