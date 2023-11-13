@@ -539,7 +539,7 @@ const TopicPage = ({
         if (topicData.portal_slug) {
             Sefaria.getPortal(topicData.portal_slug).then(setPortal);
             if (portal) {
-                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about", "mobile", "organization", "newsletter"]}/>
+                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about"]}/> // "mobile", "organization", "newsletter"]}/>
             }
         } else {
            sidebar = (
