@@ -168,7 +168,7 @@ class YerushalmiCatcher:
         resolved_refs = self.post_process_resolved_refs(resolved_refs, context_ref)
         norm_indices = [r.raw_ref.char_indices for r in resolved_refs]
         mapping = self.normalizer.get_mapping_after_normalization(st)
-        orig_indices = self.normalizer.convert_normalized_indices_to_unnormalized_indices(norm_indices, mapping)
+        orig_indices = self.normalizer.norm_to_unnorm_indices_with_mapping(norm_indices, mapping, )
 
         for resolved_ref, (start_char, end_char) in zip(resolved_refs, orig_indices):
             before_context, after_context = get_window_around_match(start_char, end_char, st)

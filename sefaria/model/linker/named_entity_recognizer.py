@@ -146,8 +146,7 @@ class NamedEntityRecognizer:
         """
         unnorm_doc = self._raw_ref_model.make_doc(input)
         mapping, subst_end_indices = self._normalizer.get_mapping_after_normalization(input)
-        # this function name is waaay too long
-        conv = self._normalizer.convert_normalized_indices_to_unnormalized_indices
+        conv = self._normalizer.norm_to_unnorm_indices_with_mapping
         norm_inds = [named_entity.char_indices for named_entity in named_entities]
         unnorm_inds = conv(norm_inds, mapping, subst_end_indices)
         unnorm_part_inds = []

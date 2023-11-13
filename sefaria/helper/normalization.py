@@ -85,6 +85,9 @@ class AbstractNormalizer:
 
     def get_mapping_after_normalization(self, text, removal_list=None, reverse=False, **kwargs):
         """
+        Prefer norm_to_unnorm_indices() over this function since the former is simpler.
+        Use this function when you need more control over the mapping outputs.
+        It also can be useful to store the mapping and reuse it as an optimization.
         text - unnormalized text
         removal_list - instead of passing `find_text_to_remove`, you can pass an already calculated list of tuples. should be in same format as return value of find_text_to_remove
         reverse - bool. If True, then will return mapping from unnormalized string to normalized string
@@ -112,15 +115,23 @@ class AbstractNormalizer:
         return removal_map, subst_end_indexes
 
     def norm_to_unnorm_indices(self, text, normalized_indices, removal_list=None, reverse=False, **kwargs):
+        """
+        text - unnormalized text
+        normalized_indices - list of tuples where each tuple is (x, y) x being start index, y is end index + 1
+        reverse - if True, normalized_indices are actually unnormalized indices and removal_map was calculated using reverse=True in get_mapping_after_normalization()
+        """
         removal_map, subst_end_indices = self.get_mapping_after_normalization(text, removal_list, reverse, **kwargs)
-        return self.convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, subst_end_indices, reverse)
+        return self.norm_to_unnorm_indices_with_mapping(normalized_indices, removal_map, subst_end_indices, reverse)
 
     @staticmethod
-    def convert_normalized_indices_to_unnormalized_indices(normalized_indices, removal_map, subst_end_indices, reverse=False):
+    def norm_to_unnorm_indices_with_mapping(normalized_indices, removal_map, subst_end_indices, reverse=False):
         """
+        Prefer norm_to_unnorm_indices() over this function since the former is simpler.
+        Use this function when you need more control over the mapping inputs.
+        It also can be useful to store the mapping and reuse it as an optimization.
         normalized_indices - list of tuples where each tuple is (x, y) x being start index, y is end index + 1
-        removal_map - return value of get_mapping_after_normalization()
-        subst_end_indices -
+        removal_map - first return value of get_mapping_after_normalization()
+        subst_end_indices - second return value from get_mapping_after_normalization()
         reverse - if True, normalized_indices are actually unnormalized indices and removal_map was calculated using reverse=True in get_mapping_after_normalization()
         """
         removal_keys = sorted(removal_map.keys())
@@ -270,7 +281,8 @@ class NormalizerComposer(AbstractNormalizer):
             else:
                 text_to_remove_inds, text_to_remove_repls = zip(*curr_text_to_remove)
             for mapping, subst_end_indices in reversed(mappings):
-                text_to_remove_inds = step.convert_normalized_indices_to_unnormalized_indices(text_to_remove_inds, mapping, subst_end_indices)
+                text_to_remove_inds = step.norm_to_unnorm_indices_with_mapping(text_to_remove_inds, mapping,
+                                                                               subst_end_indices)
             curr_text_to_remove = list(zip(text_to_remove_inds, text_to_remove_repls))
 
             # merge any overlapping ranges
