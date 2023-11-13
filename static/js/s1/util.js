@@ -790,11 +790,11 @@ sjs.textBrowser = {
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='button disabled'>" + 
 								"<span class='int-en'>OK</span>" + 
-								"<span class='int-he'>אישור</span>" +
+								"<span class='int-he'>འགྲིག</span>" +
 							"</div>" +
 							(abs ? "<div id='browserCancel' class='button'>" +
 									"<span class='int-en'>Cancel</span>" + 
-									"<span class='int-he'>ביטול</span>" +
+									"<span class='int-he'>ཕྱིར་འཐེན།</span>" +
 								"</div>" : "") +
 						"</div>" +
 				   "</div>";
