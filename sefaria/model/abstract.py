@@ -3,6 +3,7 @@
 """
 abstract.py - abstract classes for Sefaria models
 """
+from cerberus import Validator
 import collections
 import structlog
 import copy
@@ -15,7 +16,7 @@ import re
 from bson.objectid import ObjectId
 
 from sefaria.system.database import db
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
 
 logger = structlog.get_logger(__name__)
 
@@ -31,6 +32,7 @@ class AbstractMongoRecord(object):
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
+    attr_schemas = {}    # schemas to validate that an attribute is in the right format. Keys are attribute names, values are schemas in Cerberus format.
     track_pkeys = False
     pkeys = []   # list of fields that others may depend on
     history_noun = None  # Label for history records
@@ -242,6 +244,16 @@ class AbstractMongoRecord(object):
                              " not in " + ",".join(self.required_attrs) + " or " + ",".join(self.optional_attrs))
                 return False
         """
+        for attr, schema in self.attr_schemas.items():
+            v = Validator(schema)
+            try:
+                value = getattr(self, attr)
+                if not v.validate(value):
+                    raise InputError(v.errors)
+            except AttributeError:
+                # not checking here if value exists, that is done above.
+                # assumption is if value doesn't exist, it's optional
+                pass
         return True
 
     def _normalize(self):
@@ -382,17 +394,20 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
     cacheable = False
 
     @classmethod
-    def init(cls, slug: str) -> 'AbstractMongoRecord':
+    def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
         """
         Convenience func to avoid using .load() when you're only passing a slug
         Applicable only if class defines `slug_fields`
-        :param slug:
-        :return:
+        @param slug:
+        @param slug_field_idx: Optional index of slug field in case `cls` has multiple slug fields. Index should be between 0 and len(cls.slug_fields) - 1
+        @return: instance of `cls` with slug `slug`
         """
-        if len(cls.slug_fields) != 1:
-            raise Exception("Can only call init() if exactly one slug field is defined.")
+        if len(cls.slug_fields) != 1 and slug_field_idx is None:
+            raise Exception("Can only call init() if exactly one slug field is defined or `slug_field_idx` is passed as"
+                            " a parameter.")
+        slug_field_idx = slug_field_idx or 0
         if not cls.cacheable or slug not in cls._init_cache:
-            instance = cls().load({cls.slug_fields[0]: slug})
+            instance = cls().load({cls.slug_fields[slug_field_idx]: slug})
             if cls.cacheable:
                 cls._init_cache[slug] = instance
             else:
@@ -426,6 +441,20 @@ class SluggedAbstractMongoRecord(AbstractMongoRecord, metaclass=SluggedAbstractM
         if self.slug_fields is not None:
             for slug_field in self.slug_fields:
                 setattr(self, slug_field, self.normalize_slug_field(slug_field))
+
+    @classmethod
+    def validate_slug_exists(cls, slug: str, slug_field_idx: int = None):
+        """
+        Validate that `slug` points to an existing object of type `cls`. Pass `slug_field` if `cls` has multiple slugs
+        associated with it (e.g. TopicLinkType)
+        @param slug: Slug to look up
+        @param slug_field_idx: Optional index of slug field in case `cls` has multiple slug fields. Index should be
+        between 0 and len(cls.slug_fields) - 1
+        @return: raises SluggedMongoRecordMissingError is slug doesn't match an existing object
+        """
+        instance = cls.init(slug, slug_field_idx)
+        if not instance:
+            raise SluggedMongoRecordMissingError(f"{cls.__name__} with slug '{slug}' does not exist.")
 
 
 class Cloneable:
