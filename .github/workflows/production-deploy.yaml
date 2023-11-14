@@ -230,7 +230,6 @@ jobs:
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
           CHART_VERSION: "${{ steps.chart_version.outputs.chart_version }}"
       - name: Update workflow default chart
-        if: github.ref == 'refs/heads/master'
         run: > 
           curl -L 
           -X PATCH 
