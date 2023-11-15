@@ -368,7 +368,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
   -o-user-select: none; 
 }
 .interface-hebrew #textBrowser {
-  text-align: right;
+  text-align: left;
   direction: ltr;
 }
 #textBrowser.absolute {
