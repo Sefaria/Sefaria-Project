@@ -1400,6 +1400,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             else:
                 self.actualLanguage = self.language
 
+        if not getattr(self, 'direction', None):
+            self.direction = 'rtl' if self.language == 'he' else 'ltr'
+
         if getattr(self, "priority", None):
             try:
                 self.priority = float(self.priority)
