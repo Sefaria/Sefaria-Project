@@ -1338,7 +1338,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "isBaseText",
         'isSource',
         'isPrimary',
-        'direction', # 1 for rtl, 2 for ltr
+        'direction', # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
