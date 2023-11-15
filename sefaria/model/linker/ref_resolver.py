@@ -488,7 +488,7 @@ class RefResolver:
             return []
 
         context_node = context_ref.index_node
-        if not hasattr(context_node, 'addressType'):
+        if not hasattr(context_node, 'addressTypes'):
             # complex text
             return []
         referenceable_sections = getattr(context_node, 'referenceableSections', [True]*len(context_node.addressTypes))
