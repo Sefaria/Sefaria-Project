@@ -89,6 +89,13 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["sections"], ['5', '2'])
         self.assertEqual(data["toSections"], ['5', '4'])
 
+    def text_api_virtual_node(self):
+        response = c.get('/api/v3/texts/BDB, א')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['versions']), 1)
+        self.assertEqual(data['versions'][0]['text'], ['<big><span dir="rtl">א</span></big>  <em>Āleph</em>, first letter; in post Biblical Hebrew = numeral 1 (and so in margin of printed MT); א̈= 1000; no evidence of this usage in OT times.'])
+
     def test_api_get_text_bad_text(self):
         response = c.get('/api/v3/texts/Life_of_Pi.13.13')
         self.assertEqual(400, response.status_code)

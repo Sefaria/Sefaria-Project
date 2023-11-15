@@ -222,6 +222,7 @@ def break_int_magnitudes(n, start=None):
 	else:
 		return [n // start * start] + break_int_magnitudes(n - n // start * start, start=start // 10)
 
+
 @memoized
 def sanitize(input_string, punctuation=True):
 	"""sanitize(input_string, punctuation=True)
@@ -544,6 +545,9 @@ def hebrew_parasha_name(value):
 ########
 # Hebrew Abbrev Matching
 ########
+
+def get_he_key(key):
+	return 'he' + key[0].upper() + key[1:]  # birthPlace => heBirthPlace
 
 def get_abbr(abbr: str, unabbr: List[str], match=lambda x, y: x.startswith(y), lang='he'):
 	abbr = re.sub('[^א-ת]', '', abbr) if lang == 'he' else re.sub('[^a-z]', '', abbr)

@@ -6,6 +6,7 @@ from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
 from typing import List
 
+
 class TextManager:
     ALL = 'all'
     BASE = 'base'
@@ -42,7 +43,6 @@ class TextManager:
             relevant_versions.remove(lambda v: v.actualLanguage != version.actualLanguage)
         else:
             relevant_versions = [version]
-        print(self.oref, version.actualLanguage, version.versionTitle, self.fill_in_missing_segments, relevant_versions)
         text_range.versions = relevant_versions
         version_details['text'] = text_range.text
 
@@ -57,7 +57,7 @@ class TextManager:
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
         if lang == self.BASE:
-            lang_condition = lambda v: getattr(v, 'isBaseText', False)
+            lang_condition = lambda v: getattr(v, 'isPrimary', False)
         elif lang == self.SOURCE:
             lang_condition = lambda v: getattr(v, 'isSource', False)
         elif lang == self.TRANSLATION:
@@ -73,7 +73,7 @@ class TextManager:
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
-            if all(version.actualLanguage != v['actualLanguage'] and version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
+            if all(version.actualLanguage != v['actualLanguage'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
                 self._append_version(version)
         if not versions:

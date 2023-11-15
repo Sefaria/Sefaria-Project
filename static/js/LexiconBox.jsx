@@ -1,4 +1,5 @@
 import {
+  InterfaceText,
   LoadingMessage,
   ToolTipped,
 } from './Misc';
@@ -145,8 +146,8 @@ class LexiconBox extends Component {
               ) : null
             }
             <div className="contentText named-entity-description">
-              <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
-              <span className="he">{ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}</span>
+              <InterfaceText markdown={{en: ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`,
+                                        he: ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}} />
             </div>
           </div>));
           content = (!!this.state.namedEntity.possibilities ? (

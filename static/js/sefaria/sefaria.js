@@ -9,9 +9,8 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import {useContext} from "react";
-import {ContentLanguageContext} from "../context";
 import  CACHE from './textCache';
+
 
 
 let Sefaria = Sefaria || {
@@ -350,6 +349,7 @@ Sefaria = extend(Sefaria, {
         return (text.indexOf(title) > -1);
     });
   },
+  _eras:  ["GN", "RI", "AH", "CO"],
   makeRefRe: function(titles) {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed
@@ -1005,9 +1005,14 @@ Sefaria = extend(Sefaria, {
             }, error);
     });
   },
-  isImage: function(textChunk) {
-    const pattern = /<img\b[^>]*>/i;
-    return pattern.test(textChunk);
+  isFullSegmentImage: function(text) {
+    /**
+     * Is `text` a segment with only an image
+     * To distinguish from inline images
+     * Returns `true` if yes.
+     */
+    const pattern = /^\s*<img\b[^>]*>\s*$/i;
+    return pattern.test(text);
   },
   getRefFromCache: function(ref) {
     if (!ref) return null;
@@ -1041,6 +1046,15 @@ Sefaria = extend(Sefaria, {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
       return ref ? this.getRefFromCache(ref) : null;
+  },
+  openTransBannerApplies: (book, textLanguage) => {
+      /**
+       * Should we display OpenTransBanner?
+       * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
+       */
+      const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
+      const currCorpus = Sefaria.index(book)?.corpus;
+      return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
 
@@ -1931,7 +1945,33 @@ _media: {},
   },
   repairCaseVariant: function(query, data) {
     // Used when isACaseVariant() is true to prepare the alternative
-    return data["completions"][0] + query.slice(data["completions"][0].length);
+    const completionArray = data["completion_objects"].filter(x => x.type === 'ref').map(x => x.title);
+    let normalizedQuery = query.toLowerCase();
+    let bestMatch = "";
+    let bestMatchLength = 0;
+
+    completionArray.forEach((completion) => {
+        let normalizedCompletion = completion.toLowerCase();
+        if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
+            bestMatch = completion;
+            bestMatchLength = completion.length;
+        }
+    });
+    return bestMatch + query.slice(bestMatch.length);
+  },
+  repairGershayimVariant: function(query, data) {
+    if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
+      function normalize_gershayim(string) {
+          return string.replace('״', '"');
+      }
+      const normalized_query = normalize_gershayim(query);
+      for (let c of data.completions) {
+          if (normalize_gershayim(c) === normalized_query) {
+              return c;
+          }
+      }
+    }
+    return query;
   },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
@@ -2320,6 +2360,29 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+    isNewVisitor: () => {
+        return (
+            ("isNewVisitor" in sessionStorage &&
+                JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
+            (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage))
+        );
+    },
+    isReturningVisitor: () => {
+        return (
+            !Sefaria.isNewVisitor() &&
+            "isReturningVisitor" in localStorage &&
+            JSON.parse(localStorage.getItem("isReturningVisitor"))
+        );
+    },
+    markUserAsNewVisitor: () => {
+        sessionStorage.setItem("isNewVisitor", "true");
+        // Setting this at this time will make the current new visitor a returning one once their session is cleared
+        localStorage.setItem("isReturningVisitor", "true");
+    },
+    markUserAsReturningVisitor: () => {
+      sessionStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true");
+    },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
@@ -2384,6 +2447,7 @@ _media: {},
 
   },
   _tableOfContentsDedications: {},
+    _strapiContent: null,
   _inAppAds: null,
   _stories: {
     stories: [],
@@ -3024,6 +3088,7 @@ Sefaria.unpackBaseProps = function(props){
       "slug",
       "is_moderator",
       "is_editor",
+      "is_sustainer",
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
@@ -3038,8 +3103,6 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "interruptingMessage",
-
       "community",
       "followRecommendations",
       "trendingTopics",

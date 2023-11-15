@@ -1,200 +1,221 @@
-import React, {useState, useContext, useEffect} from 'react';
-import { AdContext } from './context';
-import classNames from 'classnames';
-import { InterruptingMessage } from './Misc';
-import Sefaria from './sefaria/sefaria';
+import React, { useState, useContext, useEffect } from "react";
+import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
+import classNames from "classnames";
+import Sefaria from "./sefaria/sefaria";
+import { OnInView } from "./Misc";
 
-const Promotions = ({adType, rerender}) => {
-    const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds);
-    const [matchingAds, setMatchingAds] = useState(null);
-    const [prevMatchingAdIds, setPrevMatchingAdIds] = useState([])
-    const context = useContext(AdContext);
-    useEffect(() => {
-        google.charts.load("current");
-        google.charts.setOnLoadCallback(getAds)
-    }, []);
-    useEffect(() => {
-      if(inAppAds) {
-        setMatchingAds(getCurrentMatchingAds());
+const Promotions = () => {
+  const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
+  const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
+  const context = useContext(AdContext);
+  const strapi = useContext(StrapiDataContext);
+  useEffect(() => {
+    if (strapi.dataFromStrapiHasBeenReceived) {
+      Sefaria._inAppAds = [];
+
+      const sidebarAds = strapi.strapiData?.sidebarAds?.data;
+
+      if (sidebarAds) {
+        sidebarAds.forEach((sidebarAd) => {
+          sidebarAd = sidebarAd.attributes;
+          console.log(JSON.stringify(sidebarAd, null, 2));
+          let keywordTargetsArray = sidebarAd.keywords
+            .split(",")
+            .map((x) => x.trim().toLowerCase());
+          let excludeKeywordTargets = keywordTargetsArray
+            .filter((x) => x[0] === "!")
+            .map((x) => x.slice(1));
+          keywordTargetsArray = keywordTargetsArray.filter((x) => x[0] !== "!");
+          Sefaria._inAppAds.push({
+            campaignId: sidebarAd.internalCampaignId,
+            title: sidebarAd.title,
+            bodyText: sidebarAd.bodyText,
+            buttonText: sidebarAd.buttonText,
+            buttonURL: sidebarAd.buttonURL,
+            buttonIcon: sidebarAd.buttonIcon,
+            buttonLocation: sidebarAd.buttonAboveOrBelow,
+            hasBlueBackground: sidebarAd.hasBlueBackground,
+            trigger: {
+              showTo: sidebarAd.showTo,
+              interfaceLang: "english",
+              startTimeDate: Date.parse(sidebarAd.startTime),
+              endTimeDate: Date.parse(sidebarAd.endTime),
+              keywordTargets: keywordTargetsArray,
+              excludeKeywordTargets: excludeKeywordTargets,
+            },
+            debug: sidebarAd.debug,
+          });
+          // Add a separate ad if there's a Hebrew translation. There can't be an ad with only Hebrew
+          if (sidebarAd.localizations?.data?.length) {
+            const hebrewAttributes = sidebarAd.localizations.data[0].attributes;
+            const [buttonText, bodyText, buttonURL, title] = [
+              hebrewAttributes.buttonText,
+              hebrewAttributes.bodyText,
+              hebrewAttributes.buttonURL,
+              hebrewAttributes.title,
+            ];
+            Sefaria._inAppAds.push({
+              campaignId: sidebarAd.internalCampaignId,
+              title: title,
+              bodyText: bodyText,
+              buttonText: buttonText,
+              buttonURL: buttonURL,
+              buttonIcon: sidebarAd.buttonIcon,
+              buttonLocation: sidebarAd.buttonAboveOrBelow,
+              hasBlueBackground: sidebarAd.hasBlueBackground,
+              trigger: {
+                showTo: sidebarAd.showTo,
+                interfaceLang: "hebrew",
+                startTimeDate: Date.parse(sidebarAd.startTime),
+                endTimeDate: Date.parse(sidebarAd.endTime),
+                keywordTargets: keywordTargetsArray,
+                excludeKeywordTargets: excludeKeywordTargets,
+              },
+              debug: sidebarAd.debug,
+            });
+          }
+        });
+        setInAppAds(Sefaria._inAppAds);
       }
-    }, [context, inAppAds]);
-    useEffect(() => {
-        if (!matchingAds) {return}
-        const matchingAdIds = matchingAds.map(x => x.campaignId).sort();
-        const newIds = matchingAdIds.filter(value=> !(prevMatchingAdIds.includes(value)));
-
-        if (newIds.length > 0) {
-            for (const matchingAd of matchingAds) {
-                if (newIds.includes(matchingAd.campaignId)) {
-                    gtag("event", "promo_viewed", {
-                        campaignID: matchingAd.campaignId,
-                        adType:matchingAd.adType
-                    })
-                }
-            }
-            setPrevMatchingAdIds(newIds)
-        }
-    }, [matchingAds])
-
-    function getAds() {
-        const url = 
-        'https://docs.google.com/spreadsheets/d/1UJw2Akyv3lbLqBoZaFVWhaAp-FUQ-YZfhprL_iNhhQc/edit#gid=0'
-        const query = new google.visualization.Query(url);
-        query.setQuery('select A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q');
-        query.send(processSheetsData);
     }
-
-    function showToUser(ad) {
-        if (ad.trigger.showTo === "all") {
-            return true;
-        } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {
-            return true;
-        } else if (ad.trigger.showTo === "loggedOut" && !context.isLoggedIn) {
-            return true;
-        } else {
-            return false;
-        }
+  }, [strapi.dataFromStrapiHasBeenReceived]);
+  // dataFromStrapiHasBeenReceived will originally be null until that part is scheduled and executed
+  
+  useEffect(() => {
+    if (inAppAds) {
+      setMatchingAds(getCurrentMatchingAds());
     }
+  }, [context, inAppAds]);
 
-    function showGivenDebugMode(ad) {
-      if (!ad.debug) {
-        return true;
-      } else if (context.isDebug == true) {
-        return true;
-      } else {
-        return false
-      }
+
+  function showToUser(ad) {
+    if (ad.trigger.showTo === "all") {
+      return true;
+    } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {
+      return true;
+    } else if (ad.trigger.showTo === "loggedOut" && !context.isLoggedIn) {
+      return true;
+    } else {
+      return false;
     }
-   
-        
+  }
+
+  function showGivenDebugMode(ad) {
+    if (!ad.debug) {
+      return true;
+    } else if (context.isDebug == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   function getCurrentMatchingAds() {
     // TODO: refine matching algorithm to order by matchingness?
-    return inAppAds.filter(ad => {
+    return inAppAds.filter((ad) => {
       return (
         showToUser(ad) &&
         showGivenDebugMode(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
-        ad.adType === adType &&
-        context.dt > ad.trigger.dt_start && context.dt < ad.trigger.dt_end &&
-        (context.keywordTargets.some(kw => ad.trigger.keywordTargets.includes(kw)) ||
-        (ad.trigger.excludeKeywordTargets.length !== 0 && !context.keywordTargets.some(kw => ad.trigger.excludeKeywordTargets.includes(kw)))) &&
-        /* line below checks if ad with particular repetition number has been seen before and is a banner */
-        (Sefaria._inBrowser && !document.cookie.includes(`${ad.campaignId}_${ad.repetition}`) || ad.adType === "sidebar") 
-      )
-    })
+        context.dt >= ad.trigger.startTimeDate &&
+        context.dt <= ad.trigger.endTimeDate &&
+        (context.keywordTargets.some((kw) =>
+          ad.trigger.keywordTargets.includes(kw)
+        ) ||
+          (ad.trigger.excludeKeywordTargets.length !== 0 &&
+            !context.keywordTargets.some((kw) =>
+              ad.trigger.excludeKeywordTargets.includes(kw)
+            )))
+      );
+    });
   }
 
-    function processSheetsData(response) {
-      if (response.isError()) {
-        alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
-        return;
-      }
-      const data = response.getDataTable();
-      const columns = data.getNumberOfColumns();
-      const rows = data.getNumberOfRows();
-      Sefaria._inAppAds = [];
-      for (let r = 0; r < rows; r++) {
-        let row = [];
-        for (let c = 0; c < columns; c++) {
-          row.push(data.getFormattedValue(r, c));
-        }
-        let keywordTargetsArray = row[5].split(",").map(x => x.trim().toLowerCase());
-        let excludeKeywordTargets = keywordTargetsArray.filter(x => x.indexOf("!") === 0);
-        excludeKeywordTargets = excludeKeywordTargets.map(x => x.slice(1));
-        keywordTargetsArray = keywordTargetsArray.filter(x => x.indexOf("!") !== 0)
-        Sefaria._inAppAds.push(
-            {
-              campaignId: row[0],
-              title: row[6],
-              bodyText: row[7],
-              buttonText: row[8],
-              buttonUrl: row[9],
-              buttonIcon: row[10],
-              buttonLocation: row[11],
-              adType: row[12],
-              hasBlueBackground: parseInt(row[13]),
-              repetition: row[14],
-              buttonStyle: row[15],
-              trigger: {
-                showTo: row[4] ,
-                interfaceLang: row[3],
-                dt_start: Date.parse(row[1]),
-                dt_end: Date.parse(row[2]),
-                keywordTargets: keywordTargetsArray,
-                excludeKeywordTargets: excludeKeywordTargets
-              },
-              debug: parseInt(row[16])
-            }
-        )
-      }
-      setInAppAds(Sefaria._inAppAds);
-      
-    }
+  return matchingAds
+    ? matchingAds.map((ad) => (
+        <SidebarAd context={context} matchingAd={ad} key={ad.campaignId} />
+      ))
+    : null;
+};
 
-    // TODO: refactor once old InterruptingMessage pattern is retired
-    function createBannerHtml(matchingAd) {
-        return `<div id="bannerTextBox">
-	<span class="${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" style="font-weight: bold">
-        ${matchingAd.bodyText}
-    </span>
-</div>
-<div id="bannerButtonBox">
-	<a class="button white ${context.interfaceLang === "hebrew" ? "int-he" : "int-en" }" 
-	    href="${matchingAd.buttonUrl}"   
-	    onclick='gtag("event", "promo_clicked", {  
-            campaignID: matchingAd.campaignId, adType:matchingAd.adType
-            })' 
-        target="_blank">
-        <span>${matchingAd.buttonText}</span>
-    </a>
-</div>`
-    }
-
-    function styleAds() {
-        if (adType === "banner") {
-            const matchingAd = matchingAds[0] // Only allow a single banner
-            if (!matchingAd) {return null}
-            const bannerHtml = createBannerHtml(matchingAd);
-            return <InterruptingMessage
-            messageName={matchingAd.campaignId}
-            messageHTML={bannerHtml}
-            style="banner"
-            repetition={matchingAd.repetition}
-            onClose={rerender} />
-        } else {
-              const sidebarAds = matchingAds.map(ad => <SidebarAd matchingAd={ad} key={ad.campaignId} />);
-              return (sidebarAds)
-        }
-    }
-
-    return matchingAds ? styleAds() : null
-
+function trackSidebarAdImpression(ad) {
+  console.log(ad.campaignId + " has been seen");
+  gtag("event", "promo_viewed", {
+    campaignID: ad.campaignId,
+    adType: "sidebar",
+  });
 }
 
-const SidebarAd = ({matchingAd}) => {
-    const classes = classNames({
-        sidebarPromo: 1,
-        blue: matchingAd.hasBlueBackground,
-    })
-
-    function getButton() {
-        return <a className={matchingAd.buttonStyle} href={matchingAd.buttonUrl}
-                  onClick={() => gtag("event", "promo_clicked", {
-                              campaignID: matchingAd.campaignId,
-                              adType:matchingAd.adType
-                            })}>
-        <img src={`/static/icons/${matchingAd.buttonIcon}`} aria-hidden="true" />
-        {matchingAd.buttonText}</a>
-    }
-
-    return <div className={classes}>
-        <h3>{matchingAd.title}</h3>
-        {matchingAd.buttonLocation === "below" ?
-            <><p>{matchingAd.bodyText}</p>{getButton()}</> :
-            <>{getButton()}<p>{matchingAd.bodyText}</p></>}
-    </div>
+function trackSidebarAdClick(ad) {
+  gtag("event", "promo_clicked", {
+    campaignID: ad.campaignId,
+    adType: "sidebar",
+  });
 }
 
-export {
-    Promotions
-}
+// Don't continuously rerender a SidebarAd if the parent component decides to rerender
+// This is done to prevent multiple views from registering from OnInView
+const SidebarAd = React.memo(({ context, matchingAd }) => {
+  const classes = classNames({
+    sidebarPromo: 1,
+    blue: matchingAd.hasBlueBackground,
+  });
+
+  function getButton() {
+    return (
+      <a
+        className="button small"
+        href={matchingAd.buttonURL}
+        onClick={() => trackSidebarAdClick(matchingAd)}
+      >
+        {matchingAd.buttonIcon?.data ? (
+          <img
+            // TODO: Create middleware to handle serving media assets to distinguish between different environments
+            // The absolute path is needed for debugging purposes to get the media asset from the local Strapi server
+            // The local Strapi instance provides a relative path through the API
+            src={(matchingAd.debug ? STRAPI_INSTANCE : '') + matchingAd.buttonIcon.data.attributes.url}
+            alt={matchingAd.buttonIcon.data.attributes.alternativeText}
+            aria-hidden="true"
+          />
+        ) : null}
+        {matchingAd.buttonText}
+      </a>
+    );
+  }
+
+  return (
+    <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
+      <div className={classes}>
+        <h3
+          className={context.interfaceLang === "hebrew" ? "int-he" : "int-en"}
+        >
+          {matchingAd.title}
+        </h3>
+        {matchingAd.buttonLocation === "below" ? (
+          <>
+            <p
+              className={
+                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
+              }
+            >
+              {matchingAd.bodyText}
+            </p>
+            {getButton()}
+          </>
+        ) : (
+          <>
+            {getButton()}
+            <p
+              className={
+                context.interfaceLang === "hebrew" ? "int-he" : "int-en"
+              }
+            >
+              {matchingAd.bodyText}
+            </p>
+          </>
+        )}
+      </div>
+    </OnInView>
+  );
+});
+
+export { Promotions };

@@ -30,33 +30,33 @@ class TextsAPIResponseMessage(APIDatawarning):
     """
 
     def get_message(self) -> dict:
-        return {'warning_code': self.warning_code,
+        return {'warning_code': self.warning_code.value,
                 'message': self.message}
 
 
 class APINoVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, vtitle: str, lang: str):
-        self.warning_code = APIWarningCode.APINoVersion.value
+        self.warning_code = APIWarningCode.APINoVersion
         self.message = f'We do not have version named {vtitle} with language code {lang} for {oref}'
 
 
 class APINoLanguageVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, langs: List[str]):
-        self.warning_code = APIWarningCode.APINoLanguageVersion.value
+        self.warning_code = APIWarningCode.APINoLanguageVersion
         self.message = f'We do not have the code language you asked for {oref}. Available codes are {langs}'
 
 
 class APINoSourceText(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref):
-        self.warning_code = APIWarningCode.APINoSourceText.value
+        self.warning_code = APIWarningCode.APINoSourceText
         self.message = f'We do not have the source text for {oref}'
 
 
 class APINoTranslationText(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref):
-        self.warning_code = APIWarningCode.APINoTranslationText.value
+        self.warning_code = APIWarningCode.APINoTranslationText
         self.message = f'We do not have a translation for {oref}'
