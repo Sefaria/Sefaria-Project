@@ -332,10 +332,8 @@ class SearchBar extends Component {
           this.props.openTopic(d["topic_slug"]);
           this.props.onNavigate && this.props.onNavigate();
 
-        } else if (d["type"] === "Person" || d["type"] === "Topic" || d["type"] === "AuthorTopic"
-            || d["type"] === "Collection" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
-
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();

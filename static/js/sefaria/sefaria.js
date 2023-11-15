@@ -2002,7 +2002,7 @@ _media: {},
   },
   repairCaseVariant: function(query, data) {
     // Used when isACaseVariant() is true to prepare the alternative
-    const completionArray = data["completion_objects"].filter(x => x.type === 'ref').map(x => x.title);
+    const completionArray = data["completion_objects"].map(x => x.title);
     let normalizedQuery = query.toLowerCase();
     let bestMatch = "";
     let bestMatchLength = 0;
