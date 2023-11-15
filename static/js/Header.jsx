@@ -307,8 +307,11 @@ class SearchBar extends Component {
       .then(d => {
         // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
         if (Sefaria.isACaseVariant(query, d)) {
-          this.submitSearch(Sefaria.repairCaseVariant(query, d));
-          return;
+          const repairedQuery = Sefaria.repairCaseVariant(query, d);
+          if (repairedQuery !== query) {
+            this.submitSearch(repairedQuery);
+            return;
+          }
         }
         const repairedQuery = Sefaria.repairGershayimVariant(query, d);
         if (repairedQuery !== query) {
@@ -329,7 +332,8 @@ class SearchBar extends Component {
           this.props.openTopic(d["topic_slug"]);
           this.props.onNavigate && this.props.onNavigate();
 
-        } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Person" || d["type"] === "Topic" || d["type"] === "AuthorTopic"
+            || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
 
         } else {
