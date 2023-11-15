@@ -33,6 +33,13 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["sections"], ["22a"])
         self.assertEqual(data["toSections"], ["22a"])
 
+    def test_api_get_text_source(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=source')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 1)
+        self.assertEqual(data["versions"][0]['versionTitle'], "William Davidson Edition - Vocalized Aramaic")
+
     def test_api_get_text_translation_all(self):
         response = c.get('/api/v3/texts/Shabbat.22a?version=translation|all')
         self.assertEqual(200, response.status_code)
@@ -43,6 +50,13 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["categories"], ["Talmud", "Bavli", "Seder Moed"])
         self.assertEqual(data["sections"], ["22a"])
         self.assertEqual(data["toSections"], ["22a"])
+
+    def test_api_get_text_translation(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=translation')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 1)
+        self.assertEqual(data["versions"][0]['versionTitle'], "William Davidson Edition - English")
 
     def test_api_get_text_lang_all(self):
         response = c.get('/api/v3/texts/Rashi_on_Genesis.2.3?version=en|all')
@@ -74,6 +88,13 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue(len(data["versions"]) > 3)
         self.assertTrue(all(v['actualLanguage'] == 'he' for v in data["versions"]))
+
+    def test_api_get_text_base(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=base')
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["versions"]), 1)
+        self.assertEqual(data["versions"][0]['versionTitle'], "William Davidson Edition - Vocalized Aramaic")
 
     def test_api_get_text_two_params(self):
         response = c.get('/api/v3/texts/Genesis.1?version=he|Tanach with Nikkud&version=en|all')
