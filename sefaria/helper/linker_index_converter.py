@@ -55,6 +55,12 @@ class ReusableTermManager:
                 term.title_group.add_title(kwargs.get(lang), lang, primary=True)
             for title in kwargs.get(f"alt_{lang}", []):
                 term.title_group.add_title(title, lang)
+
+        if kwargs.get('delete_if_existing'):
+            slug = NonUniqueTerm.normalize_slug(term.slug)
+            existing_term = NonUniqueTerm.init(slug)
+            if existing_term:
+                existing_term.delete()
         term.save()
         self.context_and_primary_title_to_term[(kwargs.get('context'), term.get_primary_title('en'))] = term
         return term
