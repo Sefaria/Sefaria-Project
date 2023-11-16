@@ -137,9 +137,6 @@ class TextManager:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _format_text(self):
-        def find_language():
-            return 'he' if version['direction'] == 'rtl' else 'en'  # this is because we remove the language attr. do we want to do it later?
-
         def wrap_links(string):
             link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
                 string, lang=language, citing_only=True)
@@ -178,7 +175,7 @@ class TextManager:
 
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
-                language = find_language()
+                language = 'he' if version['direction'] == 'rtl' else 'en'
                 ne_by_secs = make_named_entities_dict()
 
             ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
