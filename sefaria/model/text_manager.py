@@ -146,6 +146,20 @@ class TextManager:
             return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
                                                    reg=link_wrapping_reg, title_nodes=title_nodes)
 
+        def make_named_entities_dict():
+            named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in all_segment_refs]},
+                                              "charLevelData.versionTitle": version['versionTitle'],
+                                              "charLevelData.language": language})
+            # assumption is that refTopicLinks are all to unranged refs
+            ne_by_secs = defaultdict(list)
+            for ne in named_entities:
+                try:
+                    ne_ref = Ref(ne.ref)
+                except InputError:
+                    continue
+                ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
+            return ne_by_secs
+
         if self.return_format == 'wrap_all_entities':
             all_segment_refs = self.oref.all_segment_refs()
             query = self.oref.ref_regex_query()
@@ -160,20 +174,6 @@ class TextManager:
 
         else:
             return
-
-        def make_named_entities_dict():
-            named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in all_segment_refs]},
-                                              "charLevelData.versionTitle": version['versionTitle'],
-                                              "charLevelData.language": language})
-            # assumption is that refTopicLinks are all to unranged refs
-            ne_by_secs = defaultdict(list)
-            for ne in named_entities:
-                try:
-                    ne_ref = Ref(ne.ref)
-                except InputError:
-                    continue
-                ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
-            return ne_by_secs
 
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
