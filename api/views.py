@@ -47,7 +47,8 @@ class Text(View):
             versions_params = ['base']
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
         fill_in_missing_segments = request.GET.get('fill_in_missing_segments', False)
-        text_manager = TextManager(self.oref, versions_params, fill_in_missing_segments)
+        return_format = request.GET.get('return_format', 'default')
+        text_manager = TextManager(self.oref, versions_params, fill_in_missing_segments, return_format)
         data = text_manager.get_versions_for_query()
         data = self._handle_warnings(data)
         return jsonResponse(data)

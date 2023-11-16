@@ -1,11 +1,13 @@
 import copy
-
+from collections import defaultdict
+from functools import partial, reduce
+from typing import List
 import django
 django.setup()
 from sefaria.model import *
 from sefaria.utils.hebrew import hebrew_term
-from typing import List
-
+from sefaria.system.exceptions import InputError
+from sefaria.datatype.jagged_array import JaggedTextArray
 
 class TextManager:
     ALL = 'all'
@@ -13,10 +15,11 @@ class TextManager:
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
-    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True):
+    def __init__(self, oref: Ref, versions_params: List[List[str]], fill_in_missing_segments=True, return_format='default'):
         self.versions_params = versions_params
         self.oref = oref
         self.fill_in_missing_segments = fill_in_missing_segments
+        self.return_format = return_format
         self.handled_version_params = []
         self.all_versions = self.oref.versionset()
 
@@ -133,10 +136,60 @@ class TextManager:
         if not inode.is_virtual:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
+    def _format_text(self):
+        def find_language(version):
+            return 'he' if version['direction'] == 'rtl' else 'en'  # this is because we remove the language attr. do we want to do it later?
+
+        def wrap_links(string, language):
+            link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
+                string, lang=language, citing_only=True)
+            return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
+                                                   reg=link_wrapping_reg, title_nodes=title_nodes)
+
+        if self.return_format == 'wrap_all_entities':
+            all_segment_refs = self.oref.all_segment_refs()
+            query = self.oref.ref_regex_query()
+            query.update({"inline_citation": True})
+            if Link().load(query):
+                text_modification_funcs = [lambda string, _: wrap_links(string, language)]
+
+        elif self.return_format == 'text_only':
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: text.AbstractTextRecord.remove_html(string),
+                                       lambda string, _: ' '.join(string.split())]
+
+        else:
+            return
+
+        def make_named_entities_dict(version, language):
+            named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in all_segment_refs]},
+                                              "charLevelData.versionTitle": version['versionTitle'],
+                                              "charLevelData.language": language})
+            # assumption is that refTopicLinks are all to unranged refs
+            ne_by_secs = defaultdict(list)
+            for ne in named_entities:
+                try:
+                    ne_ref = Ref(ne.ref)
+                except InputError:
+                    continue
+                ne_by_secs[ne_ref.sections[-1]-1,] += [ne]
+            return ne_by_secs
+
+        for version in self.return_obj['versions']:
+            if self.return_format == 'wrap_all_entities':
+                language = find_language(version)
+                ne_by_secs = make_named_entities_dict(version, language)
+                text_modification_funcs.append(lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string))
+
+            ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
+            composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string) # wrap all functions into one function
+            version['text'] = ja.modify_by_function(composite_func)
+
     def get_versions_for_query(self) -> dict:
         for lang, vtitle in self.versions_params:
             self._append_required_versions(lang, vtitle)
         self._add_ref_data_to_return_obj()
         self._add_index_data_to_return_obj()
         self._add_node_data_to_return_obj()
+        self._format_text()
         return self.return_obj
