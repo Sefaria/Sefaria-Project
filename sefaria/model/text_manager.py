@@ -137,10 +137,10 @@ class TextManager:
             self.return_obj['index_offsets_by_depth'] = inode.trim_index_offsets_by_sections(self.oref.sections, self.oref.toSections)
 
     def _format_text(self):
-        def find_language(version):
+        def find_language():
             return 'he' if version['direction'] == 'rtl' else 'en'  # this is because we remove the language attr. do we want to do it later?
 
-        def wrap_links(string, language):
+        def wrap_links(string):
             link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(
                 string, lang=language, citing_only=True)
             return library.get_wrapped_refs_string(string, lang=language, citing_only=True,
@@ -151,7 +151,7 @@ class TextManager:
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
             if Link().load(query):
-                text_modification_funcs = [lambda string, _: wrap_links(string, language)]
+                text_modification_funcs = [lambda string, _: wrap_links(string)]
 
         elif self.return_format == 'text_only':
             text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
@@ -161,7 +161,7 @@ class TextManager:
         else:
             return
 
-        def make_named_entities_dict(version, language):
+        def make_named_entities_dict():
             named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in all_segment_refs]},
                                               "charLevelData.versionTitle": version['versionTitle'],
                                               "charLevelData.language": language})
@@ -177,8 +177,8 @@ class TextManager:
 
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
-                language = find_language(version)
-                ne_by_secs = make_named_entities_dict(version, language)
+                language = find_language()
+                ne_by_secs = make_named_entities_dict()
                 text_modification_funcs.append(lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string))
 
             ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
