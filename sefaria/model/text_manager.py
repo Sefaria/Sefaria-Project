@@ -164,9 +164,9 @@ class TextManager:
             all_segment_refs = self.oref.all_segment_refs()
             query = self.oref.ref_regex_query()
             query.update({"inline_citation": True})
-            temp_modification_funcs = []
+            text_modification_funcs = [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
             if Link().load(query):
-                temp_modification_funcs.append(lambda string, _: wrap_links(string))
+                text_modification_funcs.append(lambda string, _: wrap_links(string))
 
         elif self.return_format == 'text_only':
             text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
@@ -180,7 +180,6 @@ class TextManager:
             if self.return_format == 'wrap_all_entities':
                 language = find_language()
                 ne_by_secs = make_named_entities_dict()
-                text_modification_funcs = temp_modification_funcs + [lambda string, sections: library.get_wrapped_named_entities_string(ne_by_secs[(sections[-1],)], string)]
 
             ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
             composite_func = lambda string, sections: reduce(lambda s, f: f(s, sections), text_modification_funcs, string) # wrap all functions into one function
