@@ -1,6 +1,6 @@
 import copy
 from collections import defaultdict
-from functools import partial, reduce
+from functools import reduce
 from typing import List
 import django
 django.setup()
