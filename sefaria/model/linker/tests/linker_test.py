@@ -29,6 +29,10 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
+    # Using addressTypes of alt structs
+    [crrd(["@JT", "@Berakhot", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:7-11",)],
+    [crrd(["@JT", "@Berakhot", "@Chapter 1", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:7-11",)],
+
     # Numbered JAs
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
     [crrd(["@ברכות", "#דף ב"]), ("Berakhot 2",)],  # amud-less talmud
