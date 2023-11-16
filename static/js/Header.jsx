@@ -306,12 +306,10 @@ class SearchBar extends Component {
     Sefaria.getName(query)
       .then(d => {
         // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-        if (Sefaria.isACaseVariant(query, d)) {
-          const repairedQuery = Sefaria.repairCaseVariant(query, d);
-          if (repairedQuery !== query) {
-            this.submitSearch(repairedQuery);
-            return;
-          }
+        const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
+        if (repairedCaseVariant !== query) {
+          this.submitSearch(repairedCaseVariant);
+          return;
         }
         const repairedQuery = Sefaria.repairGershayimVariant(query, d);
         if (repairedQuery !== query) {
