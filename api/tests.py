@@ -196,3 +196,18 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertEqual(len(data['versions'][0]['text']), 2)
         self.assertFalse(data['versions'][0].get('sources'))
+
+    def test_wrap_all_entities(self):
+        vtitle = "The Contemporary Torah, Jewish Publication Society, 2006"
+        response = c.get(f"/api/v3/texts/Genesis%2010?version=en|{vtitle}&return_format=wrap_all_entities")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertTrue('<a class ="refLink"' in data['versions'][0]['text'][3])
+        self.assertTrue('<a href="/topics' in data['versions'][0]['text'][8])
+
+    def text_text_only(self):
+        response = c.get(f"/api/v3/texts/Shulchan_Arukh%2C_Orach_Chayim.1:1?return_format=text_only")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertFalse('<' in data['versions'][0]['text'])
+
