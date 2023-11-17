@@ -1,5 +1,6 @@
 // this code first convert hebrew number to english number and then convert english number to tibetan number    
-export function hebrewToTibetan(hebrewNumber, lang) {
+export function hebrewToTibetan(inputString, lang) {
+    let hebrewNumber = (lang === 'he') ? inputString.trim() : inputString;;
     let isHebNumber = isHebrewNumber(hebrewNumber)
     //return if input is not hebrew number
     if (lang !== 'he' || !isHebNumber) return hebrewNumber;
