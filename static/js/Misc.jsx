@@ -22,6 +22,7 @@ import { SourceEditor } from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
+import { hebrewToTibetan } from './ConvertNumber';
 
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
@@ -41,108 +42,6 @@ const HebrewText = ({ children }) => (
 const EnglishText = ({ children }) => (
   <>{children}</>
 );
-
-function he2tib(input, lang){
-  if(lang!=='he') return input
-  let output = input.replace("א", "༡");
-   output = output.replace("ב","༢");
-   output = output.replace("ג","༣");
-   output = output.replace("ד","༤");
-   output = output.replace("ה","༥");
-   output = output.replace("ו","༦");
-   output = output.replace("ז","༧");
-   output = output.replace("ח","༨");
-   output = output.replace("ט", "༩");
-   output = output.replace("י", "༡༠");
-   output = output.replace("יא", "༡༡");
-   output = output.replace("יב", "༡༢");
-   output = output.replace("יג", "༡༣");
-   output = output.replace("יד", "༡༤");
-   output = output.replace("טו", "༡༥");
-   output = output.replace("טז", "༡༦");
-   output = output.replace("יז", "༡༧");
-   output = output.replace("יח", "༡༨");
-   output = output.replace("יט", "༡༩");
-   output = output.replace("כ", "༢༠");
-   output = output.replace("כא", "༢༡");
-   output = output.replace("כב", "༢༢");
-   output = output.replace("כג", "༢༣");
-   output = output.replace("כד", "༢༤");
-   output = output.replace("כה", "༢༥");
-   output = output.replace("כו", "༢༦");
-   output = output.replace("כז", "༢༧");
-   output = output.replace("כח", "༢༨");
-   output = output.replace("כט", "༢༩");
-   output = output.replace("ל", "༣༠");
-   output = output.replace("לא", "༣༡");
-   output = output.replace("לב", "༣༢");
-   output = output.replace("לג", "༣༣");
-   output = output.replace("לד", "༣༤");
-   output = output.replace("לה", "༣༥");
-   output = output.replace("לו", "༣༦");
-   output = output.replace("לז", "༣༧");
-   output = output.replace("לח", "༣༨");
-   output = output.replace("לט", "༣༩");
-   output = output.replace("מ", "༤༠");
-   output = output.replace("מא", "༤༡");
-   output = output.replace("מב", "༤༢");
-   output = output.replace("מג", "༤༣");
-   output = output.replace("מד", "༤༤");
-   output = output.replace("מה", "༤༥");
-   output = output.replace("מו", "༤༦");
-   output = output.replace("מז", "༤༧");
-   output = output.replace("מח", "༤༨");
-   output = output.replace("מט", "༤༩");
-   output = output.replace("נ", "༥༠");
-   output = output.replace("נא", "༥༡");
-   output = output.replace("נב", "༥༢");
-   output = output.replace("נג", "༥༣");
-   output = output.replace("נד", "༥༤");
-   output = output.replace("נה", "༥༥");
-   output = output.replace("נו", "༥༦");
-   output = output.replace("נז", "༥༧");
-   output = output.replace("נח", "༥༨");
-   output = output.replace("נט", "༥༩");
-   output = output.replace("ס", "༦༠");
-   output = output.replace("סא", "༦༡");
-   output = output.replace("סב", "༦༢");
-   output = output.replace("סג", "༦༣");
-   output = output.replace("סד", "༦༤");
-   output = output.replace("סה", "༦༥");
-   output = output.replace("סו", "༦༦");
-   output = output.replace("סז", "༦༧");
-  /*if (input.length === 1) {
-      output = output.replace("י","༡༠");
-  }
-  else {
-      output = output.replace("י","༠");
-
-  }*/
-  return output
-}
-/*
-function he2tib(input, lang) {
-  if (lang !== 'he') return input;
-
-  let output = input.replace(/א/g, "༡");
-  output = output.replace(/ב/g, "༢");
-  output = output.replace(/ג/g, "༣");
-  output = output.replace(/ד/g, "༤");
-  output = output.replace(/ה/g, "༥");
-  output = output.replace(/ו/g, "༦");
-  output = output.replace(/ז/g, "༧");
-  output = output.replace(/ח/g, "༨");
-  output = output.replace(/ט/g, "༩");
-
-  for (let i = 10; i <= 50; i++) {
-    const hebrewNumber = i.toString();
-    const tibetanNumber = "༠" + hebrewNumber;
-    output = output.replace(new RegExp(hebrewNumber, 'g'), tibetanNumber);
-  }
-
-  return output;
-}
-*/
 
 const AvailableLanguages = () => {
   return { "english": EnglishText, "hebrew": HebrewText };
@@ -240,10 +139,10 @@ const ContentText = ({ text, html, overrideLanguage, defaultToInterfaceOnBilingu
     });
   }
   return renderedItems.map(x =>
-    isDangerouslySetInnerHTML ?
-      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: he2tib(x[1],x[0]), }} />
+    isDangerouslySetInnerHTML  ?
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: hebrewToTibetan(x[1],x[0]) }} />
       :
-      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{he2tib(x[1],x[0])}</span>
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{hebrewToTibetan(x[1],x[0])}</span>
   );
 };
 

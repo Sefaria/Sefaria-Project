@@ -3,7 +3,9 @@
 from datetime import timedelta
 import structlog
 import sefaria.system.logging as sefaria_logging
-import os
+
+
+# These are things you need to change!
 
 ################
 # YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE
@@ -11,43 +13,46 @@ import os
 # You can set the path to /path/to/Sefaria-Project/db.sqlite, since we git-ignore all sqlite files
 # (you do not need to create the empty db.sqlite file, as Django will handle that later)
 # ########################################
-"""
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'sefaria', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
-        'USER': 'sefaria',                      # Not used with sqlite3.
-        'PASSWORD': os.getenv("POSTGRESQL_PASSWORD", "POSTGRESQL_PASSWORD not defined!"),                     # Not used with sqlite3.
-        'HOST': os.getenv("POSTGRESQL_HOST", "POSTGRESQL_HOST not defined"),                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/home/sandup/repos/db.sqlite', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
-"""
 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv("POSTGRESQL_DATABASE_NAME", "POSTGRESQL_DATABASE_NAME not defined!"),
-        'USER': os.getenv("POSTGRESQL_USER", "POSTGRESQL_USER not defined!"),
-        'PASSWORD': os.getenv("POSTGRESQL_PASSWORD", "POSTGRESQL_PASSWORD not defined!"),
-        'HOST': os.getenv("POSTGRESQL_HOST", "POSTGRESQL_HOST not defined!"),
-        # os.getenv("POSTGRESQL_PORT", "POSTGRESQL_PORT not defined!"),
-        'PORT': 5432
+        'NAME': 'name of db table here',
+        'USER': 'name of db user here',
+        'PASSWORD': 'password here',
+        'HOST': '127.0.0.1',
+        'PORT': '',
     }
-}
+}"""
 
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {}
+DOMAIN_LANGUAGES = {
+    "": "hebrew",
+    "": "english",
+}
 
 
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
+ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
+
 ADMINS = (
-    ('Your Name', 'you@example.com'),
+     ('Your Name', 'you@example.com'),
 )
-PINNED_IPCOUNTRY = "IL"  # change if you want parashat hashavua to be diaspora.
+PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
@@ -76,47 +81,41 @@ USER_AGENTS_CACHE = 'default'
 SHARED_DATA_CACHE_ALIAS = 'shared'
 
 """THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
+"""
 CACHES = {
     "shared": {
         "BACKEND": "django_redis.cache.RedisCache",
-        # "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
-        "LOCATION": os.getenv("REDIS_HOST", "REDIS_HOST not defined"),
+        "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # "SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
+            #"SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
             "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
         },
         "TIMEOUT": None,
     },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        # "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
-        "LOCATION": os.getenv("REDIS_HOST", "REDIS_HOST not defined!"),
+        "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "PASSWORD": os.getenv("REDIS_PASSWORD", ""),  # Optional
+            #"PASSWORD": "secretpassword", # Optional
         },
         "TIMEOUT": 60 * 60 * 24 * 30,
     },
 }
+"""
 
 SITE_PACKAGE = "sites.sefaria"
 
 
+
+
+
+
+
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
-DEBUG = os.getenv("DEBUG", True)
-
-REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'indrajala.com').replace(" ", "")
-
-LOCAL_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    "0.0.0.0",
-    '[::1]'
-]
-
-ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
-
+DEBUG = True
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
@@ -135,7 +134,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 
 MANAGERS = ADMINS
 
-SECRET_KEY = 'SECRET_KEY'
+SECRET_KEY = 'insert your long random secret key here !'
 
 
 EMAIL_HOST = 'localhost'
@@ -149,10 +148,10 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
-MONGO_HOST = os.getenv("MONGO_HOST", "ENV_NAME not defined")
-MONGO_PORT = 27017  # os.getenv("MONGO_PORT", "ENV_NAME not defined")
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017
 # Name of the MongoDB database to use.
-SEFARIA_DB = os.getenv("MONGO_DATABASE_NAME", "ENV_NAME not defined")
+SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
@@ -160,8 +159,7 @@ APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_ADMIN = "http://localhost:9200"
-# Whether to send texts and source sheet to Search Host for indexing after save
-SEARCH_INDEX_ON_SAVE = False
+SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
 
@@ -170,12 +168,9 @@ USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
 
-SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data'  # used for Data
-SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
+SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
+SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-
-# DafRoulette server
-RTC_SERVER = ''  # Root URL/IP of the server
 
 GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
@@ -199,7 +194,7 @@ SALESFORCE_CLIENT_SECRET = ""
 # Issue bans to Varnish on update.
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
-VARNISH_ADM_ADDR = "localhost:6082"  # And this one doesn't
+VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
 VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
@@ -207,7 +202,6 @@ VARNISH_SECRET = "/etc/varnish/secret"
 USE_VARNISH_ESI = False
 
 # Prevent modification of Index records
-DISABLE_INDEX_SAVE = False
 DISABLE_INDEX_SAVE = False
 
 # Turns off search autocomplete suggestions, which are reinitialized on every server reload
