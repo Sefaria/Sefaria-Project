@@ -234,7 +234,7 @@ class SearchBar extends Component {
           });
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
-            response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
+            response([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
           } else {
             response([])
           }

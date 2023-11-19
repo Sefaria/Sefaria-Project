@@ -713,7 +713,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
-  border-top: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
   padding-top: 12px;
 }
 .ui-autocomplete .ui-menu-item.hebrew-result a {
