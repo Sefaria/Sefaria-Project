@@ -2640,14 +2640,7 @@ const ConditionalLink = ({ link, children }) =>
 * Team Page
 */
 
-const byLastName = () => {
-    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-    return (a, b) => {
-        const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
-        const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
-        return lastNameA.localeCompare(lastNameB, locale);
-    };
-};
+
 
 const partition = (arr, prop) =>
     arr.reduce(
@@ -2658,88 +2651,97 @@ const partition = (arr, prop) =>
         [[], []]
     );
 
-const TeamTitle = ({ teamTitle }) => (
-    <div className="teamTitle">
-        <InterfaceText text={teamTitle} />
-    </div>
-);
-
-const TeamName = ({ teamName }) => (
-    <div className="teamName">
-        <InterfaceText text={teamName} />
-    </div>
-);
-
-const TeamMemberDetails = ({ teamMemberDetails }) => (
-    <div className="teamMemberDetails">
-        <TeamName teamName={teamMemberDetails.teamName} />
-        <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
-    </div>
-);
-
-const TeamMemberImage = ({ teamMember }) => (
-    <div className="teamMemberImage">
-        <img
-            src={teamMember.teamMemberImage}
-            alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
-        />
-    </div>
-);
-
-const TeamMember = ({ teamMember }) => (
-    <div className="teamMember">
-        <TeamMemberImage teamMember={teamMember} />
-        <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
-    </div>
-);
-
-const TeamMembers = ({ teamMembers }) => (
-    <>
-        {teamMembers.map((teamMember) => (
-            <TeamMember key={teamMember.id} teamMember={teamMember} />
-        ))}
-    </>
-);
-
-const BoardMember = ({ boardMember }) => (
-    <div className="teamBoardMember">
-        <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
-    </div>
-);
-
-const BoardMembers = ({ boardMembers }) => {
-    let chairmanBoardMember;
-    const chairmanIndex = boardMembers.findIndex(
-        (boardMember) =>
-            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-            "chairman"
+const TeamMembersPage = memo(() => {
+    const byLastName = () => {
+        const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+        return (a, b) => {
+            const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
+            const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
+            return lastNameA.localeCompare(lastNameB, locale);
+        };
+    };
+    
+    const TeamTitle = ({ teamTitle }) => (
+        <div className="teamTitle">
+            <InterfaceText text={teamTitle} />
+        </div>
     );
-    if (chairmanIndex !== -1) {
-        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
-    }
-    const [cofounderBoardMembers, regularBoardMembers] = partition(
-        boardMembers,
-        (boardMember) =>
-            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-            "co-founder"
+    
+    const TeamName = ({ teamName }) => (
+        <div className="teamName">
+            <InterfaceText text={teamName} />
+        </div>
     );
-
-    return (
+    
+    const TeamMemberDetails = ({ teamMemberDetails }) => (
+        <div className="teamMemberDetails">
+            <TeamName teamName={teamMemberDetails.teamName} />
+            <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
+        </div>
+    );
+    
+    const TeamMemberImage = ({ teamMember }) => (
+        <div className="teamMemberImage">
+            <img
+                src={teamMember.teamMemberImage}
+                alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
+            />
+        </div>
+    );
+    
+    const TeamMember = ({ teamMember }) => (
+        <div className="teamMember">
+            <TeamMemberImage teamMember={teamMember} />
+            <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
+        </div>
+    );
+    
+    const TeamMembers = ({ teamMembers }) => (
         <>
-            {chairmanBoardMember && (
-                <BoardMember boardMember={chairmanBoardMember[0]} />
-            )}
-            {cofounderBoardMembers.map((boardMember) => (
-                <BoardMember key={boardMember.id} boardMember={boardMember} />
-            ))}
-            {regularBoardMembers.sort(byLastName()).map((boardMember) => (
-                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            {teamMembers.map((teamMember) => (
+                <TeamMember key={teamMember.id} teamMember={teamMember} />
             ))}
         </>
     );
-};
+    
+    const BoardMember = ({ boardMember }) => (
+        <div className="teamBoardMember">
+            <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
+        </div>
+    );
+    
+    const BoardMembers = ({ boardMembers }) => {
+        let chairmanBoardMember;
+        const chairmanIndex = boardMembers.findIndex(
+            (boardMember) =>
+                boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+                "chairman"
+        );
+        if (chairmanIndex !== -1) {
+            chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+        }
+        const [cofounderBoardMembers, regularBoardMembers] = partition(
+            boardMembers,
+            (boardMember) =>
+                boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+                "co-founder"
+        );
+    
+        return (
+            <>
+                {chairmanBoardMember && (
+                    <BoardMember boardMember={chairmanBoardMember[0]} />
+                )}
+                {cofounderBoardMembers.map((boardMember) => (
+                    <BoardMember key={boardMember.id} boardMember={boardMember} />
+                ))}
+                {regularBoardMembers.sort(byLastName()).map((boardMember) => (
+                    <BoardMember key={boardMember.id} boardMember={boardMember} />
+                ))}
+            </>
+        );
+    };
 
-const TeamMembersPage = memo(() => {
     const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
     const [teamBoardMembers, setTeamBoardMembers] = useState([]);
     const [error, setError] = useState(null);
