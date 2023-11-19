@@ -2701,18 +2701,6 @@ const TeamMembers = ({ teamMembers }) => (
     </>
 );
 
-const Placeholders = ({ teamMembersCount, cls }) => {
-    const placeholdersCount =
-        3 - (teamMembersCount - 3 * Math.floor(teamMembersCount / 3));
-    return (
-        <>
-            {Array.from({ length: placeholdersCount }, (_, index) => (
-                <div key={index} className={`${cls} placeholder`} />
-            ))}
-        </>
-    );
-};
-
 const BoardMember = ({ boardMember }) => (
     <div className="teamBoardMember">
         <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
@@ -2874,10 +2862,6 @@ const TeamMembersPage = memo(() => {
                         <TeamMembers
                             teamMembers={ordinaryTeamMembers.sort(byLastName())}
                         />
-                        <Placeholders
-                            teamMembersCount={ordinaryTeamMembers.length}
-                            cls="teamMember"
-                        />
                     </section>
                     <header>
                         <h2>
@@ -2887,10 +2871,6 @@ const TeamMembersPage = memo(() => {
                     </header>
                     <section className="main-text board-members">
                         <BoardMembers boardMembers={teamBoardMembers} />
-                        <Placeholders
-                            teamMembersCount={teamBoardMembers.length}
-                            cls="teamBoardMember"
-                        />
                     </section>
                 </>
             )}
