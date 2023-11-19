@@ -1,5 +1,5 @@
 import dataclasses
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Dict
 from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
@@ -81,20 +81,18 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             if getattr(thingy, 'refs', None):
                 address_types = thingy.addressTypes
                 section_names = thingy.sectionNames
-                children = []
-                for ichild, tref in enumerate(thingy.refs):
-                    oref = text.Ref(tref)
-                    children += [MonoReferenceableBookNode(address_types, section_names, ichild+1, oref)]
-                return children
-            elif getattr(thingy, 'wholeRef', None):
+                section_ref_map = {ichild+1: text.Ref(tref) for ichild, tref in enumerate(thingy.refs)}
+                return [MapReferenceableBookNode(address_types, section_names, section_ref_map)]
+            elif getattr(thingy, 'wholeRef', None) and getattr(thingy, 'includeSections', False):
                 whole_ref = text.Ref(thingy.wholeRef)
                 schema_node = whole_ref.index_node.serialize()
                 truncated_node = truncate_serialized_node_to_depth(schema_node, -2)
                 refs = whole_ref.split_spanning_ref()
-                children = []
+                section_ref_map = {}
                 for oref in refs:
-                    children += [MonoReferenceableBookNode(numeric_equivalent=oref.section_ref().sections[0], ref=oref, **truncated_node)]
-                return children
+                    section = oref.section_ref().sections[0]
+                    section_ref_map[section] = oref
+                return [MapReferenceableBookNode(section_ref_map=section_ref_map, **truncated_node)]
             else:
                 children = self._titled_tree_node.children
         else:
@@ -216,12 +214,12 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         return True
 
 
-class MonoReferenceableBookNode(NumberedReferenceableBookNode):
+class MapReferenceableBookNode(NumberedReferenceableBookNode):
     """
     Node that can only be referenced by one ref
     """
 
-    def __init__(self, addressTypes: List[str], sectionNames: List[str], numeric_equivalent: int, ref: text.Ref, **ja_node_attrs):
+    def __init__(self, addressTypes: List[str], sectionNames: List[str], section_ref_map: Dict[int, text.Ref], **ja_node_attrs):
         ja_node = schema.JaggedArrayNode(serial={
             "addressTypes": addressTypes,
             "sectionNames": sectionNames,
@@ -229,8 +227,7 @@ class MonoReferenceableBookNode(NumberedReferenceableBookNode):
             "depth": len(addressTypes),
         })
         super().__init__(ja_node)
-        self._numeric_equivalent = numeric_equivalent
-        self._ref = ref
+        self._section_ref_map = section_ref_map
 
     def ref(self):
         return self._ref
@@ -241,11 +238,13 @@ class MonoReferenceableBookNode(NumberedReferenceableBookNode):
                 get_all_possible_sections_from_string(lang, section_str, fromSections, strip_prefixes=True)
         except (IndexError, TypeError, KeyError):
             return [], []
-        # if any section matches numeric_equivalent, this node's ref is the subref.
+        # map sections to equivalent refs in section_ref_map
+        mapped_refs = []
         for sec, to_sec in zip(possible_sections, possible_to_sections):
-            if sec == self._numeric_equivalent and sec == to_sec:
-                return [self._ref], [True]
-        return [], []
+            mapped_ref = self._section_ref_map.get(sec)
+            if mapped_ref and sec == to_sec:
+                mapped_refs += [mapped_ref]
+        return mapped_refs, [True]*len(mapped_refs)
 
 
 @dataclasses.dataclass
