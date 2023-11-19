@@ -4522,6 +4522,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
+  z-index: 99;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4708,10 +4709,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #999;
+  color: #666666;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.readerOptions .int-en {
+  margin-right: 4px;
+}
+.readerOptions .int-he {
+  margin-left: 8px;
+}
+.readerOptions .int-he img {
+    height: 18px;
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
@@ -5421,7 +5431,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #666;
+  color: #000;
   top: 0;
 }
 .dark .segment .segmentNumber,
