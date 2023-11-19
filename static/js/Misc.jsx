@@ -1342,8 +1342,8 @@ class CloseButton extends Component {
 
 class DisplaySettingsButton extends Component {
   render() {
-    var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon;
+    let style = this.props.placeholder ? {visibility: "hidden"} : {};
+    let icon;
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
