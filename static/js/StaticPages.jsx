@@ -2636,6 +2636,10 @@ const StaticHR = () =>
 const ConditionalLink = ({ link, children }) =>
   link ? <a href={link} target="_blank">{children}</a> : children;
 
+/*
+* Jobs Page
+*/
+
 const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
@@ -2750,10 +2754,17 @@ const JobsPage = memo(() => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        const currentDateTime = new Date().toISOString();
         const fetchJobsJSON = async () => {
             const query = `
                 query { 
-                    jobPostings(pagination: { limit: -1 }) {
+                    jobPostings(
+                        pagination: { limit: -1 }
+                        filters: {
+                            jobPostingStartDate: { lte: \"${currentDateTime}\" }
+                            jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                        }
+                    ) {
                         data {
                             id
                             attributes {
