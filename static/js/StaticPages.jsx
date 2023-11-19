@@ -2640,165 +2640,172 @@ const ConditionalLink = ({ link, children }) =>
 * Jobs Page
 */
 
-const JobsPageHeader = ({ jobsAreAvailable }) => {
-    return (
-        <>
-            <header>
-                <h1 className="serif">
-                    <span className="int-en">Jobs at Sefaria</span>
-                    <span className="int-he">משרות פנויות בספריא</span>
-                </h1>
-
-                {jobsAreAvailable ? (
-                    <>
-                        <h2>
-                            <span className="int-en">About Sefaria</span>
-                            <span className="int-he">אודות ספריא</span>
-                        </h2>
-                        <p>
-                            <span className="int-en">
-                                Sefaria is a non-profit organization dedicated to creating the
-                                future of Torah in an open and participatory way. We are assembling
-                                a free, living library of Jewish texts and their interconnections,
-                                in Hebrew and in translation.
-                            </span>
-                            <span className="int-he">
-                                ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה
-                                באופן פתוח ומשותף. אנחנו בספריא מרכיבים ספרייה חיה וחופשית של טקסטים
-                                יהודיים וכלל הקישורים ביניהם, בשפת המקור ובתרגומים.
-                            </span>
-                        </p>
-                    </>
-                ) : null}
-            </header>
-        </>
-    );
-};
-
-const Job = ({ job }) => {
-    return (
-        <div className="job">
-            <a className="joblink" target="_blank" href={job.jobLink}>
-                {job.jobDescription}
-            </a>
-        </div>
-    );
-};
-
-const JobsListForDepartment = ({ jobsList }) => {
-    return (
-        <section className="jobsListForDepartment">
-            {jobsList.map((job) => (
-                <Job key={job.id} job={job} />
-            ))}
-        </section>
-    );
-};
-
-const DepartmentJobPostings = ({ department, departmentJobPostings }) => {
-    return (
-        <section className="section department englishOnly">
-            <header>
-                <h2 className="anchorable">{department}</h2>
-            </header>
-            <JobsListForDepartment key={department} jobsList={departmentJobPostings} />
-        </section>
-    );
-};
-
-const JobPostingsByDepartment = ({ jobPostings }) => {
-    const groupedJobPostings = jobPostings.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
-        const category = jobPosting.jobDepartmentCategory;
-        if (!jobPostingsGroupedByDepartment[category]) {
-            jobPostingsGroupedByDepartment[category] = [];
-        }
-        jobPostingsGroupedByDepartment[category].push(jobPosting);
-        return jobPostingsGroupedByDepartment;
-    }, {});
-
-    return (
-        Object.entries(groupedJobPostings).map(([department, departmentJobPostings]) => {
-            return (
-                <DepartmentJobPostings
-                    key={department}
-                    department={department}
-                    departmentJobPostings={departmentJobPostings}
-                />
-            );
-        })
-    );
-};
-
-
-const NoJobsNotice = () => {
-    return (
-        <div className="section nothing">
-            <p>
-                <span className="int-en">
-                    Sefaria does not currently have any open positions.
-                    Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
-                    to hear about our next openings.
-                </span>
-                <span className="int-he">
-                    ספריא איננה מחפשת כעת עובדים חדשים.
-                    עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>&nbsp;
-                    כדי להשאר מעודכנים במשרות עתידיות.
-                </span>
-            </p>
-        </div>
-    );
-};
-
 const JobsPage = memo(() => {
+
+    // Show a different header with a description of Sefaria for the page in the case that there are jobs available
+    const JobsPageHeader = ({ jobsAreAvailable }) => {
+        return (
+            <>
+                <header>
+                    <h1 className="serif">
+                        <span className="int-en">Jobs at Sefaria</span>
+                        <span className="int-he">משרות פנויות בספריא</span>
+                    </h1>
+    
+                    {jobsAreAvailable ? (
+                        <>
+                            <h2>
+                                <span className="int-en">About Sefaria</span>
+                                <span className="int-he">אודות ספריא</span>
+                            </h2>
+                            <p>
+                                <span className="int-en">
+                                    Sefaria is a non-profit organization dedicated to creating the
+                                    future of Torah in an open and participatory way. We are assembling
+                                    a free, living library of Jewish texts and their interconnections,
+                                    in Hebrew and in translation.
+                                </span>
+                                <span className="int-he">
+                                    ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה
+                                    באופן פתוח ומשותף. אנחנו בספריא מרכיבים ספרייה חיה וחופשית של טקסטים
+                                    יהודיים וכלל הקישורים ביניהם, בשפת המקור ובתרגומים.
+                                </span>
+                            </p>
+                        </>
+                    ) : null}
+                </header>
+            </>
+        );
+    };
+    
+    const Job = ({ job }) => {
+        return (
+            <div className="job">
+                <a className="joblink" target="_blank" href={job.jobLink}>
+                    {job.jobDescription}
+                </a>
+            </div>
+        );
+    };
+    
+    // Show the list of job postings within a department category
+    const JobsListForDepartment = ({ jobsList }) => {
+        return (
+            <section className="jobsListForDepartment">
+                {jobsList.map((job) => (
+                    <Job key={job.id} job={job} />
+                ))}
+            </section>
+        );
+    };
+    
+    // Job postings are grouped by department. This component will show the jobs for a specific department
+    // Each department has a header for its category before showing a list of the job postings there
+    const JobPostingsByDepartment = ({ department, departmentJobPostings }) => {
+        return (
+            <section className="section department englishOnly">
+                <header>
+                    <h2 className="anchorable">{department}</h2>
+                </header>
+                <JobsListForDepartment key={department} jobsList={departmentJobPostings} />
+            </section>
+        );
+    };
+    
+    // Show all the job postings, but first group them by department and render each department separately
+    const JobPostings = ({ jobPostings }) => {
+        const groupedJobPostings = jobPostings.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
+            const category = jobPosting.jobDepartmentCategory;
+            if (!jobPostingsGroupedByDepartment[category]) {
+                jobPostingsGroupedByDepartment[category] = [];
+            }
+            jobPostingsGroupedByDepartment[category].push(jobPosting);
+            return jobPostingsGroupedByDepartment;
+        }, {});
+    
+        return (
+            Object.entries(groupedJobPostings).map(([department, departmentJobPostings]) => {
+                return (
+                    <JobPostingsByDepartment
+                        key={department}
+                        department={department}
+                        departmentJobPostings={departmentJobPostings}
+                    />
+                );
+            })
+        );
+    };
+    
+    
+    const NoJobsNotice = () => {
+        return (
+            <div className="section nothing">
+                <p>
+                    <span className="int-en">
+                        Sefaria does not currently have any open positions.
+                        Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
+                        to hear about our next openings.
+                    </span>
+                    <span className="int-he">
+                        ספריא איננה מחפשת כעת עובדים חדשים.
+                        עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>&nbsp;
+                        כדי להשאר מעודכנים במשרות עתידיות.
+                    </span>
+                </p>
+            </div>
+        );
+    };
+
     const [jobPostings, setJobPostings] = useState([]);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
+    const fetchJobsJSON = async () => {
         const currentDateTime = new Date().toISOString();
-        const fetchJobsJSON = async () => {
-            const query = `
-                query { 
-                    jobPostings(
-                        pagination: { limit: -1 }
-                        filters: {
-                            jobPostingStartDate: { lte: \"${currentDateTime}\" }
-                            jobPostingEndDate: { gte: \"${currentDateTime}\" }
-                        }
-                    ) {
-                        data {
-                            id
-                            attributes {
-                                jobLink
-                                jobDescription
-                                jobDepartmentCategory
-                            }
+        const query = `
+            query { 
+                jobPostings(
+                    pagination: { limit: -1 }
+                    filters: {
+                        jobPostingStartDate: { lte: \"${currentDateTime}\" }
+                        jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                    }
+                ) {
+                    data {
+                        id
+                        attributes {
+                            jobLink
+                            jobDescription
+                            jobDepartmentCategory
                         }
                     }
                 }
-            `;
-            try {
-                const response = await fetch(STRAPI_INSTANCE + "/graphql", {
-                    method: "POST",
-                    mode: "cors",
-                    cache: "no-cache",
-                    credentials: "omit",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    redirect: "follow",
-                    referrerPolicy: "no-referrer",
-                    body: JSON.stringify({ query }),
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.statusText}`);
-                }
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                throw error;
             }
-        };
+        `;
 
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    useEffect(() => {
         const loadJobPostings = async () => {
             if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
                 try {
@@ -2836,7 +2843,7 @@ const JobsPage = memo(() => {
                 <>
                     <JobsPageHeader jobsAreAvailable={jobPostings?.length} />
                     {jobPostings?.length ? (
-                        <JobPostingsByDepartment jobPostings={jobPostings} />
+                        <JobPostings jobPostings={jobPostings} />
                     ) : (
                         <NoJobsNotice />
                     )}
