@@ -1,0 +1,12 @@
+{% load render_bundle from webpack_loader %}
+{% load sefaria_tags %}
+{% load static %}
+{% get_static_prefix as STATIC_PREFIX %}
+
+<!DOCTYPE html>
+<html>
+
+    <redoc spec-url="{% static "files/openAPI.json" %}"></redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"> </script>
+
+</html>

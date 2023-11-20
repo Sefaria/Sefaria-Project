@@ -1,0 +1,1852 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Sefaria API",
+        "version": "1.0.0",
+        "description": "The Sefaria APIs allows live access to Sefaria's structured database of Jewish texts and their interconnections.",
+        "contact": {
+            "url": "https://www.sefaria.org",
+            "email": "dev@sefaria.org"
+        },
+        "license": {
+            "name": "GNU AGPLv3",
+            "url": "https://www.gnu.org/licenses/agpl.txt"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://www.sefaria.org/",
+            "description": ""
+        }
+    ],
+    "paths": {
+        "/api/texts/{tref}": {
+            "summary": "Text API!",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "callback",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "context",
+                        "description": "The `context` param defaults to `1`, which allows for the API to return the entire context for the desired segment. When you explicitly set `context=0` only the desired segment is returned, without any of the accompanying context.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "commentary",
+                        "description": "The `commentary` param defaults to `0`, which turns off commentary being returned in the response. When you explicitly set `commentary=1` all of commentary to that specific connection is returned in list of JSON objects containing the text of the commentaries",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "pad",
+                        "description": "By default this is set to `1` which ensures that any references at the title level will return only the first section of a book instead of its entirety. If you want the API to return the entire content of the book set pad to `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "The Contemporay Torah: JPS 2006": {
+                                "value": "The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
+                            }
+                        },
+                        "name": "ven",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific Version Title here will load that text version if it exists instead of the default.\n",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "firstAvailableRef",
+                        "description": "If a given text reference doesn't return any content, setting this to `1` will return the first reference that does. \n\nSometimes this occurs when a text reference may pass our ref checking logic, but doesn't exist e.g. `https://www.sefaria.org/api/texts/Berakhot 1a?firstAvailableRef=1`, and sometimes this occurs when a translation is incomplete. Defaults to `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "vhe",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific Version Title here will load that text version if it exists instead of the default.\n",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "layer",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "alts",
+                        "description": "Returns the `alt structures` for the target text in the JSON response object.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "wrapLinks",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "wrapNamedEntities",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "stripItags",
+                        "description": "Sefaria texts include footnotes and other `iTags` in the response. This param defaults to `0` which leaves them in. Changing it to `1` will remove them.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "multiple",
+                        "description": "If the absolute value of this param is greater than `1` the API response will return include `|n|` text API responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will contain the previous consecutive chapter[s].",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "German": {
+                                "value": "DE"
+                            },
+                            "Arabic": {
+                                "value": "AR"
+                            }
+                        },
+                        "name": "transLangPref",
+                        "description": "Unless explicitly specified, the texts API returns a default version for the `he` and `text` responses (usually in Hebrew & English respectfully). Passing an ISO 639-1 language code here will prioritize text versions in that target language if available.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "fallbackOnDefaultVersion",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "sheets",
+                        "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is depreciated. Instead you should use the `Related API`._",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/textAPIReponse"
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "deprecated": false,
+                "summary": "Retrieve text information"
+            },
+            "parameters": [
+                {
+                    "name": "tref",
+                    "schema": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/name/{name}": {
+            "summary": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "description": "Number of results to return (0 indicates no limit)",
+                        "schema": {
+                            "default": 10,
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "ref_only",
+                        "description": "By default `0` the Name API returns refs, book titles, authors, topics, and collections. If true, the response will only contain text references.",
+                        "schema": {
+                            "default": false,
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/nameAPIResponse"
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    },
+                    "400": {
+                        "description": "Bad request"
+                    }
+                },
+                "summary": "Get name information"
+            },
+            "parameters": [
+                {
+                    "name": "name",
+                    "description": "An arbitrary text string to match against Sefaria's data collections.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/words/{word}/": {
+            "summary": "Searches Sefaria lexicon entries for the given string",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "lookup_ref",
+                        "description": "to fine tune the search",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "never_split",
+                        "description": "to limit lookup to only the actual input string",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "always_split",
+                        "description": "to look for substring matches regardless of results for original input",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "always_consonants",
+                        "description": "",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "anyOf": [
+                                            {
+                                                "$ref": "#/components/schemas/JastrowDictionaryEntry"
+                                            },
+                                            {
+                                                "$ref": "#/components/schemas/StrongsDictionaryEntry"
+                                            },
+                                            {
+                                                "$ref": "#/components/schemas/BDBDictionaryEntry"
+                                            },
+                                            {
+                                                "$ref": "#/components/schemas/KleinDictionaryEntry"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "An array of matching words."
+                    }
+                }
+            },
+            "parameters": [
+                {
+                    "name": "word",
+                    "description": "The word or phrase to search for in the lexicons.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        }
+    },
+    "components": {
+        "schemas": {
+            "ref": {
+                "description": "A string representing a citation to a Jewish text. \n\nA valid ref consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
+                "type": "string",
+                "example": "\"Mishnah Peah 4:2\""
+            },
+            "versionData": {
+                "title": "Root Type for versionData",
+                "description": "Information about a single text version of a title",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "versionTitle": {
+                        "type": "string"
+                    },
+                    "versionSource": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "license": {
+                        "type": "string"
+                    },
+                    "versionNotes": {
+                        "type": "string"
+                    },
+                    "digitizedBySefaria": {
+                        "type": "string"
+                    },
+                    "priority": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "versionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "versionNotesInHebrew": {
+                        "type": "string"
+                    },
+                    "extendedNotes": {
+                        "type": "string"
+                    },
+                    "extendedNotesHebrew": {
+                        "type": "string"
+                    },
+                    "purchaseInformationImage": {
+                        "type": "string"
+                    },
+                    "purchaseInformationURL": {
+                        "type": "string"
+                    },
+                    "shortVersionTitle": {
+                        "type": "string"
+                    },
+                    "shortVersionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "isBaseText": {
+                        "type": "boolean"
+                    },
+                    "firstSectionRef": {
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "title": "Genesis",
+                    "versionTitle": "The Contemporary Torah, Jewish Publication Society, 2006",
+                    "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002529489/NLI",
+                    "language": "en",
+                    "status": "locked",
+                    "license": "CC-BY-NC",
+                    "versionNotes": "Dedicated by an anonymous donor in honor of all women and girls who study, teach, and transform Torah.\n<br><br>\n<a href=\"https://www.sefaria.org/sheets/382047\">Read the preface to The Contemporary Torah</a>\n<br><br>\n<a href=\"https://www.sefaria.org/sheets/380713\"> See the Dictionary of Gender in the Torah</a>",
+                    "digitizedBySefaria": "",
+                    "priority": 7,
+                    "versionTitleInHebrew": "",
+                    "versionNotesInHebrew": "תרומה אלמונית לכבוד כל הנשים והבנות שלומדות, מלמדות ונותנות צורה חדשה לתורה",
+                    "extendedNotes": "",
+                    "extendedNotesHebrew": "",
+                    "purchaseInformationImage": "https://jps.org/wp-content/uploads/2014/10/ContemporaryTorah-300x458.png",
+                    "purchaseInformationURL": "https://jps.org/books/contemporary-torah/",
+                    "shortVersionTitle": "The Contemporary Torah, JPS, 2006",
+                    "shortVersionTitleInHebrew": "",
+                    "isBaseText": false,
+                    "firstSectionRef": "Genesis 1"
+                }
+            },
+            "nameAPIResponse": {
+                "title": "Root Type for nameAPIResponse",
+                "description": "Full response of the Name API",
+                "type": "object",
+                "properties": {
+                    "lang": {
+                        "description": "The language of the completion results.",
+                        "enum": [
+                            "en",
+                            "he"
+                        ],
+                        "type": "string"
+                    },
+                    "is_ref": {
+                        "description": "Returns `true` if the submitted text is a valid Sefaria textual reference",
+                        "type": "boolean"
+                    },
+                    "completions": {
+                        "description": "A list of autocompletion responses for the submitted text.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "completion_objects": {
+                        "description": "A list of autocompletion response objects for the submitted text along with some information about them.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "type": "string"
+                                },
+                                "key": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "is_primary": {
+                                    "type": "boolean"
+                                },
+                                "order": {
+                                    "format": "int32",
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "example": "[{\n    \"title\": \"Ruth\",\n    \"key\": \"Ruth\",\n    \"type\": \"ref\",\n    \"is_primary\": true,\n    \"order\": 1000000\n  }, {\n    \"title\": \"Ruth Rabbah\",\n    \"key\": \"Ruth Rabbah\",\n    \"type\": \"ref\",\n    \"is_primary\": true,\n    \"order\": 1000000\n  }, {\n    \"title\": \"Ruth\",\n    \"type\": \"PersonTopic\",\n    \"key\": \"ruth\",\n    \"is_primary\": true,\n    \"order\": 4999550\n  }, {\n    \"title\": \"Ruach Hakodesh\",\n    \"type\": \"Topic\",\n    \"key\": \"ruach-hakodesh1\",\n    \"is_primary\": true,\n    \"order\": 4999902\n  }, {\n    \"title\": \"Ruach\",\n    \"type\": \"Topic\",\n    \"key\": \"ruach1\",\n    \"is_primary\": true,\n    \"order\": 4999949\n  }, {\n    \"title\": \"Rubissa Sharona Hassan\",\n    \"type\": \"User\",\n    \"key\": \"sharona-hassan\",\n    \"pic\": \"https://storage.googleapis.com/sefaria-profile-pictures/sharona-hassan-1622999139-small.png\",\n    \"order\": 6999998,\n    \"is_primary\": true\n  }]"
+                    },
+                    "is_book": {
+                        "description": "Returns `true` if the submitted text is a book level reference. e.g. (Genesis)",
+                        "type": "boolean"
+                    },
+                    "is_node": {
+                        "type": "boolean"
+                    },
+                    "is_section": {
+                        "description": "Returns `true` if the submitted text is a section ref. (e.g. Genesis 4)",
+                        "type": "boolean"
+                    },
+                    "is_segment": {
+                        "description": "Returns `true` if the submitted text is a segment level reference (e.g. Genesis 43:3)",
+                        "type": "boolean"
+                    },
+                    "is_range": {
+                        "description": "Returns `true` if the submitted text is a a ranging ref (one that spans multiple sections or segments.) e.g. (Genesis 4-5)",
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "enum": [
+                            "ref",
+                            "Topic",
+                            "AuthorTopic",
+                            "PersonTopic",
+                            "User"
+                        ],
+                        "type": "string"
+                    },
+                    "ref": {
+                        "description": "If `is_ref` is `true`, this returns the cannonical ref for the submitted text.",
+                        "type": "string"
+                    },
+                    "url": {
+                        "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on Sefaria.org",
+                        "type": "string"
+                    },
+                    "index": {
+                        "description": "If `is_ref` is `true`, this returns the cannonical name of the `index` of the submitted text.",
+                        "type": "string"
+                    },
+                    "book": {
+                        "type": "string"
+                    },
+                    "internalSections": {
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "internalToSections": {
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "toSections": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "examples": {
+                        "type": "array",
+                        "items": {
+
+                        }
+                    },
+                    "sectionNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "heSectionNames": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "addressExamples": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "heAddressExamples": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "example": {
+                    "lang": "en",
+                    "is_ref": true,
+                    "completions": [
+                        "Job",
+                        "Rashi on Job",
+                        "Rashi on Amos",
+                        "Rashi on Arachin",
+                        "Rashi on Beiah",
+                        "Rashi on Bechorot",
+                        "Rashi on Berachoth",
+                        "Rashi on Chag.",
+                        "Rashi on Hullin",
+                        "Rashi on Dan."
+                    ],
+                    "completion_objects": [
+                        {
+                            "title": "Job",
+                            "key": "Job",
+                            "type": "ref",
+                            "is_primary": true,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Job",
+                            "type": "Topic",
+                            "key": "job-and-his-friends",
+                            "is_primary": false,
+                            "order": 4999978
+                        },
+                        {
+                            "title": "Rashi on Job",
+                            "key": "Rashi on Job",
+                            "type": "ref",
+                            "is_primary": true,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Amos",
+                            "key": "Rashi on Amos",
+                            "type": "ref",
+                            "is_primary": true,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Arachin",
+                            "key": "Rashi on Arakhin",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Beiah",
+                            "key": "Rashi on Beitzah",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Bechorot",
+                            "key": "Rashi on Bekhorot",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Berachoth",
+                            "key": "Rashi on Berakhot",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Chag.",
+                            "key": "Rashi on Chagigah",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Hullin",
+                            "key": "Rashi on Chullin",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        },
+                        {
+                            "title": "Rashi on Dan.",
+                            "key": "Rashi on Daniel",
+                            "type": "ref",
+                            "is_primary": false,
+                            "order": 1000000
+                        }
+                    ],
+                    "is_book": false,
+                    "is_node": false,
+                    "is_section": false,
+                    "is_segment": true,
+                    "is_range": false,
+                    "type": "ref",
+                    "ref": "Rashi on Job 1:3:3",
+                    "url": "Rashi_on_Job.1.3.3",
+                    "index": "Rashi on Job",
+                    "book": "Rashi on Job",
+                    "internalSections": [
+                        1,
+                        3,
+                        3
+                    ],
+                    "internalToSections": [
+                        1,
+                        3,
+                        3
+                    ],
+                    "sections": [
+                        "1",
+                        "3",
+                        "3"
+                    ],
+                    "toSections": [
+                        "1",
+                        "3",
+                        "3"
+                    ],
+                    "examples": [
+                    ],
+                    "sectionNames": [
+                        "Chapter",
+                        "Verse",
+                        "Comment"
+                    ],
+                    "heSectionNames": [
+                        "פרק",
+                        "פסוק",
+                        "פירוש"
+                    ],
+                    "addressExamples": [
+                        "3",
+                        "6",
+                        "9"
+                    ],
+                    "heAddressExamples": [
+                        "ג׳",
+                        "ו׳",
+                        "ט׳"
+                    ]
+                }
+            },
+            "textAPIReponse": {
+                "title": "Root Type for textAPIReponse",
+                "description": "Expected reponse data from Sefaria's Text API",
+                "type": "object",
+                "properties": {
+                    "ref": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "heRef": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "isComplex": {
+                        "description": "Whether or not the text is a \"complex\" text or not.\n\nIn Sefaria, a complex text is any text which has a more complicated index structure beyond Chapters/Verses, (e.g. the Talmud). There are a variety of structural differences for a complex text, having to do primarily with its Index, and the way the data is stored. For more on complex texts, see the documentation here.",
+                        "type": "boolean"
+                    },
+                    "text": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ],
+                        "description": "The default, or specified text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text."
+                    },
+                    "he": {
+                        "oneOf": [
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ],
+                        "description": "The default, or specified text written in RTL characters for the query (Usually Hebrew). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text."
+                    },
+                    "versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/versionData"
+                        }
+                    },
+                    "textDepth": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "sectionNames": {
+                        "description": "An array containing the type names of the sections of this text. The length of sectionNames gives the depth of the structure of this text. For example, Kohelet `([\"Chapter\", \"Verse\"])` has depth 2, while Mishneh Torah `([\"Book\", \"Topic\", \"Section\", \"Law\"])` has depth 4. Comparing this depth to the depth of sections will show if the request was for the lowest level, or a higher level, of the text.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "addressTypes": {
+                        "description": "A list which length reflects the depth of the text structure, with string values indicating class names for address types for each level",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "lengths": {
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "length": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "heTitle": {
+                        "type": "string"
+                    },
+                    "titleVariants": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "heTitleVariants": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "primary_category": {
+                        "type": "string"
+                    },
+                    "book": {
+                        "description": "The title of the book that the response comes from.",
+                        "type": "string"
+                    },
+                    "categories": {
+                        "description": "A list of categories that a text belongs to. ",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "order": {
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "sections": {
+                        "description": "An array which corresponds to sectionNames and represents the sections of the text requested. When sectionNames is `[\"Chapter\", \"Verse\"]` a request for chapter 4 looks like `[4]` while a request for chapter 4, verse 7 would look like `[4, 7]`. _Note, for Talmud, Dafs are represented by a string like \"42a\" or \"12b\"_",
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "toSections": {
+                        "type": "array",
+                        "items": {
+                            "format": "int32",
+                            "type": "integer"
+                        }
+                    },
+                    "isDependant": {
+                        "type": "boolean"
+                    },
+                    "indexTitle": {
+                        "type": "string"
+                    },
+                    "heIndexTitle": {
+                        "type": "string"
+                    },
+                    "sectionRef": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "firstAvailableSectionRef": {
+                        "type": "string"
+                    },
+                    "heSectionRef": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "isSpanning": {
+                        "type": "boolean"
+                    },
+                    "versionTitle": {
+                        "type": "string"
+                    },
+                    "versionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "shortVersionTitle": {
+                        "type": "string"
+                    },
+                    "shortVersionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "versionSource": {
+                        "type": "string"
+                    },
+                    "versionStatus": {
+                        "type": "string"
+                    },
+                    "versionNotes": {
+                        "type": "string"
+                    },
+                    "extendedNotes": {
+                        "type": "string"
+                    },
+                    "extendedNotesHebrew": {
+                        "type": "string"
+                    },
+                    "versionNotesInHebrew": {
+                        "type": "string"
+                    },
+                    "digitizedBySefaria": {
+                        "description": "Was the `text` response initially digitized by Sefaria `1` or was it initially generated by another digital publisher `0`",
+                        "type": "boolean"
+                    },
+                    "license": {
+                        "type": "string"
+                    },
+                    "formatEnAsPoetry": {
+                        "type": "boolean"
+                    },
+                    "heVersionTitle": {
+                        "type": "string"
+                    },
+                    "heVersionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "heShortVersionTitle": {
+                        "type": "string"
+                    },
+                    "heShortVersionTitleInHebrew": {
+                        "type": "string"
+                    },
+                    "heVersionSource": {
+                        "type": "string"
+                    },
+                    "heVersionStatus": {
+                        "type": "string"
+                    },
+                    "heVersionNotes": {
+                        "type": "string"
+                    },
+                    "heExtendedNotes": {
+                        "type": "string"
+                    },
+                    "heExtendedNotesHebrew": {
+                        "type": "string"
+                    },
+                    "heVersionNotesInHebrew": {
+                        "type": "string"
+                    },
+                    "heDigitizedBySefaria": {
+                        "description": "Was the `he` response initially digitized by Sefaria `1` or was it initially generated by another digital publisher `0`",
+                        "type": "boolean"
+                    },
+                    "heLicense": {
+                        "type": "string"
+                    },
+                    "formatHeAsPoetry": {
+                        "type": "boolean"
+                    },
+                    "alts": {
+                        "type": "array",
+                        "items": {
+
+                        }
+                    },
+                    "index_offsets_by_depth": {
+                        "type": "object"
+                    },
+                    "next": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Next segment reference in sequence, if last ref, field will be `null`."
+                    },
+                    "prev": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Previous segment reference in sequence, if first ref, field will be `null`."
+                    },
+                    "commentary": {
+                        "type": "array",
+                        "items": {
+
+                        }
+                    },
+                    "sheets": {
+                        "type": "array",
+                        "items": {
+
+                        }
+                    },
+                    "layer": {
+                        "type": "array",
+                        "items": {
+
+                        }
+                    }
+                },
+                "example": {
+                    "ref": "Mishnah Peah 4:2",
+                    "heRef": "משנה פאה ד׳:ב׳",
+                    "isComplex": false,
+                    "text": [
+                        "Peah is given from [the crop] while it is still connected with the soil. But in the case of hanging vine-branches and the date-palm, the owner brings down [the fruit] and distributes it among the poor. Rabbi Shimon says: the same applies to smooth nut trees. Even if ninety-nine [of the poor] say [to the owner] to distribute it and one says to leave it in the field, this latter is listened to, since he spoke in accordance with the halakhah.",
+                        "With hanging vine-branches and date-palm trees it is not so; even if ninety-nine [of the poor] say [to the owner] to leave it in the field and one says to distribute it, this latter is listened to, since he spoke in accordance with the halakhah.",
+                        "If [a poor man] took some of the peah [already collected] and threw it onto the remainder [not yet collected], he gets none of it. If he fell down upon it, or spread his cloak over it, they take the peah away from him. The same applies to gleanings and the forgotten sheaf.",
+                        "[The poor] may not harvest peah with scythes or tear it out [of the ground] with spades, so that they might not strike one another [with these implements].",
+                        "There are three times a day [the poor] make a search [in the field for peah]: morning, noon, and sunset. Rabban Gamaliel says: these [times] were only set lest they reduce them. Rabbi Akiva says: these were set lest they add to them. [The men] of Bet Namer used to have the poor harvest [the peah] with the aid of a rope, and they left peah at the end of each furrow.",
+                        "A non-Jew who harvested his field and then converted, he is exempt from [leaving] gleanings, the forgotten sheaf and peah. Rabbi Judah makes him liable to leave the forgotten sheaf, since he becomes liable for the forgotten sheaf at the time of their binding.",
+                        "One who dedicated standing grain [to the Temple] and then redeemed it while it was still standing grain, he is liable [to give the agricultural gifts to the poor]. [If he dedicated] sheaves and redeemed them while they were still sheaves, he is liable. [If he dedicated] standing grain and redeemed it [when it was already in] sheaves, he is exempt, since at the time when it became liable it was exempt.",
+                        "Similarly one who dedicates his produce prior to the stage when they are subject to tithes and then redeemed them, they are liable [to be tithed]. If [he dedicated them] when they had already become subject to tithes and then redeemed them, they are liable [to be tithed]. If he dedicated them before they had ripened, and they became ripe while in the possession of the [Temple] treasurer, and he then redeemed them, they are exempt, since at the time when they would have been liable, they were exempt.",
+                        "One who collected peah and said, “This is for so-and-so a poor man:” Rabbi Eliezer says: he has thus acquired it for him. The sages say: he must give it to the first poor man he finds. Gleanings, the forgotten sheaf and the peah of non-Jews are subject to tithes, unless he [the non-Jew] had declared them ownerless.",
+                        "What are gleanings? That which falls down at the time of harvesting. If while he was harvesting, he harvested a handful, or plucked a fistful, and then a thorn pricked him, and what he had in his hand fell to the ground, it still belongs to the owner. [That which drops from] inside the hand or the sickle [belongs] to the poor, but [that which falls from] the back of the hand or the sickle [belongs] to the owner. [That which falls from] the top of the hand or sickle: Rabbi Ishmael says: to the poor; But Rabbi Akiva says: to the owner.",
+                        "[Grain found in] ant holes where the stalks are still standing, behold it still belongs to the owner. After the harvesters [had passed over them], those found in the top parts [of the ant holes belong] to the poor, but [those found] on the bottom parts [belong] to the owner. Rabbi Meir says: it all belongs to the poor, for gleanings about which there is any doubt are regarded as gleanings."
+                    ],
+                    "he": [
+                        "הַפֵּאָה נִתֶּנֶת בִּמְחֻבָּר לַקַּרְקָע. בְּדָלִית וּבְדֶקֶל, בַּעַל הַבַּיִת מוֹרִיד וּמְחַלֵּק לָעֲנִיִּים. רַבִּי שִׁמְעוֹן אוֹמֵר, אַף בַּחֲלִיקֵי אֱגוֹזִים. אֲפִלּוּ תִשְׁעִים וְתִשְׁעָה אוֹמְרִים לְחַלֵּק וְאֶחָד אוֹמֵר לָבוֹז, לָזֶה שׁוֹמְעִין, שֶׁאָמַר כַּהֲלָכָה: \n",
+                        "בְּדָלִית וּבְדֶקֶל אֵינוֹ כֵן, אֲפִלּוּ תִשְׁעִים וְתִשְׁעָה אוֹמְרִים לָבוֹז וְאֶחָד אוֹמֵר לְחַלֵּק, לָזֶה שׁוֹמְעִין, שֶׁאָמַר כַּהֲלָכָה: \n",
+                        "נָטַל מִקְצָת פֵּאָה וּזְרָקָהּ עַל הַשְּׁאָר, אֵין לוֹ בָהּ כְּלוּם. נָפַל לוֹ עָלֶיהָ, וּפֵרֵשׂ טַלִּיתוֹ עָלֶיהָ, מַעֲבִירִין אוֹתָהּ הֵימֶנּוּ. וְכֵן בְּלֶקֶט, וְכֵן בְּעֹמֶר הַשִּׁכְחָה: \n",
+                        "פֵּאָה אֵין קוֹצְרִין אוֹתָהּ בְּמַגָּלוֹת, וְאֵין עוֹקְרִין אוֹתָהּ בְּקַרְדֻּמּוֹת, כְּדֵי שֶׁלֹּא יַכּוּ אִישׁ אֶת רֵעֵהוּ: \n",
+                        "שָׁלשׁ אַבְעָיוֹת בַּיּוֹם, בַּשַּׁחַר וּבַחֲצוֹת וּבַמִּנְחָה. רַבָּן גַּמְלִיאֵל אוֹמֵר, לֹא אָמְרוּ אֶלָּא כְּדֵי שֶׁלֹּא יִפְחֲתוּ. רַבִּי עֲקִיבָא אוֹמֵר, לֹא אָמְרוּ אֶלָּא כְּדֵי שֶׁלֹּא יוֹסִיפוּ. שֶׁל בֵּית נָמֵר הָיוּ מְלַקְּטִין עַל הַחֶבֶל, וְנוֹתְנִים פֵּאָה מִכָּל אֻמָּן וְאֻמָּן: \n",
+                        "עוֹבֵד כּוֹכָבִים שֶׁקָּצַר אֶת שָׂדֵהוּ וְאַחַר כָּךְ נִתְגַּיֵּר, פָּטוּר מִן הַלֶּקֶט וּמִן הַשִּׁכְחָה וּמִן הַפֵּאָה. רַבִּי יְהוּדָה מְחַיֵּב בְּשִׁכְחָה, שֶׁאֵין הַשִּׁכְחָה אֶלָּא בִשְׁעַת הָעִמּוּר: \n",
+                        "הִקְדִּישׁ קָמָה וּפָדָה קָמָה, חַיָּב. עֳמָרִין וּפָדָה עֳמָרִין, חַיָּב. קָמָה וּפָדָה עֳמָרִין, פְּטוּרָה, שֶׁבִּשְׁעַת חוֹבָתָהּ הָיְתָה פְטוּרָה: \n",
+                        "כַּיּוֹצֵא בוֹ, הַמַּקְדִּישׁ פֵּרוֹתָיו עַד שֶׁלֹּא בָאוּ לְעוֹנַת הַמַּעַשְׂרוֹת, וּפְדָאָן, חַיָּבִין. מִשֶּׁבָּאוּ לְעוֹנַת הַמַּעַשְׂרוֹת, וּפְדָאָן, חַיָּבִין. הִקְדִּישָׁן עַד שֶׁלֹּא נִגְמְרוּ וּגְמָרָן הַגִּזְבָּר, וְאַחַר כָּךְ פְּדָאָן, פְּטוּרִים, שֶׁבִּשְׁעַת חוֹבָתָן הָיוּ פְטוּרִים: \n",
+                        "מִי שֶׁלָּקַט אֶת הַפֵּאָה וְאָמַר הֲרֵי זוֹ לְאִישׁ פְּלוֹנִי עָנִי, רַבִּי אֱלִיעֶזֶר אוֹמֵר, זָכָה לוֹ. וַחֲכָמִים אוֹמְרִים, יִתְּנֶנָּה לֶעָנִי שֶׁנִּמְצָא רִאשׁוֹן. הַלֶּקֶט וְהַשִּׁכְחָה וְהַפֵּאָה שֶׁל עוֹבֵד כּוֹכָבִים חַיָּב בְּמַעַשְׂרוֹת, אֶלָּא אִם כֵּן הִפְקִיר: \n",
+                        "אֵיזֶהוּ לֶקֶט, הַנּוֹשֵׁר בִּשְׁעַת הַקְּצִירָה. הָיָה קוֹצֵר, קָצַר מְלֹא יָדוֹ, תָּלַשׁ מְלֹא קֻמְצוֹ, הִכָּהוּ קוֹץ וְנָפַל מִיָּדוֹ לָאָרֶץ, הֲרֵי הוּא שֶׁל בַּעַל הַבָּיִת. תּוֹךְ הַיָּד וְתוֹךְ הַמַּגָּל, לָעֲנִיִּים. אַחַר הַיָּד וְאַחַר הַמַּגָּל, לְבַעַל הַבָּיִת. רֹאשׁ הַיָּד וְרֹאשׁ הַמַּגָּל, רַבִּי יִשְׁמָעֵאל אוֹמֵר, לָעֲנִיִּים. רַבִּי עֲקִיבָא אוֹמֵר, לְבַעַל הַבָּיִת: \n",
+                        "חוֹרֵי הַנְּמָלִים שֶׁבְּתוֹךְ הַקָּמָה, הֲרֵי הֵן שֶׁל בַּעַל הַבָּיִת. שֶׁלְּאַחַר הַקּוֹצְרִים, הָעֶלְיוֹנִים לָעֲנִיִּים, וְהַתַּחְתּוֹנִים שֶׁל בַּעַל הַבָּיִת. רַבִּי מֵאִיר אוֹמֵר, הַכֹּל לָעֲנִיִּים, שֶׁסְּפֵק לֶקֶט, לֶקֶט: \n"
+                    ],
+                    "versions": [
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Torat Emet 357",
+                            "versionSource": "http://www.toratemetfreeware.com/index.html?downloads",
+                            "language": "he",
+                            "status": "locked",
+                            "license": "Public Domain",
+                            "versionNotes": "",
+                            "digitizedBySefaria": "",
+                            "priority": 3,
+                            "versionTitleInHebrew": "תורת אמת 357",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": true
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Mishnah, ed. Romm, Vilna 1913",
+                            "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001741739",
+                            "language": "he",
+                            "status": "locked",
+                            "license": "Public Domain",
+                            "versionNotes": "",
+                            "digitizedBySefaria": true,
+                            "priority": 2,
+                            "versionTitleInHebrew": "משנה, מהדורת בית דפוס ראם, וילנא 1913",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": true
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Mishnah Yomit by Dr. Joshua Kulp",
+                            "versionSource": "http://learn.conservativeyeshiva.org/mishnah/",
+                            "language": "en",
+                            "status": "locked",
+                            "license": "CC-BY",
+                            "versionNotes": "",
+                            "digitizedBySefaria": "",
+                            "priority": 1,
+                            "versionTitleInHebrew": "",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "Dr. Joshua Kulp",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": false
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Mischnajot mit deutscher Übersetzung und Erklärung. Berlin 1887-1933 [de]",
+                            "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002378149/NLI",
+                            "language": "en",
+                            "status": "locked",
+                            "license": "Public Domain",
+                            "versionNotes": "Ordnung Seraïm, übers. und erklärt von Ascher Samter. 1887.<br>Ordnung Moed, von Eduard Baneth. 1887-1927.<br>Ordnung Naschim, von Marcus Petuchowski u. Simon Schlesinger. 1896-1933.<br>Ordnung Nesikin, von David Hoffmann. 1893-1898.<br>Ordnung Kodaschim, von John Cohn. 1910-1925.<br>Ordnung Toharot, von David Hoffmann, John Cohn und Moses Auerbach. 1910-1933.",
+                            "digitizedBySefaria": true,
+                            "priority": 0.5,
+                            "versionTitleInHebrew": "",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": false
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Talmud Bavli. German. Lazarus Goldschmidt. 1929 [de]",
+                            "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001042448/NLI",
+                            "language": "en",
+                            "status": "locked",
+                            "license": "Public Domain",
+                            "versionNotes": "",
+                            "digitizedBySefaria": true,
+                            "priority": 0.25,
+                            "versionTitleInHebrew": "",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "Lazarus Goldschmidt, 1929 ",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": false
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Open Mishnah",
+                            "versionSource": "http://en.wikisource.org/wiki/Mishnah",
+                            "language": "en",
+                            "status": "locked",
+                            "license": "CC-BY-SA",
+                            "versionNotes": "",
+                            "digitizedBySefaria": "",
+                            "priority": "",
+                            "versionTitleInHebrew": "משנה פתוחה",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": false
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Le Talmud de Jérusalem, traduit par Moise Schwab, 1878-1890 [fr]",
+                            "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002182155/NLI",
+                            "language": "en",
+                            "status": "locked",
+                            "license": "Public Domain",
+                            "versionNotes": "",
+                            "digitizedBySefaria": "",
+                            "priority": "",
+                            "versionTitleInHebrew": "",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": false
+                        },
+                        {
+                            "title": "Mishnah Peah",
+                            "versionTitle": "Mishnah based on the Kaufmann manuscript, edited by Dan Be'eri",
+                            "versionSource": "https://archive.org/details/MishnaCorrectedKaufman00WHOLE",
+                            "language": "he",
+                            "status": "locked",
+                            "license": "PD",
+                            "versionNotes": "",
+                            "digitizedBySefaria": true,
+                            "priority": "",
+                            "versionTitleInHebrew": "",
+                            "versionNotesInHebrew": "",
+                            "extendedNotes": "",
+                            "extendedNotesHebrew": "",
+                            "purchaseInformationImage": "",
+                            "purchaseInformationURL": "",
+                            "shortVersionTitle": "",
+                            "shortVersionTitleInHebrew": "",
+                            "isBaseText": ""
+                        }
+                    ],
+                    "textDepth": 2,
+                    "sectionNames": [
+                        "Chapter",
+                        "Mishnah"
+                    ],
+                    "addressTypes": [
+                        "Perek",
+                        "Mishnah"
+                    ],
+                    "lengths": [
+                        8,
+                        69
+                    ],
+                    "length": 8,
+                    "heTitle": "משנה פאה",
+                    "titleVariants": [
+                        "M Peah",
+                        "Mishna Peah",
+                        "M. Peah",
+                        "Mishnah Péah",
+                        "Pe’ah",
+                        "Pe'ah",
+                        "Peah",
+                        "Mishnah Peah"
+                    ],
+                    "heTitleVariants": [
+                        "פאה",
+                        "משנה פיאה",
+                        "משנה פאה"
+                    ],
+                    "type": "Mishnah",
+                    "primary_category": "Mishnah",
+                    "book": "Mishnah Peah",
+                    "categories": [
+                        "Mishnah",
+                        "Seder Zeraim"
+                    ],
+                    "order": [
+                        2,
+                        2
+                    ],
+                    "sections": [
+                        4,
+                        2
+                    ],
+                    "toSections": [
+                        4,
+                        2
+                    ],
+                    "isDependant": false,
+                    "indexTitle": "Mishnah Peah",
+                    "heIndexTitle": "משנה פאה",
+                    "sectionRef": "Mishnah Peah 4",
+                    "firstAvailableSectionRef": "Mishnah Peah 4:2",
+                    "heSectionRef": "משנה פאה ד׳",
+                    "isSpanning": false,
+                    "versionTitle": "Mishnah Yomit by Dr. Joshua Kulp",
+                    "versionTitleInHebrew": "",
+                    "shortVersionTitle": "Dr. Joshua Kulp",
+                    "shortVersionTitleInHebrew": "",
+                    "versionSource": "http://learn.conservativeyeshiva.org/mishnah/",
+                    "versionStatus": "locked",
+                    "versionNotes": "",
+                    "extendedNotes": "",
+                    "extendedNotesHebrew": "",
+                    "versionNotesInHebrew": "",
+                    "digitizedBySefaria": false,
+                    "license": "CC-BY",
+                    "formatEnAsPoetry": false,
+                    "heVersionTitle": "Torat Emet 357",
+                    "heVersionTitleInHebrew": "תורת אמת 357",
+                    "heShortVersionTitle": "",
+                    "heShortVersionTitleInHebrew": "",
+                    "heVersionSource": "http://www.toratemetfreeware.com/index.html?downloads",
+                    "heVersionStatus": "locked",
+                    "heVersionNotes": "",
+                    "heExtendedNotes": "",
+                    "heExtendedNotesHebrew": "",
+                    "heVersionNotesInHebrew": "",
+                    "heDigitizedBySefaria": false,
+                    "heLicense": "Public Domain",
+                    "formatHeAsPoetry": false,
+                    "alts": [
+                    ],
+                    "index_offsets_by_depth": {
+
+                    },
+                    "next": "Mishnah Peah 5",
+                    "prev": "Mishnah Peah 3",
+                    "commentary": [
+                    ],
+                    "sheets": [
+                    ],
+                    "layer": [
+                    ]
+                }
+            },
+            "SenseStrongsDictionaryEntry": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": ""
+                    },
+                    "grammar": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "verbal_stem": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "JastrowDictionaryEntry": {
+                "title": "JastrowDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries"
+                    },
+                    "quotes": {
+                        "description": ""
+                    },
+                    "refs": {
+                        "description": "Cross references to selections in the Sefaria library.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ref"
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous headword entry from the book."
+                    },
+                    "next_hw": {
+                        "description": "The next headword entry from the book."
+                    },
+                    "plural_form": {
+                        "description": "The plural form of the headword."
+                    },
+                    "language_reference": {
+                        "description": ""
+                    },
+                    "language_code": {
+                        "description": "A string containing the following characters `h.` (Hebrew), `b. h.` (Biblical Hebrew) `ch.` or `Ch.` (Chaldean) indicating the source language of the entry."
+                    },
+                    "alt_headwords": {
+                        "description": "An array of alternate headwords for the entry. Symbolized in print as those headwords separated by commas after the initial entry.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SenseJastrowDictionaryEntry"
+                                }
+                            },
+                            "morphology": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "SenseKleinDictionaryEntry": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "grammar": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "verbal_stem": {
+                                "type": "string"
+                            },
+                            "language_code": {
+                                "type": "string"
+                            },
+                            "binyan_form": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "morphology": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "number": {
+                        "type": "string"
+                    },
+                    "plural_form": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string"
+                    },
+                    "morphology": {
+                        "type": "string"
+                    },
+                    "language_code": {
+                        "type": "string"
+                    },
+                    "alternative": {
+                        "type": "string"
+                    }
+                }
+            },
+            "KleinDictionaryEntry": {
+                "title": "KleinDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": ""
+                    },
+                    "quotes": {
+                        "description": ""
+                    },
+                    "refs": {
+                        "description": "",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ref"
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous headword entry from the book."
+                    },
+                    "next_hw": {
+                        "description": "The next headword entry from the book."
+                    },
+                    "plural_form": {
+                        "description": "The plural form of the headword"
+                    },
+                    "language_reference": {
+                        "description": ""
+                    },
+                    "language_code": {
+                        "description": ""
+                    },
+                    "morphology": {
+                        "description": ""
+                    },
+                    "alt_headwords": {
+                        "description": ""
+                    },
+                    "notes": {
+                        "description": ""
+                    },
+                    "derivatives": {
+                        "description": ""
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SenseKleinDictionaryEntry"
+                                }
+                            },
+                            "morphology": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "dictionaryEntry": {
+                "title": "Root Type for dictionaryEntry",
+                "description": "A single dictionary entry on Sefaria.",
+                "type": "object",
+                "properties": {
+                    "headword": {
+                        "description": "The main word in the lexicon entry. The one you would look up in the book version.",
+                        "type": "string"
+                    },
+                    "parent_lexicon": {
+                        "description": "Name of the lexicon from which the entry comes from.",
+                        "type": "string"
+                    },
+                    "parent_lexicon_details": {
+                        "description": "",
+                        "type": "object"
+                    }
+                }
+            },
+            "StrongsDictionaryEntry": {
+                "title": "StrongsDictionaryEntry",
+                "description": "",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "strong_number": {
+                        "type": "string"
+                    },
+                    "transliteration": {
+                        "description": ""
+                    },
+                    "pronunciation": {
+                        "description": ""
+                    },
+                    "language_code": {
+                        "description": ""
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "morphology": {
+                                "type": "string"
+                            },
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SenseStrongsDictionaryEntry"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "headword": "רָאָה",
+                    "parent_lexicon": "BDB Augmented Strong",
+                    "content": {
+                        "morphology": "v",
+                        "senses": [
+                            {
+                                "definition": "to see,  look at,  inspect,  perceive,  consider",
+                                "senses": [
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to see"
+                                            },
+                                            {
+                                                "definition": "to see,  perceive"
+                                            },
+                                            {
+                                                "definition": "to see,  have vision"
+                                            },
+                                            {
+                                                "definition": "to look at,  see,  regard,  look after,  see after,  learn about,  observe,  watch,  look upon,  look out,  find out"
+                                            },
+                                            {
+                                                "definition": "to see,  observe,  consider,  look at,  give attention to, discern,  distinguish"
+                                            },
+                                            {
+                                                "definition": "to look at,  gaze at"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Qal"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to appear,  present oneself"
+                                            },
+                                            {
+                                                "definition": "to be seen"
+                                            },
+                                            {
+                                                "definition": "to be visible"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Niphal"
+                                        }
+                                    },
+                                    {
+                                        "definition": " to be seen",
+                                        "grammar": {
+                                            "verbal_stem": "Pual"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to cause to see,  show"
+                                            },
+                                            {
+                                                "definition": "to cause to look intently at,  behold,  cause to gaze at"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Hiphil"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to be caused to see,  be shown"
+                                            },
+                                            {
+                                                "definition": "to be exhibited to"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Hophal"
+                                        }
+                                    },
+                                    {
+                                        "definition": " to look at each other,  face",
+                                        "grammar": {
+                                            "verbal_stem": "Hithpael"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "strong_number": "7200",
+                    "transliteration": "râʼâh",
+                    "pronunciation": "raw-aw'",
+                    "language_code": "heb",
+                    "parent_lexicon_details": {
+                        "name": "BDB Augmented Strong",
+                        "language": "heb.biblical",
+                        "to_language": "eng",
+                        "text_categories": [
+                            "Tanakh, Torah",
+                            "Tanakh, Prophets",
+                            "Tanakh, Writings"
+                        ],
+                        "source": "Open Scriptures on GitHub",
+                        "source_url": "https://github.com/openscriptures/strongs",
+                        "attribution": "Based on the work of Larry Pierce at the Online Bible",
+                        "attribution_url": "http://www.blueletterbible.org/contact/contact_gen.cfm"
+                    }
+                }
+            },
+            "BDBDictionaryEntry": {
+                "title": "BDBDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries"
+                    },
+                    "TWOT": {
+                        "description": "The corresponding Theological Wordbook of the Old Testament number for this word",
+                        "type": "string"
+                    },
+                    "strong_numbers": {
+                        "description": "An array of corresponsing Strong Numbers for this word",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "root": {
+                        "description": "The Hebrew root of the word",
+                        "type": "string"
+                    },
+                    "peculiar": {
+                        "description": "A bool indicating the presence of the `‡` symbol in print, demonstrating that the word is peculiar to Biblical Aramaic.",
+                        "type": "boolean"
+                    },
+                    "ordinal": {
+                        "description": "when the same headword has more than one entry with a differen meaning they are offset by the roman numerals here",
+                        "type": "string"
+                    },
+                    "occurrences": {
+                        "description": "A count of the number of times the headword appears in the Bible",
+                        "type": "number"
+                    },
+                    "headword_suffix": {
+                        "description": "In some cases the headword has some additional content in print beyond it. That data is included here."
+                    },
+                    "GK": {
+                        "description": "The corresponding Goodrick/Kohlenberger Lexicon number for this headword."
+                    },
+                    "all_cited": {
+                        "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of the word are listed as part of this entry"
+                    },
+                    "brackets": {
+                        "description": "headword has brackets in print"
+                    },
+                    "alt_headwords": {
+                        "description": "An array of alternative headwords for the entry",
+                        "type": "object",
+                        "properties": {
+                            "word": {
+                                "description": "The alternative headword",
+                                "type": "string"
+                            },
+                            "occurences": {
+                                "description": "The number of times the alternative headword exists in the Bible"
+                            }
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous entry in print"
+                    },
+                    "next_hw": {
+                        "description": "the next entry in print"
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "definition": {
+                                            "description": "a definition of this sense of the word",
+                                            "type": "string"
+                                        },
+                                        "all_cited": {
+                                            "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of this sense of the word are listed as part of this entry",
+                                            "type": "string"
+                                        },
+                                        "form": {
+                                            "description": "the grammatical verb form (binyan) of the word",
+                                            "type": "string"
+                                        },
+                                        "note": {
+                                            "description": "an additional note for the entry",
+                                            "type": "string"
+                                        },
+                                        "num": {
+                                            "description": "the string of the numbering of this sense in print (it can be a number, English letter, Roman digits, with period, in parentheses, etc.)",
+                                            "type": "string"
+                                        },
+                                        "occurences": {
+                                            "description": "number of occurrences of this sense in bible",
+                                            "type": "string"
+                                        },
+                                        "pre_num": {
+                                            "description": "In some cases the sense has some additional characters before the entry  (e.g. the word Especially). That data is included here",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "HebrewDictionaryEntry": {
+                "title": "HebrewDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": ""
+                    },
+                    "refs": {
+                        "description": "",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ref"
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous headword entry from the book."
+                    },
+                    "next_hw": {
+                        "description": "The next headword entry from the book."
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "definition": {
+                                            "description": "A definition of this sense of the word",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "SenseJastrowDictionaryEntry": {
+                "description": "Each meaning of the word is tagged as a `sense` within `senses`\nEach sense may be preceded by a bolded number which will be tagged as a `number`\nEach Binyan will also be broken down into `senses`",
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": "",
+                        "type": "string"
+                    },
+                    "grammar": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "verbal_stem": {
+                                "type": "string"
+                            },
+                            "language_code": {
+                                "type": "string"
+                            },
+                            "binyan_form": {
+                                "description": "Found in verbs, a binyan is a linguistic alternate use of the word. It will be one of the following: Hiph., Hish., Hith., Hithpalp., Hithpol., Hoph., Hoth., Niph, , Nith., Pa., Pi., Pil., Pilp., Pir., Po., Pol., Polp., Pu., Pul., Pulp., Qal., Shaph., Shiph., Shuph., Tiph., Tuph., Hif., Nif., Hithpa., Af., Ithpa., Ithpe., Nithpa",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "number": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}
