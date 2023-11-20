@@ -1570,6 +1570,57 @@ FollowButton.propTypes = {
 
 };
 
+const PictureUploader = (callback) => {
+    const fileInput = useRef(null);
+
+    var uploadImage = function(imageData) {
+      const formData = new FormData();
+      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+      // formData.append('file', imageData);
+
+      $.ajax({
+          url: Sefaria.apiHost + "/api/sheets/upload-image",
+          type: 'POST',
+          data: formData,
+          contentType: false,
+          processData: false,
+          success: function(data) {
+            callback(data.url);
+            // $("#inlineAddMediaInput").val(data.url);
+            // $("#addmediaDiv").find(".button").first().trigger("click");
+            //       $("#inlineAddMediaInput").val("");
+          },
+          error: function(e) {
+              console.log("photo upload ERROR", e);
+          }
+      });
+    }
+    const onFileSelect = (e) => {
+          const file = fileInput.current.files[0];
+          if (file == null)
+          return;
+              if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+                  const reader = new FileReader();
+
+                  reader.addEventListener("load", function() {
+                    uploadImage(reader.result);
+                  }, false);
+
+                  reader.addEventListener("onerror", function() {
+                    alert(reader.error);
+                  }, false);
+
+                  reader.readAsDataURL(file);
+              } else {
+                alert('not an image');
+              }
+    }
+    return <div>
+                    <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+                      <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+                   </div><input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
+        </div>;
+    }
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -3243,5 +3294,6 @@ export {
   CategoryChooser,
   TitleVariants,
   requestWithCallBack,
-  OnInView
+  OnInView,
+  PictureUploader
 };

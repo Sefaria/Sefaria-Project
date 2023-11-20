@@ -1,6 +1,6 @@
 import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
-import {AdminToolHeader, InterfaceText, ProfilePic, TitleVariants} from "./Misc";
+import {AdminToolHeader, InterfaceText, PictureUploader, TitleVariants} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
 import classNames from "classnames";
 const options_for_form = {
@@ -163,20 +163,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                           </select>
                         </div>;
     }
-    const getPicture = (label, field) => {
-        return <ProfilePic
-                    saveCallback={(url) => handlePictureChange(url)}
-                    showButtons={true}
-                    name={""}
-                    url={data[field]}
-                    len={60}
-              />;
-    }
     const item = ({label, field, placeholder, type, dropdown_data}) => {
         let obj;
         switch(type) {
             case 'picture':
-                obj = getPicture(label, field);
+                obj = <PictureUploader callback={handlePictureChange}/>;
                 break;
             case 'dropdown':
                 obj = getDropdown(field, dropdown_data, placeholder);
