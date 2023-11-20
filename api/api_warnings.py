@@ -38,14 +38,14 @@ class APINoVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, vtitle: str, lang: str):
         self.warning_code = APIWarningCode.APINoVersion
-        self.message = f'We do not have version named {vtitle} with language code {lang} for {oref}'
+        self.message = f'We do not have version named {vtitle} with language {lang} for {oref}'
 
 
 class APINoLanguageVersion(TextsAPIResponseMessage):
 
     def __init__(self, oref: Ref, langs: List[str]):
         self.warning_code = APIWarningCode.APINoLanguageVersion
-        self.message = f'We do not have the code language you asked for {oref}. Available codes are {langs}'
+        self.message = f'We do not have the language you asked for {oref}. Available languages are {langs}'
 
 
 class APINoSourceText(TextsAPIResponseMessage):

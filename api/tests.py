@@ -59,7 +59,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["versions"][0]['versionTitle'], "William Davidson Edition - English")
 
     def test_api_get_text_lang_all(self):
-        response = c.get('/api/v3/texts/Rashi_on_Genesis.2.3?version=en|all')
+        response = c.get('/api/v3/texts/Rashi_on_Genesis.2.3?version=english|all')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data["versions"]) > 1)
@@ -71,7 +71,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["toSections"], ['2', '3'])
 
     def test_api_get_text_specific(self):
-        response = c.get('/api/v3/texts/Tosafot_on_Sukkah.2a.4.1?version=he|Vilna_Edition')
+        response = c.get('/api/v3/texts/Tosafot_on_Sukkah.2a.4.1?version=hebrew|Vilna_Edition')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
@@ -97,7 +97,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["versions"][0]['versionTitle'], "William Davidson Edition - Vocalized Aramaic")
 
     def test_api_get_text_two_params(self):
-        response = c.get('/api/v3/texts/Genesis.1?version=he|Tanach with Nikkud&version=en|all')
+        response = c.get('/api/v3/texts/Genesis.1?version=hebrew|Tanach with Nikkud&version=english|all')
         data = json.loads(response.content)
         self.assertTrue(len(data["versions"]) > 7)
         self.assertEqual(data["versions"][0]['actualLanguage'], 'he')
@@ -146,7 +146,7 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["error"], "We have no text for Berakhot 1a.")
 
     def test_api_get_text_no_source(self):
-        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=source")
+        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=english|Brenton's_Septuagint&version=source")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
@@ -162,26 +162,26 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data['warnings'][0]['translation']['message'], 'We do not have a translation for Shuvi Shuvi HaShulamit')
 
     def test_api_get_text_no_language(self):
-        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=sgrg|all")
+        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=english|Brenton's_Septuagint&version=sgrg|all")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
         self.assertEqual(data['warnings'][0]['sgrg|all']['warning_code'], APIWarningCode.APINoLanguageVersion.value)
         self.assertEqual(data['warnings'][0]['sgrg|all']['message'],
-                         "We do not have the code language you asked for The Book of Maccabees I 1. Available codes are ['en', 'he']")
+                         "We do not have the language you asked for The Book of Maccabees I 1. Available languages are ['english', 'hebrew']")
 
     def test_api_get_text_no_version(self):
-        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=en|Brenton's_Septuagint&version=he|Kishkoosh")
+        response = c.get("/api/v3/texts/The_Book_of_Maccabees_I.1?version=english|Brenton's_Septuagint&version=hebrew|Kishkoosh")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)
-        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['warning_code'], APIWarningCode.APINoVersion.value)
-        self.assertEqual(data['warnings'][0]['he|Kishkoosh']['message'],
-                         'We do not have version named Kishkoosh with language code he for The Book of Maccabees I 1')
+        self.assertEqual(data['warnings'][0]['hebrew|Kishkoosh']['warning_code'], APIWarningCode.APINoVersion.value)
+        self.assertEqual(data['warnings'][0]['hebrew|Kishkoosh']['message'],
+                         'We do not have version named Kishkoosh with language hebrew for The Book of Maccabees I 1')
 
     def test_fill_in_missing_segments(self):
         vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
-        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=en|{vtitle}&fill_in_missing_segments=true")
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=true")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data['versions'][0]['text']) > 2)
@@ -191,7 +191,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_without_fill_in_missing_segments(self):
         vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
-        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=en|{vtitle}")
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data['versions'][0]['text']), 2)
@@ -199,7 +199,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_wrap_all_entities(self):
         vtitle = "The Contemporary Torah, Jewish Publication Society, 2006"
-        response = c.get(f"/api/v3/texts/Genesis%2010?version=en|{vtitle}&return_format=wrap_all_entities")
+        response = c.get(f"/api/v3/texts/Genesis%2010?version=english|{vtitle}&return_format=wrap_all_entities")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue('<a class ="refLink"' in data['versions'][0]['text'][3])
