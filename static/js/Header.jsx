@@ -234,7 +234,7 @@ class SearchBar extends Component {
           });
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
-            response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
+            response([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
           } else {
             response([])
           }
@@ -306,8 +306,9 @@ class SearchBar extends Component {
     Sefaria.getName(query)
       .then(d => {
         // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-        if (Sefaria.isACaseVariant(query, d)) {
-          this.submitSearch(Sefaria.repairCaseVariant(query, d));
+        const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
+        if (repairedCaseVariant !== query) {
+          this.submitSearch(repairedCaseVariant);
           return;
         }
         const repairedQuery = Sefaria.repairGershayimVariant(query, d);
@@ -331,7 +332,6 @@ class SearchBar extends Component {
 
         } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
-
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
