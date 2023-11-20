@@ -205,9 +205,14 @@ class APITextsTests(SefariaTestCase):
         self.assertTrue('<a class ="refLink"' in data['versions'][0]['text'][3])
         self.assertTrue('<a href="/topics' in data['versions'][0]['text'][8])
 
-    def text_text_only(self):
+    def test_text_only(self):
         response = c.get(f"/api/v3/texts/Shulchan_Arukh%2C_Orach_Chayim.1:1?return_format=text_only")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertFalse('<' in data['versions'][0]['text'])
 
+    def test_error_return_format(self):
+        response = c.get(f"/api/v3/texts/Shulchan_Arukh%2C_Orach_Chayim.1:1?return_format=not_valid")
+        self.assertEqual(400, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only'].")
