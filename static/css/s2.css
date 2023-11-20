@@ -713,7 +713,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
-  border-top: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
   padding-top: 12px;
 }
 .ui-autocomplete .ui-menu-item.hebrew-result a {
@@ -2315,6 +2315,17 @@ div.interfaceLinks-row a {
   padding-left: 44px;
   padding-right: 44px;
 }
+.navSidebarModule .portalMobile .button {
+  margin-top: 0;
+}
+.portalTopicImageWrapper {
+    padding-top: 5px;
+    margin-bottom: 25px;
+}
+.portalTopicImageWrapper .topicImage {
+    padding-left: 0;
+    padding-right: 0;
+}
 @media (max-width: 600px) {
   .topicPhoto{
     height: auto;
@@ -2341,6 +2352,7 @@ div.interfaceLinks-row a {
     margin-bottom: 30px;
     text-align: center;
   }
+
 }
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
@@ -2398,7 +2410,6 @@ h1 .languageToggle .he {
 }
 .authorIndexTitle {
   margin-top: 30px;
-  margin-bottom: 17px;
 }
 .sectionTitleText.authorIndexTitle .int-en {
   text-transform: none;
@@ -4511,6 +4522,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
+  z-index: 99;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4697,10 +4709,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #999;
+  color: #666666;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.readerOptions .int-en {
+  margin-right: 4px;
+}
+.readerOptions .int-he {
+  margin-left: 8px;
+}
+.readerOptions .int-he img {
+    height: 18px;
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
@@ -5410,7 +5431,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #666;
+  color: #000;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -11013,6 +11034,11 @@ body .homeFeedWrapper .content {
     max-width: 100%;
     align-self: stretch;
     border: 0;
+    margin: 0;
+  }
+  .topicPanel .navSidebar {
+    width: unset;
+    border-top: 30px solid #FBFBFA;
     margin: 0;
   }
 }

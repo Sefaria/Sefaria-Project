@@ -41,6 +41,7 @@ from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
 from .media import Media, MediaSet
 from .topic import Topic, PersonTopic, AuthorTopic, TopicLinkType, IntraTopicLink, RefTopicLink, TopicLinkType, TopicDataSource, TopicSet, PersonTopicSet, AuthorTopicSet, TopicLinkTypeSet, RefTopicLinkSet, IntraTopicLinkSet, TopicLinkSetHelper
+from .portal import Portal
 from .manuscript import Manuscript, ManuscriptSet, ManuscriptPage, ManuscriptPageSet
 from .linker.ref_part import RawRef
 from .linker.ref_resolver import RefResolver
