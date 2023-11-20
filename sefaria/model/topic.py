@@ -3,7 +3,7 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
-from sefaria.system.exceptions import InputError, DuplicateRecordError, ExternalImageError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.model.portal import Portal
 from sefaria.system.database import db
@@ -73,10 +73,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
         if getattr(self, 'image', False):
-            try:
-                self.image["image_uri"].index("https://storage.googleapis.com/img.sefaria.org/topics/")
-            except ExternalImageError:
-                print("The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory.")
+            assert "https://storage.googleapis.com/img.sefaria.org/topics/" in self.image["image_uri"], "The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory."
 
         if getattr(self, 'portal_slug', None):
             Portal.validate_slug_exists(self.portal_slug)
