@@ -1587,7 +1587,7 @@ const PictureUploader = (callback) => {
       // formData.append('file', imageData);
 
       $.ajax({
-          url: Sefaria.apiHost + "/api/sheets/upload-image",
+          url: Sefaria.apiHost + "/api/topics/upload-image",
           type: 'POST',
           data: formData,
           contentType: false,
@@ -1623,11 +1623,18 @@ const PictureUploader = (callback) => {
                 alert('not an image');
               }
     }
-    return <div>
-                    <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-                      <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
-                   </div><input id="addImageFileSelector" type="file" style={{ display: "none"}} onChange={onFileSelect} ref={fileInput} />
-        </div>;
+    return  <div><div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+                </div><input id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
+                <div className="section">
+                    <label><InterfaceText>English Caption</InterfaceText></label>
+                    <input type="text" id="enCaption"/>
+                </div>
+                <div className="section">
+                    <label><InterfaceText>Hebrew Caption</InterfaceText></label>
+                    <input type="text" id="heCaption"/>
+                </div>
+             </div>
     }
 
 const CategoryColorLine = ({category}) =>
@@ -3313,6 +3320,6 @@ export {
   TitleVariants,
   requestWithCallBack,
   OnInView,
-  PictureUploader
+  PictureUploader,
   ImageWithCaption
 };

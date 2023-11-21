@@ -62,7 +62,7 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
+                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, add_image_to_topic
 from sefaria.helper.community_page import get_community_page_items
 from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
@@ -3572,18 +3572,27 @@ def topic_upload_photo(request):
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
-        now = epoch_time()
+        from io import BytesIO
+        import uuid
+        import base64
+        """
+        "image" : {
+        "image_uri" : "https://storage.googleapis.com/img.sefaria.org/topics/shabbat.jpg",
+        "image_caption" : {
+            "en" : "Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer",
+            "he" : "שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר"
+        }
+    }
+Validation that the image_uri url should start with https://storage.googleapis.com/img.sefaria.org/topics/
+        """
+        bucket_name = GoogleStorageManager.TOPICS_BUCKET
+        img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+        img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
+                                                   bucket_name)
+        #big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
 
-        profile = UserProfile(id=request.user.id)
-        bucket_name = GoogleStorageManager.PROFILES_BUCKET
-        image = Image.open(request.FILES['file'])
-        old_big_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url)
-        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
-
-        profile.update({"profile_pic_url": big_pic_url})
-        profile.save()
-        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
-        return jsonResponse({"url": big_pic_url})
+        add_image_to_topic(topic_slug, img_url, en_caption, he_caption)
+        return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 @catch_error_as_json
