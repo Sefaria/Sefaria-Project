@@ -46,6 +46,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        'image',
         "portal_slug",  # slug to relevant Portal object
     ]
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
@@ -71,6 +72,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
+        if getattr(self, 'image', False):
+            assert "https://storage.googleapis.com/img.sefaria.org/topics/" in self.image["image_uri"], "The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory."
 
         if getattr(self, 'portal_slug', None):
             Portal.validate_slug_exists(self.portal_slug)

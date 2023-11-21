@@ -1262,3 +1262,22 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
             return {"status": "ok"}
         else:
             return {"error": f"Cannot delete link between {tref} and {to_topic}."}
+
+
+def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
+    """
+    A function to add an image to a Topic in the database. Helper for data migration.
+    This function queries the desired Topic, adds the image data, and then saves.
+    :param topic_slug String: A valid slug for a Topic
+    :param image_uri String: The URI of the image stored in the GCP images bucket, in the topics subdirectory.
+                             NOTE: Incorrectly stored, or external images, will not pass validation for save
+    :param en_caption String: The English caption for a Topic image
+    :param he_caption String: The Hebrew caption for a Topic image
+    """
+    topic = Topic().load({'slug': topic_slug})
+    topic.image = {"image_uri": image_uri,
+                   "image_caption": {
+                       "en": en_caption,
+                       "he": he_caption
+                   }}
+    topic.save()
