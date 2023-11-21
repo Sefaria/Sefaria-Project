@@ -4,6 +4,7 @@ from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.validators import validate_url
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
 from sefaria.model.portal import Portal
 from sefaria.system.database import db
@@ -11,6 +12,7 @@ import structlog, bleach
 from sefaria.model.place import Place
 import regex as re
 from typing import Type
+
 logger = structlog.get_logger(__name__)
 
 
@@ -41,16 +43,42 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'numSources',
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
-        'ref',  # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
+        'ref',
+        # dictionary for topics with refs associated with them (e.g. parashah) containing strings `en`, `he`, and `url`.
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
-        "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        "data_source",  # any topic edited manually should display automatically in the TOC and this flag ensures this
         'image',
         "portal_slug",  # slug to relevant Portal object
     ]
+    attr_schemas = {
+        "image": {
+                "image_uri": {
+                    "type": "string",
+                    "required": True,
+                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
+                },
+                "image_caption": {
+                    "type": "dict",
+                    "required": True,
+                    "schema": {
+                        "en": {
+                            "type": "string",
+                            "required": True
+                        },
+                        "he": {
+                            "type": "string",
+                            "required": True
+                        }
+                    }
+                }
+            }
+        }
+
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
-                        # this constant is helpful in the topic editor tool functions in this file
+
+    # this constant is helpful in the topic editor tool functions in this file
 
     def load(self, query, proj=None):
         if self.__class__ != Topic:
@@ -72,11 +100,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
-        if getattr(self, 'image', False):
-            assert "https://storage.googleapis.com/img.sefaria.org/topics/" in self.image["image_uri"], "The image is not stored properly. Topic should be stored in the image GCP bucket, in the topics subdirectory."
-
-        if getattr(self, 'portal_slug', None):
-            Portal.validate_slug_exists(self.portal_slug)
+        if getattr(self, "image", False):
+            img_url = self.image.get("image_uri")
+            if img_url: validate_url(img_url)
 
     def _normalize(self):
         super()._normalize()
@@ -136,7 +162,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-
     def change_description(self, desc, cat_desc=None):
         """
         Sets description in all cases and sets categoryDescription if this is a top level topic
@@ -158,8 +183,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def topics_by_link_type_recursively(self, **kwargs):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
         return topics
-    
-    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False, max_depth=None, min_sources=None):
+
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False,
+                                                  max_depth=None, min_sources=None):
         """
         Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
         :param linkType: str, the linkType to recursively traverse.
@@ -168,11 +194,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         :param max_depth: How many levels below this one to traverse. 1 returns only this node's children, 0 returns only this node and None means unlimited.
         :return: list(Topic)
         """
-        topics, links, below_min_sources = self._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, max_depth, min_sources)
-        links = list(filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
+        topics, links, below_min_sources = self._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves,
+                                                                                                  reverse, max_depth,
+                                                                                                  min_sources)
+        links = list(
+            filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
         return topics, links
 
-    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources, explored_set=None, below_min_sources_set=None):
+    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources,
+                                                          explored_set=None, below_min_sources_set=None):
         """
         Helper function for `topics_and_links_by_link_type_recursively()` to carry out recursive calls
         :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
@@ -201,7 +231,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                     continue
                 if max_depth is None or max_depth > 0:
                     next_depth = max_depth if max_depth is None else max_depth - 1
-                    temp_topics, temp_links, temp_below_min_sources = child_topic._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, next_depth, min_sources, explored_set, below_min_sources_set)
+                    temp_topics, temp_links, temp_below_min_sources = child_topic._topics_and_links_by_link_type_recursively_helper(
+                        linkType, only_leaves, reverse, next_depth, min_sources, explored_set, below_min_sources_set)
                     topics += temp_topics
                     links += temp_links
                     below_min_sources_set |= temp_below_min_sources
@@ -218,7 +249,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         return len(search_slug_set.intersection(types)) > 0
 
     def should_display(self) -> bool:
-        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source", "") == "sefaria")
+        return getattr(self, 'shouldDisplay', True) and (
+                    getattr(self, 'numSources', 0) > 0 or self.has_description() or getattr(self, "data_source",
+                                                                                            "") == "sefaria")
 
     def has_description(self) -> bool:
         """
@@ -247,7 +280,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
-
     def merge(self, other: Union['Topic', str]) -> None:
         """
         :param other: Topic or old slug to migrate from
@@ -263,13 +295,15 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
+            if link.toTopic == getattr(link, 'fromTopic',
+                                       None):  # self-link where fromTopic and toTopic were equal before slug was changed
                 link.fromTopic = self.slug
                 link.toTopic = self.slug
             else:
                 attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
                 setattr(link, attr, self.slug)
-                if getattr(link, 'fromTopic', None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
+                if getattr(link, 'fromTopic',
+                           None) == link.toTopic:  # self-link where fromTopic and toTopic are equal AFTER slug was changed
                     link.delete()
                     continue
             try:
@@ -278,16 +312,19 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 link.delete()
             except AssertionError as e:
                 link.delete()
-                logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug, str(e)))
+                logger.warning(
+                    'While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug,
+                                                                                               str(e)))
 
         # source sheets
-        db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
+        db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}},
+                              array_filters=[{"element.slug": other_slug}])
 
         # indexes
         for index in IndexSet({"authors": other_slug}):
             index.authors = [self.slug if author_slug == other_slug else author_slug for author_slug in index.authors]
             props = index._saveable_attrs()
-            db.index.replace_one({"title":index.title}, props)
+            db.index.replace_one({"title": index.title}, props)
 
         if isinstance(other, Topic):
             # titles
@@ -302,7 +339,12 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 temp_dict = getattr(self, dict_attr, {})
                 for k, v in getattr(other, dict_attr, {}).items():
                     if k in temp_dict:
-                        logger.warning('Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v, dict_attr, self.slug, temp_dict[k]))
+                        logger.warning(
+                            'Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v,
+                                                                                                                 dict_attr,
+                                                                                                                 self.slug,
+                                                                                                                 temp_dict[
+                                                                                                                     k]))
                         continue
                     temp_dict[k] = v
                 if len(temp_dict) > 0:
@@ -343,7 +385,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
-            d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+            d['primaryTitle'][lang] = self.get_primary_title(lang=lang,
+                                                             with_disambiguation=kwargs.get('with_disambiguation',
+                                                                                            True))
         if not kwargs.get("with_html"):
             for k, v in d.get("description", {}).items():
                 d["description"][k] = re.sub("<[^>]+>", "", v or "")
@@ -406,6 +450,7 @@ class PersonTopic(Topic):
     """
     Represents a topic which is a person. Not necessarily an author of a book.
     """
+
     @staticmethod
     def get_person_by_key(key: str):
         """
@@ -421,7 +466,7 @@ class PersonTopic(Topic):
             if place and heKey not in properties:
                 value, dataSource = place['value'], place['dataSource']
                 place_obj = Place().load({"key": value})
-                if place_obj:   
+                if place_obj:
                     name = place_obj.primary_name('he')
                     d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
         return d
@@ -444,7 +489,7 @@ class PersonTopic(Topic):
                     }
                 }
         return d
-    
+
     # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
     # They may also have none of these...
     def _most_accurate_period(self, time_period_class: Type[TimePeriod]) -> Optional[LifePeriod]:
@@ -484,6 +529,7 @@ class PersonTopic(Topic):
         '''
         return self._most_accurate_period(LifePeriod)
 
+
 class AuthorTopic(PersonTopic):
     """
     Represents a topic which is an author of a book. Can be used on the `authors` field of `Index`
@@ -506,7 +552,8 @@ class AuthorTopic(PersonTopic):
         path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
         for index_in_path in indexes_in_path:
             if tuple(index_in_path.categories[len(path):]) in path_end_set:
-                if index_in_path.title not in temp_index_title_set and self.slug not in set(getattr(index_in_path, 'authors', [])):
+                if index_in_path.title not in temp_index_title_set and self.slug not in set(
+                        getattr(index_in_path, 'authors', [])):
                     return False
         return True
 
@@ -522,20 +569,22 @@ class AuthorTopic(PersonTopic):
         from collections import defaultdict
 
         def index_is_commentary(index):
-            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
+            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
+                index, 'collective_title', None) is not None
 
         indexes = self.get_authored_indexes()
-        
-        index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
-        cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
+
+        index_or_cat_list = []  # [(index_or_cat, collective_title_term, base_category)]
+        cat_aggregator = defaultdict(
+            lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
         MAX_ICAT_FROM_END_TO_CONSIDER = 2
         for index in indexes:
             is_comm = index_is_commentary(index)
             base = library.get_index(index.base_text_titles[0]) if is_comm else index
             collective_title = index.collective_title if is_comm else None
-            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
+            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER + 1])
             for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
-                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
+                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat + 1]))] += [index]
         for (collective_title, _), cat_choice_dict in cat_aggregator.items():
             cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
             (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
@@ -544,7 +593,7 @@ class AuthorTopic(PersonTopic):
                 continue
             if best_base_cat_path == ('Talmud', 'Bavli'):
                 best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
-            
+
             base_category = Category().load({"path": list(best_base_cat_path)})
             if collective_title is None:
                 index_category = base_category
@@ -552,7 +601,9 @@ class AuthorTopic(PersonTopic):
             else:
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path,
+                                                                                 collective_title is not None) or (
+                    collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
@@ -574,9 +625,9 @@ class AuthorTopic(PersonTopic):
             en_desc = getattr(index_or_cat, 'enShortDesc', None)
             he_desc = getattr(index_or_cat, 'heShortDesc', None)
             if isinstance(index_or_cat, Index):
-                unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
-                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
-                    "description":{"en": en_desc, "he": he_desc}})
+                unique_urls.append({"url": f'/{index_or_cat.title.replace(" ", "_")}',
+                                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
+                                    "description": {"en": en_desc, "he": he_desc}})
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -588,7 +639,7 @@ class AuthorTopic(PersonTopic):
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
                 unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
                                     "title": {"en": en_text, "he": he_text},
-                                    "description":{"en": en_desc, "he": he_desc}})
+                                    "description": {"en": en_desc, "he": he_desc}})
         return unique_urls
 
     @staticmethod
@@ -604,9 +655,10 @@ class TopicSet(abst.AbstractMongoSet):
         if self.recordClass != Topic:
             # include class name of recordClass + any class names of subclasses
             query = query or {}
-            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in self.recordClass.all_subclasses()]
+            subclass_names = [self.recordClass.__name__] + [klass.__name__ for klass in
+                                                            self.recordClass.all_subclasses()]
             query['subclass'] = {"$in": [self.recordClass.reverse_subclass_map[name] for name in subclass_names]}
-        
+
         super().__init__(query=query, *args, **kwargs)
 
     @staticmethod
@@ -646,7 +698,8 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order',  # dict with some data on how to sort this link. can have key 'custom_order' which should trump other data
+        'order',
+        # dict with some data on how to sort this link. can have key 'custom_order' which should trump other data
         'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
@@ -698,8 +751,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         TopicDataSource.validate_slug_exists(self.dataSource)
 
         # check for duplicates
-        duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
-                 "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
+        duplicate = IntraTopicLink().load(
+            {"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
+             "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
         if duplicate is not None:
             raise DuplicateRecordError(
                 "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
@@ -707,8 +761,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
         link_type = TopicLinkType.init(self.linkType, 0)
         if link_type.slug == link_type.inverseSlug:
-            duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
-             "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
+            duplicate_inverse = IntraTopicLink().load(
+                {"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
+                 "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
             if duplicate_inverse is not None:
                 raise DuplicateRecordError(
                     "Duplicate intra topic link in the inverse direction of the symmetric linkType '{}', fromTopic '{}', toTopic '{}' exists".format(
@@ -718,16 +773,21 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         from_topic = Topic.init(self.fromTopic)
         to_topic = Topic.init(self.toTopic)
         if getattr(link_type, 'validFrom', False):
-            assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
+            assert from_topic.has_types(
+                set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
+                self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
-            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+            assert to_topic.has_types(
+                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
+                self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
         # assert this link doesn't create circular paths (in is_a link type)
         # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
             to_topic = Topic.init(self.toTopic)
             ancestors = to_topic.get_types()
-            assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
+            assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(
+                self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
     def contents(self, **kwargs):
         d = super(IntraTopicLink, self).contents(**kwargs)
@@ -817,12 +877,15 @@ class RefTopicLink(abst.AbstractMongoRecord):
         to_topic = Topic.init(self.toTopic)
         link_type = TopicLinkType.init(self.linkType, 0)
         if getattr(link_type, 'validTo', False):
-            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
-    
+            assert to_topic.has_types(
+                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
+                self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates
-            query = {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}), "class": getattr(self, 'class')}
+            query = {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic,
+                     "dataSource": getattr(self, 'dataSource', {"$exists": False}), "class": getattr(self, 'class')}
             if getattr(self, "charLevelData", None):
                 query["charLevelData.startChar"] = self.charLevelData['startChar']
                 query["charLevelData.endChar"] = self.charLevelData['endChar']
@@ -831,8 +894,9 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
             duplicate = RefTopicLink().load(query)
             if duplicate is not None:
-                raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
-                self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
+                raise DuplicateRecordError(
+                    "Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
+                        self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
 
     def contents(self, **kwargs):
         d = super(RefTopicLink, self).contents(**kwargs)
@@ -840,6 +904,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
             d['topic'] = d['toTopic']
             d.pop('toTopic')
         return d
+
 
 class TopicLinkSetHelper(object):
     @staticmethod
@@ -852,7 +917,8 @@ class TopicLinkSetHelper(object):
     def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, record_kwargs=None):
         from sefaria.system.database import db
         record_kwargs = record_kwargs or {}
-        raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
+        raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(
+            limit)
         return [TopicLinkHelper.init_by_class(r, **record_kwargs) for r in raw_records]
 
 
@@ -952,10 +1018,12 @@ def process_index_title_change_in_topic_links(indx, **kwargs):
         except InputError:
             logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
 
+
 def process_index_delete_in_topic_links(indx, **kwargs):
     from sefaria.model.text import prepare_index_regex_for_dependency_process
     pattern = prepare_index_regex_for_dependency_process(indx)
     RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()
+
 
 def process_topic_delete(topic):
     RefTopicLinkSet({"toTopic": topic.slug}).delete()
@@ -964,18 +1032,21 @@ def process_topic_delete(topic):
         sheet["topics"] = [t for t in sheet["topics"] if t["slug"] != topic.slug]
         db.sheets.save(sheet)
 
+
 def process_topic_description_change(topic, **kwargs):
     """
     Upon topic description change, get rid of old markdown links and save any new ones
     """
     # need to delete currently existing links but dont want to delete link if its still in the description
     # so load up a dictionary of relevant data -> link
-    IntraTopicLinkSet({"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
+    IntraTopicLinkSet(
+        {"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
     refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
-    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
+    RefTopicLinkSet(
+        {"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
 
     markdown_links = set()
-    for lang, val in kwargs['new'].items():   # put each link in a set so we dont try to create duplicate of same link
+    for lang, val in kwargs['new'].items():  # put each link in a set so we dont try to create duplicate of same link
         for m in re.findall('\[.*?\]\((.*?)\)', val):
             markdown_links.add(m)
 
@@ -995,12 +1066,7 @@ def process_topic_description_change(topic, **kwargs):
                 ref = Ref(markdown_link).normal()
             except InputError as e:
                 continue
-            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool", "linkType": refLinkType,
+            ref_topic_dict = {"toTopic": topic.slug, "dataSource": "learning-team-editing-tool",
+                              "linkType": refLinkType,
                               'ref': ref}
             RefTopicLink(ref_topic_dict).save()
-
-
-
-
-
-
