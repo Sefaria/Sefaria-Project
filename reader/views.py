@@ -3567,6 +3567,24 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@catch_error_as_json
+def topic_upload_photo(request):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+    if request.method == "POST":
+        now = epoch_time()
+
+        profile = UserProfile(id=request.user.id)
+        bucket_name = GoogleStorageManager.PROFILES_BUCKET
+        image = Image.open(request.FILES['file'])
+        old_big_pic_filename = GoogleStorageManager.get_filename_from_url(profile.profile_pic_url)
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+
+        profile.update({"profile_pic_url": big_pic_url})
+        profile.save()
+        public_user_data(request.user.id, ignore_cache=True)  # reset user data cache
+        return jsonResponse({"url": big_pic_url})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @catch_error_as_json
 def profile_upload_photo(request):
