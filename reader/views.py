@@ -4022,8 +4022,17 @@ def random_text_api(request):
     """
     Return Texts API data for a random ref.
     """
-    categories = set(request.GET.get('categories', '').split('|'))
-    titles = set(request.GET.get('titles', '').split('|'))
+
+    if "categories" in request.GET:
+        categories = set(request.GET.get('categories', '').split('|'))
+    else:
+        categories = None
+
+    if "titles" in request.GET:
+        titles = set(request.GET.get('titles', '').split('|'))
+    else:
+        titles = None
+
     response = redirect(iri_to_uri("/api/texts/" + random_ref(categories, titles)) + "?commentary=0&context=0", permanent=False)
     return response
 
@@ -4575,4 +4584,3 @@ def rollout_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
-
