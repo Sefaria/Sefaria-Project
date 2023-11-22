@@ -1130,6 +1130,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         return getattr(self, 'isSegmentLevelDiburHamatchil', False)
 
 
+class AltStructNode(TitledTreeNode):
+    optional_param_keys = ["match_templates", "numeric_equivalent", 'referenceable']
+
+    def ref(self):
+        return None
+
+
 class ArrayMapNode(NumberedTitledTreeNode):
     """
     A :class:`TreeNode` that contains jagged arrays of references.
