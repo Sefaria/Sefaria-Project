@@ -487,6 +487,35 @@ Sefaria = extend(Sefaria, {
 
     return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
+  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
+    // ref is segment ref or bottom level section ref
+    // requiredVersions is array of objects that can have language and versionTitle
+    function makeParamsString(language, versionTitle) {
+      if (versionTitle) {
+        return `${language}|${versionTitle}`;
+      } else if (language) {
+        return language;
+      }
+    }
+    function makeUrl() {
+      const host = Sefaria.apiHost;
+      const endPoint = '/api/v3/texts/'
+      const versions = requiredVersions.map(obj =>
+        makeParamsString(obj.language, obj.versionTitle)
+      );
+      const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeText}`;
+      return url;
+    }
+    const url = makeUrl(ref, requiredVersions);
+    //here's the place for getting it from cache
+    const apiObject = await Sefaria._ApiPromise(url);
+    //here's the place for all changes we want to add, and saving in cache
+    return apiObject;
+  },
+  getAllTranslationsWithText: async function(ref) {
+    let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{language: 'translation', versionTitle: 'all'}], false);
+    return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
+  },
   _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
     if (sheetIds.length === 0) { return Promise.resolve({}); }
