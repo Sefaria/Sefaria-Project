@@ -1215,7 +1215,6 @@ def edit_text(request, ref=None, lang=None, version=None):
                 mode = "Add"
             else:
                 # Pull a particular section to edit
-                version = version.replace("_", " ") if version else None
                 #text = get_text(ref, lang=lang, version=version)
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
@@ -1389,15 +1388,11 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        versionHe  = request.GET.get("vhe", None)
         firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
         if firstAvailableRef:
             temp_oref = oref.first_available_section_ref()
             oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
-        if versionEn:
-            versionEn = versionEn.replace("_", " ")
-        versionHe  = request.GET.get("vhe", None)
-        if versionHe:
-            versionHe = versionHe.replace("_", " ")
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
@@ -1552,9 +1547,6 @@ def social_image_api(request, tref):
     try:
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
-
-        if version:
-            version = version.replace("_", " ")
 
         tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
 
