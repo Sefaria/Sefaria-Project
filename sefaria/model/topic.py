@@ -184,8 +184,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
         return topics
 
-    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False,
-                                                  max_depth=None, min_sources=None):
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False, max_depth=None, min_sources=None):
         """
         Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
         :param linkType: str, the linkType to recursively traverse.
@@ -201,8 +200,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
             filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
         return topics, links
 
-    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources,
-                                                          explored_set=None, below_min_sources_set=None):
+    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources, explored_set=None, below_min_sources_set=None):
         """
         Helper function for `topics_and_links_by_link_type_recursively()` to carry out recursive calls
         :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
@@ -295,8 +293,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            if link.toTopic == getattr(link, 'fromTopic',
-                                       None):  # self-link where fromTopic and toTopic were equal before slug was changed
+            if link.toTopic == getattr(link, 'fromTopic', None):  # self-link where fromTopic and toTopic were equal before slug was changed
                 link.fromTopic = self.slug
                 link.toTopic = self.slug
             else:
@@ -312,9 +309,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 link.delete()
             except AssertionError as e:
                 link.delete()
-                logger.warning(
-                    'While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug,
-                                                                                               str(e)))
+                logger.warning('While merging {} into {}, link assertion failed with message "{}"'.format(other_slug, self.slug, str(e)))
 
         # source sheets
         db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}},
@@ -339,12 +334,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 temp_dict = getattr(self, dict_attr, {})
                 for k, v in getattr(other, dict_attr, {}).items():
                     if k in temp_dict:
-                        logger.warning(
-                            'Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v,
-                                                                                                                 dict_attr,
-                                                                                                                 self.slug,
-                                                                                                                 temp_dict[
-                                                                                                                     k]))
+                        logger.warning('Key {} with value {} already exists in {} for topic {}. Current value is {}'.format(k, v, dict_attr, self.slug, temp_dict[k]))
                         continue
                     temp_dict[k] = v
                 if len(temp_dict) > 0:
@@ -386,8 +376,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang,
-                                                             with_disambiguation=kwargs.get('with_disambiguation',
-                                                                                            True))
+                                                             with_disambiguation=kwargs.get('with_disambiguation', True))
         if not kwargs.get("with_html"):
             for k, v in d.get("description", {}).items():
                 d["description"][k] = re.sub("<[^>]+>", "", v or "")
@@ -525,7 +514,7 @@ class PersonTopic(Topic):
 
     def most_accurate_life_period(self):
         '''
-        :return: most accurate period as LifePeriod. currently the only difference from TimePeriod is the way the time period is formatted as a string.
+        :return: most accurate period as LifePeriod. Currently, the only difference from TimePeriod is the way the time period is formatted as a string.
         '''
         return self._most_accurate_period(LifePeriod)
 
@@ -552,8 +541,7 @@ class AuthorTopic(PersonTopic):
         path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
         for index_in_path in indexes_in_path:
             if tuple(index_in_path.categories[len(path):]) in path_end_set:
-                if index_in_path.title not in temp_index_title_set and self.slug not in set(
-                        getattr(index_in_path, 'authors', [])):
+                if index_in_path.title not in temp_index_title_set and self.slug not in set(getattr(index_in_path, 'authors', [])):
                     return False
         return True
 
@@ -569,8 +557,7 @@ class AuthorTopic(PersonTopic):
         from collections import defaultdict
 
         def index_is_commentary(index):
-            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(
-                index, 'collective_title', None) is not None
+            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
 
         indexes = self.get_authored_indexes()
 
@@ -601,9 +588,7 @@ class AuthorTopic(PersonTopic):
             else:
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path,
-                                                                                 collective_title is not None) or (
-                    collective_title is None and self._category_matches_author(index_category)):
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
@@ -774,20 +759,17 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         to_topic = Topic.init(self.toTopic)
         if getattr(link_type, 'validFrom', False):
             assert from_topic.has_types(
-                set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
-                self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
+                set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(
-                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
-                self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
         # assert this link doesn't create circular paths (in is_a link type)
         # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
             to_topic = Topic.init(self.toTopic)
             ancestors = to_topic.get_types()
-            assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(
-                self.fromTopic, self.toTopic, self.toTopic, ancestors)
+            assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
     def contents(self, **kwargs):
         d = super(IntraTopicLink, self).contents(**kwargs)
@@ -878,8 +860,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
         link_type = TopicLinkType.init(self.linkType, 0)
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(
-                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(
-                self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+                set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
 
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
@@ -917,8 +898,7 @@ class TopicLinkSetHelper(object):
     def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, record_kwargs=None):
         from sefaria.system.database import db
         record_kwargs = record_kwargs or {}
-        raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(
-            limit)
+        raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
         return [TopicLinkHelper.init_by_class(r, **record_kwargs) for r in raw_records]
 
 
@@ -1042,11 +1022,10 @@ def process_topic_description_change(topic, **kwargs):
     IntraTopicLinkSet(
         {"toTopic": topic.slug, "linkType": "related-to", "dataSource": "learning-team-editing-tool"}).delete()
     refLinkType = 'popular-writing-of' if getattr(topic, 'subclass', '') == 'author' else 'about'
-    RefTopicLinkSet(
-        {"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
+    RefTopicLinkSet({"toTopic": topic.slug, "linkType": refLinkType, "dataSource": "learning-team-editing-tool"}).delete()
 
     markdown_links = set()
-    for lang, val in kwargs['new'].items():  # put each link in a set so we dont try to create duplicate of same link
+    for lang, val in kwargs['new'].items():  # put each link in a set, so we don't try to create duplicate of same link
         for m in re.findall('\[.*?\]\((.*?)\)', val):
             markdown_links.add(m)
 
