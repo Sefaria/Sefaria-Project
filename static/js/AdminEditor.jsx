@@ -1,10 +1,12 @@
 import React, {useRef, useState} from "react";
 import Sefaria from "./sefaria/sefaria";
-import {AdminToolHeader, InterfaceText, PictureUploader, TitleVariants} from "./Misc";
+import {AdminToolHeader, InterfaceText, TitleVariants} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
 import classNames from "classnames";
 const options_for_form = {
-    "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
+    // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
+    "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
+    "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
     "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
     "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
     "English Description": {
@@ -126,10 +128,6 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
         }
         updateData({...data});
     }
-    const handlePictureChange = (url) => {
-        data["picture"] = url;
-        updateData({...data});
-    }
     const handleTitleVariants = (newTitles, field) => {
         const newData = {...data};
         newData[field] = newTitles.map(x => Object.assign({}, x));
@@ -166,9 +164,6 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     const item = ({label, field, placeholder, type, dropdown_data}) => {
         let obj;
         switch(type) {
-            case 'picture':
-                obj = <PictureUploader callback={handlePictureChange}/>;
-                break;
             case 'dropdown':
                 obj = getDropdown(field, dropdown_data, placeholder);
                 break;

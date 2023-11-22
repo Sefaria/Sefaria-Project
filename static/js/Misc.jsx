@@ -15,7 +15,7 @@ import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
-import {refSort} from "./TopicPage";
+import {refSort, TopicImage} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
@@ -1235,7 +1235,8 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origBirthYear: data?.properties?.birthYear?.value,
     origDeathPlace: data?.properties?.deathPlace?.value,
     origDeathYear: data?.properties?.deathYear?.value,
-    origEra: data?.properties?.era?.value
+    origEra: data?.properties?.era?.value,
+    origImage: data?.image,
 
   };
 
@@ -1578,14 +1579,18 @@ FollowButton.propTypes = {
 
 };
 
-const PictureUploader = (callback) => {
+const PictureUploader = ({callback, old_filename, caption}) => {
+    /*
+    `old_filename` is passed to API so that if it exists, it is deleted
+     */
     const fileInput = useRef(null);
 
     var uploadImage = function(imageData) {
       const formData = new FormData();
       formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-      // formData.append('file', imageData);
-
+      if (old_filename !== "") {
+        formData.append('old_filename', old_filename);
+      }
       $.ajax({
           url: Sefaria.apiHost + "/api/topics/upload-image",
           type: 'POST',
@@ -1594,9 +1599,6 @@ const PictureUploader = (callback) => {
           processData: false,
           success: function(data) {
             callback(data.url);
-            // $("#inlineAddMediaInput").val(data.url);
-            // $("#addmediaDiv").find(".button").first().trigger("click");
-            //       $("#inlineAddMediaInput").val("");
           },
           error: function(e) {
               console.log("photo upload ERROR", e);
@@ -1623,18 +1625,13 @@ const PictureUploader = (callback) => {
                 alert('not an image');
               }
     }
-    return  <div><div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-                  <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
-                </div><input id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-                <div className="section">
-                    <label><InterfaceText>English Caption</InterfaceText></label>
-                    <input type="text" id="enCaption"/>
-                </div>
-                <div className="section">
-                    <label><InterfaceText>Hebrew Caption</InterfaceText></label>
-                    <input type="text" id="heCaption"/>
-                </div>
-             </div>
+    return <div className="section">
+            <label><InterfaceText>Picture</InterfaceText></label>
+            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+              <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
+              </div><input id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
+      {old_filename !== "" && <div style={{"max-width": "420px"}}><br/><ImageWithCaption photoLink={old_filename} caption={caption}/></div>}
+          </div>
     }
 
 const CategoryColorLine = ({category}) =>

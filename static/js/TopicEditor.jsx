@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, ProfilePic} from "./Misc";
+import {InterfaceText, requestWithCallBack, ProfilePic, PictureUploader} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -19,7 +19,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                 birthYear: origData.origBirthYear || "", heDeathPlace: origData.origHeDeathPlace || "",
                                 deathYear: origData.origDeathYear || "", era: origData.origEra || "",
                                 deathPlace: origData.origDeathPlace || "",
-                                picture: origData?.origPicture || ""
+                                enImgCaption: origData?.origImage?.image_caption?.en || "",
+                                heImgCaption: origData?.origImage?.image_caption?.he || "",
+                                image_uri: origData?.origImage?.image_uri || ""
                                 });
     const isNew = !('origSlug' in origData);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -68,7 +70,6 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const updateData = function(newData) {
         setIsChanged(true);
         setData(newData);
-        console.log(newData);
     }
     const validate = async function () {
         if (!isChanged) {
@@ -100,6 +101,9 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
         postData.altTitles.he = data.heAltTitles.map(x => x.name);
 
+        if (data.image_uri !== "") {
+            postData.image = {"image_uri": data.image_uri, "image_caption": {"en": data.enImgCaption, "he": data.heImgCaption}}
+        }
         // add descriptions if they changed
         const origDescription = {en: origData?.origEnDescription || "", he: origData?.origHeDescription || ""};
         const origCategoryDescription = {en: origData?.origEnCategoryDescription || "", he: origData?.origHeCategoryDescription || ""};
@@ -155,12 +159,16 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             alert("Unfortunately, there may have been an error saving this topic information: " + errorThrown.toString());
         });
     }
+    const handlePictureChange = (url) => {
+        data["image_uri"] = url;
+        updateData({...data});
+    }
 
     const deleteObj = function() {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "Picture"];
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");
@@ -169,10 +177,14 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
         authorItems.forEach(x => items.push(x));
     }
+    items.push("English Caption");
+    items.push("Hebrew Caption");
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
                         items={items} extras={
-                            [isNew ? null :
+                              [<PictureUploader callback={handlePictureChange} old_filename={data.image_uri}
+                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>,
+                                isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
                                          displayType="topics"/>,

@@ -3104,7 +3104,6 @@ def add_new_topic_api(request):
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         update_topic_titles(t, data)
-
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
@@ -3116,8 +3115,11 @@ def add_new_topic_api(request):
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         if "description" in data:
             t.change_description(data["description"], data.get("categoryDescription", None))
-        t.save()
 
+        if "image" in data:
+            t.image = data["image"]
+
+        t.save()
         library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
@@ -3570,28 +3572,17 @@ def profile_follow_api(request, ftype, slug):
 @catch_error_as_json
 def topic_upload_photo(request):
     if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
+        return jsonResponse({"error": _("You must be logged in to update a topic photo.")})
     if request.method == "POST":
         from io import BytesIO
         import uuid
         import base64
-        """
-        "image" : {
-        "image_uri" : "https://storage.googleapis.com/img.sefaria.org/topics/shabbat.jpg",
-        "image_caption" : {
-            "en" : "Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer",
-            "he" : "שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר"
-        }
-    }
-Validation that the image_uri url should start with https://storage.googleapis.com/img.sefaria.org/topics/
-        """
         bucket_name = GoogleStorageManager.TOPICS_BUCKET
         img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+        old_filename = request.POST.get('old_filename')
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
-                                                   bucket_name)
-        #big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
-
-        add_image_to_topic(topic_slug, img_url, en_caption, he_caption)
+                                                    bucket_name, old_filename=old_filename)
+        #img_url = 'https://storage.googleapis.com/img.sefaria.org/topics/41861-683e06f6-891a-11ee-be47-4a26184f1ad1.gif'
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 

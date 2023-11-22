@@ -1107,6 +1107,9 @@ def update_topic(topic_obj, **kwargs):
     if "description" in kwargs or "categoryDescription" in kwargs:
         topic_obj.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
 
+    if "image" in kwargs:
+        topic_obj.image = kwargs["image"]
+
     topic_obj.save()
 
     if kwargs.get('rebuild_topic_toc', True):
