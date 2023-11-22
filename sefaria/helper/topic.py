@@ -1274,7 +1274,7 @@ def add_image_to_topic(topic_slug, image_uri, en_caption, he_caption):
     :param en_caption String: The English caption for a Topic image
     :param he_caption String: The Hebrew caption for a Topic image
     """
-    topic = Topic().load({'slug': topic_slug})
+    topic = Topic.init(topic_slug)
     topic.image = {"image_uri": image_uri,
                    "image_caption": {
                        "en": en_caption,
