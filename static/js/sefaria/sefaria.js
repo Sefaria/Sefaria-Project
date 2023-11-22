@@ -2001,20 +2001,36 @@ _media: {},
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
   repairCaseVariant: function(query, data) {
-    // Used when isACaseVariant() is true to prepare the alternative
-    const completionArray = data["completion_objects"].filter(x => x.type === 'ref').map(x => x.title);
-    let normalizedQuery = query.toLowerCase();
-    let bestMatch = "";
-    let bestMatchLength = 0;
+    if (Sefaria.isACaseVariant(query, data)) {
+        const completionArray = data["completion_objects"].map(x => x.title);
+        let normalizedQuery = query.toLowerCase();
+        let bestMatch = "";
+        let bestMatchLength = 0;
 
-    completionArray.forEach((completion) => {
-        let normalizedCompletion = completion.toLowerCase();
-        if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
-            bestMatch = completion;
-            bestMatchLength = completion.length;
+        completionArray.forEach((completion) => {
+            let normalizedCompletion = completion.toLowerCase();
+            if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
+                bestMatch = completion;
+                bestMatchLength = completion.length;
+            }
+        });
+        return bestMatch + query.slice(bestMatch.length);
+    }
+    return query;
+  },
+  repairGershayimVariant: function(query, data) {
+    if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
+        function normalize_gershayim(string) {
+            return string.replace('״', '"');
         }
-    });
-    return bestMatch + query.slice(bestMatch.length);
+        const normalized_query = normalize_gershayim(query);
+        for (let c of data.completions) {
+            if (normalize_gershayim(c) === normalized_query) {
+                return c;
+            }
+        }
+    }
+    return query;
   },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
