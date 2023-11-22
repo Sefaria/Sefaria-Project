@@ -103,6 +103,8 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         if getattr(self, "image", False):
             img_url = self.image.get("image_uri")
             if img_url: validate_url(img_url)
+        if getattr(self, 'portal_slug', None):
+            Portal.validate_slug_exists(self.portal_slug)
 
     def _normalize(self):
         super()._normalize()
