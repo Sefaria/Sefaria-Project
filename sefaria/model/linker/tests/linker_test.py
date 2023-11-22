@@ -29,10 +29,6 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
-    # Using addressTypes of alt structs
-    [crrd(["@JT", "@Berakhot", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:7-11",)],
-    [crrd(["@JT", "@Berakhot", "@Chapter 1", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:7-11",)],
-
     # Numbered JAs
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
     [crrd(["@ברכות", "#דף ב"]), ("Berakhot 2",)],  # amud-less talmud
@@ -61,7 +57,7 @@ crrd = create_raw_ref_data
 
     # Named alt structs
     [crrd(["@פרק אלו דברים", "@בפסחים"]), ("Pesachim 65b:10-73b:16",)],  # talmud perek (that's ambiguous)
-    [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33")],  # talmud perek without book that's ambiguous
+    [crrd(["@פרק אלו דברים"]), ("Pesachim 65b:10-73b:16", "Berakhot 51b:11-53b:33", "Jerusalem Talmud Berakhot 8:1:1-8:7", "Jerusalem Talmud Pesachim 6:1:1-6:4", "Jerusalem Talmud Demai 2:1:1-5:4")],  # talmud perek without book that's ambiguous
     [crrd(["@רש\"י", "@פרק יום טוב", "@בביצה"]), ("Rashi on Beitzah 15b:1-23b:10",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק מאימתי"]), ("Rashi on Berakhot 2a:1-13a:15",)],  # rashi perek
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
@@ -73,6 +69,16 @@ crrd = create_raw_ref_data
     [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
     [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+
+    # Using addressTypes of alt structs
+    [crrd(["@JT", "@Bikkurim", "#Chapter 2"], lang="en"), ("Jerusalem Talmud Bikkurim 2",)],
+    [crrd(["@Tosafot Rabbi Akiva Eiger", "@Shabbat", "#Letter 87"], lang="en"), ("Tosafot Rabbi Akiva Eiger on Mishnah Shabbat 7.2.1",)],
+    [crrd(["@JT", "@Berakhot", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:2-4", "Jerusalem Talmud Berakhot 1:1:7-11",)],  # ambig b/w Venice and Vilna
+    [crrd(["@JT", "@Berakhot", "#Chapter 1", "#2a"], lang="en"), ("Jerusalem Talmud Berakhot 1:1:2-4", "Jerusalem Talmud Berakhot 1:1:7-11",)],
+    [crrd(["@JT", "@Peah", "#10b"], lang="en"), ("Jerusalem Talmud Peah 2:1:1-4",)],  # Venice not ambig
+    [crrd(["@JT", "@Peah", "#Chapter 3", "#15b"], lang="en"), ("Jerusalem Talmud Peah 3:2:4-4:3",)],  # Venice not ambig because of chapter
+    [crrd(["@JT", "@Peah", "#15c"], lang="en"), ("Jerusalem Talmud Peah 1:1:20-30",)],  # Folio address
+    [crrd(["@Chapter 1"], lang="en"), tuple()],  # It used to be that Bavli perakim where Chapter N which causes problems for global scope
 
     # Dibur hamatchils
     [crrd(["@רש\"י", "@יום טוב", "*ד\"ה שמא יפשע"]), ("Rashi on Beitzah 15b:8:1",)],
@@ -163,8 +169,13 @@ crrd = create_raw_ref_data
     [crrd(['@טור יורה דעה', '#סימן א']), ['Tur, Yoreh Deah 1']],
     [crrd(['@תוספתא', '@ברכות', '#א', '#א']), ['Tosefta Berakhot 1:1', 'Tosefta Berakhot (Lieberman) 1:1']],  # tosefta ambiguity
     [crrd(['@תוספתא', '@ברכות', '#א', '#טז']), ['Tosefta Berakhot 1:16']],  # tosefta ambiguity
-    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar 1:83b']],
-    # pytest.param(crrd(None, 'he', 'זוהר שמות י.', [0, 1, slice(2, 4)], [RPT.NAMED, RPT.NAMED, RPT.NUMBERED]), ['Zohar 2:10a'], marks=pytest.mark.xfail(reason="Don't support Sefer HaTashbetz yet")),  # infer Zohar volume from parasha
+
+    # zohar
+    [crrd(['@זוה"ק', '#ח"א','@לך לך', '@סתרי תורה', '#דף פ.']), ['Zohar, Lech Lecha 10.78-84']],
+    [crrd(['@זוה"ק', '#ח"א','@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    [crrd(['@זוה"ק', '@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
     [crrd(['@אדר"נ', '#ב', '#ג']), ["Avot D'Rabbi Natan 2:3"]],
