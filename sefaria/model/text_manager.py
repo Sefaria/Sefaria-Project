@@ -66,7 +66,7 @@ class TextManager:
         elif lang == self.TRANSLATION:
             lang_condition = lambda v: not getattr(v, 'isSource', False)
         elif lang:
-            lang_condition = lambda v: v.languageFamilyName == lang
+            lang_condition = lambda v: v.languageFamilyName.lower() == lang
         else:
             lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
