@@ -650,6 +650,13 @@ class ResolvedRefPruner:
 
     @staticmethod
     def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        # make matches with refs that are essentially equivalent (i.e. refs cover same span) actually equivalent
+        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        for i, r in enumerate(resolved_refs[:-1]):
+            next_r = resolved_refs[i+1]
+            if r.ref.contains(next_r.ref) and next_r.ref.contains(r.ref):
+                next_r.ref = r.ref
+
         # make unique
         resolved_refs = list({r.ref: r for r in resolved_refs}.values())
         if thoroughness >= ResolutionThoroughness.HIGH or len(resolved_refs) > 1:
@@ -706,15 +713,15 @@ class ResolvedRefPruner:
         Merge matches where one ref is contained in another ref
         E.g. if matchA.ref == Ref("Genesis 1") and matchB.ref == Ref("Genesis 1:1"), matchA will be deleted and its parts will be appended to matchB's parts
         """
-        resolved_refs.sort(key=lambda x: x.ref and x.ref.order_id())
+        resolved_refs.sort(key=lambda x: "N/A" if x.ref is None else x.ref.order_id())
         merged_resolved_refs = []
         next_merged = False
         for imatch, match in enumerate(resolved_refs[:-1]):
-            if match.is_ambiguous or match.ref is None or next_merged:
+            next_match = resolved_refs[imatch+1]
+            if match.is_ambiguous or match.ref is None or next_match.ref is None or next_merged:
                 merged_resolved_refs += [match]
                 next_merged = False
                 continue
-            next_match = resolved_refs[imatch+1]
             if match.ref.index.title != next_match.ref.index.title:
                 # optimization, the easiest cases to check for
                 merged_resolved_refs += [match]
