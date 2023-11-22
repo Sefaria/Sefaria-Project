@@ -1335,7 +1335,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
         "actualLanguage",
-        'fullLanguage',
+        'languageFamilyName',
         "isBaseText",
         'isSource',
         'isPrimary',
@@ -1357,11 +1357,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
         if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
             self.actualLanguage = languageCodeRe.group(1)
-        if not getattr(self, 'fullLanguage', None):
+        if not getattr(self, 'languageFamilyName', None):
             try:
-                self.fullLanguage = constants.LANGUAGE_CODES[self.actualLanguage]
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
             except KeyError:
-                self.fullLanguage = constants.LANGUAGE_CODES[self.language]
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1715,7 +1715,7 @@ class TextRange:
     def versions(self):
         if self._versions == []:
             condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
-                {'title': self.oref.index.title, 'fullLanguage': self.lang, 'versionTitle': self.vtitle}
+                {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
             self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
         return self._versions
 
@@ -1728,7 +1728,7 @@ class TextRange:
         if not self.merge_versions and len(versions) > 1:
             raise InputError("Got many versions instead of one")
         for version in versions:
-            condition = version.title == self.oref.index.title and version.fullLanguage == self.lang
+            condition = version.title == self.oref.index.title and version.languageFamilyName == self.lang
             if not self.merge_versions:
                 condition = condition and version.versionTitle == self.vtitle
             if not condition:

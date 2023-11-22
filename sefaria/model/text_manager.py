@@ -28,7 +28,7 @@ class TextManager:
         self.return_obj = {
             'versions': [],
             'missings': [],
-            'available_langs': sorted({v.fullLanguage for v in self.all_versions}),
+            'available_langs': sorted({v.languageFamilyName for v in self.all_versions}),
             'available_versions': [{f: getattr(v, f, "") for f in fields} for v in self.all_versions]
         }
 
@@ -38,12 +38,12 @@ class TextManager:
         for attr in ['chapter', 'title', 'language']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.fullLanguage, version.versionTitle, self.fill_in_missing_segments)
+        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
             relevant_versions = copy.copy(self.all_versions)
-            relevant_versions.remove(lambda v: v.fullLanguage != version.fullLanguage)
+            relevant_versions.remove(lambda v: v.languageFamilyName != version.languageFamilyName)
         else:
             relevant_versions = [version]
         text_range.versions = relevant_versions
@@ -66,7 +66,7 @@ class TextManager:
         elif lang == self.TRANSLATION:
             lang_condition = lambda v: not getattr(v, 'isSource', False)
         elif lang:
-            lang_condition = lambda v: v.fullLanguage == lang
+            lang_condition = lambda v: v.languageFamilyName == lang
         else:
             lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
@@ -76,7 +76,7 @@ class TextManager:
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
-            if all(version.fullLanguage != v['fullLanguage'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
+            if all(version.languageFamilyName != v['languageFamilyName'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
                 self._append_version(version)
         if not versions:
