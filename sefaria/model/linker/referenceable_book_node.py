@@ -4,6 +4,7 @@ from sefaria.model import abstract as abst
 from sefaria.model import text
 from sefaria.model import schema
 from sefaria.system.exceptions import InputError
+from bisect import bisect_right
 
 
 def subref(ref: text.Ref, section: int):
@@ -55,7 +56,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
 
     @property
     def referenceable(self):
-        return getattr(self._titled_tree_node, 'referenceable', True)
+        return getattr(self._titled_tree_node, 'referenceable', not self.is_default())
 
     def is_default(self):
         return self._titled_tree_node.is_default()
@@ -76,25 +77,8 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             return [NumberedReferenceableBookNode(thingy)]
         if isinstance(thingy, text.Index):
             children = thingy.referenceable_children()
-        elif isinstance(thingy, schema.ArrayMapNode):
-            # TODO following two if's are very similar...
-            if getattr(thingy, 'refs', None):
-                address_types = thingy.addressTypes
-                section_names = thingy.sectionNames
-                section_ref_map = {ichild+1: text.Ref(tref) for ichild, tref in enumerate(thingy.refs)}
-                return [MapReferenceableBookNode(address_types, section_names, section_ref_map)]
-            elif getattr(thingy, 'wholeRef', None) and getattr(thingy, 'includeSections', False):
-                whole_ref = text.Ref(thingy.wholeRef)
-                schema_node = whole_ref.index_node.serialize()
-                truncated_node = truncate_serialized_node_to_depth(schema_node, -2)
-                refs = whole_ref.split_spanning_ref()
-                section_ref_map = {}
-                for oref in refs:
-                    section = oref.section_ref().sections[0]
-                    section_ref_map[section] = oref
-                return [MapReferenceableBookNode(section_ref_map=section_ref_map, **truncated_node)]
-            else:
-                children = self._titled_tree_node.children
+        elif isinstance(thingy, schema.ArrayMapNode) and (getattr(thingy, "refs", None) or (getattr(thingy, "wholeRef", None) and getattr(thingy, "includeSections", None))):
+            return [MapReferenceableBookNode(thingy)]
         else:
             # Any other type of TitledTreeNode
             children = self._titled_tree_node.children
@@ -163,7 +147,6 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
                 continue
         return possible_subrefs, can_match_out_of_order_list
 
-    # TODO move these two properties to be private
     @property
     def _address_class(self) -> schema.AddressType:
         return self._ja_node.address_class(0)
@@ -216,18 +199,70 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
 
 class MapReferenceableBookNode(NumberedReferenceableBookNode):
     """
-    Node that can only be referenced by one ref
+    Node that can only be referenced by refs in a mapping
     """
 
-    def __init__(self, addressTypes: List[str], sectionNames: List[str], section_ref_map: Dict[int, text.Ref], **ja_node_attrs):
-        ja_node = schema.JaggedArrayNode(serial={
+    def __init__(self, node: schema.ArrayMapNode):
+        ja_node = self.__make_ja_from_array_map(node)
+        super().__init__(ja_node)
+        self._section_ref_map = self.__make_section_ref_map(node)
+
+    @staticmethod
+    def __make_ja_from_array_map(node: schema.ArrayMapNode):
+        return MapReferenceableBookNode.__make_ja(**MapReferenceableBookNode.__get_ja_attributes_from_array_map(node))
+
+    @staticmethod
+    def __make_ja(addressTypes: List[str], sectionNames: List[str], **ja_node_attrs):
+        return schema.JaggedArrayNode(serial={
             "addressTypes": addressTypes,
             "sectionNames": sectionNames,
             **ja_node_attrs,
             "depth": len(addressTypes),
         })
-        super().__init__(ja_node)
-        self._section_ref_map = section_ref_map
+
+    @staticmethod
+    def __get_ja_attributes_from_array_map(node: schema.ArrayMapNode) -> dict:
+        if getattr(node, 'refs', None):
+            address_types = node.addressTypes
+            section_names = node.sectionNames
+            return {"addressTypes": address_types, "sectionNames": section_names}
+        elif getattr(node, 'wholeRef', None) and getattr(node, 'includeSections', False):
+            whole_ref = text.Ref(node.wholeRef)
+            schema_node = whole_ref.index_node.serialize()
+            return truncate_serialized_node_to_depth(schema_node, -2)
+        else:
+            return {}
+
+    def __make_section_ref_map(self, node: schema.ArrayMapNode) -> Dict[int, text.Ref]:
+        if getattr(node, 'refs', None):
+            section_ref_map = {
+                self.__get_section_with_offset(ichild, node): text.Ref(tref)
+                for ichild, tref in enumerate(node.refs)
+            }
+        elif getattr(node, 'wholeRef', None) and getattr(node, 'includeSections', False):
+            whole_ref = text.Ref(node.wholeRef)
+            refs = whole_ref.split_spanning_ref()
+            section_ref_map = {}
+            for oref in refs:
+                section = oref.section_ref().sections[0]
+                section_ref_map[section] = oref
+        else:
+            raise Exception("ArrayMapNode doesn't have expected attributes 'refs' or 'wholeRef'.")
+        return section_ref_map
+
+    def __get_section_with_offset(self, i: int, node: schema.ArrayMapNode) -> int:
+        addresses = getattr(node, "addresses", None)
+        if addresses:
+            return addresses[i]
+        section = i + 1
+        starting_address = getattr(node, "startingAddress", None)
+        if starting_address:
+            section = i + self._address_class.toNumber("en", starting_address)
+        skipped_addresses = getattr(node, "skipped_addresses", None)
+        if skipped_addresses:
+            skipped_addresses.sort()
+            section += bisect_right(skipped_addresses, section)
+        return section
 
     def ref(self):
         return self._ref
