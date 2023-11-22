@@ -35,7 +35,7 @@ class TextManager:
     def _append_version(self, version):
         #TODO part of this function duplicate the functionality of Ref.versionlist(). maybe we should mvoe it to Version
         fields = Version.optional_attrs + Version.required_attrs
-        for attr in ['chapter', 'title', 'language']:
+        for attr in ['chapter', 'title']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
         text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle, self.fill_in_missing_segments)
@@ -175,7 +175,7 @@ class TextManager:
 
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
-                language = 'he' if version['direction'] == 'rtl' else 'en'
+                language = 'he' if version['direction'] == 'rtl' else 'en' #this is neccesary because we want to get rif of the language attribute in future
                 ne_by_secs = make_named_entities_dict()
 
             ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
