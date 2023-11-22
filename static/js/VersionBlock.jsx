@@ -9,6 +9,7 @@ import {LoadingMessage} from "./Misc";
 import VersionBlockHeader from "./VersionBlockHeader";
 import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import VersionDetailsInformation from "./VersionDetailsInformation";
+import VersionDetailsImage from "./VersionDetailsImage";
 
 class versionTools {
     static makeVersionLink(currRef, version, currObjectVersions, mainPanel) {
@@ -192,12 +193,6 @@ class VersionBlock extends Component {
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
-  makeImageLink(){
-    return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
-  }
-  makeImageSrc(){
-    return  !!this.props.version.purchaseInformationImage ? this.props.version.purchaseInformationImage : "data:,";
-  }
 
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
@@ -308,16 +303,8 @@ class VersionBlock extends Component {
             </div>
           { !v.merged ?
             <div className="versionDetails sans-serif">
-              <VersionDetailsInformation
-                currentRef={this.props.currentRef} version={this.props.version}
-              />
-              <div className="versionDetailsImage">
-                <div className={classNames(versionTools.makeAttrClassNames(v, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
-                  <a className="versionDetailsLink versionDetailsImageLink" href={this.makeImageLink()} target="_blank">
-                    <img className="versionImage" src={this.makeImageSrc()} alt={Sefaria._("Buy Now")} />
-                  </a>
-                </div>
-              </div>
+              <VersionDetailsInformation currentRef={this.props.currentRef} version={v}/>
+              <VersionDetailsImage version={v}/>
             </div> : null
           }
         </div>

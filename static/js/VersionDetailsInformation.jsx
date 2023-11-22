@@ -51,5 +51,5 @@ function VersionDetailsInformation({currentRef, version}) {
 VersionDetailsInformation.prototypes = {
     currentRef: PropTypes.string.isRequired,
     version: PropTypes.object.isRequired,
-}
+};
 export default VersionDetailsInformation;
