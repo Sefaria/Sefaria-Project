@@ -3580,6 +3580,8 @@ def topic_upload_photo(request):
         bucket_name = GoogleStorageManager.TOPICS_BUCKET
         img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
         old_filename = request.POST.get('old_filename')
+        if old_filename:
+            old_filename = f"topics/{old_filename.split('/')[-1]}"
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     bucket_name, old_filename=old_filename)
         #img_url = 'https://storage.googleapis.com/img.sefaria.org/topics/41861-683e06f6-891a-11ee-be47-4a26184f1ad1.gif'
