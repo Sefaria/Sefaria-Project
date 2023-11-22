@@ -46,7 +46,7 @@ class Text(View):
             return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
-            versions_params = ['base']
+            versions_params = ['primary']
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
         fill_in_missing_segments = request.GET.get('fill_in_missing_segments', False)
         return_format = request.GET.get('return_format', 'default')

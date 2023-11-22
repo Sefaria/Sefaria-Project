@@ -11,7 +11,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 
 class TextManager:
     ALL = 'all'
-    BASE = 'base'
+    PRIMARY = 'primary'
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
@@ -28,22 +28,22 @@ class TextManager:
         self.return_obj = {
             'versions': [],
             'missings': [],
-            'available_langs': sorted({v.fullLanguage for v in self.all_versions}),
+            'available_langs': sorted({v.languageFamilyName for v in self.all_versions}),
             'available_versions': [{f: getattr(v, f, "") for f in fields} for v in self.all_versions]
         }
 
     def _append_version(self, version):
         #TODO part of this function duplicate the functionality of Ref.versionlist(). maybe we should mvoe it to Version
         fields = Version.optional_attrs + Version.required_attrs
-        for attr in ['chapter', 'title', 'language']:
+        for attr in ['chapter', 'title']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.fullLanguage, version.versionTitle, self.fill_in_missing_segments)
+        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
             relevant_versions = copy.copy(self.all_versions)
-            relevant_versions.remove(lambda v: v.fullLanguage != version.fullLanguage)
+            relevant_versions.remove(lambda v: v.languageFamilyName != version.languageFamilyName)
         else:
             relevant_versions = [version]
         text_range.versions = relevant_versions
@@ -59,14 +59,14 @@ class TextManager:
         self.return_obj['versions'].append(version_details)
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
-        if lang == self.BASE:
+        if lang == self.PRIMARY:
             lang_condition = lambda v: getattr(v, 'isPrimary', False)
         elif lang == self.SOURCE:
             lang_condition = lambda v: getattr(v, 'isSource', False)
         elif lang == self.TRANSLATION:
             lang_condition = lambda v: not getattr(v, 'isSource', False)
         elif lang:
-            lang_condition = lambda v: v.fullLanguage == lang
+            lang_condition = lambda v: v.languageFamilyName.lower() == lang
         else:
             lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
@@ -76,7 +76,7 @@ class TextManager:
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
         for version in versions:
-            if all(version.fullLanguage != v['fullLanguage'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
+            if all(version.languageFamilyName != v['languageFamilyName'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
                 self._append_version(version)
         if not versions:
@@ -175,7 +175,7 @@ class TextManager:
 
         for version in self.return_obj['versions']:
             if self.return_format == 'wrap_all_entities':
-                language = 'he' if version['direction'] == 'rtl' else 'en'
+                language = 'he' if version['direction'] == 'rtl' else 'en' #this is neccesary because we want to get rif of the language attribute in future
                 ne_by_secs = make_named_entities_dict()
 
             ja = JaggedTextArray(version['text'])  # JaggedTextArray works also with depth 0, i.e. a string
