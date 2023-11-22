@@ -83,14 +83,14 @@ class APITextsTests(SefariaTestCase):
         self.assertEqual(data["sections"], ["2a", '4', '1'])
         self.assertEqual(data["toSections"], ["2a", '4', '1'])
 
-    def test_api_get_text_base_all(self):
-        response = c.get('/api/v3/texts/Genesis.1?version=base|all')
+    def test_api_get_text_primary_all(self):
+        response = c.get('/api/v3/texts/Genesis.1?version=primary|all')
         data = json.loads(response.content)
         self.assertTrue(len(data["versions"]) > 3)
         self.assertTrue(all(v['actualLanguage'] == 'he' for v in data["versions"]))
 
-    def test_api_get_text_base(self):
-        response = c.get('/api/v3/texts/Shabbat.22a?version=base')
+    def test_api_get_text_primary(self):
+        response = c.get('/api/v3/texts/Shabbat.22a?version=primary')
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(len(data["versions"]), 1)

@@ -11,7 +11,7 @@ from sefaria.datatype.jagged_array import JaggedTextArray
 
 class TextManager:
     ALL = 'all'
-    BASE = 'base'
+    PRIMARY = 'primary'
     SOURCE = 'source'
     TRANSLATION = 'translation'
 
@@ -59,7 +59,7 @@ class TextManager:
         self.return_obj['versions'].append(version_details)
 
     def _append_required_versions(self, lang: str, vtitle: str) -> None:
-        if lang == self.BASE:
+        if lang == self.PRIMARY:
             lang_condition = lambda v: getattr(v, 'isPrimary', False)
         elif lang == self.SOURCE:
             lang_condition = lambda v: getattr(v, 'isSource', False)
