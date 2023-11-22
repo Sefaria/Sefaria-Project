@@ -12,6 +12,15 @@ import VersionDetailsInformation from "./VersionDetailsInformation";
 import VersionDetailsImage from "./VersionDetailsImage";
 
 class versionTools {
+    static makeVersionTitle(version){
+      if (version.merged) {
+        return {"className" : "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(version.sources)).join(", ")};
+      } else if (Sefaria.interfaceLang === "english" || !version.versionTitleInHebrew) {
+        return {"className" : "", "text" : version.versionTitle};
+      } else {
+        return {"className": "he", "text": version.versionTitleInHebrew};
+      }
+    }
     static makeVersionLink(currRef, version, currObjectVersions, mainPanel) {
       if (version.merged) {
         return "#"; // there's no url for a merged version
@@ -164,15 +173,6 @@ class VersionBlock extends Component {
     e.preventDefault();
     this.props.viewExtendedNotes(this.props.version.title, this.props.version.language, this.props.version.versionTitle);
   }
-  makeVersionTitle(){
-    if(this.props.version.merged){
-      return {"className": "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ")};
-    }else if(Sefaria.interfaceLang=="english" || !this.props.version.versionTitleInHebrew){
-      return {"className":"", "text":this.props.version.versionTitle};
-    }else{
-      return {"className": "he", "text": this.props.version.versionTitleInHebrew};
-    }
-  }
   makeVersionNotes(){
     if (!this.props.showNotes) {
       return null;
@@ -197,7 +197,7 @@ class VersionBlock extends Component {
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
-    const vtitle = this.makeVersionTitle();
+    const vtitle = versionTools.makeVersionTitle(v);
     const vnotes = this.makeVersionNotes();
     const showLanguagLabel = this.props.rendermode == "book-page";
     const openVersionInSidebar = versionTools.openVersionInSidebar.bind(null, this.props.currentRef, this.props.version,
