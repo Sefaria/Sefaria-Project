@@ -10,6 +10,7 @@ import VersionBlockHeader from "./VersionBlockHeader";
 import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import VersionDetailsInformation from "./VersionDetailsInformation";
 import VersionDetailsImage from "./VersionDetailsImage";
+import VersionBlockWithPreview from "./VersionBlockWithPreview";
 
 class versionTools {
     static makeVersionTitle(version){
@@ -401,22 +402,33 @@ class VersionsBlocksList extends Component{
                 }
                 {
                   this.props.versionsByLanguages[lang].map((v) => (
-                    <VersionBlock
-                      rendermode="versions-box"
-                      sidebarDisplay={true}
-                      version={v}
-                      currObjectVersions={this.props.currObjectVersions}
-                      currentRef={this.props.currentRef}
-                      firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-                      key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
-                      openVersionInReader={this.props.openVersionInReader}
-                      openVersionInSidebar={this.props.openVersionInSidebar}
-                      viewExtendedNotes={this.props.viewExtendedNotes}
-                      isCurrent={this.isVersionCurrent(v)}
-                      inTranslationBox={this.props.inTranslationBox}
-                      showNotes={this.props.showNotes}
-                    />
-                  ))
+                        this.props.inTranslationBox ?
+                            <VersionBlockWithPreview
+                                currentRef={this.props.currentRef}
+                                version={v}
+                                currObjectVersions={this.props.currObjectVersions}
+                                openVersionInReader={this.props.openVersionInReader}
+                                openVersionInSidebar={this.props.openVersionInSidebar}
+                                isSelected={this.isVersionCurrent(v)}
+                                srefs={this.props.srefs}
+                                onRangeClick={this.props.onRangeClick}
+                            /> :
+                            <VersionBlock
+                                rendermode="versions-box"
+                                sidebarDisplay={true}
+                                version={v}
+                                currObjectVersions={this.props.currObjectVersions}
+                                currentRef={this.props.currentRef}
+                                firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
+                                key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
+                                openVersionInReader={this.props.openVersionInReader}
+                                openVersionInSidebar={this.props.openVersionInSidebar}
+                                viewExtendedNotes={this.props.viewExtendedNotes}
+                                isCurrent={this.isVersionCurrent(v)}
+                                inTranslationBox={this.props.inTranslationBox}
+                                showNotes={this.props.showNotes}
+                            />
+                      ))
                 }
               </div>
             ))
@@ -437,6 +449,8 @@ VersionsBlocksList.propTypes={
   showLanguageHeaders: PropTypes.bool,
   inTranslationBox: PropTypes.bool,
   showNotes: PropTypes.bool,
+  srefs: PropTypes.array,
+  onRangeClick: PropTypes.func,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,

@@ -2,16 +2,16 @@ import React from 'react';
 import PropTypes from "prop-types";
 
 function VersionBlockHeader({text, link, onClick, renderMode}) {
-        return renderMode === 'versionTitle' ?
+    return renderMode === 'versionTitle' ?
         (<VersionBlockHeaderTitle
-            href={link}
+            link={link}
             onClick={onClick}
             versionTitle={text}
         />) :
         (<VersionBlockHeaderText
-            href={link}
+            link={link}
             onClick={onClick}
-            versionTitle={text}
+            text={text}
         />);
 }
 VersionBlockHeader.prototypes = {
@@ -43,9 +43,8 @@ function VersionBlockHeaderText({link, onClick, text}) {
               className='versionPreview'
               href={link}
               onClick={onClick}
-          >
-              {text}
-          </a>
+              dangerouslySetInnerHTML={{__html: text}}
+          />
     );
 }
 VersionBlockHeaderText.prototypes = {
