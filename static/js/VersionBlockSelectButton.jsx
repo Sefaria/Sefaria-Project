@@ -7,7 +7,7 @@ function VersionBlockSelectButton({link, openVersionInMoinPanel, text, isSelecte
               href={link}
               onClick={openVersionInMoinPanel}
           >
-              {text}
+              {Sefaria._(text)}
           </a>
     );
 }
