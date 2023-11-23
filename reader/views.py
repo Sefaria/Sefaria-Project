@@ -3095,14 +3095,14 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        update_topic_titles(t, data)
+        update_topic_titles(t, **data)
 
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         if data["category"] == 'authors':
-            t = update_authors_place_and_time(t, data)
+            t = update_authors_place_and_time(t, **data)
 
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
@@ -3157,15 +3157,15 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        topic_obj = update_topic(topic_obj, **topic_data)
+        topic = update_topic(topic, **topic_data)
         if author_status_changed:
             library.build_topic_auto_completer()
 
         def protected_index_post(request):
-            return jsonResponse(topic_obj.contents())
+            return jsonResponse(topic.contents())
         return protected_index_post(request)
 
 

@@ -1037,26 +1037,24 @@ def topic_change_category(topic_obj, new_category, old_category="", rebuild=Fals
         rebuild_topic_toc(topic_obj, category_changed=True)
     return topic_obj
 
-def update_topic_titles(topic_obj, data):
-    for lang in ['en', 'he']:
-        for title in topic_obj.get_titles(lang):
-            topic_obj.remove_title(title, lang)
-        for title in data['altTitles'][lang]:
-            topic_obj.add_title(title, lang)
+def update_topic_titles(topic, title="", heTitle="", **kwargs):
+    new_primary = {"en": title, "he": heTitle}
+    for lang in ['en', 'he']:   # first remove all titles and add new primary and then alt titles
+        for title in topic.get_titles(lang):
+            topic.remove_title(title, lang)
+        topic.add_title(new_primary[lang], lang, True, False)
+        if 'altTitles' in kwargs:
+            for title in kwargs['altTitles'][lang]:
+                topic.add_title(title, lang)
+    return topic
 
-    topic_obj.add_title(data['title'], 'en', True, True)
-    topic_obj.add_title(data['heTitle'], 'he', True, True)
-    return topic_obj
 
-
-def update_authors_place_and_time(topic_obj, data, dataSource='learning-team-editing-tool'):
+def update_authors_place_and_time(topic, dataSource='learning-team-editing-tool', **kwargs):
     # update place info added to author, then update year and era info
-    if not hasattr(topic_obj, 'properties'):
-        topic_obj.properties = {}
-    process_topic_place_change(topic_obj, data)
-    topic_obj = update_author_era(topic_obj, data, dataSource=dataSource)
-
-    return topic_obj
+    if not hasattr(topic, 'properties'):
+        topic.properties = {}
+    process_topic_place_change(topic, **kwargs)
+    return update_author_era(topic, dataSource=dataSource, **kwargs)
 
 def update_properties(topic_obj, dataSource, k, v):
     if v == '':
@@ -1064,54 +1062,54 @@ def update_properties(topic_obj, dataSource, k, v):
     else:
         topic_obj.properties[k] = {'value': v, 'dataSource': dataSource}
 
-def update_author_era(topic_obj, data, dataSource='learning-team-editing-tool'):
+def update_author_era(topic_obj, dataSource='learning-team-editing-tool', **kwargs):
     for k in ["birthYear", "deathYear"]:
-        if k in data.keys():    # only change property value if key is in data, otherwise it indicates no change
-            year = data[k]
+        if k in kwargs.keys():   # only change property value if key exists, otherwise it indicates no change
+            year = kwargs[k]
             update_properties(topic_obj, dataSource, k, year)
 
-    if 'era' in data.keys():    # only change property value if key is in data, otherwise it indicates no change
+    if 'era' in kwargs.keys():    # only change property value if key is in data, otherwise it indicates no change
         prev_era = topic_obj.properties.get('era', {}).get('value')
-        era = data['era']
+        era = kwargs['era']
         update_properties(topic_obj, dataSource, 'era', era)
         if era != '':
             create_era_link(topic_obj, prev_era_to_delete=prev_era)
     return topic_obj
 
 
-def update_topic(topic_obj, **kwargs):
+def update_topic(topic, **kwargs):
     """
     Can update topic object's title, hebrew title, category, description, and categoryDescription fields
-    :param topic_obj: (Topic) The topic to update
+    :param topic: (Topic) The topic to update
     :param **kwargs can be title, heTitle, category, description, categoryDescription, and rebuild_toc where `title`, `heTitle`,
          and `category` are strings. `description` and `categoryDescription` are dictionaries where the fields are `en` and `he`.
          The `category` parameter should be the slug of the new category. `rebuild_topic_toc` is a boolean and is assumed to be True
     :return: (model.Topic) The modified topic
     """
     old_category = ""
-    orig_slug = topic_obj.slug
-    update_topic_titles(topic_obj, kwargs)
+    orig_slug = topic.slug
+    update_topic_titles(topic, **kwargs)
     if kwargs.get('category') == 'authors':
-        topic_obj = update_authors_place_and_time(topic_obj, kwargs)
+        topic = update_authors_place_and_time(topic, **kwargs)
 
-    if 'category' in kwargs and kwargs['category'] != kwargs['origCategory']:
-        orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic_obj.slug, "toTopic": {"$ne": topic_obj.slug}})
+    if 'category' in kwargs and kwargs['category'] != kwargs.get('origCategory', kwargs['category']):
+        orig_link = IntraTopicLink().load({"linkType": "displays-under", "fromTopic": topic.slug, "toTopic": {"$ne": topic.slug}})
         old_category = orig_link.toTopic if orig_link else Topic.ROOT
         if old_category != kwargs['category']:
-            topic_obj = topic_change_category(topic_obj, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
+            topic = topic_change_category(topic, kwargs["category"], old_category=old_category)  # can change topic and intratopiclinks
 
     if kwargs.get('manual', False):
-        topic_obj.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
-        topic_obj.description_published = True
+        topic.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
+        topic.description_published = True
 
     if "description" in kwargs or "categoryDescription" in kwargs:
-        topic_obj.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
+        topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
 
-    topic_obj.save()
+    topic.save()
 
     if kwargs.get('rebuild_topic_toc', True):
-        rebuild_topic_toc(topic_obj, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
-    return topic_obj
+        rebuild_topic_toc(topic, orig_slug=orig_slug, category_changed=(old_category != kwargs.get('category', "")))
+    return topic
 
 
 def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
