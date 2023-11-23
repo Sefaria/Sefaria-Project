@@ -342,7 +342,7 @@ def refresh_version_state(title):
     VersionState(title, {"flags": flags})
 
 
-def change_node_title(snode, old_title, lang, new_title, exact_match=False):
+def change_node_title(snode, old_title, lang, new_title, ignore_cascade=False):
     """
     Changes the title of snode specified by old_title and lang, to new_title.
     If the title changing is the primary english title, cascades to all of the impacted objects
@@ -350,26 +350,20 @@ def change_node_title(snode, old_title, lang, new_title, exact_match=False):
     :param old_title:
     :param lang:
     :param new_title:
-    :param exact_match: if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
+    :param ignore_cascade:
     :return:
     """
-    old_ref = new_ref = ""
     def rewriter(string):
-        return string.replace(old_ref, new_ref)
-        # return string.replace(old_title, new_title)
+        return string.replace(old_title, new_title)
 
     def needs_rewrite(string, *args):
-        if exact_match:
-            return string.find(old_title) >= 0 and string.startswith(snode.index.title)
         return string.find(old_title) >= 0 and snode.index.title in string
 
     if old_title == snode.primary_title(lang=lang):
-        old_ref = snode.full_title('en')
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)
-        if lang == 'en':
-            new_ref = snode.full_title('en')
+        if lang == 'en' and not ignore_cascade:
             cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
     else:
         snode.add_title(new_title, lang)
