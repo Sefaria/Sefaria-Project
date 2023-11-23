@@ -23,7 +23,7 @@ class TranslationsBox extends Component {
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
+    if (!this.isSheet() && prevProps.srefs[0] !== this.props.srefs[0]) {
       Sefaria.getAllTranslationsWithText(this.props.srefs[0]).then(this.onVersionsLoad);
     }
   }
