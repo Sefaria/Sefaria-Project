@@ -3543,11 +3543,11 @@ display: none;
 .version-with-preview-title-line .open-details {
   white-space: nowrap;
   display: flex;
-  margin-right: 5px;
+  margin-inline-end: 5px;
   font-style: italic;
 }
 .version-with-preview-title-line img {
-  margin-right: 5px;
+  margin-inline-end: 5px;
 }
 .version-with-preview-title-line .selectButton {
   white-space: nowrap;
@@ -3558,7 +3558,7 @@ display: none;
 }
 .version-with-preview-title-line .selectButton::before {
   content: "•";
-  margin-right: 5px;
+  margin-inline-end: 5px;
   color: var(--medium-grey);
 }
 .version-block-with-preview-details {
