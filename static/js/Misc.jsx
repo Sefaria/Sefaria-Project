@@ -3169,6 +3169,16 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const ImageWithCaption = ({photoLink, caption }) => {
+  
+  return (
+    <div>
+        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <div class="imageCaption"> 
+          <InterfaceText text={{en:caption.en, he:caption.he}}  />
+        </div>
+      </div>);
+}
 
 const AppStoreButton = ({ platform, href, altText }) => {
   const isIOS = platform === 'ios';
@@ -3248,5 +3258,6 @@ export {
   CategoryChooser,
   TitleVariants,
   requestWithCallBack,
-  OnInView
+  OnInView,
+  ImageWithCaption
 };
