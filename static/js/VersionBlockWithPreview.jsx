@@ -13,7 +13,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
         onRangeClick(sref, false, {[version.language]: version.versionTitle});
     }
     return (
-        <div className='version-with-preview'>
+        <div className='versionBlock with-preview'>
             <VersionBlockHeader
               text={version.text}
               onClick={opeInSidebar}

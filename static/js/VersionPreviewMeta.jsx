@@ -6,9 +6,9 @@ import VersionDetailsImage from "./VersionDetailsImage";
 
 function VersionPreviewMeta({currentRef, version}) {
     return (
-        <div className='version-preview-meta'>
-            <div className='version-preview-details'>
-                <div className='translation-version-title'>{versionTools.makeVersionTitle(version).text}</div>
+        <div className='versionDetails preview'>
+            <div className='version-preview-informations'>
+                <div className='versionDetails-version-title'>{versionTools.makeVersionTitle(version).text}</div>
                 <VersionDetailsInformation currentRef={currentRef} version={version}/>
             </div>
             <VersionDetailsImage version={version}/>

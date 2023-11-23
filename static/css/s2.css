@@ -3515,10 +3515,60 @@ display: none;
   align-items: flex-start;
   margin-bottom: 10px;
 }
-.versionBlock .versionTitle {
+.versionBlock .versionTitle,
+.versionBlock .versionPreview {
   font-size: 18px;
   color: #000;
   /*unicode-bidi: plaintext;*/
+}
+.versionBlock .versionPreview {
+  font-family: "Adobe Garamond Pro", "sans-serif";
+}
+.versionBlock .versionPreview i.footnote {
+  display: none;
+}
+.versionBlock.with-preview {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.version-with-preview-title-line {
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--medium-grey);
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.version-with-preview-title-line .open-details {
+  white-space: nowrap;
+  display: flex;
+  margin-right: 5px;
+  font-style: italic;
+}
+.version-with-preview-title-line img {
+  margin-right: 5px;
+}
+.version-with-preview-title-line .selectButton {
+  white-space: nowrap;
+  text-decoration: none;
+}
+.version-with-preview-title-line .selectButton:not(.currSelectButton) {
+  color: var(--select-blue);
+}
+.version-with-preview-title-line .selectButton::before {
+  content: "•";
+  margin-right: 5px;
+  color: var(--medium-grey);
+}
+.version-block-with-preview-details {
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
+  outline: 10px solid var(--lighter-grey);
+  margin: 10px;
+}
+.versionDetails-version-title {
+  color: black;
 }
 .bookPage .versionBlock .versionTitle{
   font-style: normal;
@@ -6557,7 +6607,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
 }
-.connection-buttons .connection-button{
+.connection-buttons .connection-button,
+.version-block-with-preview-details .connection-button{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -6569,6 +6620,11 @@ But not to use a display block directive that might break continuous mode for ot
   display: flex;
   flex-flow: row wrap;
   align-items: center;
+}
+.version-block-with-preview-details .connection-button {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin-top: 15px;
 }
 .singlePanel .connection-buttons .connection-button{
   text-align: start;
@@ -6588,7 +6644,8 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
   font-size: 18px;
 }
-.connection-buttons .connection-button::before{
+.connection-buttons .connection-button::before,
+.version-block-with-preview-details .connection-button::before{
   display: block;
   content: ' ';
   background-size: 15px 15px;
@@ -6597,7 +6654,11 @@ But not to use a display block directive that might break continuous mode for ot
   width: 15px;
   margin-inline-end: 5px;
 }
-.connection-buttons .panel-open-link::before{
+.version-block-with-preview-details .connection-button::before {
+  height: 18px;
+}
+.connection-buttons .panel-open-link::before,
+.version-block-with-preview-details .connection-button::before{
   background-image: url("/static/icons/open-panel.svg");
 }
 .connection-buttons .delete-link::before{
@@ -9289,7 +9350,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage .versionCount {
   color: #999;
 }
-.versionsBox a.selectButton {
+.versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -9301,7 +9362,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 18px;
   cursor: pointer;
 }
-.versionsBox a.selectButton.currSelectButton {
+.versionsBox a.selectButton.currSelectButton:not(.version-with-preview-title-line .selectButton) {
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
