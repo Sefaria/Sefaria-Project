@@ -19,6 +19,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               onClick={opeInSidebar}
               renderMode='contentText'
               link={versionTools.makeVersionLink(currentRef, version, currObjectVersions, false)}
+              direction={version.direction || 'ltr'}
              />
             <VersionBlockWithPreviewTitleLine
               version={version}
