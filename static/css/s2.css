@@ -763,6 +763,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .loggedIn .help img {
   height: 24px;
+  margin-bottom: 3px;
 }
 .accountLinks.anon .help {
   margin-top: 6px;
@@ -10643,6 +10644,7 @@ cursor: pointer;
   color: white;
   font-size: 75px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 3px;
 }
 .default-profile-img.invisible {
   visibility: hidden;
