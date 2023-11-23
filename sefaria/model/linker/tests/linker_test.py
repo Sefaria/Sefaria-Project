@@ -403,7 +403,7 @@ def test_map_new_indices(crrd_params):
     raw_ref, _, lang, _ = crrd(*crrd_params)
     text = raw_ref.text
     linker = library.get_linker(lang)
-    nlp = linker.get_ner().raw_ref_model
+    nlp = linker.get_ner().named_entity_model
     doc = nlp.make_doc(text)
     indices = raw_ref.char_indices
     part_indices = [p.char_indices for p in raw_ref.raw_ref_parts]

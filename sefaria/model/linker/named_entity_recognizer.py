@@ -20,9 +20,9 @@ class NamedEntityRecognizer:
     - groups of people
     """
 
-    def __init__(self, lang: str, raw_ref_model: Language, raw_ref_part_model: Language):
+    def __init__(self, lang: str, named_entity_model: Language, raw_ref_part_model: Language):
         self._lang = lang
-        self._raw_ref_model = raw_ref_model
+        self._named_entity_model = named_entity_model
         self._raw_ref_part_model = raw_ref_part_model
         self._normalizer = self.__init_normalizer()
 
@@ -144,7 +144,7 @@ class NamedEntityRecognizer:
         """
         Ref resolution ran on normalized input. Remap raw refs to original (non-normalized) input
         """
-        unnorm_doc = self._raw_ref_model.make_doc(input)
+        unnorm_doc = self._named_entity_model.make_doc(input)
         mapping, subst_end_indices = self._normalizer.get_mapping_after_normalization(input)
         conv = self._normalizer.norm_to_unnorm_indices_with_mapping
         norm_inds = [named_entity.char_indices for named_entity in named_entities]
@@ -160,8 +160,8 @@ class NamedEntityRecognizer:
                 named_entity.map_new_part_indices(temp_unnorm_part_inds)
 
     @property
-    def raw_ref_model(self):
-        return self._raw_ref_model
+    def named_entity_model(self):
+        return self._named_entity_model
 
     @property
     def raw_ref_part_model(self):
@@ -174,7 +174,7 @@ class NamedEntityRecognizer:
         return [self._normalizer.normalize(s) for s in input]
 
     def _get_raw_named_entity_spans(self, st: str) -> List[SpanOrToken]:
-        doc = self._raw_ref_model(st)
+        doc = self._named_entity_model(st)
         return doc.ents
 
     def _get_raw_ref_part_spans(self, st: str) -> List[SpanOrToken]:
@@ -182,7 +182,7 @@ class NamedEntityRecognizer:
         return doc.ents
 
     def _bulk_get_raw_named_entity_spans(self, input: List[str], batch_size=150, **kwargs) -> Generator[List[Span], None, None]:
-        for doc in self._raw_ref_model.pipe(input, batch_size=batch_size, **kwargs):
+        for doc in self._named_entity_model.pipe(input, batch_size=batch_size, **kwargs):
             if kwargs.get('as_tuples', False):
                 doc, context = doc
                 yield doc.ents, context
