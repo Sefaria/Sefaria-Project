@@ -306,7 +306,7 @@ def change_parent(node, new_parent, place=0):
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
-    new_normal_form = node.ref().normal()
+    new_normal_form = node.ref(force_update=True).normal()
 
     index.save(override_dependencies=True)
     library.rebuild()

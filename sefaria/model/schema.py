@@ -1371,11 +1371,11 @@ class SchemaNode(TitledTreeNode):
         """
         return self.address()[1:]
 
-    def ref(self):
+    def ref(self, force_update=False):
         from . import text
         d = {
             "index": self.index,
-            "book": self.full_title("en"),
+            "book": self.full_title("en", force_update=force_update),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
