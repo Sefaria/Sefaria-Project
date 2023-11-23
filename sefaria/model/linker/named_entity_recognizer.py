@@ -21,6 +21,12 @@ class NamedEntityRecognizer:
     """
 
     def __init__(self, lang: str, named_entity_model: Language, raw_ref_part_model: Language):
+        """
+
+        @param lang: language that the Recognizer understands (based on how the models were trained)
+        @param named_entity_model: spaCy model which takes a string and recognizes where entities are
+        @param raw_ref_part_model: spaCy model which takes a string raw ref and recognizes the parts of the ref
+        """
         self._lang = lang
         self._named_entity_model = named_entity_model
         self._raw_ref_part_model = raw_ref_part_model
