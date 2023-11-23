@@ -121,14 +121,44 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
-    body_doc = linker.link(request_text.body, context_ref, with_failures=True, type_filter='citation')
+    body_resolved = _split_and_link(linker, request_text.body, context_ref, with_failures=True, type_filter='citation')
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
-        "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
+        "body": _make_find_refs_response_inner(body_resolved, options),
     }
 
     return response
+
+
+def _split_and_link(linker, input_str: str, *linker_args, **linker_kwargs):
+    from sefaria.model.linker.ref_part import RawRef, span_inds
+    from sefaria.model.linker.ref_resolver import ResolvedRef
+    make_doc = linker._ner._named_entity_model.make_doc
+    full_spacy_doc = make_doc(input_str)
+
+    inputs = input_str.split('\n')
+    resolved_list = []
+    offset = 0
+    for curr_input in inputs:
+        linked_doc = linker.link(curr_input, *linker_args, **linker_kwargs)
+        # add offset to resolved refs
+        for curr_resolved in linked_doc.resolved_refs:
+            assert isinstance(curr_resolved, ResolvedRef)
+            named_entity = curr_resolved.raw_entity
+            curr_start, curr_end = span_inds(named_entity.span)
+            new_start, new_end = curr_start+offset, curr_end+offset
+            named_entity.span = full_spacy_doc[new_start:new_end]
+            if isinstance(named_entity, RawRef):
+                for part in named_entity.raw_ref_parts:
+                    curr_start, curr_end = span_inds(part.span)
+                    new_start, new_end = curr_start+offset, curr_end+offset
+                    part.span = full_spacy_doc[new_start:new_end]
+        # end add offset
+        resolved_list += linked_doc.resolved_refs
+        curr_spacy_doc = make_doc(curr_input)
+        offset += len(curr_spacy_doc)
+    return resolved_list
 
 
 def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
