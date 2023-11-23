@@ -1609,21 +1609,21 @@ const PictureUploader = ({callback, old_filename, caption}) => {
           const file = fileInput.current.files[0];
           if (file == null)
           return;
-              if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-                  const reader = new FileReader();
+          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+              const reader = new FileReader();
 
-                  reader.addEventListener("load", function() {
-                    uploadImage(reader.result);
-                  }, false);
+              reader.addEventListener("load", function() {
+                uploadImage(reader.result);
+              }, false);
 
-                  reader.addEventListener("onerror", function() {
-                    alert(reader.error);
-                  }, false);
+              reader.addEventListener("onerror", function() {
+                alert(reader.error);
+              }, false);
 
-                  reader.readAsDataURL(file);
-              } else {
-                alert('not an image');
-              }
+              reader.readAsDataURL(file);
+          } else {
+            alert('not an image');
+          }
     }
     return <div className="section">
             <label><InterfaceText>Picture</InterfaceText></label>

@@ -177,14 +177,15 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
         authorItems.forEach(x => items.push(x));
     }
+    items.push("Picture Uploader");
     items.push("English Caption");
     items.push("Hebrew Caption");
     return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
-                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew}
-                        items={items} extras={
-                              [<PictureUploader callback={handlePictureChange} old_filename={data.image_uri}
-                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>,
-                                isNew ? null :
+                        validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
+                        pictureUploader={<PictureUploader callback={handlePictureChange} old_filename={data.image_uri}
+                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
+                        extras={
+                              [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}
                                          updateOrder={setSortedSubtopics}
                                          displayType="topics"/>,

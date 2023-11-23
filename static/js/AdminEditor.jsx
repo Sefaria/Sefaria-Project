@@ -118,7 +118,7 @@ const validateMarkdownLinks = async (input) => {
     return true;
 }
 
-const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
+const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, savingStatus,
                              validate, deleteObj, items = [], isNew = true,
                              extras = [], path = []}) => {
     const [validatingLinks, setValidatingLinks] = useState(false);
@@ -204,7 +204,10 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;
-                        } else {
+                        } else if (x === "Picture Uploader") {
+                            return pictureUploader;
+                        }
+                        else {
                             return item({...options_for_form[x]});
                         }
                     })}
