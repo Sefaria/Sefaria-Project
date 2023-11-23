@@ -7,7 +7,7 @@ import Sefaria from "./sefaria/sefaria";
 function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersions, openVersionInReader, isInfoOpen, setIsInfoOpen, isSelected}) {
     function makeShortVersionTitle() {
         let shortVersionTitle = version.shortVersionTitle || version.versionTitle;
-        if (Sefaria.interfaceLang === "english") {
+        if (Sefaria.interfaceLang === "hebrew") {
             shortVersionTitle = version.shortVersionTitleInHebrew || version.versionTitleInHebrew || shortVersionTitle;
         }
         return shortVersionTitle;
