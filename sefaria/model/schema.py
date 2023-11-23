@@ -1131,6 +1131,12 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
 
 class AltStructNode(TitledTreeNode):
+    """
+    Structural node for alt structs
+    Allows additional attributes for referencing these nodes with the linker
+    Note, these nodes can't be the end of a reference since they themselves don't map to a `Ref`. But they are helpful
+    being intermediate nodes in a longer reference.
+    """
     optional_param_keys = ["match_templates", "numeric_equivalent", 'referenceable']
 
     def ref(self):
