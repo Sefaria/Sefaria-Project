@@ -170,15 +170,6 @@ def current_domain_lang(request):
     return domain_lang
 
 
-class CORSDebugMiddleware(MiddlewareMixin):
-    def process_response(self, request, response):
-        if DEBUG:
-            response["Access-Control-Allow-Origin"] = "*"
-            response["Access-Control-Allow-Methods"] = "POST, GET"
-            response["Access-Control-Allow-Headers"] = "*"
-        return response
-
-
 class ProfileMiddleware(MiddlewareMixin):
     """
     Displays profiling for any view.
