@@ -3175,7 +3175,7 @@ const ImageWithCaption = ({photoLink, caption }) => {
     <div>
         <img class="imageWithCaptionPhoto" src={photoLink}/>
         <div class="imageCaption"> 
-          <InterfaceText text={{en:caption.en, he:caption.he}}  />
+          <InterfaceText text={caption} />
         </div>
       </div>);
 }
