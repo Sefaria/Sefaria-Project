@@ -134,10 +134,11 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
 def _split_and_link(linker, input_str: str, *linker_args, **linker_kwargs):
     from sefaria.model.linker.ref_part import RawRef, span_inds
     from sefaria.model.linker.ref_resolver import ResolvedRef
+    import re
     make_doc = linker._ner._named_entity_model.make_doc
     full_spacy_doc = make_doc(input_str)
 
-    inputs = input_str.split('\n')
+    inputs = re.split(r'\n+', input_str)
     resolved_list = []
     offset = 0
     for curr_input in inputs:
@@ -157,7 +158,7 @@ def _split_and_link(linker, input_str: str, *linker_args, **linker_kwargs):
         # end add offset
         resolved_list += linked_doc.resolved_refs
         curr_spacy_doc = make_doc(curr_input)
-        offset += len(curr_spacy_doc)
+        offset += len(curr_spacy_doc)+1  # 1 for newline
     return resolved_list
 
 
