@@ -2,8 +2,6 @@ import django
 
 django.setup()
 
-from sefaria.model import *
-
 from sefaria.helper.topic import add_image_to_topic
 
 ## Adding images
@@ -40,4 +38,3 @@ for topic in hardcodedTopicImagesMap:
                        image_uri=hardcodedTopicImagesMap[topic]["image_uri"],
                        en_caption=hardcodedTopicImagesMap[topic]["enCaption"],
                        he_caption=hardcodedTopicImagesMap[topic]["heCaption"])
-
