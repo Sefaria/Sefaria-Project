@@ -64,7 +64,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
                                 get_random_topic_source, edit_topic_source, \
                                 update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, add_image_to_topic
 from sefaria.helper.community_page import get_community_page_items
-from sefaria.helper.file import get_resized_file
+from sefaria.helper.file import get_resized_file, thumbnail_image_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 
@@ -3571,12 +3571,13 @@ def topic_upload_photo(request):
         import base64
         bucket_name = GoogleStorageManager.TOPICS_BUCKET
         img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+        img = Image.open(img_file_in_mem)
+        img_file_in_mem = thumbnail_image_file(img, (300, 300))
         old_filename = request.POST.get('old_filename')
         if old_filename:
             old_filename = f"topics/{old_filename.split('/')[-1]}"
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     bucket_name, old_filename=old_filename)
-        #img_url = 'https://storage.googleapis.com/img.sefaria.org/topics/41861-683e06f6-891a-11ee-be47-4a26184f1ad1.gif'
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 
