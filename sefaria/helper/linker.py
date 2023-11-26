@@ -2,6 +2,7 @@ import dataclasses
 import json
 import spacy
 import structlog
+from functools import reduce
 from sefaria.model.linker.ref_part import TermContext, RefPartType
 from sefaria.model.linker.ref_resolver import PossiblyAmbigResolvedRef
 from sefaria.model import text, library
@@ -131,21 +132,18 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
     return response
 
 
-def _split_and_link(linker, input_str: str, *linker_args, **linker_kwargs):
+def _split_and_link(linker, input_str: str, book_context_ref, *linker_args, **linker_kwargs):
     from sefaria.model.linker.ref_part import RawRef, span_inds
-    from sefaria.model.linker.ref_resolver import ResolvedRef
     import re
     make_doc = linker._ner._named_entity_model.make_doc
     full_spacy_doc = make_doc(input_str)
 
-    inputs = re.split(r'\n+', input_str)
-    resolved_list = []
+    inputs = re.split(r'\s*\n+\s*', input_str)
+    linked_docs = linker.bulk_link(inputs, [book_context_ref]*len(inputs), *linker_args, **linker_kwargs)
     offset = 0
-    for curr_input in inputs:
-        linked_doc = linker.link(curr_input, *linker_args, **linker_kwargs)
+    for curr_input, linked_doc in zip(inputs, linked_docs):
         # add offset to resolved refs
         for curr_resolved in linked_doc.resolved_refs:
-            assert isinstance(curr_resolved, ResolvedRef)
             named_entity = curr_resolved.raw_entity
             curr_start, curr_end = span_inds(named_entity.span)
             new_start, new_end = curr_start+offset, curr_end+offset
@@ -156,10 +154,9 @@ def _split_and_link(linker, input_str: str, *linker_args, **linker_kwargs):
                     new_start, new_end = curr_start+offset, curr_end+offset
                     part.span = full_spacy_doc[new_start:new_end]
         # end add offset
-        resolved_list += linked_doc.resolved_refs
         curr_spacy_doc = make_doc(curr_input)
         offset += len(curr_spacy_doc)+1  # 1 for newline
-    return resolved_list
+    return reduce(lambda a, b: a + b.resolved_refs, linked_docs, [])
 
 
 def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:
