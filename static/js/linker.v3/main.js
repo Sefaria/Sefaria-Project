@@ -210,6 +210,15 @@ import {LinkExcluder} from "./excluder";
         }
         return false;
     }
+    function isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength=30) {
+        /**
+         * return true if first occurrence is sufficiently long (longer than `maxSearchLength`)
+         * AND searchText includes more than just the text of the link.
+         */
+        if (occurrences.length === 0) { return false; }
+        const firstOccurrenceLength = occurrences[0][1] - occurrences[0][0];
+        return firstOccurrenceLength >= maxSearchLength && firstOccurrenceLength > linkObj.text.length;
+    }
 
     function wrapRef(linkObj, normalizedText, refData, iLinkObj, resultsKey, maxNumWordsAround = 10, maxSearchLength = 30) {
         /**
@@ -235,9 +244,9 @@ import {LinkExcluder} from "./excluder";
             ({ text: searchText, startChar: linkStartChar } = getNumWordsAround(linkObj, normalizedText, numWordsAround));
             occurrences = findOccurrences(searchText);
             numWordsAround += 1;
-            if (searchText.length >= maxSearchLength) { break; }
+            if (isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) { break; }
         }
-        if (occurrences.length === 0 || (occurrences.length > 1 && searchText.length < maxSearchLength)) {
+        if (occurrences.length !== 1 && !isMatchedTextUniqueEnough(occurrences, linkObj, maxSearchLength)) {
             if (ns.debug) {
                 console.log("MISSED", numWordsAround, occurrences.length, linkObj);
             }
