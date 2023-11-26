@@ -161,9 +161,9 @@ class NamedEntityRecognizer:
             unnorm_part_inds += [conv([[norm_raw_ref_start + i for i in part.char_indices]
                                        for part in raw_ref_parts], mapping, subst_end_indices)]
         for named_entity, temp_unnorm_inds, temp_unnorm_part_inds in zip(named_entities, unnorm_inds, unnorm_part_inds):
-            named_entity.map_new_indices(unnorm_doc, temp_unnorm_inds)
+            named_entity.map_new_char_indices(unnorm_doc, temp_unnorm_inds)
             if isinstance(named_entity, RawRef):
-                named_entity.map_new_part_indices(temp_unnorm_part_inds)
+                named_entity.map_new_part_char_indices(temp_unnorm_part_inds)
 
     @property
     def named_entity_model(self):

@@ -428,8 +428,8 @@ def test_map_new_indices(crrd_params):
 
     # test
     assert norm_raw_ref.text == norm_text.strip()
-    norm_raw_ref.map_new_indices(doc, indices)
-    norm_raw_ref.map_new_part_indices(part_indices)
+    norm_raw_ref.map_new_char_indices(doc, indices)
+    norm_raw_ref.map_new_part_char_indices(part_indices)
     assert norm_raw_ref.text == raw_ref.text
     for norm_part, part in zip(norm_raw_ref.raw_ref_parts, raw_ref.raw_ref_parts):
         assert norm_part.text == part.text
