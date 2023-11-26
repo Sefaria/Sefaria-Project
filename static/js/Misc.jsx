@@ -262,11 +262,10 @@ class ProfilePic extends Component {
       if (response.error) {
         throw new Error(response.error);
       } else {
-        const defaultCallback = () => {
+        this.closePopup({ cb: () => {
           window.location = "/profile/" + Sefaria.slug; // reload to get update
           return;
-        };                                                
-        this.closePopup({ cb: this.props.saveCallback ? this.props.saveCallback(response.urls[0]) : defaultCallback});
+        }});
       }
     } catch (e) {
       errored = true;
@@ -354,7 +353,6 @@ class ProfilePic extends Component {
 }
 ProfilePic.propTypes = {
   url:           PropTypes.string,
-  saveCallback:  PropTypes.func,  // used by AdminEditor to override default callback upon save
   name:          PropTypes.string,
   len:           PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
