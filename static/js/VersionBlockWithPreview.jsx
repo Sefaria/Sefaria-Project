@@ -30,7 +30,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               setIsInfoOpen={setIsInfoOpen}
               isSelected={isSelected}
             />
-            {isInfoOpen ?
+            {isInfoOpen &&
             <div className='version-block-with-preview-details'>
                 <VersionPreviewMeta
                     currentRef={currentRef}
@@ -41,8 +41,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
                     openInTabCallback={openInTabCallback}
                     renderMode='versionPreview'
                 />
-            </div>
-            : null}
+            </div>}
         </div>
     );
 }
