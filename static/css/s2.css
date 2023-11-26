@@ -3541,7 +3541,6 @@ display: none;
   margin-bottom: 10px;
 }
 .version-with-preview-title-line .open-details {
-  white-space: nowrap;
   display: flex;
   margin-inline-end: 5px;
   font-style: italic;
@@ -3550,7 +3549,6 @@ display: none;
   margin-inline-end: 5px;
 }
 .version-with-preview-title-line .selectButton {
-  white-space: nowrap;
   text-decoration: none;
 }
 .version-with-preview-title-line .selectButton:not(.currSelectButton) {
