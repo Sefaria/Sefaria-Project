@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from "prop-types";
 
 function VersionBlockHeader({text, link, onClick, renderMode, direction}) {
@@ -40,14 +40,31 @@ VersionBlockHeaderTitle.prototypes = {
 };
 
 function VersionBlockHeaderText({link, onClick, text, direction}) {
+    const [shouldAttemptTruncation, setShouldAttemptTruncation] = useState(true);
+    const [truncationOccurred, setTruncationOccurred] = useState(false);
+    const textRef = useRef(null);
+    useEffect(() => {
+        const element = textRef.current;
+        const computedStyles = window.getComputedStyle(element);
+        const maxHeight = parseInt(computedStyles.getPropertyValue('max-height'), 10);
+        setTruncationOccurred(element.scrollHeight > maxHeight);
+    }, []); //[] for running in resize seems better than adding a listener
+    function onEllipsisClick() {
+        setShouldAttemptTruncation(false);
+        setTruncationOccurred(false);
+    }
     return (
-          <a
-              className='versionPreview'
+        <div className='versionPreviewWithOptionalEllipsis'>
+          <div
+              className={`versionPreview ${shouldAttemptTruncation && 'shouldAttemptTruncation'}`}
+              ref={textRef}
               href={link}
               onClick={onClick}
               dangerouslySetInnerHTML={{__html: text}}
               dir={direction}
           />
+          {truncationOccurred && <a className='ellipsis' onClick={onEllipsisClick}>…</a>}
+        </div>
     );
 }
 VersionBlockHeaderText.prototypes = {

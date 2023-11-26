@@ -3516,13 +3516,18 @@ display: none;
   margin-bottom: 10px;
 }
 .versionBlock .versionTitle,
-.versionBlock .versionPreview {
+.versionBlock .versionPreviewWithOptionalEllipsis {
   font-size: 18px;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
 .versionBlock .versionPreview {
+  --line-height: 22px;
+  line-height: var(--line-height);
   font-family: "Adobe Garamond Pro", "sans-serif";
+}
+.versionBlock .versionPreview big{
+  font-size: inherit;
 }
 .versionBlock .versionPreview i.footnote {
   display: none;
@@ -3530,6 +3535,11 @@ display: none;
 .versionBlock.with-preview {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.versionBlock .versionPreview.shouldAttemptTruncation  {
+  overflow: hidden;
+  --max-lines: 5;
+  max-height: calc(var(--line-height) * var(--max-lines));
 }
 .version-with-preview-title-line {
   display: inline-flex;
@@ -5613,7 +5623,8 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Heebo", sans-serif;
 }
 /* Footnotes */
-.segment sup {
+.segment sup,
+.versionPreview sup {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: none;
