@@ -122,41 +122,14 @@ def _make_find_refs_response_linker_v3(request_text: _FindRefsText, options: _Fi
     context_ref = None
     if len(title_doc.resolved_refs) == 1 and not title_doc.resolved_refs[0].is_ambiguous:
         context_ref = title_doc.resolved_refs[0].ref
-    body_resolved = _split_and_link(linker, request_text.body, context_ref, with_failures=True, type_filter='citation')
+    body_doc = linker.link_by_paragraph(request_text.body, context_ref, with_failures=True, type_filter='citation')
 
     response = {
         "title": _make_find_refs_response_inner(title_doc.resolved_refs, options),
-        "body": _make_find_refs_response_inner(body_resolved, options),
+        "body": _make_find_refs_response_inner(body_doc.resolved_refs, options),
     }
 
     return response
-
-
-def _split_and_link(linker, input_str: str, book_context_ref, *linker_args, **linker_kwargs):
-    from sefaria.model.linker.ref_part import RawRef, span_inds
-    import re
-    make_doc = linker._ner._named_entity_model.make_doc
-    full_spacy_doc = make_doc(input_str)
-
-    inputs = re.split(r'\s*\n+\s*', input_str)
-    linked_docs = linker.bulk_link(inputs, [book_context_ref]*len(inputs), *linker_args, **linker_kwargs)
-    offset = 0
-    for curr_input, linked_doc in zip(inputs, linked_docs):
-        # add offset to resolved refs
-        for curr_resolved in linked_doc.resolved_refs:
-            named_entity = curr_resolved.raw_entity
-            curr_start, curr_end = span_inds(named_entity.span)
-            new_start, new_end = curr_start+offset, curr_end+offset
-            named_entity.span = full_spacy_doc[new_start:new_end]
-            if isinstance(named_entity, RawRef):
-                for part in named_entity.raw_ref_parts:
-                    curr_start, curr_end = span_inds(part.span)
-                    new_start, new_end = curr_start+offset, curr_end+offset
-                    part.span = full_spacy_doc[new_start:new_end]
-        # end add offset
-        curr_spacy_doc = make_doc(curr_input)
-        offset += len(curr_spacy_doc)+1  # 1 for newline
-    return reduce(lambda a, b: a + b.resolved_refs, linked_docs, [])
 
 
 def _make_find_refs_response_linker_v2(request_text: _FindRefsText, options: _FindRefsTextOptions) -> dict:

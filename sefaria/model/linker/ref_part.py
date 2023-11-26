@@ -316,12 +316,24 @@ class RawNamedEntity(abst.Cloneable):
         self.span = span
         self.type = type
 
-    def map_new_indices(self, new_doc: Doc, new_indices: Tuple[int, int]) -> None:
+    def map_new_char_indices(self, new_doc: Doc, new_char_indices: Tuple[int, int]) -> None:
         """
         Remap self.span to new indices
         """
-        self.span = new_doc.char_span(*new_indices, alignment_mode='expand')
-        if self.span is None: raise InputError(f"${new_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+        self.span = new_doc.char_span(*new_char_indices, alignment_mode='expand')
+        if self.span is None: raise InputError(f"${new_char_indices} don't match token boundaries. Using 'expand' alignment mode text is '{new_doc.char_span(*new_indices, alignment_mode='expand')}'")
+
+    def align_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+        """
+        Aligns underlying span to `new_doc`'s tokens. Assumption is `new_doc` has some token offset from the original
+        doc of `self.span`
+
+        @param new_doc: new Doc to align to
+        @param offset: token offset that aligns tokens in `self.span` to `new_doc
+        """
+        curr_start, curr_end = span_inds(self.span)
+        new_start, new_end = curr_start+offset, curr_end+offset
+        self.span = new_doc[new_start:new_end]
 
     @property
     def text(self):
@@ -454,13 +466,25 @@ class RawRef(RawNamedEntity):
             new_parts_to_match = self.parts_to_match
         return self.clone(raw_ref_parts=new_parts, parts_to_match=new_parts_to_match), apart, bpart
 
-    def map_new_part_indices(self, new_part_indices: List[Tuple[int, int]]) -> None:
+    def map_new_part_char_indices(self, new_part_char_indices: List[Tuple[int, int]]) -> None:
         """
         Remap self.span and all spans of parts to new indices
         """
         start_char, _ = self.char_indices
         doc_span = self.span.as_doc()
-        for part, temp_part_indices in zip(self.raw_ref_parts, new_part_indices):
+        for part, temp_part_indices in zip(self.raw_ref_parts, new_part_char_indices):
             part.span = doc_span.char_span(*[i-start_char for i in temp_part_indices], alignment_mode='expand')
             if part.span is None:
                 raise InputError(f"{temp_part_indices} doesn't match token boundaries for part {part}.")
+
+    def align_parts_to_new_doc(self, new_doc: Doc, offset: int) -> None:
+        """
+        See `RawNamedEntity.align_to_new_doc`
+        @param new_doc:
+        @param offset:
+        @return:
+        """
+        for part in self.raw_ref_parts:
+            curr_start, curr_end = span_inds(part.span)
+            new_start, new_end = curr_start+offset, curr_end+offset
+            part.span = new_doc[new_start:new_end]

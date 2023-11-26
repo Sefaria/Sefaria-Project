@@ -78,6 +78,38 @@ class Linker:
         self._ner.map_normal_output_to_original_input(input_str, [x.raw_entity for x in doc.all_resolved])
         return doc
 
+    def link_by_paragraph(self, input_str: str, book_context_ref: Ref, *link_args, **link_kwargs) -> LinkedDoc:
+        """
+        Similar to `link()` except model is run on each paragraph individually (via a bulk operation)
+        This better mimics the way the underlying ML models were trained and tends to lead to better results
+        Paragraphs are delineated by new line characters
+        @param input_str:
+        @param book_context_ref:
+        @param link_args: *args to be passed to link()
+        @param link_kwargs: **kwargs to be passed to link()
+        @return:
+        """
+        import re
+
+        inputs = re.split(r'\s*\n+\s*', input_str)
+        linked_docs = self.bulk_link(inputs, [book_context_ref]*len(inputs), *link_args, **link_kwargs)
+        resolved_refs = []
+        resolved_named_entities = []
+        full_spacy_doc = self._ner.named_entity_model.make_doc(input_str)
+        offset = 0
+        for curr_input, linked_doc in zip(inputs, linked_docs):
+            resolved_refs += linked_doc.resolved_refs
+            resolved_named_entities += linked_doc.resolved_named_entities
+
+            for resolved in linked_doc.all_resolved:
+                named_entity = resolved.raw_entity
+                named_entity.align_to_new_doc(full_spacy_doc, offset)
+                if isinstance(named_entity, RawRef):
+                    named_entity.align_parts_to_new_doc(full_spacy_doc, offset)
+            curr_token_count = len(self._ner.named_entity_model.make_doc(curr_input))
+            offset += curr_token_count+1  # +1 for newline token
+        return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
+
     def get_ner(self) -> NamedEntityRecognizer:
         return self._ner
 
