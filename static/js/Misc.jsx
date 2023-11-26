@@ -1596,10 +1596,13 @@ const PictureUploader = ({callback, old_filename, caption}) => {
           contentType: false,
           processData: false,
           success: function(data) {
-            callback(data.url);
-          },
+            if (data.error) {
+              alert(data.error);
+            } else {
+              callback(data.url);
+          }},
           error: function(e) {
-              console.log("photo upload ERROR", e);
+              alert(e);
           }
       });
     }
@@ -1620,7 +1623,7 @@ const PictureUploader = ({callback, old_filename, caption}) => {
 
               reader.readAsDataURL(file);
           } else {
-            alert('not an image');
+            alert('The file is not an image');
           }
     }
     return <div className="section">

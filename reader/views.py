@@ -3571,9 +3571,15 @@ def topic_upload_photo(request):
         import base64
         bucket_name = GoogleStorageManager.TOPICS_BUCKET
         img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
+
+        # validate img has correct aspect ratio
         img = Image.open(img_file_in_mem)
-        img_file_in_mem = thumbnail_image_file(img, (300, 300))
-        old_filename = request.POST.get('old_filename')
+        aspect_ratio = float(img.width)/img.height
+        if aspect_ratio < 0.65:
+            return jsonResponse({"error": f"Width-to-height ratio is {aspect_ratio}.  The ratio must be at least 0.65."})
+        img_file_in_mem.seek(0)
+
+        old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
         if old_filename:
             old_filename = f"topics/{old_filename.split('/')[-1]}"
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
