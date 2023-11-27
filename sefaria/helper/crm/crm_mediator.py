@@ -6,6 +6,13 @@ from sefaria import settings as sls
 # todo: task queue, async
 
 class CrmMediator:
+    """
+    Anywhere the *app* wants to perform CRM functions it should be using this,
+    rather than the other CRM classes.
+
+    We do not want the CRM classes (i.e. salesforce.py) to be performing r/w operations outside
+    of r/w to the CRM.
+    """
     def __init__(self):
         self._crm_connection = CrmFactory().get_connection_manager()
 
@@ -27,10 +34,11 @@ class CrmMediator:
         current_sustainers = CrmInfoStore.get_current_sustainers()
         for crm_sustainer in self._crm_connection.get_sustainers():
             crm_sustainer_profile = CrmInfoStore.find_sustainer_profile(crm_sustainer)
-            if current_sustainers.get(crm_sustainer.id) is not None:  # keep current sustainer
-                del current_sustainers[crm_sustainer.id]
-            else:
-                CrmInfoStore.mark_sustainer(crm_sustainer_profile)
+            if crm_sustainer_profile: # in case of out of date salesforce info
+                if current_sustainers.get(crm_sustainer.id) is not None:  # keep current sustainer
+                    del current_sustainers[crm_sustainer.id]
+                else:
+                    CrmInfoStore.mark_sustainer(crm_sustainer_profile)
 
         for sustainer_to_remove in current_sustainers:
             CrmInfoStore.mark_sustainer(sustainer_to_remove, False)

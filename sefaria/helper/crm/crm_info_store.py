@@ -53,13 +53,27 @@ class CrmInfoStore(object):
             return True
 
     @staticmethod
+    def get_by_crm_id(crm_id, crm_type=sls.CRM_TYPE):
+        if crm_type == "SALESFORCE":
+            return db.profiles.find_one({"sf_app_user_id": crm_id})
+        else:
+            return None
+
+    @staticmethod
     def get_current_sustainers():
         return {profile["id"]: profile for profile in db.profiles.find({"is_sustainer": True})}
 
     @staticmethod
     def find_sustainer_profile(sustainer):
-        if sustainer['email']:
-            return UserProfile(email=sustainer['email'])
+        if sls.CRM_TYPE == "SALESFORCE":
+            try:
+                mongo_prof = db.profiles.find_one({"sf_app_user_id": sustainer})
+                return UserProfile(id=mongo_prof['id'])
+            except:
+                return None
+        else:
+            if sustainer['email']:
+                return UserProfile(email=sustainer['email'])
 
     @staticmethod
     def mark_sustainer(profile, is_sustainer=True):
