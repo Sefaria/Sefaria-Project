@@ -54,14 +54,13 @@ function VersionBlockHeaderText({link, onClick, text, direction}) {
         setTruncationOccurred(false);
     }
     return (
-        <div className='versionPreviewWithOptionalEllipsis'>
+        <div className={`versionPreviewWithOptionalEllipsis contentText ${direction==='ltr' ? 'en' : 'he'}`} dir={direction}>
           <div
               className={`versionPreview ${shouldAttemptTruncation && 'shouldAttemptTruncation'}`}
               ref={textRef}
               href={link}
               onClick={onClick}
               dangerouslySetInnerHTML={{__html: text}}
-              dir={direction}
           />
           {truncationOccurred && <a className='ellipsis' onClick={onEllipsisClick}>…</a>}
         </div>

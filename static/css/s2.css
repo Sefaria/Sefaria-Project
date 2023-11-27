@@ -3515,18 +3515,19 @@ display: none;
   align-items: flex-start;
   margin-bottom: 10px;
 }
-.versionBlock .versionTitle,
-.versionBlock .versionPreviewWithOptionalEllipsis {
+.versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
+.versionBlock.with-preview .versionPreviewWithOptionalEllipsis {
+  display: block;
+}
 .versionBlock .versionPreview {
   --line-height: 22px;
   line-height: var(--line-height);
-  font-family: "Adobe Garamond Pro", "sans-serif";
 }
-.versionBlock .versionPreview big{
+.versionBlock .versionPreview big {
   font-size: inherit;
 }
 .versionBlock .versionPreview i.footnote {
