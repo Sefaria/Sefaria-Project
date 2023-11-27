@@ -326,7 +326,7 @@ class RefResolver:
             is_non_cts = i > 0 and len(resolved_list) > 0
             if is_non_cts:
                 # TODO assumes context is only first resolved ref
-                book_context_ref = resolved_list[0].ref
+                book_context_ref = None if resolved_list[0].is_ambiguous else resolved_list[0].ref
             context_swap_map = None if book_context_ref is None else getattr(book_context_ref.index.nodes,
                                                                         'ref_resolver_context_swaps', None)
             self._apply_context_swaps(raw_ref, context_swap_map)
