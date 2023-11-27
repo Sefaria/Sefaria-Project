@@ -290,23 +290,15 @@ LOGGING = {
     }
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-    }
-}
 
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
 try:
-    if os.getenv("CI_RUN"):
-        from sefaria.local_settings_ci import *
-    else:
-        from sefaria.local_settings import *
+    from sefaria.local_settings_defaults import * #imports a global defaults file that is checked in
+    from sefaria.local_settigs import * #then overrides with anything that might be environment specific
 except ImportError:
-    from sefaria.local_settings_example import *
+    from sefaria.local_settings_defaults import *
 
 
 # Listed after local settings are imported so CACHE can depend on DEBUG

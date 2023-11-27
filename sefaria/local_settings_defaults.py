@@ -1,10 +1,16 @@
-# An example of settings needed in a local_settings.py file.
-# copy this file to sefaria/local_settings.py and provide local info to run.
+#########################################################################################################################
+# This file serves two purposes: 
+# 1. It serves as a template for new installs to copy and use as local local_settings.py file, with minimum needed changes
+# 2. It serves as a way to quickly check in defaults so that any environment running Sefaria always has a fallback value. 
+# CAUTION: NEVER CHECK IN REAL PRODUCTION VALUES!! YOU KNOW WHAT TO DO FOR THAT
+########################################################################################################################
+
 from datetime import timedelta
 import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
 import os
+
 
 # These are things you need to change!
 
@@ -313,3 +319,5 @@ CLIENT_SENTRY_DSN = None
 FAIL_GRACEFULLY = False
 if "pytest" in sys.modules:
     FAIL_GRACEFULLY = False
+    
+FAKE_SETTINGS_VAR = True
