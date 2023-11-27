@@ -763,6 +763,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .loggedIn .help img {
   height: 24px;
+  margin-bottom: 3px;
 }
 .accountLinks.anon .help {
   margin-top: 6px;
@@ -2289,7 +2290,7 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
-.topicPhoto{
+.imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
   max-width: 100%; 
   height: auto;
@@ -2297,13 +2298,13 @@ div.interfaceLinks-row a {
   top: 121px;
   left: 835px;
 }
-.topicImageCaption .int-en {
+.imageCaption .int-en {
   font-family: Roboto;
 }
-.topicImageCaption .int-he {
+.imageCaption .int-he {
     font-family: Roboto;
   }
-.topicImageCaption {
+.imageCaption {
   font-size: 12px;
   font-weight: 400;
   line-height: 15px;
@@ -2327,7 +2328,7 @@ div.interfaceLinks-row a {
     padding-right: 0;
 }
 @media (max-width: 600px) {
-  .topicPhoto{
+  .imageWithCaptionPhoto{
     height: auto;
     max-width: calc(66.67vw);
     max-height: calc(66.67vw);
@@ -2342,7 +2343,7 @@ div.interfaceLinks-row a {
     justify-content: center;
     align-items: center;
   }
-  .topicImageCaption {
+  .imageCaption {
     font-size: 12px;
     font-weight: 400;
     line-height: 15px;
@@ -10643,6 +10644,7 @@ cursor: pointer;
   color: white;
   font-size: 75px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  margin-bottom: 3px;
 }
 .default-profile-img.invisible {
   visibility: hidden;
