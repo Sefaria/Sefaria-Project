@@ -3556,7 +3556,13 @@ display: none;
   margin-inline-end: 5px;
   font-style: italic;
 }
-.version-with-preview-title-line img {
+.version-with-preview-title-line .open-details.chevron-up::before {
+  content: url('/static/icons/little-chevron-up.svg');
+}
+.version-with-preview-title-line .open-details.chevron-down::before {
+  content: url('/static/icons/little-chevron-down.svg');
+}
+.version-with-preview-title-line .open-details::before {
   margin-inline-end: 5px;
 }
 .version-with-preview-title-line .selectButton {
