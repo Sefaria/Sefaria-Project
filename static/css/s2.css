@@ -719,7 +719,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
-  border-top: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
   padding-top: 12px;
 }
 .ui-autocomplete .ui-menu-item.hebrew-result a {
@@ -769,6 +769,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .loggedIn .help img {
   height: 24px;
+  margin-bottom: 3px;
 }
 .accountLinks.anon .help {
   margin-top: 6px;
@@ -2295,7 +2296,7 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
-.topicPhoto{
+.imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
   max-width: 100%; 
   height: auto;
@@ -2303,13 +2304,13 @@ div.interfaceLinks-row a {
   top: 121px;
   left: 835px;
 }
-.topicImageCaption .int-en {
+.imageCaption .int-en {
   font-family: Roboto;
 }
-.topicImageCaption .int-he {
+.imageCaption .int-he {
     font-family: Roboto;
   }
-.topicImageCaption {
+.imageCaption {
   font-size: 12px;
   font-weight: 400;
   line-height: 15px;
@@ -2333,7 +2334,7 @@ div.interfaceLinks-row a {
     padding-right: 0;
 }
 @media (max-width: 600px) {
-  .topicPhoto{
+  .imageWithCaptionPhoto{
     height: auto;
     max-width: calc(66.67vw);
     max-height: calc(66.67vw);
@@ -2348,7 +2349,7 @@ div.interfaceLinks-row a {
     justify-content: center;
     align-items: center;
   }
-  .topicImageCaption {
+  .imageCaption {
     font-size: 12px;
     font-weight: 400;
     line-height: 15px;
@@ -4528,6 +4529,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
+  z-index: 99;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4714,10 +4716,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #999;
+  color: #666666;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.readerOptions .int-en {
+  margin-right: 4px;
+}
+.readerOptions .int-he {
+  margin-left: 8px;
+}
+.readerOptions .int-he img {
+    height: 18px;
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
@@ -5430,7 +5441,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #666;
+  color: #000;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -7081,6 +7092,7 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);

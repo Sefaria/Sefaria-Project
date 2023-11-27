@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import {AppStoreButton, DonateLink, EnglishText, HebrewText} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
-import {TopicImage} from './TopicPage'
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -819,7 +818,7 @@ const PortalAbout = ({title, description, image_uri, image_caption}) => {
         <Module>
             <ModuleTitle en={title.en} he={title.he} />
             <div className="portalTopicImageWrapper">
-                <TopicImage photoLink={image_uri} enCaption={image_caption.en} heCaption={image_caption.he} />
+                <ImageWithCaption photoLink={image_uri} caption={image_caption} />
             </div>
             <InterfaceText markdown={{en: description.en, he: description.he}} />
         </Module>

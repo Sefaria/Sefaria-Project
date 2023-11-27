@@ -5,6 +5,7 @@ from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod, LifePeriod
+from sefaria.system.validators import validate_url
 from sefaria.model.portal import Portal
 from sefaria.system.database import db
 import structlog, bleach
@@ -47,8 +48,34 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
         "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        'image',
         "portal_slug",  # slug to relevant Portal object
     ]
+
+    attr_schemas = {
+        "image": {
+                "image_uri": {
+                    "type": "string",
+                    "required": True,
+                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
+                },
+                "image_caption": {
+                    "type": "dict",
+                    "required": True,
+                    "schema": {
+                        "en": {
+                            "type": "string",
+                            "required": True
+                        },
+                        "he": {
+                            "type": "string",
+                            "required": True
+                        }
+                    }
+                }
+            }
+        }
+
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
 
@@ -72,9 +99,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
-
         if getattr(self, 'portal_slug', None):
             Portal.validate_slug_exists(self.portal_slug)
+        if getattr(self, "image", False):
+            img_url = self.image.get("image_uri")
+            if img_url: validate_url(img_url)
 
     def _normalize(self):
         super()._normalize()
