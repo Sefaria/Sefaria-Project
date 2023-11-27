@@ -1583,7 +1583,7 @@ const PictureUploader = ({callback, old_filename, caption}) => {
      */
     const fileInput = useRef(null);
 
-    var uploadImage = function(imageData) {
+    const uploadImage = function(imageData, type="POST") {
       const formData = new FormData();
       formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
       if (old_filename !== "") {
@@ -1591,7 +1591,7 @@ const PictureUploader = ({callback, old_filename, caption}) => {
       }
       $.ajax({
           url: Sefaria.apiHost + "/api/topics/upload-image",
-          type: 'POST',
+          type,
           data: formData,
           contentType: false,
           processData: false,
@@ -1599,7 +1599,11 @@ const PictureUploader = ({callback, old_filename, caption}) => {
             if (data.error) {
               alert(data.error);
             } else {
-              callback(data.url);
+              if (data.url) {
+                callback(data.url);
+              } else if (data.success) {
+                alert(data.success);
+              }
           }},
           error: function(e) {
               alert(e);
@@ -1631,7 +1635,12 @@ const PictureUploader = ({callback, old_filename, caption}) => {
             <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
               <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
               </div><input id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-      {old_filename !== "" && <div style={{"max-width": "420px"}}><br/><ImageWithCaption photoLink={old_filename} caption={caption}/></div>}
+              {old_filename !== "" && <div style={{"max-width": "420px"}}>
+                    <div onClick={() => uploadImage("", "DELETE")} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+                      <InterfaceText>Remove Picture</InterfaceText>
+                    </div>
+                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/></div>
+              }
           </div>
     }
 

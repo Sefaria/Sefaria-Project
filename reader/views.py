@@ -3563,15 +3563,24 @@ def profile_follow_api(request, ftype, slug):
 
 @catch_error_as_json
 def topic_upload_photo(request):
+    from io import BytesIO
+    import uuid
+    import base64
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update a topic photo.")})
-    if request.method == "POST":
-        from io import BytesIO
-        import uuid
-        import base64
-        bucket_name = GoogleStorageManager.TOPICS_BUCKET
-        img_file_in_mem = BytesIO(base64.b64decode(request.POST.get('file')))
-
+    bucket_name = GoogleStorageManager.TOPICS_BUCKET
+    file = request.POST.get('file')
+    old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
+    if old_filename:
+        old_filename = f"topics/{old_filename.split('/')[-1]}"
+    if request.method == "DELETE":
+        if file == "":
+            if old_filename is None:
+                return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
+            GoogleStorageManager.delete_filename(old_filename, bucket_name)
+            return jsonResponse({"success": "You have successfully removed the image."})
+    elif request.method == "POST":
+        img_file_in_mem = BytesIO(base64.b64decode(file))
         # validate img has correct aspect ratio
         img = Image.open(img_file_in_mem)
         aspect_ratio = float(img.width)/img.height
@@ -3579,9 +3588,6 @@ def topic_upload_photo(request):
             return jsonResponse({"error": f"Width-to-height ratio is {aspect_ratio}.  The ratio must be at least 0.65."})
         img_file_in_mem.seek(0)
 
-        old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
-        if old_filename:
-            old_filename = f"topics/{old_filename.split('/')[-1]}"
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     bucket_name, old_filename=old_filename)
         return jsonResponse({"url": img_url})
