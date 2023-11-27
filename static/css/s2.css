@@ -3543,7 +3543,7 @@ display: none;
   max-height: calc(var(--line-height) * var(--max-lines));
 }
 .version-with-preview-title-line {
-  display: inline-flex;
+  display: inline;
   flex-wrap: wrap;
   font-size: 14px;
   line-height: 22px;
@@ -3552,7 +3552,7 @@ display: none;
   margin-bottom: 10px;
 }
 .version-with-preview-title-line .open-details {
-  display: flex;
+  display: inline;
   margin-inline-end: 5px;
   font-style: italic;
 }

@@ -21,7 +21,7 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
         <div className='version-with-preview-title-line'>
             <a className='open-details' onClick={() => setIsInfoOpen(!isInfoOpen)}>
                 <img src={`/static/icons/little-chevron-${chevronDirection}.svg`} alt={`${showOrHide} details`} />
-                <div className='version-with-preview-short-version-title'>{makeShortVersionTitle()}</div>
+                <span className='version-with-preview-short-version-title'>{makeShortVersionTitle()}</span>
             </a>
             <VersionBlockSelectButton
                 isSelected={isSelected}
