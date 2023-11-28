@@ -204,7 +204,7 @@ class VersionBlock extends Component {
     const openVersionInSidebar = versionTools.openVersionInSidebar.bind(null, this.props.currentRef, this.props.version,
         this.props.currObjectVersions, this.props.openVersionInSidebar);
     const openVersionInMoinPanel = versionTools.openVersionInMoinPanel.bind(null, this.props.currentRef,
-        this.props.version, this.props.currObjectVersions, this.props.renderMode, this.props.firstSectionRef, this.props.openVersionInReader);
+        this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
 
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
