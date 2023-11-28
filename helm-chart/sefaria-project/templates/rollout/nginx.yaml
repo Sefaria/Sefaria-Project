@@ -105,6 +105,8 @@ spec:
           - secretRef:
               name: local-settings-nginx-secrets-{{ .Values.deployEnv }}
               optional: true
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
       volumes:
         - name:  nginx-conf
           configMap:

@@ -32,6 +32,8 @@ spec:
               requests:
                 memory: 7Gi
             env:
+            - name: SEARCH_HOST
+              value: "{{ .Values.cronjobs.reindexElasticSearch.SEARCH_HOST_ES6 }}"
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
@@ -44,8 +46,6 @@ spec:
                   name: {{ template "sefaria.secrets.slackWebhook" . }}
                   key: slack-webhook
             envFrom:
-            - secretRef:
-                name: {{ template "sefaria.secrets.elasticAdmin" . }}  
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
