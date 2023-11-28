@@ -1106,7 +1106,11 @@ def update_topic(topic, **kwargs):
         topic.change_description(kwargs.get("description", None), kwargs.get("categoryDescription", None))
 
     if "image" in kwargs:
-        topic.image = kwargs["image"]
+        image_dict = kwargs["image"]
+        if image_dict["image_uri"] != "":
+            topic.image = kwargs["image"]
+        elif hasattr(topic, 'image'):
+            del topic.image
 
     topic.save()
 

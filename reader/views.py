@@ -3561,6 +3561,20 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
+@catch_error_as_json
+def topic_delete_photo(request, file):
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update a topic photo.")})
+    bucket_name = GoogleStorageManager.TOPICS_BUCKET
+    if file:
+        file = f"topics/{file.split('/')[-1]}"
+    if request.method == "DELETE":
+        if file is None:
+            return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
+        GoogleStorageManager.delete_filename(file, bucket_name)
+        return jsonResponse({"success": "You have successfully removed the image."})
+
 @catch_error_as_json
 def topic_upload_photo(request):
     from io import BytesIO
@@ -3574,20 +3588,12 @@ def topic_upload_photo(request):
     if old_filename:
         old_filename = f"topics/{old_filename.split('/')[-1]}"
     if request.method == "DELETE":
-        if file == "":
-            if old_filename is None:
-                return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
-            GoogleStorageManager.delete_filename(old_filename, bucket_name)
-            return jsonResponse({"success": "You have successfully removed the image."})
+        if old_filename is None:
+            return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
+        GoogleStorageManager.delete_filename(old_filename, bucket_name)
+        return jsonResponse({"success": "You have successfully removed the image."})
     elif request.method == "POST":
         img_file_in_mem = BytesIO(base64.b64decode(file))
-        # validate img has correct aspect ratio
-        img = Image.open(img_file_in_mem)
-        aspect_ratio = float(img.width)/img.height
-        if aspect_ratio < 0.65:
-            return jsonResponse({"error": f"Width-to-height ratio is {aspect_ratio}.  The ratio must be at least 0.65."})
-        img_file_in_mem.seek(0)
-
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
                                                     bucket_name, old_filename=old_filename)
         return jsonResponse({"url": img_url})

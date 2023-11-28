@@ -1601,8 +1601,6 @@ const PictureUploader = ({callback, old_filename, caption}) => {
             } else {
               if (data.url) {
                 callback(data.url);
-              } else if (data.success) {
-                alert(data.success);
               }
           }},
           error: function(e) {
@@ -1630,16 +1628,30 @@ const PictureUploader = ({callback, old_filename, caption}) => {
             alert('The file is not an image');
           }
     }
+    const deleteImage = () => {
+        const old_filename_wout_url = old_filename.split("/").slice(-1);
+        const url = `${Sefaria.apiHost}/api/topics/delete-image/${old_filename_wout_url}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
+        callback("");
+        fileInput.current.value = "";
+    }
     return <div className="section">
             <label><InterfaceText>Picture</InterfaceText></label>
+            <label>
+              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
+            </label>
             <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel"></label>
-              </div><input id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-              {old_filename !== "" && <div style={{"max-width": "420px"}}>
-                    <div onClick={() => uploadImage("", "DELETE")} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
+              <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel">
+                <div className="button small blue control-elem" tabIndex="0" role="button">
+                      <InterfaceText>Upload Picture</InterfaceText>
                     </div>
-                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/></div>
+              </label>
+              </div><input style={{visibility: "hidden"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
+              {old_filename !== "" && <div style={{"max-width": "420px"}}>
+                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
+                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
+                      <InterfaceText>Remove Picture</InterfaceText>
+                    </div></div>
               }
           </div>
     }

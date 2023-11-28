@@ -109,9 +109,14 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         postData.altTitles.en = data.enAltTitles.map(x => x.name); // alt titles implemented using TitleVariants which contains list of objects with 'name' property.
         postData.altTitles.he = data.heAltTitles.map(x => x.name);
 
-        if (data.image_uri !== "" || data.enImgCaption !== "" || data.heImgCaption !== "") {
+        // add image if image or caption changed
+        const origImageURI = origData?.origImage?.image_uri || "";
+        const origEnCaption = origData?.origImage?.image_caption?.en || "";
+        const origHeCaption = origData?.origImage?.image_caption?.he || "";
+        if (data.image_uri !== origImageURI || data.enImgCaption !== origEnCaption || data.heImgCaption !== origHeCaption) {
             postData.image = {"image_uri": data.image_uri, "image_caption": {"en": data.enImgCaption, "he": data.heImgCaption}}
         }
+
         // add descriptions if they changed
         const origDescription = {en: origData?.origEnDescription || "", he: origData?.origHeDescription || ""};
         const origCategoryDescription = {en: origData?.origEnCategoryDescription || "", he: origData?.origHeCategoryDescription || ""};
