@@ -183,6 +183,11 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                     {obj}
                </div>;
     }
+    const confirmDelete = () => {
+        if (confirm("Are you sure you want to delete?")) {
+            deleteObj();
+        }
+    }
     
     return <div className="editTextInfo">
         <div className="static">
@@ -202,7 +207,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                     })}
                     {extras}
                     {!isNew &&
-                    <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
+                    <div onClick={confirmDelete} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
                          role="button">
                         <InterfaceText>Delete</InterfaceText>
                     </div>}
