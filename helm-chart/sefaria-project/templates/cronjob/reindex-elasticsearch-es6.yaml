@@ -32,6 +32,8 @@ spec:
               requests:
                 memory: 7Gi
             env:
+            - name: SEARCH_HOST
+              value: "{{ .Values.cronjobs.reindexElasticSearch.SEARCH_HOST_ES6 }}"
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
