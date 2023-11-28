@@ -196,6 +196,17 @@ def test_text_family_alts():
     c = tf.contents()
     assert c.get("alts")
 
+def test_text_family_version_with_underscores():
+    with_spaces = TextFamily(
+        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        version="Miqra according to the Masorah",
+        version2="Tanakh: The Holy Scriptures, published by JPS")
+    with_underscores = TextFamily(
+        Ref("Amos 1"), lang="he", lang2="en", commentary=False,
+        version="Miqra_according_to_the_Masorah",
+        version2="Tanakh:_The_Holy_Scriptures,_published_by_JPS")
+    assert with_spaces.he == with_underscores.he
+    assert with_spaces.text == with_underscores.text
 
 def test_validate():
     passing_refs = [

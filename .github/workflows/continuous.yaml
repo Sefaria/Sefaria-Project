@@ -1,11 +1,7 @@
 name: Continuous
 on:
   push:
-    branches:
-      - "*"
   pull_request:
-    branches:
-      - "*"
 
 concurrency:
   group: ${{ github.ref }}

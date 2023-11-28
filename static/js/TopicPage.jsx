@@ -23,7 +23,9 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
+    ImageWithCaption
 } from './Misc';
+import {ContentText} from "./ContentText";
 
 
 /*
@@ -187,38 +189,9 @@ const sheetRenderWrapper = (toggleSignUpModal) => item => (
 );
 
 
-const hardcodedTopicImagesMap = {
-  'Rosh Hashanah': {'photoLink':'https://museums.cjh.org/web/objects/common/webmedia.php?irn=11469&reftable=ecatalogue&refirn=6640', 
-                   'enCaption':'Rosh Hashanah, Arthur Szyk (1894-1951) Tempera and ink on paper. New Canaan, 1948. Collection of Yeshiva University Museum. Gift of Charles Frost', 
-                   'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
-
-  'Yom Kippur': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/K900/K90075-77.jpg', 
-                 'enCaption':'Micrography of Jonah being swallowed by the fish. Germany, 1300-1500, The British Library', 
-                 'heCaption': 'מיקרוגרפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
-
-  'The Four Species': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F34234%2Fview%2F52568%2Fview_52568%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-                       'enCaption':'Etrog container, K B, late 19th century, Germany. The Jewish Museum, Gift of Dr. Harry G. Friedman', 
-                       'heCaption': 'תיבת אתרוג, סוף המאה ה19, גרמניה. המוזיאון היהודי בניו יורק, מתנת דר. הארי ג. פרידמן  '},
-
-  'Sukkot': {'photoLink':'https://www.bl.uk/IllImages/BLCD/big/d400/d40054-17a.jpg', 
-             'enCaption':'Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library', 
-             'heCaption': 'פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה'},
-
-  'Simchat Torah': {'photoLink':'https://upload.wikimedia.org/wikipedia/commons/4/4d/Rosh_Hashanah_greeting_card_%287974345646%29.jpg?20150712114334', 
-                    'enCaption':'Rosh Hashanah postcard: Hakafot, Haim Yisroel Goldberg (1888-1943) Publisher: Williamsburg Post Card Co. Germany, ca. 1915 Collection of Yeshiva University Museum', 
-                    'heCaption': 'גלויה לראש השנה: הקפות, חיים גולדברג, גרמניה 1915, אוסף ישיבה יוניברסיטי'},
-
-  'Shabbat': {'photoLink':'https://res.cloudinary.com/the-jewish-museum/image/fetch/q_auto,f_auto/v1/https%3A%2F%2Fthejm.netx.net%2Ffile%2Fasset%2F35064%2Fview%2F61838%2Fview_61838%3Ftoken%3D5d5cdc57-6399-40b5-afb0-93139921700e', 
-              'enCaption':'Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer', 
-              'heCaption': 'שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר'},
-
-};
-
-
 /*
 *** Components
 */
-
 
 
 
@@ -339,12 +312,12 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch }) => {
+const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  const topicImageKey = topicTitle.en;
-  const tpTopImg = topicImageKey in hardcodedTopicImagesMap && !multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
+
+  const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <div>
       
@@ -383,12 +356,26 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
           <div className="authorIndexList">
-            {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
+            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
           </div>
         </div>
        : null}
     </div>
 );}
+
+const AuthorIndexItem = ({url, title, description}) => {
+  return (
+      <div className="authorIndex" >
+      <a href={url} className="navBlockTitle">
+        <ContentText text={title} defaultToInterfaceOnBilingual />
+      </a>
+      <div className="navBlockDescription">
+        <ContentText text={description} defaultToInterfaceOnBilingual />
+      </div>
+    </div>
+  );
+};
+
 
 const useTabDisplayData = (translationLanguagePreference) => {
   const getTabDisplayData = useCallback(() => [
@@ -420,6 +407,26 @@ const useTabDisplayData = (translationLanguagePreference) => {
   return getTabDisplayData();
 };
 
+const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
+   const portalModuleTypeMap = {
+    "about": "PortalAbout",
+    "mobile": "PortalMobile",
+    "organization": "PortalOrganization",
+    "newsletter": "PortalNewsletter"
+    }
+    const modules = [];
+    for (let key of entriesToDisplayList) {
+        if (!portal[key]) { continue; }
+        modules.push({
+            type: portalModuleTypeMap[key],
+            props: portal[key],
+        });
+    }
+    return(
+        <NavSidebar modules={modules} />
+    )
+};
+
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
@@ -431,7 +438,9 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [portal, setPortal] = useState(null);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
+    const topicImage = topicData.image;
 
     const scrollableElement = useRef();
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
@@ -498,11 +507,40 @@ const TopicPage = ({
       onClickFilterIndex = displayTabs.length - 1;
     }
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
+    let sidebar = null;
+    if (topicData) {
+        if (topicData.portal_slug) {
+            Sefaria.getPortal(topicData.portal_slug).then(setPortal);
+            if (portal) {
+                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about"]}/> // "mobile", "organization", "newsletter"]}/>
+            }
+        } else {
+           sidebar = (
+               <div className="sideColumn">
+                    <TopicSideColumn
+                        key={topic}
+                        slug={topic}
+                        links={topicData.links}
+                        clearAndSetTopic={clearAndSetTopic}
+                        setNavTopic={setNavTopic}
+                        parashaData={parashaData}
+                        tref={topicData.ref}
+                        timePeriod={topicData.timePeriod}
+                        properties={topicData.properties}
+                        topicTitle={topicTitle}
+                        multiPanel={multiPanel}
+                        topicImage={topicImage}
+                    />
+                    {!topicData.isLoading && <Promotions/>}
+                </div>
+            );
+        }
+    }
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
+                    <TopicHeader topic={topic} topicData={topicData} topicTitle={topicTitle} multiPanel={multiPanel} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} topicImage={topicImage} />
                     {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabName={tab}
@@ -546,26 +584,7 @@ const TopicPage = ({
                         </TabView>
                     : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
-                <div className="sideColumn">
-                  {topicData ? (
-                    <>
-                      <TopicSideColumn
-                        key={topic}
-                        slug={topic}
-                        links={topicData.links}
-                        clearAndSetTopic={clearAndSetTopic}
-                        setNavTopic={setNavTopic}
-                        parashaData={parashaData}
-                        tref={topicData.ref}
-                        timePeriod={topicData.timePeriod}
-                        properties={topicData.properties}
-                        topicTitle={topicTitle}
-                        multiPanel={multiPanel}
-                      />
-                      {!topicData.isLoading && <Promotions/>}
-                    </>
-                  ) : null}
-                </div>
+                {sidebar}
             </div>
             <Footer />
           </div>
@@ -633,7 +652,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, setNavTopic, timePeriod, properties, topicTitle, multiPanel, topicImage }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -653,7 +672,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
   const readingsComponent = hasReadings ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
-  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel}/>;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} topicTitle={topicTitle} multiPanel={multiPanel} topicImage={topicImage}/>;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -738,15 +757,12 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
-const TopicImage = ({photoLink, enCaption, heCaption }) => {
+const TopicImage = ({photoLink, caption }) => {
   
   return (
     <div class="topicImage">
-        <img class="topicPhoto" src={photoLink}/>
-        <div class="topicImageCaption"> 
-          <InterfaceText text={{en:enCaption, he:heCaption}}  />
-        </div>
-      </div>);
+      <ImageWithCaption photoLink={photoLink} caption={caption} />
+    </div>);
 }
 
 
@@ -806,7 +822,7 @@ const propKeys = [
 ];
 
 
-const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) => {
+const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, topicImage, properties={} }) => {
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
@@ -844,8 +860,8 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
         }
       </TopicSideSection>
   ) : null;
-  const topicImageKey = topicTitle.en;
-  const tpSidebarImg = topicImageKey in hardcodedTopicImagesMap && multiPanel ? <TopicImage photoLink={hardcodedTopicImagesMap[topicImageKey].photoLink} enCaption={hardcodedTopicImagesMap[topicImageKey].enCaption} heCaption={hardcodedTopicImagesMap[topicImageKey].heCaption}/> : null;
+
+  const tpSidebarImg = multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <>
       {tpSidebarImg}
@@ -859,5 +875,6 @@ const TopicMetaData = ({ topicTitle, timePeriod, multiPanel, properties={} }) =>
 export {
   TopicPage,
   TopicCategory,
-  refSort
+  refSort,
+  TopicImage
 }
