@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 
@@ -50,6 +50,10 @@ const Modules = ({type, props}) => {
     "WhoToFollow":            WhoToFollow,
     "Image":                  Image,
     "Wrapper":                Wrapper,
+    "PortalAbout":            PortalAbout,
+    "PortalMobile":           PortalMobile,
+    "PortalOrganization":     PortalOrganization,
+    "PortalNewsletter":       PortalNewsletter,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -486,12 +490,11 @@ const AboutTopics = ({hideTitle}) => (
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>
         <HebrewText>
-בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
+דפי הנושא מציגים מקורות נבחרים מארון הספרים היהודי עבור אלפי נושאים. ניתן לדפדף לפי קטגוריה או לחפש לפי נושא ספציפי, ובסרגל הצד מוצגים הנושאים הפופולריים ביותר ואלה הקשורים אליהם.  הקליקו ושוטטו בין הנושאים השונים כדי ללמוד עוד.
         </HebrewText>
         <EnglishText>
-            Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.
+        Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.
         </EnglishText>
-
     </InterfaceText>
   </Module>
 );
@@ -577,14 +580,16 @@ const GetTheApp = () => (
     <ModuleTitle>Get the Mobile App</ModuleTitle>
     <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
     <br />
-    <a target="_blank" className="button small white appButton ios" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
-      <img src="/static/icons/ios.svg" alt={Sefaria._("Sefaria app on IOS")} />
-      <InterfaceText>iOS</InterfaceText>
-    </a>
-    <a target="_blank" className="button small white appButton" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
-      <img src="/static/icons/android.svg" alt={Sefaria._("Sefaria app on Android")} />
-      <InterfaceText>Android</InterfaceText>
-    </a>
+    <AppStoreButton
+        href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+        platform='ios'
+        altText={Sefaria._("Sefaria app on IOS")}
+    />
+    <AppStoreButton
+        href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        platform='android'
+        altText={Sefaria._("Sefaria app on Android")}
+    />
   </Module>
 );
 
@@ -789,6 +794,58 @@ const DownloadVersions = ({sref}) => {
         </div>
         </Module>
     );
+};
+
+
+const PortalAbout = ({title, description, image_uri, image_caption}) => {
+    return(
+        <Module>
+            <ModuleTitle en={title.en} he={title.he} />
+            <div className="portalTopicImageWrapper">
+                <ImageWithCaption photoLink={image_uri} caption={image_caption} />
+            </div>
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+        </Module>
+    )
+};
+
+
+const PortalMobile = ({title, description, android_link, ios_link}) => {
+    return(
+        <Module>
+            <div className="portalMobile">
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
+                <AppStoreButton href={ios_link} platform={'ios'} altText='Steinsaltz app on iOS' />
+                <AppStoreButton href={android_link} platform={'android'} altText='Steinsaltz app on Android' />
+            </div>
+        </Module>
+    )
+};
+const PortalOrganization = ({title, description}) => {
+    return(
+        <Module>
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
+        </Module>
+    )
+};
+
+
+const PortalNewsletter = ({title, description}) => {
+    let titleElement = <ModuleTitle en={title.en} he={title.he} />;
+
+    return(
+        <Module>
+            {titleElement}
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+            <NewsletterSignUpForm
+                includeEducatorOption={false}
+                emailPlaceholder={{en: "Email Address", he: "כתובת מייל"}}
+                subscribe={Sefaria.subscribeSefariaAndSteinsaltzNewsletter}
+            />
+        </Module>
+    )
 };
 
 

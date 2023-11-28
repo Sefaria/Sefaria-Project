@@ -1,11 +1,7 @@
 name: Continuous
 on:
   push:
-    branches:
-      - "*"
   pull_request:
-    branches:
-      - "*"
 
 concurrency:
   group: ${{ github.ref }}
@@ -93,6 +89,8 @@ jobs:
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
+          build-args: |
+            TYPE=build
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
