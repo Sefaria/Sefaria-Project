@@ -3572,6 +3572,9 @@ display: none;
 .version-with-preview-title-line .selectButton {
   text-decoration: none;
 }
+.version-with-preview-title-line .selectButton.currSelectButton {
+  cursor: default;
+}
 .version-with-preview-title-line .selectButton:not(.currSelectButton) {
   color: var(--select-blue);
 }
