@@ -2,6 +2,7 @@ import pytest
 from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
+from sefaria.system.exceptions import SluggedMongoRecordMissingError
 
 
 def make_topic(slug):
@@ -219,7 +220,7 @@ class TestIntraTopicLink(object):
             'dataSource': 'blahblah'
         }
         l = IntraTopicLink(attrs)
-        with pytest.raises(AssertionError):
+        with pytest.raises(SluggedMongoRecordMissingError):
             l.save()
 
         # non-existant toTopic
@@ -230,7 +231,7 @@ class TestIntraTopicLink(object):
             'dataSource': 'sefaria'
         }
         l = IntraTopicLink(attrs)
-        with pytest.raises(AssertionError):
+        with pytest.raises(SluggedMongoRecordMissingError):
             l.save()
 
         # non-existant fromTopic
@@ -241,7 +242,7 @@ class TestIntraTopicLink(object):
             'dataSource': 'sefaria'
         }
         l = IntraTopicLink(attrs)
-        with pytest.raises(AssertionError):
+        with pytest.raises(SluggedMongoRecordMissingError):
             l.save()
 
         # non-existant linkType
@@ -252,7 +253,7 @@ class TestIntraTopicLink(object):
             'dataSource': 'sefaria'
         }
         l = IntraTopicLink(attrs)
-        with pytest.raises(AssertionError):
+        with pytest.raises(SluggedMongoRecordMissingError):
             l.save()
 
         # duplicate for symmetric linkType

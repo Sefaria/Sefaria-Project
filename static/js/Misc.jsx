@@ -1342,10 +1342,18 @@ class CloseButton extends Component {
 
 class DisplaySettingsButton extends Component {
   render() {
-    var style = this.props.placeholder ? {visibility: "hidden"} : {};
-    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
-      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
-      <span className="textIcon">Aa</span>;
+    let style = this.props.placeholder ? {visibility: "hidden"} : {};
+    let icon;
+
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+      icon =
+        <InterfaceText>
+        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
+        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
+        </InterfaceText>;
+    } else {
+      icon = <span className="textIcon">Aa</span>;
+    }
     return (<a
               className="readerOptions"
               tabIndex="0"
@@ -1884,145 +1892,6 @@ Note.propTypes = {
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
 };
-function NewsletterSignUpForm(props) {
-  const {contextName, includeEducatorOption} = props;
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [educatorCheck, setEducatorCheck] = useState(false);
-  const [subscribeMessage, setSubscribeMessage] = useState(null);
-  const [showNameInputs, setShowNameInputs] = useState(false);
-
-  function handleSubscribeKeyUp(e) {
-    if (e.keyCode === 13) {
-      handleSubscribe();
-    }
-  }
-
-  function handleSubscribe() {
-    if (showNameInputs === true) { // submit
-      if (firstName.length > 0 & lastName.length > 0) {
-        setSubscribeMessage("Subscribing...");
-        const request = new Request(
-        '/api/subscribe/'+email,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')},
-        'Content-Type': 'application/json'}
-        );
-        fetch(request,
-            {
-              method: "POST",
-              mode: 'same-origin',
-              credentials: 'same-origin',
-              body: JSON.stringify({
-                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-                educator: educatorCheck,
-                firstName: firstName,
-                lastName: lastName
-              })
-            }
-        ).then(res => {
-          if ("error" in res) {
-            setSubscribeMessage(res.error);
-            setShowNameInputs(false);
-          } else {
-          setSubscribeMessage("Subscribed! Welcome to our list.");
-          Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
-        }
-        }).catch(data => {
-          setSubscribeMessage("Sorry, there was an error.");
-          setShowNameInputs(false);
-        });
-      } else {
-        setSubscribeMessage("Please enter a valid first and last name");// get he copy
-      }
-    } else if (Sefaria.util.isValidEmailAddress(email)) {
-      setShowNameInputs(true);
-    } else {
-      setShowNameInputs(false);
-      setSubscribeMessage("Please enter a valid email address.");
-    }
-  }
-
-  return (
-      <div className="newsletterSignUpBox">
-      <span className="int-en">
-        <input
-            className="newsletterInput"
-            placeholder="Sign up for Newsletter"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-        <span className="int-he">
-        <input
-            className="newsletterInput"
-            placeholder="הרשמו לניוזלטר"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-        {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/> : null}
-        {showNameInputs ?
-            <><span className="int-en">
-        <input
-            className="newsletterInput firstNameInput"
-            placeholder="First Name"
-            value={firstName}
-            autoFocus
-            onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-              <span className="int-he">
-        <input
-            className="newsletterInput firstNameInput"
-            placeholder="שם פרטי"
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-              <span className="int-en">
-        <input
-            className="newsletterInput"
-            placeholder="Last Name"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-              <span className="int-he">
-        <input
-            className="newsletterInput"
-            placeholder="שם משפחה"
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            onKeyUp={handleSubscribeKeyUp}/>
-      </span>
-              <div className="newsletterEducatorOption">
-          <span className="int-en">
-            <input
-                type="checkbox"
-                className="educatorNewsletterInput"
-                checked={educatorCheck}
-                onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> I am an educator</span>
-          </span>
-                <span className="int-he">
-            <input
-                type="checkbox"
-                className="educatorNewsletterInput"
-                checked={educatorCheck}
-                onChange={e => setEducatorCheck(!!e.target.checked)}/>
-            <span> מורים/ אנשי הוראה</span>
-          </span>
-                <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe}/>
-              </div>
-            </>
-            : null}
-        {subscribeMessage ?
-            <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
-            : null}
-      </div>
-  );
-}
 
 
 class LoginPrompt extends Component {
@@ -2217,8 +2086,16 @@ const InterruptingMessage = ({
       shouldShowModal = true;
     else if (noUserKindIsSet) shouldShowModal = true;
     if (!shouldShowModal) return false;
-
+    // Don't show the modal on pages where the button link goes to since you're already there
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    if (strapi.modal.buttonURL) {
+      if (strapi.modal.buttonURL.en) {
+        excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
+      }
+      if (strapi.modal.buttonURL.he) {
+        excludedPaths.push(new URL(strapi.modal.buttonURL.he).pathname);
+      }
+    }
     return excludedPaths.indexOf(window.location.pathname) === -1;
   };
 
@@ -2377,6 +2254,15 @@ const Banner = ({ onClose }) => {
     if (!shouldShowBanner) return false;
 
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    // Don't show the banner on pages where the button link goes to since you're already there
+    if (strapi.banner.buttonURL) {
+      if (strapi.banner.buttonURL.en) {
+        excludedPaths.push(new URL(strapi.banner.buttonURL.en).pathname);
+      }
+      if (strapi.banner.buttonURL.he) {
+        excludedPaths.push(new URL(strapi.banner.buttonURL.he).pathname);
+      }
+    }
     return excludedPaths.indexOf(window.location.pathname) === -1;
   };
 
@@ -2426,18 +2312,29 @@ const Banner = ({ onClose }) => {
               <a
                 className="button white int-en"
                 href={strapi.banner.buttonURL.en}
+                onClick={() => {
+                  closeBanner("banner_button_clicked");
+                }}
               >
                 <span>{strapi.banner.buttonText.en}</span>
               </a>
               <a
                 className="button white int-he"
                 href={strapi.banner.buttonURL.he}
+                onClick={() => {
+                  closeBanner("banner_button_clicked");
+                }}
               >
                 <span>{strapi.banner.buttonText.he}</span>
               </a>
             </div>
           </div>
-          <div id="bannerMessageClose" onClick={closeBanner}>
+          <div
+            id="bannerMessageClose"
+            onClick={() => {
+              closeBanner("close_clicked");
+            }}
+          >
             ×
           </div>
         </div>
@@ -3272,7 +3169,33 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     )
 }
 
+const ImageWithCaption = ({photoLink, caption }) => {
+  
+  return (
+    <div>
+        <img class="imageWithCaptionPhoto" src={photoLink}/>
+        <div class="imageCaption"> 
+          <InterfaceText text={caption} />
+        </div>
+      </div>);
+}
+
+const AppStoreButton = ({ platform, href, altText }) => {
+  const isIOS = platform === 'ios';
+  const aClasses = classNames({button: 1, small: 1, white: 1, appButton: 1, ios: isIOS});
+  const iconSrc = `/static/icons/${isIOS ? 'ios' : 'android'}.svg`;
+  const text = isIOS ? 'iOS' : 'Android';
+  return (
+      <a target="_blank" className={aClasses} href={href}>
+        <img src={iconSrc} alt={altText} />
+        <InterfaceText>{text}</InterfaceText>
+      </a>
+  );
+};
+
+
 export {
+  AppStoreButton,
   CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
@@ -3305,7 +3228,6 @@ export {
   LoadingRing,
   LoginPrompt,
   NBox,
-  NewsletterSignUpForm,
   Note,
   ProfileListing,
   ProfilePic,
@@ -3336,5 +3258,6 @@ export {
   CategoryChooser,
   TitleVariants,
   requestWithCallBack,
-  OnInView
+  OnInView,
+  ImageWithCaption
 };

@@ -4,11 +4,14 @@ from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet, AbstractTextRecord
 from .category import Category
 from sefaria.system.exceptions import InputError, DuplicateRecordError
-from sefaria.model.timeperiod import TimePeriod
+from sefaria.model.timeperiod import TimePeriod, LifePeriod
+from sefaria.system.validators import validate_url
+from sefaria.model.portal import Portal
 from sefaria.system.database import db
 import structlog, bleach
 from sefaria.model.place import Place
 import regex as re
+from typing import Type
 logger = structlog.get_logger(__name__)
 
 
@@ -43,8 +46,35 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
-        "data_source"  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        "data_source",  #any topic edited manually should display automatically in the TOC and this flag ensures this
+        'image',
+        "portal_slug",  # slug to relevant Portal object
     ]
+
+    attr_schemas = {
+        "image": {
+                "image_uri": {
+                    "type": "string",
+                    "required": True,
+                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
+                },
+                "image_caption": {
+                    "type": "dict",
+                    "required": True,
+                    "schema": {
+                        "en": {
+                            "type": "string",
+                            "required": True
+                        },
+                        "he": {
+                            "type": "string",
+                            "required": True
+                        }
+                    }
+                }
+            }
+        }
+
     ROOT = "Main Menu"  # the root of topic TOC is not a topic, so this is a fake slug.  we know it's fake because it's not in normal form
                         # this constant is helpful in the topic editor tool functions in this file
 
@@ -68,6 +98,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         super(Topic, self)._validate()
         if getattr(self, 'subclass', False):
             assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
+        if getattr(self, 'portal_slug', None):
+            Portal.validate_slug_exists(self.portal_slug)
+        if getattr(self, "image", False):
+            img_url = self.image.get("image_uri")
+            if img_url: validate_url(img_url)
 
     def _normalize(self):
         super()._normalize()
@@ -412,8 +447,9 @@ class PersonTopic(Topic):
             if place and heKey not in properties:
                 value, dataSource = place['value'], place['dataSource']
                 place_obj = Place().load({"key": value})
-                name = place_obj.primary_name('he')
-                d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
+                if place_obj:   
+                    name = place_obj.primary_name('he')
+                    d['properties'][heKey] = {'value': name, 'dataSource': dataSource}
         return d
 
     def contents(self, **kwargs):
@@ -421,7 +457,7 @@ class PersonTopic(Topic):
         d = super(PersonTopic, self).contents(**kwargs)
         if annotate_time_period:
             d = self.annotate_place(d)
-            tp = self.most_accurate_time_period()
+            tp = self.most_accurate_life_period()
             if tp is not None:
                 d['timePeriod'] = {
                     "name": {
@@ -437,26 +473,42 @@ class PersonTopic(Topic):
     
     # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
     # They may also have none of these...
-    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+    def _most_accurate_period(self, time_period_class: Type[TimePeriod]) -> Optional[LifePeriod]:
         if self.get_property("birthYear") and self.get_property("deathYear"):
-            return TimePeriod({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
                 "end": self.get_property("deathYear"),
                 "endIsApprox": self.get_property("deathYearIsApprox", False)
             })
         elif self.get_property("birthYear") and self.get_property("era", "CO"):
-            return TimePeriod({
+            return time_period_class({
                 "start": self.get_property("birthYear"),
                 "startIsApprox": self.get_property("birthYearIsApprox", False),
             })
+        elif self.get_property("deathYear"):
+            return time_period_class({
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
         elif self.get_property("generation"):
-            return TimePeriod().load({"symbol": self.get_property("generation")})
+            return time_period_class().load({"symbol": self.get_property("generation")})
         elif self.get_property("era"):
-            return TimePeriod().load({"symbol": self.get_property("era")})
+            return time_period_class().load({"symbol": self.get_property("era")})
         else:
             return None
 
+    def most_accurate_time_period(self):
+        '''
+        :return: most accurate period as TimePeriod (used when a person's LifePeriod should be formatted like a general TimePeriod)
+        '''
+        return self._most_accurate_period(TimePeriod)
+
+    def most_accurate_life_period(self):
+        '''
+        :return: most accurate period as LifePeriod. currently the only difference from TimePeriod is the way the time period is formatted as a string.
+        '''
+        return self._most_accurate_period(LifePeriod)
 
 class AuthorTopic(PersonTopic):
     """
@@ -536,16 +588,21 @@ class AuthorTopic(PersonTopic):
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
         Aggregates author's works by category when possible and
-        returns list of tuples. Each tuple is of shape (url, {"en", "he"}) corresponding to an index or category of indexes of this author's works.
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        corresponding to an index or category of indexes of this author's works.
         """
         from .schema import Term
         from .text import Index
 
         index_or_cat_list = self.aggregate_authors_indexes_by_category()
-        unique_urls = {}  # {url: {lang: title}}. This dict arbitrarily chooses one title per URL.
+        unique_urls = []
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
+            en_desc = getattr(index_or_cat, 'enShortDesc', None)
+            he_desc = getattr(index_or_cat, 'heShortDesc', None)
             if isinstance(index_or_cat, Index):
-                unique_urls[f'/{index_or_cat.title.replace(" ", "_")}'] = {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')}
+                unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
+                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
+                    "description":{"en": en_desc, "he": he_desc}})
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -555,8 +612,10 @@ class AuthorTopic(PersonTopic):
                     base_category_term = Term().load({"name": base_category.sharedTitle})
                     en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                unique_urls[f'/texts/{"/".join(index_or_cat.path)}'] = {"en": en_text, "he": he_text}
-        return list(unique_urls.items())
+                unique_urls.append({"url": f'/texts/{"/".join(index_or_cat.path)}',
+                                    "title": {"en": en_text, "he": he_text},
+                                    "description":{"en": en_desc, "he": he_desc}})
+        return unique_urls
 
     @staticmethod
     def is_author(slug):
@@ -659,14 +718,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         super(IntraTopicLink, self)._validate()
 
         # check everything exists
-        link_type = TopicLinkType().load({"slug": self.linkType})
-        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
-        from_topic = Topic.init(self.fromTopic)
-        assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
-        to_topic = Topic.init(self.toTopic)
-        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
-        data_source = TopicDataSource().load({"slug": self.dataSource})
-        assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
+        Topic.validate_slug_exists(self.fromTopic)
+        Topic.validate_slug_exists(self.toTopic)
+        TopicDataSource.validate_slug_exists(self.dataSource)
 
         # check for duplicates
         duplicate = IntraTopicLink().load({"linkType": self.linkType, "fromTopic": self.fromTopic, "toTopic": self.toTopic,
@@ -676,6 +731,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                 "Duplicate intra topic link for linkType '{}', fromTopic '{}', toTopic '{}'".format(
                     self.linkType, self.fromTopic, self.toTopic))
 
+        link_type = TopicLinkType.init(self.linkType, 0)
         if link_type.slug == link_type.inverseSlug:
             duplicate_inverse = IntraTopicLink().load({"linkType": self.linkType, "toTopic": self.fromTopic, "fromTopic": self.toTopic,
              "class": getattr(self, 'class'), "_id": {"$ne": getattr(self, "_id", None)}})
@@ -685,6 +741,8 @@ class IntraTopicLink(abst.AbstractMongoRecord):
                         duplicate_inverse.linkType, duplicate_inverse.fromTopic, duplicate_inverse.toTopic))
 
         # check types of topics are valid according to validFrom/To
+        from_topic = Topic.init(self.fromTopic)
+        to_topic = Topic.init(self.toTopic)
         if getattr(link_type, 'validFrom', False):
             assert from_topic.has_types(set(link_type.validFrom)), "from topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.fromTopic, ', '.join(link_type.validFrom), self.linkType, ', '.join(from_topic.get_types()))
         if getattr(link_type, 'validTo', False):
@@ -780,10 +838,10 @@ class RefTopicLink(abst.AbstractMongoRecord):
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def _validate(self):
+        Topic.validate_slug_exists(self.toTopic)
+        TopicLinkType.validate_slug_exists(self.linkType, 0)
         to_topic = Topic.init(self.toTopic)
-        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
-        link_type = TopicLinkType().load({"slug": self.linkType})
-        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
+        link_type = TopicLinkType.init(self.linkType, 0)
         if getattr(link_type, 'validTo', False):
             assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
     
@@ -871,11 +929,10 @@ class TopicLinkType(abst.SluggedAbstractMongoRecord):
         # Check that validFrom and validTo contain valid topic slugs if exist
 
         for validToTopic in getattr(self, 'validTo', []):
-            assert Topic.init(validToTopic) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+            Topic.validate_slug_exists(validToTopic)
 
         for validFromTopic in getattr(self, 'validFrom', []):
-            assert Topic.init(validFromTopic) is not None, "ValidTo topic '{}' does not exist".format(
-                self.validFrom)
+            Topic.validate_slug_exists(validFromTopic)
 
     def get(self, attr, is_inverse, default=None):
         attr = 'inverse{}{}'.format(attr[0].upper(), attr[1:]) if is_inverse else attr
