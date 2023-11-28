@@ -3521,6 +3521,9 @@ display: none;
   /*unicode-bidi: plaintext;*/
 }
 .versionBlock.with-preview .versionPreviewWithOptionalEllipsis {
+  --english-font: "adobe-garamond-pro", var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 18px;
   display: block;
 }
 .versionBlock .versionPreview {
