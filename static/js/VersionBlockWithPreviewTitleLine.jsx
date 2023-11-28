@@ -18,8 +18,8 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
     const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (
         <div className='version-with-preview-title-line'>
-            <a className={`open-details chevron-${chevronDirection}`} onClick={() => setIsInfoOpen(!isInfoOpen)}>
-                <span className='version-with-preview-short-version-title'>{makeShortVersionTitle()}</span>
+            <a className={`open-details chevron-${chevronDirection}`} onClick={() => setIsInfoOpen(!isInfoOpen)} href='#'>
+                {makeShortVersionTitle()}
             </a>
             <VersionBlockSelectButton
                 isSelected={isSelected}

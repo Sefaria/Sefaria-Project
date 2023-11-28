@@ -55,7 +55,7 @@ function VersionBlockHeaderText({link, onClick, text, direction}) {
     }
     return (
         <div className={'versionPreviewWithOptionalEllipsis'} dir={direction}>
-          <div
+          <a
               className={`versionPreview ${shouldAttemptTruncation && 'shouldAttemptTruncation'}`}
               ref={textRef}
               href={link}

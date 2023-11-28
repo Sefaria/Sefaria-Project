@@ -3541,6 +3541,7 @@ display: none;
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .versionBlock .versionPreview.shouldAttemptTruncation  {
+  display: block;
   overflow: hidden;
   --max-lines: 5;
   max-height: calc(var(--line-height) * var(--max-lines));

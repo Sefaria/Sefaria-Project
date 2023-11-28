@@ -29,7 +29,7 @@ class versionTools {
       const withParam = mainPanel ? "" : "&with=Translation Open";
       const versionParam = mainPanel ? version.language : 'side';
       const nonSelectedVersionParams = Object.entries(currObjectVersions)
-                                        .filter(([vlang, ver]) => !!ver && !!ver?.versionTitle && !version?.merged && (withParam || vlang !== version.language))  // in 'side' case, keep all version params
+                                        .filter(([vlang, ver]) => !!ver && !!ver?.versionTitle && !version?.merged && (withParam || vlang === version.language))  // in 'side' case, keep all version params
                                         .map(([vlang, ver]) => `&v${vlang}=${ver.versionTitle.replace(/\s/g,'_')}`)
                                         .join("");
       const versionLink = nonSelectedVersionParams === "" ? null : `/${Sefaria.normRef(currRef)}${nonSelectedVersionParams}&v${versionParam}=${version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
