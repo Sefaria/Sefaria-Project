@@ -77,7 +77,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/contextus-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -151,7 +151,7 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
+            us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/contextus-${{ matrix.app }}-${{ steps.branch-name.outputs.current_branch }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=branch
@@ -168,7 +168,7 @@ jobs:
           context: .
           push: true
           build-args: |
-            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/sefaria-web-${{ steps.branch-name.outputs.current_branch }}:sha-${{ steps.get-sha.outputs.sha_short }}
+            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/contextus-web-${{ steps.branch-name.outputs.current_branch }}:sha-${{ steps.get-sha.outputs.sha_short }}
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
