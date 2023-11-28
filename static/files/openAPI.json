@@ -21,7 +21,6 @@
     ],
     "paths": {
         "/api/texts/{tref}": {
-            "summary": "Text API!",
             "get": {
                 "parameters": [
                     {
@@ -171,13 +170,11 @@
                             }
                         },
                         "description": "Successful response"
-                    },
-                    "400": {
-                        "description": "Bad request"
                     }
                 },
                 "deprecated": false,
-                "summary": "Retrieve text information"
+                "summary": "Text API",
+                "description": "Retrieve the text and some additional metadata for a specific Sefaria Reference"
             },
             "parameters": [
                 {
@@ -191,7 +188,7 @@
             ]
         },
         "/api/name/{name}": {
-            "summary": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria",
+            "description": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria",
             "get": {
                 "parameters": [
                     {
@@ -223,12 +220,10 @@
                             }
                         },
                         "description": "Successful response"
-                    },
-                    "400": {
-                        "description": "Bad request"
                     }
                 },
-                "summary": "Get name information"
+                "summary": "Name API",
+                "description": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria"
             },
             "parameters": [
                 {
@@ -242,8 +237,220 @@
                 }
             ]
         },
-        "/api/words/{word}/": {
-            "summary": "Searches Sefaria lexicon entries for the given string",
+        "/api/texts/random/": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "titles",
+                        "description": "A string of book titles from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those titles.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "categories",
+                        "description": "A string of categories from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those categories.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/textAPIReponse"
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Random Text API",
+                "description": "Returns a random text reference from the Sefaria library. Results can be limited to a specific category or from a selection of titles given the correct query params."
+            }
+        },
+        "/api/recommend/topics/{ref_list}": {
+            "get": {
+                "parameters": [
+                    {
+                        "examples": {
+                            "example1": {
+                                "value": "Genesis 50+Mishnah Peah 3"
+                            }
+                        },
+                        "name": "ref_list",
+                        "description": "List of strings separated by '+'",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/recommendedTopicResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Recommended topics API",
+                "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references."
+            },
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "json": {
+                                        "description": "List of strings",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/recommendedTopicResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Recommended topics API",
+                "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references.\n\nn.b. The `ref_list` param is not required for a post request."
+            }
+        },
+        "/api/manuscripts/{tref}": {
+            "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
+            "get": {
+                "parameters": [
+                    {
+                        "examples": {
+                            "Tanakh Example": {
+                                "value": "Numbers 12.1"
+                            },
+                            "Talmud Example": {
+                                "value": "Berakhot 2a.1"
+                            }
+                        },
+                        "name": "tref",
+                        "description": "The `tref` parameter must a valid Sefaria ref to a text.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "Manuscript JSON": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ManuscriptJSON"
+                                    }
+                                },
+                                "examples": {
+                                    "Esther 4:14-15": {
+                                        "value": [
+                                            {
+                                                "manuscript_slug": "leningrad-codex-(1008-ce)",
+                                                "page_id": "LC_Folio_435r",
+                                                "image_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A.jpg",
+                                                "thumbnail_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A_thumbnail.jpg",
+                                                "anchorRef": "Esther 4:17-6:2",
+                                                "anchorRefExpanded": [
+                                                    "Esther 5:14"
+                                                ],
+                                                "manuscript": {
+                                                    "slug": "leningrad-codex-(1008-ce)",
+                                                    "title": "Leningrad Codex (1008 CE)",
+                                                    "he_title": "כתב יד לנינגרד (1008)",
+                                                    "source": "https://dornsife.usc.edu/wsrp/biblical-manuscripts",
+                                                    "description": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin",
+                                                    "he_description": ""
+                                                }
+                                            },
+                                            {
+                                                "manuscript_slug": "megilat-ester-or-1047-(17th-century)",
+                                                "page_id": "Esther",
+                                                "image_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20mid.jpg",
+                                                "thumbnail_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20thumb.png",
+                                                "anchorRef": "Esther",
+                                                "anchorRefExpanded": [
+                                                    "Esther 5:14"
+                                                ],
+                                                "manuscript": {
+                                                    "slug": "megilat-ester-or-1047-(17th-century)",
+                                                    "title": "Megilat Ester, Or 1047 (17th Century)",
+                                                    "he_title": "מגילת אסתר Or 1047 (מאה 17)",
+                                                    "source": "https://www.bl.uk/collection-items/megilat-ester-or-1047",
+                                                    "description": "",
+                                                    "he_description": ""
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Manuscript API",
+                "description": "This call retrieves all associated manuscript data and metadata for a given Sefaria `tref`. "
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Tanakh Example": {
+                            "value": "Numbers.17.2"
+                        },
+                        "Talmud Example": {
+                            "value": "Berakhot.2a.1"
+                        }
+                    },
+                    "name": "tref",
+                    "description": "A valid Sefaria ref",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/words/{word}": {
             "get": {
                 "parameters": [
                     {
@@ -298,6 +505,9 @@
                                             },
                                             {
                                                 "$ref": "#/components/schemas/KleinDictionaryEntry"
+                                            },
+                                            {
+                                                "$ref": "#/components/schemas/HebrewDictionaryEntry"
                                             }
                                         ]
                                     }
@@ -306,12 +516,309 @@
                         },
                         "description": "An array of matching words."
                     }
-                }
+                },
+                "summary": "Lexicon API",
+                "description": "Searches Sefaria lexicon entries for the given string"
             },
             "parameters": [
                 {
                     "name": "word",
                     "description": "The word or phrase to search for in the lexicons.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/words/completion/{word}/{lexicon}": {
+            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "description": "Number of results to return (0 indicates no limit)",
+                        "schema": {
+                            "default": 10,
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "Klein Dictionary": {
+                                "value": "Klein Dictionary"
+                            },
+                            "Jastrow Dictionary": {
+                                "value": "Jastrow Dictionary"
+                            },
+                            "Sefer HaShorashim": {
+                                "value": "Sefer HaShorashim"
+                            },
+                            "Animadversions by Elias Levita on Sefer HaShorashim": {
+                                "value": "Animadversions by Elias Levita on Sefer HaShorashim"
+                            },
+                            "BDB Dictionary": {
+                                "value": "BDB Dictionary"
+                            },
+                            "BDB Aramaic Dictionary": {
+                                "value": "BDB Aramaic Dictionary"
+                            }
+                        },
+                        "name": "lexicon",
+                        "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/wordCompletionAPIResponse"
+                                    }
+                                },
+                                "examples": {
+                                    "result": {
+                                        "value": [
+                                            [
+                                                "אב",
+                                                "אַב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אֵב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אָב"
+                                            ],
+                                            [
+                                                "אבד",
+                                                "אֲבַד"
+                                            ],
+                                            [
+                                                "אבה",
+                                                "אבה"
+                                            ],
+                                            [
+                                                "אבן",
+                                                "אֶ֫בֶן"
+                                            ],
+                                            [
+                                                "אגרה",
+                                                "אִגְּרָה"
+                                            ],
+                                            [
+                                                "אדין",
+                                                "אֱדַ֫יִן"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אִדַּר"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אֲדָר"
+                                            ],
+                                            [
+                                                "אדרגזר",
+                                                "אֲדַרְגָּזַר"
+                                            ],
+                                            [
+                                                "אדרזדא",
+                                                "אַדְרַזְדָּא"
+                                            ],
+                                            [
+                                                "אדרע",
+                                                "אֶדְרַע"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Word completion API",
+                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
+            },
+            "parameters": [
+                {
+                    "name": "word",
+                    "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "name": "lexicon",
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/find-refs": {},
+        "/api/texts/versions/{index}": {
+            "summary": "All Available Versions of a Text",
+            "description": "This endpoint return all of the available versions of a text given an index title passed as a parameter. ",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "VersionJSON": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/VersionJSON"
+                                    }
+                                },
+                                "examples": {
+                                    "Rashi on Kohelet": {
+                                        "value": [
+                                            {
+                                                "title": "Rashi on Ecclesiastes",
+                                                "versionTitle": "The Metsudah Five Megillot, Lakewood, N.J., 2001",
+                                                "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002162036",
+                                                "language": "he",
+                                                "status": "locked",
+                                                "license": "CC-BY",
+                                                "versionNotes": "",
+                                                "digitizedBySefaria": "",
+                                                "priority": 2,
+                                                "versionTitleInHebrew": "",
+                                                "versionNotesInHebrew": "",
+                                                "extendedNotes": "",
+                                                "extendedNotesHebrew": "",
+                                                "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/ba0b4357b240eff4b28b7fcfc4669d56.png",
+                                                "purchaseInformationURL": "https://www.israelbookshoppublications.com/store/pc/Metsudah-Five-Megilloth-w-Rashi-26p309.htm",
+                                                "shortVersionTitle": "",
+                                                "shortVersionTitleInHebrew": "",
+                                                "isBaseText": true,
+                                                "firstSectionRef": "Rashi on Ecclesiastes 1:1"
+                                            },
+                                            {
+                                                "title": "Rashi on Ecclesiastes",
+                                                "versionTitle": "The Metsudah Five Megillot, Lakewood, N.J., 2001",
+                                                "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002162036",
+                                                "language": "en",
+                                                "status": "locked",
+                                                "license": "CC-BY",
+                                                "versionNotes": "",
+                                                "digitizedBySefaria": "",
+                                                "priority": 2,
+                                                "versionTitleInHebrew": "",
+                                                "versionNotesInHebrew": "",
+                                                "extendedNotes": "",
+                                                "extendedNotesHebrew": "",
+                                                "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/00c61bd3103f9398bf080832c4a0221f.png",
+                                                "purchaseInformationURL": "https://www.israelbookshoppublications.com/store/pc/Metsudah-Five-Megilloth-w-Rashi-26p309.htm",
+                                                "shortVersionTitle": "",
+                                                "shortVersionTitleInHebrew": "",
+                                                "isBaseText": false,
+                                                "firstSectionRef": "Rashi on Ecclesiastes 1:1"
+                                            },
+                                            {
+                                                "title": "Rashi on Ecclesiastes",
+                                                "versionTitle": "On Your Way",
+                                                "versionSource": "http://mobile.tora.ws/",
+                                                "language": "he",
+                                                "status": "locked",
+                                                "license": "Public Domain",
+                                                "versionNotes": "",
+                                                "digitizedBySefaria": "",
+                                                "priority": 1,
+                                                "versionTitleInHebrew": "ובלכתך בדרך",
+                                                "versionNotesInHebrew": "",
+                                                "extendedNotes": "",
+                                                "extendedNotesHebrew": "",
+                                                "purchaseInformationImage": "",
+                                                "purchaseInformationURL": "",
+                                                "shortVersionTitle": "",
+                                                "shortVersionTitleInHebrew": "",
+                                                "isBaseText": true,
+                                                "firstSectionRef": "Rashi on Ecclesiastes 1:1"
+                                            },
+                                            {
+                                                "title": "Rashi on Ecclesiastes",
+                                                "versionTitle": "Sefaria Community Translation",
+                                                "versionSource": "https://www.sefaria.org",
+                                                "language": "en",
+                                                "status": "",
+                                                "license": "",
+                                                "versionNotes": "",
+                                                "digitizedBySefaria": "",
+                                                "priority": "",
+                                                "versionTitleInHebrew": "תרגום קהילת ספריא",
+                                                "versionNotesInHebrew": "",
+                                                "extendedNotes": "",
+                                                "extendedNotesHebrew": "",
+                                                "purchaseInformationImage": "",
+                                                "purchaseInformationURL": "",
+                                                "shortVersionTitle": "",
+                                                "shortVersionTitleInHebrew": "",
+                                                "isBaseText": false,
+                                                "firstSectionRef": "Rashi on Ecclesiastes 3:3"
+                                            },
+                                            {
+                                                "title": "Rashi on Ecclesiastes",
+                                                "versionTitle": "The Five Megilloth, English translation by A. Cohen, Soncino Press, 1946",
+                                                "versionSource": "https://www.nli.org.il/en/books/NNL_ALEPH002644163/NLI",
+                                                "language": "en",
+                                                "status": "locked",
+                                                "license": "CC-BY",
+                                                "versionNotes": "",
+                                                "digitizedBySefaria": "",
+                                                "priority": "",
+                                                "versionTitleInHebrew": "",
+                                                "versionNotesInHebrew": "",
+                                                "extendedNotes": "",
+                                                "extendedNotesHebrew": "",
+                                                "purchaseInformationImage": "",
+                                                "purchaseInformationURL": "",
+                                                "shortVersionTitle": "Abraham Cohen, Soncino Press, 1946",
+                                                "shortVersionTitleInHebrew": "",
+                                                "isBaseText": false,
+                                                "firstSectionRef": "Rashi on Ecclesiastes 1:1"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Returns a list containing the JSON Objects for each version available for the given `index` title. Each JSON Object contains all of the metadata for a given version. "
+                    }
+                },
+                "summary": "Versions API",
+                "description": "The versions API takes a title of a valid Sefaria `index` as a parameter, and will return all available versions of the text in the Sefaria database, alongside metadata for each version. A version can be a translation of the text, an alternative language, or any other text associated with that index. \n\n*Note:* In order to see the expected results, you need to make sure you are passing a recognized `index`. For example, `Rashi on Genesis` is a valid `index` but `Rashi` is not. To see the entire list of valid Sefaria indices, click [here](https://www.sefaria.org/api/index/)"
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Mishnah": {
+                            "value": "Mishnah Berakhot"
+                        },
+                        "Tanakh": {
+                            "value": "Kohelet"
+                        },
+                        "Commentary": {
+                            "value": "Rashi on Exodus"
+                        },
+                        "Halacha": {
+                            "value": "Shulchan Aruch Orach Chaim"
+                        }
+                    },
+                    "name": "index",
+                    "description": "A valid Sefaria Index",
                     "schema": {
                         "type": "string"
                     },
@@ -469,6 +976,7 @@
                         "type": "boolean"
                     },
                     "is_node": {
+                        "description": "Returns true if the submitted text is a `node` in a complex text.",
                         "type": "boolean"
                     },
                     "is_section": {
@@ -506,6 +1014,7 @@
                         "type": "string"
                     },
                     "book": {
+                        "description": "If the submitted response is a ref, this returns the book it belonhs to.",
                         "type": "string"
                     },
                     "internalSections": {
@@ -536,29 +1045,31 @@
                     },
                     "examples": {
                         "type": "array",
-                        "items": {
-
-                        }
+                        "items": {}
                     },
                     "sectionNames": {
+                        "description": "Given a reference, this returns the names of the sections and segments at each depth of that text.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "heSectionNames": {
+                        "description": "Given a reference, this returns the names of the sections and segments at each depth of that text in Hebrew.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "addressExamples": {
+                        "description": "Given a partial ref, this will return an array of strings of possible ways that it might be completed.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "heAddressExamples": {
+                        "description": "Given a partial ref, this will return an array of hebrew strings of possible ways that it might be completed.",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -689,8 +1200,7 @@
                         "3",
                         "3"
                     ],
-                    "examples": [
-                    ],
+                    "examples": [],
                     "sectionNames": [
                         "Chapter",
                         "Verse",
@@ -711,6 +1221,409 @@
                         "ו׳",
                         "ט׳"
                     ]
+                }
+            },
+            "dictionaryEntry": {
+                "title": "Root Type for dictionaryEntry",
+                "description": "A single dictionary entry on Sefaria.",
+                "type": "object",
+                "properties": {
+                    "headword": {
+                        "description": "The main word in the lexicon entry. The one you would look up in the book version.",
+                        "type": "string"
+                    },
+                    "parent_lexicon": {
+                        "description": "Name of the lexicon from which the entry comes from.",
+                        "type": "string"
+                    },
+                    "parent_lexicon_details": {
+                        "description": "",
+                        "type": "object"
+                    }
+                }
+            },
+            "StrongsDictionaryEntry": {
+                "title": "StrongsDictionaryEntry",
+                "description": "",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "strong_number": {
+                        "type": "string"
+                    },
+                    "transliteration": {
+                        "description": ""
+                    },
+                    "pronunciation": {
+                        "description": ""
+                    },
+                    "language_code": {
+                        "description": ""
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "morphology": {
+                                "type": "string"
+                            },
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SenseStrongsDictionaryEntry"
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "headword": "רָאָה",
+                    "parent_lexicon": "BDB Augmented Strong",
+                    "content": {
+                        "morphology": "v",
+                        "senses": [
+                            {
+                                "definition": "to see,  look at,  inspect,  perceive,  consider",
+                                "senses": [
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to see"
+                                            },
+                                            {
+                                                "definition": "to see,  perceive"
+                                            },
+                                            {
+                                                "definition": "to see,  have vision"
+                                            },
+                                            {
+                                                "definition": "to look at,  see,  regard,  look after,  see after,  learn about,  observe,  watch,  look upon,  look out,  find out"
+                                            },
+                                            {
+                                                "definition": "to see,  observe,  consider,  look at,  give attention to, discern,  distinguish"
+                                            },
+                                            {
+                                                "definition": "to look at,  gaze at"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Qal"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to appear,  present oneself"
+                                            },
+                                            {
+                                                "definition": "to be seen"
+                                            },
+                                            {
+                                                "definition": "to be visible"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Niphal"
+                                        }
+                                    },
+                                    {
+                                        "definition": " to be seen",
+                                        "grammar": {
+                                            "verbal_stem": "Pual"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to cause to see,  show"
+                                            },
+                                            {
+                                                "definition": "to cause to look intently at,  behold,  cause to gaze at"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Hiphil"
+                                        }
+                                    },
+                                    {
+                                        "senses": [
+                                            {
+                                                "definition": "to be caused to see,  be shown"
+                                            },
+                                            {
+                                                "definition": "to be exhibited to"
+                                            }
+                                        ],
+                                        "grammar": {
+                                            "verbal_stem": "Hophal"
+                                        }
+                                    },
+                                    {
+                                        "definition": " to look at each other,  face",
+                                        "grammar": {
+                                            "verbal_stem": "Hithpael"
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "strong_number": "7200",
+                    "transliteration": "râʼâh",
+                    "pronunciation": "raw-aw'",
+                    "language_code": "heb",
+                    "parent_lexicon_details": {
+                        "name": "BDB Augmented Strong",
+                        "language": "heb.biblical",
+                        "to_language": "eng",
+                        "text_categories": [
+                            "Tanakh, Torah",
+                            "Tanakh, Prophets",
+                            "Tanakh, Writings"
+                        ],
+                        "source": "Open Scriptures on GitHub",
+                        "source_url": "https://github.com/openscriptures/strongs",
+                        "attribution": "Based on the work of Larry Pierce at the Online Bible",
+                        "attribution_url": "http://www.blueletterbible.org/contact/contact_gen.cfm"
+                    }
+                }
+            },
+            "BDBDictionaryEntry": {
+                "title": "BDBDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries",
+                        "type": "string"
+                    },
+                    "TWOT": {
+                        "description": "The corresponding Theological Wordbook of the Old Testament number for this word",
+                        "type": "string"
+                    },
+                    "strong_numbers": {
+                        "description": "An array of corresponsing Strong Numbers for this word",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "root": {
+                        "description": "Indicates if the headword is the Biblical root. (Indicated in print, by a larger printed headword)",
+                        "type": "boolean"
+                    },
+                    "peculiar": {
+                        "description": "A bool indicating the presence of the `‡` symbol in print, demonstrating that the word is peculiar to Biblical Aramaic.",
+                        "type": "boolean"
+                    },
+                    "ordinal": {
+                        "description": "when the same headword has more than one entry with a differen meaning they are offset by the roman numerals here",
+                        "type": "string"
+                    },
+                    "occurrences": {
+                        "description": "A count of the number of times the headword appears in the Bible",
+                        "type": "number"
+                    },
+                    "headword_suffix": {
+                        "description": "In some cases the headword has some additional content in print beyond it. That data is included here.",
+                        "type": "string"
+                    },
+                    "GK": {
+                        "description": "The corresponding Goodrick/Kohlenberger Lexicon number for this headword.",
+                        "type": "string"
+                    },
+                    "all_cited": {
+                        "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of the word are listed as part of this entry",
+                        "type": "boolean"
+                    },
+                    "brackets": {
+                        "description": "headword has brackets in print",
+                        "type": "boolean"
+                    },
+                    "alt_headwords": {
+                        "description": "An array of alternative headwords for the entry",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "properties": {
+                            "word": {
+                                "description": "The alternative headword",
+                                "type": "string"
+                            },
+                            "occurences": {
+                                "description": "The number of times the alternative headword exists in the Bible"
+                            }
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous entry in print",
+                        "type": "string"
+                    },
+                    "next_hw": {
+                        "description": "the next entry in print",
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "definition": {
+                                            "description": "a definition of this sense of the word",
+                                            "type": "string"
+                                        },
+                                        "all_cited": {
+                                            "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of this sense of the word are listed as part of this entry",
+                                            "type": "string"
+                                        },
+                                        "form": {
+                                            "description": "the grammatical verb form (binyan) of the word",
+                                            "type": "string"
+                                        },
+                                        "note": {
+                                            "description": "an additional note for the entry",
+                                            "type": "string"
+                                        },
+                                        "num": {
+                                            "description": "the string of the numbering of this sense in print (it can be a number, English letter, Roman digits, with period, in parentheses, etc.)",
+                                            "type": "string"
+                                        },
+                                        "occurences": {
+                                            "description": "number of occurrences of this sense in bible",
+                                            "type": "string"
+                                        },
+                                        "pre_num": {
+                                            "description": "In some cases the sense has some additional characters before the entry  (e.g. the word Especially). That data is included here",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "HebrewDictionaryEntry": {
+                "title": "HebrewDictionaryEntry",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries",
+                        "type": "string"
+                    },
+                    "refs": {
+                        "description": "Cross references to selections in the Sefaria library.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ref"
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous headword entry from the book.",
+                        "type": "string"
+                    },
+                    "next_hw": {
+                        "description": "The next headword entry from the book.",
+                        "type": "string"
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "definition": {
+                                            "description": "A definition of this sense of the word",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "JastrowDictionaryEntry": {
+                "title": "JastrowDictionaryEntry",
+                "description": "An entry from Jastrow’s Dictionary,",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/dictionaryEntry"
+                    }
+                ],
+                "properties": {
+                    "rid": {
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries"
+                    },
+                    "quotes": {
+                        "description": ""
+                    },
+                    "refs": {
+                        "description": "Cross references to selections in the Sefaria library.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ref"
+                        }
+                    },
+                    "prev_hw": {
+                        "description": "The previous headword entry from the book."
+                    },
+                    "next_hw": {
+                        "description": "The next headword entry from the book."
+                    },
+                    "plural_form": {
+                        "description": "The plural form of the headword."
+                    },
+                    "language_reference": {
+                        "description": ""
+                    },
+                    "language_code": {
+                        "description": "A string containing the following characters `h.` (Hebrew), `b. h.` (Biblical Hebrew) `ch.` or `Ch.` (Chaldean) indicating the source language of the entry."
+                    },
+                    "alt_headwords": {
+                        "description": "An array of alternate headwords for the entry. Symbolized in print as those headwords separated by commas after the initial entry.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "content": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "senses": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SenseJastrowDictionaryEntry"
+                                }
+                            },
+                            "morphology": {
+                                "description": "A description of the morphological form of the word, one of `m., m. pl., f., f. pl., pr. n., pr. n. pl., pr. n. f., pr. n. m., pron., pers. pron.`",
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             },
             "textAPIReponse": {
@@ -957,52 +1870,32 @@
                     },
                     "alts": {
                         "type": "array",
-                        "items": {
-
-                        }
+                        "items": {}
                     },
                     "index_offsets_by_depth": {
                         "type": "object"
                     },
                     "next": {
-                        "oneOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Next segment reference in sequence, if last ref, field will be `null`."
+                        "nullable": true,
+                        "description": "Next segment reference in sequence, if last ref, field will be `null`.",
+                        "type": "string"
                     },
                     "prev": {
-                        "oneOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "description": "Previous segment reference in sequence, if first ref, field will be `null`."
+                        "nullable": true,
+                        "description": "Previous segment reference in sequence, if first ref, field will be `null`.",
+                        "type": "string"
                     },
                     "commentary": {
                         "type": "array",
-                        "items": {
-
-                        }
+                        "items": {}
                     },
                     "sheets": {
                         "type": "array",
-                        "items": {
-
-                        }
+                        "items": {}
                     },
                     "layer": {
                         "type": "array",
-                        "items": {
-
-                        }
+                        "items": {}
                     }
                 },
                 "example": {
@@ -1279,41 +2172,17 @@
                     "heDigitizedBySefaria": false,
                     "heLicense": "Public Domain",
                     "formatHeAsPoetry": false,
-                    "alts": [
-                    ],
-                    "index_offsets_by_depth": {
-
-                    },
+                    "alts": [],
+                    "index_offsets_by_depth": {},
                     "next": "Mishnah Peah 5",
                     "prev": "Mishnah Peah 3",
-                    "commentary": [
-                    ],
-                    "sheets": [
-                    ],
-                    "layer": [
-                    ]
+                    "commentary": [],
+                    "sheets": [],
+                    "layer": []
                 }
             },
-            "SenseStrongsDictionaryEntry": {
-                "description": "",
-                "type": "object",
-                "properties": {
-                    "definition": {
-                        "description": ""
-                    },
-                    "grammar": {
-                        "description": "",
-                        "type": "object",
-                        "properties": {
-                            "verbal_stem": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "JastrowDictionaryEntry": {
-                "title": "JastrowDictionaryEntry",
+            "KleinDictionaryEntry": {
+                "title": "KleinDictionaryEntry",
                 "type": "object",
                 "allOf": [
                     {
@@ -1328,117 +2197,7 @@
                         "description": ""
                     },
                     "refs": {
-                        "description": "Cross references to selections in the Sefaria library.",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ref"
-                        }
-                    },
-                    "prev_hw": {
-                        "description": "The previous headword entry from the book."
-                    },
-                    "next_hw": {
-                        "description": "The next headword entry from the book."
-                    },
-                    "plural_form": {
-                        "description": "The plural form of the headword."
-                    },
-                    "language_reference": {
-                        "description": ""
-                    },
-                    "language_code": {
-                        "description": "A string containing the following characters `h.` (Hebrew), `b. h.` (Biblical Hebrew) `ch.` or `Ch.` (Chaldean) indicating the source language of the entry."
-                    },
-                    "alt_headwords": {
-                        "description": "An array of alternate headwords for the entry. Symbolized in print as those headwords separated by commas after the initial entry.",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "content": {
-                        "description": "",
-                        "type": "object",
-                        "properties": {
-                            "senses": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/SenseJastrowDictionaryEntry"
-                                }
-                            },
-                            "morphology": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            },
-            "SenseKleinDictionaryEntry": {
-                "description": "",
-                "type": "object",
-                "properties": {
-                    "definition": {
-                        "description": "",
-                        "type": "string"
-                    },
-                    "grammar": {
-                        "description": "",
-                        "type": "object",
-                        "properties": {
-                            "verbal_stem": {
-                                "type": "string"
-                            },
-                            "language_code": {
-                                "type": "string"
-                            },
-                            "binyan_form": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            },
-                            "morphology": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "number": {
-                        "type": "string"
-                    },
-                    "plural_form": {
-                        "type": "string"
-                    },
-                    "notes": {
-                        "type": "string"
-                    },
-                    "morphology": {
-                        "type": "string"
-                    },
-                    "language_code": {
-                        "type": "string"
-                    },
-                    "alternative": {
-                        "type": "string"
-                    }
-                }
-            },
-            "KleinDictionaryEntry": {
-                "title": "KleinDictionaryEntry",
-                "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/dictionaryEntry"
-                    }
-                ],
-                "properties": {
-                    "rid": {
-                        "description": ""
-                    },
-                    "quotes": {
-                        "description": ""
-                    },
-                    "refs": {
-                        "description": "",
+                        "description": "Internal references to the Klein dictionary for other entries.",
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/ref"
@@ -1457,19 +2216,19 @@
                         "description": ""
                     },
                     "language_code": {
-                        "description": ""
+                        "description": "If not present, it’s Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word."
                     },
                     "morphology": {
-                        "description": ""
+                        "description": "One of [n., adj., adv., m.n., abs., art. , attrib., auxil., comp., copul., c st., def., f., f. n., imper.., Imperf., Indef art., Inf, Interj., Interr., Intr., Neut., Part., Pass., Perf., Possess., p. part., prep., pres part., pres t., p.t.., sing., Subj., Tr.]"
                     },
                     "alt_headwords": {
-                        "description": ""
+                        "description": "Alternative spellings of headword"
                     },
                     "notes": {
-                        "description": ""
+                        "description": "The trailing end of the dictionary entry, after the formal definition - may have comparisons to cognates or similar notes"
                     },
                     "derivatives": {
-                        "description": ""
+                        "description": "HTML - list of derivate words - <a> tag wrapped with links to Sefaria entries"
                     },
                     "content": {
                         "description": "",
@@ -1482,336 +2241,83 @@
                                 }
                             },
                             "morphology": {
+                                "description": "One of [n., adj., adv., m.n., abs., art. , attrib., auxil., comp., copul., c st., def., f., f. n., imper.., Imperf., Indef art., Inf, Interj., Interr., Intr., Neut., Part., Pass., Perf., Possess., p. part., prep., pres part., pres t., p.t.., sing., Subj., Tr.]",
                                 "type": "string"
                             }
                         }
                     }
                 }
             },
-            "dictionaryEntry": {
-                "title": "Root Type for dictionaryEntry",
-                "description": "A single dictionary entry on Sefaria.",
+            "SenseStrongsDictionaryEntry": {
+                "description": "",
                 "type": "object",
                 "properties": {
-                    "headword": {
-                        "description": "The main word in the lexicon entry. The one you would look up in the book version.",
-                        "type": "string"
+                    "definition": {
+                        "description": "A definition of the word"
                     },
-                    "parent_lexicon": {
-                        "description": "Name of the lexicon from which the entry comes from.",
-                        "type": "string"
-                    },
-                    "parent_lexicon_details": {
-                        "description": "",
-                        "type": "object"
-                    }
-                }
-            },
-            "StrongsDictionaryEntry": {
-                "title": "StrongsDictionaryEntry",
-                "description": "",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/dictionaryEntry"
-                    }
-                ],
-                "properties": {
-                    "strong_number": {
-                        "type": "string"
-                    },
-                    "transliteration": {
-                        "description": ""
-                    },
-                    "pronunciation": {
-                        "description": ""
-                    },
-                    "language_code": {
-                        "description": ""
-                    },
-                    "content": {
+                    "grammar": {
                         "description": "",
                         "type": "object",
                         "properties": {
+                            "verbal_stem": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "SenseKleinDictionaryEntry": {
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "definition": {
+                        "description": "A definition of the word",
+                        "type": "string"
+                    },
+                    "grammar": {
+                        "description": "",
+                        "type": "object",
+                        "properties": {
+                            "verbal_stem": {
+                                "type": "string"
+                            },
+                            "language_code": {
+                                "type": "string"
+                            },
+                            "binyan_form": {
+                                "description": "what form the root takes in this binyan",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
                             "morphology": {
                                 "type": "string"
-                            },
-                            "senses": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/components/schemas/SenseStrongsDictionaryEntry"
-                                }
                             }
                         }
-                    }
-                },
-                "example": {
-                    "headword": "רָאָה",
-                    "parent_lexicon": "BDB Augmented Strong",
-                    "content": {
-                        "morphology": "v",
-                        "senses": [
-                            {
-                                "definition": "to see,  look at,  inspect,  perceive,  consider",
-                                "senses": [
-                                    {
-                                        "senses": [
-                                            {
-                                                "definition": "to see"
-                                            },
-                                            {
-                                                "definition": "to see,  perceive"
-                                            },
-                                            {
-                                                "definition": "to see,  have vision"
-                                            },
-                                            {
-                                                "definition": "to look at,  see,  regard,  look after,  see after,  learn about,  observe,  watch,  look upon,  look out,  find out"
-                                            },
-                                            {
-                                                "definition": "to see,  observe,  consider,  look at,  give attention to, discern,  distinguish"
-                                            },
-                                            {
-                                                "definition": "to look at,  gaze at"
-                                            }
-                                        ],
-                                        "grammar": {
-                                            "verbal_stem": "Qal"
-                                        }
-                                    },
-                                    {
-                                        "senses": [
-                                            {
-                                                "definition": "to appear,  present oneself"
-                                            },
-                                            {
-                                                "definition": "to be seen"
-                                            },
-                                            {
-                                                "definition": "to be visible"
-                                            }
-                                        ],
-                                        "grammar": {
-                                            "verbal_stem": "Niphal"
-                                        }
-                                    },
-                                    {
-                                        "definition": " to be seen",
-                                        "grammar": {
-                                            "verbal_stem": "Pual"
-                                        }
-                                    },
-                                    {
-                                        "senses": [
-                                            {
-                                                "definition": "to cause to see,  show"
-                                            },
-                                            {
-                                                "definition": "to cause to look intently at,  behold,  cause to gaze at"
-                                            }
-                                        ],
-                                        "grammar": {
-                                            "verbal_stem": "Hiphil"
-                                        }
-                                    },
-                                    {
-                                        "senses": [
-                                            {
-                                                "definition": "to be caused to see,  be shown"
-                                            },
-                                            {
-                                                "definition": "to be exhibited to"
-                                            }
-                                        ],
-                                        "grammar": {
-                                            "verbal_stem": "Hophal"
-                                        }
-                                    },
-                                    {
-                                        "definition": " to look at each other,  face",
-                                        "grammar": {
-                                            "verbal_stem": "Hithpael"
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
                     },
-                    "strong_number": "7200",
-                    "transliteration": "râʼâh",
-                    "pronunciation": "raw-aw'",
-                    "language_code": "heb",
-                    "parent_lexicon_details": {
-                        "name": "BDB Augmented Strong",
-                        "language": "heb.biblical",
-                        "to_language": "eng",
-                        "text_categories": [
-                            "Tanakh, Torah",
-                            "Tanakh, Prophets",
-                            "Tanakh, Writings"
-                        ],
-                        "source": "Open Scriptures on GitHub",
-                        "source_url": "https://github.com/openscriptures/strongs",
-                        "attribution": "Based on the work of Larry Pierce at the Online Bible",
-                        "attribution_url": "http://www.blueletterbible.org/contact/contact_gen.cfm"
-                    }
-                }
-            },
-            "BDBDictionaryEntry": {
-                "title": "BDBDictionaryEntry",
-                "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/dictionaryEntry"
-                    }
-                ],
-                "properties": {
-                    "rid": {
-                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries"
-                    },
-                    "TWOT": {
-                        "description": "The corresponding Theological Wordbook of the Old Testament number for this word",
+                    "number": {
+                        "description": "a number indicating which numbered sense this is",
                         "type": "string"
                     },
-                    "strong_numbers": {
-                        "description": "An array of corresponsing Strong Numbers for this word",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "root": {
-                        "description": "The Hebrew root of the word",
+                    "plural_form": {
+                        "description": "the plural form of the sense",
                         "type": "string"
                     },
-                    "peculiar": {
-                        "description": "A bool indicating the presence of the `‡` symbol in print, demonstrating that the word is peculiar to Biblical Aramaic.",
-                        "type": "boolean"
-                    },
-                    "ordinal": {
-                        "description": "when the same headword has more than one entry with a differen meaning they are offset by the roman numerals here",
+                    "notes": {
+                        "description": "The trailing end of the dictionary entry, after the formal definition - may have comparisons to cognates or similar notes",
                         "type": "string"
                     },
-                    "occurrences": {
-                        "description": "A count of the number of times the headword appears in the Bible",
-                        "type": "number"
+                    "morphology": {
+                        "description": " One of [n., adj., adv., m.n., abs., art. , attrib., auxil., comp., copul., c st., def., f., f. n., imper.., Imperf., Indef art., Inf, Interj., Interr., Intr., Neut., Part., Pass., Perf., Possess., p. part., prep., pres part., pres t., p.t.., sing., Subj., Tr.]",
+                        "type": "string"
                     },
-                    "headword_suffix": {
-                        "description": "In some cases the headword has some additional content in print beyond it. That data is included here."
+                    "language_code": {
+                        "description": "If not present, it’s Biblical.  Otherwise values could be [PBH, MH, NH, FW] - Post Biblical Hebrew, Middle Hebrew, New Hebrew, Foreign Word.",
+                        "type": "string"
                     },
-                    "GK": {
-                        "description": "The corresponding Goodrick/Kohlenberger Lexicon number for this headword."
-                    },
-                    "all_cited": {
-                        "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of the word are listed as part of this entry"
-                    },
-                    "brackets": {
-                        "description": "headword has brackets in print"
-                    },
-                    "alt_headwords": {
-                        "description": "An array of alternative headwords for the entry",
-                        "type": "object",
-                        "properties": {
-                            "word": {
-                                "description": "The alternative headword",
-                                "type": "string"
-                            },
-                            "occurences": {
-                                "description": "The number of times the alternative headword exists in the Bible"
-                            }
-                        }
-                    },
-                    "prev_hw": {
-                        "description": "The previous entry in print"
-                    },
-                    "next_hw": {
-                        "description": "the next entry in print"
-                    },
-                    "content": {
-                        "description": "",
-                        "type": "object",
-                        "properties": {
-                            "senses": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "definition": {
-                                            "description": "a definition of this sense of the word",
-                                            "type": "string"
-                                        },
-                                        "all_cited": {
-                                            "description": "A bool indicating the presense of the `†` symbol in print, indicating that all of the occurences of this sense of the word are listed as part of this entry",
-                                            "type": "string"
-                                        },
-                                        "form": {
-                                            "description": "the grammatical verb form (binyan) of the word",
-                                            "type": "string"
-                                        },
-                                        "note": {
-                                            "description": "an additional note for the entry",
-                                            "type": "string"
-                                        },
-                                        "num": {
-                                            "description": "the string of the numbering of this sense in print (it can be a number, English letter, Roman digits, with period, in parentheses, etc.)",
-                                            "type": "string"
-                                        },
-                                        "occurences": {
-                                            "description": "number of occurrences of this sense in bible",
-                                            "type": "string"
-                                        },
-                                        "pre_num": {
-                                            "description": "In some cases the sense has some additional characters before the entry  (e.g. the word Especially). That data is included here",
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "HebrewDictionaryEntry": {
-                "title": "HebrewDictionaryEntry",
-                "type": "object",
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/dictionaryEntry"
-                    }
-                ],
-                "properties": {
-                    "rid": {
-                        "description": ""
-                    },
-                    "refs": {
-                        "description": "",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ref"
-                        }
-                    },
-                    "prev_hw": {
-                        "description": "The previous headword entry from the book."
-                    },
-                    "next_hw": {
-                        "description": "The next headword entry from the book."
-                    },
-                    "content": {
-                        "description": "",
-                        "type": "object",
-                        "properties": {
-                            "senses": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "definition": {
-                                            "description": "A definition of this sense of the word",
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    "alternative": {
+                        "type": "string"
                     }
                 }
             },
@@ -1820,7 +2326,7 @@
                 "type": "object",
                 "properties": {
                     "definition": {
-                        "description": "",
+                        "description": "A definition of the word",
                         "type": "string"
                     },
                     "grammar": {
@@ -1846,6 +2352,314 @@
                         "type": "string"
                     }
                 }
+            },
+            "recommendedTopicResponse": {
+                "title": "Root Type for recommendedTopicResponse",
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "description": "the url slug for the topic.",
+                        "type": "string"
+                    },
+                    "titles": {
+                        "description": "Titles for the topic by language (usually Hebrew & English)",
+                        "type": "object",
+                        "properties": {
+                            "en": {
+                                "type": "string"
+                            },
+                            "he": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "count": {
+                        "format": "int32",
+                        "description": "Number of times the topic appears in the references",
+                        "type": "integer"
+                    }
+                },
+                "example": {
+                    "slug": "jacobs-burial",
+                    "titles": {
+                        "en": "Jacob's Burial",
+                        "he": "קבורת יעקב"
+                    },
+                    "count": 3
+                }
+            },
+            "ManuscriptJSON": {
+                "title": "Root Type for ManuscriptJSON",
+                "description": "Manuscript data and metadata JSON. ",
+                "required": [
+                    "manuscript"
+                ],
+                "type": "object",
+                "properties": {
+                    "manuscript_slug": {
+                        "description": "A unique slug for the given manuscript",
+                        "type": "string",
+                        "example": "leningrad-codex-(1008-ce)"
+                    },
+                    "page_id": {
+                        "description": "The ID for the specific page within the manuscript being referenced. ",
+                        "type": "string",
+                        "example": "LC_Folio_435r"
+                    },
+                    "image_url": {
+                        "description": "The URL to the image of the manuscript, hosted by Sefaria. All URLs will be prefaced by `https://manuscripts.sefaria.org/`",
+                        "type": "string",
+                        "example": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F434B_thumbnail.jpg"
+                    },
+                    "thumbnail_url": {
+                        "description": "The url to the thumbnail image of the manuscript. ",
+                        "type": "string",
+                        "example": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F434B_thumbnail.jpg"
+                    },
+                    "anchorRef": {
+                        "description": "A manuscript image will in most cases be associated with a range of `refs` (i.e. an image of a page of Tanakh will display multiple verses). The `anchorRef` is that complete range the manuscript is associated with, and will contain within it the specific `tref` passed in as a parameter. ",
+                        "type": "string",
+                        "example": "\"Esther 3:15-4:17\""
+                    },
+                    "anchorRefExpanded": {
+                        "description": "An array of strings, where each string is a segment level `ref` of the `ref` passed in as a parameter. If a segment level `ref` is passed in, this array will have a length of 1, and only contain that segment level `ref`. If the `ref` passed in is ranged, this array will contain each of the segment level `ref`s within that range. \n\nFor example, if someone was searching for manuscript data for `Esther 4.14-15`, the `anchorRefExpanded` would contain `Esther 4.14` and `Esther 4.15`.",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": "\"anchorRefExpanded\": [\n    \"Esther 4:14\",\n    \"Esther 4:15\"\n]"
+                    },
+                    "manuscript": {
+                        "$ref": "#/components/schemas/ManuscriptVersionMetaData",
+                        "description": "The version metadata for the manuscript, including the title, Hebrew and English descriptions. ",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "he_title": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "he_description": {
+                                "type": "string"
+                            }
+                        },
+                        "example": ""
+                    }
+                },
+                "example": {
+                    "manuscript_slug": "leningrad-codex-(1008-ce)",
+                    "page_id": "LC_Folio_434v",
+                    "image_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F434B.jpg",
+                    "thumbnail_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F434B_thumbnail.jpg",
+                    "anchorRef": "Esther 3:15-4:17",
+                    "anchorRefExpanded": [
+                        "Esther 4:14"
+                    ],
+                    "manuscript": {
+                        "slug": "leningrad-codex-(1008-ce)",
+                        "title": "Leningrad Codex (1008 CE)",
+                        "he_title": "כתב יד לנינגרד (1008)",
+                        "source": "https://dornsife.usc.edu/wsrp/biblical-manuscripts",
+                        "description": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin",
+                        "he_description": ""
+                    }
+                }
+            },
+            "ManuscriptVersionMetaData": {
+                "title": "Root Type for ManuscriptVersionMetaData",
+                "description": "The specific metadata for the version of the manuscript. ",
+                "required": [
+                    "slug"
+                ],
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "description": "The unique slug for the manuscript. ",
+                        "type": "string",
+                        "example": "leningrad-codex-(1008-ce)"
+                    },
+                    "title": {
+                        "description": "The title of the manuscript. ",
+                        "type": "string",
+                        "example": "Leningrad Codex (1008 CE)"
+                    },
+                    "he_title": {
+                        "description": "The manuscript title in Hebrew. ",
+                        "type": "string",
+                        "example": "כתב יד לנינגרד (1008)"
+                    },
+                    "source": {
+                        "description": "The url for the source of the manuscript images. ",
+                        "type": "string",
+                        "example": "https://dornsife.usc.edu/wsrp/biblical-manuscripts/"
+                    },
+                    "description": {
+                        "description": "A description of the manuscript, oftening containing details about the archivists or where the physical manuscript images can be found, as well as other library details.  ",
+                        "type": "string",
+                        "example": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin"
+                    },
+                    "he_description": {
+                        "description": "A Hebrew description of the manuscript, oftening containing details about the archivists or where the physical manuscript images can be found, as well as other library details.  ",
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "slug": "leningrad-codex-(1008-ce)",
+                    "title": "Leningrad Codex (1008 CE)",
+                    "he_title": "כתב יד לנינגרד (1008)",
+                    "source": "https://dornsife.usc.edu/wsrp/biblical-manuscripts",
+                    "description": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin",
+                    "he_description": ""
+                }
+            },
+            "wordCompletionAPIResponse": {
+                "description": "An array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "example": [
+                    [
+                        "אב",
+                        "אַב"
+                    ]
+                ]
+            },
+            "VersionJSON": {
+                "title": "Root Type for VersionJSON",
+                "description": "The metadata for a given version. ",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "description": "The title of the Index. ",
+                        "type": "string",
+                        "example": "Talmud Berakhot"
+                    },
+                    "versionTitle": {
+                        "description": "The title of the version",
+                        "type": "string",
+                        "example": "\"William Davidson Edition - Vocalized Aramaic\""
+                    },
+                    "versionSource": {
+                        "description": "A URL pointing to the hardcopy of the text as it can be found in libraries, most usually in our case the NLI (National Library of Israel), but not exclusively. ",
+                        "type": "string",
+                        "example": "https://www.nli.org.il/he/books/NNL_ALEPH990025294890205171/NLI"
+                    },
+                    "language": {
+                        "$ref": "#/components/schemas/LanguageCode",
+                        "description": "The language of the version. The versions on Sefaria are grouped into two language buckets, `en` for languages which read left-to-right (i.e. English, Spanish, German) and `he` for languages which read right-to-left (i.e. Hebrew, Arabic)",
+                        "example": "'en'\n'he'"
+                    },
+                    "status": {
+                        "description": "The status field contains either the string `\"locked\"` or an empty string. If `\"locked\"` is the value of the field, it indicates that the text is locked from future updatees, edits and translations from community members. ",
+                        "type": "string",
+                        "example": "\"locked\""
+                    },
+                    "license": {
+                        "description": "The copyright license for using, and reproducing the text. ",
+                        "type": "string",
+                        "example": "CC-BY"
+                    },
+                    "versionNotes": {
+                        "description": "English notes relating to the version, often containing details of authorship, place of printing, and sometimes donor dedications. ",
+                        "type": "string",
+                        "example": "\"English from The William Davidson digital edition of the <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>\","
+                    },
+                    "digitizedBySefaria": {
+                        "description": "Whether or not the text was digitized by Sefaria. We have some texts we've been able to add to our database from digital sources, and other texts that we've transfered from print to a digital medium ourselves. This field indicates if Sefaria did the digitization. ",
+                        "type": "boolean",
+                        "example": "True"
+                    },
+                    "priority": {
+                        "description": "The priority field is a number which indicates the priority of a version relative to all other existing versions of the same text. A value of `1` indicates the lowest priority, while the highest value among all versions of the text indicate the highest priority. Priority values can also be floating point numbers. The priority field determines how the various available versions of a text will be displayed on the Sefaria website. The texts are displayed to the user in a highest-to-lowest priority order, in many cases offering more complete or higher quality versions of the text before ones of inferior quality. ",
+                        "type": "number",
+                        "example": "7"
+                    },
+                    "versionTitleInHebrew": {
+                        "description": "The title of the version in Hebrew",
+                        "type": "string",
+                        "example": "מהדורת וויליאם דייוידסון - ארמית המנוקד"
+                    },
+                    "versionNotesInHebrew": {
+                        "description": "Hebrew notes relating to the version, often containing details of authorship, place of printing, and sometimes donor dedications. ",
+                        "type": "string"
+                    },
+                    "extendedNotes": {
+                        "description": "English extended notes on a version that go beyond the time and place of printing. ",
+                        "type": "string"
+                    },
+                    "extendedNotesHebrew": {
+                        "description": "Hebrew extended notes on a version that go beyond the time and place of printing. ",
+                        "type": "string"
+                    },
+                    "purchaseInformationImage": {
+                        "description": "A URL pointing to an image of the hard copy of the version associated with the digital copy, for those who would like to purchase a hard copy. ",
+                        "type": "string",
+                        "example": "\"https://storage.googleapis.com/sefaria-physical-editions/4fc4b6d5b144eb3915d250d743eaf2e8.png\""
+                    },
+                    "purchaseInformationURL": {
+                        "description": "The URL pointing to a website where on can buy a physical copy of the given text version. ",
+                        "type": "string",
+                        "example": "\"https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1/products/copy-of-vol-1-berakhot-1\""
+                    },
+                    "shortVersionTitle": {
+                        "description": "An English short title for the version",
+                        "type": "string",
+                        "example": "\"Koren - Steinsaltz\""
+                    },
+                    "shortVersionTitleInHebrew": {
+                        "description": "A Hebrew short title for the version",
+                        "type": "string"
+                    },
+                    "isBaseText": {
+                        "description": "Is this a text that has commentary. `true` indicates that there are commentaries on this text, while `false` indicates that the text does not have any commentary. ",
+                        "type": "boolean",
+                        "example": "True"
+                    },
+                    "firstSectionRef": {
+                        "description": "The first `ref` for this title on a section level (as opposed to the more granular segment level). For example, `Genesis 1` would be the first section level ref of Genesis (as opposed to the segment, `Genesis 1:1`), and `Rashi on Kohelet 1:1` is the first section level ref of `Rashi on Kohelet` (as opposed to the segment level of `Rashi on Kohelet 1:1:1`)",
+                        "type": "string",
+                        "example": "Rashi on Kohelet 1.1"
+                    }
+                },
+                "example": {
+                    "title": "Shulchan Arukh, Orach Chayim",
+                    "versionTitle": "Wikisource Shulchan Aruch",
+                    "versionSource": "https://en.wikisource.org/wiki/Translation:Shulchan_Aruch/Orach_Chaim/338",
+                    "language": "en",
+                    "status": "",
+                    "license": "CC-BY-SA",
+                    "versionNotes": "",
+                    "digitizedBySefaria": "",
+                    "priority": "",
+                    "versionTitleInHebrew": "שולחן ערוך (ויקיטקסט)",
+                    "versionNotesInHebrew": "",
+                    "extendedNotes": "",
+                    "extendedNotesHebrew": "",
+                    "purchaseInformationImage": "",
+                    "purchaseInformationURL": "",
+                    "shortVersionTitle": "",
+                    "shortVersionTitleInHebrew": "",
+                    "isBaseText": false,
+                    "firstSectionRef": "Shulchan Arukh, Orach Chayim 1"
+                }
+            },
+            "LanguageCode": {
+                "description": "The texts on Sefaria are grouped into two language buckets, `en` for languages which read left-to-right (i.e. English, Spanish, German) and `he` for languages which read right-to-left (i.e. Hebrew, Arabic). This field is only ever populated by a string containing the value of either `en` or `he`. ",
+                "type": "string",
+                "example": "'en'\n'he'"
             }
         }
     }
