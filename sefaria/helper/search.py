@@ -148,5 +148,5 @@ def make_filter(type, agg_type, agg_key):
 
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
-    from sefaria.settings import SEARCH_ADMIN
-    return Elasticsearch(SEARCH_ADMIN)
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(SEARCH_URL)
