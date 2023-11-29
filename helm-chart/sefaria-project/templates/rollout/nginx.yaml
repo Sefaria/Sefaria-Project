@@ -52,9 +52,8 @@ spec:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c"]
-        # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf
-        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG},${STRAPI_LOCATION}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
+        command:
+          - /entrypoint.sh
         ports:
         - containerPort: 80
         - containerPort: 443
