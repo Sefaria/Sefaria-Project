@@ -9,6 +9,20 @@ from pymongo.errors import OperationFailure
 
 from sefaria.settings import *
 
+def check_db_exists(db_name):
+    dbnames = client.list_database_names()
+    return db_name in dbnames
+
+
+def connect_to_db(db_name):
+    if not check_db_exists(db_name):
+        raise SystemError(f'Database {db_name} does not exist!')
+    return client[db_name]
+
+def get_test_db():
+    return client[TEST_DB]
+
+
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
@@ -37,13 +51,10 @@ else:
 
     # Now set the db variable to point to the Sefaria database in the server
     if not hasattr(sys, '_called_from_test'):
-        db = client[SEFARIA_DB]
+        db = connect_to_db(SEFARIA_DB)
     else:
-        db = client[TEST_DB] 
+        db = connect_to_db(TEST_DB)
 
-
-def get_test_db():
-    return client[TEST_DB]
 
 
 def drop_test():
