@@ -53,7 +53,7 @@ class versionTools {
       }
       openVersionInSidebar(version.versionTitle, version.language);
   }
-  static openVersionInMoinPanel(currRef, version, currObjectVersions, renderMode, firstSectionRef, openVersionInReader, e) {
+  static openVersionInMainPanel(currRef, version, currObjectVersions, renderMode, firstSectionRef, openVersionInReader, e) {
       e.preventDefault();
       try {
         gtag("event", "onClick_select_version", {element_name: `select_version`,
@@ -203,7 +203,7 @@ class VersionBlock extends Component {
     const showLanguagLabel = this.props.rendermode == "book-page";
     const openVersionInSidebar = versionTools.openVersionInSidebar.bind(null, this.props.currentRef, this.props.version,
         this.props.currObjectVersions, this.props.openVersionInSidebar);
-    const openVersionInMoinPanel = versionTools.openVersionInMoinPanel.bind(null, this.props.currentRef,
+    const openVersionInMainPanel = versionTools.openVersionInMainPanel.bind(null, this.props.currentRef,
         this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
 
     if (this.state.editing && Sefaria.is_moderator) {
@@ -276,7 +276,7 @@ class VersionBlock extends Component {
               <div className="versionTitle" role="heading">
                 <VersionBlockHeader
                   text={vtitle["text"]}
-                  onClick={this.props.rendermode === 'book-page' ? openVersionInMoinPanel : openVersionInSidebar}
+                  onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
                   renderMode='versionTitle'
                   link={versionTools.makeVersionLink(this.props.currentRef, this.props.version,
                       this.props.currObjectVersions, this.props.rendermode === 'book-page')}
@@ -288,7 +288,7 @@ class VersionBlock extends Component {
             <div className="versionSelect sans-serif">
               <VersionBlockSelectButton
                    isSelected={this.props.isCurrent}
-                   openVersionInMoinPanel={openVersionInMoinPanel}
+                   openVersionInMainPanel={openVersionInMainPanel}
                    text={this.makeSelectVersionLanguage()}
                    link={versionTools.makeVersionLink(this.props.currentRef, this.props.version,
                       this.props.currObjectVersions, true)}

@@ -13,7 +13,7 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
         return shortVersionTitle;
     }
     const chevronDirection = isInfoOpen ? 'up' : 'down';
-    const openVersionInMoinPanel = versionTools.openVersionInMoinPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
+    const openVersionInMainPanel = versionTools.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
         null, openVersionInReader);
     const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (
@@ -23,7 +23,7 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
             </a>
             <VersionBlockSelectButton
                 isSelected={isSelected}
-                openVersionInMoinPanel={openVersionInMoinPanel}
+                openVersionInMainPanel={openVersionInMainPanel}
                 text={buttonText}
                 link={versionTools.makeVersionLink(currentRef, version, currObjectVersions, true)}
             />

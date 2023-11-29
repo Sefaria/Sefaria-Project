@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from "prop-types";
 
-function VersionBlockSelectButton({link, openVersionInMoinPanel, text, isSelected}) {
+function VersionBlockSelectButton({link, openVersionInMainPanel, text, isSelected}) {
     return (
           <a className={`selectButton ${isSelected ? "currSelectButton" : ""}`}
               href={link}
-              onClick={openVersionInMoinPanel}
+              onClick={openVersionInMainPanel}
           >
               {Sefaria._(text)}
           </a>
