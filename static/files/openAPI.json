@@ -667,7 +667,46 @@
                 }
             ]
         },
-        "/api/find-refs": {},
+        "/api/find-refs": {
+            "post": {
+                "requestBody": {
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FindRefsPOSTRequest"
+                            },
+                            "examples": {
+                                "Example": {
+                                    "value": {
+                                        "text": {
+                                            "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+                                            "title": "Some thoughts on Sefer Bereishit 1"
+                                        },
+                                        "lang": "en"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FindRefsAPIResponse"
+                                }
+                            }
+                        },
+                        "description": "Successful Response"
+                    }
+                },
+                "summary": "Find Refs API",
+                "description": "Initially designed to find links on websites using [Sefaria's Linker](https://www.sefaria.org/linker), the Find Refs API can identify textual refernces in any arbitrary text that gets sent to it via a structured POST request and returns a response object identifying each located reference including its start and end position within the submitted text."
+            }
+        },
         "/api/texts/versions/{index}": {
             "summary": "All Available Versions of a Text",
             "description": "This endpoint return all of the available versions of a text given an index title passed as a parameter. ",
@@ -819,6 +858,170 @@
                     },
                     "name": "index",
                     "description": "A valid Sefaria Index",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/calendars": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "diaspora",
+                        "description": "Should the Calendar API return the weekly Torah reading for the diaspora `1` or for Israel `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query",
+                        "required": false
+                    },
+                    {
+                        "name": "custom",
+                        "description": "If available, the weekly haftarah will be returned for one of the selected custom.",
+                        "schema": {
+                            "enum": [
+                                "ashkenazi",
+                                "sephardi",
+                                "edot%20hamizrach"
+                            ],
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "zone_name",
+                        "description": "By default, the API attempts to return the calendars for the client's timezone. If you want another region you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "year",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "month",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "day",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CalendarAPIResponse"
+                                }
+                            }
+                        },
+                        "description": "Successful Response"
+                    }
+                },
+                "summary": "Calendars API",
+                "description": "Returns the daily or weekly learning schedule for a given date."
+            }
+        },
+        "/api/topics/{topic_slug}": {
+            "summary": "The Topics API",
+            "description": "The topics API has two possible use cases:\n1. With a `topic_slug` passed in as a path parameter, in which case the API will return all of the metadata for the given topic. \n2. Without a `topic_slug` passed in as a path parameter, in which case the API will return a list of *all of the topics in the Sefaria database* along with their metadata. ",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TopicJSON"
+                                },
+                                "examples": {
+                                    "Sukkot Topic": {
+                                        "value": {
+                                            "slug": "sukkot",
+                                            "titles": [],
+                                            "alt_ids": {
+                                                "_temp_id": "סוכות"
+                                            },
+                                            "properties": {
+                                                "heNliLink": {
+                                                    "value": "https://www.nli.org.il/he/discover/judaism/holidays/sukkot",
+                                                    "dataSource": "sefaria"
+                                                },
+                                                "enNliLink": {
+                                                    "value": "https://www.nli.org.il/en/discover/judaism/holidays/sukkot",
+                                                    "dataSource": "sefaria"
+                                                }
+                                            },
+                                            "description": {
+                                                "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
+                                                "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
+                                            },
+                                            "categoryDescription": {},
+                                            "displayOrder": 4,
+                                            "numSources": 831,
+                                            "description_published": true,
+                                            "data_source": "sefaria",
+                                            "image": {
+                                                "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/sukkot.jpg",
+                                                "image_caption": {
+                                                    "en": "Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library",
+                                                    "he": "פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה"
+                                                }
+                                            },
+                                            "primaryTitle": {
+                                                "en": "Sukkot",
+                                                "he": "סוכות"
+                                            },
+                                            "primaryTitleIsTransliteration": {
+                                                "en": false,
+                                                "he": false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "1. When one calls this endpoint _with_ a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n2. When one calls this endpoint _without_ passing a specific `topic_slug` as a path parameter, the API will return a list of JSON objects - where each object represents a topic in the Sefaria database, and contains all of the relevant metadata. "
+                    }
+                },
+                "summary": "Topics API",
+                "description": "1. When one calls this endpoint _with_ a specific `topic_slug`, it returns a JSON object containing the metadata for the topic. \n2. When one calls this endpoint _without_ passing a specific `topic_slug` as a path parameter, the API will return a list of JSON objects - where each object represents a topic in the Sefaria database, and contains all of the relevant metadata. "
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Holiday": {
+                            "value": "rosh-hashanah"
+                        },
+                        "Ritual objects": {
+                            "value": "the-four-species"
+                        },
+                        "Conceptual idea": {
+                            "value": "יחיד-וחברה"
+                        },
+                        "Person": {
+                            "value": "nachman-of-breslov"
+                        }
+                    },
+                    "name": "topic_slug",
+                    "description": "The slug of a topic in the Sefaria system. (To find all of the slugs, you can run `api/topics` without a path parameter to see the data for each topic in our database).",
                     "schema": {
                         "type": "string"
                     },
@@ -2481,7 +2684,12 @@
                 "title": "Root Type for ManuscriptVersionMetaData",
                 "description": "The specific metadata for the version of the manuscript. ",
                 "required": [
-                    "slug"
+                    "slug",
+                    "description",
+                    "he_description",
+                    "he_title",
+                    "source",
+                    "title"
                 ],
                 "type": "object",
                 "properties": {
@@ -2660,6 +2868,919 @@
                 "description": "The texts on Sefaria are grouped into two language buckets, `en` for languages which read left-to-right (i.e. English, Spanish, German) and `he` for languages which read right-to-left (i.e. Hebrew, Arabic). This field is only ever populated by a string containing the value of either `en` or `he`. ",
                 "type": "string",
                 "example": "'en'\n'he'"
+            },
+            "FindRefsPOSTRequest": {
+                "title": "Root Type for FindRefsPOSTRequest",
+                "description": "A properly formatted POST request for the Find Refs API",
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "description": "Initially designed for websites, this API expects the `text` field to contain both a `body` and a `title`. When parsing arbitrary text feel free to just use `body` and pass an empty string `''` to `title`",
+                        "type": "object",
+                        "properties": {
+                            "body": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "lang": {
+                        "description": "Either `he` or `en`. If not included, it will default to one based on the number of Hebrew or Latin characters in the `body` of the `text`.",
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "text": {
+                        "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+                        "title": "Some thoughts on Sefer Bereishit 1"
+                    },
+                    "lang": "en"
+                }
+            },
+            "FindRefsAPIResponse": {
+                "title": "Root Type for FindRefsAPIResponse",
+                "description": "A response to the Find Refs API",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "description": "Information about any references found in the `title` field of the POST request",
+                        "type": "object",
+                        "properties": {
+                            "results": {
+                                "type": "array",
+                                "items": {
+                                    "description": "A single matched reference",
+                                    "type": "object",
+                                    "properties": {
+                                        "startChar": {
+                                            "format": "int32",
+                                            "description": "The index of the starting character of the match",
+                                            "type": "integer"
+                                        },
+                                        "endChar": {
+                                            "format": "int32",
+                                            "description": "The index of the ending character of the match",
+                                            "type": "integer"
+                                        },
+                                        "text": {
+                                            "description": "The matched reference",
+                                            "type": "string"
+                                        },
+                                        "linkFailed": {
+                                            "type": "boolean"
+                                        },
+                                        "refs": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ref"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "refData": {
+                                "type": "object",
+                                "properties": {
+                                    "RefTitle": {
+                                        "type": "object",
+                                        "properties": {
+                                            "heRef": {
+                                                "description": "The Hebrew equivalent of the cannonical ref",
+                                                "type": "string"
+                                            },
+                                            "url": {
+                                                "description": "The URL this ref can be found at on Sefaria",
+                                                "type": "string"
+                                            },
+                                            "primaryCategory": {
+                                                "description": "The primary category this ref belongs to on Sefaria",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "body": {
+                        "description": "Information about any references found in the `body` field of the POST request",
+                        "type": "object",
+                        "properties": {
+                            "results": {
+                                "type": "array",
+                                "items": {
+                                    "description": "A single matched reference",
+                                    "type": "object",
+                                    "properties": {
+                                        "startChar": {
+                                            "format": "int32",
+                                            "description": "The index of the starting character of the match",
+                                            "type": "integer"
+                                        },
+                                        "endChar": {
+                                            "format": "int32",
+                                            "description": "The index of the ending character of the match",
+                                            "type": "integer"
+                                        },
+                                        "text": {
+                                            "description": "The matched reference",
+                                            "type": "string"
+                                        },
+                                        "linkFailed": {
+                                            "type": "boolean"
+                                        },
+                                        "refs": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ref"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "refData": {
+                                "type": "object",
+                                "properties": {
+                                    "RefTitle": {
+                                        "type": "object",
+                                        "properties": {
+                                            "heRef": {
+                                                "description": "The Hebrew equivalent of the cannonical ref",
+                                                "type": "string"
+                                            },
+                                            "url": {
+                                                "description": "The URL this ref can be found at on Sefaria",
+                                                "type": "string"
+                                            },
+                                            "primaryCategory": {
+                                                "description": "The primary category this ref belongs to on Sefaria",
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "title": {
+                        "results": [
+                            {
+                                "startChar": 23,
+                                "endChar": 34,
+                                "text": "Bereishit 1",
+                                "linkFailed": false,
+                                "refs": [
+                                    "Genesis 1"
+                                ]
+                            }
+                        ],
+                        "refData": {
+                            "Genesis 1": {
+                                "heRef": "בראשית א׳",
+                                "url": "Genesis.1",
+                                "primaryCategory": "Tanakh"
+                            }
+                        }
+                    },
+                    "body": {
+                        "results": [
+                            {
+                                "startChar": 0,
+                                "endChar": 11,
+                                "text": "Genesis 1:1",
+                                "linkFailed": false,
+                                "refs": [
+                                    "Genesis 1:1"
+                                ]
+                            },
+                            {
+                                "startChar": 35,
+                                "endChar": 51,
+                                "text": "Mishnah Peah 3-4",
+                                "linkFailed": false,
+                                "refs": [
+                                    "Mishnah Peah 3-4"
+                                ]
+                            }
+                        ],
+                        "refData": {
+                            "Genesis 1:1": {
+                                "heRef": "בראשית א׳:א׳",
+                                "url": "Genesis.1.1",
+                                "primaryCategory": "Tanakh"
+                            },
+                            "Mishnah Peah 3-4": {
+                                "heRef": "משנה פאה ג׳-ד׳",
+                                "url": "Mishnah_Peah.3-4",
+                                "primaryCategory": "Mishnah"
+                            }
+                        }
+                    }
+                }
+            },
+            "CalendarAPIResponse": {
+                "title": "Root Type for CalendarAPIResponse",
+                "description": "A response from the Calendar API",
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "format": "date",
+                        "description": "The datestring for the calendars shown. It should match the values submitted in `year` `month` `day` or should be the current date.",
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "description": "An IANA timezone name",
+                        "type": "string"
+                    },
+                    "calendar_items": {
+                        "type": "array",
+                        "items": {
+                            "description": "A single learning schedule for the selected date",
+                            "type": "object",
+                            "properties": {
+                                "title": {
+                                    "description": "The learning schedule title in `he` and `en`",
+                                    "type": "object",
+                                    "properties": {
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "he": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "example": "Daf Yomi"
+                                },
+                                "displayValue": {
+                                    "description": "The name of the reading for the selected date in the learning schedule in `en` and `he`",
+                                    "type": "object",
+                                    "properties": {
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "he": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "example": "Vayishlach"
+                                },
+                                "url": {
+                                    "description": "The url path on Sefaria where this selection can be found",
+                                    "type": "string"
+                                },
+                                "ref": {
+                                    "$ref": "#/components/schemas/ref"
+                                },
+                                "heRef": {
+                                    "description": "The Hebrew equivalent of the `ref`",
+                                    "type": "string"
+                                },
+                                "order": {
+                                    "format": "int32",
+                                    "description": "This is used internally on Sefaria to arrange the learning schedules in the manner we choose.",
+                                    "type": "integer"
+                                },
+                                "category": {
+                                    "description": "The primary category that this `ref` belongs to",
+                                    "type": "string"
+                                },
+                                "extraDetails": {
+                                    "description": "Additional details about this learning schedule entry",
+                                    "type": "object",
+                                    "properties": {
+                                        "aliyot": {
+                                            "description": "The breakdown of aliyot for a parashah",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "description": {
+                                    "description": "A description of this learning schedule entry if it exists in `he` and `en`",
+                                    "type": "object",
+                                    "properties": {
+                                        "en": {
+                                            "type": "string"
+                                        },
+                                        "he": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "example": {
+                    "date": "2023-11-28",
+                    "timezone": "America/Halifax",
+                    "calendar_items": [
+                        {
+                            "title": {
+                                "en": "Parashat Hashavua",
+                                "he": "פרשת השבוע"
+                            },
+                            "displayValue": {
+                                "en": "Vayishlach",
+                                "he": "וישלח"
+                            },
+                            "url": "Genesis.32.4-36.43",
+                            "ref": "Genesis 32:4-36:43",
+                            "heRef": "בראשית ל״ב:ד׳-ל״ו:מ״ג",
+                            "order": 1,
+                            "category": "Tanakh",
+                            "extraDetails": {
+                                "aliyot": [
+                                    "Genesis 32:4-32:13",
+                                    "Genesis 32:14-32:30",
+                                    "Genesis 32:31-33:5",
+                                    "Genesis 33:6-33:20",
+                                    "Genesis 34:1-35:11",
+                                    "Genesis 35:12-36:19",
+                                    "Genesis 36:20-36:43",
+                                    "Genesis 36:40-36:43"
+                                ]
+                            },
+                            "description": {
+                                "en": "Vayishlach (“He Sent”) follows Jacob and his family as Jacob wrestles with a man (commonly understood as an angel), is renamed Israel, and reconciles with his brother, Esau. Jacob’s daughter, Dina, is raped by a Hivite prince, and her brothers sack a city in response. Rachel dies as she gives birth to Jacob's youngest child, Benjamin.",
+                                "he": "פרשת וישלח ממשיכה לעקוב אחרי יעקב ומשפחתו. יעקב נאבק עם איש (שלפי הפרשנות המקובלת הוא מלאך אלוהים), ובסיום המאבק האיש מעניק לו את השם ישראל. יעקב מתפייס עם אחיו עשו. דינה, בתו של יעקב, נאנסת ונשבית בידי נסיך חיווי, ואחיה הורגים את כל הזכרים בעיר ומשיבים אליהם את דינה. רחל מתה בשעת לידתו של בנימין, הצעיר בבני יעקב."
+                            }
+                        },
+                        {
+                            "title": {
+                                "en": "Haftarah",
+                                "he": "הפטרה"
+                            },
+                            "displayValue": {
+                                "en": "Obadiah 1:1-21",
+                                "he": "עובדיה א׳:א׳-כ״א"
+                            },
+                            "url": "Obadiah.1.1-21",
+                            "ref": "Obadiah 1:1-21",
+                            "order": 2,
+                            "category": "Tanakh"
+                        },
+                        {
+                            "title": {
+                                "en": "Daf Yomi",
+                                "he": "דף יומי"
+                            },
+                            "displayValue": {
+                                "en": "Bava Kamma 26",
+                                "he": "בבא קמא כ״ו"
+                            },
+                            "url": "Bava_Kamma.26",
+                            "ref": "Bava Kamma 26",
+                            "order": 3,
+                            "category": "Talmud"
+                        },
+                        {
+                            "title": {
+                                "en": "929",
+                                "he": "929"
+                            },
+                            "displayValue": {
+                                "en": "Ezekiel 21 (473)",
+                                "he": "יחזקאל כ״א (473)"
+                            },
+                            "url": "Ezekiel.21",
+                            "ref": "Ezekiel 21",
+                            "order": 4,
+                            "category": "Tanakh"
+                        },
+                        {
+                            "title": {
+                                "en": "Daily Mishnah",
+                                "he": "משנה יומית"
+                            },
+                            "displayValue": {
+                                "en": "Mishnah Yevamot 10:4-5",
+                                "he": "משנה יבמות י׳:ד׳-ה׳"
+                            },
+                            "url": "Mishnah_Yevamot.10.4-5",
+                            "ref": "Mishnah Yevamot 10:4-5",
+                            "order": 5,
+                            "category": "Mishnah"
+                        },
+                        {
+                            "title": {
+                                "en": "Daily Rambam",
+                                "he": "הרמב\"ם היומי"
+                            },
+                            "displayValue": {
+                                "en": "Marriage 14",
+                                "he": "הלכות אישות י״ד"
+                            },
+                            "url": "Mishneh_Torah,_Marriage.14",
+                            "ref": "Mishneh Torah, Marriage 14",
+                            "order": 6,
+                            "category": "Halakhah"
+                        },
+                        {
+                            "title": {
+                                "en": "Daily Rambam (3 Chapters)",
+                                "he": "הרמב\"ם היומי (3 פרקים)"
+                            },
+                            "displayValue": {
+                                "en": "Other Sources of Defilement 9-11",
+                                "he": "הלכות שאר אבות הטומאות ט׳-י״א"
+                            },
+                            "url": "Mishneh_Torah,_Other_Sources_of_Defilement.9-11",
+                            "ref": "Mishneh Torah, Other Sources of Defilement 9-11",
+                            "order": 7,
+                            "category": "Halakhah"
+                        },
+                        {
+                            "title": {
+                                "en": "Daf a Week",
+                                "he": "דף השבוע"
+                            },
+                            "displayValue": {
+                                "en": "Ketubot 64",
+                                "he": "כתובות ס״ד"
+                            },
+                            "url": "Ketubot.64",
+                            "ref": "Ketubot 64",
+                            "order": 8,
+                            "category": "Talmud"
+                        },
+                        {
+                            "title": {
+                                "en": "Halakhah Yomit",
+                                "he": "הלכה יומית"
+                            },
+                            "displayValue": {
+                                "en": "Shulchan Arukh, Orach Chayim 535:2-536:1",
+                                "he": "שולחן ערוך, אורח חיים תקל״ה:ב׳-תקל״ו:א׳"
+                            },
+                            "url": "Shulchan_Arukh,_Orach_Chayim.535.2-536.1",
+                            "ref": "Shulchan Arukh, Orach Chayim 535:2-536:1",
+                            "order": 9,
+                            "category": "Halakhah"
+                        },
+                        {
+                            "title": {
+                                "en": "Arukh HaShulchan Yomi",
+                                "he": "ערוך השולחן היומי"
+                            },
+                            "displayValue": {
+                                "en": "Yoreh De'ah 191:7-15",
+                                "he": "יורה דעה קצ״א:ז׳-ט״ו"
+                            },
+                            "url": "Arukh_HaShulchan,_Yoreh_De'ah.191.7-15",
+                            "ref": "Arukh HaShulchan, Yoreh De'ah 191:7-15",
+                            "order": 10,
+                            "category": "Halakhah"
+                        },
+                        {
+                            "title": {
+                                "en": "Tanakh Yomi",
+                                "he": "תנ\"ך יומי"
+                            },
+                            "displayValue": {
+                                "en": "Samuel Seder 17",
+                                "he": "שמואל סדר יז"
+                            },
+                            "url": "I_Samuel.25.33-26.24",
+                            "ref": "I Samuel 25:33-26:24",
+                            "order": 11,
+                            "category": "Tanakh"
+                        },
+                        {
+                            "title": {
+                                "en": "Chok LeYisrael",
+                                "he": "חק לישראל"
+                            },
+                            "displayValue": {
+                                "en": "Vayishlach",
+                                "he": "וישלח"
+                            },
+                            "url": "collections/חק-לישראל?tag=Vayishlach",
+                            "order": 12,
+                            "category": "Tanakh"
+                        },
+                        {
+                            "title": {
+                                "en": "Tanya Yomi",
+                                "he": "תניא יומי"
+                            },
+                            "displayValue": {
+                                "en": "15 Kislev",
+                                "he": "טו כסלו"
+                            },
+                            "url": "Tanya,_Part_V;_Kuntres_Acharon.6.8",
+                            "ref": "Tanya, Part V; Kuntres Acharon 6:8",
+                            "order": 15,
+                            "category": "Chasidut"
+                        },
+                        {
+                            "title": {
+                                "en": "Yerushalmi Yomi",
+                                "he": "ירושלמי יומי"
+                            },
+                            "displayValue": {
+                                "en": "Jerusalem Talmud Orlah 18",
+                                "he": "תלמוד ירושלמי ערלה יח"
+                            },
+                            "url": "Jerusalem_Talmud_Orlah.3.1.16-3.1",
+                            "ref": "Jerusalem Talmud Orlah 3:1:16-3:1",
+                            "order": 16,
+                            "category": "Talmud"
+                        }
+                    ]
+                }
+            },
+            "TopicJSON": {
+                "title": "Root Type for TopicJSON",
+                "description": "A JSON object containing all of the metadata for a topic object",
+                "required": [
+                    "slug",
+                    "titles"
+                ],
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "description": "The unique slug for a given topic.",
+                        "type": "string",
+                        "example": "nachman-of-breslov"
+                    },
+                    "titles": {
+                        "description": "An array of JSON objects, each representing an alternative title for the object, in various languages. ",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TopicTitlesJSON"
+                        },
+                        "example": "\"titles\": [\n    {\n        \"text\": \"Tabernacles\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Sukkos\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succos\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Booths\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"sukkot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"succot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succoth\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Sukkoth\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"חג הסוכות\",\n        \"lang\": \"he\"\n    },\n    {\n        \"text\": \"סכות\",\n        \"lang\": \"he\"\n    },\n    {\n        \"text\": \"Sukkot\",\n        \"lang\": \"en\",\n        \"primary\": true\n    },\n    {\n        \"text\": \"סוכות\",\n        \"lang\": \"he\",\n        \"primary\": true\n    }\n]"
+                    },
+                    "alt_ids": {
+                        "type": "object",
+                        "properties": {
+                            "_temp_id": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "properties": {
+                        "$ref": "#/components/schemas/TopicPropertyJson",
+                        "description": "The properties stores optional data relating to the topic, including links (if relevant) to where on can learn more about the topic. ",
+                        "properties": {
+                            "heNliLink": {
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string"
+                                    },
+                                    "dataSource": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "enNliLink": {
+                                "type": "object",
+                                "properties": {
+                                    "value": {
+                                        "type": "string"
+                                    },
+                                    "dataSource": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "example": "\"properties\": {\n    \"heNliLink\": {\n        \"value\": \"https://www.nli.org.il/he/discover/judaism/holidays/sukkot\",\n        \"dataSource\": \"sefaria\"\n    },\n    \"enNliLink\": {\n        \"value\": \"https://www.nli.org.il/en/discover/judaism/holidays/sukkot\",\n        \"dataSource\": \"sefaria\"\n    }\n}"
+                    },
+                    "description": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "description": "A description of the topic in English",
+                        "properties": {
+                            "en": {
+                                "type": "string"
+                            },
+                            "he": {
+                                "type": "string"
+                            }
+                        },
+                        "example": "\"description\": {\n    \"en\": \"Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.\",\n    \"he\": \"חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'\"\n}"
+                    },
+                    "categoryDescription": {
+                        "description": "A description of the category of this topic",
+                        "type": "string"
+                    },
+                    "displayOrder": {
+                        "format": "int32",
+                        "description": "The order in which topics are displayed on the Sefaria website, relative to other topics within their same category. ",
+                        "type": "integer",
+                        "example": "1"
+                    },
+                    "numSources": {
+                        "format": "int32",
+                        "description": "The number of text sources associated with a topic. ",
+                        "type": "integer",
+                        "example": "831"
+                    },
+                    "description_published": {
+                        "description": "A boolean representing whether or not the description was published. ",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "data_source": {
+                        "description": "How the topic was generated, whether by `sefaria`, a user on a source sheet, or some other source. ",
+                        "type": "string",
+                        "example": "`sefaria`"
+                    },
+                    "image": {
+                        "$ref": "#/components/schemas/TopicImgJSON",
+                        "description": "Metadata for images associated with topics. ",
+                        "properties": {
+                            "image_uri": {
+                                "type": "string"
+                            },
+                            "image_caption": {
+                                "type": "object",
+                                "properties": {
+                                    "en": {
+                                        "type": "string"
+                                    },
+                                    "he": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "example": "\"image\": {\n    \"image_uri\": \"https://storage.googleapis.com/img.sefaria.org/topics/sukkot.jpg\",\n    \"image_caption\": {\n        \"en\": \"Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library\",\n        \"he\": \"פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה\"\n    }\n}"
+                    },
+                    "primaryTitle": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "description": "The primary title for a topic.",
+                        "properties": {
+                            "en": {
+                                "type": "string"
+                            },
+                            "he": {
+                                "type": "string"
+                            }
+                        },
+                        "example": "{\n    \"en\": \"Sukkot\",\n    \"he\": \"סוכות\"\n}"
+                    },
+                    "primaryTitleIsTransliteration": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "properties": {
+                            "en": {
+                                "type": "boolean"
+                            },
+                            "he": {
+                                "type": "boolean"
+                            }
+                        },
+                        "example": "\"primaryTitleIsTransliteration\": {\n    \"en\": false,\n    \"he\": false\n}"
+                    }
+                },
+                "example": {
+                    "slug": "sukkot",
+                    "titles": [
+                        {
+                            "text": "Tabernacles",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Succot",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Sukkos",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Succos",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Booths",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "sukkot",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "succot",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Succoth",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "Sukkoth",
+                            "lang": "en"
+                        },
+                        {
+                            "text": "חג הסוכות",
+                            "lang": "he"
+                        },
+                        {
+                            "text": "סכות",
+                            "lang": "he"
+                        },
+                        {
+                            "text": "Sukkot",
+                            "lang": "en",
+                            "primary": true
+                        },
+                        {
+                            "text": "סוכות",
+                            "lang": "he",
+                            "primary": true
+                        }
+                    ],
+                    "alt_ids": {
+                        "_temp_id": "סוכות"
+                    },
+                    "properties": {
+                        "heNliLink": {
+                            "value": "https://www.nli.org.il/he/discover/judaism/holidays/sukkot",
+                            "dataSource": "sefaria"
+                        },
+                        "enNliLink": {
+                            "value": "https://www.nli.org.il/en/discover/judaism/holidays/sukkot",
+                            "dataSource": "sefaria"
+                        }
+                    },
+                    "description": {
+                        "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
+                        "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
+                    },
+                    "categoryDescription": {},
+                    "displayOrder": 4,
+                    "numSources": 831,
+                    "description_published": true,
+                    "data_source": "sefaria",
+                    "image": {
+                        "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/sukkot.jpg",
+                        "image_caption": {
+                            "en": "Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library",
+                            "he": "פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה"
+                        }
+                    },
+                    "primaryTitle": {
+                        "en": "Sukkot",
+                        "he": "סוכות"
+                    },
+                    "primaryTitleIsTransliteration": {
+                        "en": false,
+                        "he": false
+                    }
+                }
+            },
+            "TopicImgJSON": {
+                "title": "Root Type for TopicImgJSON",
+                "description": "A JSON object containing the image metadata for topics with images. ",
+                "type": "object",
+                "properties": {
+                    "image_uri": {
+                        "description": "The URL pointing to the image as hosted by Sefaria. ",
+                        "type": "string",
+                        "example": "https://storage.googleapis.com/img.sefaria.org/topics/sukkot.jpg"
+                    },
+                    "image_caption": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "description": "A JSON object containing the billingual caption data for an image associated with a topic.",
+                        "properties": {
+                            "en": {
+                                "type": "string"
+                            },
+                            "he": {
+                                "type": "string"
+                            }
+                        },
+                        "example": "\"image_caption\": {\n    \"en\": \"Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library\",\n    \"he\": \"פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה\"\n}"
+                    }
+                },
+                "example": {
+                    "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/sukkot.jpg",
+                    "image_caption": {
+                        "en": "Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library",
+                        "he": "פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה"
+                    }
+                }
+            },
+            "BillingualJSON": {
+                "title": "Root Type for TopicImgCaption",
+                "description": "A JSON object containing the Hebrew and English caption for the topic image. ",
+                "type": "object",
+                "properties": {
+                    "en": {
+                        "description": "The English field for a JSON object representing billingual text. ",
+                        "type": "string",
+                        "example": "Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library"
+                    },
+                    "he": {
+                        "description": "The Hebrew field for a JSON object representing billingual text. ",
+                        "type": "string",
+                        "example": "פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה"
+                    }
+                },
+                "example": {
+                    "en": "Detail of a painting of a sukkah. Image taken from f. 316v of Forli Siddur. 1383, Italian rite. The British Library",
+                    "he": "פרט ציור של סוכה עם שולחן פרוש ושלוש דמויות. דימוי מתוך סידור פורלי, 1383 איטליה"
+                }
+            },
+            "TopicTitlesJSON": {
+                "title": "Root Type for TopicTitlesJSON",
+                "description": "Alternative title for a topic, along with the language code representing the language of the given title. ",
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "description": "The text of the title",
+                        "type": "string",
+                        "example": "Sukkoth"
+                    },
+                    "lang": {
+                        "description": "The language of the title, either `en` or `he`. ",
+                        "type": "string",
+                        "example": "he"
+                    },
+                    "Primary": {
+                        "description": "A field depicting whether or not the title is the primary title. Note: For any given topics, one should expect two titles with this field present and set to `true`, an English and a Hebrew primary title. The English value with `primary` set to `true` will match the string value of the `primaryTitle` field on topic. ",
+                        "type": "boolean",
+                        "example": "false"
+                    }
+                },
+                "example": {
+                    "text": "Tabernacles",
+                    "lang": "en",
+                    "primary": false
+                }
+            },
+            "TopicPropertyJson": {
+                "title": "Root Type for TopicPropertyJson",
+                "description": "The JSON object containing information about a topic's properties",
+                "type": "object",
+                "properties": {
+                    "heNliLink": {
+                        "$ref": "#/components/schemas/NLILinkJSON",
+                        "description": "A link to the Hebrew page on the website of the National Library of Israel which corresponds to the given topic, so users can learn more. ",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "dataSource": {
+                                "type": "string"
+                            }
+                        },
+                        "example": " \"heNliLink\": {\n        \"value\": \"https://www.nli.org.il/he/discover/judaism/holidays/sukkot\",\n        \"dataSource\": \"sefaria\"\n}"
+                    },
+                    "enNliLink": {
+                        "$ref": "#/components/schemas/NLILinkJSON",
+                        "description": "A link to the English page on the website of the National Library of Israel which corresponds to the given topic, so users can learn more. ",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "dataSource": {
+                                "type": "string"
+                            }
+                        },
+                        "example": "\"enNliLink\": {\n    \"value\": \"https://www.nli.org.il/en/discover/judaism/holidays/sukkot\",\n    \"dataSource\": \"sefaria\"\n}"
+                    }
+                },
+                "example": {
+                    "heNliLink": {
+                        "value": "https://www.nli.org.il/he/discover/judaism/holidays/sukkot",
+                        "dataSource": "sefaria"
+                    },
+                    "enNliLink": {
+                        "value": "https://www.nli.org.il/en/discover/judaism/holidays/sukkot",
+                        "dataSource": "sefaria"
+                    }
+                }
+            },
+            "NLILinkJSON": {
+                "title": "Root Type for NLILinkJSON",
+                "description": "JSON for storing NLI links related to data in the Sefaria database. ",
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "description": "A link to a corresponding NLI page to learn more. ",
+                        "type": "string",
+                        "example": "https://www.nli.org.il/en/discover/judaism/holidays/sukkot"
+                    },
+                    "dataSource": {
+                        "description": "The source of the topic data, whether user-created or Sefaria-created. ",
+                        "type": "string",
+                        "example": "`sefaria`"
+                    }
+                },
+                "example": {
+                    "value": "https://www.nli.org.il/en/discover/judaism/holidays/sukkot",
+                    "dataSource": "sefaria"
+                }
             }
         }
     }
