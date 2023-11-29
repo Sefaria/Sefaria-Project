@@ -3,6 +3,21 @@ entries:
   sefaria:
   - apiVersion: v2
     appVersion: v5.81.2
+    created: "2023-11-29T09:37:35.105172909Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 40843eca87423144a44c44fbd0e947ceb65b6d7423a6a758b9a571e59ddf7cf9
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.54.0-elasticsearch-8-compat-secrets.1.tgz
+    version: 0.54.0-elasticsearch-8-compat-secrets.1
+  - apiVersion: v2
+    appVersion: v5.81.2
     created: "2023-11-29T08:10:38.057704005Z"
     description: Chart to deploy complete Sefaria environment
     digest: 1ada0e6d85fbe0e5e74f7ae19bc020f9b732bfd410b3f8a6c9af5119c82f13b6
@@ -5235,4 +5250,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2023-11-29T08:10:38.054957484Z"
+generated: "2023-11-29T09:37:35.102806253Z"
