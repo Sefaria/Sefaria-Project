@@ -25,8 +25,9 @@ class GoogleStorageManager(object):
     @classmethod
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
-            # for local development, change below line to cls.client = storage.Client(project="production-deployment")
-            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+            # for local development, change below line to
+            cls.client = storage.Client(project="production-deployment")
+            #cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 

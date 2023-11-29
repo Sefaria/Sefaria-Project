@@ -1640,13 +1640,13 @@ const PictureUploader = ({callback, old_filename, caption}) => {
             <label>
               <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
             </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" className="editorAddInterfaceButton" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector" id="addImageFileSelectorLabel">
-                <div className="button small blue control-elem" tabIndex="0" role="button">
+            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+              <label htmlFor="addImageFileSelector">
+                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
                       <InterfaceText>Upload Picture</InterfaceText>
                     </div>
               </label>
-              </div><input style={{visibility: "hidden"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
+              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
               {old_filename !== "" && <div style={{"max-width": "420px"}}>
                     <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
                     <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
