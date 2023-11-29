@@ -3586,8 +3586,7 @@ display: none;
 .version-block-with-preview-details {
   background-color: var(--lighter-grey);
   border-radius: 6px;
-  outline: 10px solid var(--lighter-grey);
-  margin: 10px;
+  padding: 10px;
 }
 .versionDetails-version-title {
   color: black;
