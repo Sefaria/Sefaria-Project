@@ -392,7 +392,7 @@ class VersionsBlocksList extends Component{
         <div className="versionsBox">
           {
             sortedLanguages.map((lang) => (
-              <div key={lang}>
+              <div className="language-block" key={lang}>
                 { this.props.showLanguageHeaders ?
                   <div className="versionLanguage sans-serif">
                     {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>

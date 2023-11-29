@@ -3601,7 +3601,12 @@ display: none;
 }
 .versionsBox .versionBlock {
   padding: 20px 0;
+}
+.versionsBox .versionBlock:not(.with-preview) {
   border-top: solid 1px #CCC;
+}
+.language-block .versionLanguage {
+  border-bottom: solid 1px #CCC;
 }
 .bookPage .versionsBox .versionBlock{
   padding-top: 20px;
