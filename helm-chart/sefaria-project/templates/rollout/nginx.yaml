@@ -52,7 +52,8 @@ spec:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c", "/usr/src/entrypoint.sh"]
+        command:
+          - /entrypoint.sh
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -94,19 +95,24 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
+          - name: STRAPI_LOCATION
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                key: STRAPI_LOCATION
           {{- if .Values.linker.enabled }}
           - name: LINKER_HOST
             value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           {{- end }}
         envFrom:
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
           - configMapRef:
               name: local-settings-nginx-{{ .Values.deployEnv }}
               optional: true
           - secretRef:
               name: local-settings-nginx-secrets-{{ .Values.deployEnv }}
               optional: true
-          - secretRef:
-              name: {{ template "sefaria.secrets.elasticUser" . }}
       volumes:
         - name:  nginx-conf
           configMap:

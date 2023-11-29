@@ -118,7 +118,6 @@ data:
         location /api/search/ {
           rewrite ^/(?:api/search)/(.*)$ /$1 break;
           proxy_set_header Content-Type application/json;  # es 6.0 requires this header
-          proxy_set_header Authorization "Basic ${ELASTIC_AUTH_HEADER}";
           add_header 'Access-Control-Allow-Origin' '';
           proxy_pass http://elasticsearch_upstream/;
         }
