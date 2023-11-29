@@ -119,6 +119,7 @@ spec:
         - name:  nginx-conf
           configMap:
             name: nginx-conf-{{ .Values.deployEnv }}
+            defaultMode: 0755
         - name: robots-txt
           configMap:
             name: robots-txt-{{ .Values.deployEnv }}
