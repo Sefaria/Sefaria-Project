@@ -6654,6 +6654,9 @@ But not to use a display block directive that might break continuous mode for ot
   color: var(--dark-grey);
   margin-top: 15px;
 }
+.version-block-with-preview-details img {
+  padding-inline-start: 15px;
+}
 .singlePanel .connection-buttons .connection-button{
   text-align: start;
   margin-inline-end: 5px;
