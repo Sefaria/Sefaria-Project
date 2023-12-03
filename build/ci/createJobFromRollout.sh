@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        ci-run: $GITHUB_RUN_ID
+        ci-run: "${GITHUB_RUN_ID}"
         test-name: pytest
     spec:
 EOF
