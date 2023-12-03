@@ -8,7 +8,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    ci-run: $GITHUB_RUN_ID
+    ci-run: "${GITHUB_RUN_ID}"
     test-name: pytest
   name: $DEPLOY_ENV-pytest-sandbox-$GITHUB_RUN_ID
 spec:
