@@ -33,9 +33,18 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
                                                                                 .filter(x => x.slug !== origData.origSlug) // dont include topics that are self-linked
                                                                                 || []);
     const [isChanged, setIsChanged] = useState(false);
+    const [changedPicture, setChangedPicture] = useState(false);
 
     const toggle = function() {
       setSavingStatus(savingStatus => !savingStatus);
+    }
+
+    const closeTopicEditor = (e) => {
+        if (changedPicture) {
+            alert("You changed the topic picture, and therefore, you must save your topic changes.");
+            return;
+        }
+        close(e);
     }
 
 
@@ -174,6 +183,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     }
     const handlePictureChange = (url) => {
         data["image_uri"] = url;
+        setChangedPicture(true);
         updateData({...data});
     }
 
@@ -193,7 +203,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     items.push("Picture Uploader");
     items.push("English Caption");
     items.push("Hebrew Caption");
-    return <AdminEditor title="Topic Editor" close={close} catMenu={catMenu} data={data} savingStatus={savingStatus}
+    return <AdminEditor title="Topic Editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<PictureUploader callback={handlePictureChange} old_filename={data.image_uri}
                                                 caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
