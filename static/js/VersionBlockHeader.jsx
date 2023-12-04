@@ -48,7 +48,7 @@ function VersionBlockHeaderText({link, onClick, text, direction}) {
         const computedStyles = window.getComputedStyle(element);
         const maxHeight = parseInt(computedStyles.getPropertyValue('max-height'), 10);
         setTruncationOccurred(element.scrollHeight > maxHeight);
-    }, []); //[] for running in resize seems better than adding a listener
+    }); //no second param for running in resize seems better than adding a listener
     function onEllipsisClick() {
         setShouldAttemptTruncation(false);
         setTruncationOccurred(false);
