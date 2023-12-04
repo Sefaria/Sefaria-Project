@@ -146,6 +146,10 @@ monitor:
 cronJobs:
   regenerate:
     enabled: false
+  reindexElasticSearch:
+    enabled: true
+    SEARCH_HOST_ES6: "contextus-es-default-0.elasticsearch.svc"
+    SEARCH_HOST_ES8: "elasticsearch-8-es-default-0.elasticsearch.svc"
 secrets:
   localSettings:
     ref: local-settings-secrets-production
