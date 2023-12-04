@@ -3562,6 +3562,8 @@ display: none;
 }
 .versionBlock.with-preview summary {
   margin-top: 10px;
+}
+[open] .versionBlock.with-preview summary {
   margin-bottom: 10px;
 }
 .versionBlock.with-preview summary::marker {
@@ -3602,11 +3604,12 @@ details .open-details::before {
   line-height: 29px;
   max-inline-size: max-content;
 }
-.versionsBox .versionBlock {
-  padding: 20px 0;
-}
 .versionsBox .versionBlock:not(.with-preview) {
   border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+.versionsBox .versionBlock.with-preview {
+  padding: 15px 0;
 }
 .language-block .versionLanguage {
   border-bottom: solid 1px #CCC;
