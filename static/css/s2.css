@@ -3529,6 +3529,7 @@ display: none;
 .versionBlock .versionPreview {
   --line-height: 22px;
   line-height: var(--line-height);
+  text-decoration: none;
 }
 .versionBlock .versionPreview big {
   font-size: inherit;
