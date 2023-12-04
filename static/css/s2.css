@@ -7083,6 +7083,7 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);
@@ -10644,7 +10645,6 @@ cursor: pointer;
   color: white;
   font-size: 75px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  margin-bottom: 3px;
 }
 .default-profile-img.invisible {
   visibility: hidden;
