@@ -179,6 +179,8 @@ cronJobs:
     enabled: true
   reindexElasticSearch:
     enabled: true
+    SEARCH_HOST_ES6: "elasticsearch-data"
+    SEARCH_HOST_ES8: "elasticsearch-es-http.elasticsearch.svc"
   topicsIndexing:
     enabled: true
   trello:
