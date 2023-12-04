@@ -10,13 +10,10 @@ const Promotions = () => {
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
   useEffect(() => {
-    if (strapi.dataFromStrapiHasBeenReceived) {
+    if (strapi.dataFromStrapiHasBeenReceived && Sefaria._siteSettings.TORAH_SPECIFIC) {
       Sefaria._inAppAds = [];
 
       const sidebarAds = strapi.strapiData?.sidebarAds?.data;
-      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-          return false;
-      }
       if (sidebarAds) {
         sidebarAds.forEach((sidebarAd) => {
           sidebarAd = sidebarAd.attributes;
