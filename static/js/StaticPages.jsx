@@ -2640,8 +2640,9 @@ const ConditionalLink = ({ link, children }) =>
 * Team Page
 */
 
-
-
+// Takes an array and boolean proposition function to be evaluated against each element
+// Returns two arrays within an array
+// The first contains the elements for which the proposition function evaluates to true. The second contains the rest
 const partition = (arr, prop) =>
     arr.reduce(
         (accumulator, currentValue) => {
@@ -2651,156 +2652,157 @@ const partition = (arr, prop) =>
         [[], []]
     );
 
-const TeamMembersPage = memo(() => {
-    const byLastName = () => {
-        const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-        return (a, b) => {
-            const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
-            const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
-            return lastNameA.localeCompare(lastNameB, locale);
-        };
+// Defines a comparator to be used for sorting team members
+const byLastName = () => {
+    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    return (a, b) => {
+        const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
+        const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
+        return lastNameA.localeCompare(lastNameB, locale);
     };
-    
-    const TeamTitle = ({ teamTitle }) => (
-        <div className="teamTitle">
-            <InterfaceText text={teamTitle} />
-        </div>
+};
+
+const TeamTitle = ({ teamTitle }) => (
+    <div className="teamTitle">
+        <InterfaceText text={teamTitle} />
+    </div>
+);
+
+const TeamName = ({ teamName }) => (
+    <div className="teamName">
+        <InterfaceText text={teamName} />
+    </div>
+);
+
+const TeamMemberDetails = ({ teamMemberDetails }) => (
+    <div className="teamMemberDetails">
+        <TeamName teamName={teamMemberDetails.teamName} />
+        <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
+    </div>
+);
+
+const TeamMemberImage = ({ teamMember }) => (
+    <div className="teamMemberImage">
+        <img
+            src={teamMember.teamMemberImage}
+            alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
+        />
+    </div>
+);
+
+const TeamMember = ({ teamMember }) => (
+    <div className="teamMember">
+        <TeamMemberImage teamMember={teamMember} />
+        <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
+    </div>
+);
+
+const TeamMembers = ({ teamMembers }) => (
+    <>
+        {teamMembers.map((teamMember) => (
+            <TeamMember key={teamMember.id} teamMember={teamMember} />
+        ))}
+    </>
+);
+
+const BoardMember = ({ boardMember }) => (
+    <div className="teamBoardMember">
+        <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
+    </div>
+);
+
+const BoardMembers = ({ boardMembers }) => {
+    let chairmanBoardMember;
+    const chairmanIndex = boardMembers.findIndex(
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "chairman"
     );
-    
-    const TeamName = ({ teamName }) => (
-        <div className="teamName">
-            <InterfaceText text={teamName} />
-        </div>
+    if (chairmanIndex !== -1) {
+        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+    }
+    const [cofounderBoardMembers, regularBoardMembers] = partition(
+        boardMembers,
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "co-founder"
     );
-    
-    const TeamMemberDetails = ({ teamMemberDetails }) => (
-        <div className="teamMemberDetails">
-            <TeamName teamName={teamMemberDetails.teamName} />
-            <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
-        </div>
-    );
-    
-    const TeamMemberImage = ({ teamMember }) => (
-        <div className="teamMemberImage">
-            <img
-                src={teamMember.teamMemberImage}
-                alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
-            />
-        </div>
-    );
-    
-    const TeamMember = ({ teamMember }) => (
-        <div className="teamMember">
-            <TeamMemberImage teamMember={teamMember} />
-            <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
-        </div>
-    );
-    
-    const TeamMembers = ({ teamMembers }) => (
+
+    return (
         <>
-            {teamMembers.map((teamMember) => (
-                <TeamMember key={teamMember.id} teamMember={teamMember} />
+            {chairmanBoardMember && (
+                <BoardMember boardMember={chairmanBoardMember[0]} />
+            )}
+            {cofounderBoardMembers.map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+            {regularBoardMembers.sort(byLastName()).map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
             ))}
         </>
     );
-    
-    const BoardMember = ({ boardMember }) => (
-        <div className="teamBoardMember">
-            <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
-        </div>
-    );
-    
-    const BoardMembers = ({ boardMembers }) => {
-        let chairmanBoardMember;
-        const chairmanIndex = boardMembers.findIndex(
-            (boardMember) =>
-                boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-                "chairman"
-        );
-        if (chairmanIndex !== -1) {
-            chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
-        }
-        const [cofounderBoardMembers, regularBoardMembers] = partition(
-            boardMembers,
-            (boardMember) =>
-                boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
-                "co-founder"
-        );
-    
-        return (
-            <>
-                {chairmanBoardMember && (
-                    <BoardMember boardMember={chairmanBoardMember[0]} />
-                )}
-                {cofounderBoardMembers.map((boardMember) => (
-                    <BoardMember key={boardMember.id} boardMember={boardMember} />
-                ))}
-                {regularBoardMembers.sort(byLastName()).map((boardMember) => (
-                    <BoardMember key={boardMember.id} boardMember={boardMember} />
-                ))}
-            </>
-        );
-    };
+};
 
+const fetchTeamMembersJSON = async () => {
+    const query = `
+query {
+  teamMembers(pagination: { limit: -1 }) {
+    data {
+      id
+      attributes {
+        teamName
+        teamTitle
+        isTeamBoardMember
+        teamMemberImage {
+          data {
+            attributes {
+              url
+            }
+          }
+        }
+        localizations {
+          data {
+            attributes {
+              locale
+              teamName
+              teamTitle
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`;
+    try {
+        const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+            method: "POST",
+            mode: "cors",
+            cache: "no-cache",
+            credentials: "omit",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            redirect: "follow",
+            referrerPolicy: "no-referrer",
+            body: JSON.stringify({ query }),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+const TeamMembersPage = memo(() => {
     const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
     const [teamBoardMembers, setTeamBoardMembers] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchTeamMembersJSON = async () => {
-            const query = `
-        query {
-          teamMembers(pagination: { limit: -1 }) {
-            data {
-              id
-              attributes {
-                teamName
-                teamTitle
-                isTeamBoardMember
-                teamMemberImage {
-                  data {
-                    attributes {
-                      url
-                    }
-                  }
-                }
-                localizations {
-                  data {
-                    attributes {
-                      locale
-                      teamName
-                      teamTitle
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        `;
-            try {
-                const response = await fetch(STRAPI_INSTANCE + "/graphql", {
-                    method: "POST",
-                    mode: "cors",
-                    cache: "no-cache",
-                    credentials: "omit",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    redirect: "follow",
-                    referrerPolicy: "no-referrer",
-                    body: JSON.stringify({ query }),
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.statusText}`);
-                }
-                const data = await response.json();
-                return data;
-            } catch (error) {
-                throw error;
-            }
-        };
-
         const loadTeamMembers = async () => {
             if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
                 try {
