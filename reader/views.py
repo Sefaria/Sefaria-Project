@@ -4200,7 +4200,12 @@ def dummy_search_api(request):
 
 
 @csrf_exempt
-def search_wrapper_api(request):
+def search_wrapper_api(request, es6_compat=False):
+    """
+    @param request:
+    @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
+    @return:
+    """
     from sefaria.helper.search import get_elasticsearch_client
 
     if request.method == "POST":
@@ -4215,6 +4220,8 @@ def search_wrapper_api(request):
         response = search_obj.execute()
         if response.success():
             response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            if es6_compat and isinstance(response_json['hits']['total'], dict):
+                response_json['hits']['total'] = response_json['hits']['total']['value']
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
