@@ -4,7 +4,7 @@ import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import {versionTools} from './VersionBlock';
 import Sefaria from "./sefaria/sefaria";
 
-function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersions, openVersionInReader, isInfoOpen, setIsInfoOpen, isSelected}) {
+function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
     function makeShortVersionTitle() {
         let shortVersionTitle = version.shortVersionTitle || version.versionTitle;
         if (Sefaria.interfaceLang === "hebrew") {
@@ -12,15 +12,14 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
         }
         return shortVersionTitle;
     }
-    const chevronDirection = isInfoOpen ? 'up' : 'down';
     const openVersionInMainPanel = versionTools.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
         null, openVersionInReader);
     const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (
         <div className='version-with-preview-title-line'>
-            <a className={`open-details chevron-${chevronDirection}`} onClick={() => setIsInfoOpen(!isInfoOpen)} href='#'>
+            <div className='open-details'>
                 {makeShortVersionTitle()}
-            </a>
+            </div>
             <VersionBlockSelectButton
                 isSelected={isSelected}
                 openVersionInMainPanel={openVersionInMainPanel}
@@ -35,8 +34,6 @@ VersionBlockWithPreviewTitleLine.prototypes = {
   version: PropTypes.object.isRequired,
   currentRef: PropTypes.string.isRequired,
   openVersionInReader: PropTypes.func.isRequired,
-  isInfoOpen: PropTypes.bool.isRequired,
-  setIsInfoOpen: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
 };
 export default VersionBlockWithPreviewTitleLine;
