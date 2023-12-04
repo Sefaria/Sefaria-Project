@@ -62,9 +62,9 @@ from sefaria.search import get_search_categories
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book, \
                                 get_bulk_topics, recommend_topics, get_top_topic, get_random_topic, \
                                 get_random_topic_source, edit_topic_source, \
-                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, add_image_to_topic
+                                update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time
 from sefaria.helper.community_page import get_community_page_items
-from sefaria.helper.file import get_resized_file, thumbnail_image_file
+from sefaria.helper.file import get_resized_file
 from sefaria.image_generator import make_img_http_response
 import sefaria.tracker as tracker
 

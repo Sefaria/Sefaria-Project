@@ -15,7 +15,7 @@ import {ContentText} from "./ContentText";
 import ReactTags from "react-tag-autocomplete";
 import {AdminEditorButton, useEditToggle} from "./AdminEditor";
 import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
-import {refSort, TopicImage} from "./TopicPage";
+import {refSort} from "./TopicPage";
 import {TopicEditor} from "./TopicEditor";
 import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
 import {SourceEditor} from "./SourceEditor";
