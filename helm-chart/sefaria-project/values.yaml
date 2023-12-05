@@ -329,9 +329,7 @@ secrets:
     #   SEFARIA_DB:
     #   SEFARIA_DB_USER:
     #   SEFARIA_DB_PASSWORD:
-    #   SEARCH_ADMIN_USER:
-    #   SEARCH_ADMIN_PW:
-    #   SEARCH_ADMIN_K8S:
+    #   SEARCH_URL
     #   TURN_SECRET:
     #   TURN_USER:
     #   SEFARIA_BOT_API_KEY:
@@ -372,6 +370,16 @@ secrets:
     # should be commented out and vice-versa.
     ref: trello-secret
     # data:
+  elasticUser:
+    # If you're using a reference to an existing secret then the data: section
+    # should be commented out and vice-versa.
+    ref: elastic-user
+    # data:
+  elasticAdmin:
+    # If you're using a reference to an existing secret then the data: section
+    # should be commented out and vice-versa.
+    ref: elastic-admin
+    # data:
 
 
 # Settings for various cronjobs
@@ -391,6 +399,8 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    SEARCH_HOST_ES6: ""
+    SEARCH_HOST_ES8: ""
   topicsIndexing:
     enabled: false
   trello:

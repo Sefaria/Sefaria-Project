@@ -144,3 +144,9 @@ def make_filter(type, agg_type, agg_key):
         return Regexp(path=reg)
     elif type == "sheet":
         return Term(**{agg_type: agg_key})
+
+
+def get_elasticsearch_client():
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(SEARCH_URL)
