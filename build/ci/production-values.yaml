@@ -179,7 +179,7 @@ localSettings:
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_ADMIN: "http://contextus-es-http.elasticsearch.svc:9200"
+  SEARCH_URL: "http://contextus-es-http.elasticsearch.svc:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://contextus.org"
@@ -189,7 +189,6 @@ localSettings:
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Contextus will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.s4d"
-  SEARCH_HOST: contextus-es-http.elasticsearch.svc
   DEFAULT_FROM_EMAIL: "Contextus <hello@contextus.org>"
   SERVER_EMAIL: "dev@contextus.org"
   MULTISERVER_ENABLED: "False"
