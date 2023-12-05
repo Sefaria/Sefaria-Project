@@ -185,6 +185,8 @@ cronJobs:
     enabled: true
   trello:
     enabled: true
+  trends:
+    enabled: false
   weeklyEmailNotifications:
      enabled: true
 secrets:
