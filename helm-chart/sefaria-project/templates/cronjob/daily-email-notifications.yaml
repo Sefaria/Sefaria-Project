@@ -40,7 +40,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/send_email_notifications.py daily"
+              "/app/run /app/scripts/scheduled/send_email_notifications.py daily"
             ]
           restartPolicy: Never
           volumes:
