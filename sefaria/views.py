@@ -170,7 +170,36 @@ def accounts(request):
     })
 
 
-def subscribe(request, email):
+def generic_subscribe_to_newsletter_api(request, org, email):
+    """
+    Generic view for subscribing a user to a newsletter
+    """
+    org_subscribe_fn_map = {
+        "sefaria": subscribe_sefaria_newsletter,
+        "steinsaltz": subscribe_steinsaltz,
+    }
+    body = json.loads(request.body)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
+    try:
+        subscribe = org_subscribe_fn_map.get(org)
+        if not subscribe:
+            return jsonResponse({"error": f"Organization '{org}' not recognized."})
+        if subscribe(request, email, first_name, last_name):
+            return jsonResponse({"status": "ok"})
+        else:
+            logger.error(f"Failed to subscribe to list")
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
+        return jsonResponse({"error": _("Sorry, there was an error.")})
+
+
+def subscribe_sefaria_newsletter_view(request, email):
+    return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
+
+
+def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     """
     API for subscribing to mailing lists, in `lists` url param.
     Currently active lists are:
@@ -179,18 +208,26 @@ def subscribe(request, email):
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
-    first_name = body.get("firstName", None)
-    last_name = body.get("lastName", None)
-    try:
-        crm_mediator = CrmMediator()
-        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
-            return jsonResponse({"status": "ok"})
-        else:
-            logger.error("Failed to subscribe to list")
-            return jsonResponse({"error": _("Sorry, there was an error.")})
-    except ValueError as e:
-        logger.error(f"Failed to subscribe to list: {e}")
-        return jsonResponse({"error": _("Sorry, there was an error.")})
+    crm_mediator = CrmMediator()
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+
+
+def subscribe_steinsaltz(request, email, first_name, last_name):
+    """
+    API for subscribing to Steinsaltz newsletter
+    """
+    import requests
+
+    data = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post('https://steinsaltz-center.org/api/mailer',
+                             data=json.dumps(data), headers=headers)
+    return response.ok
+
 
 @login_required
 def unlink_gauth(request):
@@ -502,7 +539,7 @@ def collections_image_upload(request, resize_image=True):
             image = Image.open(temp_uploaded_file)
             resized_image_file = BytesIO()
             if resize_image:
-                image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
             image.save(resized_image_file, optimize=True, quality=70, format="PNG")
             resized_image_file.seek(0)
             bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET

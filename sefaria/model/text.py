@@ -687,6 +687,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
+        for date_key in ['compDate', 'pubDate']:
+            if hasattr(self, date_key):
+                val = getattr(self, date_key)
+                if not isinstance(val, list) or not all([isinstance(x, int) for x in val]):
+                    raise InputError(f"Optional attribute '{date_key}' must be list of integers.")
+
         '''
         for cat in self.categories:
             if not hebrew_term(cat):
@@ -1296,7 +1302,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         """
         languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
         if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            raise InputError("Version actualLanguage does not match bracketed language")
+            self.actualLanguage = languageCodeRe.group(1)
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -2280,6 +2286,11 @@ class TextFamily(object):
             oref = oref.padded_ref()
         elif oref.has_default_child():
             oref = oref.default_child_ref()
+
+        if version:
+            version = version.replace("_", " ")
+        if version2:
+            version2 = version2.replace("_", " ")
 
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()

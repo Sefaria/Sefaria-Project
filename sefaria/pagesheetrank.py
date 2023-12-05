@@ -212,8 +212,8 @@ def init_pagerank_graph(ref_list=None):
                 refs = [Ref(r) for r in link.refs]
                 tp1 = refs[0].index.best_time_period()
                 tp2 = refs[1].index.best_time_period()
-                start1 = int(tp1.start) if tp1 else 3000
-                start2 = int(tp2.start) if tp2 else 3000
+                start1 = int(tp1.determine_year_estimate()) if tp1 else 3000
+                start2 = int(tp2.determine_year_estimate()) if tp2 else 3000
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 

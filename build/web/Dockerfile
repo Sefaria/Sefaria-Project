@@ -1,4 +1,5 @@
 FROM gcr.io/production-deployment/base-web:v3.7-bullseye
+ARG TYPE=build-prod
 
 WORKDIR /app/
 # Copied separately to allow for caching of the `pip install` build step
@@ -10,7 +11,7 @@ RUN npm install --unsafe-perm
 
 COPY ./node /app/node
 COPY ./static/js /app/static/js
-RUN npm run build-prod
+RUN npm run $TYPE
 
 COPY . /app/
 
