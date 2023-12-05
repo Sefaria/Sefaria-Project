@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+This file is meant to be temporary while we are migrating to elasticsearch 8
+
 search.py - full-text search for Sefaria using ElasticSearch
 
 Writes to MongoDB Collection: index_queue
@@ -20,6 +22,7 @@ from collections import defaultdict
 import time as pytime
 logger = structlog.get_logger(__name__)
 
+from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -30,13 +33,12 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from sefaria.helper.search import get_elasticsearch_client
+from .settings import SEARCH_URL, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-es_client = get_elasticsearch_client()
+es_client = Elasticsearch(SEARCH_URL)
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)
@@ -52,7 +54,7 @@ def delete_text(oref, version, lang):
         curr_index = get_new_and_current_index_names('text')['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=curr_index, id=id)
+        es_client.delete(index=curr_index, doc_type='text', id=id)
     except Exception as e:
         logger.error("ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -76,7 +78,7 @@ def delete_version(index, version, lang):
 
 def delete_sheet(index_name, id):
     try:
-        es_client.delete(index=index_name, id=id)
+        es_client.delete(index=index_name, doc_type='sheet', id=id)
     except Exception as e:
         logger.error("ERROR deleting sheet {}".format(id))
 
@@ -147,7 +149,7 @@ def index_sheet(index_name, id):
             "dateModified": sheet.get("dateModified", None),
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, id=id, body=doc)
+        es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
         global doc_count
         doc_count += 1
         return True
@@ -220,6 +222,7 @@ def get_exact_english_analyzer():
             "icu_normalizer",
         ],
         "filter": [
+            "standard",
             "lowercase",
             "icu_folding",
         ],
@@ -258,7 +261,7 @@ def create_index(index_name, type):
         }
     }
     print('Creating index {}'.format(index_name))
-    index_client.create(index=index_name, settings=settings)
+    index_client.create(index=index_name, body=settings)
 
     if type == 'text':
         put_text_mapping(index_name)
@@ -325,7 +328,7 @@ def put_text_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(body=text_mapping, index=index_name)
+    index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
 
 
 def put_sheet_mapping(index_name):
@@ -391,7 +394,7 @@ def put_sheet_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(body=sheet_mapping, index=index_name)
+    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -592,6 +595,7 @@ class TextIndexer(object):
                 cls._bulk_actions += [
                     {
                         "_index": cls.index_name,
+                        "_type": "text",
                         "_id": make_text_doc_id(tref, vtitle, vlang),
                         "_source": doc
                     }
@@ -621,7 +625,7 @@ class TextIndexer(object):
         while "  " in content:                                 # make sure there are not many spaces in a row
             content = content.replace("  ", " ")
         return content
-        
+
     @classmethod
     def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
         """
