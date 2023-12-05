@@ -539,7 +539,7 @@ def collections_image_upload(request, resize_image=True):
             image = Image.open(temp_uploaded_file)
             resized_image_file = BytesIO()
             if resize_image:
-                image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
             image.save(resized_image_file, optimize=True, quality=70, format="PNG")
             resized_image_file.seek(0)
             bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET

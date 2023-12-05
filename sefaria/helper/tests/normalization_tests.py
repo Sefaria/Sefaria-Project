@@ -102,6 +102,21 @@ def test_nested_itag():
     assert text[s:e] == """<i class="footnote">bull<sup>nested</sup><i class="footnote">The</i>.</i>"""
 
 
+def test_two_steps_normalization():
+    test_string = ' This is a {{test}}'
+
+    bracket_normalizer = RegexNormalizer(r'\{\{|}}', r'')
+    strip_normalizer = RegexNormalizer(r'^\s*|\s*$', r'')
+    normalizer = NormalizerComposer(steps=[bracket_normalizer, strip_normalizer])
+
+    mapping = normalizer.get_mapping_after_normalization(test_string, reverse=True)
+    assert mapping == {0: 1, 11: 3, 17: 5}
+    orig_inds = [(13, 17)]
+    new_start, new_end = normalizer.convert_normalized_indices_to_unnormalized_indices(orig_inds, mapping, reverse=True)[0]
+    normalized_string = normalizer.normalize(test_string)
+    assert normalized_string[new_start:new_end] == "test"
+
+
 def test_word_to_char():
     test_string = 'some words go here\n\nhello world'
     words = ['go', 'here', 'hello']

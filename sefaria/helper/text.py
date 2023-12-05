@@ -1,5 +1,9 @@
 # encoding=utf-8
+import unicodecsv as csv
+import io
 import re
+
+import pymongo
 
 from sefaria.model import *
 from sefaria.system.database import db
@@ -249,6 +253,49 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
             modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
 
 
+def modify_many_texts_and_make_report(rewrite_function, versions_query=None, return_zeros=False):
+    """
+    Uses pymongo because iterating and saving all texts as Version is heavy.
+    That means - be CAREFUL with that.
+
+    :param rewrite_function(string) -> (string, int of times that string has been replaced)
+    :param versions_query - query dict for VersionSet, or None for all
+    :param return_zeros - bool whether you want cases of 0 replaces in report
+    :returns a csv writer with index title, versionTitle, and number of replacements
+    """
+    def replace_in_text_object(text_obj):
+        total = 0
+        if isinstance(text_obj, dict):
+            for key in text_obj:
+                text_obj[key], num = replace_in_text_object(text_obj[key])
+                total += num
+        elif isinstance(text_obj, list):
+            for i, _ in enumerate(text_obj):
+                text_obj[i], num = replace_in_text_object(text_obj[i])
+                total += num
+        elif isinstance(text_obj, str):
+            return rewrite_function(text_obj)
+        return text_obj, total
+    texts_collection = db.texts
+    versions_to_change = texts_collection.find(versions_query)
+    bulk_operations = []
+    output = io.BytesIO()
+    report = csv.writer(output)
+    report.writerow(['index', 'versionTitle', 'replaces number'])
+    for version in versions_to_change:
+        new_text, replaces = replace_in_text_object(version['chapter'])
+        if replaces or return_zeros:
+            report.writerow([version['title'], version['versionTitle'], replaces])
+        if replaces:
+            bulk_operations.append(pymongo.UpdateOne(
+                {'_id': version['_id']},
+                {'$set': {'chapter': new_text}}
+            ))
+    if bulk_operations:
+        texts_collection.bulk_write(bulk_operations)
+    return output.getvalue()
+
+
 def split_text_section(oref, lang, old_version_title, new_version_title):
     """
     Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
@@ -334,8 +381,6 @@ def make_versions_csv():
     """
     Returns a CSV of all text versions in the DB.
     """
-    import csv
-    import io
     output = io.BytesIO()
     writer = csv.writer(output)
     fields = [
@@ -359,8 +404,6 @@ def make_versions_csv():
 
 
 def get_core_link_stats():
-    import csv
-    import io
     from sefaria.model.link import get_category_category_linkset
     output = io.BytesIO()
     writer = csv.writer(output)
@@ -439,8 +482,6 @@ def get_library_stats():
         return simple_nodes
     tree = aggregate_stats(library.get_toc(), [])
 
-    import csv
-    import io
     from operator import sub
     output = io.BytesIO()
     writer = csv.writer(output)

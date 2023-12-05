@@ -1157,7 +1157,7 @@ def upload_sheet_media(request):
         else:
             im = Image.open(img_file_in_mem)
             img_file = BytesIO()
-            im.thumbnail(max_img_size, Image.ANTIALIAS)
+            im.thumbnail(max_img_size, Image.LANCZOS)
             im.save(img_file, format=im.format)
             img_file.seek(0)
 
