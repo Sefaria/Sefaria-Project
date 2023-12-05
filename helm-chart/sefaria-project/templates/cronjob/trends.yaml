@@ -48,7 +48,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/recurring-scheduled/recalculate-trends.py"
+              "/app/run /app/scripts/scheduled/recalculate_trends.py"
             ]
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 1
