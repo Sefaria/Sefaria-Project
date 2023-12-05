@@ -51,7 +51,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/index_from_queue.py"
+              "/app/run /app/scripts/scheduled/index_from_queue.py"
             ]
             resources:
               limits:

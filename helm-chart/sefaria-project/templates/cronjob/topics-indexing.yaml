@@ -18,7 +18,7 @@ spec:
           containers:
             - name: topics-indexer
               image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
-              args: [ "yes | pip3 install numpy && touch /log/sefaria_book_errors.log && python3 /app/scripts/recalculate_secondary_topic_data.py" ]
+              args: [ "yes | pip3 install numpy && touch /log/sefaria_book_errors.log && python3 /app/scripts/scheduled/recalculate_secondary_topic_data.py" ]
               env:
               - name: REDIS_HOST
                 value: "redis-{{ .Values.deployEnv }}"
