@@ -4219,7 +4219,7 @@ def search_wrapper_api(request, es6_compat=False):
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
