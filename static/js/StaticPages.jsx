@@ -2743,116 +2743,116 @@ const BoardMembers = ({ boardMembers }) => {
     );
 };
 
-const fetchTeamMembersJSON = async () => {
-    const query = `
-query {
-  teamMembers(pagination: { limit: -1 }) {
-    data {
-      id
-      attributes {
-        teamName
-        teamTitle
-        isTeamBoardMember
-        teamMemberImage {
-          data {
-            attributes {
-              url
-            }
-          }
-        }
-        localizations {
-          data {
-            attributes {
-              locale
-              teamName
-              teamTitle
-            }
-          }
-        }
-      }
-    }
-  }
-}
-`;
-    try {
-        const response = await fetch(STRAPI_INSTANCE + "/graphql", {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            credentials: "omit",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
-            body: JSON.stringify({ query }),
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        throw error;
-    }
-};
-
 const TeamMembersPage = memo(() => {
     const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
     const [teamBoardMembers, setTeamBoardMembers] = useState([]);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const loadTeamMembers = async () => {
-            if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
-                try {
-                    const teamMembersData = await fetchTeamMembersJSON();
-
-                    const teamMembersFromStrapi =
-                        teamMembersData.data.teamMembers.data.map(
-                            (teamMember) => {
-                                const heLocalization =
-                                    teamMember.attributes.localizations.data[0];
-
-                                return {
-                                    id: teamMember.id,
-                                    isTeamBoardMember:
-                                        teamMember.attributes.isTeamBoardMember,
-                                    teamMemberImage:
-                                        teamMember.attributes.teamMemberImage
-                                            ?.data?.attributes?.url,
-                                    teamMemberDetails: {
-                                        teamName: {
-                                            en: teamMember.attributes.teamName,
-                                            he: heLocalization.attributes
-                                                .teamName,
-                                        },
-                                        teamTitle: {
-                                            en: teamMember.attributes.teamTitle,
-                                            he: heLocalization.attributes
-                                                .teamTitle,
-                                        },
-                                    },
-                                };
+    const fetchTeamMembersJSON = async () => {
+        const query = `
+            query {
+                teamMembers(pagination: { limit: -1 }) {
+                    data {
+                        id
+                        attributes {
+                            teamName
+                            teamTitle
+                            isTeamBoardMember
+                            teamMemberImage {
+                                data {
+                                    attributes {
+                                        url
+                                    }
+                                }
                             }
-                        );
+                            localizations {
+                                data {
+                                    attributes {
+                                        locale
+                                        teamName
+                                        teamTitle
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            `;
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
 
-                    const [ordinaryMembers, boardMembers] = partition(
-                        teamMembersFromStrapi,
-                        (teamMember) => !teamMember.isTeamBoardMember
+    const loadTeamMembers = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const teamMembersData = await fetchTeamMembersJSON();
+
+                const teamMembersFromStrapi =
+                    teamMembersData.data.teamMembers.data.map(
+                        (teamMember) => {
+                            const heLocalization =
+                                teamMember.attributes.localizations.data[0];
+
+                            return {
+                                id: teamMember.id,
+                                isTeamBoardMember:
+                                    teamMember.attributes.isTeamBoardMember,
+                                teamMemberImage:
+                                    teamMember.attributes.teamMemberImage
+                                        ?.data?.attributes?.url,
+                                teamMemberDetails: {
+                                    teamName: {
+                                        en: teamMember.attributes.teamName,
+                                        he: heLocalization.attributes
+                                            .teamName,
+                                    },
+                                    teamTitle: {
+                                        en: teamMember.attributes.teamTitle,
+                                        he: heLocalization.attributes
+                                            .teamTitle,
+                                    },
+                                },
+                            };
+                        }
                     );
 
-                    setOrdinaryTeamMembers(ordinaryMembers);
-                    setTeamBoardMembers(boardMembers);
-                } catch (error) {
-                    console.error("Fetch error:", error);
-                    setError("Error: Sefaria's CMS cannot be reached");
-                }
-            } else {
+                const [ordinaryMembers, boardMembers] = partition(
+                    teamMembersFromStrapi,
+                    (teamMember) => !teamMember.isTeamBoardMember
+                );
+
+                setOrdinaryTeamMembers(ordinaryMembers);
+                setTeamBoardMembers(boardMembers);
+            } catch (error) {
+                console.error("Fetch error:", error);
                 setError("Error: Sefaria's CMS cannot be reached");
             }
-        };
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
 
+    useEffect(() => {
         loadTeamMembers();
     }, []);
 
