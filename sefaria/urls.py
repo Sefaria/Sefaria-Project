@@ -238,7 +238,9 @@ urlpatterns += [
 # Search API
 urlpatterns += [
     url(r'^api/dummy-search$', reader_views.dummy_search_api),
-    url(r'^api/search-wrapper$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper/es6$', reader_views.search_wrapper_api, {'es6_compat': True}),
+    url(r'^api/search-wrapper/es8$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api, {'es6_compat': True}),
     url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
 ]
 
@@ -266,6 +268,11 @@ urlpatterns += [
     url(r'^api/source/reorder$', reader_views.reorder_sources),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
+]
+
+# Portals API
+urlpatterns += [
+    url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
 ]
 
 # History API
@@ -385,7 +392,8 @@ urlpatterns += [
 
 # Email Subscribe
 urlpatterns += [
-    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe),
+    url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
+    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
 ]
 
 # Admin

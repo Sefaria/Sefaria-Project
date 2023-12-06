@@ -1302,7 +1302,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         """
         languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
         if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
-            raise InputError("Version actualLanguage does not match bracketed language")
+            self.actualLanguage = languageCodeRe.group(1)
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -2286,6 +2286,11 @@ class TextFamily(object):
             oref = oref.padded_ref()
         elif oref.has_default_child():
             oref = oref.default_child_ref()
+
+        if version:
+            version = version.replace("_", " ")
+        if version2:
+            version2 = version2.replace("_", " ")
 
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
