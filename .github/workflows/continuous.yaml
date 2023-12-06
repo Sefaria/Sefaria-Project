@@ -309,12 +309,10 @@ jobs:
           | sed 's/[^a-z0-9\.\-]//g')
           >> $GITHUB_OUTPUT
       - name: Start Job
-        run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          WEB_IMAGE_NAME: us-east1-docker.pkg.dev/${{secrets.DEV_PROJECT}}/containers/sefaria-web-${{ steps.branch-name.outputs.current_branch }}
-          WEB_IMAGE_TAG: sha-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 60
