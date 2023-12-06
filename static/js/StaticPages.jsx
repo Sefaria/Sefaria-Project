@@ -2747,93 +2747,94 @@ const NoJobsNotice = () => {
 };
 
 
-const fetchJobsJSON = async () => {
-    const currentDateTime = new Date().toISOString();
-    const query = `
-        query { 
-            jobPostings(
-                pagination: { limit: -1 }
-                filters: {
-                    jobPostingStartDate: { lte: \"${currentDateTime}\" }
-                    jobPostingEndDate: { gte: \"${currentDateTime}\" }
-                }
-            ) {
-                data {
-                    id
-                    attributes {
-                        jobLink
-                        jobDescription
-                        jobDepartmentCategory
-                    }
-                }
-            }
-        }
-    `;
-
-    try {
-        const response = await fetch(STRAPI_INSTANCE + "/graphql", {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            credentials: "omit",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            redirect: "follow",
-            referrerPolicy: "no-referrer",
-            body: JSON.stringify({ query }),
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.statusText}`);
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        throw error;
-    }
-};
 
 const JobsPage = memo(() => {
     const [groupedJobPostings, setGroupedJobPostings] = useState({});
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const loadJobPostings = async () => {
-            if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
-                try {
-                    const jobsData = await fetchJobsJSON();
-
-                    const jobsFromStrapi = jobsData.data?.jobPostings?.data?.map((jobPosting) => {
-                        return {
-                            id: jobPosting.id,
-                            jobLink: jobPosting.attributes.jobLink,
-                            jobDescription: jobPosting.attributes.jobDescription,
-                            jobDepartmentCategory: jobPosting.attributes.jobDepartmentCategory
-                                .split("_")
-                                .join(" "),
-                        };
-                    });
-
-                    // Group the job postings by department
-                    const groupedJobs = jobsFromStrapi.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
-                        const category = jobPosting.jobDepartmentCategory;
-                        if (!jobPostingsGroupedByDepartment[category]) {
-                            jobPostingsGroupedByDepartment[category] = [];
+    const fetchJobsJSON = async () => {
+        const currentDateTime = new Date().toISOString();
+        const query = `
+            query { 
+                jobPostings(
+                    pagination: { limit: -1 }
+                    filters: {
+                        jobPostingStartDate: { lte: \"${currentDateTime}\" }
+                        jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                    }
+                ) {
+                    data {
+                        id
+                        attributes {
+                            jobLink
+                            jobDescription
+                            jobDepartmentCategory
                         }
-                        jobPostingsGroupedByDepartment[category].push(jobPosting);
-                        return jobPostingsGroupedByDepartment;
-                    }, {});
-
-                    setGroupedJobPostings(groupedJobs);
-                } catch (error) {
-                    console.error("Fetch error:", error);
-                    setError("Error: Sefaria's CMS cannot be reached");
+                    }
                 }
-            } else {
+            }
+        `;
+    
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
+    const loadJobPostings = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const jobsData = await fetchJobsJSON();
+
+                const jobsFromStrapi = jobsData.data?.jobPostings?.data?.map((jobPosting) => {
+                    return {
+                        id: jobPosting.id,
+                        jobLink: jobPosting.attributes.jobLink,
+                        jobDescription: jobPosting.attributes.jobDescription,
+                        jobDepartmentCategory: jobPosting.attributes.jobDepartmentCategory
+                            .split("_")
+                            .join(" "),
+                    };
+                });
+
+                // Group the job postings by department
+                const groupedJobs = jobsFromStrapi.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
+                    const category = jobPosting.jobDepartmentCategory;
+                    if (!jobPostingsGroupedByDepartment[category]) {
+                        jobPostingsGroupedByDepartment[category] = [];
+                    }
+                    jobPostingsGroupedByDepartment[category].push(jobPosting);
+                    return jobPostingsGroupedByDepartment;
+                }, {});
+
+                setGroupedJobPostings(groupedJobs);
+            } catch (error) {
+                console.error("Fetch error:", error);
                 setError("Error: Sefaria's CMS cannot be reached");
             }
-        };
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
 
+    useEffect(() => {
         loadJobPostings();
     }, []);
 
