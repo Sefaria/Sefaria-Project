@@ -4565,11 +4565,19 @@ def rollout_health_api(request):
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
+        
+    def is_database_reachable():
+        try:
+            from sefaria.system.database import db
+            return True
+        except SystemError as ivne:
+            return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
+        'dbConnected': f'Database Connection: {is_database_reachable()}',
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
