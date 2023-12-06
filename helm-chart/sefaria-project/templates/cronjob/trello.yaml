@@ -58,7 +58,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/webpages_cronjob.py"
+              "/app/run /app/scripts/scheduled/webpages_cronjob.py"
             ]
             resources:
               limits:

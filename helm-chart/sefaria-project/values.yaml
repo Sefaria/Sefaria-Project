@@ -405,6 +405,8 @@ cronJobs:
     enabled: false
   trello:
     enabled: false
+  trends:
+    enabled: false
   weeklyEmailNotifications:
     enabled: false
 
