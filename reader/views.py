@@ -48,7 +48,7 @@ from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_use
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -4200,19 +4200,29 @@ def dummy_search_api(request):
 
 
 @csrf_exempt
-def search_wrapper_api(request):
+def search_wrapper_api(request, es6_compat=False):
+    """
+    @param request:
+    @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
+    @return:
+    """
+    from sefaria.helper.search import get_elasticsearch_client
+
     if request.method == "POST":
         if "json" in request.POST:
             j = request.POST.get("json")  # using form-urlencoded
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = get_elasticsearch_client()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            if es6_compat and isinstance(response_json['hits']['total'], dict):
+                response_json['hits']['total'] = response_json['hits']['total']['value']
+            return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
@@ -4555,11 +4565,19 @@ def rollout_health_api(request):
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
+        
+    def is_database_reachable():
+        try:
+            from sefaria.system.database import db
+            return True
+        except SystemError as ivne:
+            return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
+        'dbConnected': f'Database Connection: {is_database_reachable()}',
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
