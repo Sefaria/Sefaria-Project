@@ -3561,41 +3561,36 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
-
-@catch_error_as_json
-def topic_delete_photo(request, file):
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update a topic photo.")})
-    bucket_name = GoogleStorageManager.TOPICS_BUCKET
-    if file:
-        file = f"topics/{file.split('/')[-1]}"
-    if request.method == "DELETE":
-        if file is None:
-            return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
-        GoogleStorageManager.delete_filename(file, bucket_name)
-        return jsonResponse({"success": "You have successfully removed the image."})
-
-@catch_error_as_json
-def topic_upload_photo(request):
+@staff_member_required
+def topic_upload_photo(request, topic):
     from io import BytesIO
     import uuid
     import base64
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": _("You must be logged in to update a topic photo.")})
-    bucket_name = GoogleStorageManager.TOPICS_BUCKET
-    file = request.POST.get('file')
-    old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
-    if old_filename:
-        old_filename = f"topics/{old_filename.split('/')[-1]}"
     if request.method == "DELETE":
+        old_filename = request.GET.get("old_filename")
         if old_filename is None:
             return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
-        GoogleStorageManager.delete_filename(old_filename, bucket_name)
+        old_filename = f"topics/{old_filename.split('/')[-1]}"
+        GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
+        topic = Topic.init(topic)
+        if hasattr(topic, "image"):
+            del topic.image
+            topic.save()
         return jsonResponse({"success": "You have successfully removed the image."})
     elif request.method == "POST":
+        file = request.POST.get('file')
+        old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
+        if old_filename:
+            old_filename = f"topics/{old_filename.split('/')[-1]}"
         img_file_in_mem = BytesIO(base64.b64decode(file))
         img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
-                                                    bucket_name, old_filename=old_filename)
+                                                    GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
+        topic = Topic.init(topic)
+        if not hasattr(topic, "image"):
+            topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
+        else:
+            topic.image["image_uri"] = img_url
+        topic.save()
         return jsonResponse({"url": img_url})
     return jsonResponse({"error": "Unsupported HTTP method."})
 

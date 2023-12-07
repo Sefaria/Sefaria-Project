@@ -1,5 +1,5 @@
 import Sefaria from "./sefaria/sefaria";
-import {InterfaceText, requestWithCallBack, PictureUploader} from "./Misc";
+import {InterfaceText, requestWithCallBack, TopicPictureUploader} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
@@ -205,8 +205,8 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     items.push("Hebrew Caption");
     return <AdminEditor title="Topic Editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
-                        pictureUploader={<PictureUploader callback={handlePictureChange} old_filename={data.image_uri}
-                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
+                        pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
+                                                               caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}
                         extras={
                               [isNew ? null :
                                 <Reorder subcategoriesAndBooks={sortedSubtopics}

@@ -1577,7 +1577,7 @@ FollowButton.propTypes = {
 
 };
 
-const PictureUploader = ({callback, old_filename, caption}) => {
+const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
     /*
     `old_filename` is passed to API so that if it exists, it is deleted
      */
@@ -1590,7 +1590,7 @@ const PictureUploader = ({callback, old_filename, caption}) => {
         formData.append('old_filename', old_filename);
       }
       $.ajax({
-          url: Sefaria.apiHost + "/api/topics/upload-image",
+          url: `${Sefaria.apiHost}/api/topics/images/${slug}`,
           type,
           data: formData,
           contentType: false,
@@ -1630,7 +1630,7 @@ const PictureUploader = ({callback, old_filename, caption}) => {
     }
     const deleteImage = () => {
         const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/delete-image/${old_filename_wout_url}`;
+        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
         callback("");
         fileInput.current.value = "";
@@ -3339,6 +3339,6 @@ export {
   TitleVariants,
   requestWithCallBack,
   OnInView,
-  PictureUploader,
+  TopicPictureUploader,
   ImageWithCaption
 };
