@@ -845,8 +845,9 @@ p.registration-links a:hover{
   display: inline-block;
   margin-bottom: 20px;
 }
-#teamPage .teamMember.placeholder, #teamPage .teamBoardMember.placeholder {
+#teamPage .team-members::after, #teamPage .board-members::after {
   width: 200px;
+  content: "";
 }
 #teamPage .teamMember {
   flex: 0 0 30%;
