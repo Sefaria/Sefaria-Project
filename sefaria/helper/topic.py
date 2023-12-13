@@ -1110,6 +1110,7 @@ def update_topic(topic, **kwargs):
         if image_dict["image_uri"] != "":
             topic.image = kwargs["image"]
         elif hasattr(topic, 'image'):
+            # we don't want captions without image_uris, so if the image_uri is blank, get rid of the caption too
             del topic.image
 
     topic.save()

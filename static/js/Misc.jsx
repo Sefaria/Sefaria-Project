@@ -1589,25 +1589,28 @@ const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
       if (old_filename !== "") {
         formData.append('old_filename', old_filename);
       }
-      $.ajax({
-          url: `${Sefaria.apiHost}/api/topics/images/${slug}`,
-          type,
-          data: formData,
-          contentType: false,
-          processData: false,
-          success: function(data) {
-            if (data.error) {
-              alert(data.error);
-            } else {
-              if (data.url) {
-                callback(data.url);
-              }
-          }},
-          error: function(e) {
-              alert(e);
-          }
-      });
-    }
+      const request = new Request(
+        `${Sefaria.apiHost}/api/topics/images/${slug}`,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      fetch(request, {
+          method: 'POST',
+          mode: 'same-origin',
+          credentials: 'same-origin',
+          body: formData
+      }).then(response => {
+        if (!response.ok) {
+            response.text().then(resp_text=> {
+                alert(resp_text);
+            })
+        }else{
+            response.json().then(resp_json=>{
+                callback(resp_json.url);
+            });
+        }
+    }).catch(error => {
+        alert(error);
+    })};
     const onFileSelect = (e) => {
           const file = fileInput.current.files[0];
           if (file == null)
