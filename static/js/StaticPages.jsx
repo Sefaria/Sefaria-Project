@@ -2904,7 +2904,7 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
                         </h2>
                         <p>
                             <span className="int-en">
-                                Sefaria is a non-profit organization dedicated to creating the
+                                Sefaria is a nonprofit organization dedicated to creating the
                                 future of Torah in an open and participatory way. We are assembling
                                 a free, living library of Jewish texts and their interconnections,
                                 in Hebrew and in translation.
