@@ -2201,7 +2201,23 @@ const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
-  const strapi = useContext(StrapiDataContext);
+  let strapi = {};
+  strapi.banner = {
+            "internalBannerName": "contextus-welcome",
+            "bannerText": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org",
+            "buttonText": "Contact Us",
+            "buttonURL": "mailto:jmc@gojmc.org",
+            "showDelay": 2,
+            "bannerBackgroundColor": '#133059',
+            "locale": "en",
+            "localizations": { "data": [] },
+            "publishedAt": "2023-12-05T23:18:42.245Z",
+            "shouldDeployOnMobile": true,
+            "showToNewVisitors": true,
+            "showToNonSustainers": true,
+            "showToReturningVisitors": true,
+            "showToSustainers": true,
+          }
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
     localStorage.setItem("banner_" + bannerName, "true");
@@ -2288,7 +2304,7 @@ const Banner = ({ onClose }) => {
       }, strapi.banner.showDelay * 1000);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }, [strapi.banner]); // execute useEffect when the banner changes
+  }, []); // execute useEffect when the banner changes
 
   if (!bannerShowDelayHasElapsed) return null;
 
