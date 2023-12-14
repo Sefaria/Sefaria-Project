@@ -113,7 +113,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
 
         // add author keys if they changed
         if (isAuthor) {
-            let authorKeys = ['era', 'birthPlace', 'heBirthPlace', 'birthYear', 'deathYear', 'deathPlace', 'heDeathPlace'];
+            let authorKeys = ['birthPlace', 'heBirthPlace', 'birthYear', 'deathYear', 'deathPlace', 'heDeathPlace'];
             authorKeys.map(k => {
                 const firstLetter = k.charAt(0).toUpperCase();
                 const origKey = `orig${firstLetter}${k.slice(1)}`;

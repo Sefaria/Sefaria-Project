@@ -14,6 +14,16 @@ on:
         required: true
         default: current
         description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
+  workflow_dispatch:
+    inputs:
+      chart_version:
+        type: string
+        required: true
+        default: current
+        description: Set to 'current' to use currently deployed chart version or '0.x.y' to specify chart
+      version:
+        type: string
+        required: true
 
 jobs:
   # Note - build occurs again here, even though this image has been built in continuous.
@@ -80,7 +90,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
             us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
@@ -93,8 +102,6 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-#         cache-from: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache
-#         cache-to: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
           build-args: |
@@ -148,7 +155,6 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            gcr.io/${{ secrets.PROD_GKE_PROJECT }}/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
             us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/${{ secrets.IMAGE_NAME }}-${{ matrix.app }}
           # generate Docker tags based on the following events/attributes
           tags: |
