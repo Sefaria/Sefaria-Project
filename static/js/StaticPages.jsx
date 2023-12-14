@@ -1973,7 +1973,7 @@ const PoweredByPage = () => (
         />
         <Feature
             enTitle="Dicta"
-            enText="Dicta is a non-profit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            enText="Dicta is a nonprofit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
             enImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
             enImgAlt="Screenshot of Dicta"
             borderColor={palette.colors.lightblue}
