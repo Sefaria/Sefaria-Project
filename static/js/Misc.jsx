@@ -2204,9 +2204,10 @@ const Banner = ({ onClose }) => {
   let strapi = {};
   strapi.banner = {
             "internalBannerName": "contextus-welcome",
-            "bannerText": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org",
-            "buttonText": "Contact Us",
-            "buttonURL": "mailto:jmc@gojmc.org",
+            "bannerText": {"en": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org.",
+                          "he": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org."},
+            "buttonText": {"en": "Contact Us", "he": "Contact Us"},
+            "buttonURL": {"en": "mailto:jmc@gojmc.org", "he": "mailto:jmc@gojmc.org"},
             "showDelay": 2,
             "bannerBackgroundColor": '#133059',
             "locale": "en",
@@ -2323,9 +2324,9 @@ const Banner = ({ onClose }) => {
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
               <InterfaceText
-                markdown={replaceNewLinesWithLinebreaks(
+                markdown={
                   strapi.banner.bannerText
-                )}
+                }
               />
             </div>
             <div id="bannerButtonBox">

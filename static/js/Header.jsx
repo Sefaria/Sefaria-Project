@@ -381,7 +381,7 @@ class SearchBar extends Component {
         <SearchButton onClick={this.handleSearchButtonClick} />
         <input className={inputClasses}
           id="searchInput"
-          placeholder={Sefaria._("Search")}
+          placeholder={Sefaria._("Search for a text")}
           onKeyUp={this.handleSearchKeyUp}
           onFocus={this.focusSearch}
           onBlur={this.blurSearch}
