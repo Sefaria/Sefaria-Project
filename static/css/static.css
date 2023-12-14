@@ -1267,6 +1267,11 @@ p.registration-links a:hover{
   margin-bottom: 40px;
   font-weight: bold;
 }
+
+#jobsPage .nothing a {
+  display: inline-block;
+}
+
 #jobsPage section.department h2{
   font-weight: 500;
   font-size: 22px;

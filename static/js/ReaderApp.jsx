@@ -22,7 +22,8 @@ import {
   RabbisPage,
   DonatePage,
   WordByWordPage,
-  TeamMembersPage
+  JobsPage,
+  TeamMembersPage,
 } from './StaticPages';
 import {
   SignUpModal,
@@ -2268,5 +2269,6 @@ export {
   RabbisPage,
   DonatePage,
   WordByWordPage,
-  TeamMembersPage
+  JobsPage,
+  TeamMembersPage,
 };
