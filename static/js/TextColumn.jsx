@@ -36,7 +36,7 @@ class TextColumn extends Component {
 
        const params = {
          content_type: Sefaria.index(this.props.bookTitle).primary_category,
-         item_id: this.props.bookTitle
+         content_id: this.props.bookTitle
        }
       console.log(params)
       gtag("event", "select_content", params)
