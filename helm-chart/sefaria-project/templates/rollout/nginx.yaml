@@ -52,9 +52,7 @@ spec:
       - name: nginx
         image: "{{ .Values.nginx.containerImage.imageRegistry }}:{{ .Values.nginx.containerImage.tag }}"
         imagePullPolicy: Always
-        command: ["bash", "-c"]
-        # https://serverfault.com/questions/577370/how-can-i-use-environment-variables-in-nginx-conf
-        args: [ "envsubst '${ENV_NAME},${VARNISH_HOST},${SEARCH_HOST},${RELEASE_TAG}{{- if .Values.linker.enabled }},${LINKER_HOST}{{- end }}{{- if .Values.instrumentation.enabled }},${NGINX_VERSION}{{- end }}' < /conf/nginx.template.conf > /nginx.conf && exec nginx -c /nginx.conf -g 'daemon off;'" ]
+        command: ["bash", "-c", "/usr/src/entrypoint.sh"]
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -76,6 +74,9 @@ spec:
             name: nginx-conf
             subPath: nginx.template.conf
             readOnly: true
+          - mountPath: /usr/src/entrypoint.sh
+            name: nginx-conf
+            subPath: entrypoint.sh
           {{- if .Values.instrumentation.enabled }}
           - mountPath: /etc/nginx/opentracing.json
             name: nginx-conf
@@ -96,11 +97,18 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: SEARCH_HOST
             value: "{{ .Values.nginx.SEARCH_HOST }}"
+          - name: STRAPI_LOCATION
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                key: STRAPI_LOCATION
           {{- if .Values.linker.enabled }}
           - name: LINKER_HOST
             value: "linker-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           {{- end }}
         envFrom:
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
           - configMapRef:
               name: local-settings-nginx-{{ .Values.deployEnv }}
               optional: true
@@ -111,6 +119,7 @@ spec:
         - name:  nginx-conf
           configMap:
             name: nginx-conf-{{ .Values.deployEnv }}
+            defaultMode: 0755
         - name: robots-txt
           configMap:
             name: robots-txt-{{ .Values.deployEnv }}

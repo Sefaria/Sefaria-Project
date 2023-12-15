@@ -5,12 +5,10 @@ metadata:
   labels:
     deployEnv: {{ .Values.deployEnv | quote }}
     {{- include "sefaria.labels" . | nindent 4 }}
-data:
+data: 
   DEBUG: "{{ .Values.localSettings.DEBUG }}"
   DOMAIN_LANGUAGE: {{ .Values.localSettings.DOMAIN_LANGUAGE | toJson | quote }}
-  MONGO_HOST: {{ .Values.localSettings.MONGO_HOST | quote }}
   APSCHEDULER_NAME: {{ tpl .Values.localSettings.APSCHEDULER_NAME . | quote }}
-  SEARCH_ADMIN: "http://{{ .Values.nginx.SEARCH_HOST }}:9200"
   TURN_SERVER: {{ .Values.localSettings.TURN_SERVER | quote }}
   USE_CLOUDFLARE: "{{ .Values.localSettings.USE_CLOUDFLARE }}"
   FRONT_END_URL: {{ .Values.localSettings.FRONT_END_URL | quote }}
@@ -27,3 +25,4 @@ data:
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
   FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
+  SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}

@@ -31,6 +31,7 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
+import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
   CloseButton,
   MenuButton,
@@ -183,6 +184,17 @@ class ReaderPanel extends Component {
     };
     if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
     this.conditionalSetState({ currVersions: newVersions });
+  }
+  openConnectionsPanel(ref, additionalState) {
+    /**
+     * Decides whether to open a new connections panel or to open connections in the current panel
+     * depending on whether we're in multi-panel mode
+     */
+    if (this.props.multiPanel) {
+      this.props.openConnectionsPanel(ref, null, additionalState);
+    } else {
+      this.openConnectionsInPanel(ref, additionalState);
+    }
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -530,6 +542,9 @@ class ReaderPanel extends Component {
         : false
     this.conditionalSetState({tab: tab})
   }
+  onSetTopicSort(topicSort) {
+    this.conditionalSetState({topicSort});
+  }
   currentMode() {
     return this.state.mode;
   }
@@ -677,6 +692,7 @@ class ReaderPanel extends Component {
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
           updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
+          navigatePanel={this.props.navigatePanel}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
@@ -921,6 +937,8 @@ class ReaderPanel extends Component {
           <TopicPage
             tab={this.state.tab}
             setTab={this.setTab}
+            onSetTopicSort={this.onSetTopicSort}
+            topicSort={this.state.topicSort}
             topic={this.state.navigationTopic}
             topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
@@ -1108,7 +1126,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
-            openSidePanel={this.openSidePanel}
+            openConnectionsPanel={this.openConnectionsPanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1256,6 +1274,9 @@ class ReaderControls extends Component {
       }
     });
   }
+  openTranslations() {
+    this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
@@ -1385,7 +1406,14 @@ class ReaderControls extends Component {
           />
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
+    const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
+    let banner = (hideHeader || connectionsHeader) ? null : (
+        <TextColumnBannerChooser
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            openTranslations={this.openTranslations}
+            openTransBannerApplies={openTransBannerApplies}
+        />
+    );
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1405,7 +1433,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
-        {transLangPrefSuggBann}
+        {banner}
       </div>
     );
   }
@@ -1438,61 +1466,6 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
-
-
-const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
-  const [accepted, setAccepted] = useState(false);
-  const [closed, setClosed] = useState(false);
-
-  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-  const { translation_language_preference_suggestion } = Sefaria;
-  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
-    return null;
-  }
-  const closeBanner = () => {
-    setClosed(true);
-    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
-    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
-  }
-  const accept = () => {
-    setAccepted(true);
-    setTranslationLanguagePreference(translation_language_preference_suggestion);
-  }
-  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-
-  return (
-    <div className="readerControls transLangPrefSuggBann">
-      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-        {
-          accepted ? (
-            <div className="transLangPrefCentered">
-              <InterfaceText>
-                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-              </InterfaceText>
-            </div>
-          ) : (
-            <div className="transLangPrefCentered">
-            <InterfaceText>
-                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
-            </InterfaceText>
-            <div className="yesNoGroup">
-              <a className="yesNoButton" onClick={accept}>
-                <InterfaceText>Yes</InterfaceText>
-              </a>
-              <a className="yesNoButton" onClick={closeBanner}>
-                <InterfaceText>No</InterfaceText>
-              </a>
-            </div>
-          </div>
-          )
-        }
-        <CloseButton onClick={closeBanner} />
-      </div>
-    </div>
-  );
-}
 
 
 class ReaderDisplayOptionsMenu extends Component {

@@ -1,11 +1,11 @@
 name: Continuous
 on:
   push:
-    branches:
-      - "*"
   pull_request:
-    branches:
-      - "*"
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   duplication-check:
@@ -89,6 +89,8 @@ jobs:
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
+          build-args: |
+            TYPE=build
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -240,7 +242,7 @@ jobs:
           location: ${{secrets.DEV_GKE_REGION}}
           project_id: ${{secrets.DEV_GCP_PROJECT}}
       - name: Deploy Sandbox
-        run: ./build/ci/sandbox-helm-deploy.sh build/ci/values.yaml
+        run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
         env:
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
           BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
@@ -307,12 +309,10 @@ jobs:
           | sed 's/[^a-z0-9\.\-]//g')
           >> $GITHUB_OUTPUT
       - name: Start Job
-        run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          WEB_IMAGE_NAME: us-east1-docker.pkg.dev/${{secrets.DEV_PROJECT}}/containers/sefaria-web-${{ steps.branch-name.outputs.current_branch }}
-          WEB_IMAGE_TAG: sha-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 60

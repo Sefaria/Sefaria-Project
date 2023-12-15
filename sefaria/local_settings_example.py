@@ -55,6 +55,17 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
+MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
+# This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
+MONGO_HOST = "localhost"
+MONGO_PORT = 27017 # Not used if the above is a list
+# Name of the MongoDB database to use.
+SEFARIA_DB = 'sefaria' # Change if you named your db something else
+SEFARIA_DB_USER = '' # Leave user and password blank if not using Mongo Auth
+SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
+
+
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
     "shared": {
@@ -121,16 +132,10 @@ OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-"""
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "messageName",
-    "repetition": 1,
-    "is_fundraising": True,
-    "style":      "modal" # "modal" or "banner"
-    "condition":  {"returning_only": True}
-}
-"""
+# Location of Strapi CMS instance
+# For local development, Strapi is located at http://localhost:1337 by default
+STRAPI_LOCATION = None
+STRAPI_PORT = None
 
 
 MANAGERS = ADMINS
@@ -149,17 +154,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
-MONGO_HOST = "localhost"
-MONGO_PORT = 27017
-# Name of the MongoDB database to use.
-SEFARIA_DB = 'sefaria'
-# Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_USER = ''
-SEFARIA_DB_PASSWORD = ''
-APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_ADMIN = "http://localhost:9200"
+# URL to connect to ES server.
+# Set this to https://sefaria.org/api/search to connect to production search.
+# If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
+SEARCH_URL = "http://localhost:9200"
+
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
