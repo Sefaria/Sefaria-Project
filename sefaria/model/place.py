@@ -64,7 +64,7 @@ class Place(abst.AbstractMongoRecord):
     def city_to_coordinates(self, city):
         geolocator = Nominatim(user_agent='hello@sefaria.org')
         location = geolocator.geocode(city)
-        if location and location.raw['type'] in ['administrative', 'city', 'town', 'municipality']:
+        if location and location.raw['type'] in ['administrative', 'city', 'town', 'municipality', 'neighbourhood', 'village']:
             self.point_location(lon=location.longitude, lat=location.latitude)
         else:
             raise InputError(f"{city} is not a real city.")
@@ -109,14 +109,14 @@ def process_index_place_change(indx, **kwargs):
     if kwargs['new'] != '':
         Place.create_new_place(en=kwargs['new'], he=he_new_val)
 
-def process_topic_place_change(topic_obj, data):
+def process_topic_place_change(topic_obj, **kwargs):
     keys = ["birthPlace", "deathPlace"]
     for key in keys:
-        if key in data.keys():  # only change property value if key is in data, otherwise it indicates no change
-            new_val = data[key]
+        if key in kwargs.keys():  # only change property value if key is in data, otherwise it indicates no change
+            new_val = kwargs[key]
             if new_val != '':
                 he_key = get_he_key(key)
-                he_new_val = data.get(he_key, '')
+                he_new_val = kwargs.get(he_key, '')
                 place = Place.create_new_place(en=new_val, he=he_new_val)
                 topic_obj.properties[key] = {"value": place.primary_name('en'), 'dataSource': 'learning-team-editing-tool'}
             else:

@@ -768,7 +768,7 @@ class TestVersionActualLanguage:
         )
         cls.versionWithoutTranslation.chapter = [['1'], ['2'], ["original text", "2nd"]]
         cls.versionWithoutTranslation.save()
-        cls.versionThatWillBreak = model.Version(
+        cls.versionWithLangCodeMismatch = model.Version(
             {
                 "chapter": cls.myIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST [ar]",
@@ -781,7 +781,7 @@ class TestVersionActualLanguage:
         
     @classmethod
     def teardown_class(cls):
-        for c in [cls.myIndex, cls.versionWithTranslation, cls.versionWithoutTranslation, cls.versionThatWillBreak]:
+        for c in [cls.myIndex, cls.versionWithTranslation, cls.versionWithoutTranslation, cls.versionWithLangCodeMismatch]:
             try:
                 c.delete()
             except Exception:
@@ -793,6 +793,6 @@ class TestVersionActualLanguage:
     def test_normalizes_language_from_language(self):
         assert self.versionWithoutTranslation.actualLanguage == "he"
 
-    def test_fails_validation_when_language_mismatch(self):
-        with pytest.raises(InputError, match='Version actualLanguage does not match bracketed language'):
-            self.versionThatWillBreak.save()
+    def test_save_when_language_mismatch(self):
+        self.versionWithLangCodeMismatch.save()
+        assert self.versionWithLangCodeMismatch.actualLanguage == "ar"

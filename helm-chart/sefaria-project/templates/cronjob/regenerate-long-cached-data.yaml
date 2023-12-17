@@ -40,7 +40,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/regenerate_long_cached_data.py --all"
+              "/app/run /app/scripts/scheduled/regenerate_long_cached_data.py --all"
             ]
           restartPolicy: OnFailure
           volumes:

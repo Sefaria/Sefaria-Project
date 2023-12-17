@@ -48,7 +48,7 @@ from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_use
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER, ENABLE_LINKER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -1215,7 +1215,6 @@ def edit_text(request, ref=None, lang=None, version=None):
                 mode = "Add"
             else:
                 # Pull a particular section to edit
-                version = version.replace("_", " ") if version else None
                 #text = get_text(ref, lang=lang, version=version)
                 text = TextFamily(Ref(ref), lang=lang, version=version).contents()
                 text["mode"] = request.path.split("/")[1]
@@ -1389,15 +1388,11 @@ def texts_api(request, tref):
         commentary = bool(int(request.GET.get("commentary", False)))
         pad        = bool(int(request.GET.get("pad", 1)))
         versionEn  = request.GET.get("ven", None)
+        versionHe  = request.GET.get("vhe", None)
         firstAvailableRef = bool(int(request.GET.get("firstAvailableRef", False)))  # use first available ref, which may not be the same as oref
         if firstAvailableRef:
             temp_oref = oref.first_available_section_ref()
             oref = temp_oref or oref  # don't overwrite oref if first available section ref fails
-        if versionEn:
-            versionEn = versionEn.replace("_", " ")
-        versionHe  = request.GET.get("vhe", None)
-        if versionHe:
-            versionHe = versionHe.replace("_", " ")
         layer_name = request.GET.get("layer", None)
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
@@ -1552,9 +1547,6 @@ def social_image_api(request, tref):
     try:
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
-
-        if version:
-            version = version.replace("_", " ")
 
         tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
 
@@ -3103,14 +3095,14 @@ def add_new_topic_api(request):
         data = json.loads(request.POST["json"])
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
-        update_topic_titles(t, data)
+        update_topic_titles(t, **data)
 
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
 
         if data["category"] == 'authors':
-            t = update_authors_place_and_time(t, data)
+            t = update_authors_place_and_time(t, **data)
 
         t.description_published = True
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
@@ -3165,15 +3157,15 @@ def topics_api(request, topic, v2=False):
         if not request.user.is_staff:
             return jsonResponse({"error": "Adding topics is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed."})
         topic_data = json.loads(request.POST["json"])
-        topic_obj = Topic().load({'slug': topic_data["origSlug"]})
+        topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        topic_obj = update_topic(topic_obj, **topic_data)
+        topic = update_topic(topic, **topic_data)
         if author_status_changed:
             library.build_topic_auto_completer()
 
         def protected_index_post(request):
-            return jsonResponse(topic_obj.contents())
+            return jsonResponse(topic.contents())
         return protected_index_post(request)
 
 
@@ -4022,8 +4014,17 @@ def random_text_api(request):
     """
     Return Texts API data for a random ref.
     """
-    categories = set(request.GET.get('categories', '').split('|'))
-    titles = set(request.GET.get('titles', '').split('|'))
+
+    if "categories" in request.GET:
+        categories = set(request.GET.get('categories', '').split('|'))
+    else:
+        categories = None
+
+    if "titles" in request.GET:
+        titles = set(request.GET.get('titles', '').split('|'))
+    else:
+        titles = None
+
     response = redirect(iri_to_uri("/api/texts/" + random_ref(categories, titles)) + "?commentary=0&context=0", permanent=False)
     return response
 
@@ -4199,19 +4200,29 @@ def dummy_search_api(request):
 
 
 @csrf_exempt
-def search_wrapper_api(request):
+def search_wrapper_api(request, es6_compat=False):
+    """
+    @param request:
+    @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
+    @return:
+    """
+    from sefaria.helper.search import get_elasticsearch_client
+
     if request.method == "POST":
         if "json" in request.POST:
             j = request.POST.get("json")  # using form-urlencoded
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = Elasticsearch(SEARCH_ADMIN)
+        es_client = get_elasticsearch_client()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            return jsonResponse(response.to_dict(), callback=request.GET.get("callback", None))
+            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            if es6_compat and isinstance(response_json['hits']['total'], dict):
+                response_json['hits']['total'] = response_json['hits']['total']['value']
+            return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
@@ -4554,11 +4565,19 @@ def rollout_health_api(request):
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
+        
+    def is_database_reachable():
+        try:
+            from sefaria.system.database import db
+            return True
+        except SystemError as ivne:
+            return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
+        'dbConnected': f'Database Connection: {is_database_reachable()}',
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
@@ -4575,4 +4594,3 @@ def rollout_health_api(request):
         logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
-
