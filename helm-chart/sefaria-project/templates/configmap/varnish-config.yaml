@@ -44,6 +44,7 @@ data:
 
         if ((req.method == "GET") && (
             (req.url ~"^/api/texts" && req.url !~"^/api/texts/versions/" && req.url !~"^/api/texts/parashat_hashavua" && req.url !~"^/api/texts/random" && req.url !~"layer=")
+            || req.url ~"^/api/v3/texts"
             || req.url ~"^/api/texts/version-status/tree/"
             || req.url ~"^/api/links/bare"
             || req.url ~"^/api/links"
