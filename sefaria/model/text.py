@@ -2287,6 +2287,11 @@ class TextFamily(object):
         elif oref.has_default_child():
             oref = oref.default_child_ref()
 
+        if version:
+            version = version.replace("_", " ")
+        if version2:
+            version2 = version2.replace("_", " ")
+
         self.ref            = oref.normal()
         self.heRef          = oref.he_normal()
         self.isComplex      = oref.index.is_complex()
