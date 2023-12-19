@@ -1897,6 +1897,86 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       poetryElsToCollapse.forEach(poetryEl => {
         poetryEl.outerHTML = poetryEl.innerHTML;
       });
+          // function removeClassesFromSpans(element) {
+          //   // Remove classes from the current element
+          //     if (element.tagName === 'SPAN') {
+          //       element.className = '';
+          //     }
+          //   // Recursively process child elements
+          //   for (let i = 0; i < element.children.length; i++) {
+          //     removeClassesFromSpans(element.children[i]);
+          //   }
+          // }
+    //   function removeSpansKeepText(element, classListToRemove) {
+    //     // Iterate over the child nodes in reverse order to handle removal
+    //     for (let i = element.children.length - 1; i >= 0; i--) {
+    //       const child = element.children[i];
+    //
+    //       // Check if the child is a span
+    //       if (child.tagName === 'SPAN' && classListToRemove.includes(child.className)) {
+    //         // Replace the span with its text content
+    //         const textNode = document.createTextNode(child.textContent);
+    //         element.replaceChild(textNode, child);
+    //       } else {
+    //         // Recursively process non-span child elements
+    //         removeSpansKeepText(child, classListToRemove);
+    //       }
+    //     }
+    //   }
+    // removeSpansKeepText(container, ["mam-kq-trivial"]);
+      function removeSpansWithAncestorP(element) {
+      // Base case: If the current element is a text node, return its text content
+      if (element.nodeType === Node.TEXT_NODE) {
+        return element.textContent;
+      }
+
+      // Check if the current element is a <span> and has a <p> ancestor
+      if (element.nodeName === 'SPAN' && hasAncestorP(element)) {
+        // Replace the <span> with its text content
+        return element.textContent;
+      }
+
+      // Recursively process child nodes
+      for (let i = 0; i < element.childNodes.length; i++) {
+        const childResult = removeSpansWithAncestorP(element.childNodes[i]);
+
+        // Replace the child node with its processed content
+        if (childResult) {
+          if (element.childNodes[i].nodeType === Node.TEXT_NODE) {
+            element.replaceChild(document.createTextNode(childResult), element.childNodes[i]);
+          } else {
+            element.replaceChild(createFragmentFromHTML(childResult), element.childNodes[i]);
+          }
+        }
+      }
+
+      // Return the processed content of the current element
+      return element.outerHTML;
+    }
+
+    function hasAncestorP(element) {
+      let ancestor = element.parentNode;
+      while (ancestor) {
+        if (ancestor.nodeName === 'P') {
+          return true;
+        }
+        ancestor = ancestor.parentNode;
+      }
+      return false;
+    }
+
+    function createFragmentFromHTML(htmlString) {
+      const fragment = document.createDocumentFragment();
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlString;
+
+      while (tempDiv.firstChild) {
+        fragment.appendChild(tempDiv.firstChild);
+      }
+
+      return fragment;
+    }
+      removeSpansWithAncestorP(container)
 
       // Remove extra breaks for continuous mode
       if (closestReaderPanel && closestReaderPanel.classList.contains('continuous')) {
@@ -1940,6 +2020,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       html = container.outerHTML;
       textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
+      console.log(container)
+      console.log(html)
+      console.log(textOnly)
     }
 
 
