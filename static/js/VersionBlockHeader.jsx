@@ -47,7 +47,7 @@ function VersionBlockHeaderText({link, onClick, text, direction}) {
         const element = textRef.current;
         const computedStyles = window.getComputedStyle(element);
         const maxHeight = parseInt(computedStyles.getPropertyValue('max-height'), 10);
-        setTruncationOccurred(element.scrollHeight > maxHeight);
+        setTruncationOccurred(element.scrollHeight > maxHeight+1); //added +1 because for some reason when the view is too big the height has 1 more
     }); //no second param for running in resize seems better than adding a listener
     function onEllipsisClick() {
         setShouldAttemptTruncation(false);
