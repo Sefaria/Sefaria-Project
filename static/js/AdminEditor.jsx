@@ -4,6 +4,9 @@ import {AdminToolHeader, InterfaceText, TitleVariants} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
 import classNames from "classnames";
 const options_for_form = {
+    // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
+    "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
+    "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
     "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
     "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
     "English Description": {
@@ -115,7 +118,7 @@ const validateMarkdownLinks = async (input) => {
     return true;
 }
 
-const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
+const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, savingStatus,
                              validate, deleteObj, items = [], isNew = true,
                              extras = [], path = []}) => {
     const [validatingLinks, setValidatingLinks] = useState(false);
@@ -201,7 +204,10 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;
-                        } else {
+                        } else if (x === "Picture Uploader") {
+                            return pictureUploader;
+                        }
+                        else {
                             return item({...options_for_form[x]});
                         }
                     })}
