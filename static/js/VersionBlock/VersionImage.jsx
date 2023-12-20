@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from "classnames";
-import Sefaria from "./sefaria/sefaria";
+import Sefaria from "../sefaria/sefaria";
 import {VersionBlockUtils} from "./VersionBlock";
 
 function VersionImage({version}) {

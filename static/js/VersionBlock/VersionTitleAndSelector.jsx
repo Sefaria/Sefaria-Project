@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import {VersionBlockUtils} from './VersionBlock';
-import Sefaria from "./sefaria/sefaria";
+import Sefaria from "../sefaria/sefaria";
 
 function VersionTitleAndSelector({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
     function makeShortVersionTitle() {

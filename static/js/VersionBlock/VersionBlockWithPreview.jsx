@@ -4,7 +4,7 @@ import VersionBlockHeader from "./VersionBlockHeader";
 import {VersionBlockUtils} from './VersionBlock';
 import VersionTitleAndSelector from './VersionTitleAndSelector';
 import VersionMetadata from "./VersionMetadata";
-import {OpenConnectionTabButton} from "./TextList";
+import {OpenConnectionTabButton} from "../TextList";
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
     const opeInSidebar = VersionBlockUtils.openVersionInSidebar.bind(null, currentRef, version, currObjectVersions, openVersionInSidebar);
