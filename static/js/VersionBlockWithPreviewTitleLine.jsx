@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import VersionBlockSelectButton from "./VersionBlockSelectButton";
-import {versionTools} from './VersionBlock';
+import {VersionBlockUtils} from './VersionBlock';
 import Sefaria from "./sefaria/sefaria";
 
 function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
@@ -12,7 +12,7 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
         }
         return shortVersionTitle;
     }
-    const openVersionInMainPanel = versionTools.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
+    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
         null, openVersionInReader);
     const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (
@@ -24,7 +24,7 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
                 isSelected={isSelected}
                 openVersionInMainPanel={openVersionInMainPanel}
                 text={buttonText}
-                link={versionTools.makeVersionLink(currentRef, version, currObjectVersions, true)}
+                link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, true)}
             />
         </div>
     );

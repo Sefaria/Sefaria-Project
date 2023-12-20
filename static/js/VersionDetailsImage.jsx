@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
-import {versionTools} from "./VersionBlock";
+import {VersionBlockUtils} from "./VersionBlock";
 
 function VersionDetailsImage({version}) {
     function makeImageLink() {
@@ -13,7 +13,7 @@ function VersionDetailsImage({version}) {
     }
     return (
       <div className="versionDetailsImage">
-        <div className={classNames(versionTools.makeAttrClassNames(version, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
+        <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
           <a className="versionDetailsLink versionDetailsImageLink" href={makeImageLink()} target="_blank">
             <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("Buy Now")} />
           </a>

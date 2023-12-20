@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
-import {versionTools} from './VersionBlock';
+import {VersionBlockUtils} from './VersionBlock';
 
 function VersionDetailsInformation({currentRef, version}) {
     function makeLicenseLink() {
@@ -11,7 +11,7 @@ function VersionDetailsInformation({currentRef, version}) {
     }
     return (
         <div className="versionDetailsInformation">
-            <div className={classNames(versionTools.makeAttrClassNames(version, {"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
               <span className="versionDetailsLabel">
                 {`${Sefaria._("Source")}: `}
               </span>
@@ -19,7 +19,7 @@ function VersionDetailsInformation({currentRef, version}) {
                 { Sefaria.util.parseUrl(version.versionSource).host.replace("www.", "") }
               </a>
             </div>
-            <div className={classNames(versionTools.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
               <span className="versionDetailsLabel">
                 {`${Sefaria._("Digitization")}: `}
               < /span>
@@ -27,7 +27,7 @@ function VersionDetailsInformation({currentRef, version}) {
                 {Sefaria._("Sefaria")}
               </a>
             </div>
-            <div className={classNames(versionTools.makeAttrClassNames(version, {"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
               <span className="versionDetailsLabel">
                 {`${Sefaria._("License")}: `}
               </span>
@@ -35,12 +35,12 @@ function VersionDetailsInformation({currentRef, version}) {
                 {Sefaria._(version?.license)}
               </a>
             </div>
-            <div className={classNames(versionTools.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
                <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(currentRef)}/${version.language}/${version.versionTitle && version.versionTitle.replace(/\s/g,"_")}`} target="_blank">
                  {Sefaria._("Revision History")}
                </a>
             </div>
-            <div className={classNames(versionTools.makeAttrClassNames(version, {"versionBuyLink": 1, "versionDetailsElement": 1}, "purchaseInformationURL"))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyLink": 1, "versionDetailsElement": 1}, "purchaseInformationURL"))}>
                <a className="versionDetailsLink" href={version.purchaseInformationURL} target="_blank">
                 {Sefaria._("Buy in Print")}
                </a>

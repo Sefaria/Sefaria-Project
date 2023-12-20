@@ -12,7 +12,7 @@ import VersionDetailsInformation from "./VersionDetailsInformation";
 import VersionDetailsImage from "./VersionDetailsImage";
 import VersionBlockWithPreview from "./VersionBlockWithPreview";
 
-class versionTools {
+class VersionBlockUtils {
     static makeVersionTitle(version){
       if (version.merged) {
         return {"className" : "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(version.sources)).join(", ")};
@@ -198,12 +198,12 @@ class VersionBlock extends Component {
   render() {
     if(this.props.version.title == "Sheet") return null //why are we even getting here in such a case??;
     const v = this.props.version;
-    const vtitle = versionTools.makeVersionTitle(v);
+    const vtitle = VersionBlockUtils.makeVersionTitle(v);
     const vnotes = this.makeVersionNotes();
     const showLanguagLabel = this.props.rendermode == "book-page";
-    const openVersionInSidebar = versionTools.openVersionInSidebar.bind(null, this.props.currentRef, this.props.version,
+    const openVersionInSidebar = VersionBlockUtils.openVersionInSidebar.bind(null, this.props.currentRef, this.props.version,
         this.props.currObjectVersions, this.props.openVersionInSidebar);
-    const openVersionInMainPanel = versionTools.openVersionInMainPanel.bind(null, this.props.currentRef,
+    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, this.props.currentRef,
         this.props.version, this.props.currObjectVersions, this.props.rendermode, this.props.firstSectionRef, this.props.openVersionInReader);
 
     if (this.state.editing && Sefaria.is_moderator) {
@@ -278,7 +278,7 @@ class VersionBlock extends Component {
                   text={vtitle["text"]}
                   onClick={this.props.rendermode === 'book-page' ? openVersionInMainPanel : openVersionInSidebar}
                   renderMode='versionTitle'
-                  link={versionTools.makeVersionLink(this.props.currentRef, this.props.version,
+                  link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
                       this.props.currObjectVersions, this.props.rendermode === 'book-page')}
                  />
               </div>
@@ -290,11 +290,11 @@ class VersionBlock extends Component {
                    isSelected={this.props.isCurrent}
                    openVersionInMainPanel={openVersionInMainPanel}
                    text={this.makeSelectVersionLanguage()}
-                   link={versionTools.makeVersionLink(this.props.currentRef, this.props.version,
+                   link={VersionBlockUtils.makeVersionLink(this.props.currentRef, this.props.version,
                       this.props.currObjectVersions, true)}
              />
             </div>
-            <div className={classNames(versionTools.makeAttrClassNames(v, {"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
+            <div className={classNames(VersionBlockUtils.makeAttrClassNames(v, {"versionNotes": 1, "sans-serif": (this.props.rendermode == "book-page")}, "versionNotes", true))}>
               <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
               <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
                 <a onClick={this.openExtendedNotes} href={`/${this.props.version.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
@@ -459,4 +459,4 @@ VersionsBlocksList.defaultProps = {
 
 
 
-export {VersionBlock as default, VersionsBlocksList, versionTools};
+export {VersionBlock as default, VersionsBlocksList, VersionBlockUtils};

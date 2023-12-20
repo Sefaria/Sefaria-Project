@@ -1,13 +1,13 @@
 import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import VersionBlockHeader from "./VersionBlockHeader";
-import {versionTools} from './VersionBlock';
+import {VersionBlockUtils} from './VersionBlock';
 import VersionBlockWithPreviewTitleLine from './VersionBlockWithPreviewTitleLine';
 import VersionPreviewMeta from "./VersionPreviewMeta";
 import {OpenConnectionTabButton} from "./TextList";
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
-    const opeInSidebar = versionTools.openVersionInSidebar.bind(null, currentRef, version, currObjectVersions, openVersionInSidebar);
+    const opeInSidebar = VersionBlockUtils.openVersionInSidebar.bind(null, currentRef, version, currObjectVersions, openVersionInSidebar);
     function openInTabCallback(sref) {
         onRangeClick(sref, false, {[version.language]: version.versionTitle});
     }
@@ -17,7 +17,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
               text={version.text}
               onClick={opeInSidebar}
               renderMode='contentText'
-              link={versionTools.makeVersionLink(currentRef, version, currObjectVersions, false)}
+              link={VersionBlockUtils.makeVersionLink(currentRef, version, currObjectVersions, false)}
               direction={version.direction || 'ltr'}
              />
             <details>
