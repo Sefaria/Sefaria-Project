@@ -312,13 +312,13 @@ const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
 }
 
 
-const OpenConnectionTabButton = ({srefs, openInTabCallback, renderMode}) =>{
+const OpenConnectionTabButton = ({srefs, openInTabCallback, openStrings}) =>{
   /*
   ConnectionButton composite element. Goes inside a ConnectionButtons
   Takes a ref(s) for opening as a link and callback for opening in-app
    */
   const sref = Array.isArray(srefs) ? Sefaria.normRefList(srefs) : srefs;
-  const [en, he] = renderMode === 'versionPreview' ? ['Open Text', 'פתיחת טקסט'] : ['Open', 'פתיחה'];
+  const [en, he] = openStrings || ['Open', 'פתיחה'];
   const openLinkInTab = (event) => {
     if (openInTabCallback) {
       event.preventDefault();
