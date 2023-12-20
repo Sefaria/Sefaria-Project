@@ -1938,14 +1938,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
 
+      // Collapse all spans that are not rangeSpan. This is also needed for specifically pasting into Google Docs in Chrome to work.
       let SourceTextSpans = container.querySelectorAll('span:not(.rangeSpan)');
       SourceTextSpans.forEach(el => el.outerHTML = el.innerText);
+
       html = container.outerHTML;
       textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
-      console.log(container)
-      console.log(html)
-      console.log(textOnly)
     }
 
 
