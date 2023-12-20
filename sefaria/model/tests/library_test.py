@@ -56,7 +56,7 @@ class Test_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_inner_parenthesis(self, citing_only):
 
-        ref = library.get_refs_in_string("Bereishit Rabbah (55:7)", "en", citing_only=citing_only)
+        ref = library.get_refs_in_string("Bereshit Rabbah (55:7)", "en", citing_only=citing_only)
         assert 1 == len(ref)
         assert ref[0] == Ref('Bereshit Rabbah 55:7')
 
@@ -106,7 +106,7 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_ranged_ref_not_cited(self):
-        trefs = ["Berakhot 2a-b", "Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
+        trefs = ["Berakhot 2a-b", "Rashi on Shabbat 15a:10-13", "Genesis 3:4-7"] # NOTE the m-dash in the Shulchan Arukh ref
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
