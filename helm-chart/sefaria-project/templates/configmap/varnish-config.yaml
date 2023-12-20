@@ -30,16 +30,16 @@ data:
             return (pass);
         }
         if (req.http.User-Agent ~ "MegaIndex") {
-            return(synth(403, "Your spider is not honoring our robots.txt crawl-delay.  Banning."));
+            return(synth(403, "Your spider is not honoring our robots.txt crawl-delay. Banning."));
         }
         if (req.http.User-Agent ~ "^Sogou") {
-    	return(synth(403, "Your spider has put too much load on our server.  Banning."));
+    	return(synth(403, "Your spider has put too much load on our server. Banning."));
         }
         if (req.http.User-Agent ~ "SemrushBot") {
-            return(synth(403, "Your spider has put too much load on our server.  Banning."));
+            return(synth(403, "Your spider has put too much load on our server. Banning."));
         }
         if (req.http.User-Agent ~ "YandexBot") {
-            return(synth(403, "Your spider has put too much load on our server.  Banning."));
+            return(synth(403, "Your spider has put too much load on our server. Banning."));
         }
 
         if ((req.method == "GET") && (
