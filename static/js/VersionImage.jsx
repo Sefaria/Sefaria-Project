@@ -4,7 +4,7 @@ import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import {VersionBlockUtils} from "./VersionBlock";
 
-function VersionDetailsImage({version}) {
+function VersionImage({version}) {
     function makeImageLink() {
         return !!version.purchaseInformationURL ? version.purchaseInformationURL : version.versionSource;
     }
@@ -21,7 +21,7 @@ function VersionDetailsImage({version}) {
       </div>
     )
 }
-VersionDetailsImage.prototypes = {
+VersionImage.prototypes = {
     version: PropTypes.object.isRequired,
 };
-export default VersionDetailsImage;
+export default VersionImage;

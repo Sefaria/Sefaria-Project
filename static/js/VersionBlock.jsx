@@ -8,8 +8,8 @@ import Component from 'react-class';
 import {LoadingMessage} from "./Misc";
 import VersionBlockHeader from "./VersionBlockHeader";
 import VersionBlockSelectButton from "./VersionBlockSelectButton";
-import VersionDetailsInformation from "./VersionDetailsInformation";
-import VersionDetailsImage from "./VersionDetailsImage";
+import VersionInformation from "./VersionInformation";
+import VersionImage from "./VersionImage";
 import VersionBlockWithPreview from "./VersionBlockWithPreview";
 
 class VersionBlockUtils {
@@ -304,8 +304,8 @@ class VersionBlock extends Component {
             </div>
           { !v.merged ?
             <div className="versionDetails sans-serif">
-              <VersionDetailsInformation currentRef={this.props.currentRef} version={v}/>
-              <VersionDetailsImage version={v}/>
+              <VersionInformation currentRef={this.props.currentRef} version={v}/>
+              <VersionImage version={v}/>
             </div> : null
           }
         </div>

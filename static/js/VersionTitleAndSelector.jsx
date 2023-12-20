@@ -4,7 +4,7 @@ import VersionBlockSelectButton from "./VersionBlockSelectButton";
 import {VersionBlockUtils} from './VersionBlock';
 import Sefaria from "./sefaria/sefaria";
 
-function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
+function VersionTitleAndSelector({currentRef, version, currObjectVersions, openVersionInReader, isSelected}) {
     function makeShortVersionTitle() {
         let shortVersionTitle = version.shortVersionTitle || version.versionTitle;
         if (Sefaria.interfaceLang === "hebrew") {
@@ -29,11 +29,11 @@ function VersionBlockWithPreviewTitleLine({currentRef, version, currObjectVersio
         </div>
     );
 }
-VersionBlockWithPreviewTitleLine.prototypes = {
+VersionTitleAndSelector.prototypes = {
   currObjectVersions: PropTypes.object.isRequired,
   version: PropTypes.object.isRequired,
   currentRef: PropTypes.string.isRequired,
   openVersionInReader: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
 };
-export default VersionBlockWithPreviewTitleLine;
+export default VersionTitleAndSelector;

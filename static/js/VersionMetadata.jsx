@@ -1,22 +1,22 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {VersionBlockUtils} from "./VersionBlock";
-import VersionDetailsInformation from "./VersionDetailsInformation";
-import VersionDetailsImage from "./VersionDetailsImage";
+import VersionInformation from "./VersionInformation";
+import VersionImage from "./VersionImage";
 
-function VersionPreviewMeta({currentRef, version}) {
+function VersionMetadata({currentRef, version}) {
     return (
         <div className='versionDetails preview'>
             <div className='version-preview-informations'>
                 <div className='versionDetails-version-title'>{VersionBlockUtils.makeVersionTitle(version).text}</div>
-                <VersionDetailsInformation currentRef={currentRef} version={version}/>
+                <VersionInformation currentRef={currentRef} version={version}/>
             </div>
-            <VersionDetailsImage version={version}/>
+            <VersionImage version={version}/>
         </div>
     );
 }
-VersionPreviewMeta.prototypes = {
+VersionMetadata.prototypes = {
     currentRef: PropTypes.string.isRequired,
     version: PropTypes.object.isRequired,
 };
-export default VersionPreviewMeta;
+export default VersionMetadata;

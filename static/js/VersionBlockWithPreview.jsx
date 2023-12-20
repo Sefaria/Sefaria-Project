@@ -2,8 +2,8 @@ import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import VersionBlockHeader from "./VersionBlockHeader";
 import {VersionBlockUtils} from './VersionBlock';
-import VersionBlockWithPreviewTitleLine from './VersionBlockWithPreviewTitleLine';
-import VersionPreviewMeta from "./VersionPreviewMeta";
+import VersionTitleAndSelector from './VersionTitleAndSelector';
+import VersionMetadata from "./VersionMetadata";
 import {OpenConnectionTabButton} from "./TextList";
 
 function VersionBlockWithPreview({currentRef, version, currObjectVersions, openVersionInSidebar, openVersionInReader, isSelected, srefs, onRangeClick}) {
@@ -22,7 +22,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
              />
             <details>
                 <summary>
-                    <VersionBlockWithPreviewTitleLine
+                    <VersionTitleAndSelector
                       version={version}
                       currentRef={currentRef}
                       currObjectVersions={currObjectVersions}
@@ -31,7 +31,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
                     />
                 </summary>
                 <div className='version-block-with-preview-details'>
-                    <VersionPreviewMeta
+                    <VersionMetadata
                         currentRef={currentRef}
                         version={version}
                     />

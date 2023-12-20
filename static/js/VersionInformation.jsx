@@ -4,7 +4,7 @@ import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import {VersionBlockUtils} from './VersionBlock';
 
-function VersionDetailsInformation({currentRef, version}) {
+function VersionInformation({currentRef, version}) {
     function makeLicenseLink() {
         const license_map = Sefaria.getLicenseMap();
         return (version.license in license_map) ? license_map[version.license] : "#";
@@ -48,8 +48,8 @@ function VersionDetailsInformation({currentRef, version}) {
         </div>
     );
 }
-VersionDetailsInformation.prototypes = {
+VersionInformation.prototypes = {
     currentRef: PropTypes.string.isRequired,
     version: PropTypes.object.isRequired,
 };
-export default VersionDetailsInformation;
+export default VersionInformation;
