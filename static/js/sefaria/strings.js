@@ -243,6 +243,8 @@ const Strings = {
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
     "View in Sidebar": "פתיחת תרגום",
+    'Select': 'בחירה',
+    'Currently Selected': 'נוכחי',
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
     "Sources": "מקורות",

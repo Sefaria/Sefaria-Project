@@ -1347,10 +1347,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const { dependentPanel, isDependentPanelConnections } = this._getDependentPanel(n);
 
     // make sure object reference changes for setState()
-    dependentPanel.currVersions = {...panel.currVersions};
     panel.currVersions = {...panel.currVersions};
+    if (this.props.multiPanel) { //there is no dependentPanel in mobile
+      dependentPanel.currVersions = {...panel.currVersions};
 
-    dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+      dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+    }
     this.setState({panels: this.state.panels});
   }
   navigatePanel(n, ref, currVersions={en: null, he: null}) {

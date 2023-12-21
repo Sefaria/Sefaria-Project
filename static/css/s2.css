@@ -3521,6 +3521,83 @@ display: none;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
+.versionBlock.with-preview .versionPreviewWithOptionalEllipsis {
+  --english-font: "adobe-garamond-pro", var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 18px;
+  display: block;
+}
+.versionBlock .versionPreview {
+  --line-height: 22px;
+  line-height: var(--line-height);
+  text-decoration: none;
+}
+.versionBlock .versionPreview big {
+  font-size: inherit;
+}
+.versionBlock .versionPreview i.footnote {
+  display: none;
+}
+.versionBlock.with-preview {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.versionBlock .versionPreview.shouldAttemptTruncation  {
+  display: block;
+  overflow: hidden;
+  --max-lines: 5;
+  max-height: calc(var(--line-height) * var(--max-lines));
+}
+.version-with-preview-title-line {
+  display: inline;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--medium-grey);
+  margin-inline-start: 5px;
+}
+.version-with-preview-title-line .open-details {
+  display: inline;
+  margin-inline-end: 5px;
+  font-style: italic;
+}
+.versionBlock.with-preview summary {
+  margin-top: 10px;
+}
+[open] .versionBlock.with-preview summary {
+  margin-bottom: 10px;
+}
+.versionBlock.with-preview summary::marker {
+  content: url('/static/icons/little-chevron-down.svg');
+}
+[open] .versionBlock.with-preview summary::marker {
+  content: url('/static/icons/little-chevron-up.svg');
+}
+details .open-details::before {
+  margin-inline-end: 5px;
+}
+.version-with-preview-title-line .selectButton {
+  text-decoration: none;
+}
+.version-with-preview-title-line .selectButton.currSelectButton {
+  cursor: default;
+}
+.version-with-preview-title-line .selectButton:not(.currSelectButton) {
+  color: var(--select-blue);
+}
+.version-with-preview-title-line .selectButton::before {
+  content: "•";
+  margin-inline-end: 5px;
+  color: var(--medium-grey);
+}
+.version-block-with-preview-details {
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
+  padding: 10px;
+}
+.versionDetails-version-title {
+  color: black;
+}
 .bookPage .versionBlock .versionTitle{
   font-style: normal;
   font-weight: normal;
@@ -3528,9 +3605,15 @@ display: none;
   line-height: 29px;
   max-inline-size: max-content;
 }
-.versionsBox .versionBlock {
-  padding: 20px 0;
+.versionsBox .versionBlock:not(.with-preview) {
   border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+.versionsBox .versionBlock.with-preview {
+  padding: 15px 0;
+}
+.language-block .versionLanguage {
+  border-bottom: solid 1px #CCC;
 }
 .bookPage .versionsBox .versionBlock{
   padding-top: 20px;
@@ -5566,7 +5649,8 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Heebo", sans-serif;
 }
 /* Footnotes */
-.segment sup {
+.segment sup,
+.versionPreview sup {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: none;
@@ -6558,7 +6642,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
 }
-.connection-buttons .connection-button{
+.connection-buttons .connection-button,
+.version-block-with-preview-details .connection-button{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -6570,6 +6655,14 @@ But not to use a display block directive that might break continuous mode for ot
   display: flex;
   flex-flow: row wrap;
   align-items: center;
+}
+.version-block-with-preview-details .connection-button {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin-top: 15px;
+}
+.version-block-with-preview-details img {
+  padding-inline-start: 15px;
 }
 .singlePanel .connection-buttons .connection-button{
   text-align: start;
@@ -6589,7 +6682,8 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
   font-size: 18px;
 }
-.connection-buttons .connection-button::before{
+.connection-buttons .connection-button::before,
+.version-block-with-preview-details .connection-button::before{
   display: block;
   content: ' ';
   background-size: 15px 15px;
@@ -6598,7 +6692,11 @@ But not to use a display block directive that might break continuous mode for ot
   width: 15px;
   margin-inline-end: 5px;
 }
-.connection-buttons .panel-open-link::before{
+.version-block-with-preview-details .connection-button::before {
+  height: 18px;
+}
+.connection-buttons .panel-open-link::before,
+.version-block-with-preview-details .connection-button::before{
   background-image: url("/static/icons/open-panel.svg");
 }
 .connection-buttons .delete-link::before{
@@ -9291,7 +9389,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage .versionCount {
   color: #999;
 }
-.versionsBox a.selectButton {
+.versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -9303,7 +9401,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 18px;
   cursor: pointer;
 }
-.versionsBox a.selectButton.currSelectButton {
+.versionsBox a.selectButton.currSelectButton:not(.version-with-preview-title-line .selectButton) {
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
