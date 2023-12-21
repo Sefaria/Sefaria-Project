@@ -90,39 +90,30 @@ const RecentlyVisited = () => {
    const [data, setData] = useState(null);
    useEffect(() => {
      if (!Sefaria.userHistory.loaded) {
-       fetch('/api/profile/user_history?secondary=0&annotate=1')
-           .then(response => response.json())
-           .then(data => {
-             Sefaria.userHistory.loaded = true;
-             Sefaria.userHistory.items = data;
-             // setData(Sefaria.userHistory.items.slice(0,3).map(x => {
-             //     if (x.book === "Sheet") {
-             //         return <a href={`/sheets/${x.sheet_id}`}>{x.sheet_title}</a>
-             //     }
-             //     else {
-             //         return <a href={x.ref}>{x.ref}</a>
-             //     }
-             // }));
-             let itemsToShow = [];
-             let booksFound = [];
-             Sefaria.userHistory.items.forEach(x => {
-                 if (!booksFound.includes(x.book) || x.book === "Sheet") {
-                     booksFound.push(x.book);
-                     itemsToShow.push(x);
-                 }
-             })
-             setData(itemsToShow.slice(0, 3).map(x => {
-                 if (x.book === "Sheet") {
-                     return <a href={`/sheets/${x.sheet_id}`}>{x.sheet_title}</a>
-                 }
-                 else {
-                     return <a href={x.ref}>{x.ref}</a>
-                 }
-             }));
-
-             console.log(data);
-           });
+         fetch('/api/profile/user_history?secondary=0&annotate=1&limit=10')
+             .then(response => response.json())
+             .then(data => {
+                 Sefaria.userHistory.loaded = true;
+                 Sefaria.userHistory.items = data;
+             });
      }
+     let itemsToShow = [];
+     let booksFound = [];
+     Sefaria.userHistory.items.forEach(x => {
+       if (!booksFound.includes(x.book) && x.book !== "Sheet") {
+           booksFound.push(x.book);
+           itemsToShow.push(x);
+       }});
+
+     itemsToShow = itemsToShow.slice(0, 3).map((x, i) => {
+         if (i === 2) {
+             return <a href={x.ref}>{x.ref}</a>
+         }
+         else {
+             return <a href={x.ref}>{x.ref} • </a>
+         }
+         });
+         setData(itemsToShow);
   }, []);
    if (!Sefaria.userHistory.loaded) {
      return null;
