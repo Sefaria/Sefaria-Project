@@ -87,7 +87,21 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 };
 
 const RecentlyVisited = () => {
-   const [data, setData] = useState(null);
+   const [recentlyVisitedItems, setRecentlyVisitedItems] = useState(null);
+   const initRecentlyVisitedItems = () => {
+        let itemsToShow = [];
+        let booksFound = [];
+        Sefaria.userHistory.items.forEach(x => {
+        if (!booksFound.includes(x.book) && x.book !== "Sheet") {
+           booksFound.push(x.book);
+           itemsToShow.push(x);
+        }});
+
+        itemsToShow = itemsToShow.slice(0, 3).map((x) => {
+            return <li><a href={x.ref}>{x.ref}</a></li>;
+         });
+        setRecentlyVisitedItems(itemsToShow);
+   }
    useEffect(() => {
      if (!Sefaria.userHistory.loaded) {
          fetch('/api/profile/user_history?secondary=0&annotate=1&limit=10')
@@ -95,33 +109,20 @@ const RecentlyVisited = () => {
              .then(data => {
                  Sefaria.userHistory.loaded = true;
                  Sefaria.userHistory.items = data;
+                 initRecentlyVisitedItems();
              });
      }
-     let itemsToShow = [];
-     let booksFound = [];
-     Sefaria.userHistory.items.forEach(x => {
-       if (!booksFound.includes(x.book) && x.book !== "Sheet") {
-           booksFound.push(x.book);
-           itemsToShow.push(x);
-       }});
-
-     itemsToShow = itemsToShow.slice(0, 3).map((x, i) => {
-         if (i === 2) {
-             return <a href={x.ref}>{x.ref}</a>
-         }
-         else {
-             return <a href={x.ref}>{x.ref} • </a>
-         }
-         });
-         setData(itemsToShow);
+     else {
+         initRecentlyVisitedItems();
+     }
   }, []);
    if (!Sefaria.userHistory.loaded) {
      return null;
    }
    return <Module>
               <ModuleTitle h1={true}>Recently Visited</ModuleTitle>
-         <div>{data}</div>
-                 <a href="/texts/history">All history ></a>
+                <div className={"navSidebarLink serif"}><ul>{recentlyVisitedItems}</ul></div>
+                <a href="/texts/history">All history ></a>
              </Module>
 
 }
