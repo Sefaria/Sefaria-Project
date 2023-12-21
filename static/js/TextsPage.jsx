@@ -91,6 +91,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
     multiPanel ? {type: "AboutSefaria"} : {type: null},
     {type: "Promo"},
     {type: "Translations"},
+    {type: "RecentlyVisited"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
     {type: "Resources"},

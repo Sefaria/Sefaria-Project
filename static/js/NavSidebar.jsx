@@ -54,6 +54,7 @@ const Modules = ({type, props}) => {
     "PortalMobile":           PortalMobile,
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
+    "RecentlyVisited":        RecentlyVisited,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -84,6 +85,55 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
     <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
+
+const RecentlyVisited = () => {
+   const [data, setData] = useState(null);
+   useEffect(() => {
+     if (!Sefaria.userHistory.loaded) {
+       fetch('/api/profile/user_history?secondary=0&annotate=1')
+           .then(response => response.json())
+           .then(data => {
+             Sefaria.userHistory.loaded = true;
+             Sefaria.userHistory.items = data;
+             // setData(Sefaria.userHistory.items.slice(0,3).map(x => {
+             //     if (x.book === "Sheet") {
+             //         return <a href={`/sheets/${x.sheet_id}`}>{x.sheet_title}</a>
+             //     }
+             //     else {
+             //         return <a href={x.ref}>{x.ref}</a>
+             //     }
+             // }));
+             let itemsToShow = [];
+             let booksFound = [];
+             Sefaria.userHistory.items.forEach(x => {
+                 if (!booksFound.includes(x.book) || x.book === "Sheet") {
+                     booksFound.push(x.book);
+                     itemsToShow.push(x);
+                 }
+             })
+             setData(itemsToShow.slice(0, 3).map(x => {
+                 if (x.book === "Sheet") {
+                     return <a href={`/sheets/${x.sheet_id}`}>{x.sheet_title}</a>
+                 }
+                 else {
+                     return <a href={x.ref}>{x.ref}</a>
+                 }
+             }));
+
+             console.log(data);
+           });
+     }
+  }, []);
+   if (!Sefaria.userHistory.loaded) {
+     return null;
+   }
+   return <Module>
+              <ModuleTitle h1={true}>Recently Visited</ModuleTitle>
+         <div>{data}</div>
+                 <a href="/texts/history">All history ></a>
+             </Module>
+
+}
 
 const Promo = () =>
     <Module>
