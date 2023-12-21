@@ -171,7 +171,7 @@ def test_text_index_map():
         return re.split(r'\s+', s)
 
 
-    nodes = library.get_index("Megillat Taanit").nodes
+    nodes = library.get_index("Megillat Ta'anit").nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
     assert index_list[1] == 9
     assert index_list[2] == 20
