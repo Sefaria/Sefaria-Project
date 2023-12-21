@@ -123,7 +123,7 @@ const AboutSefaria = ({hideTitle}) => (
           </EnglishText>
           <HebrewText>
             <a className="button get-start" href="https://youtu.be/eo5e8Z54h1Y">
-                <img src="/static/icons/vector.svg"/>
+                <img src="/static/icons/vector-turning-left.svg"/>
                 <div className="get-start">
                   הכירו את ספריא
                 </div>
