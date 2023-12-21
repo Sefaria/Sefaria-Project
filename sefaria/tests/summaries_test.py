@@ -148,11 +148,11 @@ class Test_Toc(object):
         verify_existence_across_tocs(new_commentary_index.title, None)
 
     def test_index_attr_change(self):
-        indx = model.Index().load({"title": "Or HaChaim on Genesis"})
-        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"], toc=model.library.get_toc())
-        indx.nodes.add_title("Or HaChaim HaKadosh", "en")
+        indx = model.Index().load({"title": "Rashi on Genesis"})
+        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Rishonim on Tanakh", "Rashi", "Torah"], toc=model.library.get_toc())
+        indx.nodes.add_title("Rashi HaKadosh", "en")
         indx.save()
-        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"])
+        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Rishonim on Tanakh", "Rashi", "Torah"])
 
 
         indx2 = model.Index().load({"title": "Kuzari"})
@@ -166,16 +166,16 @@ class Test_Toc(object):
 
     @pytest.mark.deep
     def test_index_title_change(self):
+        new_title = 'Tanya Test'
         try:
-            i = model.library.get_index("The Likutei Moharan")
+            i = model.library.get_index(new_title)
             if i:
                 i.delete()
         except BookNameError:
             pass
 
-        old_title = 'Likutei Moharan'
-        new_title = 'The Likutei Moharan'
-        toc_location = ['Chasidut', 'Breslov']
+        old_title = 'Tanya'
+        toc_location = ['Chasidut', 'Chabad']
         old_toc_path = get_all_toc_locations(old_title, model.library.get_toc())[0]
         assert toc_path_to_string(old_toc_path) == toc_path_to_string(toc_location)
         i = model.Index().load({"title": old_title})
