@@ -121,7 +121,7 @@ const RecentlyVisited = () => {
    }
    return <Module>
               <ModuleTitle h1={true}>Recently Visited</ModuleTitle>
-                <div className={"navSidebarLink serif"}><ul>{recentlyVisitedItems}</ul></div>
+                <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div>
                 <a href="/texts/history">All history ></a>
              </Module>
 

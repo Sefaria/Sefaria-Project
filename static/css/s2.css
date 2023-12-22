@@ -1781,6 +1781,9 @@ div.interfaceLinks-row a {
   padding: 0;
   margin: 0;
 }
+.navSidebarLink.recentlyVisited {
+  display: revert;
+}
 .navSidebarLink > ul > li {
   display: inline;
 }
