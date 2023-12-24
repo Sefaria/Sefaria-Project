@@ -116,7 +116,7 @@ const RecentlyVisited = () => {
          initRecentlyVisitedItems();
      }
   }, []);
-   if (!Sefaria.userHistory.loaded) {
+   if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
    return <Module>
