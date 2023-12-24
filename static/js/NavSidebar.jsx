@@ -55,7 +55,7 @@ const Modules = ({type, props}) => {
     "PortalMobile":           PortalMobile,
     "PortalOrganization":     PortalOrganization,
     "PortalNewsletter":       PortalNewsletter,
-    "RecentlyVisited":        RecentlyVisited,
+    "RecentlyViewed":        RecentlyViewed,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -87,7 +87,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
-const RecentlyVisited = ({toggleSignUpModal}) => {
+const RecentlyViewed = ({toggleSignUpModal}) => {
    const [recentlyVisitedItems, setRecentlyVisitedItems] = useState(null);
    const handleAllHistory = (e) => {
     if (!Sefaria._uid) {
@@ -105,7 +105,7 @@ const RecentlyVisited = ({toggleSignUpModal}) => {
         }});
 
         itemsToShow = itemsToShow.slice(0, 3).map((x) => {
-            return <li><a href={x.ref}>{x.ref}</a></li>;
+            return <li><a href={x.ref}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
          });
         setRecentlyVisitedItems(itemsToShow);
    }
@@ -127,9 +127,9 @@ const RecentlyVisited = ({toggleSignUpModal}) => {
      return null;
    }
    return <Module>
-              <ModuleTitle h1={true}>Recently Visited</ModuleTitle>
+            <ModuleTitle h1={true}><InterfaceText>Recently viewed</InterfaceText></ModuleTitle>
                 <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div>
-                <a href="/texts/history" onClick={handleAllHistory}>All history ></a>
+                <InterfaceText><a href="/texts/history" onClick={handleAllHistory}>All history ></a></InterfaceText>
              </Module>
 
 }

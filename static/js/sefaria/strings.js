@@ -453,6 +453,8 @@ const Strings = {
     "Alternate Hebrew Titles": "חלופות כותר עבריות",
     "Alternate English Titles": "חלופות כותר לועזיות",
     "Optional": "אופציונלי",
+    "Recently viewed": "נצפו לאחרונה",
+    "All history >": "כל ההיסטוריה",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",
