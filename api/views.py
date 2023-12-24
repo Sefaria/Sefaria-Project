@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.model.text_manager import TextManager
+from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from django.views import View
 from .api_warnings import *
@@ -52,7 +52,7 @@ class Text(View):
         return_format = request.GET.get('return_format', 'default')
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
-        text_manager = TextManager(self.oref, versions_params, fill_in_missing_segments, return_format)
+        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
         data = text_manager.get_versions_for_query()
         data = self._handle_warnings(data)
         return jsonResponse(data)

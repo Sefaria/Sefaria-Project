@@ -9,7 +9,7 @@ from sefaria.utils.hebrew import hebrew_term
 from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
 
-class TextManager:
+class TextRequestAdapter:
     ALL = 'all'
     PRIMARY = 'primary'
     SOURCE = 'source'
