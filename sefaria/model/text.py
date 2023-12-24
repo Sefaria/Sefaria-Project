@@ -1696,6 +1696,11 @@ class TextFamilyDelegator(type):
 
 
 class TextRange:
+    """
+    This class is planned to replace TextChunk, using real language rather than he/en
+    For now it's used by v3 texts api
+    It can be used for getting text, but not yet for saving
+    """
 
     def __init__(self, oref, lang, vtitle, merge_versions=False):
         if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
