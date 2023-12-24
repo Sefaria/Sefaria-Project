@@ -104,7 +104,7 @@ const RecentlyVisited = () => {
    }
    useEffect(() => {
      if (!Sefaria.userHistory.loaded) {
-         fetch('/api/profile/user_history?secondary=0&annotate=1&limit=10')
+         fetch('/api/profile/user_history?secondary=0&annotate=1&limit=20')
              .then(response => response.json())
              .then(data => {
                  Sefaria.userHistory.loaded = true;
