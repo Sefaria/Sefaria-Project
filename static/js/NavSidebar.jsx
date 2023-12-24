@@ -5,6 +5,7 @@ import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} f
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
+import {SignUpModalKind} from "./sefaria/signupModalContent";
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -86,8 +87,14 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
-const RecentlyVisited = () => {
+const RecentlyVisited = ({toggleSignUpModal}) => {
    const [recentlyVisitedItems, setRecentlyVisitedItems] = useState(null);
+   const handleAllHistory = (e) => {
+    if (!Sefaria._uid) {
+      e.preventDefault();
+      toggleSignUpModal(SignUpModalKind.ViewHistory);
+    }
+   }
    const initRecentlyVisitedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
@@ -122,7 +129,7 @@ const RecentlyVisited = () => {
    return <Module>
               <ModuleTitle h1={true}>Recently Visited</ModuleTitle>
                 <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div>
-                {Sefaria._uid && <a href="/texts/history">All history ></a>}
+                <a href="/texts/history" onClick={handleAllHistory}>All history ></a>
              </Module>
 
 }

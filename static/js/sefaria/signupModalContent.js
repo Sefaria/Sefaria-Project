@@ -1,5 +1,6 @@
 export const SignUpModalKind = {
   AddConnection: Symbol("Add Connection"),
+  ViewHistory: Symbol("View History"),
   AddToSheet: Symbol("Add to Sheet"),
   AddTranslation: Symbol("Add Translation"),
   Follow: Symbol("Follow"),
@@ -9,6 +10,43 @@ export const SignUpModalKind = {
 };
 
 const signUpModalContent = {
+  [SignUpModalKind.ViewHistory]: {
+    h2: {
+      en: "Want to see where you've been?",
+      he: "רוצים לראות היכן הייתם?",
+    },
+    h3: {
+      en: "Create a free account to do more on Sefaria",
+      he: "פתחו חשבון משתמש בחינם - ותוכלו לעשות הרבה יותר עם ספריא",
+    },
+    contentList: [
+      {
+        icon: "tools-add-connection-white.svg",
+        bulletContent: {
+          en: "Add interconnections & translations",
+          he: "הוסיפו תרגומים וחיבורים בין טקסטים",
+        },
+      },
+      {
+        icon: "sheetsplus-white.svg",
+        bulletContent: {
+          en: "Build & share source sheets",
+          he: "בנו ושתפו דפי מקורות",
+        },
+      },
+      {
+        icon: "note-white.png",
+        bulletContent: { en: "Take notes", he: "רשמו הערות" },
+      },
+      {
+        icon: "email-white.png",
+        bulletContent: {
+          en: "Get updates on new texts",
+          he: "התעדכנו בטקסטים חדשים הנוספים לספרייה",
+        },
+      },
+    ],
+  },
   [SignUpModalKind.AddConnection]: {
     h2: {
       en: "Want to document a connection to another text?",

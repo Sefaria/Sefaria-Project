@@ -20,7 +20,7 @@ import {ContentText} from "./ContentText";
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
-  toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
+  toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare, toggleSignUpModal}) => {
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -90,7 +90,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
     {type: "Promo"},
-    {type: "RecentlyVisited"},
+    {type: "RecentlyVisited", props: {toggleSignUpModal}},
     {type: "Translations"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
