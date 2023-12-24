@@ -1334,12 +1334,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",
-        'languageFamilyName',
-        "isBaseText",
-        'isSource',
-        'isPrimary',
-        'direction', # 'rtl' or 'ltr'
+        "actualLanguage",  # ISO language code
+        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        "isBaseText",  # should be deprecated (needs some changes on client side)
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
