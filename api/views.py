@@ -13,7 +13,7 @@ class Text(View):
         try:
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
         except Exception as e:
-            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=400)
+            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
@@ -43,7 +43,7 @@ class Text(View):
 
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty() and not self.oref.index_node.is_virtual:
-            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
+            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['primary']
