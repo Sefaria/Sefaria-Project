@@ -10,6 +10,11 @@ from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
 
 class TextRequestAdapter:
+    """
+    This class is used for getting texts for client side (API or SSR)
+    It takes the same params as the api/v3/text (ref, version_params that are language and versionTitle, fill_in_missing_segments, and return_format
+    It returns a JSON-like object for an HTTP response.
+    """
     ALL = 'all'
     PRIMARY = 'primary'
     SOURCE = 'source'
