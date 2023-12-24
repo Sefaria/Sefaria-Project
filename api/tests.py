@@ -119,7 +119,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_api_get_text_bad_text(self):
         response = c.get('/api/v3/texts/Life_of_Pi.13.13')
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Could not find title in reference: Life of Pi.13.13")
 
@@ -135,13 +135,13 @@ class APITextsTests(SefariaTestCase):
 
     def test_api_get_text_bad_sections(self):
         response = c.get('/api/v3/texts/Job.6-X')
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Couldn't understand text sections: 'Job.6-X'.")
 
     def test_api_get_text_empty_ref(self):
         response = c.get("/api/v3/texts/Berakhot.1a")
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "We have no text for Berakhot 1a.")
 
