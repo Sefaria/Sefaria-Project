@@ -43,7 +43,6 @@ class TextRequestAdapter:
         for attr in ['chapter', 'title']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
@@ -51,7 +50,8 @@ class TextRequestAdapter:
             relevant_versions.remove(lambda v: v.languageFamilyName != version.languageFamilyName)
         else:
             relevant_versions = [version]
-        text_range.versions = relevant_versions
+        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle,
+                               self.fill_in_missing_segments, relevant_versions)
         version_details['text'] = text_range.text
 
         sources = getattr(text_range, 'sources', None)

@@ -1700,9 +1700,10 @@ class TextRange:
     This class is planned to replace TextChunk, using real language rather than he/en
     For now it's used by v3 texts api
     It can be used for getting text, but not yet for saving
+    The versions param is for better performance when the version(s) were already loaded from mongo
     """
 
-    def __init__(self, oref, lang, vtitle, merge_versions=False):
+    def __init__(self, oref, lang, vtitle, merge_versions=False, versions=None):
         if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
             self.oref = oref
         elif oref.has_default_child(): #use default child:
@@ -1712,22 +1713,18 @@ class TextRange:
         self.lang = lang
         self.vtitle = vtitle
         self.merge_versions = merge_versions
-        self._versions = []
         self._text = None
         self.sources = None
+        self._set_versions(versions)
 
-    @property
-    def versions(self):
-        if self._versions == []:
+    def _set_versions(self, versions):
+        if versions:
+            self._validate_versions(versions)
+            self._versions = versions
+        else:
             condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
                 {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
             self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
-        return self._versions
-
-    @versions.setter
-    def versions(self, versions):
-        self._validate_versions(versions)
-        self._versions = versions
 
     def _validate_versions(self, versions):
         if not self.merge_versions and len(versions) > 1:
@@ -1758,15 +1755,15 @@ class TextRange:
     @property
     def text(self):
         if self._text is None:
-            if self.merge_versions and len(self.versions) > 1:
-                merged_text, sources = self.versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
+            if self.merge_versions and len(self._versions) > 1:
+                merged_text, sources = self._versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
                 self._text = self._trim_text(merged_text)
                 if len(sources) > 1:
                     self.sources = sources
             elif self.oref.index_node.is_virtual:
                 self._text = self.oref.index_node.get_text()
             else:
-                self._text = self._trim_text(self.versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
+                self._text = self._trim_text(self._versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
         return self._text
 
 
