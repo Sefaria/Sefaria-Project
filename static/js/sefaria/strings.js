@@ -455,6 +455,8 @@ const Strings = {
     "Optional": "אופציונלי",
     "Recently viewed": "נצפו לאחרונה",
     "All history >": "כל ההיסטוריה >",
+    "All History": "כל ההיסטוריה >",
+
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",

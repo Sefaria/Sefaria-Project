@@ -1732,6 +1732,20 @@ div.interfaceLinks-row a {
   border: none;
   padding: 0;
 }
+.recentlyViewedMobile {
+  background-color: #FBFBFA;
+  padding-left: 5px;
+}
+.recentlyViewedMobile #header {
+  margin-bottom: 10px;
+  padding: 0 0 5px 0;
+  border-bottom: 1px solid var(--light-grey);
+}
+.recentlyViewedMobile #history {
+  padding-right: 5px;
+  float: right;
+  color: #999999;
+}
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
 .readerPanel .bookPage h3{
@@ -1781,7 +1795,7 @@ div.interfaceLinks-row a {
   padding: 0;
   margin: 0;
 }
-.navSidebarLink.recentlyVisited {
+.navSidebarLink.recentlyViewed {
   display: revert;
 }
 .navSidebarLink > ul > li {

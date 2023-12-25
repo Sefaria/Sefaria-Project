@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar, Modules } from './NavSidebar';
+import { NavSidebar, Modules, RecentlyViewed } from './NavSidebar';
 import TextCategoryPage  from './TextCategoryPage';
 import Footer  from './Footer';
 import ComparePanelHeader from './ComparePanelHeader';
@@ -90,7 +90,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
     {type: "Promo"},
-    {type: "RecentlyViewed", props: {toggleSignUpModal}},
+    multiPanel ? {type: "RecentlyViewed", props: {toggleSignUpModal}} : {type: null},
     {type: "Translations"},
     {type: "LearningSchedules"},
     {type: "JoinTheCommunity"},
@@ -109,6 +109,7 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
             { about }
             { dedication }
             { libraryMessage }
+            { !multiPanel && <RecentlyViewed toggleSignUpModal={toggleSignUpModal} mobile={true}/>}
             { categoryListings }
           </div>
           {!compare ? <NavSidebar modules={sidebarModules} /> : null}

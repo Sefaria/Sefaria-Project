@@ -87,7 +87,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
-const RecentlyViewed = ({toggleSignUpModal}) => {
+const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    const [recentlyVisitedItems, setRecentlyVisitedItems] = useState(null);
    const handleAllHistory = (e) => {
     if (!Sefaria._uid) {
@@ -126,9 +126,18 @@ const RecentlyViewed = ({toggleSignUpModal}) => {
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
+   if (mobile) {
+       return <Module><div className="recentlyViewedMobile">
+              <div id="header">
+                 <InterfaceText>Recently Viewed</InterfaceText>
+                 <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
+              </div>
+              <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div></div>
+              </Module>;
+   }
    return <Module>
-            <ModuleTitle h1={true}><InterfaceText>Recently viewed</InterfaceText></ModuleTitle>
-                <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div>
+            <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
+                <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyVisitedItems}</ul></div>
                 <a href="/texts/history" onClick={handleAllHistory}><InterfaceText>All history ></InterfaceText></a>
              </Module>
 
@@ -901,4 +910,5 @@ const PortalNewsletter = ({title, description}) => {
 export {
   NavSidebar,
   Modules,
+  RecentlyViewed
 };
