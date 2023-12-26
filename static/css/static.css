@@ -3296,3 +3296,17 @@ display: none;
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
+
+.aboutSidebar {
+  position: absolute;
+  left: 30px;
+}
+.aboutSidebar ul {
+  list-style-type: none;
+}
+.aboutSidebar li {
+  padding: 10px;
+}
+.aboutSidebar a {
+  text-decoration: none;
+}
