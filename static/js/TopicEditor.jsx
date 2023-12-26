@@ -191,13 +191,13 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
         const url = `/api/topic/delete/${data.origSlug}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = "/topics"});
     }
-    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu"];
+    let items = ["Title", "Hebrew Title", "English Description", "Hebrew Description", "Category Menu", "English Alternate Titles", "Hebrew Alternate Titles",];
     if (isCategory) {
         items.push("English Short Description");
         items.push("Hebrew Short Description");
     }
     if (isAuthor) {
-        const authorItems = ["English Alternate Titles", "Hebrew Alternate Titles", "Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
+        const authorItems = ["Birth Place", "Hebrew Birth Place", "Birth Year", "Place of Death", "Hebrew Place of Death", "Death Year", "Era"];
         authorItems.forEach(x => items.push(x));
     }
     items.push("Picture Uploader");
