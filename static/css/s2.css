@@ -3580,6 +3580,7 @@ display: none;
 .versionBlock.with-preview summary {
   /*hide marker for chrome*/
   list-style: none;
+  cursor: pointer;
 }
 details .open-details::before {
   margin-inline-end: 5px;
