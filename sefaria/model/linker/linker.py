@@ -2,7 +2,7 @@ import dataclasses
 from typing import List, Optional, Union, Iterable, Tuple
 from tqdm import tqdm
 from sefaria.model.text import Ref
-from sefaria.model.linker.ref_part import RawRef, RawNamedEntity
+from sefaria.model.linker.ref_part import RawRef, RawNamedEntity, span_inds
 from sefaria.model.linker.ref_resolver import RefResolver, ResolutionThoroughness, PossiblyAmbigResolvedRef
 from sefaria.model.linker.named_entity_resolver import NamedEntityResolver, ResolvedNamedEntity
 from sefaria.model.linker.named_entity_recognizer import NamedEntityRecognizer
@@ -105,7 +105,9 @@ class Linker:
                 named_entity = resolved.raw_entity
                 named_entity.align_to_new_doc(full_spacy_doc, offset)
                 if isinstance(named_entity, RawRef):
-                    named_entity.align_parts_to_new_doc(full_spacy_doc, offset)
+                    # named_entity's current start has already been offset so it's the offset we need for each part
+                    raw_ref_offset, _ = span_inds(named_entity.span)
+                    named_entity.align_parts_to_new_doc(full_spacy_doc, raw_ref_offset)
             curr_token_count = len(self._ner.named_entity_model.make_doc(curr_input))
             offset += curr_token_count+1  # +1 for newline token
         return LinkedDoc(input_str, resolved_refs, resolved_named_entities)
