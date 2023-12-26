@@ -3308,5 +3308,8 @@ display: none;
   padding: 10px;
 }
 .aboutSidebar a {
-  text-decoration: none;
+  text-decoration: none !important;
+}
+.aboutSidebar a:hover {
+  text-decoration: underline;
 }

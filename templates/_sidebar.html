@@ -1,9 +1,17 @@
-    <div class="aboutSidebar"><ul><li><a href="/about">What is Sefaria?</a></li>
-        <li><a href="/team">Team</a></li>
-        <li><a href="/jobs">Jobs at Sefaria</a></li>
-        <li><a href="/supporters">Our Supporters</a></li>
-        <li><a href="/metrics">Metrics</a></li>
-        <li><a href="/annualreport/2022">Annual Report</a></li>
-        <li><a href="/terms">Terms of Use</a></li>
-        <li><a href="/privacy-policy">Privacy Policy</a></li>
+
+
+
+    <div class="aboutSidebar"><h1>{{title}}</h1><ul><li><a id="about" href="/about">What is Sefaria?</a></li>
+        <li><a id="team" href="/team">Team</a></li>
+        <li><a id="jobs" href="/jobs">Jobs at Sefaria</a></li>
+        <li><a id="supporters" href="/supporters">Our Supporters</a></li>
+        <li><a id="metrics" href="/metrics">Metrics</a></li>
+        <li><a id="annualreport" href="/annualreport/2022">Annual Report</a></li>
+        <li><a id="terms" href="/terms">Terms of Use</a></li>
+        <li><a id="privacy" href="/privacy-policy">Privacy Policy</a></li>
     </ul></div>
+<script>
+  const mydata = "{{whichPage}}"
+  const item = document.getElementById(mydata);
+  item.style['background-color'] = "#CCCCCC";
+</script>
