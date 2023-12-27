@@ -3297,24 +3297,30 @@ display: none;
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
 
-.aboutSidebar {
+#aboutSidebar {
   position: absolute;
   left: 15px;
 }
-.aboutSidebar .about {
+.aboutWhatIsSefaria {
   top: 550px;
 }
-.aboutSidebar ul {
+.metricsWhatIsSefaria, .termsWhatIsSefaria, .privacyWhatIsSefaria, .jobsWhatIsSefaria {
+  top: 150px;
+}
+#aboutSidebar h1 {
+  margin: 0;
+}
+#aboutSidebar ul {
   list-style-type: none;
 }
-.aboutSidebar li {
+#aboutSidebar li {
   padding: 10px;
   margin: 0 !important;
 }
-.aboutSidebar a {
+#aboutSidebar a {
   text-decoration: none !important;
   font-size: 16px !important;
 }
-.aboutSidebar a:hover {
+#aboutSidebar a:hover {
   text-decoration: underline;
 }

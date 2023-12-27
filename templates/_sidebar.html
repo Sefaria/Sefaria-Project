@@ -1,7 +1,7 @@
 
 
 
-    <div class="aboutSidebar"><h1>{{title}}</h1><ul><li><a id="about" href="/about">What is Sefaria?</a></li>
+    <div id="aboutSidebar"><h1>{{title}}</h1><ul><li><a id="about" href="/about">What is Sefaria?</a></li>
         <li><a id="team" href="/team">Team</a></li>
         <li><a id="jobs" href="/jobs">Jobs at Sefaria</a></li>
         <li><a id="supporters" href="/supporters">Our Supporters</a></li>
@@ -11,7 +11,10 @@
         <li><a id="privacy" href="/privacy-policy">Privacy Policy</a></li>
     </ul></div>
 <script>
-  const mydata = "{{whichPage}}"
-  const item = document.getElementById(mydata);
+  const whichPage = "{{whichPage}}";
+  const item = document.getElementById(whichPage);
   item.style['background-color'] = "#CCCCCC";
+  const aboutSidebar = document.getElementById("aboutSidebar");
+  aboutSidebar.className = `${whichPage}WhatIsSefaria`;
+  console.log(aboutSidebar.className);
 </script>
