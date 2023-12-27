@@ -3299,16 +3299,21 @@ display: none;
 
 .aboutSidebar {
   position: absolute;
-  left: 30px;
+  left: 15px;
+}
+.aboutSidebar .about {
+  top: 550px;
 }
 .aboutSidebar ul {
   list-style-type: none;
 }
 .aboutSidebar li {
   padding: 10px;
+  margin: 0 !important;
 }
 .aboutSidebar a {
   text-decoration: none !important;
+  font-size: 16px !important;
 }
 .aboutSidebar a:hover {
   text-decoration: underline;
