@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Annual Report" %}{% endblock %}
+
+{% block content %}
+
+<main id="annualReport" class="container biReady static">
+    <div class="inner">{% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" %}
+        <div style="margin: 50px 0 300px 0;"><a style="color: blue" href="/annualreport/2022">Open the 2023 Annual Report (PDF)</a></div>
+    </div>
+</main>
+
+
+{% endblock %}
