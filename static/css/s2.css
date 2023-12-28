@@ -1736,6 +1736,9 @@ div.interfaceLinks-row a {
   background-color: #FBFBFA;
   padding-left: 5px;
 }
+.recentlyViewedMobile ul {
+  display: revert;
+}
 .recentlyViewedMobile #header {
   margin-bottom: 10px;
   padding: 0 0 5px 0;
