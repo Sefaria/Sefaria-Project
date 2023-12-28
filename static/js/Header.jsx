@@ -450,12 +450,27 @@ const LoggedInButtons = ({headerMode}) => {
   );
 }
 
-
+const MobileAbout = () => {
+  return <div><h1>About</h1>
+    <a id="about" href="/about"><InterfaceText>What is Sefaria?</InterfaceText></a>
+    <a id="team" href="/team"><InterfaceText>Team</InterfaceText></a>
+    <a id="jobs" href="/jobs"><InterfaceText>Jobs at Sefaria</InterfaceText></a>
+    <a id="supporters" href="/supporters"><InterfaceText>Our Supporters</InterfaceText></a>
+    <a id="metrics" href="/metrics"><InterfaceText>Metrics</InterfaceText></a>
+    <a id="annualreport" href="/link-to-annual-report"><InterfaceText>Annual Report</InterfaceText></a>
+    <a id="terms" href="/terms"><InterfaceText>Terms of Use</InterfaceText></a>
+    <a id="privacy" href="/privacy-policy"><InterfaceText>Privacy Policy</InterfaceText></a>
+        </div>;
+}
 const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
+  const [aboutScreen, toggleAboutScreen] = useState(false);
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  if (aboutScreen) {
+    return <MobileAbout/>;
+  }
   return (
     <div className={classes}>
       <div className="searchLine">
@@ -511,7 +526,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/about">
+        <a onClick={() => toggleAboutScreen(true)}>
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
