@@ -132,7 +132,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
                  <InterfaceText>Recently Viewed</InterfaceText>
                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
               </div>
-              <div className={"navSidebarLink serif recentlyVisited"}><ul>{recentlyVisitedItems}</ul></div></div>
+              <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyVisitedItems}</ul></div></div>
               </Module>;
    }
    return <Module>
