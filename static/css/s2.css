@@ -1743,7 +1743,7 @@ div.interfaceLinks-row a {
 }
 .recentlyViewedMobile #header {
   margin-bottom: 10px;
-  padding: 0 0 5px 0;
+  padding: 0 10px 5px 10px;
   border-bottom: 1px solid var(--light-grey);
 }
 .recentlyViewedMobile #history {
@@ -1799,6 +1799,9 @@ div.interfaceLinks-row a {
   flex-wrap:wrap;
   padding: 0;
   margin: 0;
+}
+.recentlyViewedMobile .navSidebarLink {
+  padding: 0 10px 0 10px;
 }
 .navSidebarLink.recentlyViewed ul {
   display: revert;
