@@ -501,7 +501,7 @@ class Test_Ref(object):
 
     def test_malbim(self):
         # Used to short circuit, fail to resolve to Malachi, and fail
-        assert Ref("Malbim Beur Hamilot on Ezekiel")
+        assert Ref("Malbim Lexical Commentary on Ezekiel")
 
     def test_distance(self):
         r1 = Ref("Genesis 1:3")
