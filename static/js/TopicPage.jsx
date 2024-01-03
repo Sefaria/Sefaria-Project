@@ -394,15 +394,7 @@ const useTabDisplayData = (translationLanguagePreference) => {
       filterFunc: refFilter,
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
-    },
-    // {
-    //   key: 'sheets',
-    //   fetcher: fetchBulkSheet,
-    //   sortOptions: ['Relevance', 'Views', 'Newest'],
-    //   filterFunc: sheetFilter,
-    //   sortFunc: sheetSort,
-    //   renderWrapper: sheetRenderWrapper,
-    // }
+    }
   ], [translationLanguagePreference]);
   return getTabDisplayData();
 };
