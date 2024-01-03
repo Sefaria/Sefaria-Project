@@ -1734,19 +1734,26 @@ div.interfaceLinks-row a {
 }
 .recentlyViewedMobile {
   background-color: #FBFBFA;
-  padding: 10px 0 10px 5px;
-  margin-left: -15px;
-  margin-right: -15px;
+  padding: 10px 5px 10px 5px;
+  margin: -5px -15px -5px -15px;
 }
 .recentlyViewedMobile ul {
   display: revert;
 }
 .recentlyViewedMobile #header {
-  margin-bottom: 10px;
-  padding: 0 10px 5px 10px;
-  border-bottom: 1px solid var(--light-grey);
+    margin-bottom: 10px;
+    margin-right: 10px;
+    margin-left: 10px;
+    padding: 5px 0 5px 0;
+    border-bottom: 1px solid var(--light-grey);
 }
-.recentlyViewedMobile #history {
+.recentlyViewedMobile #history span.int-he {
+  float: left;
+  padding-left: 5px;
+  color: #999999;
+}
+
+.recentlyViewedMobile #history span.int-en {
   padding-right: 5px;
   float: right;
   color: #999999;
