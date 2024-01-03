@@ -23,7 +23,7 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption, EnglishText, HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -395,14 +395,14 @@ const useTabDisplayData = (translationLanguagePreference) => {
       sortFunc: refSort,
       renderWrapper: refRenderWrapper,
     },
-    {
-      key: 'sheets',
-      fetcher: fetchBulkSheet,
-      sortOptions: ['Relevance', 'Views', 'Newest'],
-      filterFunc: sheetFilter,
-      sortFunc: sheetSort,
-      renderWrapper: sheetRenderWrapper,
-    }
+    // {
+    //   key: 'sheets',
+    //   fetcher: fetchBulkSheet,
+    //   sortOptions: ['Relevance', 'Views', 'Newest'],
+    //   filterFunc: sheetFilter,
+    //   sortFunc: sheetSort,
+    //   renderWrapper: sheetRenderWrapper,
+    // }
   ], [translationLanguagePreference]);
   return getTabDisplayData();
 };
@@ -719,11 +719,31 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       })
     : null
   );
+    const LinkToSheetsSearchComponent = () => {
+
+      let searchUrl = `https://www.sefaria.org/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
+
+      return (
+        <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
+          <InterfaceText>
+            <EnglishText>
+              <a href={searchUrl}>Related Sheets</a>
+            </EnglishText>
+            <HebrewText>
+              <a href={searchUrl}>דפי מקורות קשורים</a>
+            </HebrewText>
+          </InterfaceText>
+        </TopicSideSection>
+      );
+    };
+
+
   return (
     <div className={"topicSideColumn"}>
       { readingsComponent }
       { topicMetaData }
       { linksComponent }
+      { LinkToSheetsSearchComponent() }
     </div>
   )
 }
