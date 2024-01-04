@@ -419,6 +419,56 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             alt_struct_nodes_helper(node, nodes)
         return nodes
 
+    def get_trimmed_alt_structs_for_ref(self, oref) -> dict:
+        """
+        this function takes the index's alt_structs and reduce it to the relevant ref
+        """
+        # Set up empty Array that mirrors text structure
+        alts_ja = JaggedArray()
+        for key, struct in self.get_alt_structures().items():
+            # Assuming these are in order, continue if it is before ours, break if we see one after
+            for n in struct.get_leaf_nodes():
+                wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
+                if wholeRef.ending_ref().precedes(oref):
+                    continue
+                if wholeRef.starting_ref().follows(oref):
+                    break
+
+                # It's in our territory
+                wholeRefStart = wholeRef.starting_ref()
+                if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
+                    indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
+                    val = {"en": [], "he": []}
+                    try:
+                        val = alts_ja.get_element(indxs) or val
+                    except IndexError:
+                        pass
+                    val["en"] += [n.primary_title("en")]
+                    val["he"] += [n.primary_title("he")]
+                    val["whole"] = True
+                    alts_ja.set_element(indxs, val)
+
+                if getattr(n, "refs", None):
+                    for i, r in enumerate(n.refs):
+                        # hack to skip Rishon, skip empty refs
+                        if i == 0 or not r:
+                            continue
+                        subRef = Ref(r)
+                        subRefStart = subRef.starting_ref()
+                        if oref.contains(subRefStart) and not subRefStart.contains(oref):
+                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                            val = {"en": [], "he": []}
+                            try:
+                                val = alts_ja.get_element(indxs) or val
+                            except IndexError:
+                                pass
+                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            alts_ja.set_element(indxs, val)
+                        elif subRefStart.follows(oref):
+                            break
+
+        return alts_ja.array()
 
     def composition_place(self):
         from . import place
@@ -1285,7 +1335,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
         "actualLanguage",
+        'languageFamilyName',
         "isBaseText",
+        'isSource',
+        'isPrimary',
+        'direction', # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1303,6 +1357,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
         if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
             self.actualLanguage = languageCodeRe.group(1)
+        if not getattr(self, 'languageFamilyName', None):
+            try:
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
+            except KeyError:
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1346,6 +1405,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.actualLanguage = languageCode.group(1)
             else:
                 self.actualLanguage = self.language
+
+        if not getattr(self, 'direction', None):
+            self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
             try:
@@ -1631,6 +1693,76 @@ class TextFamilyDelegator(type):
             return VirtualTextChunk(*args, **kwargs)
         else:
             return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
+
+
+class TextRange:
+
+    def __init__(self, oref, lang, vtitle, merge_versions=False):
+        if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
+            self.oref = oref
+        elif oref.has_default_child(): #use default child:
+            self.oref = oref.default_child_ref()
+        else:
+            raise InputError("Can not get TextRange at this level, please provide a more precise reference")
+        self.lang = lang
+        self.vtitle = vtitle
+        self.merge_versions = merge_versions
+        self._versions = []
+        self._text = None
+        self.sources = None
+
+    @property
+    def versions(self):
+        if self._versions == []:
+            condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
+                {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
+            self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
+        return self._versions
+
+    @versions.setter
+    def versions(self, versions):
+        self._validate_versions(versions)
+        self._versions = versions
+
+    def _validate_versions(self, versions):
+        if not self.merge_versions and len(versions) > 1:
+            raise InputError("Got many versions instead of one")
+        for version in versions:
+            condition = version.title == self.oref.index.title and version.languageFamilyName == self.lang
+            if not self.merge_versions:
+                condition = condition and version.versionTitle == self.vtitle
+            if not condition:
+                raise InputError(f"Given version, {version}, is not matching to title, language or versionTitle")
+
+    def _trim_text(self, text):
+        """
+        part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
+        """
+        #TODO can we get the specific text directly from mongo?
+        text = copy.deepcopy(text)
+        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
+            subtext = reduce(lambda x, _: x[-1], range(s), text)
+            del subtext[section:]
+        for s, section in enumerate(self.oref.sections[1:], 1):
+            subtext = reduce(lambda x, _: x[0], range(s), text)
+            del subtext[:section-1]
+        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
+        redundant_depth = len(list(matching_sections))
+        return reduce(lambda x, _: x[0], range(redundant_depth), text)
+
+    @property
+    def text(self):
+        if self._text is None:
+            if self.merge_versions and len(self.versions) > 1:
+                merged_text, sources = self.versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
+                self._text = self._trim_text(merged_text)
+                if len(sources) > 1:
+                    self.sources = sources
+            elif self.oref.index_node.is_virtual:
+                self._text = self.oref.index_node.get_text()
+            else:
+                self._text = self._trim_text(self.versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
+        return self._text
 
 
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
@@ -2374,60 +2506,7 @@ class TextFamily(object):
 
         # Adds decoration for the start of each alt structure reference
         if alts:
-            # Set up empty Array that mirrors text structure
-            alts_ja = JaggedArray()
-
-            for key, struct in oref.index.get_alt_structures().items():
-                # Assuming these are in order, continue if it is before ours, break if we see one after
-                for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
-                    if wholeRef.ending_ref().precedes(oref):
-                        continue
-                    if wholeRef.starting_ref().follows(oref):
-                        break
-
-                    #It's in our territory
-                    wholeRefStart = wholeRef.starting_ref()
-                    if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
-                        indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
-                        val = {"en":[], "he":[]}
-
-                        try:
-                            val = alts_ja.get_element(indxs) or val
-                        except IndexError:
-                            pass
-
-                        val["en"] += [n.primary_title("en")]
-                        val["he"] += [n.primary_title("he")]
-                        val["whole"] = True
-
-                        alts_ja.set_element(indxs, val)
-
-                    if getattr(n, "refs", None):
-                        for i, r in enumerate(n.refs):
-                            # hack to skip Rishon, skip empty refs
-                            if i == 0 or not r:
-                                continue
-                            subRef = Ref(r)
-                            subRefStart = subRef.starting_ref()
-                            if oref.contains(subRefStart) and not subRefStart.contains(oref):
-                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                                val = {"en":[], "he":[]}
-
-                                try:
-                                    val = alts_ja.get_element(indxs) or val
-                                except IndexError:
-                                    pass
-
-                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
-
-                                alts_ja.set_element(indxs, val)
-
-                            elif subRefStart.follows(oref):
-                                break
-
-            self._alts = alts_ja.array()
+            self._alts = oref.index.get_trimmed_alt_structs_for_ref(oref)
         if self._inode.is_virtual:
             self._index_offsets_by_depth = None
         else:
@@ -2765,6 +2844,9 @@ class Ref(object, metaclass=RefCacheType):
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
+            if l != len(base) and base[l] not in ' ,.:_':
+                continue #do not stop in the middle of a word
+
             self.index_node = tndict.get(base[0:l])
 
             if self.index_node:
@@ -4162,8 +4244,11 @@ class Ref(object, metaclass=RefCacheType):
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
-        # If other is less specific than self, we need to get its true extent
-        if len(self.sections) > len(other.sections):
+        if len(self.sections) > len(other.sections): # other is less specific than self
+            if len(other.sections) == 0:  # other is a whole book
+                if any([x != 1 for x in self.sections]):  # self is not a whole book
+                    return False  # performance optimization to avoid call to as_ranged_segment_ref
+            # we need to get the true extent of other
             other = other.as_ranged_segment_ref()
 
         smallest_section_len = min([len(self.sections), len(other.sections)])
@@ -4394,6 +4479,9 @@ class Ref(object, metaclass=RefCacheType):
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
 
+        if self.index_node.is_virtual:
+            return
+
         projection = {k: 1 for k in Version.required_attrs + Version.optional_attrs}
         del projection[Version.content_attr]  # Version.content_attr == "chapter"
         projection["_id"] = 0
@@ -4497,15 +4585,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref.
+        A list of available text versions metadata matching this ref.
         If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle",
-                  "shortVersionTitleInHebrew", "isBaseText"]
+        fields = Version.optional_attrs + Version.required_attrs
+        fields.remove('chapter') # not metadata
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

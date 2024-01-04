@@ -1134,7 +1134,6 @@ def export_to_drive(request, credential, sheet_id):
 
     return jsonResponse(new_file)
 
-
 @catch_error_as_json
 def upload_sheet_media(request):
     if not request.user.is_authenticated:

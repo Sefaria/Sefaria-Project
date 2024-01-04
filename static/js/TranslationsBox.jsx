@@ -1,7 +1,7 @@
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {VersionsBlocksList}  from './VersionBlock';
+import {VersionsBlocksList}  from './VersionBlock/VersionBlock';
 import Component             from 'react-class';
 import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
@@ -19,12 +19,12 @@ class TranslationsBox extends Component {
   }
   componentDidMount() {
     if(!this.isSheet()) {
-      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
+      Sefaria.getAllTranslationsWithText(this.props.srefs[0]).then(this.onVersionsLoad);
     }
   }
   componentDidUpdate(prevProps, prevState) {
-    if (!this.isSheet() && prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.getTranslations(this.props.sectionRef).then(this.onVersionsLoad);
+    if (!this.isSheet() && prevProps.srefs[0] !== this.props.srefs[0]) {
+      Sefaria.getAllTranslationsWithText(this.props.srefs[0]).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -90,6 +90,8 @@ class TranslationsBox extends Component {
                 viewExtendedNotes={this.props.viewExtendedNotes}
                 inTranslationBox={true}
                 showNotes={false}
+                srefs={this.props.srefs}
+                onRangeClick={this.props.onRangeClick}
             />
           </>
       );

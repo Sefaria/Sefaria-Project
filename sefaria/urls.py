@@ -14,6 +14,7 @@ import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
+import api.views as api_views
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -102,7 +103,9 @@ urlpatterns += [
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api)
+    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
+    url(r'^api/topics/images/(?P<topic>.+)$', reader_views.topic_upload_photo)
+
 ]
 
 # Calendar Redirects
@@ -148,6 +151,7 @@ urlpatterns += [
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
+    url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -238,7 +242,9 @@ urlpatterns += [
 # Search API
 urlpatterns += [
     url(r'^api/dummy-search$', reader_views.dummy_search_api),
-    url(r'^api/search-wrapper$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper/es6$', reader_views.search_wrapper_api, {'es6_compat': True}),
+    url(r'^api/search-wrapper/es8$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api, {'es6_compat': True}),
     url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
 ]
 

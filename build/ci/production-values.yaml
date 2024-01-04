@@ -179,9 +179,13 @@ cronJobs:
     enabled: true
   reindexElasticSearch:
     enabled: true
+    SEARCH_HOST_ES6: "elasticsearch-data"
+    SEARCH_HOST_ES8: "elasticsearch-es-http.elasticsearch.svc"
   topicsIndexing:
     enabled: true
   trello:
+    enabled: true
+  trends:
     enabled: true
   weeklyEmailNotifications:
      enabled: true
@@ -206,7 +210,7 @@ localSettings:
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_ADMIN: "http://elasticsearch-data:9200"
+  SEARCH_URL: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://www.sefaria.org"
@@ -216,7 +220,6 @@ localSettings:
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
-  SEARCH_HOST: elasticsearch.data
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
