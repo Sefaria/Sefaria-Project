@@ -329,6 +329,13 @@
                     },
                     "required": true
                 },
+                "parameters": [
+                    {
+                        "name": "ref_list",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -527,141 +534,6 @@
                     "schema": {
                         "type": "string"
                     },
-                    "in": "path",
-                    "required": true
-                }
-            ]
-        },
-        "/api/words/completion/{word}/{lexicon}": {
-            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
-            "get": {
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "description": "Number of results to return (0 indicates no limit)",
-                        "schema": {
-                            "default": 10,
-                            "type": "integer"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "examples": {
-                            "Klein Dictionary": {
-                                "value": "Klein Dictionary"
-                            },
-                            "Jastrow Dictionary": {
-                                "value": "Jastrow Dictionary"
-                            },
-                            "Sefer HaShorashim": {
-                                "value": "Sefer HaShorashim"
-                            },
-                            "Animadversions by Elias Levita on Sefer HaShorashim": {
-                                "value": "Animadversions by Elias Levita on Sefer HaShorashim"
-                            },
-                            "BDB Dictionary": {
-                                "value": "BDB Dictionary"
-                            },
-                            "BDB Aramaic Dictionary": {
-                                "value": "BDB Aramaic Dictionary"
-                            }
-                        },
-                        "name": "lexicon",
-                        "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/wordCompletionAPIResponse"
-                                    }
-                                },
-                                "examples": {
-                                    "result": {
-                                        "value": [
-                                            [
-                                                "אב",
-                                                "אַב"
-                                            ],
-                                            [
-                                                "אב",
-                                                "אֵב"
-                                            ],
-                                            [
-                                                "אב",
-                                                "אָב"
-                                            ],
-                                            [
-                                                "אבד",
-                                                "אֲבַד"
-                                            ],
-                                            [
-                                                "אבה",
-                                                "אבה"
-                                            ],
-                                            [
-                                                "אבן",
-                                                "אֶ֫בֶן"
-                                            ],
-                                            [
-                                                "אגרה",
-                                                "אִגְּרָה"
-                                            ],
-                                            [
-                                                "אדין",
-                                                "אֱדַ֫יִן"
-                                            ],
-                                            [
-                                                "אדר",
-                                                "אִדַּר"
-                                            ],
-                                            [
-                                                "אדר",
-                                                "אֲדָר"
-                                            ],
-                                            [
-                                                "אדרגזר",
-                                                "אֲדַרְגָּזַר"
-                                            ],
-                                            [
-                                                "אדרזדא",
-                                                "אַדְרַזְדָּא"
-                                            ],
-                                            [
-                                                "אדרע",
-                                                "אֶדְרַע"
-                                            ]
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Word completion API",
-                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
-            },
-            "parameters": [
-                {
-                    "name": "word",
-                    "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
-                    "schema": {
-                        "type": "string"
-                    },
-                    "in": "path",
-                    "required": true
-                },
-                {
-                    "name": "lexicon",
                     "in": "path",
                     "required": true
                 }
@@ -1028,7 +900,9 @@
                                                 "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
                                                 "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
                                             },
-                                            "categoryDescription": {},
+                                            "categoryDescription": {
+
+                                            },
                                             "displayOrder": 4,
                                             "numSources": 831,
                                             "description_published": true,
@@ -1119,7 +993,9 @@
                 {
                     "name": "annotate_time_period",
                     "description": "`1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
-                    "schema": {},
+                    "schema": {
+
+                    },
                     "in": "query"
                 }
             ]
@@ -1246,7 +1122,9 @@
                                                     "_temp_toc_id": "Prayer",
                                                     "_old_slug": "tfilla1"
                                                 },
-                                                "description": {},
+                                                "description": {
+
+                                                },
                                                 "categoryDescription": {
                                                     "en": "Liturgy and modes of Jewish prayer.",
                                                     "he": "נוסחי תפילה ודרכי תפילה יהודית."
@@ -1357,7 +1235,9 @@
                                                     "en": "Passover, or Pesach, is a week long springtime festival commemorating the Exodus from Egypt. It also celebrates national redemption, and freedom from slavery. It is observed through avoidance of certain foods (especially grains) and ritual dinners called Seders where attendees retell the story of the Exodus.",
                                                     "he": "חג הפסח הוא חג שנמשך שבוע וחל באביב, לזכר יציאת מצרים. הוא גם חוגג את גאולת העם והשחרור מעבדות. הוא נחגג באמצעות הימנעות ממאכלים מסוימים (במיוחד דגנים) וסעודה טקסית הנקראת ליל הסדר אשר בה מספרים המשתתפים את סיפור יציאת מצרים."
                                                 },
-                                                "categoryDescription": {},
+                                                "categoryDescription": {
+
+                                                },
                                                 "displayOrder": 10,
                                                 "numSources": 2040,
                                                 "description_published": true,
@@ -1427,7 +1307,9 @@
                                                     "en": "The word \"teshuvah\" literally means “return” and is best translated as \"repentance.\" Teshuvah is presented in Jewish sources as a gift from God because it allows one to return to the path of righteousness. Although it can be done at any time, Yom Kippur is the Jewish holiday most associated with repentance.",
                                                     "he": "המונח תשובה כוונתו שיבה אל דרכי האל. במקורות היהודיים נתפסת התשובה כמתנה מאלוהים, מכיוון שהיא מאפשרת לאדם לשוב ולדבוק בדרכי הטוב והיושר. אף שתשובה היא דבר שאפשר לעשות בכל עת, יום הכיפורים הוא המועד המוכר ביותר למטרה זו."
                                                 },
-                                                "categoryDescription": {},
+                                                "categoryDescription": {
+
+                                                },
                                                 "numSources": 1967,
                                                 "good_to_promote": true,
                                                 "description_published": true,
@@ -1652,7 +1534,9 @@
                 "responses": {
                     "200": {
                         "content": {
-                            "image/png": {}
+                            "image/png": {
+
+                            }
                         },
                         "description": "Successful Response"
                     }
@@ -2699,7 +2583,8 @@
                                             ],
                                             "collectiveTitle": "",
                                             "heCollectiveTitle": "",
-                                            "alts": [],
+                                            "alts": [
+                                            ],
                                             "lengths": [
                                                 10,
                                                 167
@@ -2726,8 +2611,11 @@
                                                 "מגילת אסתר",
                                                 "אסתר"
                                             ],
-                                            "index_offsets_by_depth": {},
-                                            "warnings": []
+                                            "index_offsets_by_depth": {
+
+                                            },
+                                            "warnings": [
+                                            ]
                                         }
                                     }
                                 }
@@ -2929,7 +2817,9 @@
                                                 "en": "Moses was the greatest prophet in the biblical tradition. Brought up in the Egyptian royal family, he fled Egypt before being sent back by God to lead the Israelites out of slavery and to the Promised Land. He brought the Torah down from Mount Sinai, and, according to Jewish tradition, wrote it all down. He died before reaching Israel.",
                                                 "he": "משה היה גדול הנביאים במסורת המקראית. הוא גדל בבית המלוכה המצרי, ברח ממצרים ונשלח לשם בחזרה על ידי אלוהים כדי להוציא את בני ישראל מעבדות ולהביאם לארץ המובטחת. הוא קיבל את התורה בהר סיני, ועל פי המסורת היהודית, כתב אותה מפי האל. הוא נפטר לפני כניסת העם לארץ המובטחת."
                                             },
-                                            "categoryDescription": {},
+                                            "categoryDescription": {
+
+                                            },
                                             "numSources": 1767,
                                             "good_to_promote": true,
                                             "description_published": true,
@@ -2993,7 +2883,9 @@
                 {
                     "name": "annotate_time_period",
                     "description": "`1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
-                    "schema": {},
+                    "schema": {
+
+                    },
                     "in": "query"
                 },
                 {
@@ -3011,6 +2903,142 @@
                         "type": "integer"
                     },
                     "in": "query"
+                }
+            ]
+        },
+        "/api/words/completion/{word}/{lexicon}": {
+            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "description": "Number of results to return (0 indicates no limit)",
+                        "schema": {
+                            "default": 10,
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "Klein Dictionary": {
+                                "value": "Klein Dictionary"
+                            },
+                            "Jastrow Dictionary": {
+                                "value": "Jastrow Dictionary"
+                            },
+                            "Sefer HaShorashim": {
+                                "value": "Sefer HaShorashim"
+                            },
+                            "Animadversions by Elias Levita on Sefer HaShorashim": {
+                                "value": "Animadversions by Elias Levita on Sefer HaShorashim"
+                            },
+                            "BDB Dictionary": {
+                                "value": "BDB Dictionary"
+                            },
+                            "BDB Aramaic Dictionary": {
+                                "value": "BDB Aramaic Dictionary"
+                            }
+                        },
+                        "name": "lexicon",
+                        "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/wordCompletionAPIResponse"
+                                    }
+                                },
+                                "examples": {
+                                    "result": {
+                                        "value": [
+                                            [
+                                                "אב",
+                                                "אַב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אֵב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אָב"
+                                            ],
+                                            [
+                                                "אבד",
+                                                "אֲבַד"
+                                            ],
+                                            [
+                                                "אבה",
+                                                "אבה"
+                                            ],
+                                            [
+                                                "אבן",
+                                                "אֶ֫בֶן"
+                                            ],
+                                            [
+                                                "אגרה",
+                                                "אִגְּרָה"
+                                            ],
+                                            [
+                                                "אדין",
+                                                "אֱדַ֫יִן"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אִדַּר"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אֲדָר"
+                                            ],
+                                            [
+                                                "אדרגזר",
+                                                "אֲדַרְגָּזַר"
+                                            ],
+                                            [
+                                                "אדרזדא",
+                                                "אַדְרַזְדָּא"
+                                            ],
+                                            [
+                                                "אדרע",
+                                                "אֶדְרַע"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Word completion API",
+                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
+            },
+            "parameters": [
+                {
+                    "name": "word",
+                    "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "name": "lexicon",
+                    "in": "path",
+                    "required": true
                 }
             ]
         }
@@ -3232,7 +3260,9 @@
                     },
                     "examples": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sectionNames": {
                         "description": "Given a reference, this returns the names of the sections and segments at each depth of that text.",
@@ -3387,7 +3417,8 @@
                         "3",
                         "3"
                     ],
-                    "examples": [],
+                    "examples": [
+                    ],
                     "sectionNames": [
                         "Chapter",
                         "Verse",
@@ -4057,7 +4088,9 @@
                     },
                     "alts": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "index_offsets_by_depth": {
                         "type": "object"
@@ -4074,15 +4107,21 @@
                     },
                     "commentary": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sheets": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "layer": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     }
                 },
                 "example": {
@@ -4359,13 +4398,19 @@
                     "heDigitizedBySefaria": false,
                     "heLicense": "Public Domain",
                     "formatHeAsPoetry": false,
-                    "alts": [],
-                    "index_offsets_by_depth": {},
+                    "alts": [
+                    ],
+                    "index_offsets_by_depth": {
+
+                    },
                     "next": "Mishnah Peah 5",
                     "prev": "Mishnah Peah 3",
-                    "commentary": [],
-                    "sheets": [],
-                    "layer": []
+                    "commentary": [
+                    ],
+                    "sheets": [
+                    ],
+                    "layer": [
+                    ]
                 }
             },
             "KleinDictionaryEntry": {
@@ -5603,7 +5648,9 @@
                         "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
                         "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
                     },
-                    "categoryDescription": {},
+                    "categoryDescription": {
+
+                    },
                     "displayOrder": 4,
                     "numSources": 831,
                     "description_published": true,
@@ -6388,7 +6435,8 @@
                                     "version": "Mishnah Yomit by Dr. Joshua Kulp",
                                     "lang": "en",
                                     "version_priority": 0,
-                                    "titleVariants": [],
+                                    "titleVariants": [
+                                    ],
                                     "categories": [
                                         "Mishnah Commentary",
                                         "Modern Commentary on Mishnah",
@@ -6453,7 +6501,8 @@
                                     "version": "Peninei Halakhah, English ed. Yeshivat Har Bracha",
                                     "lang": "en",
                                     "version_priority": 0,
-                                    "titleVariants": [],
+                                    "titleVariants": [
+                                    ],
                                     "categories": [
                                         "Halakhah",
                                         "Modern",
@@ -6591,12 +6640,16 @@
                     "filter_fields": {
                         "description": "Must be the same length as `filters`. Each entry specifies the field to apply the corresponding filter in `filters`. For queries of type `text` this has no effect since there's only one field to filter text queries on (`path`. this field is explained in `filters`). For `sheet` queries, the following fields can appear in `filter_fields`: `collections` (corresponds to the collections that the sheet is in), `topics_en` (corresponds to the topics for this sheet, translated into English), `topics_he` (corresponds to the topics for this sheet, translated into Hebrew).",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "filters": {
                         "description": "A list of filters to filter results. These filters cannot include RegEx. Any RegEx characters will be escaped. Each filter is applied to the corresponding field in the `filter_fields` list. E.g. if filters is `[\"Passover\", \"Torah Talks\"]` and `filter_fields` is `[\"topics_en\", \"collections\"]` then the `\"Passover\"` filter will be applied to the `\"topics_en\"` field and the `\"Torah Talks\"` filter will be applied to the `\"collections\"` field. For `text` queries, filters always applies to the `path` field of documents. This essentially corresponds to the category path of the book in Sefaria's table of contents (there are some differences with regards to commentary paths). For `sheet` queries, filters can be applied to `collections`, `topics_en` or `topics_he`. These fields are explained in `filter_fields` param.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "query": {
                         "description": "Your search query.",
@@ -6654,8 +6707,10 @@
                         "path"
                     ],
                     "field": "naive_lemmatizer",
-                    "filter_fields": [],
-                    "filters": [],
+                    "filter_fields": [
+                    ],
+                    "filters": [
+                    ],
                     "query": "banana",
                     "size": 50,
                     "slop": 10,
@@ -6702,11 +6757,15 @@
                     "sections": {
                         "description": "An array which corresponds to sectionNames and represents the sections of the text requested. When sectionNames is `[\"Chapter\", \"Verse\"]` a request for chapter 4 looks like `[4]` while a request for chapter 4, verse 7 would look like `[4, 7]`. _Note, for Talmud, Dafs are represented by a string like \"42a\" or \"12b\"_",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "toSections": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sectionRef": {
                         "$ref": "#/components/schemas/ref"
@@ -6722,7 +6781,9 @@
                     },
                     "spanningRefs": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "next": {
                         "description": "Next segment reference in sequence, if last ref, field will be `null`.",
@@ -6789,7 +6850,9 @@
                     },
                     "alts": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "lengths": {
                         "type": "array",
@@ -6842,7 +6905,9 @@
                     "warnings": {
                         "description": "A list of objects - for any version parameter that has no result there is a readable message and warning code. \n\nCodes:\n`APINoVersion = 101`\n`APINoLanguageVersion = 102`\n`APINoSourceText = 103`\n`APINoTranslationText = 104`\n",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     }
                 },
                 "example": {
@@ -6875,20 +6940,25 @@
                             "language": "he",
                             "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
                             "versionTitle": "Miqra according to the Masorah",
-                            "text": [],
+                            "text": [
+                            ],
                             "firstSectionRef": "Obadiah 1"
                         }
                     ],
-                    "available_versions": [],
+                    "available_versions": [
+                    ],
                     "ref": "Obadiah",
                     "heRef": "עובדיה",
-                    "sections": [],
-                    "toSections": [],
+                    "sections": [
+                    ],
+                    "toSections": [
+                    ],
                     "sectionRef": "Obadiah",
                     "heSectionRef": "עובדיה",
                     "firstAvailableSectionRef": "Obadiah 1",
                     "isSpanning": false,
-                    "spanningRefs": [],
+                    "spanningRefs": [
+                    ],
                     "next": "Obadiah 1",
                     "prev": "Obadiah 1",
                     "title": "Obadiah",
@@ -6910,7 +6980,8 @@
                     ],
                     "collectiveTitle": "",
                     "heCollectiveTitle": "",
-                    "alts": [],
+                    "alts": [
+                    ],
                     "lengths": [
                         1,
                         21
@@ -6939,8 +7010,11 @@
                     "heTitleVariants": [
                         "עובדיה"
                     ],
-                    "index_offsets_by_depth": {},
-                    "warnings": []
+                    "index_offsets_by_depth": {
+
+                    },
+                    "warnings": [
+                    ]
                 }
             },
             "v3AvailableVersionsTextJson": {
@@ -7229,7 +7303,8 @@
                     "language": "he",
                     "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
                     "versionTitle": "Miqra according to the Masorah",
-                    "text": [],
+                    "text": [
+                    ],
                     "firstSectionRef": "Obadiah 1"
                 }
             },
@@ -7327,7 +7402,9 @@
                     "text": {
                         "description": "The default text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "versionTitle": {
                         "description": "A descriptive string which describes what version of a text this is. Is it from a particular printing or edition of a book? An online resource? This string should describe it in English",
@@ -7369,7 +7446,8 @@
                     "heVersionTitle": "Mishnah, ed. Romm, Vilna 1913",
                     "heLicense": "Public Domain",
                     "heVersionTitleInHebrew": "משנה, מהדורת בית דפוס ראם, וילנא 1913",
-                    "text": []
+                    "text": [
+                    ]
                 }
             }
         }
