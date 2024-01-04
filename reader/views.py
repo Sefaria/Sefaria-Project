@@ -1033,6 +1033,10 @@ def texts_list(request):
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     return menu_page(request, page="navigation", title=title, desc=desc)
 
+def mobile_about(request):
+    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    return menu_page(request, page="mobileAbout", title=title, desc=desc)
 
 def calendars(request):
     title = _("Learning Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
