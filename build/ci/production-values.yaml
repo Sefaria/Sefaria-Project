@@ -2,10 +2,9 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production
 previousServicesCount: "3"
-deploymentMessage: true
+deploymentMessage: false
 restore:
-  enabled: false
-  dynamicName: false
+  enabled: true
   cleanup: false
   dynamicName: false
   bucket: sefaria-contextus-backup
