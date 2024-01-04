@@ -713,16 +713,16 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
   );
     const LinkToSheetsSearchComponent = () => {
 
-      let searchUrl = `https://www.sefaria.org/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
-
+    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
+    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
       return (
         <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
           <InterfaceText>
             <EnglishText>
-              <a href={searchUrl}>Related Sheets</a>
+              <a href={searchUrlEn}>Related Sheets</a>
             </EnglishText>
             <HebrewText>
-              <a href={searchUrl}>דפי מקורות קשורים</a>
+              <a href={searchUrlHe}>דפי מקורות קשורים</a>
             </HebrewText>
           </InterfaceText>
         </TopicSideSection>
