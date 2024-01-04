@@ -644,6 +644,19 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header.mobile .ui-autocomplete {
   width: 100% !important;
 }
+.mobileAbout {
+  margin: 0 10px 0 10px;
+}
+.mobileAbout a {
+  display: block;
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+.mobileAbout a::after {
+  content: ">";
+  float: right;
+}
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;

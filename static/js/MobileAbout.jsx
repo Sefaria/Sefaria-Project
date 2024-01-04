@@ -2,7 +2,7 @@ import {InterfaceText} from "./Misc";
 import React from "react";
 
 const MobileAbout = () => {
-  return <div><h1>About Sefaria</h1>
+  return <div className="mobileAbout"><h1>About Sefaria</h1>
     <a id="about" href="/about"><InterfaceText>What is Sefaria?</InterfaceText></a>
     <a id="team" href="/team"><InterfaceText>Team</InterfaceText></a>
     <a id="jobs" href="/jobs"><InterfaceText>Jobs at Sefaria</InterfaceText></a>
