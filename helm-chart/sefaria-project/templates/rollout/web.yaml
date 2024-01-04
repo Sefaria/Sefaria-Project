@@ -99,6 +99,8 @@ spec:
             value: "{{ .Release.Revision }}"
         envFrom:
           - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}  
+          - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
           - configMapRef:

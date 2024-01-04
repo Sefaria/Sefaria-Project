@@ -2,9 +2,10 @@ sandbox: "false"
 contentSandbox: "false"
 deployEnv: production
 previousServicesCount: "3"
-deploymentMessage: false
+deploymentMessage: true
 restore:
-  enabled: true
+  enabled: false
+  dynamicName: false
   cleanup: false
   dynamicName: false
   bucket: sefaria-contextus-backup
@@ -163,6 +164,7 @@ instrumentation:
   enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"
   jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
+
 localSettings:
   DEBUG: false
   DOMAIN_LANGUAGE: {

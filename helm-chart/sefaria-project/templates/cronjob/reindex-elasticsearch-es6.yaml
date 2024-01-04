@@ -1,13 +1,13 @@
-{{- if ne .Values.sandbox "true" }}
+{{- if .Values.cronJobs.reindexElasticSearch.enabled }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-reindex-elastic-search
+  name: {{ .Values.deployEnv }}-reindex-elastic-search-es6
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
-  schedule: "20 13 * * 2"
+  schedule: "20 13 * * 0"
   jobTemplate:
     spec:
       backoffLimit: 1
@@ -24,7 +24,7 @@ spec:
                     - mongo
                 topologyKey: kubernetes.io.hostname
           containers:
-          - name: reindex-elastic-search
+          - name: reindex-elastic-search-es6
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
               limits:
@@ -33,7 +33,7 @@ spec:
                 memory: 7Gi
             env:
             - name: SEARCH_HOST
-              value: "{{ .Values.cronJobs.reindexElasticSearch.SEARCH_HOST_ES8 }}"
+              value: "{{ .Values.cronjobs.reindexElasticSearch.SEARCH_HOST_ES6 }}"
             - name: REDIS_HOST
               value: "redis-{{ .Values.deployEnv }}"
             - name: NODEJS_HOST
@@ -46,8 +46,6 @@ spec:
                   name: {{ template "sefaria.secrets.slackWebhook" . }}
                   key: slack-webhook
             envFrom:
-            - secretRef:
-                name: {{ template "sefaria.secrets.elasticAdmin" . }}  
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
@@ -64,7 +62,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy elasticsearch==8.8.2 git+https://github.com/Sefaria/elasticsearch-dsl-py@v8.0.0#egg=elasticsearch-dsl && /app/run /app/scripts/reindex_elasticsearch_cronjob.py"
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/reindex_elasticsearch_cronjob_ES6.py"
             ]
           restartPolicy: Never
           volumes:

@@ -46,9 +46,9 @@ class SearchPage extends Component {
                   { this.props.query }
                   <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
                 </h1>
-                {this.state.totalResults ?
+                {this.state.totalResults?.getValue() > 0 ?
                 <div className="searchResultCount sans-serif">
-                  <InterfaceText>{this.state.totalResults.toLocaleString()}</InterfaceText>&nbsp;
+                  <InterfaceText>{this.state.totalResults.asString()}</InterfaceText>&nbsp;
                   <InterfaceText>Results</InterfaceText>
                 </div>
                 : null }
@@ -71,11 +71,11 @@ class SearchPage extends Component {
 
             {(Sefaria.multiPanel && !this.props.compare) || this.state.mobileFiltersOpen ?
             <div className={Sefaria.multiPanel && !this.props.compare ? "navSidebar" : "mobileSearchFilters"}>
-              {this.state.totalResults ?
+              {this.state.totalResults?.getValue() > 0 ?
               <SearchFilters
                 query={this.props.query}
                 searchState={this.props[`${this.props.tab}SearchState`]}
-                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab)}
+                updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.tab, this.props[`${this.props.tab}SearchState`])}
                 updateAppliedOptionField={this.props.updateAppliedOptionField.bind(null, this.props.tab)}
                 updateAppliedOptionSort={this.props.updateAppliedOptionSort.bind(null, this.props.tab)}
                 closeMobileFilters={() => this.setState({mobileFiltersOpen: false})}
