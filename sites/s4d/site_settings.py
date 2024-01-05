@@ -18,5 +18,6 @@ SITE_SETTINGS = {
 	"COLLECTIONS_BUCKET": "jmc-collection-images",
 	"PROFILES_BUCKET": 'jmc-profile-pictures',
 	"UGC_BUCKET": 'jmc-sheet-user-uploaded-media',
-	"DONATION_URL": "https://jackmillercenter.org/support-us/"
+	"DONATION_URL": "https://jackmillercenter.org/support-us/",
+	"TOPICS_BUCKET": 'topicimages'
 }
