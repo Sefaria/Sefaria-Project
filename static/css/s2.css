@@ -646,10 +646,27 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .mobileAbout {
   margin: 0 10px 0 10px;
+  position: absolute;
+  width: 317px;
+  height: 48px;
+  left: 15px;
+  top: 83px;
+}
+.mobileAbout h1 {
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  color: #666666;
 }
 .mobileAbout a {
+  font-family: "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 35px;
+  color: #666666;
   display: block;
-  color: #666;
   font-size: 16px;
   margin-bottom: 20px;
 }

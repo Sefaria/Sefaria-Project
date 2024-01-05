@@ -3,7 +3,7 @@ import React from "react";
 
 const MobileAbout = () => {
   return <div className="mobileAbout"><h1>About Sefaria</h1>
-    <a id="about" href="/about"><InterfaceText>What is Sefaria?</InterfaceText></a>
+    <a id="about" href="/about"><InterfaceText>What is Sefaria?</InterfaceText><i className="fa-chevron-right"/></a>
     <a id="team" href="/team"><InterfaceText>Team</InterfaceText></a>
     <a id="jobs" href="/jobs"><InterfaceText>Jobs at Sefaria</InterfaceText></a>
     <a id="supporters" href="/supporters"><InterfaceText>Our Supporters</InterfaceText></a>
