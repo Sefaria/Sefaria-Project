@@ -3,7 +3,7 @@
     "info": {
         "title": "Sefaria API",
         "version": "1.0.0",
-        "description": "The Sefaria APIs allows live access to Sefaria's structured database of Jewish texts and their interconnections.",
+        "description": "The Sefaria API endpoints allows live access to Sefaria's structured database of Jewish texts and their interconnections.",
         "contact": {
             "url": "https://www.sefaria.org",
             "email": "dev@sefaria.org"
@@ -61,7 +61,7 @@
                             }
                         },
                         "name": "ven",
-                        "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific Version Title here will load that text version if it exists instead of the default.\n",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
                         "schema": {
                             "type": "string"
                         },
@@ -77,7 +77,7 @@
                     },
                     {
                         "name": "vhe",
-                        "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific Version Title here will load that text version if it exists instead of the default.\n",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
                         "schema": {
                             "type": "string"
                         },
@@ -153,11 +153,37 @@
                     },
                     {
                         "name": "sheets",
-                        "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is depreciated. Instead you should use the `Related API`._",
+                        "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead you should use the `Related API`._",
                         "schema": {
                             "type": "boolean"
                         },
                         "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "Tanakh": {
+                                "value": "Kohelet 5:10"
+                            },
+                            "Talmud": {
+                                "value": "Shabbat 22a.10"
+                            },
+                            "Talmud Amud": {
+                                "value": "Shabbat 22a"
+                            },
+                            "Tanakh Chapter": {
+                                "value": "Exodus 10"
+                            },
+                            "Commentary": {
+                                "value": "Rashi on Genesis 1:1:1"
+                            }
+                        },
+                        "name": "tref",
+                        "description": "A valid textual `Ref` to a Sefaria text.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ref"
+                        },
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -166,6 +192,75 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/textAPIReponse"
+                                },
+                                "examples": {
+                                    "Shabbat 22a.1": {
+                                        "value": {
+                                            "ref": "Shabbat 22a:1",
+                                            "heRef": "שבת כ״ב א:א׳",
+                                            "isComplex": false,
+                                            "text": [],
+                                            "he": [],
+                                            "versions": [],
+                                            "textDepth": 2,
+                                            "sectionNames": [],
+                                            "addressTypes": [],
+                                            "lengths": [],
+                                            "length": 314,
+                                            "heTitle": "שבת כ״ב א",
+                                            "titleVariants": [],
+                                            "heTitleVariants": [],
+                                            "type": "Talmud",
+                                            "primary_category": "Talmud",
+                                            "book": "Shabbat",
+                                            "categories": [],
+                                            "order": [],
+                                            "sections": [],
+                                            "toSections": [],
+                                            "isDependant": false,
+                                            "indexTitle": "Shabbat",
+                                            "heIndexTitle": "שבת",
+                                            "sectionRef": "Shabbat 22a",
+                                            "firstAvailableSectionRef": "Shabbat 22a:1",
+                                            "heSectionRef": "שבת כ״ב א",
+                                            "isSpanning": false,
+                                            "versionTitle": "William Davidson Edition - English",
+                                            "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
+                                            "shortVersionTitle": "Koren - Steinsaltz",
+                                            "shortVersionTitleInHebrew": "",
+                                            "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1",
+                                            "versionStatus": "locked",
+                                            "versionNotes": "English from The William Davidson digital edition of the <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>",
+                                            "extendedNotes": "",
+                                            "extendedNotesHebrew": "",
+                                            "versionNotesInHebrew": "תרגום אנגלי של תלמוד מהדורת ויליאם דיוידסון מתוך מהדורת <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Noé</a> עם פירוש <a href='/adin-even-israel-steinsaltz'>הרב עדין אבן ישראל שטיינזלץ</a>, בהוצאת קורן ירושלים",
+                                            "digitizedBySefaria": false,
+                                            "license": "CC-BY-NC",
+                                            "formatEnAsPoetry": false,
+                                            "heVersionTitle": "William Davidson Edition - Vocalized Aramaic",
+                                            "heVersionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
+                                            "heShortVersionTitle": "",
+                                            "heShortVersionTitleInHebrew": "",
+                                            "heVersionSource": "https://www.sefaria.org",
+                                            "heVersionStatus": "locked",
+                                            "heVersionNotes": "Aramaic from The William Davidson digital edition of the <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>\nNikud (vocalization) by <a href='https://dicta.org.il/'>Dicta - the Israel Center for Text Analysis</a>",
+                                            "heExtendedNotes": "",
+                                            "heExtendedNotesHebrew": "",
+                                            "heVersionNotesInHebrew": "הטקסט הארמי של מהדורת וויליאם דייוידסון הדיגיטלית מתוך <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>תלמוד קורן מהדורת נאה</a>, עם באור מאת <a href='/adin-even-israel-steinsaltz'>הרב אבן־ישראל (שטיינזלץ)</a>\nמנוקד על ידי <a href='https://dicta.org.il/'>דיקטה - המרכז הישראלי לניתוח טקסטים</a>",
+                                            "heDigitizedBySefaria": false,
+                                            "heLicense": "CC-BY-NC",
+                                            "formatHeAsPoetry": false,
+                                            "title": "Shabbat 22a",
+                                            "heBook": "שבת",
+                                            "alts": [],
+                                            "index_offsets_by_depth": {},
+                                            "next": "Shabbat 22b",
+                                            "prev": "Shabbat 21b",
+                                            "commentary": [],
+                                            "sheets": [],
+                                            "layer": []
+                                        }
+                                    }
                                 }
                             }
                         },
@@ -174,11 +269,29 @@
                 },
                 "deprecated": false,
                 "summary": "Text API",
-                "description": "Retrieve the text and some additional metadata for a specific Sefaria Reference"
+                "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
             },
             "parameters": [
                 {
+                    "examples": {
+                        "Tanakh": {
+                            "value": "Kohelet 5:10"
+                        },
+                        "Talmud": {
+                            "value": "Shabbat 22a.10"
+                        },
+                        "Talmud Amud": {
+                            "value": "Shabbat 22a"
+                        },
+                        "Tanakh Chapter": {
+                            "value": "Exodus 10"
+                        },
+                        "Commentary": {
+                            "value": "Rashi on Genesis 1:1:1"
+                        }
+                    },
                     "name": "tref",
+                    "description": "A valid textual `Ref` to a Sefaria text.",
                     "schema": {
                         "$ref": "#/components/schemas/ref"
                     },
@@ -188,12 +301,12 @@
             ]
         },
         "/api/name/{name}": {
-            "description": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria",
+            "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria",
             "get": {
                 "parameters": [
                     {
                         "name": "limit",
-                        "description": "Number of results to return (0 indicates no limit)",
+                        "description": "Number of results to return (`0` indicates no limit)",
                         "schema": {
                             "default": 10,
                             "type": "integer"
@@ -202,7 +315,7 @@
                     },
                     {
                         "name": "ref_only",
-                        "description": "By default `0` the Name API returns refs, book titles, authors, topics, and collections. If true, the response will only contain text references.",
+                        "description": "By default `0` the Name API returns `Ref`s, book titles, authors, topics, and collections. If true, the response will only contain text references.",
                         "schema": {
                             "default": false,
                             "type": "boolean"
@@ -223,7 +336,7 @@
                     }
                 },
                 "summary": "Name API",
-                "description": "Serves primarily as an autocompleter, returning potential keyword matches for refs, book titles, authors, topics, and collections available on Sefaria"
+                "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria"
             },
             "parameters": [
                 {
@@ -307,7 +420,7 @@
                     }
                 },
                 "summary": "Recommended topics API",
-                "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references."
+                "description": "Given a list of `Ref`s this API returns the most used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Ref`s."
             },
             "post": {
                 "requestBody": {
@@ -329,6 +442,13 @@
                     },
                     "required": true
                 },
+                "parameters": [
+                    {
+                        "name": "ref_list",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -454,8 +574,13 @@
             "get": {
                 "parameters": [
                     {
+                        "examples": {
+                            "Tanakh": {
+                                "value": "Leviticus 19.3"
+                            }
+                        },
                         "name": "lookup_ref",
-                        "description": "to fine tune the search",
+                        "description": "This parameters refines the search to fine tune based on the `lookup_ref`.",
                         "schema": {
                             "type": "string"
                         },
@@ -463,7 +588,7 @@
                     },
                     {
                         "name": "never_split",
-                        "description": "to limit lookup to only the actual input string",
+                        "description": "This parameters refines the search to limit lookup to only the actual input string.",
                         "schema": {
                             "type": "string"
                         },
@@ -471,7 +596,7 @@
                     },
                     {
                         "name": "always_split",
-                        "description": "to look for substring matches regardless of results for original input",
+                        "description": "This parameters refines the search to look for substring matches regardless of results for original input. One can pass the values `0` (to indicate false) and `1` (to indicate true). ",
                         "schema": {
                             "type": "string"
                         },
@@ -518,7 +643,7 @@
                     }
                 },
                 "summary": "Lexicon API",
-                "description": "Searches Sefaria lexicon entries for the given string"
+                "description": "Searches Sefaria lexicon entries (i.e. dictionaries) for the query string passed as `word` to the endpoint."
             },
             "parameters": [
                 {
@@ -527,141 +652,6 @@
                     "schema": {
                         "type": "string"
                     },
-                    "in": "path",
-                    "required": true
-                }
-            ]
-        },
-        "/api/words/completion/{word}/{lexicon}": {
-            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
-            "get": {
-                "parameters": [
-                    {
-                        "name": "limit",
-                        "description": "Number of results to return (0 indicates no limit)",
-                        "schema": {
-                            "default": 10,
-                            "type": "integer"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "examples": {
-                            "Klein Dictionary": {
-                                "value": "Klein Dictionary"
-                            },
-                            "Jastrow Dictionary": {
-                                "value": "Jastrow Dictionary"
-                            },
-                            "Sefer HaShorashim": {
-                                "value": "Sefer HaShorashim"
-                            },
-                            "Animadversions by Elias Levita on Sefer HaShorashim": {
-                                "value": "Animadversions by Elias Levita on Sefer HaShorashim"
-                            },
-                            "BDB Dictionary": {
-                                "value": "BDB Dictionary"
-                            },
-                            "BDB Aramaic Dictionary": {
-                                "value": "BDB Aramaic Dictionary"
-                            }
-                        },
-                        "name": "lexicon",
-                        "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "path"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/wordCompletionAPIResponse"
-                                    }
-                                },
-                                "examples": {
-                                    "result": {
-                                        "value": [
-                                            [
-                                                "אב",
-                                                "אַב"
-                                            ],
-                                            [
-                                                "אב",
-                                                "אֵב"
-                                            ],
-                                            [
-                                                "אב",
-                                                "אָב"
-                                            ],
-                                            [
-                                                "אבד",
-                                                "אֲבַד"
-                                            ],
-                                            [
-                                                "אבה",
-                                                "אבה"
-                                            ],
-                                            [
-                                                "אבן",
-                                                "אֶ֫בֶן"
-                                            ],
-                                            [
-                                                "אגרה",
-                                                "אִגְּרָה"
-                                            ],
-                                            [
-                                                "אדין",
-                                                "אֱדַ֫יִן"
-                                            ],
-                                            [
-                                                "אדר",
-                                                "אִדַּר"
-                                            ],
-                                            [
-                                                "אדר",
-                                                "אֲדָר"
-                                            ],
-                                            [
-                                                "אדרגזר",
-                                                "אֲדַרְגָּזַר"
-                                            ],
-                                            [
-                                                "אדרזדא",
-                                                "אַדְרַזְדָּא"
-                                            ],
-                                            [
-                                                "אדרע",
-                                                "אֶדְרַע"
-                                            ]
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Word completion API",
-                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
-            },
-            "parameters": [
-                {
-                    "name": "word",
-                    "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
-                    "schema": {
-                        "type": "string"
-                    },
-                    "in": "path",
-                    "required": true
-                },
-                {
-                    "name": "lexicon",
                     "in": "path",
                     "required": true
                 }
@@ -871,7 +861,7 @@
                 "parameters": [
                     {
                         "name": "diaspora",
-                        "description": "Should the Calendar API return the weekly Torah reading for the diaspora `1` or for Israel `0`",
+                        "description": "When this value is set to `diaspora=1`, the text returned is the weekly Torah reading for the diaspora. When this value is set to `diaspora=0`, the text returned is the Torah reading for Israel. ",
                         "schema": {
                             "type": "boolean"
                         },
@@ -880,7 +870,7 @@
                     },
                     {
                         "name": "custom",
-                        "description": "If available, the weekly haftarah will be returned for one of the selected custom.",
+                        "description": "If available, the weekly _Haftarah_ will be returned for one of the selected custom.",
                         "schema": {
                             "enum": [
                                 "ashkenazi",
@@ -901,7 +891,7 @@
                     },
                     {
                         "name": "year",
-                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
                         "schema": {
                             "type": "number"
                         },
@@ -909,7 +899,7 @@
                     },
                     {
                         "name": "month",
-                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
                         "schema": {
                             "type": "number"
                         },
@@ -917,7 +907,7 @@
                     },
                     {
                         "name": "day",
-                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params. If you use `year` or `day` or `month`, you must include them all otherwise the API will fallback to the default.",
+                        "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
                         "schema": {
                             "type": "number"
                         },
@@ -1557,7 +1547,32 @@
                 },
                 "summary": "Parasha Next Read API",
                 "description": "Given a Parasha name in English, this API returns the next Hebrew and English dates that it is read, along with details about the Torah and Haftarah readings for that date."
-            }
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Noach": {
+                            "value": "Noach"
+                        },
+                        "Devarim": {
+                            "value": "Devarim"
+                        },
+                        "Ha'Azinu": {
+                            "value": "Ha%27Azinu"
+                        },
+                        "Lech Lecha": {
+                            "value": "Lech%20Lecha"
+                        }
+                    },
+                    "name": "parasha",
+                    "description": "The _Parasha_ for which you'd like to generate relevant metadata, most notably the schedule of when it is next read. \n\n*Note*: The _Parasha_ must be in English written with a capitalized first letter, so `Noach` is valid, but `noach` will return an empty array. Any parshiyot with special characters (i.e. apostrophes, or spaces) should have those special characters percent url encoded. ",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
         },
         "/api/index/": {
             "get": {
@@ -1610,7 +1625,7 @@
                 "parameters": [
                     {
                         "name": "lang",
-                        "description": "The language the social image should return. ",
+                        "description": "The language the social image should return, `en` for English language or `he` for Hebrew. ",
                         "schema": {
                             "enum": [
                                 "he",
@@ -1622,7 +1637,7 @@
                     },
                     {
                         "name": "platform",
-                        "description": "This value determines the size of the image, set to the platform's ideal as specified in their own developer documentation.",
+                        "description": "This value determines the size of the image, set to the platform's ideal as specified in its own developer documentation.",
                         "schema": {
                             "enum": [
                                 "facebook",
@@ -1633,16 +1648,26 @@
                         "in": "query"
                     },
                     {
+                        "examples": {
+                            "JSP 1917": {
+                                "value": "The Holy Scriptures: A New Translation (JPS 1917)"
+                            }
+                        },
                         "name": "ven",
-                        "description": "The version title we want the English text to return from.",
+                        "description": "The title of the version of English text desired for the image. ",
                         "schema": {
                             "type": "string"
                         },
                         "in": "query"
                     },
                     {
+                        "examples": {
+                            "Tanach with Ta'amei Hamikra": {
+                                "value": "Tanach with Ta'amei Hamikra"
+                            }
+                        },
                         "name": "vhe",
-                        "description": "The version title we want the Hebrew text to return from.",
+                        "description": "The title of the version of Hebrew text desired for the image. ",
                         "schema": {
                             "type": "string"
                         },
@@ -1657,12 +1682,21 @@
                         "description": "Successful Response"
                     }
                 },
-                "summary": "Social Img API",
-                "description": "Given a Sefaria text reference and some other optional params, this endpoint returns a png image ready to share on social. On Sefaria.org we use it primarily to auto-generate social images for any page."
+                "summary": "Social Media Image API",
+                "description": "Given a Sefaria text `Ref` and some other optional parameters, this endpoint returns a .png image ready to share on social media. At Sefaria.org we use it primarily to auto-generate social media images for any page."
             },
             "parameters": [
                 {
+                    "examples": {
+                        "Tanakh Ref": {
+                            "value": "Esther 1.1"
+                        },
+                        "Talmud Ref": {
+                            "value": "Pesachim 21b.1"
+                        }
+                    },
                     "name": "tref",
+                    "description": "A valid Sefaria textual `Ref`.",
                     "schema": {
                         "$ref": "#/components/schemas/ref"
                     },
@@ -1757,77 +1791,29 @@
             "parameters": [
                 {
                     "examples": {
-                        "en": {
+                        "English": {
                             "value": "en"
                         },
-                        "he": {
+                        "Hebrew": {
                             "value": "he"
                         },
-                        "yi": {
-                            "value": "yi"
+                        "Yiddish": {
+                            "value": "yi\n"
+                        },
+                        "French": {
+                            "value": "fr"
+                        },
+                        "German": {
+                            "value": "de"
+                        },
+                        "Arabic": {
+                            "value": "ar"
                         }
                     },
                     "name": "lang",
                     "description": "An ISO 639-1 language code.",
                     "schema": {
                         "type": "string"
-                    },
-                    "in": "path",
-                    "required": true
-                }
-            ]
-        },
-        "/api/links/{ref}": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "ref",
-                        "schema": {
-                            "$ref": "#/components/schemas/ref"
-                        },
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "name": "with_text",
-                        "description": "`with_text` is an optional parameter that determines whether or not the API response will include the text of any connected links. It's default is `1`",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "with_sheet_links",
-                        "description": "`with_sheet_links` is an optional parameter that determines whether or not the API response will include links to user generated source sheets from Sefaria. It's default is `0`",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/LinkObj"
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Links API",
-                "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata."
-            },
-            "parameters": [
-                {
-                    "name": "ref",
-                    "schema": {
-                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -2811,9 +2797,20 @@
                 }
             ]
         },
-        "/api/v2/topics/{topic_slug}/": {
+        "/api/v2/topics/{topic_slug}": {
             "summary": "v2 Specific Topic API",
+            "description": "The `v2` Topic API is identical to the `v1` Topic API, with one exception. When the API is run with the following query parameter `with_refs=1`, the list of topic links returned is grouped by `type`.  ",
             "get": {
+                "parameters": [
+                    {
+                        "name": "annotate_links",
+                        "description": "Values can be `1` or `0`. \n\nIf `1`, adds the following fields to each intra-topic link: `title`, `titleIsTransliteration`, `shouldDisplay`, and `order`.",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "content": {
@@ -2976,7 +2973,7 @@
                 },
                 {
                     "name": "with_links",
-                    "description": "`1` or `0`. If `1`, includes intra-topic links in the `result` field, under `links`.",
+                    "description": "Values can be `1` or `0`. \n\nIf `1`, includes intra-topic links in the `result` field, under `links`.",
                     "schema": {
                         "type": "integer"
                     },
@@ -2984,7 +2981,7 @@
                 },
                 {
                     "name": "annotate_links",
-                    "description": "`1` or `0`. If `1`, adds the following fields to each intra-topic link: `title`, `titleIsTransliteration`, `shouldDisplay`, and `order`.",
+                    "description": "Values can be `1` or `0`. \n\nIf `1`, adds the following fields to each intra-topic link: `title`, `titleIsTransliteration`, `shouldDisplay`, and `order`.",
                     "schema": {
                         "type": "integer"
                     },
@@ -2992,13 +2989,13 @@
                 },
                 {
                     "name": "annotate_time_period",
-                    "description": "`1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
+                    "description": "Values can be `1` or `0`. \n\nIf `1`, the response includes time period data under the `timePeriod` key.",
                     "schema": {},
                     "in": "query"
                 },
                 {
                     "name": "group_related",
-                    "description": "`1` or `0`. If `1`, groups link types with the `groupRelated` key set to true. This will simulate how the sidebar looks on the Sefaria site.",
+                    "description": "Values can be `1` or `0`. \n\nIf `1`, groups link types with the `groupRelated` key set to true. This will simulate how the sidebar looks on the Sefaria site.",
                     "schema": {
                         "type": "integer"
                     },
@@ -3006,11 +3003,565 @@
                 },
                 {
                     "name": "with_refs",
-                    "description": "`1` or `0`. If `1`, adds a list of `Ref`s tagged with this topic under the `refs` key.",
+                    "description": "Values can be `1` or `0`. \n\nIf `1`, adds a list of `Ref`s tagged with this topic under the `refs` key.",
                     "schema": {
                         "type": "integer"
                     },
                     "in": "query"
+                }
+            ]
+        },
+        "/api/words/completion/{word}/{lexicon}": {
+            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+            "get": {
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "description": "Number of results to return (0 indicates no limit)",
+                        "schema": {
+                            "default": 10,
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "Klein Dictionary": {
+                                "value": "Klein Dictionary"
+                            },
+                            "Jastrow Dictionary": {
+                                "value": "Jastrow Dictionary"
+                            },
+                            "Sefer HaShorashim": {
+                                "value": "Sefer HaShorashim"
+                            },
+                            "Animadversions by Elias Levita on Sefer HaShorashim": {
+                                "value": "Animadversions by Elias Levita on Sefer HaShorashim"
+                            },
+                            "BDB Dictionary": {
+                                "value": "BDB Dictionary"
+                            },
+                            "BDB Aramaic Dictionary": {
+                                "value": "BDB Aramaic Dictionary"
+                            }
+                        },
+                        "name": "lexicon",
+                        "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/wordCompletionAPIResponse"
+                                    }
+                                },
+                                "examples": {
+                                    "result": {
+                                        "value": [
+                                            [
+                                                "אב",
+                                                "אַב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אֵב"
+                                            ],
+                                            [
+                                                "אב",
+                                                "אָב"
+                                            ],
+                                            [
+                                                "אבד",
+                                                "אֲבַד"
+                                            ],
+                                            [
+                                                "אבה",
+                                                "אבה"
+                                            ],
+                                            [
+                                                "אבן",
+                                                "אֶ֫בֶן"
+                                            ],
+                                            [
+                                                "אגרה",
+                                                "אִגְּרָה"
+                                            ],
+                                            [
+                                                "אדין",
+                                                "אֱדַ֫יִן"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אִדַּר"
+                                            ],
+                                            [
+                                                "אדר",
+                                                "אֲדָר"
+                                            ],
+                                            [
+                                                "אדרגזר",
+                                                "אֲדַרְגָּזַר"
+                                            ],
+                                            [
+                                                "אדרזדא",
+                                                "אַדְרַזְדָּא"
+                                            ],
+                                            [
+                                                "אדרע",
+                                                "אֶדְרַע"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Word completion API",
+                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
+            },
+            "parameters": [
+                {
+                    "name": "word",
+                    "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/links/{tref}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "ref",
+                        "schema": {
+                            "$ref": "#/components/schemas/ref"
+                        },
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "name": "with_text",
+                        "description": "`with_text` is an optional parameter that determines whether or not the API response will include the text of any connected links. It's default is `1`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "with_sheet_links",
+                        "description": "`with_sheet_links` is an optional parameter that determines whether or not the API response will include links to user generated source sheets from Sefaria. It's default is `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/LinkObj"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Links API",
+                "description": "Returns a list of known connections for the submitted text `ref` along with some additional metadata."
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Tanakh": {
+                            "value": "Obadiah 1.2"
+                        }
+                    },
+                    "name": "tref",
+                    "description": "A valid Sefaria textual `Ref`.",
+                    "schema": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/topics-graph/{topic_slug}": {
+            "summary": "Topic Graph API",
+            "description": "And enpoint to retrieve links between various topics. ",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TopicGraphJSON"
+                                },
+                                "examples": {
+                                    "Shabbat": {
+                                        "value": {
+                                            "topics": [
+                                                {
+                                                    "slug": "shabbat",
+                                                    "titles": [
+                                                        {
+                                                            "text": "Shabbos",
+                                                            "lang": "en"
+                                                        },
+                                                        {
+                                                            "text": "Mishnah Shabbat",
+                                                            "lang": "en"
+                                                        },
+                                                        {
+                                                            "text": "שַׁבָּת",
+                                                            "lang": "he"
+                                                        },
+                                                        {
+                                                            "text": "השבת",
+                                                            "lang": "he"
+                                                        },
+                                                        {
+                                                            "text": "Shabbat",
+                                                            "lang": "en",
+                                                            "primary": true
+                                                        },
+                                                        {
+                                                            "text": "שבת",
+                                                            "lang": "he",
+                                                            "primary": true
+                                                        }
+                                                    ],
+                                                    "alt_ids": {
+                                                        "_temp_id": "שבת",
+                                                        "_old_slug": "shabbat1"
+                                                    },
+                                                    "properties": {
+                                                        "heNliLink": {
+                                                            "value": "https://www.nli.org.il/he/discover/judaism/traditions/shabbat",
+                                                            "dataSource": "sefaria"
+                                                        }
+                                                    },
+                                                    "description": {
+                                                        "en": "Shabbat (or Sabbath) falls every seventh day of the week, from Friday just before sunset until dark on Saturday night. It is a day of rest, marking the time when God stopped creating after after the six days of creation. Shabbat recognizes God as Creator of the Universe and as Redeemer of Israel from Egypt. ",
+                                                        "he": "היום השביעי בשבוע, החל מיום שישי בשעת השקיעה ועד צאת הכוכבים במוצאי השבת. יום מנוחה לפי המקורות, המציין את הזמן שבו ה' נח לאחר שברא את העולם. "
+                                                    },
+                                                    "categoryDescription": {},
+                                                    "displayOrder": 0,
+                                                    "numSources": 1662,
+                                                    "good_to_promote": true,
+                                                    "description_published": true,
+                                                    "data_source": "sefaria",
+                                                    "image": {
+                                                        "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/shabbat.jpg",
+                                                        "image_caption": {
+                                                            "en": "Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer",
+                                                            "he": "שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר"
+                                                        }
+                                                    },
+                                                    "primaryTitle": {
+                                                        "en": "Shabbat",
+                                                        "he": "שבת"
+                                                    }
+                                                },
+                                                {
+                                                    "slug": "shabbat-shuvah",
+                                                    "titles": [
+                                                        {
+                                                            "text": "Shabbat Shuvah",
+                                                            "lang": "en",
+                                                            "primary": true
+                                                        },
+                                                        {
+                                                            "text": "שבת שובה",
+                                                            "lang": "he",
+                                                            "primary": true
+                                                        },
+                                                        {
+                                                            "lang": "he",
+                                                            "text": "שובה"
+                                                        }
+                                                    ],
+                                                    "alt_ids": {
+                                                        "_temp_id": "שבת שובה",
+                                                        "_old_slug": "399"
+                                                    },
+                                                    "description": {
+                                                        "en": "Shabbat of Repentance between Rosh Hashanah and Yom Kippur.",
+                                                        "he": ""
+                                                    },
+                                                    "numSources": 19,
+                                                    "primaryTitle": {
+                                                        "en": "Shabbat Shuvah",
+                                                        "he": "שבת שובה"
+                                                    }
+                                                },
+                                                {
+                                                    "slug": "shabbat-hagadol",
+                                                    "titles": [],
+                                                    "alt_ids": {},
+                                                    "description": {},
+                                                    "categoryDescription": {},
+                                                    "displayOrder": 230,
+                                                    "numSources": 57,
+                                                    "description_published": true,
+                                                    "data_source": "sefaria",
+                                                    "primaryTitle": {
+                                                        "en": "Shabbat Hagadol",
+                                                        "he": "שבת הגדול"
+                                                    }
+                                                }
+                                            ],
+                                            "links": [
+                                                {
+                                                    "toTopic": "shabbat",
+                                                    "linkType": "is-a",
+                                                    "class": "intraTopic",
+                                                    "dataSource": "aspaklaria-edited-by-sefaria",
+                                                    "fromTopic": "shabbat-shuvah",
+                                                    "order": {
+                                                        "linksInCommon": 0,
+                                                        "toTfidf": 0,
+                                                        "fromTfidf": 0
+                                                    }
+                                                },
+                                                {
+                                                    "toTopic": "shabbat",
+                                                    "linkType": "is-a",
+                                                    "class": "intraTopic",
+                                                    "dataSource": "aspaklaria-edited-by-sefaria",
+                                                    "fromTopic": "shabbat-hagadol",
+                                                    "order": {
+                                                        "linksInCommon": 1,
+                                                        "toTfidf": 6.1420049159848755,
+                                                        "fromTfidf": 9.085421387618508
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "A list of topics connected to the `topic_slug` as well as a list of links. "
+                    }
+                },
+                "summary": "Topic Graph API",
+                "description": "Endpoint to retrieve topics and their links between other topics. As opposed to topic links to refs, this endpoint retrieve connections between one topic to another topic. "
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Moses": {
+                            "value": "moses"
+                        },
+                        "The Four Species": {
+                            "value": "the-four-species"
+                        }
+                    },
+                    "name": "topic_slug",
+                    "description": "A valid Sefaria slug for a topic in the database. ",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                },
+                {
+                    "name": "link_type",
+                    "description": "Default is `is-a`, but you can pass any link type.",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "query"
+                }
+            ]
+        },
+        "/api/texts/random-by-topic": {
+            "summary": "Random By Topic API",
+            "description": "Returns Texts API data for a random text taken from popular topic tags",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RandomByTopicJSON"
+                                },
+                                "examples": {
+                                    "Metushelach": {
+                                        "value": {
+                                            "ref": "Avot D'Rabbi Natan 32:1",
+                                            "topic": {
+                                                "slug": "metushelach",
+                                                "titles": [
+                                                    {
+                                                        "text": "Metushelach",
+                                                        "lang": "en",
+                                                        "primary": true,
+                                                        "transliteration": true
+                                                    },
+                                                    {
+                                                        "text": "מתושלח",
+                                                        "lang": "he",
+                                                        "primary": true
+                                                    },
+                                                    {
+                                                        "text": "Methuselah",
+                                                        "lang": "en"
+                                                    },
+                                                    {
+                                                        "text": "Methushelach",
+                                                        "lang": "en"
+                                                    }
+                                                ],
+                                                "subclass": "person",
+                                                "alt_ids": {
+                                                    "_temp_id": "מתושלח",
+                                                    "wikidata": "Q156290"
+                                                },
+                                                "properties": {
+                                                    "enWikiLink": {
+                                                        "value": "https://en.wikipedia.org/wiki/Methuselah",
+                                                        "dataSource": "wikidata"
+                                                    },
+                                                    "heWikiLink": {
+                                                        "value": "https://he.wikipedia.org/wiki/מתושלח",
+                                                        "dataSource": "wikidata"
+                                                    },
+                                                    "deWikiLink": {
+                                                        "value": "https://de.wikipedia.org/wiki/Methusalem",
+                                                        "dataSource": "wikidata"
+                                                    },
+                                                    "esWikiLink": {
+                                                        "value": "https://es.wikipedia.org/wiki/Matusalén",
+                                                        "dataSource": "wikidata"
+                                                    },
+                                                    "frWikiLink": {
+                                                        "value": "https://fr.wikipedia.org/wiki/Mathusalem",
+                                                        "dataSource": "wikidata"
+                                                    },
+                                                    "ruWikiLink": {
+                                                        "value": "https://ru.wikipedia.org/wiki/Мафусал_(потомок_Сифа)",
+                                                        "dataSource": "wikidata"
+                                                    }
+                                                },
+                                                "numSources": 7,
+                                                "good_to_promote": true,
+                                                "primaryTitle": {
+                                                    "en": "Metushelach",
+                                                    "he": "מתושלח"
+                                                }
+                                            },
+                                            "url": "Avot_D'Rabbi_Natan.32.1"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Random By Topic API",
+                "description": "Returns Texts API data for a random text taken from popular topic tags."
+            }
+        },
+        "/api/ref-topic-links/{tref}": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RefTopicLinksJSON"
+                                },
+                                "examples": {
+                                    "Link to Bamidbar": {
+                                        "value": {
+                                            "linkType": "about",
+                                            "class": "refTopic",
+                                            "dataSource": {
+                                                "en": "Aspaklaria",
+                                                "he": "אספקלריא",
+                                                "slug": "aspaklaria"
+                                            },
+                                            "is_sheet": false,
+                                            "order": {
+                                                "tfidf": 53.476917039392994,
+                                                "numDatasource": 2,
+                                                "availableLangs": [
+                                                    "en",
+                                                    "he"
+                                                ],
+                                                "comp_date": -1400,
+                                                "order_id": "A00000000300280026",
+                                                "pr": 5.15330629652094,
+                                                "curatedPrimacy": {
+                                                    "en": 100,
+                                                    "he": 0
+                                                }
+                                            },
+                                            "descriptions": {
+                                                "en": {
+                                                    "title": "A New Grain Offering",
+                                                    "prompt": "The central ritual of Shavuot as described in the Torah is a special bread offering that was brought to the Temple. This sacrifice marked the beginning of sacrifices that were brought using grain from that year, as opposed to grains from the previous year, as explained in the Book of Numbers."
+                                                }
+                                            },
+                                            "topic": "shavuot",
+                                            "anchorRef": "Numbers 28:26",
+                                            "anchorRefExpanded": [
+                                                "Numbers 28:26"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Ref-Topic-Links API",
+                "description": "An API endpoint where, given a `Ref`, all of the topics linked to that `Ref` are retrieved along with the respective metadata. "
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Tanakh": {
+                            "value": "Genesis"
+                        },
+                        "Tanakh Section": {
+                            "value": "Judges 12"
+                        },
+                        "Tanakh Segment": {
+                            "value": "Esther 4:14"
+                        },
+                        "Talmud Segment": {
+                            "value": "Shabbat 2b.2"
+                        }
+                    },
+                    "name": "tref",
+                    "description": "A valid Sefaria textual `Ref`",
+                    "schema": {
+                        "$ref": "#/components/schemas/ref"
+                    },
+                    "in": "path",
+                    "required": true
                 }
             ]
         }
@@ -3018,7 +3569,7 @@
     "components": {
         "schemas": {
             "ref": {
-                "description": "A string representing a citation to a Jewish text. \n\nA valid ref consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
+                "description": "A string representing a citation to a Jewish text. \n\nA valid `Ref` consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
                 "type": "string",
                 "example": "\"Mishnah Peah 4:2\""
             },
@@ -3163,19 +3714,19 @@
                         "type": "boolean"
                     },
                     "is_node": {
-                        "description": "Returns true if the submitted text is a `node` in a complex text.",
+                        "description": "Returns true if the submitted text is a `node` in a complex text. (For example, the query `Abarbanel on Torah, Genesis` is a `node` in the `index` of the complex text `Abarbanel on Torah`). ",
                         "type": "boolean"
                     },
                     "is_section": {
-                        "description": "Returns `true` if the submitted text is a section ref. (e.g. Genesis 4)",
+                        "description": "Returns `true` if the submitted text is a section `Ref` (e.g. Genesis 4, as opposed to a segment `Ref` such as Genesis 4.1).",
                         "type": "boolean"
                     },
                     "is_segment": {
-                        "description": "Returns `true` if the submitted text is a segment level reference (e.g. Genesis 43:3)",
+                        "description": "Returns `true` if the submitted text is a segment level `Ref` (e.g. Genesis 43:3, as opposed to a section `Ref` such as Genesis 43)",
                         "type": "boolean"
                     },
                     "is_range": {
-                        "description": "Returns `true` if the submitted text is a a ranging ref (one that spans multiple sections or segments.) e.g. (Genesis 4-5)",
+                        "description": "Returns `true` if the submitted text is a a ranged `Red` (one that spans multiple sections or segments.) e.g. `Genesis 4-5`",
                         "type": "boolean"
                     },
                     "type": {
@@ -3193,7 +3744,7 @@
                         "type": "string"
                     },
                     "url": {
-                        "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on Sefaria.org",
+                        "description": "If `is_ref` is `true`, this returns the URL path to link to the submitted text on [Sefaria.org](sefaria.org)",
                         "type": "string"
                     },
                     "index": {
@@ -3201,7 +3752,7 @@
                         "type": "string"
                     },
                     "book": {
-                        "description": "If the submitted response is a ref, this returns the book it belonhs to.",
+                        "description": "If the submitted response is a `Ref`, this returns the book it belongs to.",
                         "type": "string"
                     },
                     "internalSections": {
@@ -3242,21 +3793,21 @@
                         }
                     },
                     "heSectionNames": {
-                        "description": "Given a reference, this returns the names of the sections and segments at each depth of that text in Hebrew.",
+                        "description": "Given a `Ref`, this returns the names of the sections and segments at each depth of that text in Hebrew.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "addressExamples": {
-                        "description": "Given a partial ref, this will return an array of strings of possible ways that it might be completed.",
+                        "description": "Given a partial `Ref`, this will return an array of strings of possible ways that it might be completed.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "heAddressExamples": {
-                        "description": "Given a partial ref, this will return an array of hebrew strings of possible ways that it might be completed.",
+                        "description": "Given a partial `Ref`, this will return an array of Hebrew strings of possible ways that it might be completed.",
                         "type": "array",
                         "items": {
                             "type": "string"
@@ -3588,22 +4139,22 @@
                 ],
                 "properties": {
                     "rid": {
-                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time these ids will be unique across the catalog. Used to sort results from ElasticSearch queries",
+                        "description": "Returns a unique id for this reference that establishes an ordering of references across the whole catalog. The `rid` will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes. However, at any point in time the `rid`s will be unique across the catalog. The `rid` is used to sort results from ElasticSearch queries.",
                         "type": "string"
                     },
                     "TWOT": {
-                        "description": "The corresponding Theological Wordbook of the Old Testament number for this word",
+                        "description": "The corresponding Theological Wordbook of the Old Testament number for this word.",
                         "type": "string"
                     },
                     "strong_numbers": {
-                        "description": "An array of corresponsing Strong Numbers for this word",
+                        "description": "An array of corresponsing Strong Numbers for this word.",
                         "type": "array",
                         "items": {
                             "type": "string"
                         }
                     },
                     "root": {
-                        "description": "Indicates if the headword is the Biblical root. (Indicated in print, by a larger printed headword)",
+                        "description": "Indicates if the headword is the Biblical root. (Indicated in print, by a larger printed headword).",
                         "type": "boolean"
                     },
                     "peculiar": {
@@ -3611,7 +4162,7 @@
                         "type": "boolean"
                     },
                     "ordinal": {
-                        "description": "when the same headword has more than one entry with a differen meaning they are offset by the roman numerals here",
+                        "description": "When the same headword has more than one entry with a differen meaning they are offset by the Roman numerals here.",
                         "type": "string"
                     },
                     "occurrences": {
@@ -3631,7 +4182,7 @@
                         "type": "boolean"
                     },
                     "brackets": {
-                        "description": "headword has brackets in print",
+                        "description": "Headword has brackets in print.",
                         "type": "boolean"
                     },
                     "alt_headwords": {
@@ -3651,11 +4202,11 @@
                         }
                     },
                     "prev_hw": {
-                        "description": "The previous entry in print",
+                        "description": "The previous entry in print.",
                         "type": "string"
                     },
                     "next_hw": {
-                        "description": "the next entry in print",
+                        "description": "The next entry in print.",
                         "type": "string"
                     },
                     "content": {
@@ -3822,10 +4373,11 @@
                         "$ref": "#/components/schemas/ref"
                     },
                     "heRef": {
-                        "$ref": "#/components/schemas/ref"
+                        "$ref": "#/components/schemas/ref",
+                        "description": "The Hebrew `Ref`."
                     },
                     "isComplex": {
-                        "description": "Whether or not the text is a \"complex\" text or not.\n\nIn Sefaria, a complex text is any text which has a more complicated index structure beyond Chapters/Verses, (e.g. the Talmud). There are a variety of structural differences for a complex text, having to do primarily with its Index, and the way the data is stored. For more on complex texts, see the documentation here.",
+                        "description": "Whether or not the text is a \"complex\" text or not.\n\nIn Sefaria, a complex text is any text which has a more complicated index structure beyond Chapters/Verses, (e.g. the Talmud). There are a variety of structural differences for a complex text, having to do primarily with its `Index`, and the way the data is stored. For more on complex texts, see the documentation here.",
                         "type": "boolean"
                     },
                     "text": {
@@ -3849,7 +4401,7 @@
                                 }
                             }
                         ],
-                        "description": "The default, or specified text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text."
+                        "description": "The default, or specified text written in LTR characters for the query (Usually English). It is structured as a `JaggedArray` (nested arrays), with the lowest level being an array of strings with some HTML text."
                     },
                     "he": {
                         "oneOf": [
@@ -4546,7 +5098,7 @@
                 "type": "object",
                 "properties": {
                     "slug": {
-                        "description": "the url slug for the topic.",
+                        "description": "The url slug for the topic.",
                         "type": "string"
                     },
                     "titles": {
@@ -4605,12 +5157,12 @@
                         "example": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F434B_thumbnail.jpg"
                     },
                     "anchorRef": {
-                        "description": "A manuscript image will in most cases be associated with a range of `refs` (i.e. an image of a page of Tanakh will display multiple verses). The `anchorRef` is that complete range the manuscript is associated with, and will contain within it the specific `tref` passed in as a parameter. ",
+                        "description": "A manuscript image will in most cases be associated with a range of `refs` (i.e. an image of a page of Tanakh will display multiple verses). The `anchorRef` is that complete range the manuscript is associated with, and will contain within it the specific textual `Ref` passed in as a parameter. ",
                         "type": "string",
                         "example": "\"Esther 3:15-4:17\""
                     },
                     "anchorRefExpanded": {
-                        "description": "An array of strings, where each string is a segment level `ref` of the `ref` passed in as a parameter. If a segment level `ref` is passed in, this array will have a length of 1, and only contain that segment level `ref`. If the `ref` passed in is ranged, this array will contain each of the segment level `ref`s within that range. \n\nFor example, if someone was searching for manuscript data for `Esther 4.14-15`, the `anchorRefExpanded` would contain `Esther 4.14` and `Esther 4.15`.",
+                        "description": "An array of strings, where each string is a segment level `Ref` of the `Ref` passed in as a parameter. If a segment level `Ref` is passed in, this array will have a length of 1, and only contain that segment level `Ref`. If the `Ref` passed in is ranged, this array will contain each of the segment level `Ref`s within that range. \n\nFor example, if someone was searching for manuscript data for `Esther 4.14-15`, the `anchorRefExpanded` would contain `Esther 4.14` and `Esther 4.15`.",
                         "minItems": 1,
                         "uniqueItems": true,
                         "type": "array",
@@ -4775,7 +5327,7 @@
                         "example": "True"
                     },
                     "priority": {
-                        "description": "The priority field is a number which indicates the priority of a version relative to all other existing versions of the same text. A value of `1` indicates the lowest priority, while the highest value among all versions of the text indicate the highest priority. Priority values can also be floating point numbers. The priority field determines how the various available versions of a text will be displayed on the Sefaria website. The texts are displayed to the user in a highest-to-lowest priority order, in many cases offering more complete or higher quality versions of the text before ones of inferior quality. ",
+                        "description": "The priority field is a number which indicates the priority of a version relative to all other existing versions of the same text. A value of `1` indicates the lowest priority, while the highest value among all versions of the text indicate the highest priority. \n\nPriority values can also be floating point numbers. The priority field determines how the various available versions of a text will be displayed on the Sefaria website. The texts are displayed to the user in a highest-to-lowest priority order, in many cases offering more complete or higher quality versions of the text before ones of inferior quality. ",
                         "type": "number",
                         "example": "7"
                     },
@@ -5476,7 +6028,7 @@
                         "example": "true"
                     },
                     "data_source": {
-                        "description": "How the topic was generated, whether by `sefaria`, a user on a source sheet, or some other source. ",
+                        "description": "How the topic was generated, whether by Sefaria, a user on a source sheet, or some other source. ",
                         "type": "string",
                         "example": "`sefaria`"
                     },
@@ -6842,7 +7394,8 @@
                     "warnings": {
                         "description": "A list of objects - for any version parameter that has no result there is a readable message and warning code. \n\nCodes:\n`APINoVersion = 101`\n`APINoLanguageVersion = 102`\n`APINoSourceText = 103`\n`APINoTranslationText = 104`\n",
                         "type": "array",
-                        "items": {}
+                        "items": {},
+                        "example": "[\n{\n\"\\\"finnish\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n},\n{\n\"\\\"dutch\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n}\n]"
                     }
                 },
                 "example": {
@@ -7115,6 +7668,7 @@
                         "type": "string"
                     },
                     "versionUrl": {
+                        "description": "URl for the version",
                         "type": "string"
                     },
                     "versionTitleInHebrew": {
@@ -7370,6 +7924,700 @@
                     "heLicense": "Public Domain",
                     "heVersionTitleInHebrew": "משנה, מהדורת בית דפוס ראם, וילנא 1913",
                     "text": []
+                }
+            },
+            "TopicGraphJSON": {
+                "title": "Root Type for TopicGraphJSON",
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "topics": {
+                        "description": "Array of topics",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TopicJSON"
+                        },
+                        "example": "{\n\"slug\": \"shabbat-shuvah\",\n\"titles\": [\n{\n\"text\": \"Shabbat Shuvah\",\n\"lang\": \"en\",\n\"primary\": true\n},\n{\n\"text\": \"שבת שובה\",\n\"lang\": \"he\",\n\"primary\": true\n},\n{\n\"lang\": \"he\",\n\"text\": \"שובה\"\n}\n],\n\"alt_ids\": {\n\"_temp_id\": \"שבת שובה\",\n\"_old_slug\": \"399\"\n},\n\"description\": {\n\"en\": \"Shabbat of Repentance between Rosh Hashanah and Yom Kippur.\",\n\"he\": \"\"\n},\n\"numSources\": 19,\n\"primaryTitle\": {\n\"en\": \"Shabbat Shuvah\",\n\"he\": \"שבת שובה\"\n}\n}"
+                    },
+                    "links": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TopicGraphLinkJSON"
+                        }
+                    }
+                },
+                "example": {
+                    "topics": [
+                        {
+                            "slug": "shabbat",
+                            "titles": [],
+                            "alt_ids": {
+                                "_temp_id": "שבת",
+                                "_old_slug": "shabbat1"
+                            },
+                            "properties": {
+                                "heNliLink": {
+                                    "value": "https://www.nli.org.il/he/discover/judaism/traditions/shabbat",
+                                    "dataSource": "sefaria"
+                                }
+                            },
+                            "description": {
+                                "en": "Shabbat (or Sabbath) falls every seventh day of the week, from Friday just before sunset until dark on Saturday night. It is a day of rest, marking the time when God stopped creating after after the six days of creation. Shabbat recognizes God as Creator of the Universe and as Redeemer of Israel from Egypt. ",
+                                "he": "היום השביעי בשבוע, החל מיום שישי בשעת השקיעה ועד צאת הכוכבים במוצאי השבת. יום מנוחה לפי המקורות, המציין את הזמן שבו ה' נח לאחר שברא את העולם. "
+                            },
+                            "categoryDescription": {},
+                            "displayOrder": 0,
+                            "numSources": 1662,
+                            "good_to_promote": true,
+                            "description_published": true,
+                            "data_source": "sefaria",
+                            "image": {
+                                "image_uri": "https://storage.googleapis.com/img.sefaria.org/topics/shabbat.jpg",
+                                "image_caption": {
+                                    "en": "Friday Evening, Isidor Kaufmann, Austria c. 1920. The Jewish Museum, Gift of Mr. and Mrs. M. R. Schweitzer",
+                                    "he": "שישי בערב, איזידור קאופמן, וינה 1920. המוזיאון היהודי בניו יורק, מתנת  מר וגברת מ.ר. שוויצר"
+                                }
+                            },
+                            "primaryTitle": {
+                                "en": "Shabbat",
+                                "he": "שבת"
+                            }
+                        },
+                        {
+                            "slug": "shabbat-shuvah",
+                            "titles": [
+                                {
+                                    "text": "Shabbat Shuvah",
+                                    "lang": "en",
+                                    "primary": true
+                                },
+                                {
+                                    "text": "שבת שובה",
+                                    "lang": "he",
+                                    "primary": true
+                                },
+                                {
+                                    "lang": "he",
+                                    "text": "שובה"
+                                }
+                            ],
+                            "alt_ids": {
+                                "_temp_id": "שבת שובה",
+                                "_old_slug": "399"
+                            },
+                            "description": {
+                                "en": "Shabbat of Repentance between Rosh Hashanah and Yom Kippur.",
+                                "he": ""
+                            },
+                            "numSources": 19,
+                            "primaryTitle": {
+                                "en": "Shabbat Shuvah",
+                                "he": "שבת שובה"
+                            }
+                        },
+                        {
+                            "slug": "shabbat-hagadol",
+                            "titles": [
+                                {
+                                    "text": "Shabbat HaGadol",
+                                    "lang": "en"
+                                },
+                                {
+                                    "text": "Shabbat Hagadol",
+                                    "lang": "en",
+                                    "primary": true
+                                },
+                                {
+                                    "text": "שבת הגדול",
+                                    "lang": "he",
+                                    "primary": true
+                                }
+                            ],
+                            "alt_ids": {
+                                "_temp_id": "שבת הגדול"
+                            },
+                            "description": {
+                                "en": "Shabbat HaGadol (“The Great Shabbat”) is the Shabbat that immediately precedes the holiday of Passover. Jewish texts offer many explanations as to why this Shabbat is called “great,” like those that  point to a great miracle performed on this Shabbat during the exodus, or those that point to the word “great” at the end of the haftarah prophetic reading traditionally read on this Shabbat. In many communities, the rabbi delivers a lengthy sermon on a Passover-related topic. ",
+                                "he": "״שבת הגדול״ היא השבת האחרונה לפני חג הפסח. שבת זו נודעה כשבת מיוחדת החל מהמאה ה-12 בבתי המדרש של רש״י וחכמי התוספות. מנהגי שבת זו כוללים דרשה של הרב בקהילתו בהלכות הפסח, וקריאת קטעים מההגדה של פסח. מספר טעמים ניתנו לשמה של שבת זו כגון שבשבת זו בני ישראל הפסיקו לעבוד עבודה זרה, או שהיה נס גדול בלקיחת השה לקרבן פסח, ועוד. "
+                            },
+                            "categoryDescription": {},
+                            "displayOrder": 230,
+                            "numSources": 57,
+                            "description_published": true,
+                            "data_source": "sefaria",
+                            "primaryTitle": {
+                                "en": "Shabbat Hagadol",
+                                "he": "שבת הגדול"
+                            }
+                        }
+                    ],
+                    "links": [
+                        {
+                            "toTopic": "shabbat",
+                            "linkType": "is-a",
+                            "class": "intraTopic",
+                            "dataSource": "aspaklaria-edited-by-sefaria",
+                            "fromTopic": "shabbat-shuvah",
+                            "order": {
+                                "linksInCommon": 0,
+                                "toTfidf": 0,
+                                "fromTfidf": 0
+                            }
+                        },
+                        {
+                            "toTopic": "shabbat",
+                            "linkType": "is-a",
+                            "class": "intraTopic",
+                            "dataSource": "aspaklaria-edited-by-sefaria",
+                            "fromTopic": "shabbat-hagadol",
+                            "order": {
+                                "linksInCommon": 1,
+                                "toTfidf": 6.1420049159848755,
+                                "fromTfidf": 9.085421387618508
+                            }
+                        }
+                    ]
+                }
+            },
+            "TopicGraphLinkJSON": {
+                "title": "Root Type for TopicGraphLinkJSON",
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "toTopic": {
+                        "description": "Slug of the `toTopic` (i.e. the topic to which the link connects to, usually the slug passed as `topic_slug` to the `api/topic-graph` endpoint).",
+                        "type": "string"
+                    },
+                    "linkType": {
+                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://github.com/Sefaria/Sefaria-Project/wiki/Documentation-for-Topics-Hierarchy#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+                        "type": "string"
+                    },
+                    "class": {
+                        "description": "Class of the link `intraTopic` (a link from topic-to-topic) or `refTopic` (a link from a topic-to-ref). ",
+                        "enum": [
+                            "refTopic",
+                            "intraTopic"
+                        ],
+                        "type": "string"
+                    },
+                    "dataSource": {
+                        "description": "Source where the topic link originated from. ",
+                        "type": "string"
+                    },
+                    "fromTopic": {
+                        "description": "Slug of the `fromTopic` (i.e. the topic from which the link originates). ",
+                        "type": "string"
+                    },
+                    "order": {
+                        "$ref": "#/components/schemas/OrderJSON",
+                        "description": "A dictionary containing information regarding the links in common, as well as the to and from `tfIdf` scores. To learn more about the [tfIdf](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) algorithm. ",
+                        "properties": {
+                            "linksInCommon": {
+                                "format": "int32",
+                                "type": "integer"
+                            },
+                            "toTfidf": {
+                                "format": "int32",
+                                "type": "integer"
+                            },
+                            "fromTfidf": {
+                                "format": "int32",
+                                "type": "integer"
+                            }
+                        },
+                        "example": "{\n        \"linksInCommon\": 0,\n        \"toTfidf\": 0,\n        \"fromTfidf\": 0\n    }"
+                    }
+                },
+                "example": {
+                    "toTopic": "shabbat",
+                    "linkType": "is-a",
+                    "class": "intraTopic",
+                    "dataSource": "aspaklaria-edited-by-sefaria",
+                    "fromTopic": "shabbat-shuvah",
+                    "order": {
+                        "linksInCommon": 0,
+                        "toTfidf": 0,
+                        "fromTfidf": 0
+                    }
+                }
+            },
+            "OrderJSON": {
+                "title": "Root Type for OrderJSON",
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "linksInCommon": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "toTfidf": {
+                        "format": "int32",
+                        "type": "integer"
+                    },
+                    "fromTfidf": {
+                        "format": "int32",
+                        "type": "integer"
+                    }
+                },
+                "example": {
+                    "linksInCommon": 0,
+                    "toTfidf": 0,
+                    "fromTfidf": 0
+                }
+            },
+            "RandomByTopicJSON": {
+                "title": "Root Type for RandomByTopicJSON",
+                "description": "Response to the random-by-topic API endpoint. ",
+                "type": "object",
+                "properties": {
+                    "ref": {
+                        "description": "The `Ref` of the text randomly selected, which is connected to one of the recently popular topics. ",
+                        "type": "string",
+                        "example": "Deuteronomy 16:21"
+                    },
+                    "topic": {
+                        "$ref": "#/components/schemas/RandomByTopicTopicJSON",
+                        "description": "The topic attached to the `Ref` returned. ",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "titles": {
+                                "type": "array",
+                                "items": {}
+                            },
+                            "subclass": {
+                                "type": "string"
+                            },
+                            "alt_ids": {
+                                "type": "object",
+                                "properties": {
+                                    "_temp_id": {
+                                        "type": "string"
+                                    },
+                                    "old-person-key": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "properties": {
+                                "type": "object",
+                                "properties": {
+                                    "enWikiLink": {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            },
+                                            "dataSource": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "jeLink": {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            },
+                                            "dataSource": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "generation": {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            },
+                                            "dataSource": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "sex": {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            },
+                                            "dataSource": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "heWikiLink": {
+                                        "type": "object",
+                                        "properties": {
+                                            "data_source": {
+                                                "type": "string"
+                                            },
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "description": {
+                                "type": "object",
+                                "properties": {
+                                    "en": {
+                                        "type": "string"
+                                    },
+                                    "he": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "categoryDescription": {
+                                "type": "object"
+                            },
+                            "numSources": {
+                                "format": "int32",
+                                "type": "integer"
+                            },
+                            "good_to_promote": {
+                                "type": "boolean"
+                            },
+                            "description_published": {
+                                "type": "boolean"
+                            },
+                            "primaryTitle": {
+                                "type": "object",
+                                "properties": {
+                                    "en": {
+                                        "type": "string"
+                                    },
+                                    "he": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        },
+                        "example": "{\n\"slug\": \"metushelach\",\n\"titles\": [\n{\n\"text\": \"Metushelach\",\n\"lang\": \"en\",\n\"primary\": true,\n\"transliteration\": true\n},\n{\n\"text\": \"מתושלח\",\n\"lang\": \"he\",\n\"primary\": true\n},\n{\n\"text\": \"Methuselah\",\n\"lang\": \"en\"\n},\n{\n\"text\": \"Methushelach\",\n\"lang\": \"en\"\n}\n],\n\"subclass\": \"person\",\n\"alt_ids\": {\n\"_temp_id\": \"מתושלח\",\n\"wikidata\": \"Q156290\"\n},\n\"properties\": {\n\"enWikiLink\": {\n\"value\": \"https://en.wikipedia.org/wiki/Methuselah\",\n\"dataSource\": \"wikidata\"\n},\n\"heWikiLink\": {\n\"value\": \"https://he.wikipedia.org/wiki/מתושלח\",\n\"dataSource\": \"wikidata\"\n},\n\"deWikiLink\": {\n\"value\": \"https://de.wikipedia.org/wiki/Methusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"esWikiLink\": {\n\"value\": \"https://es.wikipedia.org/wiki/Matusalén\",\n\"dataSource\": \"wikidata\"\n},\n\"frWikiLink\": {\n\"value\": \"https://fr.wikipedia.org/wiki/Mathusalem\",\n\"dataSource\": \"wikidata\"\n},\n\"ruWikiLink\": {\n\"value\": \"https://ru.wikipedia.org/wiki/Мафусал_(потомок_Сифа)\",\n\"dataSource\": \"wikidata\"\n}\n},\n\"numSources\": 7,\n\"good_to_promote\": true,\n\"primaryTitle\": {\n\"en\": \"Metushelach\",\n\"he\": \"מתושלח\"\n}\n}"
+                    },
+                    "url": {
+                        "description": "The `Ref` in a format appropriate for a URL, with spaces replaced with `.` etc. ",
+                        "type": "string",
+                        "example": "Deuteronomy.16.21"
+                    }
+                },
+                "example": {
+                    "ref": "Pesachim 66a:3-6",
+                    "topic": {
+                        "slug": "hillel",
+                        "titles": [],
+                        "subclass": "person",
+                        "alt_ids": {
+                            "_temp_id": "הלל",
+                            "old-person-key": "Hillel the Elder"
+                        },
+                        "properties": {
+                            "enWikiLink": {
+                                "value": "http://en.wikipedia.org/wiki/Hillel_the_Elder",
+                                "dataSource": "person-collection"
+                            },
+                            "jeLink": {
+                                "value": "http://www.jewishencyclopedia.com/view.jsp?artid=730&letter=H",
+                                "dataSource": "person-collection"
+                            },
+                            "generation": {
+                                "value": "Z5",
+                                "dataSource": "person-collection"
+                            },
+                            "sex": {
+                                "value": "M",
+                                "dataSource": "person-collection"
+                            },
+                            "heWikiLink": {
+                                "data_source": "wikidata",
+                                "value": "https://he.wikipedia.org/wiki/%D7%94%D7%9C%D7%9C_%D7%94%D7%96%D7%A7%D7%9F"
+                            }
+                        },
+                        "description": {
+                            "en": "Hillel was one of the most influential and prolific of the early teachers. Coming from Babylon to learn with Avtalyon and Shemaya, he soon became famous for his scholarship and his patient and tolerant manner. Bolstered by his Davidic lineage, he served as Nasi during part of Herod’s reign.",
+                            "he": "הלל היה אחד החכמים הראשונים, ומהפורים והמשפיעים ביניהם. הוא הגיע מבבל כדי ללמוד עם שמעיה ואבטליון, ונודע מהר מאוד בשל חוכמתו בתורה ואופיו הסבלני והסובלני. היותו צאצא של בית דוד הייתה בסיס לכהונתו כנשיא בתקופת שלטונו של הורדוס."
+                        },
+                        "categoryDescription": {},
+                        "numSources": 217,
+                        "good_to_promote": true,
+                        "description_published": true,
+                        "primaryTitle": {
+                            "en": "Hillel",
+                            "he": "הִלֵּל"
+                        }
+                    },
+                    "url": "Pesachim.66a.3-6"
+                }
+            },
+            "RandomByTopicTopicJSON": {
+                "title": "Root Type for RandomByTopicTopicJSON",
+                "description": "Topic JSON for the `random-by-topic/` endpoint. ",
+                "required": [
+                    "slug"
+                ],
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "description": "The unique slug for a given topic.",
+                        "type": "string",
+                        "example": "mezuzah"
+                    },
+                    "titles": {
+                        "$ref": "#/components/schemas/TopicTitlesJSON",
+                        "description": "An array of JSON objects, each representing an alternative title for the object, in various languages. "
+                    },
+                    "alt_ids": {
+                        "description": "This is a dictionary containing the keys of naming schemes, and ids of this topic represented in that naming scheme.  It’s used both for canonical names in other naming schemes and temporary storage of names when renaming slugs. All of the data here is for internal use, with the exception of the values `bfo` and `wikidata`. `bfo` refers to [basic formal ontology](https://github.com/BFO-ontology/BFO#implementations), and `wikidata` to the wikidata ontology of topics. ",
+                        "example": "\"alt_ids\": {\n    \"_temp_id\": \"משה\",\n    \"wikidata\": \"Q9077\",\n    \"_old_slug\": \"-75\"\n}"
+                    },
+                    "categoryDescription": {
+                        "description": "A description of the category of this topic",
+                        "type": "string"
+                    },
+                    "good_to_promote": {
+                        "description": "A topic which will be included in our results from the `random-by-topic` endpoint. ",
+                        "type": "boolean"
+                    },
+                    "numSources": {
+                        "description": "The number of text sources associated with a topic. ",
+                        "type": "integer",
+                        "example": "613"
+                    },
+                    "description_published": {
+                        "description": "A boolean representing whether or not the description was published. ",
+                        "type": "boolean",
+                        "example": "false"
+                    },
+                    "data_source": {
+                        "description": "How the topic was generated, whether by Sefaria, a user on a source sheet, or some other source. ",
+                        "type": "string",
+                        "example": "sefaria"
+                    },
+                    "primary_title": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "description": "The primary title for a topic.",
+                        "example": "{\n    \"en\": \"Sukkot\",\n    \"he\": \"סוכות\"\n}"
+                    },
+                    "description": {
+                        "$ref": "#/components/schemas/BillingualJSON",
+                        "description": "A description of the topic in English"
+                    }
+                },
+                "example": {
+                    "slug": "mezuzah",
+                    "titles": [
+                        {
+                            "text": "Mezuzah",
+                            "lang": "en",
+                            "primary": true
+                        },
+                        {
+                            "text": "מזוזה",
+                            "lang": "he",
+                            "primary": true
+                        }
+                    ],
+                    "alt_ids": {
+                        "_temp_id": "מזוזה"
+                    },
+                    "description": {
+                        "en": "A mezuzah is the small parchment placed inside a case and attached to the right side of entryway doorframes where Jews reside. Written on the scroll are various sections from the Torah, such as the Shema, that feature some of Judaism's central principles.",
+                        "he": "המזוזה היא נייר קלף קטן הנמצא בתוך נרתיק (בית המזוזה) המחובר לצד הימני של משקוף הדלת בבתי יהודים. על מגילת הקלף כתובים מגוון קטעים מן התורה, דוגמת פרשת שמע הכוללת כמה מהעקרונות העיקריים של היהדות."
+                    },
+                    "categoryDescription": {},
+                    "numSources": 120,
+                    "good_to_promote": true,
+                    "description_published": true,
+                    "data_source": "sefaria",
+                    "primaryTitle": {
+                        "en": "Mezuzah",
+                        "he": "מזוזה"
+                    }
+                }
+            },
+            "RefTopicLinksJSON": {
+                "title": "Root Type for RefTopicLinksJSON",
+                "description": "Response from the ref-topic-links endpoint",
+                "type": "object",
+                "properties": {
+                    "linkType": {
+                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://github.com/Sefaria/Sefaria-Project/wiki/Documentation-for-Topics-Hierarchy#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+                        "type": "string",
+                        "example": "about"
+                    },
+                    "class": {
+                        "description": "A classification of the link as either `refTopic` (i.e. a ref to a topic) or `intraTopic` (topic-to-topic). In this case, it would be expected that all returned topic links would be of type `refTopic`. ",
+                        "enum": [
+                            "refTopic",
+                            "intraTopic"
+                        ],
+                        "type": "string",
+                        "example": "refTopic"
+                    },
+                    "dataSource": {
+                        "$ref": "#/components/schemas/DataSourceJSON",
+                        "description": "Where the topic link originated from (i.e. was it added to a sheet and generated by Sefaria users, or was it created by the Sefaria learning team?)",
+                        "properties": {
+                            "en": {
+                                "type": "string"
+                            },
+                            "he": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            }
+                        },
+                        "example": "{\n\"en\": \"Sheets by Sefaria users\",\n\"he\": \"דפי מקורות ממשתמשי ספריא\",\n\"slug\": \"sefaria-users\"\n}"
+                    },
+                    "is_sheet": {
+                        "description": "Is this ref-to-topic link one that was generated by a user-created source sheet?",
+                        "type": "boolean",
+                        "example": "false"
+                    },
+                    "order": {
+                        "type": "object",
+                        "properties": {
+                            "tfidf": {
+                                "format": "double",
+                                "type": "number"
+                            },
+                            "numDatasource": {
+                                "format": "int32",
+                                "type": "integer"
+                            },
+                            "availableLangs": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "comp_date": {
+                                "format": "int32",
+                                "type": "integer"
+                            },
+                            "order_id": {
+                                "type": "string"
+                            },
+                            "pr": {
+                                "format": "double",
+                                "type": "number"
+                            },
+                            "curatedPrimacy": {
+                                "type": "object",
+                                "properties": {
+                                    "en": {
+                                        "format": "int32",
+                                        "type": "integer"
+                                    },
+                                    "he": {
+                                        "format": "int32",
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "descriptions": {
+                        "type": "object",
+                        "properties": {
+                            "en": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "prompt": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "topic": {
+                        "description": "The title of the topic. ",
+                        "type": "string",
+                        "example": "passover"
+                    },
+                    "anchorRef": {
+                        "description": "The `Ref` the topic is connected to, which should overlap with the requested `Ref` passed through the endpoint. For example, if someone queries for `Bamidbar 28:21`, one of the topics returned is `passover` which has an `anchorRef` of `Numbers 28:16-24` - a range overlapping with our desired `Ref`. ",
+                        "type": "string",
+                        "example": "Numbers 28:16-24"
+                    },
+                    "anchorRefExpanded": {
+                        "description": "If the `anchorRef` is a ranged `Ref` (i.e. containing more than a single segment), then this is a list of strings, with each string being one of single segment level `Ref`s that together comprise the range. So for example, the `anchorRefExpanded` of `Exodus 1:1-2` would be `[\"Exodus 1:1\", \"Exodus 1:2\"]`. ",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": "\"Numbers 28:16\",\n\"Numbers 28:17\",\n\"Numbers 28:18\",\n\"Numbers 28:19\",\n\"Numbers 28:20\",\n\"Numbers 28:21\",\n\"Numbers 28:22\",\n\"Numbers 28:23\",\n\"Numbers 28:24\""
+                    }
+                },
+                "example": {
+                    "linkType": "about",
+                    "class": "refTopic",
+                    "dataSource": {
+                        "en": "Aspaklaria",
+                        "he": "אספקלריא",
+                        "slug": "aspaklaria"
+                    },
+                    "is_sheet": false,
+                    "order": {
+                        "tfidf": 53.476917039392994,
+                        "numDatasource": 2,
+                        "availableLangs": [
+                            "en",
+                            "he"
+                        ],
+                        "comp_date": -1400,
+                        "order_id": "A00000000300280026",
+                        "pr": 5.15330629652094,
+                        "curatedPrimacy": {
+                            "en": 100,
+                            "he": 0
+                        }
+                    },
+                    "descriptions": {
+                        "en": {
+                            "title": "A New Grain Offering",
+                            "prompt": "The central ritual of Shavuot as described in the Torah is a special bread offering that was brought to the Temple. This sacrifice marked the beginning of sacrifices that were brought using grain from that year, as opposed to grains from the previous year, as explained in the Book of Numbers."
+                        }
+                    },
+                    "topic": "shavuot",
+                    "anchorRef": "Numbers 28:26",
+                    "anchorRefExpanded": [
+                        "Numbers 28:26"
+                    ]
+                }
+            },
+            "DataSourceJSON": {
+                "title": "Root Type for DataSourceJSON",
+                "description": "JSON containing the information as to the source of the data for a given ref-to-topic link. ",
+                "type": "object",
+                "properties": {
+                    "en": {
+                        "description": "English title of the data source.",
+                        "type": "string",
+                        "example": "Aspaklaria"
+                    },
+                    "he": {
+                        "description": "Hebrew title of the data source.",
+                        "type": "string",
+                        "example": "אספקלריא"
+                    },
+                    "slug": {
+                        "description": "Unique slug describing the data source. ",
+                        "type": "string",
+                        "example": "aspaklaria"
+                    }
+                },
+                "example": {
+                    "en": "Sheets by Sefaria users",
+                    "he": "דפי מקורות ממשתמשי ספריא",
+                    "slug": "sefaria-users"
                 }
             }
         }
