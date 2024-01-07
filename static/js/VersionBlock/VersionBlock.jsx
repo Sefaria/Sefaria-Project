@@ -187,7 +187,7 @@ class VersionBlock extends Component {
     }
   }
   makeSelectVersionLanguage(){
-    let voc = this.props.version.isBaseText ? 'Version' : "Translation";
+    let voc = this.props.version.isSource ? 'Version' : "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
 
