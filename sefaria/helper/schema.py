@@ -278,11 +278,12 @@ def prepare_ja_for_children(ja):
         v.sub_content(ja.version_address(), value={})
         v.save()
 
-def change_parent(node, new_parent, place=0):
+def change_parent(node, new_parent, place=0, exact_match=False):
     """
     :param node:
     :param new_parent:
     :param place: The index of the child before which to insert, so place=0 inserts at the front of the list, and place=len(parent_node.children) inserts at the end
+    :param exact_match:  if True, if there are two links, "X" and "Y on X", changing "X" will not also change "Y on X"
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -306,13 +307,16 @@ def change_parent(node, new_parent, place=0):
     old_parent.children = [n for n in old_parent.children if n.key != node.key]
     new_parent.children.insert(place, node)
     node.parent = new_parent
-    new_normal_form = node.ref().normal()
+    new_normal_form = node.ref(force_update=True).normal()
 
     index.save(override_dependencies=True)
     library.rebuild()
 
     for link in linkset:
-        link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
+        if exact_match:
+            link.refs = [ref.replace(old_normal_form, new_normal_form) if ref.startswith(old_normal_form) else ref for ref in link.refs]
+        else:
+            link.refs = [ref.replace(old_normal_form, new_normal_form) for ref in link.refs]
         link.save()
     # todo: commentary linkset
 
@@ -338,7 +342,7 @@ def refresh_version_state(title):
     VersionState(title, {"flags": flags})
 
 
-def change_node_title(snode, old_title, lang, new_title):
+def change_node_title(snode, old_title, lang, new_title, ignore_cascade=False):
     """
     Changes the title of snode specified by old_title and lang, to new_title.
     If the title changing is the primary english title, cascades to all of the impacted objects
@@ -346,9 +350,9 @@ def change_node_title(snode, old_title, lang, new_title):
     :param old_title:
     :param lang:
     :param new_title:
+    :param ignore_cascade:
     :return:
     """
-
     def rewriter(string):
         return string.replace(old_title, new_title)
 
@@ -359,7 +363,7 @@ def change_node_title(snode, old_title, lang, new_title):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
         snode.index.save()
         library.refresh_index_record_in_cache(snode.index)
-        if lang == 'en':
+        if lang == 'en' and not ignore_cascade:
             cascade(snode.index.title, rewriter=rewriter, needs_rewrite=needs_rewrite)
     else:
         snode.add_title(new_title, lang)

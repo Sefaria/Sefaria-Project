@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import VersionBlock, {VersionsBlocksList} from './VersionBlock';
+import VersionBlock, {VersionsBlocksList} from './VersionBlock/VersionBlock';
 import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
 import {ContentText} from "./ContentText";

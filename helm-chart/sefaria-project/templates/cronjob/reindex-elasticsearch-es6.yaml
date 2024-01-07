@@ -1,0 +1,77 @@
+{{- if .Values.cronJobs.reindexElasticSearch.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-reindex-elastic-search-es6
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "20 13 * * 0"
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - mongo
+                topologyKey: kubernetes.io.hostname
+          containers:
+          - name: reindex-elastic-search-es6
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            resources:
+              limits:
+                memory: 9Gi
+              requests:
+                memory: 7Gi
+            env:
+            - name: SEARCH_HOST
+              value: "{{ .Values.cronJobs.reindexElasticSearch.SEARCH_HOST_ES6 }}"
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: SLACK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "sefaria.secrets.slackWebhook" . }}
+                  key: slack-webhook
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+            command: ["bash"]
+            args: [
+              "-c",
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob_ES6.py"
+            ]
+          restartPolicy: Never
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}
