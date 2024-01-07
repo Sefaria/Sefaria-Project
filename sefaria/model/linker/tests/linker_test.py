@@ -128,7 +128,7 @@ crrd = create_raw_ref_data
     [crrd(['@Halakha', '#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['#2', '#3'], "Jerusalem Talmud Shabbat 1:1", 'en'), ("Jerusalem Talmud Shabbat 2:3",)],
     [crrd(['@Tosephta', '@Ševi‘it', '#1', '#1'], "Jerusalem Talmud Sheviit 1:1:3", 'en'), ("Tosefta Sheviit 1:1", "Tosefta Sheviit (Lieberman) 1:1")],
-    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Taanit 28b", "Taanit 31a")],  # non-cts with talmud
+    [crrd(['@Babli', '#28b', '~,', '#31a'], "Jerusalem Talmud Berakhot 1:1:3", 'en'), ("Berakhot 28b", "Berakhot 31a")],  # non-cts with talmud
     [crrd(['@Exodus', '#21', '#1', '~,', '#3', '~,', '#22', '#5'], "Jerusalem Talmud Taanit 1:1:3", 'en'), ("Exodus 21:1", "Exodus 21:3", "Exodus 22:5")],  # non-cts with tanakh
     pytest.param(crrd(['@Roš Haššanah', '#4', '#Notes 42', '^–', '#43'], "Jerusalem Talmud Taanit 1:1:3", "en"), ("Jerusalem Talmud Rosh Hashanah 4",), marks=pytest.mark.xfail(reason="currently dont support partial ranged ref match. this fails since Notes is not a valid address type of JT")),
     [crrd(['@Tosaphot', '#85a', '*s.v. ולרבינא'], "Jerusalem Talmud Pesachim 1:1:3", 'en'), ("Tosafot on Pesachim 85a:14:1",)],
