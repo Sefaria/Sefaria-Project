@@ -13,13 +13,15 @@ const options_for_form = {
         label: "English Description",
         field: "enDescription",
         placeholder: "Add a description.",
-        type: 'textarea'
+        type: 'textarea',
+        markdown: true,
     },
     "Hebrew Description": {
         label: "Hebrew Description",
         field: "heDescription",
         placeholder: "Add a description.",
-        type: 'textarea'
+        type: 'textarea',
+        markdown: true
     },
     "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
     "English Short Description": {
@@ -136,7 +138,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
     const preprocess = async () => {
         setValidatingLinks(true);
         for (const x of items) {
-            if (options_for_form[x]?.is_textarea) {
+            if (options_for_form[x]?.markdown) {
                 const field = options_for_form[x].field;
                 const valid_tags = await validateMarkdownLinks(data[field]);
                 if (!valid_tags) {
