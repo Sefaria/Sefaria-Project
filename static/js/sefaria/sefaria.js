@@ -692,13 +692,13 @@ Sefaria = extend(Sefaria, {
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isBaseText true
+     * Gets all versions except Hebrew versions that have isSource true
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(result => {
         let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
         if (heVersions.length) {
             versions.he = heVersions;
         }
