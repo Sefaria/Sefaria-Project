@@ -60,7 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -92,7 +92,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
