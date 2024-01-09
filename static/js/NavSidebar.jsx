@@ -88,14 +88,14 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 };
 
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
-   const [recentlyVisitedItems, setRecentlyVisitedItems] = useState(null);
+   const [recentlyViewedItems, setRecentlyViewedItems] = useState(null);
    const handleAllHistory = (e) => {
     if (!Sefaria._uid) {
       e.preventDefault();
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
    }
-   const filterRecentlyVisitedItems = () => {
+   const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
         Sefaria.userHistory.items.forEach(x => {
@@ -107,22 +107,15 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
         itemsToShow = itemsToShow.slice(0, 3).map((x) => {
             return <li><a href={x.ref}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
          });
-        setRecentlyVisitedItems(itemsToShow);
+        setRecentlyViewedItems(itemsToShow);
    }
-   useEffect(() => {
-     if (!Sefaria.userHistory.loaded) {
-         fetch('/api/profile/user_history?secondary=0&annotate=1&limit=20')
-             .then(response => response.json())
-             .then(data => {
-                 Sefaria.userHistory.loaded = true;
-                 Sefaria.userHistory.items = data;
-                 filterRecentlyVisitedItems();
-             });
-     }
-     else {
-         filterRecentlyVisitedItems();
-     }
-  }, []);
+   useEffect( () => {
+       if (!Sefaria.userHistory.loaded) {
+           Sefaria.loadUserHistory(20, filterRecentlyViewedItems);
+       } else {
+           filterRecentlyViewedItems();
+       }
+   }, []);
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
@@ -132,12 +125,12 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
                  <InterfaceText>Recently Viewed</InterfaceText>
                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
               </div>
-              <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyVisitedItems}</ul></div></div>
+              <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedItems}</ul></div></div>
               </Module>;
    }
    return <Module>
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
-                <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyVisitedItems}</ul></div>
+                <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedItems}</ul></div>
                 <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All history ></InterfaceText></a>
              </Module>
 

@@ -2330,6 +2330,17 @@ _media: {},
     });
   },
   userHistory: {loaded: false, items: []},
+  loadUserHistory: function (limit, callback) {
+      const skip = Sefaria.userHistory.items.length;
+      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              Sefaria.userHistory.loaded = true;
+              Sefaria.userHistory.items.push(...data);
+              callback();
+          });
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
