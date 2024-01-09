@@ -13,5 +13,6 @@ SITE_SETTINGS = {
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
 	"COLLECTIONS_BUCKET": "sefaria-collection-images",
 	"PROFILES_BUCKET": 'sefaria-profile-pictures',
-	"UGC_BUCKET": 'sheet-user-uploaded-media'
+	"UGC_BUCKET": 'sheet-user-uploaded-media',
+	"TOPICS_BUCKET": 'img.sefaria.org'
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import {useContentLang} from './Hooks';
 import Sefaria from './sefaria/sefaria';
+import ReactMarkdown from "react-markdown";
 
 const ContentText = (props) => {
    /* Renders content language throughout the site (content that comes from the database and is not interface language).
@@ -14,7 +15,7 @@ const ContentText = (props) => {
    * order to return the bilingual langauage elements in (as opposed to the unguaranteed order by default).
    */
    const langAndContentItems = _filterContentTextByLang(props);
-   return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html}/>);
+   return langAndContentItems.map(item => <ContentSpan lang={item[0]} content={item[1]} isHTML={!!props.html} markdown={props.markdown}/>);
 };
 
 const VersionContent = (props) => {
@@ -76,11 +77,13 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
   return langAndContentItems;
 }
 
-const ContentSpan = ({lang, content, isHTML}) => {
+const ContentSpan = ({lang, content, isHTML, markdown}) => {
   return isHTML ?
           <span className={`contentSpan ${lang}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: content}}/>
-          :
-          <span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>;
+          : markdown ? <span className={`contentSpan ${lang}`} lang={lang} key={lang}>
+                         <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{content}</ReactMarkdown>
+                       </span>
+          : <span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>;
 }
 
 export {ContentText, VersionContent};
