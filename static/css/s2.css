@@ -1733,7 +1733,7 @@ div.interfaceLinks-row a {
   padding: 0;
 }
 .recentlyViewedMobile {
-  background-color: #FBFBFA;
+  background-color: var(--lightest-grey);
   padding: 10px 5px 10px 5px;
   margin: -5px -15px -5px -15px;
 }
@@ -1750,13 +1750,13 @@ div.interfaceLinks-row a {
 .recentlyViewedMobile #history span.int-he {
   float: left;
   padding-left: 5px;
-  color: #999999;
+  color: var(--medium-grey);
 }
 
 .recentlyViewedMobile #history span.int-en {
   padding-right: 5px;
   float: right;
-  color: #999999;
+  color: var(--medium-grey);
 }
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
