@@ -95,7 +95,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
    }
-   const initRecentlyVisitedItems = () => {
+   const filterRecentlyVisitedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
         Sefaria.userHistory.items.forEach(x => {
@@ -116,11 +116,11 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
              .then(data => {
                  Sefaria.userHistory.loaded = true;
                  Sefaria.userHistory.items = data;
-                 initRecentlyVisitedItems();
+                 filterRecentlyVisitedItems();
              });
      }
      else {
-         initRecentlyVisitedItems();
+         filterRecentlyVisitedItems();
      }
   }, []);
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
