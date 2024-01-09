@@ -140,7 +140,9 @@ def get_filter_obj(type, filters, filter_fields):
 def make_filter(type, agg_type, agg_key):
     if type == "text":
         # filters with '/' might be leading to books. also, very unlikely they'll match an false positives
-        reg = re.escape(agg_key) + (".*" if "/" in agg_key else "/.*")
+        agg_key = agg_key.rstrip('/')
+        agg_key = re.escape(agg_key)
+        reg = f"{agg_key}|{agg_key}/.*"
         return Regexp(path=reg)
     elif type == "sheet":
         return Term(**{agg_type: agg_key})
