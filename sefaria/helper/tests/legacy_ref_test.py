@@ -46,14 +46,14 @@ def test_zohar_index(test_index_title):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def test_zohar_mapping_data(test_index_title):
+def test_zohar_mapping_data(test_index_title, url_test_index_title):
     lrpd = LegacyRefParsingData({
         "index_title": test_index_title,
         "data": {
             "mapping": {
-                f"{test_index_title}.1.15a.1": f"{test_index_title}.1.42",
-                f"{test_index_title}.1.15a.2": f"{test_index_title}.1.42",
-                f"{test_index_title}.1.15a.3": f"{test_index_title}.1.43",
+                f"{url_test_index_title}.1.15a.1": f"{url_test_index_title}.1.42",
+                f"{url_test_index_title}.1.15a.2": f"{url_test_index_title}.1.42",
+                f"{url_test_index_title}.1.15a.3": f"{url_test_index_title}.1.43",
             },
         },
     })
@@ -66,15 +66,20 @@ def test_zohar_mapping_data(test_index_title):
 
 @pytest.fixture(scope="module")
 def test_index_title():
-    return "TestZohar"
+    return "Test Zohar"
 
 
 @pytest.fixture(scope="module")
-def old_and_new_trefs(request, test_index_title):
+def url_test_index_title(test_index_title):
+    return test_index_title.replace(" ", "_")
+
+
+@pytest.fixture(scope="module")
+def old_and_new_trefs(request, url_test_index_title):
     old_ref, new_ref = request.param
     # if new_ref is None, means mapping doesn't exist
-    new_ref = new_ref and f"{test_index_title}.{new_ref}"
-    return f"{test_index_title}.{old_ref}", new_ref
+    new_ref = new_ref and f"{url_test_index_title}.{new_ref}"
+    return f"{url_test_index_title}.{old_ref}", new_ref
 
 
 def get_book(tref):
@@ -143,12 +148,12 @@ class TestLegacyRefsTestIndex:
             assert converted_ref.legacy_tref == old_ref
             assert converted_ref.normal() == Ref(new_ref).normal()
 
-    def test_instantiate_ref_with_legacy_parse_fallback(self, test_index_title, old_and_new_trefs):
+    def test_instantiate_ref_with_legacy_parse_fallback(self, url_test_index_title, old_and_new_trefs):
         old_tref, new_tref = old_and_new_trefs
 
         oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
         if new_tref is None:
-            assert oref.url() == test_index_title
+            assert oref.url() == url_test_index_title
             assert getattr(oref, 'legacy_tref', None) is None
         else:
             assert oref.url() == new_tref
