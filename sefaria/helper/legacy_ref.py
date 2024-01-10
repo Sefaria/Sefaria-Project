@@ -86,9 +86,21 @@ class MappingLegacyRefParser(LegacyRefParser):
         @param legacy_tref:
         @return:
         """
+        legacy_tref = self.__to_url_form(legacy_tref)
         if self.__is_ranged_ref(legacy_tref):
             return self.__parse_ranged_ref(legacy_tref)
         return self.__parse_segment_ref(legacy_tref)
+
+    @staticmethod
+    def __to_url_form(tref: str):
+        """
+        replace last space before sections with a period
+        AND
+        then replace remaining spaces with underscore
+        @param tref:
+        @return:
+        """
+        return re.sub(r" (?=[\d.:ab]+$)", ".", tref).replace(" ", "_")
 
     @staticmethod
     def __is_ranged_ref(tref: str) -> bool:
@@ -110,9 +122,6 @@ class MappingLegacyRefParser(LegacyRefParser):
         return range_list
 
     def __get_mapped_tref(self, legacy_tref: str) -> str:
-        # replace last space before sections with a period to conform with url form
-        legacy_tref = re.sub(r" (?=[\d.:ab]+$)", ".", legacy_tref)
-        legacy_tref = legacy_tref.replace(' ', '_')
         try:
             return self._mapping[legacy_tref]
         except KeyError as err:
@@ -121,14 +130,14 @@ class MappingLegacyRefParser(LegacyRefParser):
     def __parse_segment_ref(self, legacy_tref: str) -> Ref:
         converted_tref = self.__get_mapped_tref(legacy_tref)
         converted_ref = Ref(converted_tref)
-        converted_ref.legacy_tref = legacy_tref.replace(" ", "_")
+        converted_ref.legacy_tref = legacy_tref
         return converted_ref
 
     def __parse_ranged_ref(self, legacy_tref: str) -> Ref:
         parsed_range_list = [self.__parse_segment_ref(temp_tref) for temp_tref in self.__range_list(legacy_tref)]
         parsed_range_list.sort(key=lambda x: x.order_id())  # not assuming mapping is in order
         ranged_oref = parsed_range_list[0].to(parsed_range_list[-1])
-        ranged_oref.legacy_tref = legacy_tref.replace(" ", "_")
+        ranged_oref.legacy_tref = legacy_tref
         return ranged_oref
 
 
