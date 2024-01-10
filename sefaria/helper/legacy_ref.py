@@ -33,6 +33,7 @@ class LegacyRefParsingData(AbstractMongoRecord):
     }
     ```
     To be used with LegacyRefParser classes in this module.
+    Current assumption is all trefs in the mapping (both old and mapped) are in URL form and are segment level.
     """
     collection = 'legacy_ref_data'
     criteria_field = 'title'
@@ -109,8 +110,9 @@ class MappingLegacyRefParser(LegacyRefParser):
         return range_list
 
     def __get_mapped_tref(self, legacy_tref: str) -> str:
-        # replace last space before sections with a period to conform with normal form
+        # replace last space before sections with a period to conform with url form
         legacy_tref = re.sub(r" (?=[\d.:ab]+$)", ".", legacy_tref)
+        legacy_tref = legacy_tref.replace(' ', '_')
         try:
             return self._mapping[legacy_tref]
         except KeyError as err:
