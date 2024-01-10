@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+import re
 from sefaria.model import *
 from sefaria.helper.legacy_ref import legacy_ref_parser_handler, MappingLegacyRefParser, NoLegacyRefParserError, LegacyRefParsingData, LegacyRefParserMappingKeyError
 from sefaria.system.exceptions import PartialRefInputError
@@ -20,6 +21,10 @@ def test_zohar_index(test_index_title):
                 "lang": "en",
                 "text": en_title,
                 "primary": True
+            },
+            {
+                "lang": "en",
+                "text": "Alt Title Yo yo"
             },
             {
                 "lang": "he",
@@ -46,14 +51,14 @@ def test_zohar_index(test_index_title):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def test_zohar_mapping_data(test_index_title):
+def test_zohar_mapping_data(test_index_title, url_test_index_title):
     lrpd = LegacyRefParsingData({
         "index_title": test_index_title,
         "data": {
             "mapping": {
-                f"{test_index_title}.1.15a.1": f"{test_index_title}.1.42",
-                f"{test_index_title}.1.15a.2": f"{test_index_title}.1.42",
-                f"{test_index_title}.1.15a.3": f"{test_index_title}.1.43",
+                f"{url_test_index_title}.1.15a.1": f"{url_test_index_title}.1.42",
+                f"{url_test_index_title}.1.15a.2": f"{url_test_index_title}.1.42",
+                f"{url_test_index_title}.1.15a.3": f"{url_test_index_title}.1.43",
             },
         },
     })
@@ -66,15 +71,20 @@ def test_zohar_mapping_data(test_index_title):
 
 @pytest.fixture(scope="module")
 def test_index_title():
-    return "TestZohar"
+    return "Test Zohar"
 
 
 @pytest.fixture(scope="module")
-def old_and_new_trefs(request, test_index_title):
+def url_test_index_title(test_index_title):
+    return test_index_title.replace(" ", "_")
+
+
+@pytest.fixture(scope="module")
+def old_and_new_trefs(request, url_test_index_title):
     old_ref, new_ref = request.param
     # if new_ref is None, means mapping doesn't exist
-    new_ref = new_ref and f"{test_index_title}.{new_ref}"
-    return f"{test_index_title}.{old_ref}", new_ref
+    new_ref = new_ref and f"{url_test_index_title}.{new_ref}"
+    return f"{url_test_index_title}.{old_ref}", new_ref
 
 
 def get_book(tref):
@@ -143,21 +153,35 @@ class TestLegacyRefsTestIndex:
             assert converted_ref.legacy_tref == old_ref
             assert converted_ref.normal() == Ref(new_ref).normal()
 
-    def test_instantiate_ref_with_legacy_parse_fallback(self, test_index_title, old_and_new_trefs):
+    def test_instantiate_ref_with_legacy_parse_fallback(self, url_test_index_title, old_and_new_trefs):
         old_tref, new_tref = old_and_new_trefs
+        instantiate_legacy_refs_tester(url_test_index_title, old_tref, new_tref)
 
-        oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
-        if new_tref is None:
-            assert oref.url() == test_index_title
-            assert getattr(oref, 'legacy_tref', None) is None
-        else:
-            assert oref.url() == new_tref
-            assert oref.legacy_tref == old_tref.replace(':', '.')
 
-        if new_tref is not None:
-            oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
-            assert oref.url() == new_tref
-            assert getattr(oref, 'legacy_tref', None) is None
+@pytest.mark.parametrize(('url_index_title', 'input_title', 'input_sections', 'output_tref'), [
+    ["Test_Zohar", "Alt Title Yo yo", "1:15a:1", "Test_Zohar.1.42"],
+])
+def test_instantiate_legacy_refs_parametrized(url_index_title, input_title, input_sections, output_tref):
+    old_tref = f"{input_title}.{input_sections}"
+    instantiate_legacy_refs_tester(url_index_title, old_tref, output_tref, old_title=input_title)
+
+
+def instantiate_legacy_refs_tester(url_index_title, old_tref, new_tref, old_title=None):
+    oref = Ref.instantiate_ref_with_legacy_parse_fallback(old_tref)
+    if new_tref is None:
+        assert oref.url() == url_index_title
+        assert getattr(oref, 'legacy_tref', None) is None
+    else:
+        assert oref.url() == new_tref
+        expected_legacy_tref = old_tref.replace(':', '.')
+        if old_title:
+            expected_legacy_tref = expected_legacy_tref.replace(old_title, url_index_title)
+        assert oref.legacy_tref == expected_legacy_tref
+
+    if new_tref is not None:
+        oref = Ref.instantiate_ref_with_legacy_parse_fallback(new_tref)
+        assert oref.url() == new_tref
+        assert getattr(oref, 'legacy_tref', None) is None
 
 
 class TestLegacyRefsRandomIndex:

@@ -8,15 +8,15 @@ plugins:
       releaseRules:
         - {"type": "helm", "release": "minor" }
         - {"type": "helm", "scope": "fix", "release": "patch" }
-        - {"type": "feat", "release": false}
-        - {"type": "fix", "release": false}
-        - {"type": "chore", "release": false}
-        - {"type": "docs", "release": false}
-        - {"type": "style", "release": false}
-        - {"type": "refactor", "release": false}
-        - {"type": "perf", "release": false}
-        - {"type": "test", "release": false}
-        - {"type": "static", "release": false}
+        - {"type": "feat", "release": "minor"}
+        - {"type": "fix", "release": "patch"}
+        - {"type": "chore", "release": "patch"}
+        - {"type": "docs", "release": "patch"}
+        - {"type": "style", "release": "patch"}
+        - {"type": "refactor", "release": "patch"}
+        - {"type": "perf", "release": "patch"}
+        - {"type": "test", "release": "patch"}
+        - {"type": "static", "release": "patch"}
       parserOpts:
         noteKeywords:
           - MAJOR RELEASE
