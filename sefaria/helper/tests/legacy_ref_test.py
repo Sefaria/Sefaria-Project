@@ -160,6 +160,7 @@ class TestLegacyRefsTestIndex:
 
 @pytest.mark.parametrize(('url_index_title', 'input_title', 'input_sections', 'output_tref'), [
     ["Test_Zohar", "Alt Title Yo yo", "1:15a:1", "Test_Zohar.1.42"],
+    ["Test_Zohar", "Alt_Title_Yo_yo", "1:15a:1", "Test_Zohar.1.42"],
 ])
 def test_instantiate_legacy_refs_parametrized(url_index_title, input_title, input_sections, output_tref):
     old_tref = f"{input_title}.{input_sections}"
