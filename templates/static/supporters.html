@@ -12,7 +12,9 @@
             <span class="int-en">Our Supporters</span>
             <span class="int-he">התומכים שלנו</span>
         </h1>
-        {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
+        {% if not request.user_agent.is_mobile %}
+            {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
+        {% endif %}
         <div class="section leading-supporters">
             <p class="tagline">
                 <span class="int-en">

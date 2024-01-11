@@ -35,7 +35,9 @@
                 <span class="int-en">A Living Library of Torah Texts Online.</span>
             </div>
         </header>
-        {% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" %}
+        {% if not request.user_agent.is_mobile %}
+            {% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" %}
+        {% endif %}
         <section class="about section">
 
             <p class="first">

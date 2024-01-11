@@ -22,7 +22,9 @@
         <div id="jobsPageContent">
             <h1 id="appLoading">Loading...</h1>
         </div>
-        {% include '_sidebar.html' with whichPage='jobs' title="Jobs at Sefaria" %}
+        {% if not request.user_agent.is_mobile %}
+            {% include '_sidebar.html' with whichPage='jobs' title="Jobs at Sefaria" %}
+        {% endif %}
 
         <aside class="solicitationNotice">
             <p>

@@ -17,10 +17,17 @@
         <li><a id="privacy" href="/privacy-policy"><span class="int-en">Privacy Policy</span><span class="int-he">מדיניות פרטיות</span></a></li>
     </ul></nav>
 <script>
-  const whichPage = "{{whichPage}}";
-  const item = document.getElementById(whichPage);
-  item.style['background-color'] = "#CCCCCC";
-  item.style['color'] = '#000000';
-  const aboutSidebar = document.getElementById("aboutSidebar");
-  aboutSidebar.className = `${whichPage}WhatIsSefaria`;
+  const mobile = "{{mobile}}" === "1";
+  if (!mobile) {
+      const whichPage = "{{whichPage}}";
+      const item = document.getElementById(whichPage);
+      item.style['background-color'] = "#CCCCCC";
+      item.style['color'] = '#000000';
+      const aboutSidebar = document.getElementById("aboutSidebar");
+      aboutSidebar.className = `${whichPage}WhatIsSefaria`;
+  }
+  else {
+      const aboutSidebar = document.getElementById("aboutSidebar");
+      aboutSidebar.className = 'mobileAbout';
+  }
 </script>

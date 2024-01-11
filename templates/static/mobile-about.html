@@ -1,4 +1,5 @@
+{% extends "base.html" %}
 {% load i18n %}
-<div id="content" class="interface-english">
-{% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" %}
-</div>
+{% block content %}
+{% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" mobile="1" %}
+{% endblock %}

@@ -6,7 +6,10 @@
 {% block content %}
 
 <main id="annualReport" class="container biReady static">
-    <div class="inner">{% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" %}
+    <div class="inner">
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" %}
+    {% endif %}
         <div class="annualReport"><a href="/annualreport/2022">Open the 2023 Annual Report (PDF)</a></div>
     </div>
 </main>

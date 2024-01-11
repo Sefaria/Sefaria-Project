@@ -24,7 +24,11 @@
                     <span class="int-en serif">Team</span>
                     <span class="int-he">צוות ספריא</span>
                 </h1>
-            {% include '_sidebar.html' with whichPage='team' title="Team" %}<header>
+            {% if not request.user_agent.is_mobile %}
+                {% include '_sidebar.html' with whichPage='team' title="Team" %}
+            {% endif %}
+            <header>
+
             </header>
                     <div class="row static-text">
                 <div id="teamMembersPageContent">

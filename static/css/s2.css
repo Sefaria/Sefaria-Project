@@ -644,37 +644,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .header.mobile .ui-autocomplete {
   width: 100% !important;
 }
-.mobileAbout {
-  margin: 0 10px 0 10px;
-  position: fixed;
-  width: 90%;
-  height: 48px;
-  left: 15px;
-  top: 83px;
-}
-.mobileAbout h1 {
-  font-family: 'Roboto', sans-serif;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 22px;
-  line-height: 26px;
-  color: #666666;
-  height: 48px;
-}
-.mobileAbout a {
-  font-family: "Roboto", sans-serif;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 35px;
-  color: #666666;
-  display: block;
-  font-size: 16px;
-}
-.mobileAbout .fa-chevron-right {
-  float: right;
-  padding-top: 10px;
-  color: #666666;
-}
 .mobileNavMenu a,
 .mobileInterfaceLanguageToggle {
   display: block;
