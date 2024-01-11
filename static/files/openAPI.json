@@ -199,24 +199,36 @@
                                             "ref": "Shabbat 22a:1",
                                             "heRef": "שבת כ״ב א:א׳",
                                             "isComplex": false,
-                                            "text": [],
-                                            "he": [],
-                                            "versions": [],
+                                            "text": [
+                                            ],
+                                            "he": [
+                                            ],
+                                            "versions": [
+                                            ],
                                             "textDepth": 2,
-                                            "sectionNames": [],
-                                            "addressTypes": [],
-                                            "lengths": [],
+                                            "sectionNames": [
+                                            ],
+                                            "addressTypes": [
+                                            ],
+                                            "lengths": [
+                                            ],
                                             "length": 314,
                                             "heTitle": "שבת כ״ב א",
-                                            "titleVariants": [],
-                                            "heTitleVariants": [],
+                                            "titleVariants": [
+                                            ],
+                                            "heTitleVariants": [
+                                            ],
                                             "type": "Talmud",
                                             "primary_category": "Talmud",
                                             "book": "Shabbat",
-                                            "categories": [],
-                                            "order": [],
-                                            "sections": [],
-                                            "toSections": [],
+                                            "categories": [
+                                            ],
+                                            "order": [
+                                            ],
+                                            "sections": [
+                                            ],
+                                            "toSections": [
+                                            ],
                                             "isDependant": false,
                                             "indexTitle": "Shabbat",
                                             "heIndexTitle": "שבת",
@@ -252,13 +264,19 @@
                                             "formatHeAsPoetry": false,
                                             "title": "Shabbat 22a",
                                             "heBook": "שבת",
-                                            "alts": [],
-                                            "index_offsets_by_depth": {},
+                                            "alts": [
+                                            ],
+                                            "index_offsets_by_depth": {
+
+                                            },
                                             "next": "Shabbat 22b",
                                             "prev": "Shabbat 21b",
-                                            "commentary": [],
-                                            "sheets": [],
-                                            "layer": []
+                                            "commentary": [
+                                            ],
+                                            "sheets": [
+                                            ],
+                                            "layer": [
+                                            ]
                                         }
                                     }
                                 }
@@ -1018,7 +1036,9 @@
                                                 "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
                                                 "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
                                             },
-                                            "categoryDescription": {},
+                                            "categoryDescription": {
+
+                                            },
                                             "displayOrder": 4,
                                             "numSources": 831,
                                             "description_published": true,
@@ -1109,7 +1129,9 @@
                 {
                     "name": "annotate_time_period",
                     "description": "`1` or `0`. If `1`, the response includes time period data under the `timePeriod` key.",
-                    "schema": {},
+                    "schema": {
+
+                    },
                     "in": "query"
                 }
             ]
@@ -1236,7 +1258,9 @@
                                                     "_temp_toc_id": "Prayer",
                                                     "_old_slug": "tfilla1"
                                                 },
-                                                "description": {},
+                                                "description": {
+
+                                                },
                                                 "categoryDescription": {
                                                     "en": "Liturgy and modes of Jewish prayer.",
                                                     "he": "נוסחי תפילה ודרכי תפילה יהודית."
@@ -1347,7 +1371,9 @@
                                                     "en": "Passover, or Pesach, is a week long springtime festival commemorating the Exodus from Egypt. It also celebrates national redemption, and freedom from slavery. It is observed through avoidance of certain foods (especially grains) and ritual dinners called Seders where attendees retell the story of the Exodus.",
                                                     "he": "חג הפסח הוא חג שנמשך שבוע וחל באביב, לזכר יציאת מצרים. הוא גם חוגג את גאולת העם והשחרור מעבדות. הוא נחגג באמצעות הימנעות ממאכלים מסוימים (במיוחד דגנים) וסעודה טקסית הנקראת ליל הסדר אשר בה מספרים המשתתפים את סיפור יציאת מצרים."
                                                 },
-                                                "categoryDescription": {},
+                                                "categoryDescription": {
+
+                                                },
                                                 "displayOrder": 10,
                                                 "numSources": 2040,
                                                 "description_published": true,
@@ -1417,7 +1443,9 @@
                                                     "en": "The word \"teshuvah\" literally means “return” and is best translated as \"repentance.\" Teshuvah is presented in Jewish sources as a gift from God because it allows one to return to the path of righteousness. Although it can be done at any time, Yom Kippur is the Jewish holiday most associated with repentance.",
                                                     "he": "המונח תשובה כוונתו שיבה אל דרכי האל. במקורות היהודיים נתפסת התשובה כמתנה מאלוהים, מכיוון שהיא מאפשרת לאדם לשוב ולדבוק בדרכי הטוב והיושר. אף שתשובה היא דבר שאפשר לעשות בכל עת, יום הכיפורים הוא המועד המוכר ביותר למטרה זו."
                                                 },
-                                                "categoryDescription": {},
+                                                "categoryDescription": {
+
+                                                },
                                                 "numSources": 1967,
                                                 "good_to_promote": true,
                                                 "description_published": true,
@@ -1677,7 +1705,9 @@
                 "responses": {
                     "200": {
                         "content": {
-                            "image/png": {}
+                            "image/png": {
+
+                            }
                         },
                         "description": "Successful Response"
                     }
@@ -2685,7 +2715,8 @@
                                             ],
                                             "collectiveTitle": "",
                                             "heCollectiveTitle": "",
-                                            "alts": [],
+                                            "alts": [
+                                            ],
                                             "lengths": [
                                                 10,
                                                 167
@@ -2712,8 +2743,11 @@
                                                 "מגילת אסתר",
                                                 "אסתר"
                                             ],
-                                            "index_offsets_by_depth": {},
-                                            "warnings": []
+                                            "index_offsets_by_depth": {
+
+                                            },
+                                            "warnings": [
+                                            ]
                                         }
                                     }
                                 }
@@ -2926,7 +2960,9 @@
                                                 "en": "Moses was the greatest prophet in the biblical tradition. Brought up in the Egyptian royal family, he fled Egypt before being sent back by God to lead the Israelites out of slavery and to the Promised Land. He brought the Torah down from Mount Sinai, and, according to Jewish tradition, wrote it all down. He died before reaching Israel.",
                                                 "he": "משה היה גדול הנביאים במסורת המקראית. הוא גדל בבית המלוכה המצרי, ברח ממצרים ונשלח לשם בחזרה על ידי אלוהים כדי להוציא את בני ישראל מעבדות ולהביאם לארץ המובטחת. הוא קיבל את התורה בהר סיני, ועל פי המסורת היהודית, כתב אותה מפי האל. הוא נפטר לפני כניסת העם לארץ המובטחת."
                                             },
-                                            "categoryDescription": {},
+                                            "categoryDescription": {
+
+                                            },
                                             "numSources": 1767,
                                             "good_to_promote": true,
                                             "description_published": true,
@@ -2990,7 +3026,9 @@
                 {
                     "name": "annotate_time_period",
                     "description": "Values can be `1` or `0`. \n\nIf `1`, the response includes time period data under the `timePeriod` key.",
-                    "schema": {},
+                    "schema": {
+
+                    },
                     "in": "query"
                 },
                 {
@@ -3256,7 +3294,9 @@
                                                         "en": "Shabbat (or Sabbath) falls every seventh day of the week, from Friday just before sunset until dark on Saturday night. It is a day of rest, marking the time when God stopped creating after after the six days of creation. Shabbat recognizes God as Creator of the Universe and as Redeemer of Israel from Egypt. ",
                                                         "he": "היום השביעי בשבוע, החל מיום שישי בשעת השקיעה ועד צאת הכוכבים במוצאי השבת. יום מנוחה לפי המקורות, המציין את הזמן שבו ה' נח לאחר שברא את העולם. "
                                                     },
-                                                    "categoryDescription": {},
+                                                    "categoryDescription": {
+
+                                                    },
                                                     "displayOrder": 0,
                                                     "numSources": 1662,
                                                     "good_to_promote": true,
@@ -3308,10 +3348,17 @@
                                                 },
                                                 {
                                                     "slug": "shabbat-hagadol",
-                                                    "titles": [],
-                                                    "alt_ids": {},
-                                                    "description": {},
-                                                    "categoryDescription": {},
+                                                    "titles": [
+                                                    ],
+                                                    "alt_ids": {
+
+                                                    },
+                                                    "description": {
+
+                                                    },
+                                                    "categoryDescription": {
+
+                                                    },
                                                     "displayOrder": 230,
                                                     "numSources": 57,
                                                     "description_published": true,
@@ -4065,7 +4112,8 @@
                                                             "he": "ספר דברים"
                                                         }
                                                     ],
-                                                    "likes": [],
+                                                    "likes": [
+                                                    ],
                                                     "summary": "Parshat Devarim Questions",
                                                     "is_featured": false,
                                                     "category": "Sheets",
@@ -4113,7 +4161,8 @@
                                                             "he": "פרשות השבוע"
                                                         }
                                                     ],
-                                                    "likes": [],
+                                                    "likes": [
+                                                    ],
                                                     "summary": "Parsha shiurim by R'Isaac Bernsein",
                                                     "is_featured": false,
                                                     "category": "Sheets",
@@ -4147,19 +4196,26 @@
                                                     "ownerImageUrl": "",
                                                     "status": "public",
                                                     "views": 186,
-                                                    "topics": [],
-                                                    "likes": [],
+                                                    "topics": [
+                                                    ],
+                                                    "likes": [
+                                                    ],
                                                     "summary": "",
                                                     "is_featured": false,
                                                     "category": "Sheets",
                                                     "type": "sheet"
                                                 }
                                             ],
-                                            "notes": [],
-                                            "webpages": [],
-                                            "topics": [],
-                                            "manuscripts": [],
-                                            "media": []
+                                            "notes": [
+                                            ],
+                                            "webpages": [
+                                            ],
+                                            "topics": [
+                                            ],
+                                            "manuscripts": [
+                                            ],
+                                            "media": [
+                                            ]
                                         }
                                     }
                                 }
@@ -4828,7 +4884,8 @@
                                                 4,
                                                 3
                                             ],
-                                            "authors": [],
+                                            "authors": [
+                                            ],
                                             "enDesc": "Pesachim (“Passover Festivals”) is the third tractate in Seder Moed (“Festivals”). Its ten chapters discuss laws relating to Passover: the consumption of matzah (unleavened bread) and maror (bitter herbs), the prohibitions against owning or consuming chametz (leavened bread) on the festival, the paschal lamb that used to be offered at the Temple in Jerusalem, and the order of the seder (ritual feast) held on the first evening of the holiday.\n.",
                                             "enShortDesc": "Passover: ridding of chametz, the Paschal lamb offering, matzah, maror, and the Seder.",
                                             "heShortDesc": "דינים הקשורים לחג הפסח: איסור חמץ, קורבן הפסח, מצה, מרור וליל הסדר.",
@@ -4851,7 +4908,8 @@
                                     }
                                 }
                             }
-                        }
+                        },
+                        "description": "Successful Request"
                     }
                 },
                 "summary": "v2 Raw Index API",
@@ -5095,7 +5153,9 @@
                     },
                     "examples": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sectionNames": {
                         "description": "Given a reference, this returns the names of the sections and segments at each depth of that text.",
@@ -5250,7 +5310,8 @@
                         "3",
                         "3"
                     ],
-                    "examples": [],
+                    "examples": [
+                    ],
                     "sectionNames": [
                         "Chapter",
                         "Verse",
@@ -5921,7 +5982,9 @@
                     },
                     "alts": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "index_offsets_by_depth": {
                         "type": "object"
@@ -5938,15 +6001,21 @@
                     },
                     "commentary": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sheets": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "layer": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     }
                 },
                 "example": {
@@ -6223,13 +6292,19 @@
                     "heDigitizedBySefaria": false,
                     "heLicense": "Public Domain",
                     "formatHeAsPoetry": false,
-                    "alts": [],
-                    "index_offsets_by_depth": {},
+                    "alts": [
+                    ],
+                    "index_offsets_by_depth": {
+
+                    },
                     "next": "Mishnah Peah 5",
                     "prev": "Mishnah Peah 3",
-                    "commentary": [],
-                    "sheets": [],
-                    "layer": []
+                    "commentary": [
+                    ],
+                    "sheets": [
+                    ],
+                    "layer": [
+                    ]
                 }
             },
             "KleinDictionaryEntry": {
@@ -7467,7 +7542,9 @@
                         "en": "Sukkot is a weeklong celebration of the harvest in early fall. It is celebrated by the building of temporary booths — that is, sukkot — outside homes in which people eat their meals and sometimes even sleep. The booths are reminders of the transience of life and the sheltering presence of God.",
                         "he": "חג הסוכות, הוא חג האסיף, נמשך שבעה ימים ומצוין בחודש תשרי על-ידי בניית סוכה מחוץ לבית, בה  אוכלים וחלק גם ישנים. הסוכה היא תזכורת לסוכות שבנו בני ישראל ביציאת מצרים, ומסמלת את ארעיות החיים ואת נוכחותו המגוננת של ה'"
                     },
-                    "categoryDescription": {},
+                    "categoryDescription": {
+
+                    },
                     "displayOrder": 4,
                     "numSources": 831,
                     "description_published": true,
@@ -8225,7 +8302,8 @@
                                     "version": "Mishnah Yomit by Dr. Joshua Kulp",
                                     "lang": "en",
                                     "version_priority": 0,
-                                    "titleVariants": [],
+                                    "titleVariants": [
+                                    ],
                                     "categories": [
                                         "Mishnah Commentary",
                                         "Modern Commentary on Mishnah",
@@ -8290,7 +8368,8 @@
                                     "version": "Peninei Halakhah, English ed. Yeshivat Har Bracha",
                                     "lang": "en",
                                     "version_priority": 0,
-                                    "titleVariants": [],
+                                    "titleVariants": [
+                                    ],
                                     "categories": [
                                         "Halakhah",
                                         "Modern",
@@ -8428,12 +8507,16 @@
                     "filter_fields": {
                         "description": "Must be the same length as `filters`. Each entry specifies the field to apply the corresponding filter in `filters`. For queries of type `text` this has no effect since there's only one field to filter text queries on (`path`. this field is explained in `filters`). For `sheet` queries, the following fields can appear in `filter_fields`: `collections` (corresponds to the collections that the sheet is in), `topics_en` (corresponds to the topics for this sheet, translated into English), `topics_he` (corresponds to the topics for this sheet, translated into Hebrew).",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "filters": {
                         "description": "A list of filters to filter results. These filters cannot include RegEx. Any RegEx characters will be escaped. Each filter is applied to the corresponding field in the `filter_fields` list. E.g. if filters is `[\"Passover\", \"Torah Talks\"]` and `filter_fields` is `[\"topics_en\", \"collections\"]` then the `\"Passover\"` filter will be applied to the `\"topics_en\"` field and the `\"Torah Talks\"` filter will be applied to the `\"collections\"` field. For `text` queries, filters always applies to the `path` field of documents. This essentially corresponds to the category path of the book in Sefaria's table of contents (there are some differences with regards to commentary paths). For `sheet` queries, filters can be applied to `collections`, `topics_en` or `topics_he`. These fields are explained in `filter_fields` param.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "query": {
                         "description": "Your search query.",
@@ -8491,8 +8574,10 @@
                         "path"
                     ],
                     "field": "naive_lemmatizer",
-                    "filter_fields": [],
-                    "filters": [],
+                    "filter_fields": [
+                    ],
+                    "filters": [
+                    ],
                     "query": "banana",
                     "size": 50,
                     "slop": 10,
@@ -8539,11 +8624,15 @@
                     "sections": {
                         "description": "An array which corresponds to sectionNames and represents the sections of the text requested. When sectionNames is `[\"Chapter\", \"Verse\"]` a request for chapter 4 looks like `[4]` while a request for chapter 4, verse 7 would look like `[4, 7]`. _Note, for Talmud, Dafs are represented by a string like \"42a\" or \"12b\"_",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "toSections": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "sectionRef": {
                         "$ref": "#/components/schemas/ref"
@@ -8559,7 +8648,9 @@
                     },
                     "spanningRefs": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "next": {
                         "description": "Next segment reference in sequence, if last ref, field will be `null`.",
@@ -8626,7 +8717,9 @@
                     },
                     "alts": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "lengths": {
                         "type": "array",
@@ -8679,7 +8772,9 @@
                     "warnings": {
                         "description": "A list of objects - for any version parameter that has no result there is a readable message and warning code. \n\nCodes:\n`APINoVersion = 101`\n`APINoLanguageVersion = 102`\n`APINoSourceText = 103`\n`APINoTranslationText = 104`\n",
                         "type": "array",
-                        "items": {},
+                        "items": {
+
+                        },
                         "example": "[\n{\n\"\\\"finnish\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n},\n{\n\"\\\"dutch\\\"\": {\n\"warning_code\": 102,\n\"message\": \"We do not have the language you asked for Esther 1:1. Available languages are ['english', 'esperanto', 'french', 'german', 'hebrew', 'italian', 'persian', 'polish', 'spanish', 'yiddish']\"\n}\n}\n]"
                     }
                 },
@@ -8713,20 +8808,25 @@
                             "language": "he",
                             "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
                             "versionTitle": "Miqra according to the Masorah",
-                            "text": [],
+                            "text": [
+                            ],
                             "firstSectionRef": "Obadiah 1"
                         }
                     ],
-                    "available_versions": [],
+                    "available_versions": [
+                    ],
                     "ref": "Obadiah",
                     "heRef": "עובדיה",
-                    "sections": [],
-                    "toSections": [],
+                    "sections": [
+                    ],
+                    "toSections": [
+                    ],
                     "sectionRef": "Obadiah",
                     "heSectionRef": "עובדיה",
                     "firstAvailableSectionRef": "Obadiah 1",
                     "isSpanning": false,
-                    "spanningRefs": [],
+                    "spanningRefs": [
+                    ],
                     "next": "Obadiah 1",
                     "prev": "Obadiah 1",
                     "title": "Obadiah",
@@ -8748,7 +8848,8 @@
                     ],
                     "collectiveTitle": "",
                     "heCollectiveTitle": "",
-                    "alts": [],
+                    "alts": [
+                    ],
                     "lengths": [
                         1,
                         21
@@ -8777,8 +8878,11 @@
                     "heTitleVariants": [
                         "עובדיה"
                     ],
-                    "index_offsets_by_depth": {},
-                    "warnings": []
+                    "index_offsets_by_depth": {
+
+                    },
+                    "warnings": [
+                    ]
                 }
             },
             "v3AvailableVersionsTextJson": {
@@ -9068,7 +9172,8 @@
                     "language": "he",
                     "versionSource": "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94",
                     "versionTitle": "Miqra according to the Masorah",
-                    "text": [],
+                    "text": [
+                    ],
                     "firstSectionRef": "Obadiah 1"
                 }
             },
@@ -9166,7 +9271,9 @@
                     "text": {
                         "description": "The default text written in LTR characters for the query (Usually English). It is structured as a JaggedArray (nested arrays), with the lowest level being an array of strings with some html text.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "versionTitle": {
                         "description": "A descriptive string which describes what version of a text this is. Is it from a particular printing or edition of a book? An online resource? This string should describe it in English",
@@ -9208,7 +9315,8 @@
                     "heVersionTitle": "Mishnah, ed. Romm, Vilna 1913",
                     "heLicense": "Public Domain",
                     "heVersionTitleInHebrew": "משנה, מהדורת בית דפוס ראם, וילנא 1913",
-                    "text": []
+                    "text": [
+                    ]
                 }
             },
             "TopicGraphJSON": {
@@ -9235,7 +9343,8 @@
                     "topics": [
                         {
                             "slug": "shabbat",
-                            "titles": [],
+                            "titles": [
+                            ],
                             "alt_ids": {
                                 "_temp_id": "שבת",
                                 "_old_slug": "shabbat1"
@@ -9250,7 +9359,9 @@
                                 "en": "Shabbat (or Sabbath) falls every seventh day of the week, from Friday just before sunset until dark on Saturday night. It is a day of rest, marking the time when God stopped creating after after the six days of creation. Shabbat recognizes God as Creator of the Universe and as Redeemer of Israel from Egypt. ",
                                 "he": "היום השביעי בשבוע, החל מיום שישי בשעת השקיעה ועד צאת הכוכבים במוצאי השבת. יום מנוחה לפי המקורות, המציין את הזמן שבו ה' נח לאחר שברא את העולם. "
                             },
-                            "categoryDescription": {},
+                            "categoryDescription": {
+
+                            },
                             "displayOrder": 0,
                             "numSources": 1662,
                             "good_to_promote": true,
@@ -9325,7 +9436,9 @@
                                 "en": "Shabbat HaGadol (“The Great Shabbat”) is the Shabbat that immediately precedes the holiday of Passover. Jewish texts offer many explanations as to why this Shabbat is called “great,” like those that  point to a great miracle performed on this Shabbat during the exodus, or those that point to the word “great” at the end of the haftarah prophetic reading traditionally read on this Shabbat. In many communities, the rabbi delivers a lengthy sermon on a Passover-related topic. ",
                                 "he": "״שבת הגדול״ היא השבת האחרונה לפני חג הפסח. שבת זו נודעה כשבת מיוחדת החל מהמאה ה-12 בבתי המדרש של רש״י וחכמי התוספות. מנהגי שבת זו כוללים דרשה של הרב בקהילתו בהלכות הפסח, וקריאת קטעים מההגדה של פסח. מספר טעמים ניתנו לשמה של שבת זו כגון שבשבת זו בני ישראל הפסיקו לעבוד עבודה זרה, או שהיה נס גדול בלקיחת השה לקרבן פסח, ועוד. "
                             },
-                            "categoryDescription": {},
+                            "categoryDescription": {
+
+                            },
                             "displayOrder": 230,
                             "numSources": 57,
                             "description_published": true,
@@ -9469,7 +9582,9 @@
                             },
                             "titles": {
                                 "type": "array",
-                                "items": {}
+                                "items": {
+
+                                }
                             },
                             "subclass": {
                                 "type": "string"
@@ -9593,7 +9708,8 @@
                     "ref": "Pesachim 66a:3-6",
                     "topic": {
                         "slug": "hillel",
-                        "titles": [],
+                        "titles": [
+                        ],
                         "subclass": "person",
                         "alt_ids": {
                             "_temp_id": "הלל",
@@ -9625,7 +9741,9 @@
                             "en": "Hillel was one of the most influential and prolific of the early teachers. Coming from Babylon to learn with Avtalyon and Shemaya, he soon became famous for his scholarship and his patient and tolerant manner. Bolstered by his Davidic lineage, he served as Nasi during part of Herod’s reign.",
                             "he": "הלל היה אחד החכמים הראשונים, ומהפורים והמשפיעים ביניהם. הוא הגיע מבבל כדי ללמוד עם שמעיה ואבטליון, ונודע מהר מאוד בשל חוכמתו בתורה ואופיו הסבלני והסובלני. היותו צאצא של בית דוד הייתה בסיס לכהונתו כנשיא בתקופת שלטונו של הורדוס."
                         },
-                        "categoryDescription": {},
+                        "categoryDescription": {
+
+                        },
                         "numSources": 217,
                         "good_to_promote": true,
                         "description_published": true,
@@ -9712,7 +9830,9 @@
                         "en": "A mezuzah is the small parchment placed inside a case and attached to the right side of entryway doorframes where Jews reside. Written on the scroll are various sections from the Torah, such as the Shema, that feature some of Judaism's central principles.",
                         "he": "המזוזה היא נייר קלף קטן הנמצא בתוך נרתיק (בית המזוזה) המחובר לצד הימני של משקוף הדלת בבתי יהודים. על מגילת הקלף כתובים מגוון קטעים מן התורה, דוגמת פרשת שמע הכוללת כמה מהעקרונות העיקריים של היהדות."
                     },
-                    "categoryDescription": {},
+                    "categoryDescription": {
+
+                    },
                     "numSources": 120,
                     "good_to_promote": true,
                     "description_published": true,
@@ -10113,7 +10233,9 @@
                     "notes": {
                         "description": "Any notes a user has on a given `Ref`. **Note:** This data is only available for logged-in users to view their own notes on a text. This field will always present as an empty array for third party developers. ",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "webpages": {
                         "description": "Webpages related to the `Ref`. ",
@@ -10563,7 +10685,8 @@
                                     "he": "ספר דברים"
                                 }
                             ],
-                            "likes": [],
+                            "likes": [
+                            ],
                             "summary": "Parshat Devarim Questions",
                             "is_featured": false,
                             "category": "Sheets",
@@ -10611,7 +10734,8 @@
                                     "he": "פרשות השבוע"
                                 }
                             ],
-                            "likes": [],
+                            "likes": [
+                            ],
                             "summary": "Parsha shiurim by R'Isaac Bernsein",
                             "is_featured": false,
                             "category": "Sheets",
@@ -10645,19 +10769,26 @@
                             "ownerImageUrl": "",
                             "status": "public",
                             "views": 186,
-                            "topics": [],
-                            "likes": [],
+                            "topics": [
+                            ],
+                            "likes": [
+                            ],
                             "summary": "",
                             "is_featured": false,
                             "category": "Sheets",
                             "type": "sheet"
                         }
                     ],
-                    "notes": [],
-                    "webpages": [],
-                    "topics": [],
-                    "manuscripts": [],
-                    "media": []
+                    "notes": [
+                    ],
+                    "webpages": [
+                    ],
+                    "topics": [
+                    ],
+                    "manuscripts": [
+                    ],
+                    "media": [
+                    ]
                 }
             },
             "MediaJSON": {
@@ -10994,7 +11125,9 @@
                     "likes": {
                         "description": "An array of user IDs who have favorited or liked this source sheet.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "summary": {
                         "description": "A user generated description of the source sheet",
@@ -11045,8 +11178,10 @@
                     "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/-2977-1626800304-small.png",
                     "status": "public",
                     "views": 8509,
-                    "topics": [],
-                    "likes": [],
+                    "topics": [
+                    ],
+                    "likes": [
+                    ],
                     "summary": "",
                     "is_featured": false,
                     "category": "Sheets",
@@ -11306,7 +11441,9 @@
                 "example": {
                     "linkType": "about",
                     "class": "refTopic",
-                    "dataSource": {},
+                    "dataSource": {
+
+                    },
                     "is_sheet": false,
                     "generatedBy": "sheet-topic-aggregator",
                     "order": {
@@ -11323,11 +11460,18 @@
                         "numSources": 143
                     },
                     "topic": "parashat-devarim",
-                    "title": {},
-                    "titleIsTransliteration": {},
-                    "description": {},
+                    "title": {
+
+                    },
+                    "titleIsTransliteration": {
+
+                    },
+                    "description": {
+
+                    },
                     "anchorRef": "Deuteronomy 1:1-11",
-                    "anchorRefExpanded": []
+                    "anchorRefExpanded": [
+                    ]
                 }
             },
             "RawIndexJSON": {
@@ -11520,7 +11664,9 @@
                     "authors": {
                         "description": "Author(s) of the text.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "enDesc": {
                         "description": "A longer English description of the index. ",
@@ -12211,7 +12357,8 @@
                         4,
                         3
                     ],
-                    "authors": [],
+                    "authors": [
+                    ],
                     "enDesc": "Pesachim (“Passover Festivals”) is the third tractate in Seder Moed (“Festivals”). Its ten chapters discuss laws relating to Passover: the consumption of matzah (unleavened bread) and maror (bitter herbs), the prohibitions against owning or consuming chametz (leavened bread) on the festival, the paschal lamb that used to be offered at the Temple in Jerusalem, and the order of the seder (ritual feast) held on the first evening of the holiday.\n.",
                     "enShortDesc": "Passover: ridding of chametz, the Paschal lamb offering, matzah, maror, and the Seder.",
                     "heShortDesc": "דינים הקשורים לחג הפסח: איסור חמץ, קורבן הפסח, מצה, מרור וליל הסדר.",
@@ -12271,7 +12418,9 @@
                     "match_templates": {
                         "description": "This data is used for the linker.",
                         "type": "array",
-                        "items": {}
+                        "items": {
+
+                        }
                     },
                     "lengths": {
                         "description": "The lengths of the text at each level of depth. For example, a text of depth 2 will have an array with two values, the first representing the number of sections, and the second value representing the number of verses. So, if Genesis has lengths, it's array will look like this `[50, 1533]`. This is interpreted to mean the Genesis Index has 50 chapters (sections) and 1533 verses (segments).\n\nA depth-3 text (a commentary, for example) will have three values, representing the number of super sections, sections, and segments. ",
@@ -12324,7 +12473,8 @@
                         "Daf",
                         "Line"
                     ],
-                    "match_templates": [],
+                    "match_templates": [
+                    ],
                     "lengths": [
                         242,
                         3519
@@ -12333,7 +12483,8 @@
                         true,
                         false
                     ],
-                    "titles": [],
+                    "titles": [
+                    ],
                     "key": "Pesachim",
                     "checkFirst": {
                         "he": "משנה פסחים",
@@ -12351,7 +12502,9 @@
                         "properties": {
                             "nodes": {
                                 "type": "array",
-                                "items": {}
+                                "items": {
+
+                                }
                             }
                         }
                     }
@@ -12472,7 +12625,8 @@
                     }
                 },
                 "example": {
-                    "nodes": []
+                    "nodes": [
+                    ]
                 }
             }
         }
