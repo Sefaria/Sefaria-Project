@@ -6796,36 +6796,6 @@
                 "type": "string",
                 "example": "'en'\n'he'"
             },
-            "FindRefsPOSTRequest": {
-                "title": "Root Type for FindRefsPOSTRequest",
-                "description": "A properly formatted POST request for the Find Refs API",
-                "type": "object",
-                "properties": {
-                    "text": {
-                        "description": "Initially designed for websites, this API expects the `text` field to contain both a `body` and a `title`. When parsing arbitrary text feel free to just use `body` and pass an empty string `''` to `title`",
-                        "type": "object",
-                        "properties": {
-                            "body": {
-                                "type": "string"
-                            },
-                            "title": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "lang": {
-                        "description": "Either `he` or `en`. If not included, it will default to one based on the number of Hebrew or Latin characters in the `body` of the `text`.",
-                        "type": "string"
-                    }
-                },
-                "example": {
-                    "text": {
-                        "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
-                        "title": "Some thoughts on Sefer Bereishit 1"
-                    },
-                    "lang": "en"
-                }
-            },
             "FindRefsAPIResponse": {
                 "title": "Root Type for FindRefsAPIResponse",
                 "description": "A response to the Find Refs API",
@@ -12631,6 +12601,45 @@
                 "example": {
                     "nodes": [
                     ]
+                }
+            },
+            "FindRefsPOSTRequest": {
+                "title": "Root Type for FindRefsPOSTRequest",
+                "description": "A properly formatted POST request for the Find Refs API",
+                "required": [
+                    "lang",
+                    "text"
+                ],
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "description": "Initially designed for websites, this API expects the `text` field to contain both a `body` and a `title`. When parsing arbitrary text feel free to just use `body` and pass an empty string `''` to `title`",
+                        "type": "object",
+                        "properties": {
+                            "body": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "lang": {
+                        "description": "Either `he` or `en`. If not included, it will default to one based on the number of Hebrew or Latin characters in the `body` of the `text`.",
+                        "enum": [
+                            "he",
+                            "en"
+                        ],
+                        "type": "string",
+                        "example": "en"
+                    }
+                },
+                "example": {
+                    "text": {
+                        "body": "Genesis 1:1 is a citation and also Mishnah Peah 3-4. So is שמות ב",
+                        "title": "Some thoughts on Sefer Bereishit 1"
+                    },
+                    "lang": "en"
                 }
             }
         }
