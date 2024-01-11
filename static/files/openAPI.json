@@ -404,88 +404,6 @@
                 "description": "Returns a random text reference from the Sefaria library. Results can be limited to a specific category or from a selection of titles given the correct query params."
             }
         },
-        "/api/recommend/topics/{ref_list}": {
-            "get": {
-                "parameters": [
-                    {
-                        "examples": {
-                            "example1": {
-                                "value": "Genesis 50+Mishnah Peah 3"
-                            }
-                        },
-                        "name": "ref_list",
-                        "description": "List of strings separated by '+'",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/recommendedTopicResponse"
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Recommended topics API",
-                "description": "Given a list of `Ref`s this API returns the most used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Ref`s."
-            },
-            "post": {
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object",
-                                "properties": {
-                                    "json": {
-                                        "description": "List of strings",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "parameters": [
-                    {
-                        "name": "ref_list",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/recommendedTopicResponse"
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Recommended topics API",
-                "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references.\n\nn.b. The `ref_list` param is not required for a post request."
-            }
-        },
         "/api/manuscripts/{tref}": {
             "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
             "get": {
@@ -4927,6 +4845,92 @@
                     },
                     "name": "index_title",
                     "description": "A title of a valid Sefaria `Index`. For a complete list of works in the [Sefaria](sefaria.org) library, as well as their index titles, query the [api/index](https://www.sefaria.org/api/index/) endpoint. ",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/recommend/topics/{ref_list}": {
+            "get": {
+                "parameters": [
+                    {
+                        "examples": {
+                            "example1": {
+                                "value": "Genesis 50+Mishnah Peah 3"
+                            }
+                        },
+                        "name": "ref_list",
+                        "description": "List of strings separated by '+'",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/recommendedTopicResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Recommended topics API",
+                "description": "Given a list of `Ref`s this API returns the most used topics associated with them. This is a fast way of identifying potential shared topics amongst disparate `Ref`s."
+            },
+            "post": {
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "json": {
+                                        "description": "List of strings",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/recommendedTopicResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Recommended topics API",
+                "description": "Given a list of refs this API returns the most used topics associated with them. It's a fast way of identifying potential shared topics amongst disperate references.\n\nn.b. The `ref_list` param is not required for a post request."
+            },
+            "parameters": [
+                {
+                    "name": "ref_list",
+                    "description": "List of strings separated by '+'",
                     "schema": {
                         "type": "string"
                     },
