@@ -7,7 +7,12 @@
 
 {% block content %}
 <div id="supportersPage" class="container static biReady">
-    <div class="inner">{% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
+    <div class="inner">
+        <h1>
+            <span class="int-en">Our Supporters</span>
+            <span class="int-he">התומכים שלנו</span>
+        </h1>
+        {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
         <div class="section leading-supporters">
             <p class="tagline">
                 <span class="int-en">

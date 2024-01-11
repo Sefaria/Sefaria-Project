@@ -13,7 +13,6 @@ import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 } from './ConnectionsPanel';
-import {MobileAbout} from "./MobileAbout";
 import BookPage  from './BookPage';
 import SearchPage  from './SearchPage';
 import Sheet  from './Sheet';
@@ -1077,9 +1076,6 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           initialWidth={this.state.width} />
       );
-    }
-    else if (this.state.menuOpen === "mobileAbout") {
-      menu = <MobileAbout/>;
     }
 
     let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
