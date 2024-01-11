@@ -723,7 +723,8 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutCover {
-  height: 540px;
+  height: 440px;
+  margin-left: 250px;
   padding: 180px 0;
   background-color: #ADA99B;
   box-sizing: border-box;
@@ -1250,7 +1251,7 @@ p.registration-links a:hover{
 #jobsPage nav{
   margin-top: 60px;
 }
-#jobsPage nav:not(.navigationVisible){
+#jobsPage nav:not(.navigationVisible, #aboutSidebar){
   display: none;
 }
 /*#jobsPage nav h3{
@@ -3301,16 +3302,17 @@ display: none;
   position: absolute;
   left: 15px;
 }
-.aboutWhatIsSefaria {
-  top: 550px;
+.aboutWhatIsSefaria, .metricsWhatIsSefaria, .termsWhatIsSefaria, .teamWhatIsSefaria, .privacyWhatIsSefaria {
+  top: 100px;
 }
-.metricsWhatIsSefaria, .termsWhatIsSefaria, .privacyWhatIsSefaria, .jobsWhatIsSefaria {
-  top: 150px;
+.jobsWhatIsSefaria {
+  top: 90px;
 }
 #aboutSidebar h1 {
   margin: 0 0 30px 30px;
   font-size: 22px;
 }
+
 #aboutSidebar ul {
   list-style-type: none;
 }
@@ -3339,43 +3341,46 @@ display: none;
   letter-spacing: 0;
   text-align: left;
 }
+.mobileAboutPage {
+  margin: 50px 0 300px 0;
+  padding-top: 15px;
+}
 .mobileAbout {
-  top: 0px;
+  top: 100px;
   right: 0px;
   left: 0px;
   height: 100%;
   width: 100%;
   position: absolute;
   overflow: auto;
-  z-index: 1;
-  background-color: var(--lighter-grey);
-  /*margin: 0 10px 0 10px;*/
-  /*position: fixed;*/
-  /*width: 90%;*/
-  /*height: 48px;*/
-  /*left: 15px;*/
-  /*top: 83px;*/
+  z-index: 2;
 }
 .mobileAbout h1 {
   font-family: 'Roboto', sans-serif;
   font-style: normal;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 22px;
+  margin: 0px 0 0 20px !important;
   line-height: 26px;
-  color: #666666;
-  height: 48px;
+  color: var(--dark-grey);
 }
 .mobileAbout a {
+  margin-left: -30px;
   font-family: "Roboto", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 35px;
-  color: #666666;
+  color: var(--dark-grey);
   display: block;
   font-size: 16px;
 }
 .mobileAbout .fa-chevron-right {
   float: right;
   padding-top: 10px;
-  color: #666666;
+  color: var(--dark-grey);
+  display: block !important;
+  margin-right: 20px;
+}
+#aboutSidebar .fa-chevron-right {
+  display: none;
 }

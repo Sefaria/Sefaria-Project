@@ -3,18 +3,31 @@
 
 
     <nav id="aboutSidebar"><h1>
-{{title}}</h1><ul><li><a id="about" href="/about"><span class="int-en">What is Sefaria?</span><span class="int-he">מהי ספריא</span></a></li>
-        <li><a id="team" href="/team"><span class="int-en">Team</span>
-                    <span class="int-he">צוות ספריא</span></a></li>
-        <li><a id="jobs" href="/jobs"><span class="int-en">Jobs at Sefaria</span>
-                    <span class="int-he">משרות פנויות בספריא</span></a></li>
-        <li><a id="supporters" href="/supporters"><span class="int-en">Our Supporters</span>
-            <span class="int-he">התומכים שלנו</span></a></li>
-        <li><a id="metrics" href="/metrics"><span class="int-en">Metrics</span>
-            <span class="int-he">מדדים</span></a></li>
-        <li><a id="annualreport" href="/link-to-annual-report"><span class="int-en">Annual Report</span><span class="int-he">דו"ח שנתי</span></a></li>
-        <li><a id="terms" href="/terms"><span class="int-en">Terms of Use</span><span class="int-he">תנאי שימוש</span></a></li>
-        <li><a id="privacy" href="/privacy-policy"><span class="int-en">Privacy Policy</span><span class="int-he">מדיניות פרטיות</span></a></li>
+{{title}}</h1><ul>
+        <li><a id="about" href="/about">
+                    <span class="int-en">What is Sefaria?</span>
+                    <span class="int-he">מהי ספריא</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="team" href="/team">
+                    <span class="int-en">Team</span>
+                    <span class="int-he">צוות ספריא</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="jobs" href="/jobs">
+                    <span class="int-en">Jobs at Sefaria</span>
+                    <span class="int-he">משרות פנויות בספריא</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="supporters" href="/supporters">
+                    <span class="int-en">Our Supporters</span>
+                    <span class="int-he">התומכים שלנו</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="metrics" href="/metrics">
+                    <span class="int-en">Metrics</span>
+                    <span class="int-he">מדדים</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="annualreport" href="/link-to-annual-report">
+                    <span class="int-en">Annual Report</span>
+                    <span class="int-he">דו"ח שנתי</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="terms" href="/terms">
+                    <span class="int-en">Terms of Use</span>
+                    <span class="int-he">תנאי שימוש</span><i class="fa fa-chevron-right"></i></a></li>
+        <li><a id="privacy" href="/privacy-policy">
+                    <span class="int-en">Privacy Policy</span>
+                    <span class="int-he">מדיניות פרטיות</span></a><i class="fa fa-chevron-right"></i></li>
     </ul></nav>
 <script>
   const mobile = "{{mobile}}" === "1";
@@ -29,5 +42,8 @@
   else {
       const aboutSidebar = document.getElementById("aboutSidebar");
       aboutSidebar.className = 'mobileAbout';
+      const footer = document.getElementById("footerContainer");
+      footer.className = "mobileAbout";
+      console.log(footer);
   }
 </script>
