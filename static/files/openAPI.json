@@ -4945,7 +4945,7 @@
             "ref": {
                 "description": "A string representing a citation to a Jewish text. \n\nA valid `Ref` consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
                 "type": "string",
-                "example": "\"Mishnah Peah 4:2\""
+                "example": "Mishnah Peah 4:2"
             },
             "versionData": {
                 "title": "Root Type for versionData",
