@@ -997,7 +997,7 @@ class AbstractSchemaContent(object):
 
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
-        Get's or sets values deep within the content of this version.
+        Gets or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
         http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
         :param key_list: The node keys to traverse to get to the content node
