@@ -66,6 +66,7 @@ babel
 python-bidi
 requests
 Cerberus
+dnspython
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
