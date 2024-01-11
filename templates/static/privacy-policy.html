@@ -7,14 +7,16 @@
 
 {% block content %}
 <div id="" class="container doc legal static">
-    {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" %}
-    {% endif %}
+
 	<div class="inner">
-        <div id="legalTabs">
-    		<a href="/terms">Terms of Use</a>
-    		<a href="/privacy-policy" class="current">Privacy Policy</a>
-    	</div>
+        {% if not request.user_agent.is_mobile %}
+            {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" %}
+        {% else %}
+            <div id="legalTabs">
+                <a href="/terms">Terms of Use</a>
+                <a href="/privacy-policy" class="current">Privacy Policy</a>
+            </div>
+        {% endif %}
         <iframe src="https://docs.google.com/document/d/e/2PACX-1vTItZ7aXzScKUIzMgWP8GaiWjjKPDAXGDUVpvLG8vv-xb42MaGGQMjctIQwKKT5pAuSHSFCKyHfdm53/pub?embedded=true"></iframe>    </div>
 </div>
 {% endblock %}

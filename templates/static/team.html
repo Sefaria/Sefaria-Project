@@ -20,12 +20,13 @@
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
             <header>
+            {% if not request.user_agent.is_mobile %}
+                {% include '_sidebar.html' with whichPage='team' title="Team" %}
+            {% else %}
                 <h1>
                     <span class="int-en serif">Team</span>
                     <span class="int-he">צוות ספריא</span>
                 </h1>
-            {% if not request.user_agent.is_mobile %}
-                {% include '_sidebar.html' with whichPage='team' title="Team" %}
             {% endif %}
             <header>
 

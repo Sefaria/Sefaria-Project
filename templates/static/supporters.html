@@ -8,12 +8,13 @@
 {% block content %}
 <div id="supportersPage" class="container static biReady">
     <div class="inner">
-        <h1>
-            <span class="int-en">Our Supporters</span>
-            <span class="int-he">התומכים שלנו</span>
-        </h1>
         {% if not request.user_agent.is_mobile %}
             {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
+        {% else %}
+            <h1>
+            <span class="int-en">Our Supporters</span>
+            <span class="int-he">התומכים שלנו</span>
+            </h1>
         {% endif %}
         <div class="section leading-supporters">
             <p class="tagline">

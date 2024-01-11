@@ -10,14 +10,16 @@
 
 <div id="metricsPage" class="biReady container static">
 
-    {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='metrics' title="Metrics" %}
-    {% endif %}
+
 	<div class="inner">
-        <h1>
-            <span class="int-en">Metrics</span>
-            <span class="int-he">מדדים</span>
-        </h1>
+        {% if not request.user_agent.is_mobile %}
+            {% include '_sidebar.html' with whichPage='metrics' title="Metrics" %}
+        {% else %}
+            <h1>
+                <span class="int-en">Metrics</span>
+                <span class="int-he">מדדים</span>
+            </h1>
+        {% endif %}
 		<div id="metricsBox">
 			{% trans "Loading..." %}
 		</div>

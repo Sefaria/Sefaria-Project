@@ -1,7 +1,5 @@
 {% load i18n %}
 
-
-
     <nav id="aboutSidebar"><h1>
 {{title}}</h1><ul>
         <li><a id="about" href="/about">
@@ -34,8 +32,7 @@
   if (!mobile) {
       const whichPage = "{{whichPage}}";
       const item = document.getElementById(whichPage);
-      item.style['background-color'] = "#CCCCCC";
-      item.style['color'] = '#000000';
+      item.className = 'selected';
       const aboutSidebar = document.getElementById("aboutSidebar");
       aboutSidebar.className = `${whichPage}WhatIsSefaria`;
   }
