@@ -3945,8 +3945,8 @@ class Ref(object, metaclass=RefCacheType):
 
     def context_ref(self, level=1):
         """
-        :return: :class:`Ref` that is more general than this :class:`Ref`.
         :param level: how many levels to 'zoom out' from the most specific possible :class:`Ref`
+        :return: :class:`Ref` that is more general than this :class:`Ref`.
 
         ::
 
