@@ -368,42 +368,6 @@
                 }
             ]
         },
-        "/api/texts/random/": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "titles",
-                        "description": "A string of book titles from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those titles.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "categories",
-                        "description": "A string of categories from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those categories.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/textAPIReponse"
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Random Text API",
-                "description": "Returns a random text reference from the Sefaria library. Results can be limited to a specific category or from a selection of titles given the correct query params."
-            }
-        },
         "/api/manuscripts/{tref}": {
             "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
             "get": {
@@ -4938,6 +4902,42 @@
                     "required": true
                 }
             ]
+        },
+        "/api/texts/random": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "titles",
+                        "description": "A string of book titles from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those titles.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "categories",
+                        "description": "A string of categories from the Sefaria library separated with the character `|`. If it exists it will limit the random selection to those categories.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/textAPIReponse"
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Random Text API",
+                "description": "Returns a random text reference from the Sefaria library. Results can be limited to a specific category or from a selection of titles given the correct query params."
+            }
         }
     },
     "components": {
