@@ -5640,6 +5640,12 @@ class Library(object):
         return term_dict
 
     def build_term_mappings(self):
+        """
+           Build simple and full term mappings
+           A full term mapping has the term name as the key, and the term as the value.
+           A simple term mapping has the term name as the key, and a dictionary containing the English and Hebrew
+           primary titles for the terms as the value.
+        """
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
@@ -5675,6 +5681,11 @@ class Library(object):
         return self._simple_term_mapping_json
 
     def get_term(self, term_name):
+        """
+        Returns the full term, if mapping not present, builds the full term mapping.
+        :param term_name: String
+        :returns: full Term (Mongo Record)
+        """
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
@@ -5682,15 +5693,27 @@ class Library(object):
 
 
     def get_topic(self, slug):
+        """
+        Returns the corresponding topic for a given slug
+        :param slug: String
+        :returns: topic map for the given slug Dictionary
+        """
         return self._topic_mapping[slug]
 
     def get_topic_mapping(self, rebuild=False):
+        """
+        Returns the topic mapping if it exists, if not rebuilds it and returns
+        :param rebuild: Boolean (optional, default set to False)
+        """
         tm = self._topic_mapping
         if not tm or rebuild:
             tm = self._build_topic_mapping()
         return tm
 
     def _build_topic_mapping(self):
+        """
+        Builds the topic mapping
+        """
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
@@ -5734,6 +5757,9 @@ class Library(object):
         return root_nodes
 
     def all_index_records(self):
+        """
+        Returns an array of all index records
+        """
         return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
 
     def get_title_node_dict(self, lang="en"):
@@ -5800,6 +5826,11 @@ class Library(object):
         return title_list
 
     def get_text_titles_json(self, lang="en", rebuild=False):
+        """
+        Returns the json text title list
+        :param lang: String (optional, default set to 'en')
+        :param rebuild: Boolean (optional, default set to False)
+        """
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
@@ -5813,6 +5844,9 @@ class Library(object):
         return self._full_title_list_jsons[lang]
 
     def reset_text_titles_cache(self):
+        """
+        Resets the text titles for all languages
+        """
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
@@ -6058,6 +6092,19 @@ class Library(object):
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
+        """
+        Given a string with a Ref not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
+        it returns a regex for the Ref.
+        If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
+        limit the search to content inside parenthesis to limit false positives (i.e. שבת לא תעשה could be caught by
+        mistake as Shabbat 31)
+        :param title: String
+        :param lang: 'en' or 'he'
+        :param for_js: Boolean (default set to False, optional)
+        :param anchored: Boolean (default set to False, optional)
+        :param capture_title: Boolean (default set to False, optional)
+        :param parentheses: Boolean (default set to False, optional)
+        """
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
@@ -6210,6 +6257,11 @@ class Library(object):
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
+        """Returns a dict of unique category ids based on the ToC
+        :param toc: ToC object (optional, default is None)
+        :param cat_head: String, (optional, default is "" - an empty string)
+        :param code_head: String, (optional, default is "" - an empty string)
+        """
         if toc is None:
             if not self._category_id_dict:
                 self._category_id_dict = self.category_id_dict(self.get_toc())
@@ -6233,6 +6285,12 @@ class Library(object):
         return d
 
     def simplify_toc(self, lang=None, toc_node=None, path=None):
+        """
+        Simplifies the table of contents (ToC)
+        :param lang: 'en' or 'he', default is None (optional)
+        :param toc_node: ToC Node, default is None (optional)
+        :param path: Node Path, default is None (optional)
+        """
         is_root = toc_node is None and path is None
         toc_node = toc_node if toc_node else self.get_toc()
         path = path if path else []
