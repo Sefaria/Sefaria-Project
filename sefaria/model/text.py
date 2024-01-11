@@ -5033,7 +5033,7 @@ class Library(object):
         While building these ToC data structures, this function also builds the equivalent JSON structures
         as an API optimization.
 
-        @param: skip_toc_tree boolean
+        :param skip_toc_tree: Boolean
         """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
@@ -5127,7 +5127,7 @@ class Library(object):
     def get_topic_toc_json(self, rebuild=False):
         """
         Returns JSON representation of Topics ToC.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -5141,9 +5141,9 @@ class Library(object):
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
         Returns JSON representation of Topics ToC
-        @param: topic Topic
-        @param: explored Set
-        @param: with_descriptions boolean
+        :param topic: Topic
+        :param explored: Set
+        :param with_descriptions: Boolean
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
@@ -5210,7 +5210,7 @@ class Library(object):
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
         """
         Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
@@ -5263,7 +5263,7 @@ class Library(object):
     def get_topic_link_type(self, link_type):
         """
         Returns a TopicLinkType with a slug of link_type (parameter) if not already present
-        @param: link_type String
+        :param link_type: String
         """
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
@@ -5276,7 +5276,7 @@ class Library(object):
     def get_topic_data_source(self, data_source):
         """
         Returns a TopicDataSource with the data_source (parameter) slug if not already present
-        @param: data_source String
+        :param data_source: String
         """
         from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
@@ -5380,7 +5380,7 @@ class Library(object):
         is not present, it assumes the need to rebuild the lexicon_auto_completer and calls the build
         function with appropriate logger warnings before returning the desired result
 
-        @param: lexicon String
+        :param lexicon: String
         """
         try:
             return self._lexicon_auto_completer[lexicon]
@@ -5774,9 +5774,9 @@ class Library(object):
 
     def full_title_list(self, lang="en", with_terms=False):
         """
-        :return: list of strings of all possible titles
         :param lang: "he" or "en"
         :param with_terms: if True, includes shared titles ('terms')
+        :return: list of strings of all possible titles
         """
         key = lang
         key += "_terms" if with_terms else ""
