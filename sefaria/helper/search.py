@@ -150,5 +150,11 @@ def make_filter(type, agg_type, agg_key):
 
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
-    from sefaria.settings import SEARCH_URL
+    try:
+        from sefaria.settings import SEARCH_URL
+    except ImportError as e:
+        print(f"Failed to import SEARCH_URL: {e}")
+        # Set a default value for SEARCH_URL or handle it in another way
+        SEARCH_URL = "http://default-search-url.com"  # Replace with a sensible default URL
+
     return Elasticsearch(SEARCH_URL)

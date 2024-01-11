@@ -10,9 +10,7 @@
         <h1>
             <span class="int-en">Delete User</span>
         </h1>
-        <h2> CAUTION THIS WILL DELETE THE USER ASSOCIATED WITH THE EMAIL YOU INPUT</h2>
-        <h3>IT CANNOT BE UNDONE.</h3>
-        <form method="post" autocomplete="off" if="delete-form" action="{% url "delete/user-account" %}">
+        <form method="post" if="delete-form" action="{% url "delete/user-account" %}">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="button control-elem">

@@ -1,26 +1,29 @@
-# Use an official Python runtime as a parent image
-FROM python:3.7-slim
+# Use node-python image as the base image
+FROM beevk/node-python:0.2
 
-# Set the working directory to /app
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy the local_settings.py file to the working directory
+COPY ./sefaria/local_settings.py ./sefaria/local_settings.py
 
-# Install psycopg2 dependencies
-RUN apt-get update && apt-get install -y libpq-dev
+# Copy the requirements.txt file and install dependencies
+COPY requirements.txt ./
+COPY package*.json ./
 
-# Install gcc
-RUN apt-get update && apt-get install -y gcc
+RUN pip install -r requirements.txt
+RUN npm install --unsafe-perm
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+COPY ./node ./node
+COPY ./static/js ./static/js
 
-# Make port 8000 available to the world outside this container
+RUN npm run setup
+RUN npm run build-prod
+
+COPY . ./
+
+# Run Django migrations and start the server
+CMD ["bash", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+
+# Expose the port that the Django server will listen on
 EXPOSE 8000
-
-# Define environment variable
-ENV NAME Sefaria-Project
-
-# Run app.py when the container launches
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

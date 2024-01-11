@@ -41,13 +41,32 @@ CACHES = {
 
 SITE_PACKAGE = "sites.sefaria"
 
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', "0.0.0.0", '[::1]']
+DEBUG = os.getenv("DEBUG", True)
+
+REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org').replace(" ", "")
+
+LOCAL_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    "0.0.0.0",
+    '[::1]'
+]
+
+ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
+
+# ALLOWED_HOSTS = [
+#     'indrajala.com',
+#     'localhost',
+#     '127.0.0.1',
+#     "0.0.0.0",
+#     '[::1]'
+# ]
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 
 SECRET_KEY = 'insert your long random secret key here !'
@@ -69,7 +88,7 @@ SEFARIA_DB_PASSWORD = ''
 APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-SEARCH_URL = "http://localhost:9200"
+SEARCH_ADMIN = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
@@ -192,9 +211,6 @@ LOGGING = {
         },
     }
 }
-
-STRAPI_LOCATION = None
-STRAPI_PORT = None
 
 structlog.configure(
     processors=[

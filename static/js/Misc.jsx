@@ -1,28 +1,28 @@
 //const React      = require('react');
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import $ from './sefaria/sefariaJquery';
-import {CollectionsModal} from "./CollectionsWidget";
+import { CollectionsModal } from "./CollectionsWidget";
 import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
-import {ContentLanguageContext, AdContext, StrapiDataContext} from './context';
+import { ContentLanguageContext, AdContext } from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import {ContentText} from "./ContentText";
+import { Editor } from "slate";
 import ReactTags from "react-tag-autocomplete";
-import {AdminEditorButton, useEditToggle} from "./AdminEditor";
-import {CategoryEditor, ReorderEditor} from "./CategoryEditor";
-import {refSort} from "./TopicPage";
-import {TopicEditor} from "./TopicEditor";
-import {generateContentForModal, SignUpModalKind} from './sefaria/signupModalContent';
-import {SourceEditor} from "./SourceEditor";
+import { AdminEditorButton, useEditToggle } from "./AdminEditor";
+import { CategoryEditor, ReorderEditor } from "./CategoryEditor";
+import { refSort } from "./TopicPage";
+import { TopicEditor } from "./TopicEditor";
+import { SignUpModalKind, generateContentForModal } from './sefaria/signupModalContent';
+import { SourceEditor } from "./SourceEditor";
 import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
-import TrackG4 from "./sefaria/trackG4";
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -35,32 +35,32 @@ import TrackG4 from "./sefaria/trackG4";
  * @returns {JSX.Element}
  * @constructor
  */
-const HebrewText = ({children}) => (
-    <>{children}</>
+const HebrewText = ({ children }) => (
+  <>{children}</>
 );
-const EnglishText = ({children}) => (
-    <>{children}</>
+const EnglishText = ({ children }) => (
+  <>{children}</>
 );
 
 const AvailableLanguages = () => {
-  return {"english" : EnglishText, "hebrew": HebrewText};
+  return { "english": EnglishText, "hebrew": HebrewText };
 };
 const AvailableLanguagesValidator = (children, key, componentName, location, propFullName) => {
-    if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1) )) {
-      return new Error(
-        'Invalid prop `' + propFullName + '` supplied to' +
-        ' `' + componentName + '`. Validation failed.'
-      );
-    }
+  if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1))) {
+    return new Error(
+      'Invalid prop `' + propFullName + '` supplied to' +
+      ' `' + componentName + '`. Validation failed.'
+    );
+  }
 };
 const __filterChildrenByLanguage = (children, language) => {
   let chlArr = React.Children.toArray(children);
   let currLangComponent = AvailableLanguages()[language];
-  let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+  let newChildren = chlArr.filter(x => x.type == currLangComponent);
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
+const InterfaceText = ({ text, html, markdown, children, context }) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -69,20 +69,21 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const contentVariable = html || markdown || text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
+  const contentVariable = html ?
+    html : markdown ? markdown : text;  // assumption is `markdown` or `html` are preferred over `text` if they are present
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
+  let elemclasses = classNames({ "int-en": !isHebrew, "int-he": isHebrew });
   let textResponse = null;
   if (contentVariable) {// Prioritize explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case.
-    let {he, en} = contentVariable;
+    let { he, en } = contentVariable;
     textResponse = isHebrew ? (he || en) : (en || he);
-    let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "" );
+    let fallbackCls = (isHebrew && !he) ? " enInHe" : ((!isHebrew && !en) ? " heInEn" : "");
     elemclasses += fallbackCls;
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
       textResponse = Sefaria._(children, context);
-    } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
+    } else if (chlCount <= Object.keys(AvailableLanguages()).length) { // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
       textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
     } else {
@@ -91,16 +92,16 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   }
   return (
     html ?
-      <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
-                    : <span className={elemclasses}>{textResponse}</span>
+      <span className={elemclasses} dangerouslySetInnerHTML={{ __html: textResponse }} />
+      : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+        : <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
   //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
   children: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.arrayOf(AvailableLanguagesValidator),
+    PropTypes.string,
+    PropTypes.arrayOf(AvailableLanguagesValidator),
   ]),
   content: PropTypes.object,
   html: PropTypes.object,
@@ -108,21 +109,58 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
+const ContentText = ({ text, html, overrideLanguage, defaultToInterfaceOnBilingual = false, bilingualOrder = null }) => {
+  /**
+   * Renders content language throughout the site (content that comes from the database and is not interface language)
+   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
+   * bilingualOrder is an array of short language notations (e.g. ["he", "en"]) meant to tell the component what
+   * order to render the bilingual langauage elements in (as opposed to the unguaranteed order by default).
+   */
+  const [contentVariable, isDangerouslySetInnerHTML] = html ? [html, true] : [text, false];
+  const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0, 2);
+  let renderedItems = Object.entries(contentVariable);
+  if (languageToFilter === "bilingual") {
+    if (bilingualOrder !== null) {
+      //nifty function that sorts one array according to the order of a second array.
+      renderedItems.sort(function (a, b) {
+        return bilingualOrder.indexOf(a[0]) - bilingualOrder.indexOf(b[0]);
+      });
+    }
+  } else {
+    renderedItems = renderedItems.filter(([lang, _]) => {
+      return lang === langShort;
+    });
+  }
+  return renderedItems.map(x =>
+    isDangerouslySetInnerHTML ?
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{ __html: x[1] }} />
+      :
+      <span className={`contentSpan ${x[0]}`} lang={x[0]} key={x[0]}>{x[1]}</span>
+  );
+};
+
+
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
 
-const DonateLink = ({children, classes, source, link}) => {
+const DonateLink = ({ children, classes, source, link }) => {
   link = link || "default";
   source = source || "undefined";
   const linkOptions = {
     default: {
-      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
+      en: "https://donate.sefaria.org/en",
+      he: "https://donate.sefaria.org/he"
     },
     sustainer: {
-      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
+      en: "https://donate.sefaria.org/sustainers",
+      he: "https://donate.sefaria.org/sustainershe"
     },
     dayOfLearning: {
       en: "https://donate.sefaria.org/sponsor",
@@ -146,14 +184,14 @@ class ProfilePic extends Component {
       showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
-      crop: {unit: "px", width: 250, aspect: 1},
+      crop: { unit: "px", width: 250, aspect: 1 },
       croppedImageBlob: null,
       error: null,
     };
     this.imgFile = React.createRef();
   }
-  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
-  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
+  setShowDefault() { /* console.log("error"); */ this.setState({ showDefault: true }); }
+  setShowImage() { /* console.log("load"); */ this.setState({ showDefault: false }); }
   componentDidMount() {
     if (this.didImageLoad()) {
       this.setShowImage();
@@ -161,7 +199,7 @@ class ProfilePic extends Component {
       this.setShowDefault();
     }
   }
-  didImageLoad(){
+  didImageLoad() {
     // When using React Hydrate, the onLoad event of the profile image will return before
     // react code runs, so we check after mount as well to look replace bad images, or to
     // swap in a gravatar image that we now know is valid.
@@ -171,7 +209,7 @@ class ProfilePic extends Component {
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
-        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)"});
+        this.setState({ error: "Error: Please upload an image with the correct file extension (e.g. jpg, png)" });
         return;
       }
       const reader = new FileReader();
@@ -192,11 +230,11 @@ class ProfilePic extends Component {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
     if (this.state.isFirstCropChange) {
-      const { clientWidth:width, clientHeight:height } = this.imageRef;
+      const { clientWidth: width, clientHeight: height } = this.imageRef;
       crop.width = Math.min(width, height);
       crop.height = crop.width;
-      crop.x = (this.imageRef.width/2) - (crop.width/2);
-      crop.y = (this.imageRef.height/2) - (crop.width/2);
+      crop.x = (this.imageRef.width / 2) - (crop.width / 2);
+      crop.y = (this.imageRef.height / 2) - (crop.width / 2);
       this.setState({ crop, isFirstCropChange: false });
     } else {
       this.setState({ crop });
@@ -246,7 +284,7 @@ class ProfilePic extends Component {
   closePopup({ cb }) {
     this.setState({
       src: null,
-      crop: {unit: "px", width: 250, aspect: 1},
+      crop: { unit: "px", width: 250, aspect: 1 },
       isFirstCropChange: true,
       croppedImageBlob: null,
       error: null,
@@ -262,10 +300,12 @@ class ProfilePic extends Component {
       if (response.error) {
         throw new Error(response.error);
       } else {
-        this.closePopup({ cb: () => {
-          window.location = "/profile/" + Sefaria.slug; // reload to get update
-          return;
-        }});
+        this.closePopup({
+          cb: () => {
+            window.location = "/profile/" + Sefaria.slug; // reload to get update
+            return;
+          }
+        });
       }
     } catch (e) {
       errored = true;
@@ -277,20 +317,20 @@ class ProfilePic extends Component {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length - 1][0]) : "";
     const defaultViz = showDefault ? 'flex' : 'none';
     const profileViz = showDefault ? 'none' : 'block';
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
 
     return (
       <div style={outerStyle} className="profile-pic">
-        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
-          { showButtons ? null : `${initials}` }
+        <div className={classNames({ 'default-profile-img': 1, noselect: 1, invisible: hideOnDefault })}
+          style={{ display: defaultViz, width: len, height: len, fontSize: len / 2 }}>
+          {showButtons ? null : `${initials}`}
         </div>
         <img
           className="img-circle profile-img"
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          style={{ display: profileViz, width: len, height: len, fontSize: len / 2 }}
           src={imageSrc}
           alt="User Profile Picture"
           ref={this.imgFile}
@@ -298,33 +338,33 @@ class ProfilePic extends Component {
           onError={this.setShowDefault}
         />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
-        { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
-            (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
-              <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
-              <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
-                <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
-              </label>
-            </div>) : null
-          }
-          { (src || !!error) && (
-            <div id="interruptingMessageBox" className="sefariaModalBox">
-              <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
-              <div id="interruptingMessage" className="profile-pic-cropper-modal">
-                <div className="sefariaModalContent profile-pic-cropper-modal-inner">
-                  { src ?
-                    (<ReactCrop
-                      src={src}
-                      crop={crop}
-                      className="profile-pic-cropper"
-                      keepSelection
-                      onImageLoaded={this.onImageLoaded}
-                      onComplete={this.onCropComplete}
-                      onChange={this.onCropChange}
-                    />) : (<div className="profile-pic-cropper-error">{ error }</div>)
-                  }
+        {showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
+          (<div className={classNames({ "profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1 })}>
+            <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event) => { event.target.value = null }} />
+            <label htmlFor="profile-pic-input-file" className={classNames({ resourcesLink: 1, blue: showDefault })}>
+              <span className="int-en">{showDefault ? "Add Picture" : "Upload New"}</span>
+              <span className="int-he">{showDefault ? "הוספת תמונה" : "עדכון תמונה"}</span>
+            </label>
+          </div>) : null
+        }
+        {(src || !!error) && (
+          <div id="interruptingMessageBox" className="sefariaModalBox">
+            <div id="interruptingMessageOverlay" onClick={this.closePopup}></div>
+            <div id="interruptingMessage" className="profile-pic-cropper-modal">
+              <div className="sefariaModalContent profile-pic-cropper-modal-inner">
+                {src ?
+                  (<ReactCrop
+                    src={src}
+                    crop={crop}
+                    className="profile-pic-cropper"
+                    keepSelection
+                    onImageLoaded={this.onImageLoaded}
+                    onComplete={this.onCropComplete}
+                    onChange={this.onCropChange}
+                  />) : (<div className="profile-pic-cropper-error">{error}</div>)
+                }
               </div>
-              { (uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
+              {(uploading || isFirstCropChange) ? (<div className="profile-pic-loading"><LoadingRing /></div>) : (
                 <div>
                   <div className="smallText profile-pic-cropper-desc">
                     <span className="int-en">Drag corners to crop image</span>
@@ -341,66 +381,40 @@ class ProfilePic extends Component {
                     </a>
                   </div>
                 </div>
-                )
+              )
               }
             </div>
           </div>
-          )
+        )
         }
       </div>
     );
   }
 }
 ProfilePic.propTypes = {
-  url:           PropTypes.string,
-  name:          PropTypes.string,
-  len:           PropTypes.number,
+  url: PropTypes.string,
+  name: PropTypes.string,
+  len: PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
-  showButtons:   PropTypes.bool,  // show profile pic action buttons
+  showButtons: PropTypes.bool,  // show profile pic action buttons
 };
 
 
-/**
- * Renders a list of data that can be filtered and sorted
- * @param filterFunc
- * @param sortFunc
- * @param renderItem
- * @param sortOptions
- * @param getData
- * @param data
- * @param renderEmptyList
- * @param renderHeader
- * @param renderFooter
- * @param showFilterHeader
- * @param refreshData
- * @param initialFilter
- * @param scrollableElement
- * @param pageSize
- * @param onDisplayedDataChange
- * @param initialRenderSize
- * @param bottomMargin
- * @param containerClass
- * @param onSetSort: optional. function that is passed the current sort option when the user changes it. Use this to control sort from outside the component. See `externalSortOption`.
- * @param externalSortOption: optional. string that is one of the options in `sortOptions`. Use this to control sort from outside the component. See `onSetSort`.
- * @returns {JSX.Element}
- * @constructor
- */
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
-  bottomMargin, containerClass, onSetSort, externalSortOption,
+  bottomMargin, containerClass
 }) => {
   const [filter, setFilter] = useState(initialFilter || '');
-  const [internalSortOption, setSortOption] = useState(sortOptions[0]);
+  const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
-  const sortOption = externalSortOption || internalSortOption;
 
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
-      .filter(item => !filter ? true : filterFunc(filter, item))
-      .sort((a, b) => sortFunc(sortOption, a, b))
-      : [];
+    .filter(item => !filter ? true : filterFunc(filter, item))
+    .sort((a, b) => sortFunc(sortOption, a, b))
+    : [];
 
   const cachedData = data || null;
   const [loading, setLoading] = useState(!cachedData);
@@ -446,11 +460,10 @@ const FilterableList = ({
     }, [dataUpToPage]);
   }
 
-  const setSort = newSortOption => {
+  const onSortChange = newSortOption => {
     if (newSortOption === sortOption) { return; }
     setSortOption(newSortOption);
     setDisplaySort(false);
-    onSetSort?.(newSortOption);
   };
 
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -468,26 +481,26 @@ const FilterableList = ({
           />
         </div>
         <div>
-          { sortOptions.length > 1 ?
-            <DropdownModal close={()=>setDisplaySort(false)} isOpen={displaySort}>
+          {sortOptions.length > 1 ?
+            <DropdownModal close={() => setDisplaySort(false)} isOpen={displaySort}>
               <DropdownButton
                 isOpen={displaySort}
-                toggle={()=>setDisplaySort(prev => !prev)}
+                toggle={() => setDisplaySort(prev => !prev)}
                 enText={"Sort"}
                 heText={"מיון"}
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
+                options={sortOptions.map(option => ({ type: option, name: option, heName: Sefaria._(option, "FilterableList") }))}
                 currOptionSelected={sortOption}
-                handleClick={setSort}
+                handleClick={onSortChange}
               />
             </DropdownModal>
             : null
           }
         </div>
-      </div> : null }
-      { !oldDesign && showFilterHeader ? (
+      </div> : null}
+      {!oldDesign && showFilterHeader ? (
         <div className="filter-bar-new">
           <div className="filter-input">
             <SearchButton />
@@ -503,11 +516,11 @@ const FilterableList = ({
             <span className="systemText">
               <InterfaceText>Sort by</InterfaceText>
             </span>
-            { sortOptions.map(option =>(
+            {sortOptions.map(option => (
               <span
                 key={option}
-                className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
-                onClick={() => setSort(option)}
+                className={classNames({ 'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option })}
+                onClick={() => onSortChange(option)}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -517,29 +530,29 @@ const FilterableList = ({
       ) : null}
       {
         loading ? <LoadingMessage /> :
-        <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
-          {dataUpToPage.length ?
-          <>
-            { !!renderHeader ? renderHeader({filter}) : null }
-            { dataUpToPage.map(renderItem) }
-          </>
-          : <>{!!renderEmptyList ? renderEmptyList({filter}) : null}</>}
-          { !!renderFooter ? renderFooter({filter}) : null }
-        </div>
+          <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
+            {dataUpToPage.length ?
+              <>
+                {!!renderHeader ? renderHeader({ filter }) : null}
+                {dataUpToPage.map(renderItem)}
+              </>
+              : <>{!!renderEmptyList ? renderEmptyList({ filter }) : null}</>}
+            {!!renderFooter ? renderFooter({ filter }) : null}
+          </div>
       }
     </div>
   );
 };
 FilterableList.propTypes = {
-  filterFunc:       PropTypes.func.isRequired,
-  sortFunc:         PropTypes.func.isRequired,
-  renderItem:       PropTypes.func.isRequired,
-  sortOptions:      PropTypes.array.isRequired,
-  getData:          PropTypes.func,   // At least one of `getData` or `data` is required
-  data:             PropTypes.array,
-  renderEmptyList:  PropTypes.func,
-  renderHeader:     PropTypes.func,
-  renderFooter:     PropTypes.func,
+  filterFunc: PropTypes.func.isRequired,
+  sortFunc: PropTypes.func.isRequired,
+  renderItem: PropTypes.func.isRequired,
+  sortOptions: PropTypes.array.isRequired,
+  getData: PropTypes.func,   // At least one of `getData` or `data` is required
+  data: PropTypes.array,
+  renderEmptyList: PropTypes.func,
+  renderHeader: PropTypes.func,
+  renderFooter: PropTypes.func,
   showFilterHeader: PropTypes.bool,
 };
 
@@ -558,7 +571,7 @@ class TabView extends Component {
     }
   }
   openTab(index) {
-    this.setState({currTabIndex: index});
+    this.setState({ currTabIndex: index });
   }
   getTabIndex() {
     let tabIndex;
@@ -569,7 +582,7 @@ class TabView extends Component {
     } else {
       tabIndex = this.props.tabs.findIndex(tab => tab.id === this.props.currTabName ? true : false)
     }
-    if(tabIndex === -1) {
+    if (tabIndex === -1) {
       tabIndex = 0;
     }
     return tabIndex;
@@ -594,29 +607,29 @@ class TabView extends Component {
   renderTab(tab, index) {
     const currTabIndex = this.getTabIndex();
     return (
-      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.id} data-tab-index={index} onClick={(e) => {this.onClickTab(e, tab.clickTabOverride)}}>
+      <div className={classNames({ active: currTabIndex === index, justifyright: tab.justifyright })} key={tab.id} data-tab-index={index} onClick={(e) => { this.onClickTab(e, tab.clickTabOverride) }}>
         {this.props.renderTab(tab, index)}
       </div>
     );
   }
   render() {
     const currTabIndex = this.getTabIndex();
-    const classes = classNames({"tab-view": 1, [this.props.containerClasses]: 1});
+    const classes = classNames({ "tab-view": 1, [this.props.containerClasses]: 1 });
     return (
       <div className={classes}>
         <div className="tab-list sans-serif">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[currTabIndex] }
+        {React.Children.toArray(this.props.children)[currTabIndex]}
       </div>
     );
   }
 }
 TabView.propTypes = {
-  tabs:         PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
-  renderTab:    PropTypes.func.isRequired,
-  currTabName:  PropTypes.string,  // optional. If passed, TabView will be controlled from outside
-  setTab:       PropTypes.func,    // optional. If passed, TabView will be controlled from outside
+  tabs: PropTypes.array.isRequired,  // array of objects of any form. only requirement is each tab has a unique 'id' field. These objects will be passed to renderTab.
+  renderTab: PropTypes.func.isRequired,
+  currTabName: PropTypes.string,  // optional. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,    // optional. If passed, TabView will be controlled from outside
   onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
 
@@ -624,16 +637,16 @@ TabView.propTypes = {
 class DropdownOptionList extends Component {
   render() {
     return (
-      <div className={(this.props.isOpen) ? "dropdown-option-list" :"dropdown-option-list hidden"}>
+      <div className={(this.props.isOpen) ? "dropdown-option-list" : "dropdown-option-list hidden"}>
         <table>
           <tbody>
             {
-              this.props.options.map( (option, iSortTypeObj) => {
-                const tempClasses = classNames({'filter-title': 1, unselected: this.props.currOptionSelected !== option.type});
+              this.props.options.map((option, iSortTypeObj) => {
+                const tempClasses = classNames({ 'filter-title': 1, unselected: this.props.currOptionSelected !== option.type });
                 return (
-                  <tr key={option.type} className={tempClasses} onClick={()=>{ this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => {e.charCode == 13 ? this.props.handleClick(option.type) : null}} aria-label={`Sort by ${option.name}`}>
+                  <tr key={option.type} className={tempClasses} onClick={() => { this.props.handleClick(option.type); }} tabIndex={`${iSortTypeObj}`} onKeyPress={e => { e.charCode == 13 ? this.props.handleClick(option.type) : null }} aria-label={`Sort by ${option.name}`}>
                     <td>
-                      <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
+                      <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`} />
                     </td>
                     <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
@@ -659,20 +672,20 @@ DropdownOptionList.propTypes = {
 };
 
 
-const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
+const DropdownButton = ({ isOpen, toggle, enText, heText, buttonStyle }) => {
   const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen, buttonStyle });
   return (
-    <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
-      <InterfaceText text={{en: enText, he: heText}} />
-      {isOpen ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
+    <div className={filterTextClasses} tabIndex="0" onClick={toggle} onKeyPress={(e) => { e.charCode == 13 ? toggle(e) : null }}>
+      <InterfaceText text={{ en: enText, he: heText }} />
+      {isOpen ? <img src="/static/img/arrow-up.png" alt="" /> : <img src="/static/img/arrow-down.png" alt="" />}
     </div>
   );
 };
 DropdownButton.propTypes = {
-  isOpen:      PropTypes.bool.isRequired,
-  toggle:      PropTypes.func.isRequired,
-  enText:      PropTypes.string.isRequired,
-  heText:      PropTypes.string.isRequired,
+  isOpen: PropTypes.bool.isRequired,
+  toggle: PropTypes.func.isRequired,
+  enText: PropTypes.string.isRequired,
+  heText: PropTypes.string.isRequired,
   buttonStyle: PropTypes.bool,
 };
 
@@ -692,15 +705,15 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset, "sans-serif": 1})}>
-        { this.props.children }
+      <div className={classNames({ "dropdown-modal": 1, "position-unset": this.props.positionUnset, "sans-serif": 1 })}>
+        {this.props.children}
       </div>
     );
   }
 }
 DropdownModal.propTypes = {
-  close:   PropTypes.func.isRequired,
-  isOpen:  PropTypes.bool.isRequired,
+  close: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool.isRequired,
   positionUnset: PropTypes.bool,  // for search filters
 };
 
@@ -712,16 +725,16 @@ class Link extends Component {
   }
   render() {
     return <a
-              className={this.props.className}
-              href={this.props.href}
-              onClick={this.handleClick}
-              title={this.props.title}>{this.props.children}</a>
+      className={this.props.className}
+      href={this.props.href}
+      onClick={this.handleClick}
+      title={this.props.title}>{this.props.children}</a>
   }
 }
 Link.propTypes = {
-  href:    PropTypes.string.isRequired,
+  href: PropTypes.string.isRequired,
   onClick: PropTypes.func,
-  title:   PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
 };
 
 
@@ -734,7 +747,7 @@ class GlobalWarningMessage extends Component {
     return Sefaria.globalWarningMessage ?
       <div id="globalWarningMessage">
         <i className='close fa fa-times' onClick={this.close}></i>
-        <div dangerouslySetInnerHTML={ {__html: Sefaria.globalWarningMessage} }></div>
+        <div dangerouslySetInnerHTML={{ __html: Sefaria.globalWarningMessage }}></div>
       </div>
       : null;
   }
@@ -747,13 +760,13 @@ class TextBlockLink extends Component {
 
   render() {
     let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
-    const index    = Sefaria.index(book);
+    const index = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
-    const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
-    title    = title   || (showSections ? sref : book);
-    heTitle  = heTitle || (showSections ? heRef : index.heTitle);
-    const hlang = intlang ? "int-he": "he";
-    const elang = intlang ? "int-en": "en";
+    const style = { "borderColor": Sefaria.palette.categoryColor(category) };
+    title = title || (showSections ? sref : book);
+    heTitle = heTitle || (showSections ? heRef : index.heTitle);
+    const hlang = intlang ? "int-he" : "he";
+    const elang = intlang ? "int-en" : "en";
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -761,39 +774,39 @@ class TextBlockLink extends Component {
       byLine = sheetOwner;
     }
     const subtitle = displayValue ? (
-        <span className="blockLinkSubtitle">
-            <span className={elang}>{displayValue}</span>
-            <span className={hlang}>{heDisplayValue}</span>
-        </span>
+      <span className="blockLinkSubtitle">
+        <span className={elang}>{displayValue}</span>
+        <span className={hlang}>{heDisplayValue}</span>
+      </span>
     ) : null;
 
     position = position || 0;
     const isSheet = book === 'Sheet';
-    const classes  = classNames({refLink: !isSheet, sheetLink: isSheet, blockLink: 1, recentItem, calendarLink: (subtitle != null), saved });
+    const classes = classNames({ refLink: !isSheet, sheetLink: isSheet, blockLink: 1, recentItem, calendarLink: (subtitle != null), saved });
     url_string = url_string ? url_string : sref;
     let url;
     if (isSheet) {
-      url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.','')}`
+      url = `/sheets/${Sefaria.normRef(url_string).replace('Sheet.', '')}`
     } else {
-      url = "/" + Sefaria.normRef(url_string) + Sefaria.util.getUrlVersionsParams(currVersions).replace("&","?");
+      url = "/" + Sefaria.normRef(url_string) + Sefaria.util.getUrlVersionsParams(currVersions).replace("&", "?");
     }
 
     if (sideColor) {
       return (
         <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
-            <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
+            <div className="sideColor" data-ref-child={true} style={{ backgroundColor: Sefaria.palette.categoryColor(category) }} />
             <div className="sideColorInner" data-ref-child={true}>
               <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
               <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
-            { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
-            { !saved && timeStamp ?
+            {saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null}
+            {!saved && timeStamp ?
               <span className="sans-serif">
-                { Sefaria.util.naturalTime(timeStamp) }
-              </span>: null
+                {Sefaria.util.naturalTime(timeStamp)}
+              </span> : null
             }
           </div>
         </a>
@@ -809,27 +822,27 @@ class TextBlockLink extends Component {
   }
 }
 TextBlockLink.propTypes = {
-  sref:            PropTypes.string.isRequired,
-  currVersions:    PropTypes.object.isRequired,
-  heRef:           PropTypes.string,
-  book:            PropTypes.string,
-  category:        PropTypes.string,
-  title:           PropTypes.string,
-  heTitle:         PropTypes.string,
-  displayValue:    PropTypes.string,
-  heDisplayValue:  PropTypes.string,
-  url_string:      PropTypes.string,
-  showSections:    PropTypes.bool,
-  recentItem:      PropTypes.bool,
-  position:        PropTypes.number,
-  sideColor:       PropTypes.bool,
-  saved:           PropTypes.bool,
-  sheetTitle:      PropTypes.string,
-  sheetOwner:      PropTypes.string,
-  timeStamp:       PropTypes.number,
+  sref: PropTypes.string.isRequired,
+  currVersions: PropTypes.object.isRequired,
+  heRef: PropTypes.string,
+  book: PropTypes.string,
+  category: PropTypes.string,
+  title: PropTypes.string,
+  heTitle: PropTypes.string,
+  displayValue: PropTypes.string,
+  heDisplayValue: PropTypes.string,
+  url_string: PropTypes.string,
+  showSections: PropTypes.bool,
+  recentItem: PropTypes.bool,
+  position: PropTypes.number,
+  sideColor: PropTypes.bool,
+  saved: PropTypes.bool,
+  sheetTitle: PropTypes.string,
+  sheetOwner: PropTypes.string,
+  timeStamp: PropTypes.number,
 };
 TextBlockLink.defaultProps = {
-  currVersions: {en:null, he:null},
+  currVersions: { en: null, he: null },
 };
 
 
@@ -839,94 +852,95 @@ class LanguageToggleButton extends Component {
     this.props.toggleLanguage();
   }
   render() {
+    return <div />
     var url = this.props.url || "";
     return (<a href={url} className="languageToggle" onClick={this.toggle}>
-              <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
-              <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
-            </a>);
+      <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
+      <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
+    </a>);
   }
 }
 LanguageToggleButton.propTypes = {
   toggleLanguage: PropTypes.func.isRequired,
-  url:            PropTypes.string,
+  url: PropTypes.string,
 };
 
 
-const ColorBarBox = ({tref, children}) =>  (
-  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
+const ColorBarBox = ({ tref, children }) => (
+  <div className="colorBarBox" style={{ "borderColor": Sefaria.palette.refColor(tref) }}>{children}</div>
 );
 
 
-const DangerousInterfaceBlock = ({en, he, classes}) => (
-        <div className={classes}>
-          <InterfaceText html={{"en": en, "he":he}} />
-        </div>
-    );
+const DangerousInterfaceBlock = ({ en, he, classes }) => (
+  <div className={classes}>
+    <InterfaceText html={{ "en": en, "he": he }} />
+  </div>
+);
 DangerousInterfaceBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
-    classes: PropTypes.string
+  en: PropTypes.string,
+  he: PropTypes.string,
+  classes: PropTypes.string
 };
 
 
-const SimpleInterfaceBlock = ({en, he, classes}) => (
-        <div className={classes}>
-            <InterfaceText text={{en:en, he:he}} />
-        </div>
-    );
+const SimpleInterfaceBlock = ({ en, he, classes }) => (
+  <div className={classes}>
+    <InterfaceText text={{ en: en, he: he }} />
+  </div>
+);
 SimpleInterfaceBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
-    classes: PropTypes.string
+  en: PropTypes.string,
+  he: PropTypes.string,
+  classes: PropTypes.string
 };
 
 
-const SimpleContentBlock = ({children, classes}) => (
-        <div className={classes}>
-          {children}
-        </div>
-    );
+const SimpleContentBlock = ({ children, classes }) => (
+  <div className={classes}>
+    {children}
+  </div>
+);
 SimpleContentBlock.propTypes = {
-    classes: PropTypes.string
+  classes: PropTypes.string
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
+const SimpleLinkedBlock = ({ en, he, url, classes, aclasses, children, onClick, openInNewTab }) => (
   <div className={classes} onClick={onClick}>
     <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
-      <InterfaceText text={{en, he}}/>
+      <InterfaceText text={{ en, he }} />
     </a>
     {children}
   </div>
 );
 SimpleLinkedBlock.propTypes = {
-    en: PropTypes.string,
-    he: PropTypes.string,
-    url: PropTypes.string,
-    classes: PropTypes.string,
-    aclasses: PropTypes.string
+  en: PropTypes.string,
+  he: PropTypes.string,
+  url: PropTypes.string,
+  classes: PropTypes.string,
+  aclasses: PropTypes.string
 };
 
 
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var cn = {blockLink: 1};
+    var cn = { blockLink: 1 };
     var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
     cn[linkClass] = 1;
     var classes = classNames(cn);
-      return (<a className={classes} href={this.props.target}>
-              {this.props.image ? <img src={this.props.image} alt="" /> : null}
-              <span className={`${interfaceClass}en`}>{this.props.title}</span>
-              <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
-           </a>);
+    return (<a className={classes} href={this.props.target}>
+      {this.props.image ? <img src={this.props.image} alt="" /> : null}
+      <span className={`${interfaceClass}en`}>{this.props.title}</span>
+      <span className={`${interfaceClass}he`}>{this.props.heTitle}</span>
+    </a>);
   }
 }
 BlockLink.propTypes = {
-  title:         PropTypes.string,
-  heTitle:       PropTypes.string,
-  target:        PropTypes.string,
-  image:         PropTypes.string,
+  title: PropTypes.string,
+  heTitle: PropTypes.string,
+  target: PropTypes.string,
+  image: PropTypes.string,
   interfaceLink: PropTypes.bool
 };
 BlockLink.defaultProps = {
@@ -937,43 +951,43 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    let classes = {toggleSet: 1, separated: this.props.separated, blueStyle: this.props.blueStyle };
+    let classes = { toggleSet: 1, separated: this.props.separated, blueStyle: this.props.blueStyle };
     classes[this.props.name] = 1;
     classes = classNames(classes);
     const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    const style = {width: (width/this.props.options.length) + "%"};
+    const style = { width: (width / this.props.options.length) + "%" };
     const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role="radiogroup" aria-label={this.props.ariaLabel}>
         {label}
         <div className="toggleSetToggleBox">
           {this.props.options.map((option) => (
-          <ToggleOption
-            name={option.name}
-            key={option.name}
-            set={this.props.name}
-            role={option.role}
-            ariaLabel={option.ariaLabel}
-            on={this.props.currentValue == option.name}
-            setOption={this.props.setOption}
-            style={style}
-            image={option.image}
-            fa={option.fa}
-            content={option.content} />))}
+            <ToggleOption
+              name={option.name}
+              key={option.name}
+              set={this.props.name}
+              role={option.role}
+              ariaLabel={option.ariaLabel}
+              on={this.props.currentValue == option.name}
+              setOption={this.props.setOption}
+              style={style}
+              image={option.image}
+              fa={option.fa}
+              content={option.content} />))}
         </div>
       </div>);
   }
 }
 ToggleSet.propTypes = {
-  name:          PropTypes.string.isRequired,
-  label:         PropTypes.string,
-  setOption:     PropTypes.func.isRequired,
-  currentValue:  PropTypes.string,
-  options:       PropTypes.array.isRequired,
-  separated:     PropTypes.bool,
-  blueStyle:     PropTypes.bool,
-  role:          PropTypes.string,
-  ariaLabel:     PropTypes.string
+  name: PropTypes.string.isRequired,
+  label: PropTypes.string,
+  setOption: PropTypes.func.isRequired,
+  currentValue: PropTypes.string,
+  options: PropTypes.array.isRequired,
+  separated: PropTypes.bool,
+  blueStyle: PropTypes.bool,
+  role: PropTypes.string,
+  ariaLabel: PropTypes.string
 };
 
 
@@ -984,56 +998,56 @@ class ToggleOption extends Component {
     this.props.setOption(this.props.set, this.props.name);
     if (Sefaria.site) { Sefaria.track.event("Reader", "Display Option Click", this.props.set + " - " + this.props.name); }
   }
-  checkKeyPress(e){
-    if (e.keyCode === 39  || e.keyCode === 40) { //39 is right arrow -- 40 is down
-        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
-        $(e.target).attr("tabIndex","-1");
-        $(e.target).next(".toggleOption").focus().attr("tabIndex","0");
+  checkKeyPress(e) {
+    if (e.keyCode === 39 || e.keyCode === 40) { //39 is right arrow -- 40 is down
+      $(e.target).siblings(".toggleOption").attr("tabIndex", "-1");
+      $(e.target).attr("tabIndex", "-1");
+      $(e.target).next(".toggleOption").focus().attr("tabIndex", "0");
     }
     else if (e.keyCode === 37 || e.keyCode === 38) { //37 is left arrow -- 38 is up
-        $(e.target).siblings(".toggleOption").attr("tabIndex","-1");
-        $(e.target).attr("tabIndex","-1");
-        $(e.target).prev(".toggleOption").focus().attr("tabIndex","0");
+      $(e.target).siblings(".toggleOption").attr("tabIndex", "-1");
+      $(e.target).attr("tabIndex", "-1");
+      $(e.target).prev(".toggleOption").focus().attr("tabIndex", "0");
     }
     else if (e.keyCode === 13) { //13 is enter
-        $(e.target).trigger("click");
+      $(e.target).trigger("click");
     }
     else if (e.keyCode === 9) { //9 is tab
-        var lastTab = $("div[role='dialog']").find(':tabbable').last();
-        var firstTab = $("div[role='dialog']").find(':tabbable').first();
-        if (e.shiftKey) {
-          if ($(e.target).is(firstTab)) {
-            $(lastTab).focus();
-            e.preventDefault();
-          }
+      var lastTab = $("div[role='dialog']").find(':tabbable').last();
+      var firstTab = $("div[role='dialog']").find(':tabbable').first();
+      if (e.shiftKey) {
+        if ($(e.target).is(firstTab)) {
+          $(lastTab).focus();
+          e.preventDefault();
         }
-        else {
-          if ($(e.target).is(lastTab)) {
-            $(firstTab).focus();
-            e.preventDefault();
-          }
+      }
+      else {
+        if ($(e.target).is(lastTab)) {
+          $(firstTab).focus();
+          e.preventDefault();
         }
+      }
     }
     else if (e.keyCode === 27) { //27 is escape
-        e.stopPropagation();
-        $(".mask").trigger("click");
+      e.stopPropagation();
+      $(".mask").trigger("click");
     }
   }
   render() {
-    let classes = {toggleOption: 1, on: this.props.on };
+    let classes = { toggleOption: 1, on: this.props.on };
     const tabIndexValue = this.props.on ? 0 : -1;
     const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    const content = this.props.image ? (<img src={this.props.image} alt=""/>) :
-                      this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
-                        typeof this.props.content === "string" ? (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>) :
-                          this.props.content;
+    const content = this.props.image ? (<img src={this.props.image} alt="" />) :
+      this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
+        typeof this.props.content === "string" ? (<span dangerouslySetInnerHTML={{ __html: this.props.content }}></span>) :
+          this.props.content;
     return (
       <div
         role={this.props.role}
-        aria-label= {this.props.ariaLabel}
-        tabIndex = {this.props.role == "radio"? tabIndexValue : "0"}
+        aria-label={this.props.ariaLabel}
+        tabIndex={this.props.role == "radio" ? tabIndexValue : "0"}
         aria-checked={ariaCheckedValue}
         className={classes}
         onKeyDown={this.checkKeyPress}
@@ -1043,54 +1057,54 @@ class ToggleOption extends Component {
   }
 }
 
-         //style={this.props.style}
+//style={this.props.style}
 
-const requestWithCallBack = ({url, setSavingStatus, redirect, type="POST", data={}, redirect_params}) => {
-    let ajaxPayload = {url, type};
-    if (type === "POST") {
-      ajaxPayload.data = {json: JSON.stringify(data)};
-    }
-    $.ajax({
-      ...ajaxPayload,
-      success: function(result) {
-        if ("error" in result) {
-          if (setSavingStatus) {
-            setSavingStatus(false);
-          }
-          alert(result.error);
-        } else {
-          redirect();
+const requestWithCallBack = ({ url, setSavingStatus, redirect, type = "POST", data = {} }) => {
+  let ajaxPayload = { url, type };
+  if (type === "POST") {
+    ajaxPayload.data = { json: JSON.stringify(data) };
+  }
+  $.ajax({
+    ...ajaxPayload,
+    success: function (result) {
+      if ("error" in result) {
+        if (setSavingStatus) {
+          setSavingStatus(false);
         }
+        alert(result.error);
+      } else {
+        redirect();
       }
-    }).fail(function() {
-      alert(Sefaria._("Something went wrong. Sorry!"));
-    });
+    }
+  }).fail(function () {
+    alert(Sefaria._("Something went wrong. Sorry!"));
+  });
 }
 
- const TopicToCategorySlug = function(topic, category=null) {
-   //helper function for AdminEditor
-   if (!category) {
-     category = Sefaria.topicTocCategory(topic.slug);
-   }
-   let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
-   // so all category topics initialized to "Main Menu"
-   if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
-     // this case handles categories that are not top level but have children under them
-     const displayUnderLinks = topic.links["displays-under"]?.links;
-     if (displayUnderLinks && displayUnderLinks.length === 1) {
-       initCatSlug = displayUnderLinks[0].topic;
-     }
-   }
-   return initCatSlug;
- }
+const TopicToCategorySlug = function (topic, category = null) {
+  //helper function for AdminEditor
+  if (!category) {
+    category = Sefaria.topicTocCategory(topic.slug);
+  }
+  let initCatSlug = category ? category.slug : "Main Menu";    //category topics won't be found using topicTocCategory,
+  // so all category topics initialized to "Main Menu"
+  if ("displays-under" in topic?.links && "displays-above" in topic?.links) {
+    // this case handles categories that are not top level but have children under them
+    const displayUnderLinks = topic.links["displays-under"]?.links;
+    if (displayUnderLinks && displayUnderLinks.length === 1) {
+      initCatSlug = displayUnderLinks[0].topic;
+    }
+  }
+  return initCatSlug;
+}
 
 function useHiddenButtons() {
-    const [hideButtons, setHideButtons] = useState(true);
-    const handleMouseOverAdminButtons = () => {
-        setHideButtons(false);
-        setTimeout(() => setHideButtons(true), 3000);
-    }
-    return [hideButtons, handleMouseOverAdminButtons];
+  const [hideButtons, setHideButtons] = useState(true);
+  const handleMouseOverAdminButtons = () => {
+    setHideButtons(false);
+    setTimeout(() => setHideButtons(true), 3000);
+  }
+  return [hideButtons, handleMouseOverAdminButtons];
 }
 
 const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
@@ -1101,11 +1115,11 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
         const bottom = i === buttonsToDisplay.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
-          <AdminEditorButton
-            text={buttonText}
-            top={top}
+          <AdminEditorButton 
+            text={buttonText} 
+            top={top} 
             bottom={bottom}
-            toggleAddingTopics={toggleAddingTopics}
+            toggleAddingTopics={toggleAddingTopics} 
           />
         );
       })}
@@ -1134,7 +1148,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "edit": ["Edit", toggleEditCategory]};
+                          "edit": ["Edit", toggleEditCategory]};     
 
 
   let wrapper = "";
@@ -1154,9 +1168,9 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       wrapper = "headerWithAdminButtons";
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
-        buttonOptions={buttonOptions}
-        buttonsToDisplay={buttonsToDisplay}
-        adminClasses={adminClasses}
+        buttonOptions={buttonOptions} 
+        buttonsToDisplay={buttonsToDisplay} 
+        adminClasses={adminClasses} 
       />;
     }
   }
@@ -1170,7 +1184,7 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
      */
     const reorderingSources = data.length !== 0;
     const _filterAndSortRefs = (refs) => {
-        if (!refs) {
+        if (!refs) {   
             return [];
         }
         // a topic can be connected to refs in one language and not in another so filter out those that are not in current interface lang
@@ -1212,38 +1226,23 @@ const ReorderEditorWrapper = ({toggle, type, data}) => {
 }
 
 const EditorForExistingTopic = ({ toggle, data }) => {
-  const prepAltTitles = (lang) => { // necessary for use with TitleVariants component
-    return data.titles.filter(x => !x.primary && x.lang === lang).map((item, i) => ({["name"]: item.text, ["id"]: i}))
-  }
   const initCatSlug = TopicToCategorySlug(data);
   const origData = {
     origSlug: data.slug,
-    origCatSlug: initCatSlug,
-    origEnTitle: data.primaryTitle.en,
-    origHeTitle: data.primaryTitle.he || "",
-    origEnDescription: data.description?.en || "",
-    origHeDescription: data.description?.he || "",
-    origEnCategoryDescription: data.categoryDescription?.en || "",
-    origHeCategoryDescription: data.categoryDescription?.he || "",
-    origEnAltTitles: prepAltTitles('en'),
-    origHeAltTitles: prepAltTitles('he'),
-    origBirthPlace: data?.properties?.birthPlace?.value,
-    origHeBirthPlace: data?.properties?.heBirthPlace?.value,
-    origHeDeathPlace: data?.properties?.heDeathPlace?.value,
-    origBirthYear: data?.properties?.birthYear?.value,
-    origDeathPlace: data?.properties?.deathPlace?.value,
-    origDeathYear: data?.properties?.deathYear?.value,
-    origEra: data?.properties?.era?.value,
-    origImage: data?.image,
-
+    origCategorySlug: initCatSlug,
+    origEn: data.primaryTitle.en,
+    origHe: data.primaryTitle.he || "",
+    origDesc: data.description || {"en": "", "he": ""},
+    origCategoryDesc: data.categoryDescription || {"en": "", "he": ""},
   };
-
+  
   const origWasCat = "displays-above" in data?.links;
-
+  
   return (
-    <TopicEditor
+    <TopicEditor 
       origData={origData}
       origWasCat={origWasCat}
+      onCreateSuccess={(slug) => window.location.href = `"/topics/"${slug}`}
       close={toggle}
     />
   );
@@ -1264,9 +1263,9 @@ const EditorForExistingCategory = ({ toggle, data }) => {
   };
 
   return (
-    <CategoryEditor
-      origData={origData}
-      close={toggle}
+    <CategoryEditor 
+      origData={origData} 
+      close={toggle} 
       origPath={data.slice(0, -1)}
     />
   );
@@ -1288,13 +1287,14 @@ const CategoryEditorWrapper = ({toggle, data, type}) => {
 }
 
 const CategoryAdderWrapper = ({toggle, data, type}) => {
-      const origData = {origEnTitle: ""};
+      const origData = {origEn: ""};
       switch (type) {
         case "cats":
           return <CategoryEditor origData={origData} close={toggle} origPath={data}/>;
         case "topics":
-          origData['origCatSlug'] = data;
-          return <TopicEditor origData={origData} close={toggle} origWasCat={false}/>;
+          origData['origCategorySlug'] = data;
+          return <TopicEditor origData={origData} close={toggle} origWasCat={false}
+                                        onCreateSuccess={(slug) => window.location.href = "/topics/" + slug}/>;
       }
   }
 
@@ -1312,7 +1312,7 @@ class MenuButton extends Component {
     var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
       <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
-        (<i className="fa fa-bars"></i>);
+      (<i className="fa fa-bars"></i>);
     return (<span className="readerNavMenuMenuButton" onClick={this.props.onClick}>{icon}</span>);
   }
 }
@@ -1328,14 +1328,14 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    if (this.props.icon == "circledX"){
+    if (this.props.icon == "circledX") {
       var icon = <img src="/static/icons/circled-x.svg" />;
     } else if (this.props.icon == "chevron") {
       var icon = <i className="fa fa-chevron-left"></i>
     } else {
       var icon = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
+    var classes = classNames({ readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX" });
     var url = this.props.url || "";
     return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }
@@ -1344,29 +1344,21 @@ class CloseButton extends Component {
 
 class DisplaySettingsButton extends Component {
   render() {
-    let style = this.props.placeholder ? {visibility: "hidden"} : {};
-    let icon;
-
-    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
-      icon =
-        <InterfaceText>
-        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
-        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
-        </InterfaceText>;
-    } else {
-      icon = <span className="textIcon">Aa</span>;
-    }
+    var style = this.props.placeholder ? { visibility: "hidden" } : {};
+    var icon = Sefaria._siteSettings.TORAH_SPECIFIC ?
+      <img src="/static/img/ayealeph.svg" alt="Toggle Reader Menu Display Settings" style={style} /> :
+      <span className="textIcon">Aa</span>;
     return (<a
-              className="readerOptions"
-              tabIndex="0"
-              role="button"
-              aria-haspopup="true"
-              aria-label="Toggle Reader Menu Display Settings"
-              style={style}
-              onClick={this.props.onClick}
-              onKeyPress={function(e) {e.charCode == 13 ? this.props.onClick(e):null}.bind(this)}>
-              {icon}
-            </a>);
+      className="readerOptions"
+      tabIndex="0"
+      role="button"
+      aria-haspopup="true"
+      aria-label="Toggle Reader Menu Display Settings"
+      style={style}
+      onClick={this.props.onClick}
+      onKeyPress={function (e) { e.charCode == 13 ? this.props.onClick(e) : null }.bind(this)}>
+      {icon}
+    </a>);
   }
 }
 DisplaySettingsButton.propTypes = {
@@ -1375,7 +1367,7 @@ DisplaySettingsButton.propTypes = {
 };
 
 
-function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setTranslationLanguagePreference}){
+function InterfaceLanguageMenu({ currentLang, translationLanguagePreference, setTranslationLanguagePreference }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -1391,57 +1383,57 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
     setTranslationLanguagePreference(null);
   };
   const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
   };
   const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
+    if (
+      wrapperRef.current &&
+      !wrapperRef.current.contains(event.target)
+    ) {
+      setIsOpen(false);
+    }
   };
 
   useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
+    document.addEventListener('keydown', handleHideDropdown, true);
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+      document.removeEventListener('keydown', handleHideDropdown, true);
+      document.removeEventListener('click', handleClickOutside, true);
+    };
   }, []);
 
   return (
-      <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
-        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">
-            <InterfaceText>Site Language</InterfaceText>
-          </div>
-          <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
-          </div>
-          { !!translationLanguagePreference ? (
-            <>
-              <div className="interfaceLinks-header">
-                <InterfaceText>Preferred Translation</InterfaceText>
-              </div>
-              <div className="interfaceLinks-options trans-pref-header-container">
-                <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
-                <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" />
-                  <span className="smallText">
-                    <InterfaceText>Reset</InterfaceText>
-                  </span>
-                </a>
-              </div>
-            </>
-          ) : null}
+    <div className="interfaceLinks" ref={wrapperRef}>
+      <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" /></a>
+      <div className={`interfaceLinks-menu ${isOpen ? "open" : "closed"}`}>
+        <div className="interfaceLinks-header">
+          <InterfaceText>Site Language</InterfaceText>
         </div>
+        <div className="interfaceLinks-options">
+          <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active' : ''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+          <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+        </div>
+        {!!translationLanguagePreference ? (
+          <>
+            <div className="interfaceLinks-header">
+              <InterfaceText>Preferred Translation</InterfaceText>
+            </div>
+            <div className="interfaceLinks-options trans-pref-header-container">
+              <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
+              <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
+                <img src="/static/img/circled-x.svg" className="reset-btn" />
+                <span className="smallText">
+                  <InterfaceText>Reset</InterfaceText>
+                </span>
+              </a>
+            </div>
+          </>
+        ) : null}
       </div>
+    </div>
   );
 }
 InterfaceLanguageMenu.propTypes = {
@@ -1450,7 +1442,7 @@ InterfaceLanguageMenu.propTypes = {
 };
 
 
-function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+function SaveButton({ historyObject, placeholder, tooltip, toggleSignUpModal }) {
   if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
@@ -1461,11 +1453,11 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
 
   const [isPosting, setPosting] = useState(false);
 
-  const style = placeholder ? {visibility: 'hidden'} : {};
-  const classes = classNames({saveButton: 1, "tooltip-toggle": tooltip});
+  const style = placeholder ? { visibility: 'hidden' } : {};
+  const classes = classNames({ saveButton: 1, "tooltip-toggle": tooltip });
   const altText = placeholder ? '' :
-      `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
-          historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
+    `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
+      historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
   function onClick(event) {
     if (isPosting) { return; }
@@ -1473,15 +1465,15 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
-        .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
-        .finally(() => { setPosting(false); });
+      .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
+      .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); } })
+      .finally(() => { setPosting(false); });
   }
 
   return (
     <ToolTipped {...{ altText, classes, style, onClick }}>
-      { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
-        <img src="/static/icons/bookmark.svg" alt={altText}/> }
+      {selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText} /> :
+        <img src="/static/icons/bookmark.svg" alt={altText} />}
     </ToolTipped>
   );
 }
@@ -1496,16 +1488,14 @@ SaveButton.propTypes = {
 };
 
 
-const ToolTipped = ({ altText, classes, style, onClick, children }) => {
-  const analyticsContext = useContext(AdContext)
-  return (
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
   <div aria-label={altText} tabIndex="0"
     className={classes} role="button"
-    style={style} onClick={e => TrackG4.gtagClick(e, onClick, `ToolTipped`, {"classes": classes}, analyticsContext)}
-    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
-    { children }
+    style={style} onClick={onClick}
+    onKeyPress={e => { e.charCode == 13 ? onClick(e) : null }}>
+    {children}
   </div>
-)};
+);
 
 
 class FollowButton extends Component {
@@ -1530,10 +1520,10 @@ class FollowButton extends Component {
   }
   onMouseEnter() {
     if (this.props.disableUnfollow) { return; }
-    this.setState({hovering: true});
+    this.setState({ hovering: true });
   }
   onMouseLeave() {
-    this.setState({hovering: false});
+    this.setState({ hovering: false });
   }
   onClick(e) {
     e.stopPropagation();
@@ -1543,10 +1533,10 @@ class FollowButton extends Component {
     }
     if (this.state.following && !this.props.disableUnfollow) {
       this._postUnfollow();
-      this.setState({following: false});
+      this.setState({ following: false });
     } else {
       this._postFollow();
-      this.setState({following: true, hovering: false});  // hovering:false keeps the "unfollow" from flashing.
+      this.setState({ following: true, hovering: false });  // hovering:false keeps the "unfollow" from flashing.
     }
   }
   render() {
@@ -1557,110 +1547,29 @@ class FollowButton extends Component {
       hovering: this.state.hovering,
       smallText: !this.props.large,
     });
-    let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
+    let buttonText = this.state.following ? this.state.hovering ? "Unfollow" : "Following" : "Follow";
     buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
     return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-        {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
+        {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ? "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true" /> : null}
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
       </div>
     );
   }
 }
 FollowButton.propTypes = {
-  uid:               PropTypes.number.isRequired,
-  following:         PropTypes.bool,  // is this person followed already?
-  large:             PropTypes.bool,
-  disableUnfollow:   PropTypes.bool,
-  followBack:        PropTypes.bool,
+  uid: PropTypes.number.isRequired,
+  following: PropTypes.bool,  // is this person followed already?
+  large: PropTypes.bool,
+  disableUnfollow: PropTypes.bool,
+  followBack: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 
 };
 
-const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
-    /*
-    `old_filename` is passed to API so that if it exists, it is deleted
-     */
-    const fileInput = useRef(null);
 
-    const uploadImage = function(imageData, type="POST") {
-      const formData = new FormData();
-      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
-      if (old_filename !== "") {
-        formData.append('old_filename', old_filename);
-      }
-      const request = new Request(
-        `${Sefaria.apiHost}/api/topics/images/${slug}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
-      );
-      fetch(request, {
-          method: 'POST',
-          mode: 'same-origin',
-          credentials: 'same-origin',
-          body: formData
-      }).then(response => {
-        if (!response.ok) {
-            response.text().then(resp_text=> {
-                alert(resp_text);
-            })
-        }else{
-            response.json().then(resp_json=>{
-                callback(resp_json.url);
-            });
-        }
-    }).catch(error => {
-        alert(error);
-    })};
-    const onFileSelect = (e) => {
-          const file = fileInput.current.files[0];
-          if (file == null)
-          return;
-          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
-              const reader = new FileReader();
-
-              reader.addEventListener("load", function() {
-                uploadImage(reader.result);
-              }, false);
-
-              reader.addEventListener("onerror", function() {
-                alert(reader.error);
-              }, false);
-
-              reader.readAsDataURL(file);
-          } else {
-            alert('The file is not an image');
-          }
-    }
-    const deleteImage = () => {
-        const old_filename_wout_url = old_filename.split("/").slice(-1);
-        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
-        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
-        callback("");
-        fileInput.current.value = "";
-    }
-    return <div className="section">
-            <label><InterfaceText>Picture</InterfaceText></label>
-            <label>
-              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
-            </label>
-            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
-              <label htmlFor="addImageFileSelector">
-                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
-                      <InterfaceText>Upload Picture</InterfaceText>
-                    </div>
-              </label>
-              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
-              {old_filename !== "" && <div style={{"max-width": "420px"}}>
-                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
-                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
-                      <InterfaceText>Remove Picture</InterfaceText>
-                    </div></div>
-              }
-          </div>
-    }
-
-const CategoryColorLine = ({category}) =>
-  <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
+const CategoryColorLine = ({ category }) =>
+  <div className="categoryColorLine" style={{ background: Sefaria.palette.categoryColor(category) }} />;
 
 
 class ProfileListing extends Component {
@@ -1677,7 +1586,7 @@ class ProfileListing extends Component {
             />
           </a>
         </div>
-        <div className={`authorByLineText ${smallfonts? "small" : ""}`}>
+        <div className={`authorByLineText ${smallfonts ? "small" : ""}`}>
           <SimpleLinkedBlock
             classes="authorName"
             url={url}
@@ -1692,22 +1601,22 @@ class ProfileListing extends Component {
               toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
           {!!organization ?
-          <SimpleInterfaceBlock
-            classes="authorOrganization"
-            en={organization}
-            he={organization} />
-          :null}
+            <SimpleInterfaceBlock
+              classes="authorOrganization"
+              en={organization}
+              he={organization} />
+            : null}
         </div>
       </div>
     );
   }
 }
 ProfileListing.propTypes = {
-  uid:               PropTypes.number.isRequired,
-  url:               PropTypes.string.isRequired,
-  image:             PropTypes.string.isRequired,
-  name:              PropTypes.string.isRequired,
-  is_followed:       PropTypes.bool,
+  uid: PropTypes.number.isRequired,
+  url: PropTypes.string.isRequired,
+  image: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  is_followed: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
 
@@ -1769,31 +1678,31 @@ const SheetListing = ({
     </>
   );
 
-  const sheetSummary = showSheetSummary && sheet.summary?
-  <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary}/>:null;
+  const sheetSummary = showSheetSummary && sheet.summary ?
+    <DangerousInterfaceBlock classes={"smallText sheetSummary"} en={sheet.summary} he={sheet.sheet_summary} /> : null;
 
   const sheetInfo = hideAuthor ? null :
-      <div className="sheetInfo">
-        <div className="sheetUser">
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
-            <ProfilePic
-              outerStyle={{display: "inline-block"}}
-              name={sheet.ownerName}
-              url={sheet.ownerImageUrl}
-              len={26}
-            />
-          </a>
-          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
-        </div>
-        {viewsIcon}
+    <div className="sheetInfo">
+      <div className="sheetUser">
+        <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+          <ProfilePic
+            outerStyle={{ display: "inline-block" }}
+            name={sheet.ownerName}
+            url={sheet.ownerImageUrl}
+            len={26}
+          />
+        </a>
+        <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
       </div>
+      {viewsIcon}
+    </div>
 
   const collectionsList = "collections" in sheet ? sheet.collections.slice() : [];
   if (sheet.displayedCollectionName) {
-    collectionsList.unshift({name: sheet.displayedCollectionName, slug: sheet.displayedCollection});
+    collectionsList.unshift({ name: sheet.displayedCollectionName, slug: sheet.displayedCollection });
   }
   const collections = collectionsList.map((collection, i) => {
-    const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
+    const separator = i == collectionsList.length - 1 ? null : <span className="separator">,</span>;
     return (
       <a href={`/collections/${collection.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
@@ -1807,7 +1716,7 @@ const SheetListing = ({
   });
 
   const topics = sheet.topics.map((topic, i) => {
-    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    const separator = i == sheet.topics.length - 1 ? null : <span className="separator">,</span>;
     return (
       <a href={`/topics/${topic.slug}`}
         target={openInNewTab ? "_blank" : "_self"}
@@ -1822,18 +1731,18 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
-      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
-      views,
-      created,
-      collections.length ? collections : undefined,
-      sheet.topics.length ? topics : undefined,
-    ].filter(x => x !== undefined) : [topics];
+    sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" /><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+    showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+    views,
+    created,
+    collections.length ? collections : undefined,
+    sheet.topics.length ? topics : undefined,
+  ].filter(x => x !== undefined) : [topics];
 
 
-  const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
+  const pinButtonClasses = classNames({ sheetListingPinButton: 1, pinned: pinned, active: pinnable });
   const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
-                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
   const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
 
   return (
@@ -1841,7 +1750,7 @@ const SheetListing = ({
       <div className="sheetLeft">
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
-          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          <img src="/static/img/sheet.svg" className="sheetIcon" />
           <span className="sheetTitleText">{title}</span>
         </a>
         {sheetSummary}
@@ -1849,7 +1758,7 @@ const SheetListing = ({
           {
             underInfo.map((item, i) => (
               <span key={i}>
-                { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                {i !== 0 ? <span className="bullet">{'\u2022'}</span> : null}
                 {item}
               </span>
             ))
@@ -1859,7 +1768,7 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")} /></a>
             : null
         }
         {
@@ -1874,13 +1783,13 @@ const SheetListing = ({
         }
         {
           saveable ?
-            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }}
+            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {} }}
               toggleSignUpModal={toggleSignUpModal} />
             : null
         }
-        { pinnable || pinned ?
-            pinButton
-            : null
+        {pinnable || pinned ?
+          pinButton
+          : null
         }
       </div>
       {showCollectionsModal ?
@@ -1894,7 +1803,7 @@ const SheetListing = ({
 };
 
 
-const CollectionListing = ({data}) => {
+const CollectionListing = ({ data }) => {
   const imageUrl = "/static/icons/collection.svg";
   const collectionUrl = "/collections/" + data.slug;
   return (
@@ -1903,19 +1812,19 @@ const CollectionListing = ({data}) => {
         <div className="collectionListingText">
 
           <a href={collectionUrl} className="collectionListingName">
-            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
+            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon" />
             {data.name}
           </a>
 
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg"/>
+                <img src="/static/img/eye-slash.svg" />
                 <InterfaceText>Unlisted</InterfaceText>
-              </span>) }
+              </span>)}
 
             {data.listed ? null :
-            <span className="collectionListingDetailSeparator">•</span> }
+              <span className="collectionListingDetailSeparator">•</span>}
 
             <span className="collectionListingDetail collectionListingSheetCount">
               <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
@@ -1923,13 +1832,13 @@ const CollectionListing = ({data}) => {
             </span>
 
             {data.memberCount > 1 ?
-            <span className="collectionListingDetailSeparator">•</span> : null }
+              <span className="collectionListingDetailSeparator">•</span> : null}
 
             {data.memberCount > 1 ?
-            <span className="collectionListingDetail collectionListingMemberCount">
-              <InterfaceText>{`${data.memberCount} `}</InterfaceText>
-              <InterfaceText>Editors</InterfaceText>
-            </span> : null }
+              <span className="collectionListingDetail collectionListingMemberCount">
+                <InterfaceText>{`${data.memberCount} `}</InterfaceText>
+                <InterfaceText>Editors</InterfaceText>
+              </span> : null}
           </div>
         </div>
       </div>
@@ -1942,39 +1851,180 @@ class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
-        (<div className="noteAuthorInfo">
-          <a href={this.props.ownerProfileUrl}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
-          </a>
-          <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
-        </div>) : null;
+      (<div className="noteAuthorInfo">
+        <a href={this.props.ownerProfileUrl}>
+          <img className="noteAuthorImg" src={this.props.ownerImageUrl} />
+        </a>
+        <a href={this.props.ownerProfileUrl} className="noteAuthor">{this.props.ownerName}</a>
+      </div>) : null;
 
-      var buttons = this.props.isMyNote ?
-                    (<div className="noteButtons">
-                      <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
-                    </div>) : null;
+    var buttons = this.props.isMyNote ?
+      (<div className="noteButtons">
+        <i className="editNoteButton fa fa-pencil" title="Edit Note" onClick={this.props.editNote} ></i>
+      </div>) : null;
 
-      var text = Sefaria.util.linkify(this.props.text);
-      text = text.replace(/\n/g, "<br />");
+    var text = Sefaria.util.linkify(this.props.text);
+    text = text.replace(/\n/g, "<br />");
 
-      return (<div className="note">
-                {buttons}
-                {authorInfo}
-                <div className="noteContent">
-                  <span className="noteText" dangerouslySetInnerHTML={{__html:text}}></span>
-                </div>
-              </div>);
+    return (<div className="note">
+      {buttons}
+      {authorInfo}
+      <div className="noteContent">
+        <span className="noteText" dangerouslySetInnerHTML={{ __html: text }}></span>
+      </div>
+    </div>);
   }
 }
 Note.propTypes = {
-  text:            PropTypes.string.isRequired,
-  ownerName:       PropTypes.string,
-  ownerImageUrl:   PropTypes.string,
+  text: PropTypes.string.isRequired,
+  ownerName: PropTypes.string,
+  ownerImageUrl: PropTypes.string,
   ownerProfileUrl: PropTypes.string,
-  isPrivate:       PropTypes.bool,
-  isMyNote:        PropTypes.bool,
-  editNote:        PropTypes.func
+  isPrivate: PropTypes.bool,
+  isMyNote: PropTypes.bool,
+  editNote: PropTypes.func
 };
+function NewsletterSignUpForm(props) {
+  const { contextName, includeEducatorOption } = props;
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [educatorCheck, setEducatorCheck] = useState(false);
+  const [subscribeMessage, setSubscribeMessage] = useState(null);
+  const [showNameInputs, setShowNameInputs] = useState(false);
+
+  function handleSubscribeKeyUp(e) {
+    if (e.keyCode === 13) {
+      handleSubscribe();
+    }
+  }
+
+  function handleSubscribe() {
+    if (showNameInputs === true) { // submit
+      if (firstName.length > 0 & lastName.length > 0) {
+        setSubscribeMessage("Subscribing...");
+        const request = new Request(
+          '/api/subscribe/' + email,
+          {
+            headers: { 'X-CSRFToken': Cookies.get('csrftoken') },
+            'Content-Type': 'application/json'
+          }
+        );
+        fetch(request,
+          {
+            method: "POST",
+            mode: 'same-origin',
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+              educator: educatorCheck,
+              firstName: firstName,
+              lastName: lastName
+            })
+          }
+        ).then(res => {
+          if ("error" in res) {
+            setSubscribeMessage(res.error);
+            setShowNameInputs(false);
+          } else {
+            setSubscribeMessage("Subscribed! Welcome to our list.");
+            Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
+          }
+        }).catch(data => {
+          setSubscribeMessage("Sorry, there was an error.");
+          setShowNameInputs(false);
+        });
+      } else {
+        setSubscribeMessage("Please enter a valid first and last name");// get he copy
+      }
+    } else if (Sefaria.util.isValidEmailAddress(email)) {
+      setShowNameInputs(true);
+    } else {
+      setShowNameInputs(false);
+      setSubscribeMessage("Please enter a valid email address.");
+    }
+  }
+
+  return (
+    <div className="newsletterSignUpBox">
+      <span className="int-en">
+        <input
+          className="newsletterInput"
+          placeholder="Sign up for Newsletter"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      <span className="int-he">
+        <input
+          className="newsletterInput"
+          placeholder="הרשמו לניוזלטר"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onKeyUp={handleSubscribeKeyUp} />
+      </span>
+      {!showNameInputs ? <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} /> : null}
+      {showNameInputs ?
+        <><span className="int-en">
+          <input
+            className="newsletterInput firstNameInput"
+            placeholder="First Name"
+            value={firstName}
+            autoFocus
+            onChange={e => setFirstName(e.target.value)}
+            onKeyUp={handleSubscribeKeyUp} />
+        </span>
+          <span className="int-he">
+            <input
+              className="newsletterInput firstNameInput"
+              placeholder="שם פרטי"
+              value={firstName}
+              onChange={e => setFirstName(e.target.value)}
+              onKeyUp={handleSubscribeKeyUp} />
+          </span>
+          <span className="int-en">
+            <input
+              className="newsletterInput"
+              placeholder="Last Name"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              onKeyUp={handleSubscribeKeyUp} />
+          </span>
+          <span className="int-he">
+            <input
+              className="newsletterInput"
+              placeholder="שם משפחה"
+              value={lastName}
+              onChange={e => setLastName(e.target.value)}
+              onKeyUp={handleSubscribeKeyUp} />
+          </span>
+          <div className="newsletterEducatorOption">
+            <span className="int-en">
+              <input
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)} />
+              <span>I am an educator</span>
+            </span>
+            <span className="int-he">
+              <input
+                type="checkbox"
+                className="educatorNewsletterInput"
+                checked={educatorCheck}
+                onChange={e => setEducatorCheck(!!e.target.checked)} />
+              <span>מורים/ אנשי הוראה</span>
+            </span>
+            <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+          </div>
+        </>
+        : null}
+      {subscribeMessage ?
+        <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
+        : null}
+    </div>
+  );
+}
 
 
 class LoginPrompt extends Component {
@@ -2026,7 +2076,7 @@ class SignUpModal extends Component {
               <InterfaceText text={modalContent.h3} />
             </h3>
             <div className="sefariaModalInnerContent">
-              { innerContent }
+              {innerContent}
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
               <InterfaceText>Sign Up</InterfaceText>
@@ -2048,404 +2098,126 @@ SignUpModal.propTypes = {
 };
 
 
-function OnInView({ children, onVisible }) {
-  /**
-   *  The functional component takes an existing element and wraps it in an IntersectionObserver and returns the children, only observed and with a callback for the observer.
-   *  `children` single element or nested group of elements wrapped in a div
-   *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
-   *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
-   */
-  const elementRef = useRef(); 
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      // Callback function will be invoked whenever the visibility of the observed element changes
-      (entries) => {
-        const entry = entries[0];
-        // Check if the observed element is intersecting with the viewport (it's visible)
-        // Invoke provided prop callback for analytics purposes
-        if (entry.isIntersecting) {
-          onVisible();
-        }
-      },
-      // The entire element must be entirely visible
-      { threshold: 1 }
-    );
-
-    // Start observing the element, but wait until the element exists
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
-
-    // Cleanup when the component unmounts
-    return () => {
-      // Stop observing the element when it's no longer on the screen and can't be visible
-      if (elementRef.current) {
-        observer.unobserve(elementRef.current);
-      }
+class InterruptingMessage extends Component {
+  constructor(props) {
+    super(props);
+    this.displayName = 'InterruptingMessage';
+    this.state = {
+      timesUp: false,
+      animationStarted: false
     };
-  }, [onVisible]);
-
-  // Attach elementRef to a div wrapper and pass the children to be rendered within it
-  return <div ref={elementRef}>{children}</div>;
-}
-
-const transformValues = (obj, callback) => {
-  const newObj = {};
-  for (let key in obj) {
-    newObj[key] = obj[key] !== null ? callback(obj[key]) : null;
+    this.settings = {
+      "modal": {
+        "trackingName": "Interrupting Message",
+        "showDelay": 1000,
+      },
+      "banner": {
+        "trackingName": "Banner Message",
+        "showDelay": 1,
+      }
+    }[this.props.style];
   }
-  return newObj;
-};
-
-const replaceNewLinesWithLinebreaks = (content) => {
-  return transformValues(
-    content,
-    (s) => s.replace(/\n/gi, "&nbsp; \n") + "&nbsp; \n&nbsp; \n"
-  );
-}
-
-const InterruptingMessage = ({
-  onClose,
-}) => {
-  const [interruptingMessageShowDelayHasElapsed, setInterruptingMessageShowDelayHasElapsed] = useState(false);
-  const [hasInteractedWithModal, setHasInteractedWithModal] = useState(false);
-  const strapi = useContext(StrapiDataContext);
-
-  const markModalAsHasBeenInteractedWith = (modalName) => {
-    localStorage.setItem("modal_" + modalName, "true");
-  };
-
-  const hasModalBeenInteractedWith = (modalName) => {
-    return JSON.parse(localStorage.getItem("modal_" + modalName));
-  };
-
-  const trackModalInteraction = (modalName, eventDescription) => {
-    gtag("event", "modal_interacted_with_" + eventDescription, {
-      campaignID: modalName,
-      adType: "modal",
-    });
-  };
-
-  const trackModalImpression = () => {
-    console.log("We've got visibility!");
-    gtag("event", "modal_viewed", {
-      campaignID: strapi.modal.internalModalName,
-      adType: "modal",
-    });
-  };
-
-  const shouldShow = () => {
-    if (!strapi.modal) return false;
-    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
-    if (
-      hasModalBeenInteractedWith(
-        strapi.modal.internalModalName
-      )
-    )
-      return false;
-
-    let shouldShowModal = false;
-
-    let noUserKindIsSet = ![
-      strapi.modal.showToReturningVisitors,
-      strapi.modal.showToNewVisitors,
-      strapi.modal.showToSustainers,
-      strapi.modal.showToNonSustainers,
-    ].some((p) => p);
-    if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer &&
-        strapi.modal.showToSustainers) ||
-        (!Sefaria.is_sustainer &&
-          strapi.modal.showToNonSustainers))
-    )
-      shouldShowModal = true;
-    else if (
-      (Sefaria.isReturningVisitor() &&
-        strapi.modal.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-    )
-      shouldShowModal = true;
-    else if (noUserKindIsSet) shouldShowModal = true;
-    if (!shouldShowModal) return false;
-    // Don't show the modal on pages where the button link goes to since you're already there
+  componentDidMount() {
+    if (this.shouldShow()) {
+      this.delayedShow();
+    }
+  }
+  shouldShow() {
     const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    if (strapi.modal.buttonURL) {
-      if (strapi.modal.buttonURL.en) {
-        excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
-      }
-      if (strapi.modal.buttonURL.he) {
-        excludedPaths.push(new URL(strapi.modal.buttonURL.he).pathname);
-      }
-    }
     return excludedPaths.indexOf(window.location.pathname) === -1;
-  };
-
-  const closeModal = (eventDescription) => {
-    if (onClose) onClose();
-    markModalAsHasBeenInteractedWith(
-      strapi.modal.internalModalName
-    );
-    setHasInteractedWithModal(true);
-    trackModalInteraction(
-      strapi.modal.internalModalName,
-      eventDescription
-    );
-  };
-
-  useEffect(() => {
-    if (shouldShow()) {
-      const timeoutId = setTimeout(() => {
-        setInterruptingMessageShowDelayHasElapsed(true);
-      }, strapi.modal.showDelay * 1000);
-      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
+  }
+  delayedShow() {
+    setTimeout(function () {
+      this.setState({ timesUp: true });
+      $("#interruptingMessage .button").click(this.close);
+      $("#interruptingMessage .trackedAction").click(this.trackAction);
+      this.showAorB();
+      this.animateOpen();
+    }.bind(this), this.settings.showDelay);
+  }
+  animateOpen() {
+    setTimeout(function () {
+      if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").addClass("hasBannerMessage"); }
+      this.setState({ animationStarted: true });
+      this.trackOpen();
+    }.bind(this), 50);
+  }
+  showAorB() {
+    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
+    const $message = $(ReactDOM.findDOMNode(this));
+    if ($message.find(".optionA").length) {
+      console.log("rand show")
+      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
     }
-  }, [strapi.modal]); // execute useEffect when the modal changes
+  }
+  close() {
+    this.markAsRead();
+    this.props.onClose();
+    if (this.props.style === "banner" && $("#s2").hasClass("headerOnly")) { $("body").removeClass("hasBannerMessage"); }
+  }
+  trackOpen() {
+    Sefaria.track.event(this.settings.trackingName, "open", this.props.messageName, { nonInteraction: true });
+  }
+  trackAction() {
+    Sefaria.track.event(this.settings.trackingName, "action", this.props.messageName, { nonInteraction: true });
+  }
+  markAsRead() {
+    Sefaria._api("/api/interrupting-messages/read/" + this.props.messageName, function (data) { });
+    var cookieName = this.props.messageName + "_" + this.props.repetition;
+    $.cookie(cookieName, true, { path: "/", expires: 14 });
+    Sefaria.track.event(this.settings.trackingName, "read", this.props.messageName, { nonInteraction: true });
+    Sefaria.interruptingMessage = null;
+  }
+  render() {
+    if (!this.state.timesUp) { return null; }
 
-  if (!interruptingMessageShowDelayHasElapsed) return null;
+    if (this.props.style === "banner") {
+      return <div id="bannerMessage" className={this.state.animationStarted ? "" : "hidden"}>
+        <div id="bannerMessageContent" dangerouslySetInnerHTML={{ __html: this.props.messageHTML }}></div>
+        <div id="bannerMessageClose" onClick={this.close}>×</div>
+      </div>;
 
-  if (!hasInteractedWithModal) {
-    return (
-      <OnInView onVisible={trackModalImpression}>
-        <div id="interruptingMessageBox" className={interruptingMessageShowDelayHasElapsed ? "" : "hidden"}>
-          <div id="interruptingMessageOverlay"></div>
-          <div id="interruptingMessage">
+    } else if (this.props.style === "modal") {
+      return <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
+        <div id="interruptingMessageOverlay"></div>
+        <div id="interruptingMessage">
+          <div className="colorLine"></div>
+          <div id="interruptingMessageContentBox" className="hasColorLine">
+            <div id="interruptingMessageClose" onClick={this.close}>×</div>
+            <div id="interruptingMessageContent" dangerouslySetInnerHTML={{ __html: this.props.messageHTML }}></div>
             <div className="colorLine"></div>
-            <div id="interruptingMessageContentBox" className="hasColorLine">
-              <div
-                id="interruptingMessageClose"
-                onClick={() => {
-                  closeModal("close_clicked");
-                }}
-              >
-                ×
-              </div>
-              <div id="interruptingMessageContent">
-                <div id="defaultModal">
-                  {strapi.modal.modalHeader.en && (
-                    <h1 className="int-en">{strapi.modal.modalHeader.en}</h1>
-                  )}
-                  {strapi.modal.modalHeader.he && (
-                    <h1 className="int-he">{strapi.modal.modalHeader.he}</h1>
-                  )}
-                  <div id="defaultModalBody" className="line-break">
-                    <InterfaceText
-                      markdown={replaceNewLinesWithLinebreaks(
-                        strapi.modal.modalText
-                      )}
-                    />
-                  </div>
-                  <div className="buttons">
-                    <a
-                      className="button int-en"
-                      target="_blank"
-                      href={strapi.modal.buttonURL.en}
-                      onClick={() => {
-                        closeModal("modal_button_clicked");
-                      }}
-                    >
-                      <span className="int-en">
-                        {strapi.modal.buttonText.en}
-                      </span>
-                    </a>
-                    <a
-                      className="button int-he"
-                      target="_blank"
-                      href={strapi.modal.buttonURL.he}
-                      onClick={() => {
-                        closeModal("modal_button_clicked");
-                      }}
-                    >
-                      <span className="int-he">
-                        {strapi.modal.buttonText.he}
-                      </span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div className="colorLine"></div>
-            </div>
           </div>
         </div>
-      </OnInView>
-    );
-  } else {
+      </div>;
+    }
     return null;
   }
-};
-InterruptingMessage.displayName = "InterruptingMessage";
-
-const Banner = ({ onClose }) => {
-  const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
-    useState(false);
-  const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
-  const strapi = useContext(StrapiDataContext);
-
-  const markBannerAsHasBeenInteractedWith = (bannerName) => {
-    localStorage.setItem("banner_" + bannerName, "true");
-  };
-
-  const hasBannerBeenInteractedWith = (bannerName) => {
-    return JSON.parse(localStorage.getItem("banner_" + bannerName));
-  };
-
-  const trackBannerInteraction = (bannerName, eventDescription) => {
-    gtag("event", "banner_interacted_with_" + eventDescription, {
-      campaignID: bannerName,
-      adType: "banner",
-    });
-  };
-
-  const trackBannerImpression = () => {
-    gtag("event", "banner_viewed", {
-      campaignID: strapi.banner.internalBannerName,
-      adType: "banner",
-    });
-  };
-
-  const shouldShow = () => {
-    if (!strapi.banner) return false;
-    if (
-      Sefaria.interfaceLang === "hebrew" &&
-      !strapi.banner.locales.includes("he")
-    )
-      return false;
-    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
-      return false;
-
-    let shouldShowBanner = false;
-
-    let noUserKindIsSet = ![
-      strapi.banner.showToReturningVisitors,
-      strapi.banner.showToNewVisitors,
-      strapi.banner.showToSustainers,
-      strapi.banner.showToNonSustainers,
-    ].some((p) => p);
-    if (
-      Sefaria._uid &&
-      ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-        (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
-    )
-      shouldShowBanner = true;
-    else if (
-      (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-      (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-    )
-      shouldShowBanner = true;
-    else if (noUserKindIsSet) shouldShowBanner = true;
-    if (!shouldShowBanner) return false;
-
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    // Don't show the banner on pages where the button link goes to since you're already there
-    if (strapi.banner.buttonURL) {
-      if (strapi.banner.buttonURL.en) {
-        excludedPaths.push(new URL(strapi.banner.buttonURL.en).pathname);
-      }
-      if (strapi.banner.buttonURL.he) {
-        excludedPaths.push(new URL(strapi.banner.buttonURL.he).pathname);
-      }
-    }
-    return excludedPaths.indexOf(window.location.pathname) === -1;
-  };
-
-  const closeBanner = (eventDescription) => {
-    if (onClose) onClose();
-    markBannerAsHasBeenInteractedWith(strapi.banner.internalBannerName);
-    setHasInteractedWithBanner(true);
-    trackBannerInteraction(strapi.banner.internalBannerName, eventDescription);
-  };
-
-  useEffect(() => {
-    if (shouldShow()) {
-      const timeoutId = setTimeout(() => {
-        // s2 is the div that contains the React root and needs to be manipulated by traditional DOM methods
-        if (document.getElementById("s2").classList.contains("headerOnly")) {
-          document.body.classList.add("hasBannerMessage");
-        }
-        setBannerShowDelayHasElapsed(true);
-      }, strapi.banner.showDelay * 1000);
-      return () => clearTimeout(timeoutId); // clearTimeout on component unmount
-    }
-  }, [strapi.banner]); // execute useEffect when the banner changes
-
-  if (!bannerShowDelayHasElapsed) return null;
-
-  if (!hasInteractedWithBanner) {
-    return (
-      <OnInView onVisible={trackBannerImpression}>
-        <div
-          id="bannerMessage"
-          className={bannerShowDelayHasElapsed ? "" : "hidden"}
-          style={
-            strapi.banner.bannerBackgroundColor && {
-              backgroundColor: strapi.banner.bannerBackgroundColor,
-            }
-          }
-        >
-          <div id="bannerMessageContent">
-            <div id="bannerTextBox">
-              <InterfaceText
-                markdown={replaceNewLinesWithLinebreaks(
-                  strapi.banner.bannerText
-                )}
-              />
-            </div>
-            <div id="bannerButtonBox">
-              <a
-                className="button white int-en"
-                href={strapi.banner.buttonURL.en}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.en}</span>
-              </a>
-              <a
-                className="button white int-he"
-                href={strapi.banner.buttonURL.he}
-                onClick={() => {
-                  closeBanner("banner_button_clicked");
-                }}
-              >
-                <span>{strapi.banner.buttonText.he}</span>
-              </a>
-            </div>
-          </div>
-          <div
-            id="bannerMessageClose"
-            onClick={() => {
-              closeBanner("close_clicked");
-            }}
-          >
-            ×
-          </div>
-        </div>
-      </OnInView>
-    );
-  } else {
-    return null;
-  }
+}
+InterruptingMessage.propTypes = {
+  messageName: PropTypes.string.isRequired,
+  messageHTML: PropTypes.string.isRequired,
+  style: PropTypes.string.isRequired,
+  repetition: PropTypes.number.isRequired, // manual toggle to refresh an existing message
+  onClose: PropTypes.func.isRequired
 };
 
-Banner.displayName = "Banner";
 
-const NBox = ({ content, n, stretch, gap=0  }) => {
+const NBox = ({ content, n, stretch, gap = 0 }) => {
   // Wrap a list of elements into an n-column flexbox
   // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
   let rows = [];
-  for (let i=0; i<length; i+=n) {
-    rows.push(content.slice(i, i+n));
+  for (let i = 0; i < length; i += n) {
+    rows.push(content.slice(i, i + n));
   }
   return (
     <div className="gridBox">
       {rows.map((row, i) => (
-      <div className="gridBoxRow" key={i} style={{"gap": gap, "marginTop": gap}}>
-        {row.pad(stretch ? row.length : n, "").map((item, j) => (
-          <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
-        ))}
-      </div>
+        <div className="gridBoxRow" key={i} style={{ "gap": gap, "marginTop": gap }}>
+          {row.pad(stretch ? row.length : n, "").map((item, j) => (
+            <div className={classNames({ gridBoxItem: 1, placeholder: !item })} key={`gridItem|${j}`}>{item}</div>
+          ))}
+        </div>
       ))}
     </div>
   );
@@ -2454,17 +2226,17 @@ const NBox = ({ content, n, stretch, gap=0  }) => {
 class TwoOrThreeBox extends Component {
   // Wrap a list of elements into a two or three column table, depending on window width
   render() {
-      var threshhold = this.props.threshhold;
-      if (this.props.width > threshhold) {
-        return (<NBox content={this.props.content} n={3}/>);
-      } else {
-        return (<NBox content={this.props.content} n={2}/>);
-      }
+    var threshhold = this.props.threshhold;
+    if (this.props.width > threshhold) {
+      return (<NBox content={this.props.content} n={3} />);
+    } else {
+      return (<NBox content={this.props.content} n={2} />);
+    }
   }
 }
 TwoOrThreeBox.propTypes = {
-  content:    PropTypes.array.isRequired,
-  width:      PropTypes.number.isRequired,
+  content: PropTypes.array.isRequired,
+  width: PropTypes.number.isRequired,
   threshhold: PropTypes.number
 };
 TwoOrThreeBox.defaultProps = {
@@ -2472,7 +2244,7 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, threshold3=1500, gap=0}) => {
+const ResponsiveNBox = ({ content, stretch, initialWidth, threshold2 = 500, threshold3 = 1500, gap = 0 }) => {
   //above threshold2, there will be 2 columns
   //above threshold3, there will be 3 columns
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
@@ -2483,7 +2255,7 @@ const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, thresho
     deriveAndSetWidth();
     window.addEventListener("resize", deriveAndSetWidth);
     return () => {
-        window.removeEventListener("resize", deriveAndSetWidth);
+      window.removeEventListener("resize", deriveAndSetWidth);
     }
   }, []);
 
@@ -2494,7 +2266,7 @@ const ResponsiveNBox = ({content, stretch, initialWidth, threshold2=500, thresho
 
   return (
     <div className="responsiveNBox" ref={ref}>
-      <NBox content={content} n={n} stretch={stretch} gap={gap}/>
+      <NBox content={content} n={n} stretch={stretch} gap={gap} />
     </div>
   );
 };
@@ -2511,47 +2283,47 @@ class Dropdown extends Component {
 
   componentDidMount() {
     if (this.props.preselected) {
-      const selected = this.props.options.filter( o => (o.value == this.props.preselected));
+      const selected = this.props.options.filter(o => (o.value == this.props.preselected));
       this.select(selected[0])
     }
   }
 
   select(option) {
-    this.setState({selected: option, optionsOpen: false});
-    const event = {target: {name: this.props.name, value: option.value}}
+    this.setState({ selected: option, optionsOpen: false });
+    const event = { target: { name: this.props.name, value: option.value } }
     this.props.onChange && this.props.onChange(event);
   }
   toggle() {
-    this.setState({optionsOpen: !this.state.optionsOpen});
+    this.setState({ optionsOpen: !this.state.optionsOpen });
   }
   render() {
     return (
-        <div className="dropdown sans-serif">
-          <div className={`dropdownMain noselect${this.state.selected ? " selected":""}`} onClick={this.toggle}>
-            <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down"/>
+      <div className="dropdown sans-serif">
+        <div className={`dropdownMain noselect${this.state.selected ? " selected" : ""}`} onClick={this.toggle}>
+          <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
+          <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" />
 
-          </div>
-          {this.state.optionsOpen ?
-            <div className="dropdownListBox noselect">
-              <div className="dropdownList noselect">
-                {this.props.options.map(function(option) {
-                  const onClick = this.select.bind(null, option);
-                  const classes = classNames({dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value});
-                  return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
-                }.bind(this))}
-              </div>
+        </div>
+        {this.state.optionsOpen ?
+          <div className="dropdownListBox noselect">
+            <div className="dropdownList noselect">
+              {this.props.options.map(function (option) {
+                const onClick = this.select.bind(null, option);
+                const classes = classNames({ dropdownOption: 1, selected: this.state.selected && this.state.selected.value == option.value });
+                return <div className={classes} onClick={onClick} key={option.value}>{option.label}</div>
+              }.bind(this))}
             </div>
+          </div>
           : null}
-        </div>);
+      </div>);
   }
 }
 Dropdown.propTypes = {
-  options:     PropTypes.array.isRequired, // Array of {label, value}
-  name:        PropTypes.string.isRequired,
-  onChange:    PropTypes.func,
+  options: PropTypes.array.isRequired, // Array of {label, value}
+  name: PropTypes.string.isRequired,
+  onChange: PropTypes.func,
   placeholder: PropTypes.string,
-  selected:    PropTypes.string,
+  selected: PropTypes.string,
 };
 
 
@@ -2561,30 +2333,30 @@ class LoadingMessage extends Component {
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
-              <InterfaceText>
-                <EnglishText>{message}</EnglishText>
-                <HebrewText>{heMessage}</HebrewText>
-              </InterfaceText>
-            </div>);
+      <InterfaceText>
+        <EnglishText>{message}</EnglishText>
+        <HebrewText>{heMessage}</HebrewText>
+      </InterfaceText>
+    </div>);
   }
 }
 LoadingMessage.propTypes = {
-  message:   PropTypes.string,
+  message: PropTypes.string,
   heMessage: PropTypes.string,
   className: PropTypes.string
 };
 
 
-const CategoryAttribution = ({categories, linked = true, asEdition}) => {
+const CategoryAttribution = ({ categories, linked = true, asEdition }) => {
   const attribution = Sefaria.categoryAttribution(categories);
   if (!attribution) { return null; }
 
   const en = asEdition ? attribution.englishAsEdition : attribution.english;
   const he = asEdition ? attribution.hebrewAsEdition : attribution.hebrew;
-  const str = <ContentText text={{en, he}} defaultToInterfaceOnBilingual={true} />;
+  const str = <ContentText text={{ en, he }} defaultToInterfaceOnBilingual={true} />;
 
   const content = linked ?
-      <a href={attribution.link}>{str}</a> : str;
+    <a href={attribution.link}>{str}</a> : str;
 
   return <div className="categoryAttribution">{content}</div>;
 };
@@ -2599,17 +2371,17 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceText text={{en:en, he:he}} />
+        <InterfaceText text={{ en: en, he: he }} />
       </a>
     );
   }
 }
 SheetTopicLink.propTypes = {
-  topic:       PropTypes.shape({
-                 en: PropTypes.string.isRequired,
-                 he: PropTypes.string.isRequired,
-                 slug: PropTypes.string.isRequired,
-               }).isRequired,
+  topic: PropTypes.shape({
+    en: PropTypes.string.isRequired,
+    he: PropTypes.string.isRequired,
+    slug: PropTypes.string.isRequired,
+  }).isRequired,
   setSheetTag: PropTypes.func.isRequired
 };
 
@@ -2638,39 +2410,39 @@ class FeedbackBox extends Component {
   }
   sendFeedback() {
     if (!this.state.type) {
-      this.setState({alertmsg: Sefaria._("Please select a feedback type")});
+      this.setState({ alertmsg: Sefaria._("Please select a feedback type") });
       return
     }
 
     if (!Sefaria._uid && !this.validateEmail($("#feedbackEmail").val())) {
-      this.setState({alertmsg: Sefaria._("Please enter a valid email address")});
+      this.setState({ alertmsg: Sefaria._("Please enter a valid email address") });
       return
     }
 
     let feedback = {
-        refs: this.props.srefs || null,
-        type: this.state.type,
-        url: this.props.url || null,
-        currVersions: this.props.currVersions,
-        email: $("#feedbackEmail").val() || null,
-        msg: $("#feedbackText").val(),
-        uid: Sefaria._uid || null
+      refs: this.props.srefs || null,
+      type: this.state.type,
+      url: this.props.url || null,
+      currVersions: this.props.currVersions,
+      email: $("#feedbackEmail").val() || null,
+      msg: $("#feedbackText").val(),
+      uid: Sefaria._uid || null
     };
-    let postData = {json: JSON.stringify(feedback)};
+    let postData = { json: JSON.stringify(feedback) };
     const url = "/api/send_feedback";
 
-    this.setState({feedbackSent: true});
+    this.setState({ feedbackSent: true });
 
     $.post(url, postData, function (data) {
-        if (data.error) {
-            alert(data.error);
-        } else {
-            console.log(data);
-            Sefaria.track.event("Tools", "Send Feedback", this.props.url);
-        }
+      if (data.error) {
+        alert(data.error);
+      } else {
+        console.log(data);
+        Sefaria.track.event("Tools", "Send Feedback", this.props.url);
+      }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-        alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
-        this.setState({feedbackSent: true});
+      alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+      this.setState({ feedbackSent: true });
     });
   }
   validateEmail(email) {
@@ -2678,56 +2450,56 @@ class FeedbackBox extends Component {
     return re.test(email);
   }
   setType(event) {
-    this.setState({type: event.target.value});
+    this.setState({ type: event.target.value });
   }
   render() {
     if (this.state.feedbackSent) {
-        return (
-            <div className="feedbackBox sans-serif">
-                <p className="int-en">Feedback sent!</p>
-                <p className="int-he">משוב נשלח!</p>
-            </div>
-        )
+      return (
+        <div className="feedbackBox sans-serif">
+          <p className="int-en">Feedback sent!</p>
+          <p className="int-he">משוב נשלח!</p>
+        </div>
+      )
     }
     return (
-        <div className="feedbackBox sans-serif">
-            <p className="int-en">Have some feedback? We would love to hear it.</p>
-            <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
+      <div className="feedbackBox sans-serif">
+        <p className="int-en">Have some feedback? We would love to hear it.</p>
+        <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
 
-            {this.state.alertmsg ?
-                <div>
-                    <p className="int-en">{this.state.alertmsg}</p>
-                    <p className="int-he">{this.state.alertmsg}</p>
-                </div>
-                : null
-            }
+        {this.state.alertmsg ?
+          <div>
+            <p className="int-en">{this.state.alertmsg}</p>
+            <p className="int-he">{this.state.alertmsg}</p>
+          </div>
+          : null
+        }
 
-            <Dropdown
-              name="feedbackType"
-              options={[
-                        {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
-                        {value: "translation_request",   label: Sefaria._("Request translation")},
-                        {value: "bug_report",      label: Sefaria._("Report a bug")},
-                        {value: "help_request",    label: Sefaria._("Get help")},
-                        {value: "feature_request", label: Sefaria._("Request a feature")},
-                        {value: "good_vibes",      label: Sefaria._("Give thanks")},
-                        {value: "other",           label: Sefaria._("Other")},
-                      ]}
-              placeholder={Sefaria._("Select Type")}
-              onChange={this.setType}
-            />
+        <Dropdown
+          name="feedbackType"
+          options={[
+            { value: "content_issue", label: Sefaria._("Report an issue with the text") },
+            { value: "translation_request", label: Sefaria._("Request translation") },
+            { value: "bug_report", label: Sefaria._("Report a bug") },
+            { value: "help_request", label: Sefaria._("Get help") },
+            { value: "feature_request", label: Sefaria._("Request a feature") },
+            { value: "good_vibes", label: Sefaria._("Give thanks") },
+            { value: "other", label: Sefaria._("Other") },
+          ]}
+          placeholder={Sefaria._("Select Type")}
+          onChange={this.setType}
+        />
 
-            <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
+        <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
 
-            {!Sefaria._uid ?
-                <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
-                : null }
+        {!Sefaria._uid ?
+          <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
+          : null}
 
-             <div className="button" role="button" onClick={() => this.sendFeedback()}>
-                 <span className="int-en">Submit</span>
-                 <span className="int-he">שליחה</span>
-             </div>
+        <div className="button" role="button" onClick={() => this.sendFeedback()}>
+          <span className="int-en">Submit</span>
+          <span className="int-he">שליחה</span>
         </div>
+      </div>
     );
   }
 }
@@ -2737,13 +2509,13 @@ class ReaderMessage extends Component {
   // Component for determining user feedback on new element
   constructor(props) {
     super(props)
-    var showNotification = Sefaria._inBrowser && !document.cookie.includes(this.props.messageName+"Accepted");
-    this.state = {showNotification: showNotification};
+    var showNotification = Sefaria._inBrowser && !document.cookie.includes(this.props.messageName + "Accepted");
+    this.state = { showNotification: showNotification };
   }
   setFeedback(status) {
-    Sefaria.track.uiFeedback(this.props.messageName+"Accepted", status);
-    $.cookie((this.props.messageName+"Accepted"), 1, {path: "/"});
-    this.setState({showNotification: false});
+    Sefaria.track.uiFeedback(this.props.messageName + "Accepted", status);
+    $.cookie((this.props.messageName + "Accepted"), 1, { path: "/" });
+    this.setState({ showNotification: false });
   }
   render() {
     if (!this.state.showNotification) { return null; }
@@ -2770,35 +2542,35 @@ class CookiesNotification extends Component {
     super(props);
     const showNotification = /*!Sefaria._debug && */Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
-    this.state = {showNotification: showNotification};
+    this.state = { showNotification: showNotification };
   }
   setCookie() {
-    $.cookie("cookiesNotificationAccepted", 1, {path: "/", expires: 20*365});
-    this.setState({showNotification: false});
+    $.cookie("cookiesNotificationAccepted", 1, { path: "/", expires: 20 * 365 });
+    this.setState({ showNotification: false });
   }
   render() {
     if (!this.state.showNotification) { return null; }
     return (
       <div className="cookiesNotification">
 
-          <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
-            <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+        <span className="int-en">
+          <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+          <span className='int-en button small white' onClick={this.setCookie}>OK</span>
+        </span>
+        <span className="int-he">
+          <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
+            <a href="/privacy-policy">קראו עוד בנושא</a>
           </span>
-          <span className="int-he">
-            <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
-              <a href="/privacy-policy">קראו עוד בנושא</a>
-            </span>
-            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
-          </span>
+          <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
+        </span>
 
-       </div>
+      </div>
     );
   }
 }
 
 
-const CommunityPagePreviewControls = ({date}) => {
+const CommunityPagePreviewControls = ({ date }) => {
 
   const dateStr = (date, offset) => {
     const d = new Date(date);
@@ -2845,9 +2617,9 @@ const SheetTitle = (props) => (
     contentEditable={props.editable}
     suppressContentEditableWarning={true}
     onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
+    style={{ "direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" : "ltr" }}
   >
-  {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
+    {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
   </span>
 );
 SheetTitle.propTypes = {
@@ -2861,18 +2633,18 @@ const SheetAuthorStatement = (props) => (
   </div>
 );
 SheetAuthorStatement.propTypes = {
-  authorImage:      PropTypes.string,
-  authorStatement:  PropTypes.string,
-  authorUrl:        PropTypes.string,
+  authorImage: PropTypes.string,
+  authorStatement: PropTypes.string,
+  authorUrl: PropTypes.string,
 };
 
 
-const CollectionStatement = ({name, slug, image, children}) => (
+const CollectionStatement = ({ name, slug, image, children }) => (
   slug ?
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
-          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
+          <img className={classNames({ collectionListingImage: 1, "img-circle": 1, default: !image })} src={image || "/static/icons/collection.svg"} alt="Collection Logo" />
         </a>
       </div>
       <a href={"/collections/" + slug}>{children ? children : name}</a>
@@ -2883,36 +2655,36 @@ const CollectionStatement = ({name, slug, image, children}) => (
     </div>
 );
 
-const AdminToolHeader = function({title, validate, close}) {
+const AdminToolHeader = function ({ title, validate, close }) {
   /*
   Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
-  return    <div className="headerWithButtons">
-              <h1 className="pageTitle">
-                <InterfaceText>{title}</InterfaceText>
-              </h1>
-              <div className="end">
-                <a onClick={close} id="cancel" className="button small transparent control-elem">
-                  <InterfaceText>Cancel</InterfaceText>
-                </a>
-                <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
-                  <InterfaceText>Save</InterfaceText>
-                </div>
-              </div>
-            </div>
+  return <div className="headerWithButtons">
+    <h1 className="pageTitle">
+      <InterfaceText>{title}</InterfaceText>
+    </h1>
+    <div className="end">
+      <a onClick={close} id="cancel" className="button small transparent control-elem">
+        <InterfaceText>Cancel</InterfaceText>
+      </a>
+      <div onClick={validate} id="saveAccountSettings" className="button small blue control-elem" tabIndex="0" role="button">
+        <InterfaceText>Save</InterfaceText>
+      </div>
+    </div>
+  </div>
 }
 
 
-const CategoryChooser = function({categories, update}) {
+const CategoryChooser = function ({ categories, update }) {
   /*
   Allows user to start from the top of the TOC and select a precise path through the category TOC using option menus.
   'categories' is initial list of categories specifying a path and 'update' is called with new categories after the user changes selection
    */
   const categoryMenu = useRef();
 
-  const handleChange = function(e) {
+  const handleChange = function (e) {
     let newCategories = [];
-    for (let i=0; i<categoryMenu.current.children.length; i++) {
+    for (let i = 0; i < categoryMenu.current.children.length; i++) {
       let el = categoryMenu.current.children[i].children[0];
       let elValue = el.options[el.selectedIndex].value;
       let possCategories = newCategories.concat([elValue]);
@@ -2928,23 +2700,23 @@ const CategoryChooser = function({categories, update}) {
   let menus = [];
 
   //create a menu of first level categories
-  let options = Sefaria.toc.map(function(child, key) {
+  let options = Sefaria.toc.map(function (child, key) {
     if (categories.length > 0 && categories[0] === child.category) {
-      return <option key={key+1} value={categories[0]} selected>{categories[0]}</option>;
+      return <option key={key + 1} value={categories[0]} selected>{categories[0]}</option>;
     }
     else {
-      return <option key={key+1} value={child.category}>{child.category}</option>
+      return <option key={key + 1} value={child.category}>{child.category}</option>
     }
   });
   menus.push(options);
 
   //now add to menu second and/or third level categories found in categories
-  for (let i=0; i<categories.length; i++) {
+  for (let i = 0; i < categories.length; i++) {
     let options = [];
-    const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i+1));
+    const tocObject = Sefaria.tocObjectByCategories(categories.slice(0, i + 1));
     const subcats = !tocObject?.contents ? [] : tocObject.contents.filter(x => x.hasOwnProperty("category")); //Indices have 'categories' field and Categories have 'category' field which is their lastPath
-    for (let j=0; j<subcats.length; j++) {
-      const selected = categories.length >= i && categories[i+1] === subcats[j].category;
+    for (let j = 0; j < subcats.length; j++) {
+      const selected = categories.length >= i && categories[i + 1] === subcats[j].category;
       options.push(<option key={j} value={subcats[j].category} selected={selected}>{subcats[j].category}</option>);
     }
     if (options.length > 0) {
@@ -2952,55 +2724,50 @@ const CategoryChooser = function({categories, update}) {
     }
   }
   return <div ref={categoryMenu}>
-          {menus.map((menu, index) =>
-            <div className="categoryChooserMenu">
-              <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
-              <option key="chooseCategory" value="Choose a category">Table of Contents</option>
-              {menu}
-              </select>
-            </div>)}
-         </div>
+    {menus.map((menu, index) =>
+      <div id="categoryChooserMenu">
+        <select key={`subcats-${index}`} id={`subcats-${index}`} onChange={handleChange}>
+          <option key="chooseCategory" value="Choose a category">Table of Contents</option>
+          {menu}
+        </select>
+      </div>)}
+  </div>
 }
 
 
-const TitleVariants = function({titles, update, options}) {
+const TitleVariants = function ({ titles, update, options }) {
   /*
-  Wrapper for ReactTags component.  `titles` is initial list of objects to populate ReactTags component.
-  each item in `titles` should have an 'id' and 'name' field and can have others as well
+  Wrapper for ReactTags component.  `titles` is initial list of strings to populate ReactTags component
   and `update` is method to call after deleting or adding to titles. `options` is an object that can have
   the fields `onTitleDelete`, `onTitleAddition`, and `onTitleValidate` allowing overloading of TitleVariant's methods
    */
-  if (titles.length > 0 && typeof titles[0] === 'string') {  // normalize titles
-    titles = titles.map((item, i) => ({["name"]: item, ["id"]: i}));
-  }
-  const onTitleDelete = function(i) {
+  const onTitleDelete = function (i) {
     const newTitles = titles.filter(t => t !== titles[i]);
     update(newTitles);
   }
-  const onTitleAddition = function(title) {
-    title.id = Math.max(titles.map(x => x.id)) + 1;  // assign unique id
+  const onTitleAddition = function (title) {
     const newTitles = [].concat(titles, title);
     update(newTitles);
   }
   const onTitleValidate = function (title) {
     const validTitle = titles.every((item) => item.name !== title.name);
     if (!validTitle) {
-      alert(title.name+" already exists.");
+      alert(title.name + " already exists.");
     }
     return validTitle;
   }
 
   return <div className="publishBox">
-                <ReactTags
-                    allowNew={true}
-                    tags={titles}
-                    onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
-                    placeholderText={Sefaria._("Add a title...")}
-                    delimiters={["Enter", "Tab"]}
-                    onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
-                    onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
-                  />
-         </div>
+    <ReactTags
+      allowNew={true}
+      tags={titles}
+      onDelete={options?.onTitleDelete ? options.onTitleDelete : onTitleDelete}
+      placeholderText={Sefaria._("Add a title...")}
+      delimiters={["Enter", "Tab"]}
+      onAddition={options?.onTitleAddition ? options.onTitleAddition : onTitleAddition}
+      onValidate={options?.onTitleValidate ? options.onTitleValidate : onTitleValidate}
+    />
+  </div>
 }
 
 const SheetMetaDataBox = (props) => (
@@ -3009,29 +2776,29 @@ const SheetMetaDataBox = (props) => (
   </div>
 );
 
-const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
+const DivineNameReplacer = ({ setDivineNameReplacement, divineNameReplacement }) => {
   return (
-      <div className="divineNameReplacer">
-        <p className="sans-serif"><InterfaceText>Select how you would like to display the divine name in this sheet:</InterfaceText></p>
+    <div className="divineNameReplacer">
+      <p className="sans-serif"><InterfaceText>Select how you would like to display the divine name in this sheet:</InterfaceText></p>
 
-            <Dropdown
-              name="divinename"
-              options={[
-                        {value: "noSub",   label: Sefaria._("No Substitution")},
-                        {value: "yy",   label: 'יי'},
-                        {value: "h",      label:'ה׳'},
-                        {value: "ykvk",    label: 'יקוק'},
-                      ]}
-              placeholder={Sefaria._("Select Type")}
-              onChange={(e) => setDivineNameReplacement((e.target.value))}
-              preselected={divineNameReplacement}
-            />
-      </div>
+      <Dropdown
+        name="divinename"
+        options={[
+          { value: "noSub", label: Sefaria._("No Substitution") },
+          { value: "yy", label: 'יי' },
+          { value: "h", label: 'ה׳' },
+          { value: "ykvk", label: 'יקוק' },
+        ]}
+        placeholder={Sefaria._("Select Type")}
+        onChange={(e) => setDivineNameReplacement((e.target.value))}
+        preselected={divineNameReplacement}
+      />
+    </div>
   )
 
 }
-const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
-                         buttonTitle, autocompleteClassNames }) => {
+const Autocompleter = ({ getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
+  buttonTitle, autocompleteClassNames }) => {
   /*
   Autocompleter component used in AddInterfaceInput and TopicSearch components.  Component contains an input box, a
   select menu that shows autcomplete suggestions, and a button.  To submit an autocomplete suggestion, user can press enter in the input box, or click on the button.
@@ -3048,10 +2815,10 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   const [helperPromptText, setHelperPromptText] = useState(null);
   const [showAddButton, setShowAddButton] = useState(false);
   const [showCurrentSuggestions, setShowCurrentSuggestions] = useState(true);
-  const [inputClassNames, setInputClassNames] = useState(classNames({selected: 0}));
+  const [inputClassNames, setInputClassNames] = useState(classNames({ selected: 0 }));
   const suggestionEl = useRef(null);
   const inputEl = useRef(null);
-  const buttonClassNames = classNames({button: 1, small: 1});
+  const buttonClassNames = classNames({ button: 1, small: 1 });
 
   const getWidthOfInput = () => {
     //Create a temporary div w/ all of the same styles as the input since we can't measure the input
@@ -3060,10 +2827,10 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
     const styles = window.getComputedStyle(inputEl);
     //Reduce function required b/c cssText returns "" on Firefox
     const cssText = Object.values(styles).reduce(
-        (css, propertyName) =>
-            `${css}${propertyName}:${styles.getPropertyValue(
-                propertyName
-            )};`
+      (css, propertyName) =>
+        `${css}${propertyName}:${styles.getPropertyValue(
+          propertyName
+        )};`
     );
     tmp.style.cssText = cssText
 
@@ -3082,14 +2849,14 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 
   useEffect(
     () => {
-         const element = document.querySelector('.textPreviewSegment.highlight');
-         if (element) {element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })}
+      const element = document.querySelector('.textPreviewSegment.highlight');
+      if (element) { element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' }) }
     }, [previewText]
   )
 
   const resizeInputIfNeeded = () => {
     const currentWidth = getWidthOfInput();
-    if (currentWidth > 350) {document.querySelector('.addInterfaceInput input').style.width = `${currentWidth+20}px`}
+    if (currentWidth > 350) { document.querySelector('.addInterfaceInput input').style.width = `${currentWidth + 20}px` }
   }
 
   const processSuggestions = (resultsPromise) => {
@@ -3107,47 +2874,47 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
   }
 
   const onChange = (input) => {
-    setInputClassNames(classNames({selected: 0}));
+    setInputClassNames(classNames({ selected: 0 }));
     setShowCurrentSuggestions(true);
     processSuggestions(getSuggestions(input));
     resizeInputIfNeeded();
   }
 
   const handleOnClickSuggestion = (title) => {
-      changeInputValue(title);
-      setShowCurrentSuggestions(showSuggestionsOnSelect);
-      if (showSuggestionsOnSelect) {
-        processSuggestions(getSuggestions(title));
-      }
-      setInputClassNames(classNames({selected: 1}));
-      resizeInputIfNeeded();
-      inputEl.current.focus();
+    changeInputValue(title);
+    setShowCurrentSuggestions(showSuggestionsOnSelect);
+    if (showSuggestionsOnSelect) {
+      processSuggestions(getSuggestions(title));
+    }
+    setInputClassNames(classNames({ selected: 1 }));
+    resizeInputIfNeeded();
+    inputEl.current.focus();
   }
 
-  const Suggestion = ({title, color}) => {
-    return(<option
-              className="suggestion"
-              onClick={(e)=>{
-                  e.stopPropagation()
-                  handleOnClickSuggestion(title)
-                }
-              }
-              style={{"borderInlineStartColor": color}}
-           >{title}</option>)
+  const Suggestion = ({ title, color }) => {
+    return (<option
+      className="suggestion"
+      onClick={(e) => {
+        e.stopPropagation()
+        handleOnClickSuggestion(title)
+      }
+      }
+      style={{ "borderInlineStartColor": color }}
+    >{title}</option>)
 
   }
   const mapSuggestions = (suggestions) => {
     const div = suggestions.map((suggestion, index) => (
 
-        (<Suggestion
-           title={suggestion.name}
-           color={suggestion.border_color}
-           key={index}
-        />)
+      (<Suggestion
+        title={suggestion.name}
+        color={suggestion.border_color}
+        key={index}
+      />)
 
     ))
 
-  return(div)
+    return (div)
   }
 
   const handleSelection = () => {
@@ -3165,120 +2932,91 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
       suggestionEl.current.focus();
       (suggestionEl.current).firstChild.selected = 'selected';
     }
-    else
-    {
+    else {
       changeInputValue(inputEl.current.value);
     }
   }
 
 
   const generatePreviewText = (ref) => {
-        Sefaria.getText(ref, {context:1, stripItags: 1}).then(text => {
-           let segments = Sefaria.makeSegments(text, true);
-           segments = Sefaria.stripImagesFromSegments(segments);
-           const previewHTML =  segments.map((segment, i) => {
-            {
-              const heOnly = !segment.en;
-              const enOnly = !segment.he;
-              const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+    Sefaria.getText(ref, { context: 1, stripItags: 1 }).then(text => {
+      const segments = Sefaria.makeSegments(text, true);
+      const previewHTML = segments.map((segment, i) => {
+        {
+          const heOnly = !segment.en;
+          const enOnly = !segment.he;
+          const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
-              return(
-                  <div
-                      className={classNames({'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly})}
-                      key={segment.ref}>
-                    <sup><ContentText
-                        text={{"en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number)}}
-                        defaultToInterfaceOnBilingual={true}
-                    /></sup> <ContentText html={{"he": segment.he+ " ", "en": segment.en+ " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]}/>
-                  </div>
-              )
-            }
-          })
-          setPreviewText(previewHTML);
-        })
+          return (
+            <div
+              className={classNames({ 'textPreviewSegment': 1, highlight: segment.highlight, heOnly: heOnly, enOnly: enOnly })}
+              key={segment.ref}>
+              <sup><ContentText
+                text={{ "en": segment.number, "he": Sefaria.hebrew.encodeHebrewNumeral(segment.number) }}
+                defaultToInterfaceOnBilingual={true}
+              /></sup> <ContentText html={{ "he": segment.he + " ", "en": segment.en + " " }} defaultToInterfaceOnBilingual={!overrideLanguage} overrideLanguage={overrideLanguage} bilingualOrder={["en", "he"]} />
+            </div>
+          )
+        }
+      })
+      setPreviewText(previewHTML);
+    })
   }
 
-   const checkEnterOnSelect = (e) => {
-      if (e.key === 'Enter') {
-          handleOnClickSuggestion(e.target.value);
-      }
+  const checkEnterOnSelect = (e) => {
+    if (e.key === 'Enter') {
+      handleOnClickSuggestion(e.target.value);
     }
+  }
 
-  return(
-    <div className={autocompleteClassNames} onClick={(e) => {e.stopPropagation()}} title={Sefaria._(buttonTitle)}>
+  return (
+    <div className={autocompleteClassNames} onClick={(e) => { e.stopPropagation() }} title={Sefaria._(buttonTitle)}>
       <input
-          type="text"
-          placeholder={Sefaria._(inputPlaceholder)}
-          onKeyDown={(e) => onKeyDown(e)}
-          onClick={(e) => {e.stopPropagation()}}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={(e) => setPreviewText(null) }
-          value={inputValue}
-          ref={inputEl}
-          className={inputClassNames}
+        type="text"
+        placeholder={Sefaria._(inputPlaceholder)}
+        onKeyDown={(e) => onKeyDown(e)}
+        onClick={(e) => { e.stopPropagation() }}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={(e) => setPreviewText(null)}
+        value={inputValue}
+        ref={inputEl}
+        className={inputClassNames}
 
       /><span className="helperCompletionText sans-serif-in-hebrew">{helperPromptText}</span>
       {showAddButton ? <button className={buttonClassNames} onClick={(e) => {
-                    handleSelection(inputValue, currentSuggestions)
-                }}>{buttonTitle}</button> : null}
+        handleSelection(inputValue, currentSuggestions)
+      }}>{buttonTitle}</button> : null}
 
       {showCurrentSuggestions && currentSuggestions && currentSuggestions.length > 0 ?
-          <div className="suggestionBoxContainer">
+        <div className="suggestionBoxContainer">
           <select
-              ref={suggestionEl}
-              className="suggestionBox"
-              size={currentSuggestions.length}
-              multiple
-              onKeyDown={(e) => checkEnterOnSelect(e)}
+            ref={suggestionEl}
+            className="suggestionBox"
+            size={currentSuggestions.length}
+            multiple
+            onKeyDown={(e) => checkEnterOnSelect(e)}
           >
             {mapSuggestions(currentSuggestions)}
           </select>
-          </div>
-          : null
+        </div>
+        : null
       }
 
       {previewText ?
-          <div className="textPreviewContainer">
-            <div className="textPreview">
-              <div className="inner">{previewText}</div>
-            </div>
+        <div className="textPreviewContainer">
+          <div className="textPreview">
+            <div className="inner">{previewText}</div>
           </div>
+        </div>
 
-          : null
+        : null
 
       }
 
     </div>
-    )
+  )
 }
-
-const ImageWithCaption = ({photoLink, caption }) => {
-  
-  return (
-    <div>
-        <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption"> 
-          <InterfaceText text={caption} />
-        </div>
-      </div>);
-}
-
-const AppStoreButton = ({ platform, href, altText }) => {
-  const isIOS = platform === 'ios';
-  const aClasses = classNames({button: 1, small: 1, white: 1, appButton: 1, ios: isIOS});
-  const iconSrc = `/static/icons/${isIOS ? 'ios' : 'android'}.svg`;
-  const text = isIOS ? 'iOS' : 'Android';
-  return (
-      <a target="_blank" className={aClasses} href={href}>
-        <img src={iconSrc} alt={altText} />
-        <InterfaceText>{text}</InterfaceText>
-      </a>
-  );
-};
-
-
 export {
-  AppStoreButton,
   CategoryHeader,
   SimpleInterfaceBlock,
   DangerousInterfaceBlock,
@@ -3300,8 +3038,8 @@ export {
   FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
-  Banner,
   InterfaceText,
+  ContentText,
   EnglishText,
   HebrewText,
   CommunityPagePreviewControls,
@@ -3311,6 +3049,7 @@ export {
   LoadingRing,
   LoginPrompt,
   NBox,
+  NewsletterSignUpForm,
   Note,
   ProfileListing,
   ProfilePic,
@@ -3340,8 +3079,5 @@ export {
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,
-  requestWithCallBack,
-  OnInView,
-  TopicPictureUploader,
-  ImageWithCaption
+  requestWithCallBack
 };

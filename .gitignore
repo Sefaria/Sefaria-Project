@@ -133,3 +133,10 @@ static/sheetrank.json
 
 env/*
 dump/*
+tmp/*
+log/*
+/static/bundles
+/dockerData
+
+.env
+.envrc

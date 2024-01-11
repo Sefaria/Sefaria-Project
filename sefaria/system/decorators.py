@@ -14,7 +14,14 @@ import bleach
 import structlog
 logger = structlog.get_logger(__name__)
 
-from sefaria.settings import FAIL_GRACEFULLY
+try:
+    from sefaria.settings import FAIL_GRACEFULLY
+except ImportError as e:
+    # Handle the exception
+    print(f"Failed to import FAIL_GRACEFULLY: {e}")
+    # Set a default value for FAIL_GRACEFULLY or handle it in another way
+    FAIL_GRACEFULLY = True  # or True, depending on what makes sense for your application
+
 
 
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.
