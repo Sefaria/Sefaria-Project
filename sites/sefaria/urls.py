@@ -49,7 +49,8 @@ static_pages = [
     "cloudflare_site_is_down_he",
     "team",
     "link-to-annual-report",
-    'mobile-about'
+    'mobile-about',
+    "updates"
 ]
 
 static_pages_by_lang = [

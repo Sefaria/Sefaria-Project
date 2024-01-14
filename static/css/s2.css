@@ -1615,6 +1615,9 @@ div.interfaceLinks-row a {
   padding-inline-start: 30px;
   padding-inline-end: 30px;
 }
+#updatesPanelContent .readerNavMenu .content .contentInner {
+  margin-left: 200px;
+}
 .homeFeedWrapper .content .contentInner {
   max-width: none;
 }

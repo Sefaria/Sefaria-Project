@@ -24,6 +24,7 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  UpdatesPanel
 } from './StaticPages';
 import {
   SignUpModal,
@@ -2278,4 +2279,5 @@ export {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
+  UpdatesPanel
 };
