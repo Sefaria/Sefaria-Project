@@ -9,7 +9,7 @@
 <div id="supportersPage" class="container static biReady">
     <div class="inner">
         {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" %}
+            {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" heTitle="התומכים שלנו" %}
         {% else %}
             <h1>
             <span class="int-en">Our Supporters</span>

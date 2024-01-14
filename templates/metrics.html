@@ -13,7 +13,7 @@
 
 	<div class="inner">
         {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='metrics' title="Metrics" %}
+            {% include '_sidebar.html' with whichPage='metrics' title="Metrics" heTitle="מדדים" %}
         {% else %}
             <h1>
                 <span class="int-en">Metrics</span>

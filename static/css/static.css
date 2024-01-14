@@ -3373,14 +3373,21 @@ display: none;
   display: block;
   font-size: 16px;
 }
+.mobileAbout .fa-chevron-left {
+  padding-top: 10px;
+  color: var(--dark-grey);
+  display: block !important;
+  margin: 0 20px 0 20px;
+  float: left;
+}
 .mobileAbout .fa-chevron-right {
   float: right;
   padding-top: 10px;
   color: var(--dark-grey);
   display: block !important;
-  margin-right: 20px;
+  margin: 0 20px 0 20px;
 }
-#aboutSidebar .fa-chevron-right {
+#aboutSidebar .fa-chevron-right, #aboutSidebar .fa-chevron-left {
   display: none;
 }
 #about.selected, #team.selected, #jobs.selected, #supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, #privacy.selected {

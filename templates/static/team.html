@@ -21,7 +21,7 @@
         <div class="inner">
             <header>
             {% if not request.user_agent.is_mobile %}
-                {% include '_sidebar.html' with whichPage='team' title="Team" %}
+                {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
             {% else %}
                 <h1>
                     <span class="int-en serif">Team</span>

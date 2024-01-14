@@ -10,7 +10,7 @@
 
 	<div class="inner">
         {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" %}
+            {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" heTitle="מדיניות פרטיות" %}
         {% else %}
             <div id="legalTabs">
                 <a href="/terms">Terms of Use</a>

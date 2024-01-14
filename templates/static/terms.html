@@ -12,7 +12,7 @@
 
 	<div class="inner">
         {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" %}
+            {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" heTitle="תנאי שימוש" %}
         {% else %}
             <div id="legalTabs">
                 <a href="/terms" class="current">Terms of Use</a>
