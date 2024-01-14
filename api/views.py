@@ -1,5 +1,5 @@
 from sefaria.model import *
-from sefaria.model.text_manager import TextManager
+from sefaria.model.text_reuqest_adapter import TextRequestAdapter
 from sefaria.client.util import jsonResponse
 from django.views import View
 from .api_warnings import *
@@ -13,7 +13,7 @@ class Text(View):
         try:
             self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
         except Exception as e:
-            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=400)
+            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
         return super().dispatch(request, *args, **kwargs)
 
     @staticmethod
@@ -43,7 +43,7 @@ class Text(View):
 
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty() and not self.oref.index_node.is_virtual:
-            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=400)
+            return jsonResponse({'error': f'We have no text for {self.oref}.'}, status=404)
         versions_params = request.GET.getlist('version', [])
         if not versions_params:
             versions_params = ['primary']
@@ -52,7 +52,7 @@ class Text(View):
         return_format = request.GET.get('return_format', 'default')
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
-        text_manager = TextManager(self.oref, versions_params, fill_in_missing_segments, return_format)
+        text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
         data = text_manager.get_versions_for_query()
         data = self._handle_warnings(data)
         return jsonResponse(data)

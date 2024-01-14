@@ -3567,11 +3567,20 @@ display: none;
 [open] .versionBlock.with-preview summary {
   margin-bottom: 10px;
 }
-.versionBlock.with-preview summary::marker {
+.versionBlock.with-preview details summary::before {
   content: url('/static/icons/little-chevron-down.svg');
 }
-[open] .versionBlock.with-preview summary::marker {
+.versionBlock.with-preview details[open] summary::before {
   content: url('/static/icons/little-chevron-up.svg');
+}
+.versionBlock.with-preview summary::-webkit-details-marker {
+  /*hide marker for safari*/
+  display: none;
+}
+.versionBlock.with-preview summary {
+  /*hide marker for chrome*/
+  list-style: none;
+  cursor: pointer;
 }
 details .open-details::before {
   margin-inline-end: 5px;
