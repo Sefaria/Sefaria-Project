@@ -16,17 +16,13 @@
 
 {% block content %}
 
-<main id="updatersPage" class="container biReady static">
-    <div class="inner">
-        {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='updatesAdditions' title="New Additions" heTitle="חידושים בארון הספרים של ספריא" %}
-        {% endif %}
-        <div id="updatesPanelContent">
-            <h1 id="appLoading">Loading...</h1>
-        </div>
+<main id="updatersPage">
+    <div id="updatesPanelContent">
+        <h1 id="appLoading">Loading...</h1>
     </div>
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='updatesAdditions' title="Updates" heTitle="עדכונים" %}
+    {% endif %}
 </main>
-{% block footer %} {% endblock %}
-
-
 {% endblock %}
+{% block footer %} {% endblock %}

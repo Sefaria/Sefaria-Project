@@ -37,9 +37,7 @@
   const mobile = "{{mobile}}" === "1";
   if (!mobile) {
       const whichPage = "{{whichPage}}";
-      alert(whichPage);
       const item = document.getElementById(whichPage);
-      console.log(item);
       item.className = 'selected';
       const aboutSidebar = document.getElementById("aboutSidebar");
       aboutSidebar.className = `${whichPage}WhatIsSefaria`;

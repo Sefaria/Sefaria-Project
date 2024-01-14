@@ -1617,6 +1617,7 @@ div.interfaceLinks-row a {
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
   margin-left: 200px;
+  margin-right: 200px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;

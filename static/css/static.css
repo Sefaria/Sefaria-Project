@@ -3298,11 +3298,15 @@ display: none;
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
 
-#aboutSidebar {
+.interface-english #aboutSidebar {
   position: absolute;
   left: 15px;
   top: 100px;
-
+}
+.interface-hebrew #aboutSidebar {
+  position: absolute;
+  right: 15px;
+  top: 100px;
 }
 .jobsWhatIsSefaria {
   top: 50px !important;
@@ -3377,7 +3381,7 @@ display: none;
   padding-top: 10px;
   color: var(--dark-grey);
   display: block !important;
-  margin: 0 20px 0 20px;
+  margin: 0 20px 0 50px;
   float: left;
 }
 .mobileAbout .fa-chevron-right {
