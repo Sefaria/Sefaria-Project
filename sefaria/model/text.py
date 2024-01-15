@@ -6103,8 +6103,8 @@ class Library(object):
         This works for references not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
         as well as for references in Sefaria format.
         If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
-        limit the regex creation to content inside parenthesis to limit false positives (i.e. שבת לא תעשה could be caught by
-        mistake as Shabbat 31)
+        limit the regex creation to content inside parenthesis to limit false positives (i.e. the phrase שבת לא תעשה
+        could be caught by mistake as Shabbat 31)
         :param title: String
         :param lang: 'en' or 'he'
         :param for_js: Boolean (default set to False, optional)
@@ -6264,10 +6264,11 @@ class Library(object):
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
-        """Returns a dict of unique category ids based on the ToC
-        :param toc: ToC object (optional, default is None)
-        :param cat_head: String, (optional, default is "" - an empty string)
-        :param code_head: String, (optional, default is "" - an empty string)
+        """Returns a dict of unique category ids based on the ToC, with the
+           values being the category IDs.
+            :param toc: ToC object (optional, default is None)
+            :param cat_head: String, (optional, default is "" - an empty string)
+            :param code_head: String, (optional, default is "" - an empty string)
         """
         if toc is None:
             if not self._category_id_dict:
