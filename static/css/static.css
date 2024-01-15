@@ -3302,14 +3302,27 @@ display: none;
   position: absolute;
   left: 15px;
   top: 100px;
+  text-align: left;
 }
 .interface-hebrew #aboutSidebar {
   position: absolute;
   right: 15px;
   top: 100px;
+  text-align: right;
 }
-.jobsWhatIsSefaria {
+#aboutSidebar .jobs {
   top: 50px !important;
+}
+.interface-hebrew #aboutSidebar h1 {
+  font-size: 22px;
+  margin: 0 30px 30px 30px;
+}
+.interface-hebrew #aboutSidebar.metrics h1 {
+  margin: 0 0 30px 30px;
+}
+.interface-hebrew #aboutSidebar.updates h1 {
+  margin: 0 50px 30px 30px;
+  font-weight: 100;
 }
 #aboutSidebar h1 {
   margin: 0 0 30px 30px;
