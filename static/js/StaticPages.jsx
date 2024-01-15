@@ -206,6 +206,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="English Description (optional for Index and Version)"
             onChange={this.handleEnChange}
             rows="3"
@@ -214,6 +215,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="Hebrew Description (optional for Index and Version)"
             onChange={this.handleHeChange}
             rows="3"
