@@ -24,7 +24,6 @@ import CollectionPage from "./CollectionPage"
 import { NotificationsPanel } from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
-import UpdatesPanel  from './UpdatesPanel';
 import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
@@ -1027,14 +1026,6 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           initialWidth={this.state.width} />
-      );
-
-    } else if (this.state.menuOpen === "updates") {
-      menu = (
-        <UpdatesPanel
-          interfaceLang={this.props.interfaceLang}
-          multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")} />
       );
 
     } else if (this.state.menuOpen === "user_stats") {

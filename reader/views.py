@@ -1060,12 +1060,6 @@ def user_history(request):
     return menu_page(request, props, page="history", title=title, desc=desc)
 
 
-def updates(request):
-    title = _("New Additions to the Sefaria Library")
-    desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return menu_page(request, page="updates", title=title, desc=desc)
-
-
 @login_required
 def user_stats(request):
     title = _("User Stats")
