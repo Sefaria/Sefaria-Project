@@ -5694,7 +5694,9 @@ class Library(object):
 
     def get_topic(self, slug):
         """
-        Returns the corresponding topic for a given slug
+        Returns a dictionary containing with keys "en" and "he".
+        The "en" field has a value of the topic's English primary title, and the "he" field has a
+        value of the topic's Hebrew primary title.
         :param slug: String
         :returns: topic map for the given slug Dictionary
         """
@@ -5712,7 +5714,11 @@ class Library(object):
 
     def _build_topic_mapping(self):
         """
-        Builds the topic mapping
+        Builds the topic mapping. The topic mapping is a dictionary with one key, the slug of the topic.
+        That key contains the value of another dictionary, containing with keys "en" and "he".
+        The "en" field has a value of the topic's English primary title, and the "he" field has a
+        value of the topic's Hebrew primary title.
+        :returns: topic map for the given slug Dictionary
         """
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
@@ -5845,7 +5851,7 @@ class Library(object):
 
     def reset_text_titles_cache(self):
         """
-        Resets the text titles for all languages
+        Resets the text titles for all languages by clearing the existing titles from the cache.
         """
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
@@ -6093,10 +6099,11 @@ class Library(object):
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
         """
-        Given a string with a Ref not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
-        it returns a regex for the Ref.
+        Given a string with a Ref, it returns a regex for the Ref.
+        This works for references not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
+        as well as for references in Sefaria format.
         If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
-        limit the search to content inside parenthesis to limit false positives (i.e. שבת לא תעשה could be caught by
+        limit the regex creation to content inside parenthesis to limit false positives (i.e. שבת לא תעשה could be caught by
         mistake as Shabbat 31)
         :param title: String
         :param lang: 'en' or 'he'
