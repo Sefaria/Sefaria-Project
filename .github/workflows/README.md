@@ -39,3 +39,9 @@
 - use git cherry-pick commit-hash (eg: e2276f5c01a7b2eb1623131664abbe4cb02bb52d)
 - rebase from master to test-staging (all the commits are up to date and ahead commits are on top of it)
 - we can cherry pick commit from production-master to master too
+
+### Some useful git command
+
+- git fetch (fetch the newly created branch in remote)
+- git rebase (source branch) (we should apply it on the target branch. Eg: if need to rebase from master to staging, checkout staging branch and git rebase master.)
+- git diff origin/branch name (check the commit difference b/w origin i.e remote branch and current branch i.e local branch)
