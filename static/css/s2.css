@@ -1621,6 +1621,11 @@ div.interfaceLinks-row a {
 #updatesPanelContent .navSideBar {
     margin-left: 200px;
 }
+@media (max-width: 700px) {
+  #updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-left: 0px;
+  }
+}
 .homeFeedWrapper .content .contentInner {
   max-width: none;
 }
@@ -1719,6 +1724,8 @@ div.interfaceLinks-row a {
   padding: 30px 0 0 0;
   border: none;
 }
+
+
 .navSidebarModule {
   font-size: 16px;
   color: #666;
