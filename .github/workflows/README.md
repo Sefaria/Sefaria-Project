@@ -27,6 +27,11 @@
 - Rebasing of master branch should be done at least every 2 days in order to avoid large conflict.
 - If there are conflict in 2 days, then we should try to solve it ASAP.
 
+### Feature release to master
+
+- Create feature branch from master
+- push to production-master for deployment
+- push to master for feature sharing with sefaria
 
 ### Retrieve feature from Sefaria 
 
