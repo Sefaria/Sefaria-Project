@@ -243,7 +243,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
-    Examples:  Noah, Perek HaChovel, Even HaEzer
+    Examples:  Noah, HaChovel
     Terms that use the same TermScheme can be ordered.
     """
     collection = 'term'
