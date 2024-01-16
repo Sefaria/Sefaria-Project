@@ -6100,7 +6100,7 @@ class Library(object):
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
         """
-        Given a string with a Ref, it returns a regex for the Ref.
+        Given a book title, this function returns a regex for a Ref.
         This works for references not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
         as well as for references in Sefaria format.
         If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
