@@ -5694,7 +5694,7 @@ class Library(object):
 
     def get_topic(self, slug):
         """
-        Returns a dictionary containing with keys "en" and "he".
+        Returns a dictionary containing the keys "en" and "he".
         The "en" field has a value of the topic's English primary title, and the "he" field has a
         value of the topic's Hebrew primary title.
         :param slug: String
@@ -5715,7 +5715,7 @@ class Library(object):
     def _build_topic_mapping(self):
         """
         Builds the topic mapping. The topic mapping is a dictionary with one key, the slug of the topic.
-        That key contains the value of another dictionary, containing with keys "en" and "he".
+        That key contains the value of another dictionary, containing the keys "en" and "he".
         The "en" field has a value of the topic's English primary title, and the "he" field has a
         value of the topic's Hebrew primary title.
         :returns: topic map for the given slug Dictionary
