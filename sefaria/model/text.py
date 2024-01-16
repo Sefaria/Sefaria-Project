@@ -5714,8 +5714,9 @@ class Library(object):
 
     def _build_topic_mapping(self):
         """
-        Builds the topic mapping. The topic mapping is a dictionary with one key, the slug of the topic.
-        That key contains the value of another dictionary, containing the keys "en" and "he".
+        Builds the topic mapping. The topic mapping is a dictionary with keys, where each key
+        is a slug of a topic.
+        That key contains the value of another dictionary, with the keys "en" and "he".
         The "en" field has a value of the topic's English primary title, and the "he" field has a
         value of the topic's Hebrew primary title.
         :returns: topic map for the given slug Dictionary
