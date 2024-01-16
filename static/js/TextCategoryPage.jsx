@@ -343,12 +343,10 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     if (title === "Pesach Haggadah") {
         return ["Pesach Haggadah Ashkenaz", "הגדה של פסח אשכנז"]
     }
+    const whiteList = Sefaria._siteSettings.TORAH_SPECIFIC ? ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
+        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah'] : ["Farand's Records of the Constitutional Convention",
+        "Plutarch's Lives"];
 
-    // Don't remove category strings at the beginning of these titles
-    const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
-        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah', 'Pesach Haggadah Edot Hamizrah',
-        "Baal HaSulam's Preface to Zohar", "Baal HaSulam's Introduction to Zohar", 'Zohar Chadash',
-        'Midrash Shmuel', 'Midrash Tannaim on Deuteronomy'];
     if (whiteList.indexOf(title) > -1 || categories.slice(-1)[0] === "Siddur") {
         return [title, heTitle];
     }
@@ -436,8 +434,7 @@ const getSidebarModules = (categories) => {
 
   const defaultModules = [
     {type: "Promo"},
-    {type: "Visualizations", props: {categories}},
-    {type: "SupportSefaria"},
+    {type: "SupportJMC"},
   ]; 
 
   return customModules.concat(defaultModules);

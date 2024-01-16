@@ -2340,7 +2340,6 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
 
-
         return reg
 
     def toNumber(self, lang, s, **kwargs):
@@ -2373,7 +2372,6 @@ class AddressTalmud(AddressType):
                 return daf  # amud B
             return daf - 1
 
-            # if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):

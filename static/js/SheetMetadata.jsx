@@ -20,7 +20,6 @@ import PropTypes  from 'prop-types';
 import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class';
 import ReactTags from 'react-tag-autocomplete'
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class SheetMetadata extends Component {
   // Menu for the Table of Contents for a single text
@@ -159,7 +158,7 @@ class SheetMetadata extends Component {
 
   copySheet() {
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+        this.props.toggleSignUpModal();
     } else if (this.state.sheetCopyStatus == "Copy") {
         this.setState({sheetCopyStatus: "Copying..."});
         this.filterAndSaveCopiedSheetData(this.loadSheetData(this.props.id))
@@ -215,7 +214,7 @@ class SheetMetadata extends Component {
   }
   toggleCollectionsModal() {
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(SignUpModalKind.AddToSheet);
+      this.props.toggleSignUpModal();
     } else {
       this.setState({showCollectionsModal: !this.state.showCollectionsModal});
     }
@@ -389,11 +388,6 @@ class SheetMetadata extends Component {
 
                     <div>
                       <div className="sheetMetaButtons">
-                        {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
-                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <img src="/static/icons/tools-write-note.svg" alt="edit sheet" />
-                          <InterfaceText>Edit</InterfaceText>
-                        </a> : null }
 
                         <a href="#" className="button white" onClick={this.copySheet}>
                           <img src="/static/icons/copy.svg" alt="copy sheet" />
@@ -405,10 +399,6 @@ class SheetMetadata extends Component {
                           <InterfaceText>Add to Collection</InterfaceText>
                         </a>
 
-                        {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
-                        <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-                          <InterfaceText>View in Editor</InterfaceText>
-                        </a> : null }
                       </div>
 
                       {this.state.sheetCopyStatus == "Copied" ?
@@ -417,11 +407,6 @@ class SheetMetadata extends Component {
                           <span className="int-he">צפייה בהעתק &raquo;</span>
                       </a></div> : null }
 
-                      {Sefaria._uses_new_editor ?
-                      <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
-                        <span className="int-en">View in the old sheets experience</span>
-                        <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
-                      </a> : null }
 
                       {this.state.showCollectionsModal ?
                       <CollectionsModal

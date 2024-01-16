@@ -15,7 +15,7 @@ const signUpModalContent = {
       he: "רוצים לתעד חיבור לטקסט נוסף?",
     },
     h3: {
-      en: "Create a free account to do more on Sefaria",
+      en: `Create a free account to do more on Contextus}`,
       he: "פתחו חשבון משתמש בחינם - ותוכלו לעשות הרבה יותר עם ספריא",
     },
     contentList: [
@@ -86,7 +86,7 @@ const signUpModalContent = {
       he: "יש לכם תרגום משלכם לטקסט זה?",
     },
     h3: {
-      en: "Create a free account to add it to the library & do more on Sefaria",
+      en: `Create a free account to add it to the library & do more on Contextus`,
       he: "פתחו חשבון משתמש בחינם כדי להוסיף אותו לספרייה - ועוד:",
     },
     contentList: [
@@ -116,7 +116,7 @@ const signUpModalContent = {
   },
   [SignUpModalKind.Follow]: {
     h2: {
-      en: "Want to connect with other Sefaria users?",
+      en: `Want to connect with other Contextus users?`,
       he: "רוצים להתחבר עם משתמשים אחרים בספריא?",
     },
     h3: {
@@ -147,7 +147,7 @@ const signUpModalContent = {
   [SignUpModalKind.Notes]: {
     h2: { en: "Don’t lose that thought!", he: "אל תשכחו את המחשבה שעלתה בכם!" },
     h3: {
-      en: "Create a free account to do more on Sefaria",
+      en: `Create a free account to do more on Contextus`,
       he: "פתחו חשבון משתמש בחינם כדי לעשות יותר עם ספריא",
     },
     contentList: [
@@ -184,7 +184,7 @@ const signUpModalContent = {
   [SignUpModalKind.Save]: {
     h2: { en: "Want to return to this text?", he: "רוצים לחזור לטקסט הזה?" },
     h3: {
-      en: "Create a free account to do more on Sefaria",
+      en: `Create a free account to do more on Contextus`,
       he: "פתחו חשבון משתמש בחינם כדי לעשות יותר עם ספריא",
     },
     contentList: [
@@ -215,7 +215,7 @@ const signUpModalContent = {
   [SignUpModalKind.Default]: {
     h2: { en: "Love Learning?", he: "אוהבים ללמוד?" },
     h3: {
-      en: "Sign up to get more from Sefaria",
+      en: `Sign up to get more from Contextus`,
       he: "הרשמו כדי לקבל יותר מספריא",
     },
     contentList: [

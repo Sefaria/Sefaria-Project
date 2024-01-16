@@ -1,4 +1,6 @@
-ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "sub", "span", "a")
+ALLOWED_TAGS_IN_ABSTRACT_TEXT_RECORD = (
+"i", "b", "br", "u", "strong", "h1", "h2", "h3", "pre", "em", "big", "small", "img", "sup", "sub", "span", "a",
+"table", "td", "th", "tr", "tbody", "thead", "ul", "li")
 ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD = {
     'sup': ['class'],
     'span': ['class', 'dir'],

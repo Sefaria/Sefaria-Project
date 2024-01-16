@@ -169,6 +169,11 @@ crrd = create_raw_ref_data
     [crrd(['@ד"א זוטא', '@פרק השלום', '#ג']), ["Tractate Derekh Eretz Zuta, Section on Peace 3"]],
     [crrd(['@ספר החינוך', '@לך לך', '#ב']), ['Sefer HaChinukh 2']],
     [crrd(['@ספר החינוך', '#ב']), ['Sefer HaChinukh 2']],
+    [crrd(['@מורה נבוכים', '#ב', '#מה']), ['Guide for the Perplexed, Part 2:45']],
+
+    # specific books - mishneh torah
+    [crrd(['@הלכות עבודה זרה', '#ב', '#ג']), ['Mishneh Torah, Foreign Worship and Customs of the Nations 2:3']],
+    [crrd(['@רמב"ם', '@הלכות רוצח', '#פרק א', '#הלכה י"ד']), ['Mishneh Torah, Murderer and the Preservation of Life 1:14']],
 
     #ben yehuda project
     [crrd(["@בראש'", '#א', '#ב']), ["Genesis 1:2"]],

@@ -181,7 +181,7 @@ def update_authors_data():
                 "linkType": "displays-under"
             }).save()
         except DuplicateRecordError as e:
-            error_texts.append(str(e))
+            error_texts.append(e)
 
         if p.get_property('era'):
             try:

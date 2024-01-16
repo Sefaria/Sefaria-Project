@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block static_css %}{% endblock %}
-{% load cache humanize sefaria_tags%}
+{% load cache humanize {% static SITE_SETTINGS.SITE_NAME['en'] %}_tags%}
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
+{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "{% static SITE_SETTINGS.SITE_NAME['en'] %}" %}{% else %}{% trans "Start a New Sheet - {% static SITE_SETTINGS.SITE_NAME['en'] %} Source Sheet Builder" %}{% endif %}{% endblock %}
 
-{% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
-{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block description %}{% if sheet.owner %}{% trans "A source sheet created with {% static SITE_SETTINGS.SITE_NAME['en'] %}'s Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with {% static SITE_SETTINGS.SITE_NAME['en'] %}'s Source Sheet Builder." %}{% endif %}{% endblock %}
+{% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with {% static SITE_SETTINGS.SITE_NAME['en'] %}'s Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with {% static SITE_SETTINGS.SITE_NAME['en'] %}'s Source Sheet Builder." %}{% endif %}{% endblock %}
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
@@ -506,7 +506,7 @@
                                 <span class="int-he">נשמר לאחרונה:  {{sheet.dateModified|date_string_to_date}}</span>
                             </span>
                             <span class="lastSavedConfirmed">
-                                <span class="int-en">All changes saved in Sefaria</span>
+                                <span class="int-en">All changes saved in {% static SITE_SETTINGS.SITE_NAME['en'] %}</span>
                                 <span class="int-he">כל השינויים שמורים בספריא</span>
                             </span>
                             <span class="saving">
@@ -907,9 +907,9 @@
 	<div id="printFooter">
 		<img src="{% static 'img/samekh.png' %}">
 		<div>
-            {% trans "Made with the Sefaria Source Sheet Builder"  %}
+            {% trans "Made with the {% static SITE_SETTINGS.SITE_NAME['en'] %} Source Sheet Builder"  %}
 			<br/>
-            www.sefaria.org/sheets
+            www.{% static SITE_SETTINGS.SITE_NAME['en'] %}.org/sheets
 		</div>
 	</div>
 
@@ -946,7 +946,7 @@
 
 {% if author %}
 <div id="bottomAuthor">
-	<span class="int-en">Source Sheet created on Sefaria by </span>
+	<span class="int-en">Source Sheet created on {% static SITE_SETTINGS.SITE_NAME['en'] %} by </span>
     <span class="int-he">דף מקורות זה נוצר בספריא על ידי </span>
     {{ sheet.owner|user_link }}
 	{% if sheet.via %}
@@ -1019,7 +1019,7 @@
 
     <div class="content sideLabeled">
         <label class="labelforOnOffSwitch">
-            <span class="int-en">List on Sefaria</span>
+            <span class="int-en">List on {% static SITE_SETTINGS.SITE_NAME['en'] %}</span>
             <span class="int-he">הצג לכלל משתמשי ספריא</span>
         </label>
         <div>
@@ -1392,7 +1392,7 @@
 
 		<p>
             <span class="int-en">
-                Your Source Sheet is looking great! You can share it with other members of the Sefaria Community by making it public.
+                Your Source Sheet is looking great! You can share it with other members of the {% static SITE_SETTINGS.SITE_NAME['en'] %} Community by making it public.
             </span>
             <span class="int-he">
                 הדף שלכם נראה נהדר! תוכלו לשתף אותו עם אחרים על ידי הפיכתו לדף פומבי
@@ -1426,7 +1426,7 @@
 	</div>
 	<div id="notPublished" style="display:none;">
 		<div class="header">
-            <span class="int-en">No problem, this sheet is still not listed on Sefaria.</span>
+            <span class="int-en">No problem, this sheet is still not listed on {% static SITE_SETTINGS.SITE_NAME['en'] %}.</span>
             <span class="int-he">אין בעיה, דף המקורות הזה עדיין לא יופיע למשתמשי ספריא האחרים</span>
         </div>
 

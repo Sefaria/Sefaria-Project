@@ -1,26 +1,44 @@
 var palette = {
   colors: {
+    darkblue:  "#133059",
+    maroon:    "#733122",
+    green:     "#509B70",
+    slate:     "#7491B1",
+    darkorange:"#C87448",
+    red:       "#A9373C",
+    aqua:      "#96C2C5",
+    darkgreen: "#407145",
+    yellow:    "#EAD7A1",
+    olive:     "#959280",
+    /*  old colors */
     darkteal:  "#004e5f",
     raspberry: "#7c406f",
-    green:     "#5d956f",
+    /* green:     "#5d956f", */
     paleblue:  "#9ab8cb",
     blue:      "#4871bf",
     orange:    "#cb6158",
     lightpink: "#c7a7b4",
-    darkblue:  "#073570",
+    /* darkblue:  "#073570", */
     darkpink:  "#ab4e66",
     lavender:  "#7f85a9",
-    yellow:    "#ccb479",
+    /* yellow:    "#ccb479", */
     purple:    "#594176",
     lightblue: "#5a99b7",
     lightgreen:"#97b386",
-    red:       "#802f3e",
+    /* red:       "#802f3e", */
     teal:      "#00827f",
     lightbg:   "#B8D4D3",
     tan:       "#D4896C"
+
   }
 };
 palette.categoryColors = {
+  "American Priors":              "var(--priors-darkblue)",
+  "Toward Independence":          "var(--independence-maroon)",
+  "Constituting America":         "var(--constituting-green)",
+  "Forging these United States":  "var(--forging-slate)",
+  "The Coming of the Civil War":  "var(--coming-war-orange)",
+  "Civil War and Reconstruction": "var(--civil-war-red)",
   "Commentary":         "var(--commentary-blue)",
   "Tanakh" :            "var(--tanakh-teal)",
   "Midrash":            "var(--midrash-green)",

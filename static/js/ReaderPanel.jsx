@@ -39,7 +39,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal,
+  ToggleSet, InterfaceText, EnglishText, HebrewText, SignUpModal
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -1490,15 +1490,15 @@ class ReaderDisplayOptionsMenu extends Component {
       return 2;
     }
   }
-  showLangaugeToggle() {
+  showLanguageToggle() {
     if (Sefaria._siteSettings.TORAH_SPECIFIC) return true;
 
     let data = this.props.currentData();
-    if (!data) return true // Sheets don't have currentData, also show for now (4x todo)
+    if (!data) return false; // Sheets don't have currentData
 
     const hasHebrew = !!data.he.length;
     const hasEnglish = !!data.text.length;
-    return !(hasHebrew && hasEnglish);
+    return hasHebrew && hasEnglish;
   }
   shouldPunctuationToggleRender() {
     if (this.props.currentData?.()?.primary_category === "Talmud" && (this.props.settings?.language === "hebrew" || this.props.settings?.language === "bilingual")) { return true; }
@@ -1511,7 +1511,7 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "bilingual", content: "<span class='en'>A</span><span class='he'>א</span>", role: "radio", ariaLabel: "Show English & Hebrew Text" },
       {name: "hebrew",    content: "<span class='he'>א</span>", role: "radio", ariaLabel: "Show Hebrew Text" }
     ];
-    let languageToggle = this.showLangaugeToggle() ? (
+    let languageToggle = this.showLanguageToggle() ? (
         <ToggleSet
           ariaLabel="Language toggle"
           label={Sefaria._("Language")}
@@ -1529,8 +1529,8 @@ class ReaderDisplayOptionsMenu extends Component {
       {name: "heLeft", content: "<img src='/static/img/backs.png' alt='Hebrew Left Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Left of English Text"},
       {name: "heRight", content: "<img src='/static/img/faces.png' alt='Hebrew Right Toggle' />", role: "radio", ariaLabel: "Show Hebrew Text Right of English Text"}
     ];
-    let layoutToggle = this.props.settings.language !== "bilingual" ?
-      this.props.parentPanel === "Sheet" ? null :
+    let layoutToggle = this.props.settings.language !== "bilingual" || !Sefaria._siteSettings.TORAH_SPECIFIC ?
+      this.props.parentPanel == "Sheet" ? null :
       (<ToggleSet
           ariaLabel="text layout toggle"
           label={Sefaria._("Layout")}

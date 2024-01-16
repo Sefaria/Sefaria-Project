@@ -113,26 +113,33 @@ const LoadingRing = () => (
 );
 
 const DonateLink = ({children, classes, source, link}) => {
-  link = link || "default";
-  source = source || "undefined";
-  const linkOptions = {
-    default: {
-      en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
-    },
-    sustainer: {
-      en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
-      he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
-    },
-    dayOfLearning: {
-      en: "https://donate.sefaria.org/sponsor",
-      he: "https://donate.sefaria.org/sponsorhe",
-    }
+  let url = Sefaria._siteSettings?.DONATION_URL;
+  if (!url)
+  {
+    link = link || "default";
+    const linkOptions = {
+      default: {
+        en: "https://donate.sefaria.org/give/451346/#!/donation/checkout",
+        he: "https://donate.sefaria.org/give/468442/#!/donation/checkout"
+      },
+      sustainer: {
+        en: "https://donate.sefaria.org/give/457760/#!/donation/checkout",
+        he: "https://donate.sefaria.org/give/478929/#!/donation/checkout"
+      },
+      dayOfLearning: {
+        en: "https://donate.sefaria.org/sponsor",
+        he: "https://donate.sefaria.org/sponsorhe",
+      }
+    };
+    url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
+  }
+
+  const trackClick = () => {
+    Sefaria.track.event("Donations", "Donation Click", source);
   };
-  const url = `${Sefaria._v(linkOptions[link])}?c_src=${source}`;
 
   return (
-    <a href={url} className={classes} target="_blank">
+    <a href={url} className={classes} target="_blank" onClick={trackClick}>
       {children}
     </a>
   );
@@ -1474,7 +1481,7 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
         .then(() => { setSelected(isSelected()); }) // since request is async, check if it's selected from data
-        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(SignUpModalKind.Save); }})
+        .catch(e => { if (e == 'notSignedIn') { toggleSignUpModal(); }})
         .finally(() => { setPosting(false); });
   }
 
@@ -1538,7 +1545,7 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-      this.props.toggleSignUpModal(SignUpModalKind.Follow);
+      this.props.toggleSignUpModal();
       return;
     }
     if (this.state.following && !this.props.disableUnfollow) {
@@ -1753,7 +1760,7 @@ const SheetListing = ({
     if (Sefaria._uid) {
       setShowCollectionsModal(!showCollectionsModal);
     } else {
-      toggleSignUpModal(SignUpModalKind.AddToSheet);
+      toggleSignUpModal();
     }
   };
 
@@ -1857,11 +1864,6 @@ const SheetListing = ({
         </div>
       </div>
       <div className="sheetRight">
-        {
-          editable && !Sefaria._uses_new_editor ?
-            <a target="_blank" href={`/sheets/${sheet.id}?editor=1`}><img src="/static/icons/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
-            : null
-        }
         {
           collectable ?
             <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
@@ -2003,12 +2005,15 @@ LoginPrompt.propTypes = {
 
 class SignUpModal extends Component {
   render() {
-    let modalContent = !this.props.modalContentKind ? generateContentForModal() : generateContentForModal(this.props.modalContentKind);
-
-    const innerContent = modalContent.contentList.map(bullet => (
-      <div key={bullet.icon}>
-        <img src={`/static/img/${bullet.icon}`} alt={bullet.bulletContent.en} />
-        <InterfaceText text={bullet.bulletContent} />
+    const innerContent = [
+      ["star-white.png", "Save texts"],
+      ["sheet-white.png", "Make source sheets"],
+      ["note-white.png", "Take notes"],
+      ["email-white.png", "Stay in the know"],
+    ].map(x => (
+      <div key={x[0]}>
+        <img src={`/static/img/${x[0]}`} alt={x[1]} />
+        <InterfaceText>{ x[1] }</InterfaceText>
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -2020,10 +2025,10 @@ class SignUpModal extends Component {
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
             <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText text={modalContent.h2} />
+              <InterfaceText>Love Learning?</InterfaceText>
             </h2>
             <h3>
-              <InterfaceText text={modalContent.h3} />
+              <InterfaceText>Sign up to get more from {Sefaria._siteSettings.SITE_NAME["en"]}</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
@@ -2044,7 +2049,6 @@ class SignUpModal extends Component {
 SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
-  modalContent: PropTypes.object.isRequired,
 };
 
 
@@ -2280,7 +2284,24 @@ const Banner = ({ onClose }) => {
   const [bannerShowDelayHasElapsed, setBannerShowDelayHasElapsed] =
     useState(false);
   const [hasInteractedWithBanner, setHasInteractedWithBanner] = useState(false);
-  const strapi = useContext(StrapiDataContext);
+  let strapi = {};
+  strapi.banner = {
+            "internalBannerName": "contextus-welcome",
+            "bannerText": {"en": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org.",
+                          "he": "Welcome to ContextUS! We are in the process of upgrading and expanding our site. Please excuse our dust! If you have any questions or feedback, please contact us at jmc@gojmc.org."},
+            "buttonText": {"en": "Contact Us", "he": "Contact Us"},
+            "buttonURL": {"en": "mailto:jmc@gojmc.org", "he": "mailto:jmc@gojmc.org"},
+            "showDelay": 2,
+            "bannerBackgroundColor": '#133059',
+            "locale": "en",
+            "localizations": { "data": [] },
+            "publishedAt": "2023-12-05T23:18:42.245Z",
+            "shouldDeployOnMobile": true,
+            "showToNewVisitors": true,
+            "showToNonSustainers": true,
+            "showToReturningVisitors": true,
+            "showToSustainers": true,
+          }
 
   const markBannerAsHasBeenInteractedWith = (bannerName) => {
     localStorage.setItem("banner_" + bannerName, "true");
@@ -2367,7 +2388,7 @@ const Banner = ({ onClose }) => {
       }, strapi.banner.showDelay * 1000);
       return () => clearTimeout(timeoutId); // clearTimeout on component unmount
     }
-  }, [strapi.banner]); // execute useEffect when the banner changes
+  }, []); // execute useEffect when the banner changes
 
   if (!bannerShowDelayHasElapsed) return null;
 
@@ -2386,9 +2407,9 @@ const Banner = ({ onClose }) => {
           <div id="bannerMessageContent">
             <div id="bannerTextBox">
               <InterfaceText
-                markdown={replaceNewLinesWithLinebreaks(
+                markdown={
                   strapi.banner.bannerText
-                )}
+                }
               />
             </div>
             <div id="bannerButtonBox">
@@ -2782,7 +2803,7 @@ class CookiesNotification extends Component {
       <div className="cookiesNotification">
 
           <span className="int-en">
-            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using {Sefaria._siteSettings.SITE_NAME["en"]}. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">

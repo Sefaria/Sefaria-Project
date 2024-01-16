@@ -58,8 +58,6 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
-    url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
-    url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
@@ -75,8 +73,8 @@ site_urlpatterns = [
 
 # Redirects to Wikis etc
 site_urlpatterns += [
-    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en?c_src=mobile-app' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=mobile-app')),
-    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/en' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    url(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/give?utm_source=Sefaria&utm_medium=App&utm_campaign=Support' if x.interfaceLang == 'english' else 'https://sefaria.nationbuilder.com/il_mobile?utm_source=Sefaria&utm_medium=App&utm_campaign=ILSupport')),
+    url(r'^donate/?$', lambda x: HttpResponseRedirect('https://sefaria.nationbuilder.com/supportsefaria')),
     url(r'^wiki/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki')),
     url(r'^developers/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#developers')),
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),

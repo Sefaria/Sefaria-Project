@@ -120,7 +120,7 @@ def get_query_obj(
         }
     else:
         search_obj.query = inner_query
-    search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"])
+    search_obj = search_obj.highlight(field, fragment_size=200, pre_tags=["<b>"], post_tags=["</b>"], max_analyzed_offset=1000000)
     return search_obj[start:start + size]
 
 

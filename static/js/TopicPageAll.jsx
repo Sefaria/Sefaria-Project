@@ -46,8 +46,7 @@ class TopicPageAll extends Component {
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "JoinTheConversation"},
-      {type: "GetTheApp"},
-      {type: "SupportSefaria"},
+      {type: "SupportJMC"},
     ];
 
     const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful

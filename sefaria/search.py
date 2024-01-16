@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 search.py - full-text search for Sefaria using ElasticSearch
-
 Writes to MongoDB Collection: index_queue
 """
 import os
@@ -84,7 +83,6 @@ def delete_sheet(index_name, id):
 def make_text_doc_id(ref, version, lang):
     """
     Returns a doc id string for indexing based on ref, versiona and lang.
-
     [HACK] Since Elasticsearch chokes on non-ascii ids, hebrew titles are converted
     into a number using unicode_number. This mapping should be unique, but actually isn't.
     (any tips welcome)
@@ -93,6 +91,7 @@ def make_text_doc_id(ref, version, lang):
         version = str(unicode_number(version))
 
     id = "%s (%s [%s])" % (ref, version, lang)
+    id = id[-512:]  # in case ID is very long, cut off beginning. Assumption is end will be unique given version title and lang.
     return id
 
 
@@ -314,8 +313,8 @@ def put_text_mapping(index_name):
             },
             "naive_lemmatizer": {
                 'type': 'text',
-                'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
+                'analyzer': 'stemmed_english',
+                'search_analyzer': 'stemmed_english',
                 'fields': {
                     'exact': {
                         'type': 'text',
@@ -704,7 +703,6 @@ def index_public_sheets(index_name):
 def index_public_notes():
     """
     Index all public notes.
-
     TODO
     """
     pass

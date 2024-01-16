@@ -67,20 +67,22 @@
                 </label>
                 <input id="location" value="{{ profile.location }}" >
             </div>
-            <div id="jewishEducation" class="field control-elem">
-                 <label>
-                    <span class="int-en">Jewish Education <span class="sub">where have you learned</span></span>
-                    <span class="int-he">השכלה<span class="sub">היכן למדת מקצועות יהדות</span></span>
-                </label>
-                <ul id="jewishEducation">
-                    {% for line in profile.jewish_education %}
-                    <li><input value="{{ line }}" /><i class='remove fa fa-times'></i></li>
-                    {% empty %}
-                    <li><input value="" /></li>
-                    {% endfor %}
-                </ul>
-                <div id="addEducation"><i class="fa fa-plus"></i><span class="int-en">Add a line</span><span class="int-he">הוסף שורה</span></div>
-            </div>
+            {% if SITE_SETTINGS.TORAH_SPECIFIC %}
+                <div id="jewishEducation" class="field control-elem">
+                     <label>
+                        <span class="int-en">Jewish Education <span class="sub">where have you learned</span></span>
+                        <span class="int-he">השכלה<span class="sub">היכן למדת מקצועות יהדות</span></span>
+                    </label>
+                    <ul id="jewishEducation">
+                        {% for line in profile.jewish_education %}
+                        <li><input value="{{ line }}" /><i class='remove fa fa-times'></i></li>
+                        {% empty %}
+                        <li><input value="" /></li>
+                        {% endfor %}
+                    </ul>
+                    <div id="addEducation"><i class="fa fa-plus"></i><span class="int-en">Add a line</span><span class="int-he">הוסף שורה</span></div>
+                </div>
+            {% endif %}
         </div>
         <div id="aboutBox" class="control-elem">
             <label>

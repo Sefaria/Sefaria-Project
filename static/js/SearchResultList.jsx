@@ -486,7 +486,7 @@ class SearchResultList extends Component {
           }
 
 
-        } else if (tab == "sheet") {
+        } else if (tab === "sheet") {
           results = this.state.hits.sheet.map(result =>
             <SearchSheetResult
               data={result}

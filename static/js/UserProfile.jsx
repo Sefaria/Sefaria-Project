@@ -15,7 +15,6 @@ import {
   FollowButton,
   InterfaceText,
 } from './Misc';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -31,13 +30,23 @@ class UserProfile extends Component {
   getPrivateTabState(props) {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
-    const tabs = [
+    let tabs = [
       { id: "sheets", text: "Sheets", icon: "/static/icons/sheet.svg" },
       { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
       { id: "followers", text: "Followers", invisible: true },
       { id: "following", text: "Following", invisible: true },
-      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/icons/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
+    if (Sefaria._siteSettings.TORAH_SPECIFIC) {
+        tabs.push({
+            id: "torah-tracker",
+            text: "Torah Tracker",
+            invisible: Sefaria._uid !== props.profile.id,
+            icon: "/static/icons/chart-icon.svg",
+            href: "/torahtracker",
+            applink: true,
+            justifyright: true
+        });
+    }
     if (showNotes) {
       tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/icons/note.svg" });
     }
@@ -342,7 +351,6 @@ class UserProfile extends Component {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
-          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -491,7 +499,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
       <ul>
         <li><InterfaceText>Technical problems</InterfaceText></li>
         <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
-        <li><InterfaceText>Missing features</InterfaceText></li>
+        <li><InterfaceText>Missing features </InterfaceText></li>
       </ul>
 
       <p>

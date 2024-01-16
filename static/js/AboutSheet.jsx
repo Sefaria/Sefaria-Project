@@ -224,7 +224,7 @@ const AboutSheet = ({ masterPanelSheetId, toggleSignUpModal }) => {
     </div>;
 
     const publishSettingsEditMode = <div className="publishSettingsEditMode"><div className={isPublished ? "publishBox transparentBackground sans-serif" : "publishBox sans-serif"}>
-        {!isPublished ? <p><InterfaceText>Publish your sheet on Sefaria for others to discover.</InterfaceText></p> : null}
+        {!isPublished ? <p><InterfaceText>Publish your sheet on {Sefaria._siteSettings.SITE_NAME.en} for others to discover.</InterfaceText></p> : null}
         <h3 className="aboutSheetHeader"><InterfaceText>Summary</InterfaceText></h3>
         <textarea
             className={validation.validationFailed === "both" || validation.validationFailed === "summary" ? "error" : ""}

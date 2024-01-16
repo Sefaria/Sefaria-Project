@@ -39,7 +39,6 @@ import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 
 class ConnectionsPanel extends Component {
@@ -344,7 +343,7 @@ class ConnectionsPanel extends Component {
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
-              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              { Sefaria._siteSettings.TORAH_SPECIFIC && <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />}
             </div>
           }
           {showConnectionSummary ?
@@ -605,6 +604,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "About") {
       content = (<AboutBox
+        key={`About-${Object.values(this.state.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
         currObjectVersions={this.state.currObjectVersions}
         masterPanelLanguage={this.props.masterPanelLanguage}
         setConnectionsMode={this.props.setConnectionsMode}
@@ -662,6 +662,7 @@ class ConnectionsPanel extends Component {
                 sidebarSearchQuery={this.props.sidebarSearchQuery}
                 setSidebarSearchQuery={this.props.setSidebarSearchQuery}
                 onSidebarSearchClick={this.props.onSidebarSearchClick}
+                hideHebrewKeyboard={!Sefaria._siteSettings.TORAH_SPECIFIC}
               />
     }
 
@@ -740,10 +741,10 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   return (
     <div className="toolButtonsList">
       <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
-      <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} /> : null}
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
-      <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
-      <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} /> : null}
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} /> : null}
     </div>
   );
 }
@@ -756,8 +757,8 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
-      <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
+      <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
+      {Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} /> : null}
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
       {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
@@ -775,17 +776,9 @@ ToolsList.propTypes = {
 const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
 
   const [isOwner, setIsOwner] = useState(false);
-  const [showEditButton, setShowEditButton] = useState(false);
   useEffect(() => {
     const sheet = Sefaria.sheets.loadSheetByID(masterPanelSheetId)
     setIsOwner(sheet.owner === Sefaria._uid);
-    setShowEditButton(
-        !Sefaria._uses_new_editor && Sefaria._uid && (
-            sheet.owner === Sefaria._uid ||
-            sheet.options.collaboration == "anyone-can-edit" ||
-            sheet.options.collaboration == "anyone-can-add"
-        )
-    )
     console.log(sheet)
   }, []);
 
@@ -795,11 +788,7 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
         :
         <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
     }
-    {showEditButton  ?
-        <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
-          window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
-        }} />
-        : null }
+
 
     <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
@@ -899,7 +888,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
 
   const copySheet = () => {
     if (!Sefaria._uid) {
-      toggleSignUpModal(SignUpModalKind.AddToSheet);
+      toggleSignUpModal();
     } else if (copyText.en === copyState.copy.en) {
       setCopyText(copyState.copying);
       filterAndSaveCopiedSheetData(sheet);
@@ -928,7 +917,7 @@ const SheetToolsList = ({ toggleSignUpModal, masterPanelSheetId, setConnectionsM
     <ToolsButton en="Print" he="הדפסה" image="print.svg" onClick={() => window.print()} />
     <ToolsButton en={googleDriveText.en} he={googleDriveText.he} greyColor={!!googleDriveText.secondaryEn || googleDriveText.greyColor} secondaryEn={googleDriveText.secondaryEn} secondaryHe={googleDriveText.secondaryHe} image="googledrive.svg" onClick={() => googleDriveExport()} />
     {
-      Sefaria._uses_new_editor && Sefaria._uid && (
+      Sefaria._siteSettings.TORAH_SPECIFIC && Sefaria._uid && (
             sheet.owner === Sefaria._uid ||
             sheet.options.collaboration == "anyone-can-edit"
         ) ?
@@ -1291,7 +1280,7 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
     } : null;
 
     const addTranslation = function () {
-      if (!Sefaria._uid) { toggleSignUpModal(SignUpModalKind.AddTranslation) }
+      if (!Sefaria._uid) { toggleSignUpModal() }
       else {
         let nextParam = "?next=" + Sefaria.util.currentPath();
         Sefaria.track.event("Tools", "Add Translation Click", srefs[0],
@@ -1302,8 +1291,8 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
 
     return (
       <div>
-        <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
+        { Sefaria._siteSettings.TORAH_SPECIFIC ? <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} /> : null}
+        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add Connection")} />
         {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
       </div>
     );

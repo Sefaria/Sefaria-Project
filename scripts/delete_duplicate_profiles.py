@@ -1,13 +1,9 @@
 from sefaria.system.database import db
 from collections import defaultdict
-import csv
-import sys
-import argparse
 
-"""
-Deletes duplicate profiles in the database and produces an output file documenting
-which profiles were deleted.
-:flag --dry-run, -d: produce output file without actually deleting any profiles
+id_map = defaultdict(list)
+for p in db.profiles.find({}):
+    id_map[p["id"]] += [p]
 
 Notes:
 "Duplicate profiles" are defined as mongo profile documents that have the same profile id, but a different slug and a
@@ -104,3 +100,4 @@ if __name__ == '__main__':
 #         print(empty_p["_id"])
 #         # db.profiles.delete_one({"_id": empty_p["_id"]})
 # print(bad_accounts)
+

@@ -27,7 +27,6 @@ import {
 } from './Misc';
 import {ContentText} from "./ContentText";
 
-
 /*
 *** Helper functions
 */
@@ -167,10 +166,7 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
   );
 
   const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
-
-  // When running a test, topicTestVersion is respected.
-  // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
+  const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}
@@ -241,7 +237,6 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     const sidebarModules = [
       {type: "Promo"},
       {type: "TrendingTopics"},
-      {type: "SponsorADay"},
     ];
     if (topicData.description) {
       sidebarModules.unshift({
@@ -354,7 +349,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
        : null}
        {topicData?.indexes?.length ?
         <div>
-          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on {Sefaria._siteSettings.SITE_NAME.en}</InterfaceText></div>
           <div className="authorIndexList">
             {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
           </div>

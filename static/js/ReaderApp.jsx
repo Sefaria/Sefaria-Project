@@ -14,6 +14,7 @@ import {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  ContextUSsheetsLandingPage,
   PBSC2020LandingPage,
   PBSC2021LandingPage,
   PoweredByPage,
@@ -35,7 +36,6 @@ import {
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
-import { SignUpModalKind } from './sefaria/signupModalContent';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -442,7 +442,7 @@ class ReaderApp extends Component {
         switch (state.menuOpen) {
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._(Sefaria._siteSettings["LONG_SITE_NAME"]);
             hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -482,13 +482,14 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "topics":
+            const topicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources." : "Texts & Source Sheets";
             if (state.navigationTopic) {
               hist.url = state.topicTestVersion ? `topics/${state.topicTestVersion}/${state.navigationTopic}` : `topics/${state.navigationTopic}`;
               hist.url = hist.url + (state.topicSort ? `&sort=${state.topicSort}` : '');
-              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._(topicMsg)}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
-              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.");
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(topicMsg);
               hist.url   =  "topics/category/" + state.navigationTopicCategory;
               hist.mode  = "topicCat";
             } else {
@@ -499,7 +500,8 @@ class ReaderApp extends Component {
             break;
           case "allTopics":
               hist.url   = "topics/all/" + state.navigationTopicLetter;
-              hist.title = Sefaria._("Explore Jewish Texts by Topic") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              const allTopicMsg = Sefaria._siteSettings.TORAH_SPECIFIC ? "Explore Jewish Texts by Topic" : "Explore Texts by Topic";
+              hist.title = Sefaria._(allTopicMsg) + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
               hist.mode  = "topics";
             break;
           case "community":
@@ -508,8 +510,8 @@ class ReaderApp extends Component {
             hist.mode  = "community";
             break;
           case "profile":
-            hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
+            hist.title = `${state.profile.full_name} ${Sefaria._(` on ${siteName}`)}`;
+            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -680,7 +682,7 @@ class ReaderApp extends Component {
     }
 
     // Now merge all history objects into one
-    var title =  histories.length ? histories[0].title : "Sefaria";
+    var title =  histories.length ? histories[0].title : Sefaria._siteSettings["SITE_NAME"]["en"];
 
     var url   = "/" + (histories.length ? histories[0].url : "");
     url += Sefaria.util.getUrlVersionsParams(histories[0].currVersions, 0);
@@ -909,18 +911,9 @@ class ReaderApp extends Component {
       $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
-
-toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
-  if (this.state.showSignUpModal) {
-    this.setState({ showSignUpModal: false });
-  } else {
-    this.setState({
-      showSignUpModal: true,
-      modalContentKind: modalContentKind,
-    });
+  toggleSignUpModal() {
+    this.setState({ showSignUpModal: !this.state.showSignUpModal });
   }
-}
-  
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -1200,7 +1193,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       })
     });
   }
-  updateSearchFilter(n, type, searchState, filterNode) {
+  updateSearchFilter(n, type, filterNode) {
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
@@ -1315,22 +1310,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     return panelLang;
   }
-  _getDependentPanel(n) {
-    /**
-     * Given panel `n`, return dependent panel, if it exists. A dependent panel is the master panel if panel
-     * `n` is a connections panel and vice versa if panel `n` is a master panel.
-     * Returns null if no dependent panel exists
-     **/
-    let dependentPanel = null;
-    let isDependentPanelConnections = false;
-    if ((this.state.panels.length > n+1) && this.state.panels[n+1].mode === "Connections") {
-      dependentPanel = this.state.panels[n+1];
-      isDependentPanelConnections = true;
-    } else if (n-1 >= 0 && this.state.panels[n].mode === "Connections") {
-      dependentPanel = this.state.panels[n-1];
-    }
-    return { dependentPanel, isDependentPanelConnections };
-  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     const panel = this.state.panels[n];
@@ -1352,6 +1331,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       dependentPanel.currVersions = {...panel.currVersions};
 
       dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+
     }
     this.setState({panels: this.state.panels});
   }
@@ -2062,7 +2042,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
 
     for (var i = 0; i < panelStates.length; i++) {
-      const panel                        = this.clonePanel(panelStates[i]);
+      const panel                        = panelStates[i];
       if (!("settings" in panel )) { debugger; }
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
@@ -2266,6 +2246,7 @@ export {
   loadServerData,
   EditCollectionPage,
   RemoteLearningPage,
+  ContextUSsheetsLandingPage,
   SheetsLandingPage,
   ContestLandingPage,
   PBSC2020LandingPage,

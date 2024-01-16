@@ -11,6 +11,7 @@ from sefaria.system.database import db
 import structlog, bleach
 from sefaria.model.place import Place
 import regex as re
+from sefaria.site.site_settings import SITE_SETTINGS
 from typing import Type
 logger = structlog.get_logger(__name__)
 
@@ -111,9 +112,11 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         self.titles = self.title_group.titles
         slug_field = self.slug_fields[0]
         slug = getattr(self, slug_field)
-        displays_under_link = IntraTopicLink().load({"fromTopic": slug, "linkType": "displays-under"})
-        if getattr(displays_under_link, "toTopic", "") == "authors":
+        childOfAuthors = IntraTopicLink().load({"toTopic": "authors", "fromTopic": slug, "linkType": "displays-under"})
+        if childOfAuthors:
             self.subclass = "author"
+        elif getattr(self, "subclass", "") == "author":
+            del self.subclass
 
     def _sanitize(self):
         super()._sanitize()
@@ -600,8 +603,11 @@ class AuthorTopic(PersonTopic):
             en_desc = getattr(index_or_cat, 'enShortDesc', None)
             he_desc = getattr(index_or_cat, 'heShortDesc', None)
             if isinstance(index_or_cat, Index):
+                en_primary_title = index_or_cat.get_title('en')
+                if "ContextUS" == SITE_SETTINGS["SITE_NAME"]["en"]:
+                    en_primary_title = index_or_cat.get_title('en').replace(f"{str(self)}, ", "", 1)
                 unique_urls.append({"url":f'/{index_or_cat.title.replace(" ", "_")}',
-                    "title": {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')},
+                    "title": {"en": en_primary_title, "he": index_or_cat.get_title('he')},
                     "description":{"en": en_desc, "he": he_desc}})
             else:
                 if collective_title_term is None:
