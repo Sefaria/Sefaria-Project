@@ -33,6 +33,8 @@
 - push to production-master for deployment
 - push to master for feature sharing with sefaria
 
-### Retrieve feature from Sefaria 
+### Retrieve feature from Sefaria (Specific commit)
 
-- 
+- use git cherry-pick commit-hash (eg: e2276f5c01a7b2eb1623131664abbe4cb02bb52d)
+- rebase from master to test-staging (all the commits are up to date and ahead commits are on top of it)
+- we can cherry pick commit from production-master to master too
