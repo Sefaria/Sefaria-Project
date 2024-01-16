@@ -18,6 +18,7 @@
 
 ### feature branch
 
+- Feature branch is created from production-master
 - Every new issue | work | feature work are done on this branch.
 - After the new feature is test on staging and then push on production, this branch should be deleted.
 
