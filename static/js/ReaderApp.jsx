@@ -24,8 +24,8 @@ import {
   WordByWordPage,
   JobsPage,
   TeamMembersPage,
-  UpdatesPanel
 } from './StaticPages';
+import UpdatesPanel from './UpdatesPanel';
 import {
   SignUpModal,
   InterruptingMessage,

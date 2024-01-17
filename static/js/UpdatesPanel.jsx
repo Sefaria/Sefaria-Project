@@ -12,7 +12,6 @@ import {
   InterfaceText,
 } from './Misc';
 
-
 class UpdatesPanel extends Component {
   constructor(props) {
     super(props);
@@ -94,7 +93,7 @@ class UpdatesPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1><InterfaceText>Updates</InterfaceText></h1>
+              <h1 className="updatesHeader"><InterfaceText>Updates</InterfaceText></h1>
 
               {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 
@@ -198,6 +197,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="English Description (optional for Index and Version)"
             onChange={this.handleEnChange}
             rows="3"
@@ -206,6 +206,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="Hebrew Description (optional for Index and Version)"
             onChange={this.handleHeChange}
             rows="3"

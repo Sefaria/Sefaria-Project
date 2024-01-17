@@ -1245,6 +1245,7 @@ p.registration-links a:hover{
 #connectPage {
   text-align: center;
 }
+
 #jobsPage {
   font-size: 18px
 }
@@ -3414,4 +3415,15 @@ display: none;
 
 .updateTextarea {
   width: 100%;
+}
+.about.section {
+  padding-top: 40px;
+}
+.updatesHeader, .jobsHeader {
+  display: none;
+}
+@media (max-width: 700px) {
+  .updatesHeader, .jobsHeader {
+    display: block;
+  }
 }
