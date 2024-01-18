@@ -94,7 +94,11 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
       e.preventDefault();
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
+    gtag('event', 'all_history');
    }
+   const trackItem = (ref) => {
+       gtag('event', 'recently_viewed', {ref})
+    }
    const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
@@ -105,7 +109,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
         }});
 
         itemsToShow = itemsToShow.slice(0, 3).map((x) => {
-            return <li><a href={x.ref}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
+            return <li><a href={x.ref} onClick={() => trackItem(x.ref)}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
          });
         setRecentlyViewedItems(itemsToShow);
    }
