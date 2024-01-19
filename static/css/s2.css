@@ -727,9 +727,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .header .home img {
   vertical-align: middle;
-  height: 25px;
-  margin-top: -7px;
-  width: 92px;
+  height: 33px;
+  margin-top: -8px;
+  width: 77px;
 }
 .interface-hebrew .header .home img {
   width: 77px;
