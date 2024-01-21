@@ -830,6 +830,9 @@ p.registration-links a:hover{
   margin: 30px 0;
   text-align: center;
 }
+#teamPage, #metricsPage {
+  min-height: 600px;
+}
 #teamPage h2{
   font-size: 16px;
   letter-spacing: 2px;
@@ -1250,7 +1253,8 @@ p.registration-links a:hover{
 }
 
 #jobsPage {
-  font-size: 18px
+  font-size: 18px;
+  min-height: 600px;
 }
 #jobsPage nav{
   margin-top: 60px;
@@ -1332,7 +1336,7 @@ p.registration-links a:hover{
 }
 
 #jobsPage .solicitationNotice, #jobsPage .solicitationNotice p{
-  margin-top: 80px;
+  margin-top: 30px;
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
