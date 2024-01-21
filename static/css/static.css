@@ -741,7 +741,10 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutPage .inner {
-  margin-top: -440px;
+  margin-top: -15px;
+}
+.container.doc.legal.static .inner {
+  margin-top: 25px;
 }
 #aboutHeader {
   color: white;
@@ -3318,6 +3321,10 @@ display: none;
   font-size: 22px;
   margin: 0 30px 30px 30px;
 }
+#aboutSidebar h1 {
+  margin: 0 0 30px 50px;
+  font-size: 22px;
+}
 .interface-hebrew #aboutSidebar.metrics h1 {
   margin: 0 0 30px 30px;
 }
@@ -3325,10 +3332,17 @@ display: none;
   margin: 0 50px 30px 50px;
   font-weight: 100;
 }
-#aboutSidebar h1 {
-  margin: 0 0 30px 30px;
-  font-size: 22px;
+#aboutSidebar.team h1 {
+  margin-left: -15px;
 }
+#aboutSidebar.metrics h1 {
+  margin-left: -3px;
+}
+#aboutSidebar.annualreport h1 {
+  margin-left: 50px;
+}
+
+
 
 #aboutSidebar ul {
   list-style-type: none;
@@ -3346,7 +3360,7 @@ display: none;
   text-decoration: underline;
 }
 .annualReport {
-  margin: 0 0 300px 0;
+  margin: -10px 0 300px 0;
   padding-top: 35px;
 }
 .annualReport a {
@@ -3410,10 +3424,33 @@ display: none;
 }
 #about.selected, #team.selected, #jobs.selected, #updates.selected, #testimonials.selected,
 #supporters.selected, #metrics.selected, #annualreport.selected, #terms.selected, #privacy.selected {
-  background-color: var(--light-grey);
+  background-color: var(--lighter-grey);
   color: var(--selected-option);
+  border-radius: 6px;
+  padding: 5px;
+  margin-left: -5px;
 }
-
+#testimonialsPage .inner, #supportersPage .inner {
+  margin-top: 20px;
+}
+#jobsPage .inner {
+  margin-top: -5px;
+}
+#updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-left: 200px;
+    margin-top: 100px
+}
+#updatesPanelContent .navSideBar {
+    margin-left: 200px;
+}
+@media (max-width: 700px) {
+  #updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-left: 0;
+  }
+}
+#metricsBox {
+  margin-top: 30px;
+}
 .updateTextarea {
   width: 100%;
 }
