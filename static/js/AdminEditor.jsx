@@ -23,7 +23,7 @@ const options_for_form = {
         type: 'textarea',
         markdown: true
     },
-    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
+    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
     "English Short Description": {
         label: "English Short Description for Table of Contents", field: "enCategoryDescription",
         placeholder: "Add a short description.", type: 'input'
