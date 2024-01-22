@@ -71,8 +71,8 @@ class TitleGroup(object):
                 raise InputError("Title Group titles must only contain the following keys: {}".format(self.required_attrs+self.optional_attrs))
         if '-' in self.primary_title("en"):
             raise InputError("Primary English title may not contain hyphens.")
-        if not all(ord(c) < 128 for c in self.primary_title("en")):
-            raise InputError("Primary English title may not contain non-ascii characters")
+        # if not all(ord(c) < 128 for c in self.primary_title("en")):
+        #     raise InputError("Primary English title may not contain non-ascii characters")
 
     def load(self, serial=None):
         if serial:
@@ -1248,8 +1248,8 @@ class SchemaNode(TitledTreeNode):
     def validate(self):
         super(SchemaNode, self).validate()
 
-        if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
-            raise InputError("Primary English title may not contain non-ascii characters")
+        # if not all(ord(c) < 128 for c in self.title_group.primary_title("en")):
+        #     raise InputError("Primary English title may not contain non-ascii characters")
 
         if not getattr(self, "key", None):
             raise IndexSchemaError("Schema node missing key")

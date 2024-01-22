@@ -821,11 +821,11 @@ sjs.textBrowser = {
 		this.updatePath();
 		this._setInitialMessage();
 	},
-	forward: function(to) {
+	forward: function(to, index) {
 		// navigate forward to "to", a string naming a text, category or section
 		// as it appears in the nav or path
-		if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
-
+		//if (to != (this._path[this._path.length-1])) {   //if "to" = the last node in current path, don't go anywhere to prevent rapid clicking on the same item doubling up and throwing error
+		if (index === this._path.length ) {
 
 		var next = null;
 		this._path.push(to);
@@ -1141,7 +1141,9 @@ sjs.textBrowser = {
     		sjs.textBrowser._path.pop();
             sjs.textBrowser.previewActive = false;
         }
-		sjs.textBrowser.forward(to);
+		//sjs.textBrowser.forward(to);
+		var index = sjs.textBrowser._path.length;
+		sjs.textBrowser.forward(to, index);
 	},
 	_handlePathClick: function() {
 		// Move backward to a particular point on path click
@@ -1151,7 +1153,8 @@ sjs.textBrowser = {
         sjs.textBrowser._previousText = sjs.textBrowser._currentText;
 		sjs.textBrowser.home();
 		for (var i = 0; i < index; i++) {
-			sjs.textBrowser.forward(path[i]);
+			//sjs.textBrowser.forward(path[i]);
+			sjs.textBrowser.forward(path[i], i);
 		}
 	},
 	_handleSegmentClick: function() {
