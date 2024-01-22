@@ -341,7 +341,8 @@ def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
+    #results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
@@ -352,8 +353,8 @@ def get_webpages_for_ref(tref):
     webpage_results = {}  # webpage_results is dictionary that API returns
     
     for webpage in results:
-        if not webpage.whitelisted or len(webpage.title) == 0:
-            continue
+        # if not webpage.whitelisted or len(webpage.title) == 0:
+        #     continue
           
         webpage_key = webpage.title+"|".join(sorted(webpage.refs))
         prev_webpage_obj = webpage_objs.get(webpage_key, None)
@@ -652,7 +653,7 @@ def find_sites_that_may_have_removed_linker(last_linker_activity_day=20):
     last_active_threshold = datetime.today() - timedelta(days=last_linker_activity_day)
     webpages_without_websites = 0
     for data in get_website_cache():
-         if data["is_whitelisted"]:  # we only care about whitelisted sites
+        if data["is_whitelisted"]:  # we only care about whitelisted sites
             for domain in data['domains']:
                 ws = WebPageSet({"url": {"$regex": re.escape(domain)}}, limit=1, sort=[['lastUpdated', -1]])
                 keep = True

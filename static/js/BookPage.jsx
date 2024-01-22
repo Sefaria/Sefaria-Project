@@ -206,6 +206,14 @@ class BookPage extends Component {
       noLangToggleInHebrew: Sefaria.interfaceLang === 'hebrew'
     });
 
+    var hasTranslation = false;
+    for (var v = 0; v < this.state.versions.length; v++ ) {
+      if (this.state.versions[v].language == "he") {
+        hasTranslation = true;
+        break;
+      }
+    }
+
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
@@ -246,6 +254,8 @@ class BookPage extends Component {
                   <div className="tocTitleControls">
                     <CategoryHeader type="books" buttonsToDisplay={["section", "edit"]}
                                     data={title}><ContentText text={{en:title, he:heTitle}}/></CategoryHeader>
+                                        {hasTranslation ?
+                    <span><img src="/static/img/with_translation.svg" alt="內含藏文翻譯" style={{margin: '0px 10px'}}/></span> : null }
                   </div>
                   { this.props.multiPanel && this.props.toggleLanguage && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                   <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }

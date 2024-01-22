@@ -808,7 +808,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
-	sheetsObj.hint("expandedRefs_1")
+	#sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
