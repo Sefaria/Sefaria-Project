@@ -1630,8 +1630,8 @@ Sefaria = extend(Sefaria, {
     return ref;
   },
     _descDict: {}, // cache for the description dictionary
-      getDescriptions: function(keyName, categoryList) {
-      const catlist = Sefaria.tocItemsByCategories(categoryList)
+    getDescriptions: function(keyName, categoryList) {
+        const catlist = Sefaria.tocItemsByCategories(categoryList)
         let catmap = catlist.map((e) => [e.category || e.title, e.enShortDesc, e.heShortDesc])
         let d = {}
         catmap.map((e) => {
@@ -1644,7 +1644,8 @@ Sefaria = extend(Sefaria, {
                 d[e[0].split(" on")[0]] = [e[1], e[2]]
             }
         })
-        let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
+        //let descs = d[keyName] || d[Sefaria.index(keyName).collectiveTitle] || d[keyName.split(" on")[0]];
+        let descs = d[keyName] || d[Sefaria.index(keyName)] || d[keyName.split(" on")[0]];
         let enShortDesc = descs && descs[0]? descs[0]: null;
         let heShortDesc = descs && descs[1]? descs[1]: null;
         return [enShortDesc, heShortDesc];
