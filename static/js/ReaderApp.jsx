@@ -1441,18 +1441,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
-      let refs, currentlyVisibleRef, highlightedRefs;
-      if (ref.constructor === Array) {
-        // When called with an array, set highlight for the whole spanning range of the array
-        refs = ref;
-        currentlyVisibleRef = Sefaria.normRef(ref);
-        const splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-        highlightedRefs = [].concat.apply([], splitArray);
-      } else {
-        refs = [ref];
-        currentlyVisibleRef = ref;
-        highlightedRefs = [];
-      }
+      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref);
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
         refs,

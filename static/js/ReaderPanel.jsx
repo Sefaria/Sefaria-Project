@@ -247,22 +247,13 @@ class ReaderPanel extends Component {
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor === Array) {
-      // When called with an array, set highlight for the whole spanning range
-      refs = ref;
-      currentlyVisibleRef = Sefaria.humanRef(ref);
-      let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-      highlightedRefs = [].concat.apply([], splitArray);
-    } else {
+    let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref);
+    if (ref.constructor !== Array) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
         this.openSheet(ref);
         return;
       }
-      refs = [ref];
-      currentlyVisibleRef = ref;
-      highlightedRefs = [];
     }
 
     if (this.replaceHistory) {

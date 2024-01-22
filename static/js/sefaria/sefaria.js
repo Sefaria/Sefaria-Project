@@ -2183,6 +2183,21 @@ _media: {},
 
     return result;
   },
+  getCurrentlyVisibleAndHighlightedRefs(ref) {
+    let refs, currentlyVisibleRef, highlightedRefs;
+    if (ref.constructor === Array) {
+      // When called with an array, set highlight for the whole spanning range of the array
+      refs = ref;
+      currentlyVisibleRef = Sefaria.normRef(ref);
+      const splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+      highlightedRefs = [].concat.apply([], splitArray);
+    } else {
+      refs = [ref];
+      currentlyVisibleRef = ref;
+      highlightedRefs = [];
+    }
+    return {refs, currentlyVisibleRef, highlightedRefs};
+  },
   commentaryList: function(title, toc) {
     var title = arguments.length == 0 || arguments[0] === undefined ? null : arguments[0];
     /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
