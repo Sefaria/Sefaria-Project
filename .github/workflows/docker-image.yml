@@ -3,7 +3,7 @@ name: Docker Publish Trigger
 on:
   push:
     branches:
-      - feat/api-error-fixed  # Change this to your main branch name, e.g., master
+      - production-master  # Change this to your main branch name, e.g., master
 
 jobs:
   build-and-publish:
@@ -32,4 +32,4 @@ jobs:
         run: docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }} && docker push ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:latest
       
       - name: Deploy to render
-        run: curl -X POST ${{ secrets.DEPLOY_HOOK_NOTIFICATION_STAGING }}ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }}
+        run: curl -X POST ${{ secrets.DEPLOY_HOOK_NOTIFICATION }}ghcr.io/${{ env.OWNER_LC }}/${{ env.REPOSITORY_LC }}:${{ github.sha }}
