@@ -3,7 +3,7 @@ name: Docker Publish Trigger
 on:
   push:
     branches:
-      - staging  # Change this to your main branch name, e.g., master
+      - feat/api-error-fixed  # Change this to your main branch name, e.g., master
 
 jobs:
   build-and-publish:
