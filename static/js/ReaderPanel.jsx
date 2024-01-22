@@ -171,7 +171,7 @@ class ReaderPanel extends Component {
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);
   }
   updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
     const newVersions = {
@@ -236,7 +236,7 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommToBase=true) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
@@ -247,7 +247,7 @@ class ReaderPanel extends Component {
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref);
+    let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, convertCommToBase);
     if (ref.constructor !== Array) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {

@@ -2183,7 +2183,40 @@ _media: {},
 
     return result;
   },
-  getCurrentlyVisibleAndHighlightedRefs(ref) {
+  convertCommToBase(ref) {
+    const parsedRef = Sefaria.parseRef(ref);
+    const book = Sefaria.index(parsedRef.index);
+    if (!book) {
+        return ref;
+    }
+    if (book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1) {
+        const base_text = book.base_text_titles[0];
+        const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
+        if (parsedRef.sections.length <= 2 || !many_to_one) {
+            // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.
+            return ref.replace(book.title, base_text);
+        }
+        else if (many_to_one) {
+            // Rashi on Genesis 1:2:1 => Genesis 1:2
+            parsedRef.sections = parsedRef.sections.slice(0, parsedRef.sections.length - 1);
+            parsedRef.toSections = parsedRef.toSections.slice(0, parsedRef.toSections.length - 1);
+            parsedRef.book = parsedRef.index = parsedRef.index.replace(book.title, base_text);
+            parsedRef.ref = parsedRef.ref.replace(book.title, base_text);
+            parsedRef.ref = parsedRef.ref.split(' ').slice(0, -1).join(' ');
+            return Sefaria.makeRef(parsedRef);
+        }
+    }
+    return ref;
+  },
+  getCurrentlyVisibleAndHighlightedRefs(ref, convertCommToBase) {
+    if (convertCommToBase) {
+        if (ref.constructor === Array) {
+            ref = ref.map(x => Sefaria.convertCommToBase(x));
+        }
+        else {
+            ref = Sefaria.convertCommToBase(ref);
+        }
+    }
     let refs, currentlyVisibleRef, highlightedRefs;
     if (ref.constructor === Array) {
       // When called with an array, set highlight for the whole spanning range of the array

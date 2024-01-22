@@ -1441,7 +1441,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
-      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref);
+      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, true);
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
         refs,
