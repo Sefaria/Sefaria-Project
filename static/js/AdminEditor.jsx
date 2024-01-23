@@ -4,21 +4,26 @@ import {AdminToolHeader, InterfaceText, TitleVariants} from "./Misc";
 import sanitizeHtml  from 'sanitize-html';
 import classNames from "classnames";
 const options_for_form = {
+    // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
+    "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
+    "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
     "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
     "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
     "English Description": {
         label: "English Description",
         field: "enDescription",
         placeholder: "Add a description.",
-        type: 'textarea'
+        type: 'textarea',
+        markdown: true,
     },
     "Hebrew Description": {
         label: "Hebrew Description",
         field: "heDescription",
         placeholder: "Add a description.",
-        type: 'textarea'
+        type: 'textarea',
+        markdown: true
     },
-    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", textarea: true},
+    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
     "English Short Description": {
         label: "English Short Description for Table of Contents", field: "enCategoryDescription",
         placeholder: "Add a short description.", type: 'input'
@@ -115,7 +120,7 @@ const validateMarkdownLinks = async (input) => {
     return true;
 }
 
-const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
+const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, savingStatus,
                              validate, deleteObj, items = [], isNew = true,
                              extras = [], path = []}) => {
     const [validatingLinks, setValidatingLinks] = useState(false);
@@ -133,7 +138,7 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
     const preprocess = async () => {
         setValidatingLinks(true);
         for (const x of items) {
-            if (options_for_form[x]?.is_textarea) {
+            if (options_for_form[x]?.markdown) {
                 const field = options_for_form[x].field;
                 const valid_tags = await validateMarkdownLinks(data[field]);
                 if (!valid_tags) {
@@ -201,7 +206,10 @@ const AdminEditor = ({title, data, close, catMenu, updateData, savingStatus,
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;
-                        } else {
+                        } else if (x === "Picture Uploader") {
+                            return pictureUploader;
+                        }
+                        else {
                             return item({...options_for_form[x]});
                         }
                     })}

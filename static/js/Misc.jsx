@@ -60,7 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({text, html, markdown, children, context}) => {
+const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -92,7 +92,7 @@ const InterfaceText = ({text, html, markdown, children, context}) => {
   return (
     html ?
       <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{textResponse}</ReactMarkdown></span>
+        : markdown ? <span className={elemclasses}><ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p', ...disallowedMarkdownElements]}>{textResponse}</ReactMarkdown></span>
                     : <span className={elemclasses}>{textResponse}</span>
   );
 };
@@ -352,11 +352,11 @@ class ProfilePic extends Component {
   }
 }
 ProfilePic.propTypes = {
-  url:     PropTypes.string,
-  name:    PropTypes.string,
-  len:     PropTypes.number,
+  url:           PropTypes.string,
+  name:          PropTypes.string,
+  len:           PropTypes.number,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
-  showButtons: PropTypes.bool,  // show profile pic action buttons
+  showButtons:   PropTypes.bool,  // show profile pic action buttons
 };
 
 
@@ -1233,7 +1233,9 @@ const EditorForExistingTopic = ({ toggle, data }) => {
     origBirthYear: data?.properties?.birthYear?.value,
     origDeathPlace: data?.properties?.deathPlace?.value,
     origDeathYear: data?.properties?.deathYear?.value,
-    origEra: data?.properties?.era?.value
+    origEra: data?.properties?.era?.value,
+    origImage: data?.image,
+
   };
 
   const origWasCat = "displays-above" in data?.links;
@@ -1575,6 +1577,87 @@ FollowButton.propTypes = {
 
 };
 
+const TopicPictureUploader = ({slug, callback, old_filename, caption}) => {
+    /*
+    `old_filename` is passed to API so that if it exists, it is deleted
+     */
+    const fileInput = useRef(null);
+
+    const uploadImage = function(imageData, type="POST") {
+      const formData = new FormData();
+      formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+      if (old_filename !== "") {
+        formData.append('old_filename', old_filename);
+      }
+      const request = new Request(
+        `${Sefaria.apiHost}/api/topics/images/${slug}`,
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+      );
+      fetch(request, {
+          method: 'POST',
+          mode: 'same-origin',
+          credentials: 'same-origin',
+          body: formData
+      }).then(response => {
+        if (!response.ok) {
+            response.text().then(resp_text=> {
+                alert(resp_text);
+            })
+        }else{
+            response.json().then(resp_json=>{
+                callback(resp_json.url);
+            });
+        }
+    }).catch(error => {
+        alert(error);
+    })};
+    const onFileSelect = (e) => {
+          const file = fileInput.current.files[0];
+          if (file == null)
+          return;
+          if (/\.(jpe?g|png|gif)$/i.test(file.name)) {
+              const reader = new FileReader();
+
+              reader.addEventListener("load", function() {
+                uploadImage(reader.result);
+              }, false);
+
+              reader.addEventListener("onerror", function() {
+                alert(reader.error);
+              }, false);
+
+              reader.readAsDataURL(file);
+          } else {
+            alert('The file is not an image');
+          }
+    }
+    const deleteImage = () => {
+        const old_filename_wout_url = old_filename.split("/").slice(-1);
+        const url = `${Sefaria.apiHost}/api/topics/images/${slug}?old_filename=${old_filename_wout_url}`;
+        requestWithCallBack({url, type: "DELETE", redirect: () => alert("Deleted image.")});
+        callback("");
+        fileInput.current.value = "";
+    }
+    return <div className="section">
+            <label><InterfaceText>Picture</InterfaceText></label>
+            <label>
+              <span className="optional"><InterfaceText>Please use horizontal, square, or only-slightly-vertical images for best results.</InterfaceText></span>
+            </label>
+            <div role="button" title={Sefaria._("Add an image")} aria-label="Add an image" contentEditable={false} onClick={(e) => e.stopPropagation()} id="addImageButton">
+              <label htmlFor="addImageFileSelector">
+                <div className="button extraSmall blue control-elem" tabIndex="0" role="button">
+                      <InterfaceText>Upload Picture</InterfaceText>
+                    </div>
+              </label>
+              </div><input style={{display: "none"}} id="addImageFileSelector" type="file" onChange={onFileSelect} ref={fileInput} />
+              {old_filename !== "" && <div style={{"max-width": "420px"}}>
+                    <br/><ImageWithCaption photoLink={old_filename} caption={caption}/>
+                    <br/><div onClick={deleteImage} className="button extraSmall blue control-elem" tabIndex="1" role="button">
+                      <InterfaceText>Remove Picture</InterfaceText>
+                    </div></div>
+              }
+          </div>
+    }
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -3259,5 +3342,6 @@ export {
   TitleVariants,
   requestWithCallBack,
   OnInView,
+  TopicPictureUploader,
   ImageWithCaption
 };

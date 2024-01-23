@@ -3096,7 +3096,6 @@ def add_new_topic_api(request):
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         update_topic_titles(t, **data)
-
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
@@ -3108,8 +3107,11 @@ def add_new_topic_api(request):
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         if "description" in data:
             t.change_description(data["description"], data.get("categoryDescription", None))
-        t.save()
 
+        if "image" in data:
+            t.image = data["image"]
+
+        t.save()
         library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
@@ -3559,6 +3561,38 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@staff_member_required
+def topic_upload_photo(request, topic):
+    from io import BytesIO
+    import uuid
+    import base64
+    if request.method == "DELETE":
+        old_filename = request.GET.get("old_filename")
+        if old_filename is None:
+            return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
+        old_filename = f"topics/{old_filename.split('/')[-1]}"
+        GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
+        topic = Topic.init(topic)
+        if hasattr(topic, "image"):
+            del topic.image
+            topic.save()
+        return jsonResponse({"success": "You have successfully removed the image."})
+    elif request.method == "POST":
+        file = request.POST.get('file')
+        old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
+        if old_filename:
+            old_filename = f"topics/{old_filename.split('/')[-1]}"
+        img_file_in_mem = BytesIO(base64.b64decode(file))
+        img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
+                                                    GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
+        topic = Topic.init(topic)
+        if not hasattr(topic, "image"):
+            topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
+        else:
+            topic.image["image_uri"] = img_url
+        topic.save()
+        return jsonResponse({"url": img_url})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @catch_error_as_json
 def profile_upload_photo(request):

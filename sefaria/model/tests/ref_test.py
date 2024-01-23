@@ -177,9 +177,8 @@ class Test_Ref(object):
         assert Ref("Shabbat 4b").next_section_ref().normal() == "Shabbat 5a"
         assert Ref("Shabbat 5a").next_section_ref().normal() == "Shabbat 5b"
         assert Ref("Rashi on Genesis 5:32:2").next_section_ref().normal() == "Rashi on Genesis 6:2"
-        assert Ref("Mekhilta_DeRabbi_Yishmael.35.3").next_section_ref() is None
-        # This will start to fail when we fill in this text
-        assert Ref("Mekhilta_DeRabbi_Yishmael.23.19").next_section_ref().normal() == "Mekhilta DeRabbi Yishmael 31:12"
+        assert Ref("Berakhot 64a").next_section_ref() is None
+        assert Ref("Rif Chullin 43a").next_section_ref().normal() == "Rif Chullin 44b"
 
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
@@ -197,9 +196,8 @@ class Test_Ref(object):
         assert Ref("Shabbat 4b").prev_section_ref().normal() == "Shabbat 4a"
         assert Ref("Shabbat 5a").prev_section_ref().normal() == "Shabbat 4b"
         assert Ref("Rashi on Genesis 6:2:1").prev_section_ref().normal() == "Rashi on Genesis 5:32"
-        assert Ref("Mekhilta 12:1").prev_section_ref() is None
-        # This will start to fail when we fill in this text
-        assert Ref("Mekhilta_DeRabbi_Yishmael.31.12").prev_section_ref().normal() == "Mekhilta DeRabbi Yishmael 23:19"
+        assert Ref("Berakhot 2a").prev_section_ref() is None
+        assert Ref("Rif Chullin 44b").prev_section_ref().normal() == "Rif Chullin 43a"
 
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
@@ -743,6 +741,18 @@ class Test_comparisons(object):
         assert not Ref("Exodus 6").contains(Ref("Exodus"))
         assert not Ref("Exodus 6:2").contains(Ref("Exodus"))
         assert not Ref("Exodus 6:2-12").contains(Ref("Exodus"))
+
+        assert Ref("Leviticus").contains(Ref("Leviticus"))
+        assert Ref("Leviticus").contains(Ref("Leviticus 1:1-27.34"))
+        assert Ref("Leviticus").contains(Ref("Leviticus 1-27"))
+        assert Ref("Leviticus 1:1-27.34").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 1:1-27.30").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 1:2-27.30").contains(Ref("Leviticus"))
+        assert not Ref("Leviticus 2:2-27.30").contains(Ref("Leviticus"))
+
+        # These fail, and always did
+        # assert not Ref("Leviticus").contains(Ref("Leviticus 1:1-27.35"))
+        # assert not Ref("Leviticus").contains(Ref("Leviticus 1-28"))
 
         assert Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:18-20"))
         assert not Ref("Rashi on Genesis 5:10-20").contains(Ref("Rashi on Genesis 5:21-25"))
