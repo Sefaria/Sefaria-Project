@@ -276,6 +276,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def merge(self, other: Union['Topic', str]) -> None:
         """
+        Merge `other` into `self`. This means that all data from `other` will be merged into self.
+        Data from self takes precedence in the event of conflict.
+        Links to `other` will be changed to point to `self` and `other` will be deleted.
         :param other: Topic or old slug to migrate from
         :return: None
         """

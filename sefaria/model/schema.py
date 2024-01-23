@@ -588,7 +588,7 @@ class TreeNode(object):
         """
         callback(self, **kwargs)
         for child in self.children:
-            child.traverse_to_string(callback, **kwargs)
+            child.traverse_tree(callback, **kwargs)
 
     def traverse_to_string(self, callback, depth=0, **kwargs):
         st = callback(self, depth, **kwargs)
