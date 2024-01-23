@@ -1112,6 +1112,32 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
+const ConfirmationPopup = () => {
+  const [isConfirmationShown, setConfirmationShown] = useState(false);
+
+  const showConfirmation = () => {
+    if (!isConfirmationShown) {
+      // Display a confirmation popup
+      const isConfirmed = window.confirm("Are you sure you want to proceed?");
+
+      // Check the user's response
+      if (isConfirmed) {
+        alert("You clicked OK!");
+      } else {
+        alert("You clicked Cancel or closed the popup.");
+      }
+
+      // Update state to prevent showing the popup again
+      setConfirmationShown(true);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={showConfirmation}>Show Confirmation</button>
+    </div>
+  );
+};
 
 
 const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
@@ -1128,13 +1154,33 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [reorderCategory, toggleReorderCategory] = useEditToggle();
   const [addSource, toggleAddSource] = useEditToggle();
+  const [generate, toggleGenerate] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
   const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
+                          "generate": ["Generate", toggleGenerate],
                           "edit": ["Edit", toggleEditCategory]};
+
+
+  const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
+
+  const showConfirmation = () => {
+    if (!isGenerateConfirmationShown) {
+      const isConfirmed = window.confirm("Are you sure you want to generate prompts?");
+
+      if (isConfirmed) {
+        alert("You clicked OK!");
+      } else {
+        alert("You clicked Cancel or closed the popup.");
+      }
+
+      // Update state to prevent showing the popup again
+      setGenerateConfirmationShown(true);
+    }
+  };
 
 
   let wrapper = "";
@@ -1142,7 +1188,11 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   if (Sefaria.is_moderator) {
     if (editCategory) {
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
-    } else if (addSource) {
+    }
+    else if (generate) {
+      showConfirmation()
+    }
+      else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
     } else if (addCategory) {
       adminButtonsSpan = <CategoryAdderWrapper toggle={toggleAddCategory} data={data} type={type}/>;

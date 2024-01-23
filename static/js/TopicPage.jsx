@@ -322,7 +322,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
     <div>
       
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["generate", "source", "edit", "reorder"]}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
