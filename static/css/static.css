@@ -3329,6 +3329,13 @@ display: none;
   margin: 0 0 30px 50px;
   font-size: 22px;
 }
+#aboutPage h1, #teamPage h2, #testimonialsPage h1 {
+  text-align: left;
+}
+#supportersPage h3, #supportersPage p, #supportersPage h2 {
+  text-align: left !important;
+  max-width: revert !important;
+}
 .interface-hebrew #aboutSidebar.metrics h1 {
   margin: 0 0 30px 30px;
 }
@@ -3345,8 +3352,6 @@ display: none;
 #aboutSidebar.annualreport h1 {
   margin-left: 50px;
 }
-
-
 
 #aboutSidebar ul {
   list-style-type: none;
