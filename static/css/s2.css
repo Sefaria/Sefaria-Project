@@ -7584,6 +7584,22 @@ a .button:hover {
   width: -moz-fit-content;
   width: fit-content;
 }
+
+.button.extraSmall.reviewState {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.button.extraSmall.reviewState.reviewed {
+  background-color: #5D956F;
+
+}
+.button.extraSmall.reviewState.notReviewed {
+  background-color: #CB6158;
+}
+.button.extraSmall.reviewState.edited {
+  background-color: yellowgreen;
+}
 .button.extraSmall {
   border-radius: 6px;
   box-shadow: none;

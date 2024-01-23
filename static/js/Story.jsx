@@ -126,7 +126,29 @@ StorySheetList.propTypes = {
     sheets: PropTypes.arrayOf(sheetPropType).isRequired,
     toggleSignUpModal: PropTypes.func
 };
+function toCamelCase(str) {
+  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+    return index === 0 ? word.toLowerCase() : word.toUpperCase();
+  }).replace(/\s+/g, '');
+}
+function capitalizeWords(str) {
+  const words = str.split(' ');
 
+  const capitalizedWords = words.map(word => {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  });
+  const result = capitalizedWords.join(' ');
+
+  return result;
+}
+const ReviewStateIndicator = ({reviewState}) => {
+    let reviewStateCamel = toCamelCase(reviewState)
+    let reviewStateCapitalized = capitalizeWords(reviewState)
+    return(
+    <div className={`button extraSmall reviewState ${reviewStateCamel}`}>
+        {reviewStateCapitalized}
+    </div>);
+};
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
     const versions = text.versions || {}
@@ -142,6 +164,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
         <StoryFrame cls="introducedTextPassageStory">
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
+                <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
             </CategoryHeader>
             <div className={"systemText learningPrompt"}>
                 <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
