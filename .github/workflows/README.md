@@ -46,6 +46,4 @@
 - git rebase (source branch) (we should apply it on the target branch. Eg: if need to rebase from master to staging, checkout staging branch and git rebase master.)
 - git diff origin/branch name (check the commit difference b/w origin i.e remote branch and current branch i.e local branch)
 
-
-
-![git branch config](https://github.com/[openpecha]/[Pecha.org]/blob/[production-master]/static/img/gitbranch.png?raw=true)
+![gitbranch](https://github.com/OpenPecha/Pecha.org/assets/102473656/a09d90cb-5161-4fd1-97e6-4cc990fe240c)
