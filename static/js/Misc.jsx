@@ -1167,7 +1167,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
 
   const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
 
-  const showConfirmation = () => {
+  const showGenerationConfirmation = () => {
     if (!isGenerateConfirmationShown) {
       const isConfirmed = window.confirm("Are you sure you want to generate prompts?");
 
@@ -1190,7 +1190,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
     }
     else if (generate) {
-      showConfirmation()
+      showGenerationConfirmation()
     }
       else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
