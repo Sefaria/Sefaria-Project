@@ -17,32 +17,29 @@ const signUpModalContent = {
     },
     h3: {
       en: "Create a free account to do more on Sefaria",
-      he: "פתחו חשבון משתמש בחינם - ותוכלו לעשות הרבה יותר עם ספריא",
+      he: "פתחו חשבון משתמש בחינם כדי לעשות יותר עם ספריא",
     },
     contentList: [
       {
-        icon: "tools-add-connection-white.svg",
+        icon: "clock-white.svg",
         bulletContent: {
-          en: "Add interconnections & translations",
-          he: "הוסיפו תרגומים וחיבורים בין טקסטים",
+          en: "View your reading history",
+          he: "צפו בהיסטוריית הקריאה שלכם",
         },
+      },
+      {
+        icon: "star-white.png",
+        bulletContent: { en: "Save texts", he: "שמרו טקסטים" },
+      },
+      {
+        icon: "note-white.svg",
+        bulletContent: { en: "Take notes", he: "כתבו הערות" },
       },
       {
         icon: "sheetsplus-white.svg",
         bulletContent: {
           en: "Build & share source sheets",
-          he: "בנו ושתפו דפי מקורות",
-        },
-      },
-      {
-        icon: "note-white.png",
-        bulletContent: { en: "Take notes", he: "רשמו הערות" },
-      },
-      {
-        icon: "email-white.png",
-        bulletContent: {
-          en: "Get updates on new texts",
-          he: "התעדכנו בטקסטים חדשים הנוספים לספרייה",
+          he: "צרו ושתפו דפי מקורות",
         },
       },
     ],

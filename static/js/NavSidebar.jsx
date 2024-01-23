@@ -94,10 +94,10 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
       e.preventDefault();
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
-    gtag('event', 'all_history');
+    gtag('event', 'recently_viewed', {link_pressed: 'all_history', logged_in: !!Sefaria._uid});
    }
-   const trackItem = (ref) => {
-       gtag('event', 'recently_viewed', {ref})
+   const trackItem = (ref, pos) => {
+       gtag('event', 'recently_viewed', {ref: ref, link_pressed: 'ref', position: pos})
     }
    const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
@@ -108,8 +108,8 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
            itemsToShow.push(x);
         }});
 
-        itemsToShow = itemsToShow.slice(0, 3).map((x) => {
-            return <li><a href={x.ref} onClick={() => trackItem(x.ref)}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
+        itemsToShow = itemsToShow.slice(0, 3).map((x, i) => {
+            return <li><a href={x.ref} onClick={() => trackItem(x.ref, i+1)}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
          });
         setRecentlyViewedItems(itemsToShow);
    }
