@@ -95,10 +95,10 @@
 {% endblock %}
 
 {% block content %}
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='testimonials' title="Testimonials" heTitle="המלצות על ספריא" %}
+{% endif %}
 <div id="testimonialsPage" class="biReady container static">
-    {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='testimonials' title="Testimonials" heTitle="המלצות על ספריא" %}
-    {% endif %}
     <div class="inner">
         <h1>
             <span class="">Sefaria’s Impact – Reflections and Insights from Users</span>

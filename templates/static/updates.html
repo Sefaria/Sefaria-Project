@@ -20,9 +20,9 @@
     <div id="updatesPanelContent">
         <h1 id="appLoading">Loading...</h1>
     </div>
-    {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
-    {% endif %}
 </main>
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
+{% endif %}
 {% endblock %}
 {% block footer %} {% endblock %}

@@ -16,13 +16,13 @@
 {% endblock %}
 
 {% block content %}
-
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
+    {% endif %}
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
             <header>
-            {% if not request.user_agent.is_mobile %}
-                {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
-            {% else %}
+            {% if request.user_agent.is_mobile %}
                 <h1>
                     <span class="int-en serif">Team</span>
                     <span class="int-he">צוות ספריא</span>

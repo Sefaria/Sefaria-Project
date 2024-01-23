@@ -6,12 +6,13 @@
 {% block description %}{% endblock %}
 
 {% block content %}
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" heTitle="מדיניות פרטיות" %}
+{% endif %}
 <div id="" class="container doc legal static">
 
 	<div class="inner">
-        {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='privacy' title="Privacy Policy" heTitle="מדיניות פרטיות" %}
-        {% else %}
+        {% if request.user_agent.is_mobile %}
             <div id="legalTabs">
                 <a href="/terms">Terms of Use</a>
                 <a href="/privacy-policy" class="current">Privacy Policy</a>

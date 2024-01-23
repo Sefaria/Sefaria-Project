@@ -3319,7 +3319,7 @@ display: none;
   text-align: right;
 }
 #aboutSidebar.jobs {
-  top: 50px !important;
+  top: 110px !important;
 }
 .interface-hebrew #aboutSidebar h1 {
   font-size: 22px;
@@ -3328,6 +3328,7 @@ display: none;
 #aboutSidebar h1 {
   margin: 0 0 30px 50px;
   font-size: 22px;
+  font-weight: 300;
 }
 #aboutPage h1, #teamPage h2, #testimonialsPage h1 {
   text-align: left;
@@ -3342,12 +3343,6 @@ display: none;
 #aboutSidebar.updates h1 {
   margin: 0 50px 30px 50px;
   font-weight: 100;
-}
-#aboutSidebar.team h1 {
-  margin-left: -15px;
-}
-#aboutSidebar.metrics h1 {
-  margin-left: -3px;
 }
 #aboutSidebar.annualreport h1 {
   margin-left: 50px;

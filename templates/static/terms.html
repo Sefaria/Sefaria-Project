@@ -6,12 +6,12 @@
 {% block description %}{% endblock %}
 
 {% block content %}
-
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" heTitle="תנאי שימוש" %}
+{% endif %}
 <div id="" class="container doc legal static">
 	<div class="inner">
-        {% if not request.user_agent.is_mobile %}
-            {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" heTitle="תנאי שימוש" %}
-        {% else %}
+        {% if request.user_agent.is_mobile %}
             <div id="legalTabs">
                 <a href="/terms" class="current">Terms of Use</a>
                 <a href="/privacy-policy">Privacy Policy</a>
