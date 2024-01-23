@@ -151,6 +151,7 @@ const ReviewStateIndicator = ({reviewState}) => {
 };
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
+
     const versions = text.versions || {}
     const params = Sefaria.util.getUrlVersionsParams(versions);
     const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
@@ -160,15 +161,21 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 
+    let promptComponent = <div className={"systemText learningPrompt"}><InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} /></div>
+    let reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
+
+    const isPromptPublished = text.descriptions?.en?.published
+    if (isPromptPublished === false) {
+        promptComponent = null;
+        reviewIndicatorComponent = null;
+    }
     return (
         <StoryFrame cls="introducedTextPassageStory">
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
+                {reviewIndicatorComponent}
             </CategoryHeader>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-            </div>
+            {promptComponent}
             <SaveLine
                 dref={text.ref}
                 versions={versions}
