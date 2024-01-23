@@ -165,7 +165,8 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     let reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
 
     const isPromptPublished = text.descriptions?.en?.published
-    if (isPromptPublished === false) {
+
+    if (isPromptPublished === false && !Sefaria.is_moderator) {
         promptComponent = null;
         reviewIndicatorComponent = null;
     }
