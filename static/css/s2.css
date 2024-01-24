@@ -7585,10 +7585,15 @@ a .button:hover {
   width: fit-content;
 }
 
-.button.extraSmall.reviewState {
+.button.extraSmall.reviewState.en{
   position: absolute;
   top: 0;
   right: 0;
+}
+.button.extraSmall.reviewState.he{
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 .button.extraSmall.reviewState.reviewed {
   background-color: #5D956F;
@@ -7598,7 +7603,7 @@ a .button:hover {
   background-color: #CB6158;
 }
 .button.extraSmall.reviewState.edited {
-  background-color: yellowgreen;
+  background-color: #C3EB34;
 }
 .button.extraSmall {
   border-radius: 6px;

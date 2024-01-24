@@ -144,11 +144,53 @@ function capitalizeWords(str) {
 const ReviewStateIndicator = ({reviewState}) => {
     let reviewStateCamel = toCamelCase(reviewState)
     let reviewStateCapitalized = capitalizeWords(reviewState)
+    let interfaceLanguage = Sefaria.interfaceLang
+    const lang = interfaceLanguage == "english" ? "en" : "he";
     return(
-    <div className={`button extraSmall reviewState ${reviewStateCamel}`}>
+    <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`}>
         {reviewStateCapitalized}
     </div>);
 };
+
+const promptBuilder = ({text}) => {
+    let promptComponent = null;
+    if (Sefaria.interfaceLang == "english"){
+        const isPromptPublished = text.descriptions?.en?.published
+        if (isPromptPublished !== false || Sefaria.is_moderator){
+        promptComponent = <div className={"systemText learningPrompt"}>
+            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+        </div>
+            }
+    }
+    else if (Sefaria.interfaceLang == "hebrew"){
+        const isPromptPublished = text.descriptions?.he?.published
+        if (isPromptPublished !== false || Sefaria.is_moderator){
+        promptComponent = <div className={"systemText learningPrompt"}>
+            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+        </div>
+            }
+    }
+    return promptComponent
+}
+const reviewIndicatorBuilder = ({text}) => {
+    let reviewIndicatorComponent = null;
+    if (Sefaria.interfaceLang == "english") {
+        const isPromptPublished = text.descriptions?.en?.published
+        if (isPromptPublished !== false || Sefaria.is_moderator) {
+            reviewIndicatorComponent =
+                <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
+        }
+    }
+    else if (Sefaria.interfaceLang == "hebrew"){
+        const isPromptPublished = text.descriptions?.he?.published
+            console.log(isPromptPublished !== false || Sefaria.is_moderator)
+        if (isPromptPublished !== false || Sefaria.is_moderator){
+            reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.he?.review_state}></ReviewStateIndicator>
+        }
+            }
+
+    return reviewIndicatorComponent
+}
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
 
@@ -161,15 +203,8 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 
-    let promptComponent = <div className={"systemText learningPrompt"}><InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} /></div>
-    let reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
-
-    const isPromptPublished = text.descriptions?.en?.published
-
-    if (isPromptPublished === false && !Sefaria.is_moderator) {
-        promptComponent = null;
-        reviewIndicatorComponent = null;
-    }
+    const promptComponent = promptBuilder({text});
+    const reviewIndicatorComponent = reviewIndicatorBuilder({text})
     return (
         <StoryFrame cls="introducedTextPassageStory">
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
