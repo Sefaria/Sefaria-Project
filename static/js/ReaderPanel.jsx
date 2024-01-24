@@ -167,7 +167,7 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, replace, currVersions);
+      this.showBaseText(citationRef, replace, currVersions, [], false);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
@@ -247,7 +247,6 @@ class ReaderPanel extends Component {
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, convertCommToBase);
     if (ref.constructor !== Array) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
@@ -255,24 +254,21 @@ class ReaderPanel extends Component {
         return;
       }
     }
-
-    if (this.replaceHistory) {
-      this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
-    }
-    this.conditionalSetState({
-      mode: "Text",
-      refs,
-      filter,
-      currentlyVisibleRef,
-      currVersions,
-      highlightedRefs,
-      recentFilters: [],
-      menuOpen: null,
-      compare: false,
-      sheetID: null,
-      connectionsMode: "Resources",
-      settings: this.state.settings
-    });
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings}, true, convertCommToBase, this.replaceHistory);
+    // this.conditionalSetState({
+    //   mode: "Text",
+    //   refs,
+    //   filter,
+    //   currentlyVisibleRef,
+    //   currVersions,
+    //   highlightedRefs,
+    //   recentFilters: [],
+    //   menuOpen: null,
+    //   compare: false,
+    //   sheetID: null,
+    //   connectionsMode: "Resources",
+    //   settings: this.state.settings
+    // });
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);

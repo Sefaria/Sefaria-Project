@@ -1422,13 +1422,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommToBase=true, replaceHistory=true) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
-    let panel;
+    let panel, connectionPanel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
@@ -1441,7 +1441,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
-      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, true);
+      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, convertCommToBase);
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
         refs,
@@ -1450,12 +1450,34 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef, mode: "Text",
         ...options
       });
+      // connectionPanel = this.makePanelState({
+      //   refs,
+      //   currVersions,
+      //   highlightedRefs,
+      //   currentlyVisibleRef, mode: "Connections",
+      //   filter: ["Rashi"],
+      //   recentFilters: ["Rashi"],
+      //   connectionsMode: "TextList",
+      //   ...options
+      // });
     }
-
-    const newPanels = this.state.panels.slice();
-    newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
-    this.setState({panels: newPanels});
-    this.saveLastPlace(panel, n+1);
+    if (!connectionPanel) {
+      const newPanels = this.state.panels.slice();
+      newPanels.splice(replace ? n : n + 1, replace ? 1 : 0, panel);
+      this.setState({panels: newPanels});
+      if (replaceHistory) {
+        this.saveLastPlace(panel, n + 1);
+      }
+    }
+    else {
+      const newPanels = this.state.panels.slice();
+      newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
+      newPanels.push(connectionPanel);
+      this.setState({panels: newPanels});
+      if (replaceHistory) {
+        this.saveLastPlace(panel, n + 1);
+      }
+    }
   }
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
@@ -2096,6 +2118,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      openPanelAt={this.openPanelAt}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
