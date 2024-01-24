@@ -183,7 +183,6 @@ const reviewIndicatorBuilder = ({text}) => {
     }
     else if (Sefaria.interfaceLang == "hebrew"){
         const isPromptPublished = text.descriptions?.he?.published
-            console.log(isPromptPublished !== false || Sefaria.is_moderator)
         if (isPromptPublished !== false || Sefaria.is_moderator){
             reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.he?.review_state}></ReviewStateIndicator>
         }
