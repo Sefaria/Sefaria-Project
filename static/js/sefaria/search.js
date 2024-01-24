@@ -39,7 +39,7 @@ class Search {
             }
 
             wrapper.addQuery($.ajax({
-                url: `${Sefaria.apiHost}/api/search-wrapper`,
+                url: `${Sefaria.apiHost}/api/search-wrapper/es8`,
                 type: 'POST',
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",

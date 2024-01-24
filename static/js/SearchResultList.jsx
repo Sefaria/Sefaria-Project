@@ -100,11 +100,7 @@ class SearchTotal {
 
 
 function createSearchTotal(total) {
-    /**
-     * this function ensures backwards compatibility between the way elasticsearch formats the total pre-v8 and post-v8
-     */
-    const totalObj = typeof(total) === 'number' ? {value: total} : {value: total.value, relation: total.relation};
-    return new SearchTotal(totalObj)
+    return new SearchTotal(total);
 }
 
 
