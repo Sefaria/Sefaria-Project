@@ -127,7 +127,8 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 function toCamelCase(str) {
-  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+    console.log(str)
+    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
     return index === 0 ? word.toLowerCase() : word.toUpperCase();
   }).replace(/\s+/g, '');
 }
@@ -142,14 +143,18 @@ function capitalizeWords(str) {
   return result;
 }
 const ReviewStateIndicator = ({reviewState}) => {
-    let reviewStateCamel = toCamelCase(reviewState)
-    let reviewStateCapitalized = capitalizeWords(reviewState)
-    let interfaceLanguage = Sefaria.interfaceLang
+    let comp = null;
+    if (reviewState){
+    let reviewStateCamel = toCamelCase(reviewState);
+    let reviewStateCapitalized = capitalizeWords(reviewState);
+    let interfaceLanguage = Sefaria.interfaceLang;
     const lang = interfaceLanguage == "english" ? "en" : "he";
-    return(
-    <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`}>
+    comp =     <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`}>
         {reviewStateCapitalized}
-    </div>);
+    </div>;
+    }
+    return comp
+
 };
 
 const promptBuilder = ({text}) => {
