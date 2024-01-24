@@ -69,7 +69,7 @@ const SearchTopic = (props) => {
                 {topicCategory}
                 {"enDesc" in props.topic ?
                     <div className="topicDescSearchResult systemText">
-                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
+                       <InterfaceText markdown={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
                     </div> : null}
                 {sourcesSheetsDiv}
         </div>

@@ -21,7 +21,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import { NavSidebar, Modules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
-import VersionBlock  from './VersionBlock';
+import VersionBlock  from './VersionBlock/VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
 import Footer  from './Footer';
 import classNames  from 'classnames';

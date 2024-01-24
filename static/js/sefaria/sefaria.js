@@ -487,6 +487,35 @@ Sefaria = extend(Sefaria, {
 
     return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
+  makeParamsStringForAPIV3: function(language, versionTitle) {
+    if (versionTitle) {
+        return `${language}|${versionTitle}`;
+    } else if (language) {
+        return language;
+    }
+  },
+  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText) {
+    const host = Sefaria.apiHost;
+    const endPoint = '/api/v3/texts/';
+    const versions = requiredVersions.map(obj =>
+        Sefaria.makeParamsStringForAPIV3(obj.language, obj.versionTitle)
+    );
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeText}`;
+    return url;
+  },
+  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
+    // ref is segment ref or bottom level section ref
+    // requiredVersions is array of objects that can have language and versionTitle
+    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText);
+    //TODO here's the place for getting it from cache
+    const apiObject = await Sefaria._ApiPromise(url);
+    //TODO here's the place for all changes we want to add, and saving in cache
+    return apiObject;
+  },
+  getAllTranslationsWithText: async function(ref) {
+    let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{language: 'translation', versionTitle: 'all'}], false);
+    return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
+  },
   _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
     if (sheetIds.length === 0) { return Promise.resolve({}); }
@@ -663,13 +692,13 @@ Sefaria = extend(Sefaria, {
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isBaseText true
+     * Gets all versions except Hebrew versions that have isSource true
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(result => {
         let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
         if (heVersions.length) {
             versions.he = heVersions;
         }

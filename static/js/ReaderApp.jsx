@@ -21,7 +21,9 @@ import {
   EducatorsPage,
   RabbisPage,
   DonatePage,
-  WordByWordPage
+  WordByWordPage,
+  JobsPage,
+  TeamMembersPage,
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1345,10 +1347,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const { dependentPanel, isDependentPanelConnections } = this._getDependentPanel(n);
 
     // make sure object reference changes for setState()
-    dependentPanel.currVersions = {...panel.currVersions};
     panel.currVersions = {...panel.currVersions};
+    if (this.props.multiPanel) { //there is no dependentPanel in mobile
+      dependentPanel.currVersions = {...panel.currVersions};
 
-    dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+      dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+    }
     this.setState({panels: this.state.panels});
   }
   navigatePanel(n, ref, currVersions={en: null, he: null}) {
@@ -1935,6 +1939,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let elsToStrip = container.querySelectorAll(linksToStrip);
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
+
+      // Collapse all spans that are not rangeSpan. This is also needed for specifically pasting into Google Docs in Chrome to work.
+      let SourceTextSpans = container.querySelectorAll('span:not(.rangeSpan)');
+      SourceTextSpans.forEach(el => el.outerHTML = el.innerText);
+
       html = container.outerHTML;
       textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
@@ -2266,5 +2275,7 @@ export {
   EducatorsPage,
   RabbisPage,
   DonatePage,
-  WordByWordPage
+  WordByWordPage,
+  JobsPage,
+  TeamMembersPage,
 };

@@ -46,7 +46,7 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
     """
     user: user ID of user making modification
     version: version object of text being modified
-    text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored.
+    text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored. The key should be the tref, and the value the text, ex: {'Mishnah Berakhot 1:1': 'Text of the Mishnah goes here'}
     vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
     """
     def populate_change_map(old_text, en_tref, he_tref, _):

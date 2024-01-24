@@ -1132,7 +1132,7 @@ msgstr "אודות ספריא"
 
 #: templates/static/en/about.html:6 templates/static/he/about.html:6
 msgid ""
-"Sefaria is a non-profit organization dedicated to building the future of "
+"Sefaria is a nonprofit organization dedicated to building the future of "
 "Jewish learning in an open and participatory way."
 msgstr ""
 "ספריא היא עמותה ללא מטרות רווה השואפת לעיצוב עתיד הלימוד היהודי כך שיהא פתוח "
@@ -1168,7 +1168,7 @@ msgstr "משרות בספריא"
 
 #: templates/static/jobs.html:6
 msgid ""
-"Job openings at Sefaria, a non-profit technology organization dedicated to "
+"Job openings at Sefaria, a nonprofit technology organization dedicated to "
 "building the Jewish future."
 msgstr ""
 "משרות פנויות בספריא, עמותה ללא מטרות רווח שמטרתה הבטחת העתיד הטכנולוגי של "

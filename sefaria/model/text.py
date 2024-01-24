@@ -419,6 +419,56 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             alt_struct_nodes_helper(node, nodes)
         return nodes
 
+    def get_trimmed_alt_structs_for_ref(self, oref) -> dict:
+        """
+        this function takes the index's alt_structs and reduce it to the relevant ref
+        """
+        # Set up empty Array that mirrors text structure
+        alts_ja = JaggedArray()
+        for key, struct in self.get_alt_structures().items():
+            # Assuming these are in order, continue if it is before ours, break if we see one after
+            for n in struct.get_leaf_nodes():
+                wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
+                if wholeRef.ending_ref().precedes(oref):
+                    continue
+                if wholeRef.starting_ref().follows(oref):
+                    break
+
+                # It's in our territory
+                wholeRefStart = wholeRef.starting_ref()
+                if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
+                    indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
+                    val = {"en": [], "he": []}
+                    try:
+                        val = alts_ja.get_element(indxs) or val
+                    except IndexError:
+                        pass
+                    val["en"] += [n.primary_title("en")]
+                    val["he"] += [n.primary_title("he")]
+                    val["whole"] = True
+                    alts_ja.set_element(indxs, val)
+
+                if getattr(n, "refs", None):
+                    for i, r in enumerate(n.refs):
+                        # hack to skip Rishon, skip empty refs
+                        if i == 0 or not r:
+                            continue
+                        subRef = Ref(r)
+                        subRefStart = subRef.starting_ref()
+                        if oref.contains(subRefStart) and not subRefStart.contains(oref):
+                            indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
+                            val = {"en": [], "he": []}
+                            try:
+                                val = alts_ja.get_element(indxs) or val
+                            except IndexError:
+                                pass
+                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            alts_ja.set_element(indxs, val)
+                        elif subRefStart.follows(oref):
+                            break
+
+        return alts_ja.array()
 
     def composition_place(self):
         from . import place
@@ -947,7 +997,7 @@ class AbstractSchemaContent(object):
 
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
-        Get's or sets values deep within the content of this version.
+        Gets or sets values deep within the content of this version.
         This returns the result by reference, NOT by value.
         http://stackoverflow.com/questions/27339165/slice-nested-list-at-variable-depth
         :param key_list: The node keys to traverse to get to the content node
@@ -1284,8 +1334,12 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "purchaseInformationImage",
         "purchaseInformationURL",
         "hasManuallyWrappedRefs",  # true for texts where refs were manually wrapped in a-tags. no need to run linker at run-time.
-        "actualLanguage",
-        "isBaseText",
+        "actualLanguage",  # ISO language code
+        'languageFamilyName',  # full name of the language, but without specificity (for Judeo Arabic actualLanguage=jrb, languageFamilyName=arabic
+        "isBaseText",  # should be deprecated (needs some changes on client side)
+        'isSource',  # bool, True if this version is not a translation
+        'isPrimary', # bool, True if we see it as a primary version (usually equals to isSource, but Hebrew Kuzarif or example is primary but not source)
+        'direction',  # 'rtl' or 'ltr'
     ]
 
     def __str__(self):
@@ -1303,6 +1357,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         languageCodeRe = re.search(r"\[([a-z]{2})\]$", getattr(self, "versionTitle", None))
         if languageCodeRe and languageCodeRe.group(1) != getattr(self,"actualLanguage",None):
             self.actualLanguage = languageCodeRe.group(1)
+        if not getattr(self, 'languageFamilyName', None):
+            try:
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.actualLanguage]
+            except KeyError:
+                self.languageFamilyName = constants.LANGUAGE_CODES[self.language]
         if getattr(self,"language", None) not in ["en", "he"]:
             raise InputError("Version language must be either 'en' or 'he'")
         index = self.get_index()
@@ -1346,6 +1405,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.actualLanguage = languageCode.group(1)
             else:
                 self.actualLanguage = self.language
+
+        if not getattr(self, 'direction', None):
+            self.direction = 'rtl' if self.language == 'he' else 'ltr'
 
         if getattr(self, "priority", None):
             try:
@@ -1631,6 +1693,78 @@ class TextFamilyDelegator(type):
             return VirtualTextChunk(*args, **kwargs)
         else:
             return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
+
+
+class TextRange:
+    """
+    This class is planned to replace TextChunk, using real language rather than he/en
+    For now it's used by v3 texts api
+    It can be used for getting text, but not yet for saving
+    The versions param is for better performance when the version(s) were already loaded from mongo
+    """
+
+    def __init__(self, oref, lang, vtitle, merge_versions=False, versions=None):
+        if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
+            self.oref = oref
+        elif oref.has_default_child(): #use default child:
+            self.oref = oref.default_child_ref()
+        else:
+            raise InputError("Can not get TextRange at this level, please provide a more precise reference")
+        self.lang = lang
+        self.vtitle = vtitle
+        self.merge_versions = merge_versions
+        self._text = None
+        self.sources = None
+        self._set_versions(versions)
+
+    def _set_versions(self, versions):
+        if versions:
+            self._validate_versions(versions)
+            self._versions = versions
+        else:
+            condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
+                {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
+            self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
+
+    def _validate_versions(self, versions):
+        if not self.merge_versions and len(versions) > 1:
+            raise InputError("Got many versions instead of one")
+        for version in versions:
+            condition = version.title == self.oref.index.title and version.languageFamilyName == self.lang
+            if not self.merge_versions:
+                condition = condition and version.versionTitle == self.vtitle
+            if not condition:
+                raise InputError(f"Given version, {version}, is not matching to title, language or versionTitle")
+
+    def _trim_text(self, text):
+        """
+        part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
+        """
+        #TODO can we get the specific text directly from mongo?
+        text = copy.deepcopy(text)
+        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
+            subtext = reduce(lambda x, _: x[-1], range(s), text)
+            del subtext[section:]
+        for s, section in enumerate(self.oref.sections[1:], 1):
+            subtext = reduce(lambda x, _: x[0], range(s), text)
+            del subtext[:section-1]
+        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
+        redundant_depth = len(list(matching_sections))
+        return reduce(lambda x, _: x[0], range(redundant_depth), text)
+
+    @property
+    def text(self):
+        if self._text is None:
+            if self.merge_versions and len(self._versions) > 1:
+                merged_text, sources = self._versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
+                self._text = self._trim_text(merged_text)
+                if len(sources) > 1:
+                    self.sources = sources
+            elif self.oref.index_node.is_virtual:
+                self._text = self.oref.index_node.get_text()
+            else:
+                self._text = self._trim_text(self._versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
+        return self._text
 
 
 class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
@@ -2374,60 +2508,7 @@ class TextFamily(object):
 
         # Adds decoration for the start of each alt structure reference
         if alts:
-            # Set up empty Array that mirrors text structure
-            alts_ja = JaggedArray()
-
-            for key, struct in oref.index.get_alt_structures().items():
-                # Assuming these are in order, continue if it is before ours, break if we see one after
-                for n in struct.get_leaf_nodes():
-                    wholeRef = Ref(n.wholeRef).default_child_ref().as_ranged_segment_ref()
-                    if wholeRef.ending_ref().precedes(oref):
-                        continue
-                    if wholeRef.starting_ref().follows(oref):
-                        break
-
-                    #It's in our territory
-                    wholeRefStart = wholeRef.starting_ref()
-                    if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
-                        indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
-                        val = {"en":[], "he":[]}
-
-                        try:
-                            val = alts_ja.get_element(indxs) or val
-                        except IndexError:
-                            pass
-
-                        val["en"] += [n.primary_title("en")]
-                        val["he"] += [n.primary_title("he")]
-                        val["whole"] = True
-
-                        alts_ja.set_element(indxs, val)
-
-                    if getattr(n, "refs", None):
-                        for i, r in enumerate(n.refs):
-                            # hack to skip Rishon, skip empty refs
-                            if i == 0 or not r:
-                                continue
-                            subRef = Ref(r)
-                            subRefStart = subRef.starting_ref()
-                            if oref.contains(subRefStart) and not subRefStart.contains(oref):
-                                indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
-                                val = {"en":[], "he":[]}
-
-                                try:
-                                    val = alts_ja.get_element(indxs) or val
-                                except IndexError:
-                                    pass
-
-                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
-
-                                alts_ja.set_element(indxs, val)
-
-                            elif subRefStart.follows(oref):
-                                break
-
-            self._alts = alts_ja.array()
+            self._alts = oref.index.get_trimmed_alt_structs_for_ref(oref)
         if self._inode.is_virtual:
             self._index_offsets_by_depth = None
         else:
@@ -2765,6 +2846,9 @@ class Ref(object, metaclass=RefCacheType):
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
+            if l != len(base) and base[l] not in ' ,.:_':
+                continue #do not stop in the middle of a word
+
             self.index_node = tndict.get(base[0:l])
 
             if self.index_node:
@@ -3861,8 +3945,8 @@ class Ref(object, metaclass=RefCacheType):
 
     def context_ref(self, level=1):
         """
-        :return: :class:`Ref` that is more general than this :class:`Ref`.
         :param level: how many levels to 'zoom out' from the most specific possible :class:`Ref`
+        :return: :class:`Ref` that is more general than this :class:`Ref`.
 
         ::
 
@@ -4162,8 +4246,11 @@ class Ref(object, metaclass=RefCacheType):
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
 
-        # If other is less specific than self, we need to get its true extent
-        if len(self.sections) > len(other.sections):
+        if len(self.sections) > len(other.sections): # other is less specific than self
+            if len(other.sections) == 0:  # other is a whole book
+                if any([x != 1 for x in self.sections]):  # self is not a whole book
+                    return False  # performance optimization to avoid call to as_ranged_segment_ref
+            # we need to get the true extent of other
             other = other.as_ranged_segment_ref()
 
         smallest_section_len = min([len(self.sections), len(other.sections)])
@@ -4394,6 +4481,9 @@ class Ref(object, metaclass=RefCacheType):
         # todo: reimplement w/ aggregation pipeline (see above)
         # todo: special case string 0?
 
+        if self.index_node.is_virtual:
+            return
+
         projection = {k: 1 for k in Version.required_attrs + Version.optional_attrs}
         del projection[Version.content_attr]  # Version.content_attr == "chapter"
         projection["_id"] = 0
@@ -4497,15 +4587,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def version_list(self):
         """
-        A list of available text versions titles and languages matching this ref.
+        A list of available text versions metadata matching this ref.
         If this ref is book level, decorate with the first available section of content per version.
 
         :return list: each list element is an object with keys 'versionTitle' and 'language'
         """
-        fields = ["title", "versionTitle", "versionSource", "language", "status", "license", "versionNotes",
-                  "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "shortVersionTitle",
-                  "shortVersionTitleInHebrew", "isBaseText"]
+        fields = Version.optional_attrs + Version.required_attrs
+        fields.remove('chapter') # not metadata
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -4788,6 +4876,8 @@ class Ref(object, metaclass=RefCacheType):
             matched_ref = Ref(e.matched_part)
             try:
                 tref = Ref.__clean_tref(tref, matched_ref._lang)
+                # replace input title with normalized title in case input was an alt title
+                tref = tref.replace(e.matched_part, matched_ref.normal())
                 legacy_ref_parser = legacy_ref_parser_handler[matched_ref.index.title]
                 return legacy_ref_parser.parse(tref)
             except LegacyRefParserError:
@@ -4943,7 +5033,7 @@ class Library(object):
         While building these ToC data structures, this function also builds the equivalent JSON structures
         as an API optimization.
 
-        @param: skip_toc_tree boolean
+        :param skip_toc_tree: Boolean
         """
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
@@ -5037,7 +5127,7 @@ class Library(object):
     def get_topic_toc_json(self, rebuild=False):
         """
         Returns JSON representation of Topics ToC.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -5051,9 +5141,9 @@ class Library(object):
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
         Returns JSON representation of Topics ToC
-        @param: topic Topic
-        @param: explored Set
-        @param: with_descriptions boolean
+        :param topic: Topic
+        :param explored: Set
+        :param with_descriptions: Boolean
         """
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
@@ -5120,7 +5210,7 @@ class Library(object):
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
         """
         Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
-        @param: rebuild boolean
+        :param rebuild: Boolean
         """
         if rebuild or not self._topic_toc_category_mapping:
             if not rebuild:
@@ -5173,7 +5263,7 @@ class Library(object):
     def get_topic_link_type(self, link_type):
         """
         Returns a TopicLinkType with a slug of link_type (parameter) if not already present
-        @param: link_type String
+        :param link_type: String
         """
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
@@ -5186,7 +5276,7 @@ class Library(object):
     def get_topic_data_source(self, data_source):
         """
         Returns a TopicDataSource with the data_source (parameter) slug if not already present
-        @param: data_source String
+        :param data_source: String
         """
         from .topic import TopicDataSourceSet
         if not self._topic_data_sources:
@@ -5290,7 +5380,7 @@ class Library(object):
         is not present, it assumes the need to rebuild the lexicon_auto_completer and calls the build
         function with appropriate logger warnings before returning the desired result
 
-        @param: lexicon String
+        :param lexicon: String
         """
         try:
             return self._lexicon_auto_completer[lexicon]
@@ -5550,6 +5640,12 @@ class Library(object):
         return term_dict
 
     def build_term_mappings(self):
+        """
+           Build simple and full term mappings
+           A full term mapping has the term name as the key, and the term as the value.
+           A simple term mapping has the term name as the key, and a dictionary containing the English and Hebrew
+           primary titles for the terms as the value.
+        """
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         for term in TermSet():
@@ -5585,6 +5681,11 @@ class Library(object):
         return self._simple_term_mapping_json
 
     def get_term(self, term_name):
+        """
+        Returns the full term, if mapping not present, builds the full term mapping.
+        :param term_name: String
+        :returns: full Term (Mongo Record)
+        """
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name) if term_name in self._full_term_mapping else Term().load({"name": term_name})
@@ -5592,15 +5693,34 @@ class Library(object):
 
 
     def get_topic(self, slug):
+        """
+        Returns a dictionary containing the keys "en" and "he".
+        The "en" field has a value of the topic's English primary title, and the "he" field has a
+        value of the topic's Hebrew primary title.
+        :param slug: String
+        :returns: topic map for the given slug Dictionary
+        """
         return self._topic_mapping[slug]
 
     def get_topic_mapping(self, rebuild=False):
+        """
+        Returns the topic mapping if it exists, if not rebuilds it and returns
+        :param rebuild: Boolean (optional, default set to False)
+        """
         tm = self._topic_mapping
         if not tm or rebuild:
             tm = self._build_topic_mapping()
         return tm
 
     def _build_topic_mapping(self):
+        """
+        Builds the topic mapping. The topic mapping is a dictionary with keys, where each key
+        is a slug of a topic.
+        That key contains the value of another dictionary, with the keys "en" and "he".
+        The "en" field has a value of the topic's English primary title, and the "he" field has a
+        value of the topic's Hebrew primary title.
+        :returns: topic map for the given slug Dictionary
+        """
         from .topic import Topic, TopicSet
         self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
         return self._topic_mapping
@@ -5644,6 +5764,9 @@ class Library(object):
         return root_nodes
 
     def all_index_records(self):
+        """
+        Returns an array of all index records
+        """
         return [self._index_map[k] for k in list(self._index_title_maps["en"].keys())]
 
     def get_title_node_dict(self, lang="en"):
@@ -5684,9 +5807,9 @@ class Library(object):
 
     def full_title_list(self, lang="en", with_terms=False):
         """
-        :return: list of strings of all possible titles
         :param lang: "he" or "en"
         :param with_terms: if True, includes shared titles ('terms')
+        :return: list of strings of all possible titles
         """
         key = lang
         key += "_terms" if with_terms else ""
@@ -5710,6 +5833,11 @@ class Library(object):
         return title_list
 
     def get_text_titles_json(self, lang="en", rebuild=False):
+        """
+        Returns the json text title list
+        :param lang: String (optional, default set to 'en')
+        :param rebuild: Boolean (optional, default set to False)
+        """
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
@@ -5723,6 +5851,9 @@ class Library(object):
         return self._full_title_list_jsons[lang]
 
     def reset_text_titles_cache(self):
+        """
+        Resets the text titles for all languages by clearing the existing titles from the cache.
+        """
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
@@ -5968,6 +6099,20 @@ class Library(object):
 
     # do we want to move this to the schema node? We'd still have to pass the title...
     def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
+        """
+        Given a book title, this function returns a regex for a Ref.
+        This works for references not in Sefaria format (i.e. "See Genesis 2 3" as opposed to "Genesis 2:3",
+        as well as for references in Sefaria format.
+        If the language is 'en', it calls the full_regex() function which returns the regex, whereas for 'he' we
+        limit the regex creation to content inside parenthesis to limit false positives (i.e. the phrase שבת לא תעשה
+        could be caught by mistake as Shabbat 31)
+        :param title: String
+        :param lang: 'en' or 'he'
+        :param for_js: Boolean (default set to False, optional)
+        :param anchored: Boolean (default set to False, optional)
+        :param capture_title: Boolean (default set to False, optional)
+        :param parentheses: Boolean (default set to False, optional)
+        """
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
@@ -6120,6 +6265,12 @@ class Library(object):
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
+        """Returns a dict of unique category ids based on the ToC, with the
+           values being the category IDs.
+            :param toc: ToC object (optional, default is None)
+            :param cat_head: String, (optional, default is "" - an empty string)
+            :param code_head: String, (optional, default is "" - an empty string)
+        """
         if toc is None:
             if not self._category_id_dict:
                 self._category_id_dict = self.category_id_dict(self.get_toc())
@@ -6143,6 +6294,12 @@ class Library(object):
         return d
 
     def simplify_toc(self, lang=None, toc_node=None, path=None):
+        """
+        Simplifies the table of contents (ToC)
+        :param lang: 'en' or 'he', default is None (optional)
+        :param toc_node: ToC Node, default is None (optional)
+        :param path: Node Path, default is None (optional)
+        """
         is_root = toc_node is None and path is None
         toc_node = toc_node if toc_node else self.get_toc()
         path = path if path else []
