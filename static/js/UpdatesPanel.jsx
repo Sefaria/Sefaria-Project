@@ -111,7 +111,6 @@ class UpdatesPanel extends Component {
               )}
               </div>
             </div>
-            <NavSidebar modules={sidebarModules} />
           </div>
           <Footer />
         </div>
