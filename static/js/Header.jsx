@@ -510,7 +510,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/mobile-about">
+        <a href="/mobile-about-menu">
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>

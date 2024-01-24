@@ -3305,17 +3305,15 @@ display: none;
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
-
-.interface-english #aboutSidebar {
-  position: absolute;
+#aboutSidebar {
+  position: fixed;
   left: 15px;
   top: 100px;
+}
+.interface-english #aboutSidebar {
   text-align: left;
 }
 .interface-hebrew #aboutSidebar {
-  position: absolute;
-  right: 15px;
-  top: 100px;
   text-align: right;
 }
 #aboutSidebar.jobs {
