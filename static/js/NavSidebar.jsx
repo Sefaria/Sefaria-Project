@@ -113,7 +113,7 @@ const AboutSefaria = ({hideTitle}) => (
       </InterfaceText>
     </a>
       {!hideTitle && <InterfaceText>
-          <EnglishText>
+          {/*<EnglishText>
             <a className="button get-start" href="/sheets/210670">
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
@@ -128,7 +128,7 @@ const AboutSefaria = ({hideTitle}) => (
                   הכירו את ספריא (2 דק')
                 </div>
             </a>
-          </HebrewText>
+          </HebrewText>*/}
       </InterfaceText>
     }
   </Module>
