@@ -105,7 +105,8 @@ class Search {
         return new Promise((resolve, reject) => {
 
             if (this.queryDictaFlag && args.type === "text") {
-                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total.getValue() && ('start' in args && args['start'] > 0)) {
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total.getValue() &&
+                    ('start' in args && args['start'] > 0)) {
                     /* don't make new queries if results are exhausted.
                      * 'start' is omitted on first query (defaults to 0). On a first query, we'll always want to query.
                      */
