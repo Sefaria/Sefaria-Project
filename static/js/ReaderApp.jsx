@@ -1441,42 +1441,53 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
-      let {refs, currentlyVisibleRef, highlightedRefs} = Sefaria.getCurrentlyVisibleAndHighlightedRefs(ref, convertCommToBase);
+      let filter;
+      ({ref, filter} = Sefaria.getBaseRefAndFilter(ref, convertCommToBase));
+      let refs, currentlyVisibleRef, highlightedRefs;
+      if (ref.constructor === Array) {
+        // When called with an array, set highlight for the whole spanning range of the array
+        refs = ref;
+        currentlyVisibleRef = Sefaria.normRef(ref);
+        const splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
+        highlightedRefs = [].concat.apply([], splitArray);
+      } else {
+        refs = [ref];
+        currentlyVisibleRef = ref;
+        highlightedRefs = [];
+      }
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
         refs,
         currVersions,
         highlightedRefs,
+        filter: filter,
+        recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
         ...options
       });
-      // connectionPanel = this.makePanelState({
-      //   refs,
-      //   currVersions,
-      //   highlightedRefs,
-      //   currentlyVisibleRef, mode: "Connections",
-      //   filter: ["Rashi"],
-      //   recentFilters: ["Rashi"],
-      //   connectionsMode: "TextList",
-      //   ...options
-      // });
-    }
-    if (!connectionPanel) {
-      const newPanels = this.state.panels.slice();
-      newPanels.splice(replace ? n : n + 1, replace ? 1 : 0, panel);
-      this.setState({panels: newPanels});
-      if (replaceHistory) {
-        this.saveLastPlace(panel, n + 1);
+      if (filter.length > 0) {
+        connectionPanel = this.makePanelState({
+        refs,
+        currVersions,
+        highlightedRefs,
+        currentlyVisibleRef, mode: "Connections",
+        filter: filter,
+        recentFilters: filter,
+        connectionsMode: "TextList",
+        ...options
+        });
       }
+
     }
-    else {
-      const newPanels = this.state.panels.slice();
-      newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
+
+    const newPanels = this.state.panels.slice();
+    newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
+    if (connectionPanel) {
       newPanels.push(connectionPanel);
-      this.setState({panels: newPanels});
-      if (replaceHistory) {
-        this.saveLastPlace(panel, n + 1);
-      }
+    }
+    this.setState({panels: newPanels});
+    if (replaceHistory) {
+      this.saveLastPlace(panel, n + 1);
     }
   }
   openPanelAtEnd(ref, currVersions) {
