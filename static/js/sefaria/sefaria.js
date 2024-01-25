@@ -2188,7 +2188,7 @@ _media: {},
   },
   convertCommToBase(parsedRef, book) {
     if (!book || !this.isCommentaryWithBaseText(book)) {
-        return parsedRef.ref;
+        return Sefaria.humanRef(parsedRef.ref);
     }
     const base_text = book.base_text_titles[0];
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
@@ -2206,7 +2206,7 @@ _media: {},
         parsedRef.ref = parsedRef.ref.split(' ').slice(0, -1).join(' ');
         return Sefaria.humanRef(Sefaria.makeRef(parsedRef));
     }
-    return parsedRef.ref;
+    return Sefaria.humanRef(parsedRef.ref);
   },
   getBaseRefAndFilter(ref, convertCommToBase) {
     if (!convertCommToBase) {
