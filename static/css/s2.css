@@ -1504,7 +1504,7 @@ div.interfaceLinks-row a {
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
   direction: ltr;
