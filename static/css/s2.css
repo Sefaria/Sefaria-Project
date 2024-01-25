@@ -825,7 +825,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: max-content;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
-  left: 0px;
+  left: -135px;
   min-width: 150px;
   width: max-content;
 }
