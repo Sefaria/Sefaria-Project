@@ -199,8 +199,8 @@ const TheJewishLibrary = ({hideTitle}) => (
 );
 
 
-const SupportSefaria = ({blue}) => (
-  <Module blue={blue}>{/*
+const SupportSefaria = ({white}) => (
+  <Module blue={white}>{/*
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
