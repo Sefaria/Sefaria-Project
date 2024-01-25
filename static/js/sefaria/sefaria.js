@@ -2194,17 +2194,19 @@ _media: {},
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
     if (parsedRef.sections.length <= 2 || !many_to_one) {
         // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.
-        parsedRef.ref = parsedRef.ref.replace(book.title, base_text);
-        return Sefaria.humanRef(parsedRef.ref);
+        const parsedRefCopy = Object.create(parsedRef);
+        parsedRefCopy.ref = parsedRef.ref.replace(book.title, base_text);
+        return Sefaria.humanRef(parsedRefCopy.ref);
     }
     else if (many_to_one) {
         // Rashi on Genesis 1:2:1 => Genesis 1:2
-        parsedRef.sections = parsedRef.sections.slice(0, parsedRef.sections.length - 1);
-        parsedRef.toSections = parsedRef.toSections.slice(0, parsedRef.toSections.length - 1);
-        parsedRef.book = parsedRef.index = parsedRef.index.replace(book.title, base_text);
-        parsedRef.ref = parsedRef.ref.replace(book.title, base_text);
-        parsedRef.ref = parsedRef.ref.split(' ').slice(0, -1).join(' ');
-        return Sefaria.humanRef(Sefaria.makeRef(parsedRef));
+        const parsedRefCopy = Object.create(parsedRef);
+        parsedRefCopy.sections = parsedRefCopy.sections.slice(0, parsedRef.sections.length - 1);
+        parsedRefCopy.toSections = parsedRefCopy.toSections.slice(0, parsedRef.toSections.length - 1);
+        parsedRefCopy.book = parsedRefCopy.index = parsedRefCopy.index.replace(book.title, base_text);
+        parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, base_text);
+        parsedRefCopy.ref = parsedRefCopy.ref.split(' ').slice(0, -1).join(' ');
+        return Sefaria.humanRef(Sefaria.makeRef(parsedRefCopy));
     }
     return Sefaria.humanRef(parsedRef.ref);
   },
