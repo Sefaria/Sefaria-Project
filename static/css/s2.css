@@ -1694,7 +1694,7 @@ div.interfaceLinks-row a {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .interface-hebrew .sidebarLayout {
-  direction: rtl;
+  direction: ltr;
 }
 .readerPanel.hebrew .followsContentLang {
   direction: rtl;
