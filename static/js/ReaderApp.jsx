@@ -1453,7 +1453,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       } else {
         refs = [ref];
         currentlyVisibleRef = ref;
-        highlightedRefs = [];
+        highlightedRefs = filter === [] ? [] : [ref];
+        if (filter) {
+          options.showHighlight = true;
+        }
       }
       //console.log("Higlighted refs:", highlightedRefs)
       panel = this.makePanelState({
