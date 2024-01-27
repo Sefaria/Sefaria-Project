@@ -648,6 +648,25 @@ Sefaria = extend(Sefaria, {
       if (json.error) { throw json; }
       return json;
   },
+    updateTopicRef: async function(tref, text) {
+      const data = JSON.stringify(text)
+      const response = await fetch(`/api/ref-topic-links/${tref}`,
+          {
+              method: "POST",
+              mode: 'same-origin',
+              headers: {
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+              },
+              credentials: 'same-origin',
+              body: data
+          }
+      );
+      if (!response.ok) { throw "error"; }
+      const json = await response.json();
+      if (json.error) { throw json; }
+      console.log(json)
+      return json;
+  },
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
           Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),
