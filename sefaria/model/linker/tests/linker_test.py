@@ -31,6 +31,7 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],
     # Numbered JAs
     [crrd(["@בבלי", "@ברכות", "#דף ב"]), ("Berakhot 2",)],   # amud-less talmud
     [crrd(["@ברכות", "#דף ב"]), ("Berakhot 2",)],  # amud-less talmud
