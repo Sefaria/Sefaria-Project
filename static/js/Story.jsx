@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState} from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
@@ -127,7 +127,6 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 function toCamelCase(str) {
-    console.log(str)
     return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
     return index === 0 ? word.toLowerCase() : word.toUpperCase();
   }).replace(/\s+/g, '');
@@ -142,22 +141,21 @@ function capitalizeWords(str) {
 
   return result;
 }
-const ReviewStateIndicator = ({reviewState}) => {
+const ReviewStateIndicator = ({reviewState, callBack}) => {
     let comp = null;
     if (reviewState){
     let reviewStateCamel = toCamelCase(reviewState);
     let reviewStateCapitalized = capitalizeWords(reviewState);
     let interfaceLanguage = Sefaria.interfaceLang;
     const lang = interfaceLanguage == "english" ? "en" : "he";
-    comp =     <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`}>
+    comp =     <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`} onClick={callBack}>
         {reviewStateCapitalized}
     </div>;
     }
     return comp
-
 };
 
-const promptBuilder = ({text}) => {
+const PromptWrapper = ({text}) => {
     let promptComponent = null;
     if (Sefaria.interfaceLang == "english"){
         const isPromptPublished = text.descriptions?.en?.published
@@ -177,27 +175,30 @@ const promptBuilder = ({text}) => {
     }
     return promptComponent
 }
-const reviewIndicatorBuilder = ({text}) => {
+const ReviewStateWrapper = ({text, callBack}) => {
     let reviewIndicatorComponent = null;
     if (Sefaria.interfaceLang == "english") {
         const isPromptPublished = text.descriptions?.en?.published
         if (isPromptPublished !== false || Sefaria.is_moderator) {
             reviewIndicatorComponent =
-                <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state}></ReviewStateIndicator>
+                <ReviewStateIndicator reviewState={text.descriptions?.en?.review_state} callBack={callBack}></ReviewStateIndicator>
         }
     }
     else if (Sefaria.interfaceLang == "hebrew"){
         const isPromptPublished = text.descriptions?.he?.published
         if (isPromptPublished !== false || Sefaria.is_moderator){
-            reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.he?.review_state}></ReviewStateIndicator>
+            reviewIndicatorComponent =  <ReviewStateIndicator reviewState={text.descriptions?.he?.review_state} callBack={callBack}></ReviewStateIndicator>
         }
             }
 
     return reviewIndicatorComponent
 }
+const ReviewIndicatorWrapper = ({reviewState, callBack}) => {
+    return <ReviewStateIndicator reviewState={reviewState} callback={callBack}></ReviewStateIndicator>;
+}
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
-
+    console.log(text)
     const versions = text.versions || {}
     const params = Sefaria.util.getUrlVersionsParams(versions);
     const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
@@ -207,15 +208,27 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 
-    const promptComponent = promptBuilder({text});
-    const reviewIndicatorComponent = reviewIndicatorBuilder({text})
+    const [reviewState, setReviewState] = useState(text.descriptions?.en?.review_state);
+    const markReviewed = function(){
+        console.log("markReviewed")
+        let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
+        let postData = {"topic": topic, "is_new": false, 'new_ref': text.ref, 'interface_lang': Sefaria.interfaceLang};
+        postData.description = text.descriptions[lang]
+        postData.description["review_state"] = 'reviewed'
+        console.log(postData)
+        Sefaria.updateTopicRef(text.ref, postData).then(response => {
+            setReviewState("reviewed");
+        })
+    }
+
     return (
         <StoryFrame cls="introducedTextPassageStory">
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                {reviewIndicatorComponent}
+                {/*{reviewIndicatorComponent}*/}
+                <ReviewStateWrapper text={text} callBack={markReviewed}></ReviewStateWrapper>
             </CategoryHeader>
-            {promptComponent}
+            <PromptWrapper text={text}></PromptWrapper>
             <SaveLine
                 dref={text.ref}
                 versions={versions}
