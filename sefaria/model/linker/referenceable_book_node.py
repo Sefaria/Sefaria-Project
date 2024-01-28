@@ -142,10 +142,13 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
             serial = self._get_serialized_node()
         except ValueError:
             return []
-        if serial['depth'] == 1 and self._ja_node.is_segment_level_dibur_hamatchil():
-            return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+        children = []
+        if self._ja_node.is_segment_level_dibur_hamatchil():
+            children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+            if serial['depth'] == 1:
+                return children
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
-        return [NumberedReferenceableBookNode(new_ja)]
+        return children + [NumberedReferenceableBookNode(new_ja)]
 
     def matches_section_context(self, section_context: 'SectionContext') -> bool:
         """
