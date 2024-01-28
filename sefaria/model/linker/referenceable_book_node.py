@@ -1,4 +1,5 @@
 import dataclasses
+import copy
 from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
@@ -117,25 +118,23 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
         return next_refereceable_depth
 
     def _get_serialized_node(self) -> dict:
-        serial = self._ja_node.serialize()
+        list_attrs = ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections')
+        serial = copy.deepcopy(self._ja_node.serialize())
         next_referenceable_depth = self._get_next_referenceable_depth()
+        if isinstance(self.address_class, schema.AddressTalmud):
+            serial['depth'] += 1
+            next_referenceable_depth = 1
+            for key, value in zip(list_attrs, ('Amud', 'Amud', 1, True)):
+                serial[key].insert(1, value)
         serial['depth'] -= next_referenceable_depth
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
         if serial['depth'] == 0:
-            if isinstance(self.address_class, schema.AddressTalmud):
-                serial['depth'] = 1
-                serial['addressTypes'] = ["Amud"]
-                serial['sectionNames'] = ["Amud"]
-                serial['lengths'] = [1]
-                serial['referenceableSections'] = [True]
-            else:
-                raise ValueError("Can't serialize JaggedArray of depth 0")
-        else:
-            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-                # truncate every list attribute by `next_referenceable_depth`
-                if list_attr not in serial:
-                    continue
-                serial[list_attr] = serial[list_attr][next_referenceable_depth:]
+            raise ValueError("Can't serialize JaggedArray of depth 0")
+        for list_attr in list_attrs:
+            # truncate every list attribute by `next_referenceable_depth`
+            if list_attr not in serial:
+                continue
+            serial[list_attr] = serial[list_attr][next_referenceable_depth:]
         return serial
 
     def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
