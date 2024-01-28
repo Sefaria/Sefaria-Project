@@ -343,6 +343,7 @@ def find_refs_api(request):
 @api_view(["GET"])
 def websites_api(request, domain):
     cb = request.GET.get("callback", None)
+    domain = WebPage.normalize_url(domain)
     website = WebSite().load({"domains": domain})
     if website is None:
         return jsonResponse({"error": f"no website found with domain: '{domain}'"})
