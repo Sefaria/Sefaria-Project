@@ -152,10 +152,8 @@ const ReviewStateIndicator = ({reviewState, callBack}) => {
         return null}
     let reviewStateClassName = reviewStateToClassNameMap[reviewState];
     let displayedText = reviewStateToDisplayedTextMap[reviewState];
-    let interfaceLanguage = Sefaria.interfaceLang;
-    const lang = interfaceLanguage == "english" ? "en" : "he";
     return (
-    <div className={`button extraSmall reviewState ${reviewStateClassName} ${lang}`} onClick={callBack}>
+    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={callBack}>
         {displayedText}
     </div>)
 
@@ -229,10 +227,12 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
+            <div className={"headerWithAdminButtonsContainer"}>
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                <ReviewStateWrapper topic={topic} text={text}></ReviewStateWrapper>
             </CategoryHeader>
+            <ReviewStateWrapper topic={topic} text={text}></ReviewStateWrapper>
+                </div>
             <PromptWrapper text={text}></PromptWrapper>
             <SaveLine
                 dref={text.ref}

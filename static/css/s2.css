@@ -7585,15 +7585,14 @@ a .button:hover {
   width: fit-content;
 }
 
-.button.extraSmall.reviewState.en{
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-.button.extraSmall.reviewState.he{
-  position: absolute;
-  top: 0;
-  left: 0;
+.headerWithAdminButtonsContainer{
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 .button.extraSmall.reviewState.reviewed {
   background-color: #5D956F;
