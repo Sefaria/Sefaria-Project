@@ -581,8 +581,26 @@ class ResolvedRefPruner:
             index_match_map[key] += [match]
         pruned_matches = []
         for match_list in index_match_map.values():
-            pruned_matches += [max(match_list, key=lambda m: m.num_resolved())]
+            pruned_matches += ResolvedRefPruner.remove_subset_sets(match_list, key=lambda match: set(part.char_indices for part in match.get_resolved_parts()))
         return pruned_matches
+
+    @staticmethod
+    def remove_subset_sets(items, key=None):
+        if key:
+            sets_to_filter = [key(x) for x in items]
+        else:
+            sets_to_filter = items
+        items, sets_to_filter = zip(*sorted((zip(items, sets_to_filter)), key=lambda x: len(x[1]), reverse=True))
+        result = []
+        for i in range(len(sets_to_filter)):
+            for j in range(i):
+                if sets_to_filter[i].issubset(sets_to_filter[j]):
+                    # Break the loop as the sublist is a subset of a previous sublist
+                    break
+            else:
+                # If the sublist is not a subset of any previous sublist, add it to the result
+                result.append(items[i])
+        return result
 
     @staticmethod
     def do_explicit_sections_match_before_context_sections(match: ResolvedRef) -> bool:

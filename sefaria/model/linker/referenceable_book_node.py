@@ -67,6 +67,16 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
     def ref(self) -> text.Ref:
         return self._titled_tree_node.ref()
 
+    @staticmethod
+    def _is_array_map_referenceable(node: schema.ArrayMapNode) -> bool:
+        if not getattr(node, "isMapReferenceable", True):
+            return False
+        if getattr(node, "refs", None):
+            return True
+        if getattr(node, "wholeRef", None) and getattr(node, "includeSections", None):
+            return True
+        return False
+
     def _get_all_children(self) -> List[ReferenceableBookNode]:
         thingy = self._titled_tree_node_or_index
         # the schema node for this referenceable node has a dibur hamatchil child
@@ -77,7 +87,7 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             return [NumberedReferenceableBookNode(thingy)]
         if isinstance(thingy, text.Index):
             children = thingy.referenceable_children()
-        elif isinstance(thingy, schema.ArrayMapNode) and (getattr(thingy, "refs", None) or (getattr(thingy, "wholeRef", None) and getattr(thingy, "includeSections", None))):
+        elif isinstance(thingy, schema.ArrayMapNode) and self._is_array_map_referenceable(thingy):
             return [MapReferenceableBookNode(thingy)]
         else:
             # Any other type of TitledTreeNode

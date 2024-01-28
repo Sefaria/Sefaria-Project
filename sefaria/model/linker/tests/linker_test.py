@@ -130,6 +130,7 @@ crrd = create_raw_ref_data
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
 
     # Superfluous information
+    [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
 
     # YERUSHALMI EN
