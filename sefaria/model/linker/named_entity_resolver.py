@@ -105,7 +105,7 @@ class TopicMatcher:
             named_entity_type: self.__generate_topic_list_from_spec(topic_spec)
             for named_entity_type, topic_spec in named_entity_types_to_topics.items()
         }
-        all_topics = reduce(lambda a, b: a + b, topics_by_type.values())
+        all_topics = reduce(lambda a, b: a + b, topics_by_type.values(), [])
         self._slug_topic_map = {t.slug: t for t in all_topics}
         self._title_slug_map_by_type = {
             named_entity_type: self.__get_title_map_for_topics(topics_by_type[named_entity_type])
