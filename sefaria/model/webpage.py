@@ -113,7 +113,7 @@ class WebPage(abst.AbstractMongoRecord):
             "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
-            "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
+            "remove www": lambda url: re.sub(r"^(https?://)?www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
             "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
