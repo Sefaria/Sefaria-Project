@@ -126,11 +126,7 @@ StorySheetList.propTypes = {
     sheets: PropTypes.arrayOf(sheetPropType).isRequired,
     toggleSignUpModal: PropTypes.func
 };
-function toCamelCase(str) {
-    return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
-    return index === 0 ? word.toLowerCase() : word.toUpperCase();
-  }).replace(/\s+/g, '');
-}
+
 function capitalizeWords(str) {
   const words = str.split(' ');
 
@@ -141,18 +137,28 @@ function capitalizeWords(str) {
 
   return result;
 }
+const reviewStateToClassNameMap = {
+    "reviewed": "reviewed",
+    "not reviewed": "notReviewed",
+    "edited": "edited"
+}
+const reviewStateToDisplayedTextMap = {
+    "reviewed": "Reviewed",
+    "not reviewed": "Not Reviewed",
+    "edited": "Edited"
+}
 const ReviewStateIndicator = ({reviewState, callBack}) => {
-    let comp = null;
-    if (reviewState){
-    let reviewStateCamel = toCamelCase(reviewState);
-    let reviewStateCapitalized = capitalizeWords(reviewState);
+    if (!reviewState){
+        return null}
+    let reviewStateClassName = reviewStateToClassNameMap[reviewState];
+    let displayedText = reviewStateToDisplayedTextMap[reviewState];
     let interfaceLanguage = Sefaria.interfaceLang;
     const lang = interfaceLanguage == "english" ? "en" : "he";
-    comp =     <div className={`button extraSmall reviewState ${reviewStateCamel} ${lang}`} onClick={callBack}>
-        {reviewStateCapitalized}
-    </div>;
-    }
-    return comp
+    return (
+    <div className={`button extraSmall reviewState ${reviewStateClassName} ${lang}`} onClick={callBack}>
+        {displayedText}
+    </div>)
+
 };
 
 const PromptWrapper = ({text}) => {
@@ -186,7 +192,6 @@ const ReviewStateWrapper = ({topic, text}) => {
         let postData = {"topic": topic, "is_new": false, 'new_ref': text.ref, 'interface_lang': Sefaria.interfaceLang};
         postData.description = text.descriptions[lang]
         postData.description["review_state"] = 'reviewed'
-        console.log(postData)
         Sefaria.updateTopicRef(text.ref, postData).then(response => {
             setFun("reviewed");
         })
@@ -207,9 +212,7 @@ const ReviewStateWrapper = ({topic, text}) => {
 
     return reviewIndicatorComponent
 }
-const ReviewIndicatorWrapper = ({reviewState, callBack}) => {
-    return <ReviewStateIndicator reviewState={reviewState} callback={callBack}></ReviewStateIndicator>;
-}
+
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
     console.log(text)

@@ -3210,7 +3210,6 @@ def topic_ref_api(request, tref):
         data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
     except Exception as e:
         data = json.loads(request.body)
-    print(data)
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input
