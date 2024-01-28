@@ -970,7 +970,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace});
+    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace}, false);
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -1453,34 +1453,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       } else {
         refs = [ref];
         currentlyVisibleRef = ref;
-        highlightedRefs = filter === [] ? [] : [ref];
+        highlightedRefs = filter.length === 0 ? [] : [ref];
         if (filter) {
           options.showHighlight = true;
         }
       }
-      //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({
-        refs,
-        currVersions,
-        highlightedRefs,
-        filter: filter,
-        recentFilters: filter,
-        currentlyVisibleRef, mode: "Text",
-        ...options
-      });
-      if (filter.length > 0) {
-        connectionPanel = this.makePanelState({
-        refs,
-        currVersions,
-        highlightedRefs,
-        currentlyVisibleRef, mode: "Connections",
-        filter: filter,
-        recentFilters: filter,
-        connectionsMode: "TextList",
-        ...options
-        });
-      }
-
+      [panel, connectionPanel] = this.openPanelWithSidebar(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options);
     }
 
     const newPanels = this.state.panels.slice();
@@ -1493,6 +1471,42 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.saveLastPlace(panel, n + 1);
     }
   }
+  openPanelWithSidebar(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options) {
+    let panel, connectionPanel;
+    let panelProps = {
+        refs,
+        currVersions,
+        highlightedRefs,
+        filter: filter,
+        recentFilters: filter,
+        currentlyVisibleRef, mode: "Text",
+        ...options
+      };
+    if (filter.length === 0) {
+      panel = this.makePanelState(panelProps)
+    }
+    else {
+      if (this.props.multiPanel) {
+        connectionPanel = this.makePanelState({
+          refs,
+          currVersions,
+          highlightedRefs,
+          currentlyVisibleRef, mode: "Connections",
+          filter: filter,
+          recentFilters: filter,
+          connectionsMode: "TextList",
+          ...options
+        });
+        panel = this.makePanelState(panelProps);
+      } else {
+        panelProps.mode = "TextAndConnections";
+        panelProps.connectionsMode = "TextList";
+        panel = this.makePanelState(panelProps);
+      }
+    }
+    return [panel, connectionPanel];
+  }
+
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
