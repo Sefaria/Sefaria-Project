@@ -1495,12 +1495,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           filter: filter,
           recentFilters: filter,
           connectionsMode: "TextList",
+          connectionsCategory: "Commentary",
           ...options
         });
         panel = this.makePanelState(panelProps);
       } else {
         panelProps.mode = "TextAndConnections";
         panelProps.connectionsMode = "TextList";
+        panelProps.connectionsCategory = "Commentary";
         panel = this.makePanelState(panelProps);
       }
     }
