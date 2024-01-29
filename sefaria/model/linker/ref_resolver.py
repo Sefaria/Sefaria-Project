@@ -254,17 +254,19 @@ class RefResolver:
         self._ibid_history = IbidHistory()
 
     def bulk_resolve(self, raw_refs: List[RawRef], book_context_ref: Optional[text.Ref] = None,
-                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL) -> List[PossiblyAmbigResolvedRef]:
+                     with_failures=False, thoroughness=ResolutionThoroughness.NORMAL, reset_ibids=True) -> List[PossiblyAmbigResolvedRef]:
         """
         Main function for resolving refs in text. Given a list of RawRefs, returns ResolvedRefs for each
         @param raw_refs:
         @param book_context_ref:
         @param with_failures:
         @param thoroughness: how thorough should the search be. More thorough == slower. Currently "normal" will avoid searching for DH matches at book level and avoid filtering empty refs
+        @param reset_ibids: If true, reset ibid history before resolving
         @return:
         """
         self._thoroughness = thoroughness
-        self.reset_ibid_history()
+        if reset_ibids:
+            self.reset_ibid_history()
         resolved = []
         for raw_ref in raw_refs:
             temp_resolved = self._resolve_raw_ref_and_update_ibid_history(raw_ref, book_context_ref, with_failures)
@@ -273,12 +275,12 @@ class RefResolver:
 
     def _resolve_raw_ref_and_update_ibid_history(self, raw_ref: RawRef, book_context_ref: text.Ref, with_failures=False) -> List[PossiblyAmbigResolvedRef]:
         temp_resolved = self.resolve_raw_ref(book_context_ref, raw_ref)
-        self._update_ibid_history(temp_resolved)
+        self._update_ibid_history(raw_ref, temp_resolved)
         if len(temp_resolved) == 0 and with_failures:
             return [ResolvedRef(raw_ref, [], None, None, context_ref=book_context_ref)]
         return temp_resolved
 
-    def _update_ibid_history(self, temp_resolved: List[PossiblyAmbigResolvedRef]):
+    def _update_ibid_history(self, raw_ref: RawRef, temp_resolved: List[PossiblyAmbigResolvedRef]):
         if len(temp_resolved) == 0:
             self.reset_ibid_history()
         elif any(r.is_ambiguous for r in temp_resolved):

@@ -40,6 +40,7 @@ class Linker:
         @param type_filter: Type of entities to return, either 'all', 'citation' or 'named entity'
         @return: list of LinkedDocs
         """
+        self._ref_resolver.reset_ibid_history()
         all_named_entities = self._ner.bulk_recognize(inputs)
         docs = []
         book_context_refs = book_context_refs or [None]*len(all_named_entities)
@@ -48,7 +49,7 @@ class Linker:
             raw_refs, named_entities = self._partition_raw_refs_and_named_entities(inner_named_entities)
             resolved_refs, resolved_named_entities = [], []
             if type_filter in {'all', 'citation'}:
-                resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness)
+                resolved_refs = self._ref_resolver.bulk_resolve(raw_refs, book_context_ref, with_failures, thoroughness, reset_ibids=False)
             if type_filter in {'all', 'named entity'}:
                 resolved_named_entities = self._ne_resolver.bulk_resolve(named_entities, with_failures)
             docs += [LinkedDoc(input_str, resolved_refs, resolved_named_entities)]
