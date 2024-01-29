@@ -1485,8 +1485,8 @@ div.interfaceLinks-row a {
   direction: ltr; /* Even in Hebrew Interface, we want scroll bars on the right */
 }
 .readerPanel .he {
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
   unicode-bidi: initial;
 }
 }
@@ -1530,7 +1530,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.hebrew .he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -5280,7 +5280,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .bilingual .segment > .he,
 .bilingual .segment > p > .he {
-  text-align: right;
+  text-align: left;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
