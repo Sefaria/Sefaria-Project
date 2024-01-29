@@ -10,8 +10,12 @@ const SourceEditor = ({topic, close, origData={}}) => {
                                                             (origData.heRef || "") :  (origData.ref || "") );
     const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title || '');
     const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt || '');
+    const aiPrompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.ai_prompt || '') : (origData?.descriptions?.he?.ai_prompt || '');
+    const aiTitle = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.ai_title || '') : (origData?.descriptions?.he?.ai_title || '');
+    const context = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.context || '') : (origData?.descriptions?.he?.context || '');
+
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
-                                                prompt: prompt,
+                                                prompt: prompt, aiPrompt: aiPrompt, aiTitle: aiTitle, context: context
                                                 });
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -46,9 +50,9 @@ const SourceEditor = ({topic, close, origData={}}) => {
         let refInUrl = isNew ? displayRef : origData.ref;
         let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
         let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
-        if (data.enTitle.length > 0) {
-            postData['description'] = {"title": data.enTitle, "prompt": data.prompt};
-        }
+        // if (data.enTitle.length > 0) {
+        postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "context": data.context};
+        // }
         requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
@@ -89,10 +93,10 @@ const SourceEditor = ({topic, close, origData={}}) => {
         const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
-
+    console.log(data)
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} items={["Title", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
+                validate={validate} items={["AI Title", "Title","Context for Prompt", "AI Prompt", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
