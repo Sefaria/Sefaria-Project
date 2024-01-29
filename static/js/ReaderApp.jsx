@@ -1458,7 +1458,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
           options.showHighlight = true;
         }
       }
-      [panel, connectionPanel] = this.openPanelWithSidebar(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options);
+      [panel, connectionPanel] = this.openPanelWithConnections(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options);
     }
 
     const newPanels = this.state.panels.slice();
@@ -1471,7 +1471,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
 
   }
-  openPanelWithSidebar(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options) {
+  openPanelWithConnections(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options) {
     let panel, connectionPanel;
     let panelProps = {
         refs,
@@ -1506,7 +1506,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         panel = this.makePanelState(panelProps);
       }
     }
-    panel.currentlyVisibleRef = currentlyVisibleRef;
+    panel.currentlyVisibleRef = Sefaria.humanRef(currentlyVisibleRef);
     return [panel, connectionPanel];
   }
 
