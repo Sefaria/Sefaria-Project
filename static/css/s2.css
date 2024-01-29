@@ -5166,7 +5166,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
-  direction: rtl;
+  direction: ltr;
 }
 .basetext .text, .sheetContent .text {
   padding: 0 44px;
