@@ -3306,7 +3306,7 @@ display: none;
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
 #aboutSidebar {
-  position: fixed;
+  position: sticky;
   left: 15px;
   top: 100px;
 }
