@@ -87,8 +87,13 @@ class NamedReferenceableBookNode(ReferenceableBookNode):
             return [NumberedReferenceableBookNode(thingy)]
         if isinstance(thingy, text.Index):
             children = thingy.referenceable_children()
-        elif isinstance(thingy, schema.ArrayMapNode) and self._is_array_map_referenceable(thingy):
-            return [MapReferenceableBookNode(thingy)]
+        elif isinstance(thingy, schema.ArrayMapNode):
+            if self._is_array_map_referenceable(thingy):
+                return [MapReferenceableBookNode(thingy)]
+            else:
+                index = thingy.ref().index
+                yo = NamedReferenceableBookNode(index)
+                return yo.get_children()
         else:
             # Any other type of TitledTreeNode
             children = self._titled_tree_node.children
