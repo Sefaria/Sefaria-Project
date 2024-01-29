@@ -23,8 +23,8 @@ const options_for_form = {
         type: 'textarea',
         markdown: true
     },
-    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
-    "AI Prompt": {label: "AI Prompt", field: "aiPrompt", placeholder: "AI Generated Prompt", type: 'textarea readonly'},
+    "Prompt": {label: "Source Description", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
+    "AI Prompt": {label: "AI Source Description", field: "aiPrompt", placeholder: "AI Generated Prompt", type: 'textarea readonly'},
     "Context for Prompt": {label: "Context for Prompt", field: "context", placeholder: "Why was this source added", type: 'textarea'},
     "AI Title": {label: "AI Title", field: "aiTitle", placeholder: "AI Generated Title", type: 'readonly'},
     "English Short Description": {
@@ -188,6 +188,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 const inputTypeReadOnly = field.includes('Year') ? 'number' : 'text';
                 obj = <input readOnly type={inputTypeReadOnly} id={field} onChange={setInputValue} defaultValue={data[field]}
                          placeholder={Sefaria._(placeholder)}/>;
+                break;
             default:
                 const inputType = field.includes('Year') ? 'number' : 'text';
                 obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
