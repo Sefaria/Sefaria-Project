@@ -1697,7 +1697,7 @@ div.interfaceLinks-row a {
   direction: ltr;
 }
 .readerPanel.hebrew .followsContentLang {
-  direction: rtl;
+  direction: ltr;
 }
 .navSidebar {
   width: 420px;
@@ -3490,7 +3490,7 @@ display: none;
 .hebrew .textTableOfContents,
 .english .noLangToggleInHebrew .textTableOfContents,
 .bilingual .noLangToggleInHebrew .textTableOfContents{
-  text-align: right;
+  text-align: left;
 }
 .english .noLangToggleInHebrew .textTableOfContents,
 .bilingual .noLangToggleInHebrew .textTableOfContents{
