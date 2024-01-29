@@ -1166,9 +1166,14 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     link.ref = new_tref
 
     current_descriptions = getattr(link, 'descriptions', {})
-    if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
-        current_descriptions[interface_lang] = description
-        link.descriptions = current_descriptions
+    current_descriptions_in_lang = current_descriptions.get(interface_lang)
+    for key in description.keys():
+        if current_descriptions_in_lang.get(key) != description.get(key):
+            current_descriptions_in_lang[key] = description.get(key)
+    link.descriptions = current_descriptions
+    # if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
+    #     current_descriptions[interface_lang] = description
+    #     link.descriptions = current_descriptions
 
     if hasattr(link, 'generatedBy') and getattr(link, 'generatedBy', "") == TopicLinkHelper.generated_by_sheets:
         del link.generatedBy  # prevent link from getting deleted when topic cronjob runs
