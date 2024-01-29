@@ -167,7 +167,7 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, replace, currVersions, [], false);
+      this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
@@ -255,20 +255,6 @@ class ReaderPanel extends Component {
       }
     }
     this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings}, true, convertCommToBase, this.replaceHistory);
-    // this.conditionalSetState({
-    //   mode: "Text",
-    //   refs,
-    //   filter,
-    //   currentlyVisibleRef,
-    //   currVersions,
-    //   highlightedRefs,
-    //   recentFilters: [],
-    //   menuOpen: null,
-    //   compare: false,
-    //   sheetID: null,
-    //   connectionsMode: "Resources",
-    //   settings: this.state.settings
-    // });
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);

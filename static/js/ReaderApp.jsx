@@ -1467,9 +1467,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       newPanels.push(connectionPanel);
     }
     this.setState({panels: newPanels});
-    if (replaceHistory) {
-      this.saveLastPlace(panel, n + 1);
-    }
+    const panelNumToSave = !replaceHistory ? n+1 : n;
+    this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
+
   }
   openPanelWithSidebar(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options) {
     let panel, connectionPanel;
@@ -1483,7 +1483,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       };
     if (filter.length === 0) {
-      panel = this.makePanelState(panelProps)
+      panel = this.makePanelState(panelProps);
     }
     else {
       if (this.props.multiPanel) {
@@ -1506,6 +1506,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         panel = this.makePanelState(panelProps);
       }
     }
+    panel.currentlyVisibleRef = currentlyVisibleRef;
     return [panel, connectionPanel];
   }
 
