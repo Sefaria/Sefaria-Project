@@ -741,10 +741,16 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutPage .inner {
-  margin-top: -15px;
+  margin-top: -420px;
+}
+#teamPage .inner {
+  margin-top: -400px;
+}
+#jobsPage .inner {
+  margin-top: -475px;
 }
 .container.doc.legal.static .inner {
-  margin-top: 25px;
+  margin-top: -400px;
 }
 #aboutHeader {
   color: white;
@@ -3308,7 +3314,13 @@ display: none;
 #aboutSidebar {
   position: sticky;
   left: 15px;
-  top: 100px;
+  top: 150px;
+}
+#annualReport .inner {
+  margin-top: -410px;
+}
+#aboutSidebar.updates {
+  position: fixed;
 }
 .interface-english #aboutSidebar {
   text-align: left;
@@ -3432,14 +3444,20 @@ display: none;
   padding: 5px;
   margin-left: -5px;
 }
-#testimonialsPage .inner, #supportersPage .inner {
-  margin-top: 20px;
+#testimonialsPage .inner {
+  margin-top: -390px;
 }
-#jobsPage .inner {
-  margin-top: -5px;
+#updatersPage .globalUpdateForm {
+  margin-top: 50px
+}
+#supportersPage .inner {
+  margin-top: -390px;
+}
+#metricsPage .inner {
+  margin-top: -420px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 100px
+    margin-top: 130px
 }
 #updatesPanelContent .navSideBar {
     margin-left: 200px;

@@ -4,12 +4,11 @@
 {% block title %}{% trans "Annual Report" %}{% endblock %}
 
 {% block content %}
-
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" heTitle='דו"ח שנתי' %}
+{% endif %}
 <main id="annualReport" class="container biReady static">
     <div class="inner">
-    {% if not request.user_agent.is_mobile %}
-        {% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" heTitle='דו"ח שנתי' %}
-    {% endif %}
         <div class="annualReport"><a href="/annualreport/2022">Open the 2023 Annual Report (PDF)</a></div>
     </div>
 </main>
