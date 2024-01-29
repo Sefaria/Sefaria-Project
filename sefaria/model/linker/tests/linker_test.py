@@ -29,7 +29,6 @@ crrd = create_raw_ref_data
 
 
 @pytest.mark.parametrize(('resolver_data', 'expected_trefs'), [
-    [crrd(["@Parshat Vayikra", "#2", "#3"], lang='en'), ('Leviticus 2:3',)],
     # Numbered JAs
     [crrd(["@Jerusalem", "@Talmud", "@Yoma", "#5a"], lang='en'), ("Jerusalem Talmud Yoma 1:1:20-25",)],
     [crrd(["@Babylonian", "@Talmud", "@Sukkah", "#49b"], lang='en'), ("Sukkah 49b",)],
@@ -50,6 +49,11 @@ crrd = create_raw_ref_data
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '^עד', '#דף ג', '#עמוד ב', '@במכות']), ("Makkot 2a-3b",)],
     [crrd(['@שבת', '#א', '#ב']), ["Mishnah Shabbat 1:2"]],  # shouldn't match Shabbat 2a by reversing order of parts
     [crrd(['@שבת', '#ב', '#א']), ["Shabbat 2a", "Mishnah Shabbat 2:1"]],  # ambiguous case
+
+    # Parsha -> sections
+    [crrd(["@Parshat Vayikra", "#2", "#3"], lang='en'), ('Leviticus 2:3',)],
+    [crrd(["@Parshat Tzav", "#2", "#3"], lang='en'), tuple()],  # validate that sections fall within parsha
+    pytest.param(crrd(["@Parshat Noach", "#6", "#3"], lang='en'), tuple(), marks=pytest.mark.xfail(reason="currently dont check if pasuk/perek pair fall in parsha, only perek")),
 
     # Aliases for perakim
     [crrd(["@משנה", "@ברכות", "#פרק קמא"]), ("Mishnah Berakhot 1",)],

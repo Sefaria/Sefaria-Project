@@ -9,10 +9,31 @@ from bisect import bisect_right
 
 def subref(ref: text.Ref, section: int):
     if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
-        d = ref._core_dict()
-        d['sections'][-1] += (section-1)
-        d['toSections'] = d['sections'][:]
-        return text.Ref(_obj=d)
+        return _talmud_subref(ref, section)
+    elif ref.index.categories == ['Tanakh', 'Torah']:
+        return _parsha_subref(ref, section)
+    else:
+        return ref.subref(section)
+
+
+def _talmud_subref(ref: text.Ref, section: int):
+    d = ref._core_dict()
+    d['sections'][-1] += (section-1)
+    d['toSections'] = d['sections'][:]
+    return text.Ref(_obj=d)
+
+
+def _parsha_subref(ref: text.Ref, section: int):
+    parsha_trefs = {n.wholeRef for n in ref.index.get_alt_struct_leaves()}
+    if ref.normal() in parsha_trefs:
+        book_subref = text.Ref(ref.index.title).subref(section)
+        if ref.contains(book_subref):
+            return book_subref
+        else:
+            # section doesn't fall within parsha
+            # Note, only validates that perek is in parsha range, doesn't check segment level.
+            # Edge case is Parshat Noach 6:3
+            raise InputError
     else:
         return ref.subref(section)
 
