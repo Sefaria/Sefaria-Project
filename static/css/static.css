@@ -3466,6 +3466,10 @@ display: none;
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
   }
+  #teamPage .inner, #jobsPage .inner, #aboutPage .inner, #supportersPage .inner, #testimonialsPage .inner, #metricsPage .inner,
+  #annualReport .inner, .container.doc.legal.static .inner {
+    margin-top: 0;
+  }
 }
 #metricsBox {
   margin-top: 30px;
