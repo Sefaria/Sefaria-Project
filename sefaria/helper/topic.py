@@ -1150,7 +1150,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
-    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref}
+    ref_topic_dict = {"toTopic": slug, "linkType": linkType, "ref": orig_tref, "dataSource": 'learning-team'}
     link = RefTopicLink().load(ref_topic_dict)
     link_already_existed = link is not None
     if not link_already_existed:
@@ -1249,7 +1249,7 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
     if Topic.init(to_topic) is None:
         return {"error": f"Topic {to_topic} doesn't exist."}
 
-    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+    topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref, 'dataSource': 'learning-team'}
     link = RefTopicLink().load(topic_link)
     if link is None:
         return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
