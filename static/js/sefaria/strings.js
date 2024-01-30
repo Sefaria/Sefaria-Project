@@ -536,6 +536,11 @@ const Strings = {
     'Citing': 'מצטט',
     'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
     'Sefaria Linker': 'במרשתת ההפניות',
+
+    //alt tags
+    'Notifications': 'עדכונים',
+    'Bookmarks': 'שמורים',
+    'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
   },
 
   _i18nInterfaceStringsWithContext: {
