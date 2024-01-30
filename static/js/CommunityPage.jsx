@@ -55,7 +55,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             
-            <h1><InterfaceText>Today on Sefaria</InterfaceText></h1>
+            <h1><InterfaceText>Today on Pecha</InterfaceText></h1>
 
             {featuredContent}
             
