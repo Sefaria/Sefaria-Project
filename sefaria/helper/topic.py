@@ -1218,9 +1218,12 @@ def update_order_of_topic_sources(topic, sources, uid, lang='en'):
              ref = Ref(s['ref']).normal()
         except InputError as e:
             return {"error": f"Invalid ref {s['ref']}"}
-        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
+        link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref, 'dataSource': 'learning-team'})
         if link is None:
-            return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
+            # first see if there's a learning-team link and if not look for any reftopiclink that matches
+            link = RefTopicLink().load({"toTopic": topic, "linkType": "about", "ref": ref})
+            if link is None:
+                return {"error": f"Link between {topic} and {s['ref']} doesn't exist."}
         order = getattr(link, 'order', {})
         if lang not in order.get('availableLangs', []) :
             return {"error": f"Link between {topic} and {s['ref']} does not exist in '{lang}'."}
