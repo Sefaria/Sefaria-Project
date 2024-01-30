@@ -1455,12 +1455,20 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         refs = [ref];
         currentlyVisibleRef = ref;
         highlightedRefs = [];
-        if (filter.length > 0) {
-          options.highlightedRefs = [ref];
-          options.showHighlight = true;
-        }
       }
-      [panel, connectionPanel] = this.openPanelWithConnections(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options);
+      let panelProps = {
+        refs,
+        currVersions,
+        highlightedRefs,
+        filter: filter,
+        recentFilters: filter,
+        currentlyVisibleRef, mode: "Text",
+        ...options
+      };
+      panel = this.makePanelState(panelProps);
+      if (filter.length > 0) {
+        [panel, connectionPanel] = this.openPanelWithConnections(panel, panelProps);
+      }
     }
 
     const newPanels = this.state.panels.slice();
@@ -1473,42 +1481,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
 
   }
-  openPanelWithConnections(refs, currentlyVisibleRef, highlightedRefs, currVersions, filter, options) {
-    let panel, connectionPanel;
-    let panelProps = {
-        refs,
-        currVersions,
-        highlightedRefs,
-        filter: filter,
-        recentFilters: filter,
-        currentlyVisibleRef, mode: "Text",
-        ...options
-      };
-    if (filter.length === 0) {
-      panel = this.makePanelState(panelProps);
-    }
-    else {
-      if (this.props.multiPanel) {
-        connectionPanel = this.makePanelState({
-          refs,
-          currVersions,
-          highlightedRefs,
-          currentlyVisibleRef, mode: "Connections",
-          filter: filter,
-          recentFilters: filter,
-          connectionsMode: "TextList",
-          connectionsCategory: "Commentary",
-          ...options
-        });
+  openPanelWithConnections(panel, panelProps) {
+    let connectionPanel;
+    if (this.props.multiPanel) {
+        const connectionPanelProps = {...panelProps, showHighlight: true, highlightedRefs: panelProps.refs, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        connectionPanel = this.makePanelState(connectionPanelProps);
         panel = this.makePanelState(panelProps);
-      } else {
-        panelProps.mode = "TextAndConnections";
-        panelProps.connectionsMode = "TextList";
-        panelProps.connectionsCategory = "Commentary";
+    } else {
+        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
         panel = this.makePanelState(panelProps);
-      }
     }
-    panel.currentlyVisibleRef = Sefaria.humanRef(currentlyVisibleRef);
+    panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     return [panel, connectionPanel];
   }
 
