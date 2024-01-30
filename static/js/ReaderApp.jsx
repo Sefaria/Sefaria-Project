@@ -1422,7 +1422,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, convertCommToBase=true, replaceHistory=false) {
+  openPanelAt(n, ref, currVersions, options, replace, attemptConvertCommToBase=true, replaceHistory=false) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
@@ -1443,7 +1443,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       });
     } else {  // Text
       let filter;
-      ({ref, filter} = Sefaria.getBaseRefAndFilter(ref, convertCommToBase));
+      ({ref, filter} = Sefaria.getBaseRefAndFilter(ref, attemptConvertCommToBase));
       let refs, currentlyVisibleRef, highlightedRefs;
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array

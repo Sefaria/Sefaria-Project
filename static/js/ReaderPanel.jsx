@@ -236,11 +236,12 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommToBase=true) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], attemptConvertCommToBase=true) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    attemptConvertCommToBase = this.state.compare ? false : attemptConvertCommToBase;
     // console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
@@ -254,7 +255,7 @@ class ReaderPanel extends Component {
         return;
       }
     }
-    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings}, true, convertCommToBase, this.replaceHistory);
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings}, true, attemptConvertCommToBase, this.replaceHistory);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
