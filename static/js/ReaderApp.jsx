@@ -1465,10 +1465,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef, mode: "Text",
         ...options
       };
-      panel = this.makePanelState(panelProps);
       if (filter.length > 0) {
-        [panel, connectionPanel] = this.openPanelWithConnections(panel, panelProps);
+        [panel, connectionPanel] = this.openPanelWithConnections(panelProps);
       }
+      else {
+        panel = this.makePanelState(panelProps);
+      }
+      panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     }
 
     const newPanels = this.state.panels.slice();
@@ -1481,7 +1484,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
 
   }
-  openPanelWithConnections(panel, panelProps) {
+  openPanelWithConnections(panelProps) {
     let connectionPanel;
     if (this.props.multiPanel) {
         const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
@@ -1489,9 +1492,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else {
         panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
-    panel = this.makePanelState(panelProps);
+    const panel = this.makePanelState(panelProps);
     panel.showHighlight = true;
-    panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     return [panel, connectionPanel];
   }
 
