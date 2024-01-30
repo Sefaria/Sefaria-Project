@@ -9081,15 +9081,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
 }
 .interface-hebrew #footer{
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
 }
 .interface-english #footer .int-he {
   display: none;
 }
 .interface-hebrew #footer .int-he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 #footerInner {
   max-width: 1000px;
@@ -9105,7 +9105,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 .interface-hebrew #footer .section {
-  text-align: right;
+  text-align: left;
 }
 #footer .section .header {
   color: #000;
