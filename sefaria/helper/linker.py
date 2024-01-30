@@ -52,8 +52,8 @@ class _FindRefsTextOptions:
     @attr version_preferences_by_corpus: dict of dicts of the form { <corpus>: { <lang>: <vtitle> }}
     """
 
-    with_text: bool = False
     debug: bool = False
+    with_text: bool = False
     max_segments: int = 0
     version_preferences_by_corpus: dict = None
 

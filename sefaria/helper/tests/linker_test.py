@@ -131,8 +131,8 @@ class TestFindRefsHelperClasses:
         assert find_refs_text.lang == 'en'
 
     def test_find_refs_text_options(self):
-        find_refs_text_options = linker._FindRefsTextOptions(True, False, 10, {})
-        assert not find_refs_text_options.debug
+        find_refs_text_options = linker._FindRefsTextOptions(True, True, 10, {})
+        assert find_refs_text_options.debug
         assert find_refs_text_options.with_text
         assert find_refs_text_options.max_segments == 10
         assert find_refs_text_options.version_preferences_by_corpus == {}

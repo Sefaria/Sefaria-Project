@@ -6,7 +6,7 @@ import extend from 'extend';
 import classNames from 'classnames';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
-import { SearchTotal } from "./sefaria/searchTotal";
+import { FilterNode } from './sefaria/search';
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';
@@ -76,6 +76,38 @@ const SearchTopic = (props) => {
 }
 
 
+class SearchTotal {
+    constructor({value=0, relation="eq"} = {}) {
+        this._value = value;
+        this._relation = relation;
+    }
+    getValue = () => this._value;
+    add = (num) => this._value += num;
+    asString = () => `${this._value.addCommas()}${this._getRelationString()}`;
+    _getRelationString = () => this._relation === 'gte' ? '+' : '';
+    combine = (other) => {
+        if (!(other instanceof SearchTotal)) {
+          throw new TypeError('Parameter must be an instance of SearchTotal.');
+        }
+        const newValue = this.getValue() + other.getValue();
+        let newRelation = this._relation;
+        if (other._relation === 'gte' || this._relation === 'gte') {
+          newRelation = 'gte';
+        }
+        return new SearchTotal({value: newValue, relation: newRelation});
+    };
+}
+
+
+function createSearchTotal(total) {
+    /**
+     * this function ensures backwards compatibility between the way elasticsearch formats the total pre-v8 and post-v8
+     */
+    const totalObj = typeof(total) === 'number' ? {value: total} : {value: total.value, relation: total.relation};
+    return new SearchTotal(totalObj)
+}
+
+
 class SearchResultList extends Component {
     constructor(props) {
       super(props);
@@ -102,7 +134,7 @@ class SearchResultList extends Component {
           //console.log("Loaded cached query for")
           //console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
-          this.state.totals[t] = cachedQuery.hits.total;
+          this.state.totals[t] = createSearchTotal(cachedQuery.hits.total);
           this.state.pagesLoaded[t] += 1;
           args.start = this.state.pagesLoaded[t] * this.querySize[t];
           if (t === "text") {
@@ -322,7 +354,7 @@ class SearchResultList extends Component {
       args.success = data => {
               this.updateRunningQuery(type, null);
               if (this.state.pagesLoaded[type] === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
-                const currTotal = data.hits.total;
+                const currTotal = createSearchTotal(data.hits.total);
                 let state = {
                   hits: extend(this.state.hits, {[type]: data.hits.hits}),
                   totals: extend(this.state.totals, {[type]: currTotal}),
@@ -335,7 +367,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total.getValue());
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, createSearchTotal(data.hits.total).getValue());
               }
 
               if (data.aggregations) {
