@@ -1422,10 +1422,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, convertCommToBase=true, replaceHistory=true) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommToBase=true, replaceHistory=false) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
+    this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
     let panel, connectionPanel;
@@ -1453,8 +1454,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       } else {
         refs = [ref];
         currentlyVisibleRef = ref;
-        highlightedRefs = filter.length === 0 ? [] : [ref];
-        if (filter) {
+        highlightedRefs = [];
+        if (filter.length > 0) {
+          options.highlightedRefs = [ref];
           options.showHighlight = true;
         }
       }
