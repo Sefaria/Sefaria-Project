@@ -1488,7 +1488,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         connectionPanel = this.makePanelState(connectionPanelProps);
         panel = this.makePanelState(panelProps);
     } else {
-        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", showHighlight: true, highlightedRefs: panelProps.refs};
         panel = this.makePanelState(panelProps);
     }
     panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
