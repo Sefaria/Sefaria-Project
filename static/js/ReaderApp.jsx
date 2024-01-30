@@ -1460,7 +1460,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         refs,
         currVersions,
         highlightedRefs,
-        filter: filter,
+        filter,
         recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
         ...options
@@ -1484,13 +1484,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   openPanelWithConnections(panel, panelProps) {
     let connectionPanel;
     if (this.props.multiPanel) {
-        const connectionPanelProps = {...panelProps, showHighlight: true, highlightedRefs: panelProps.refs, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);
-        panel = this.makePanelState(panelProps);
     } else {
-        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", showHighlight: true, highlightedRefs: panelProps.refs};
-        panel = this.makePanelState(panelProps);
+        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
     }
+    panel = this.makePanelState(panelProps);
+    panel.showHighlight = true;
     panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     return [panel, connectionPanel];
   }
