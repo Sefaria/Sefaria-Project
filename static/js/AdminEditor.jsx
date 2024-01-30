@@ -214,7 +214,9 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 <div id="newIndex">
                     <AdminToolHeader title={title} close={close} validate={preprocess}/>
                     {items.map((x) => {
-                        if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                        if (!x) {
+                            return null;
+                        } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;

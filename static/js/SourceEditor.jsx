@@ -94,9 +94,11 @@ const SourceEditor = ({topic, close, origData={}}) => {
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
     console.log(data)
+    let aiTitleItem  = data.aiTitle ? "AI Title" : null
+    let aiPromptItem  = data.aiPrompt ? "AI Prompt" : null
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
-                validate={validate} items={["AI Title", "Title","Context for Prompt", "AI Prompt", "Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
+                validate={validate} items={[aiTitleItem, "Title", aiPromptItem, "Prompt", "Context for Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
                 extras={
                     [<div>
                         <label><InterfaceText>Enter Source Ref (for example: 'Yevamot.62b.9-11' or 'Yevamot 62b:9-11')</InterfaceText></label>
