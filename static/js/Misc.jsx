@@ -1413,9 +1413,11 @@ function InterfaceLanguageMenu({currentLang, translationLanguagePreference, setT
       };
   }, []);
 
+  const globeAlt = (Sefaria.interfaceLang === 'english') ? 'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק';
+
   return (
       <div className="interfaceLinks" ref={wrapperRef}>
-        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
+        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg" alt={globeAlt}/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
             <InterfaceText>Site Language</InterfaceText>
