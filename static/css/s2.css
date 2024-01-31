@@ -509,7 +509,7 @@ input.noselect {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .interface-hebrew .header {
-  direction: rtl;
+  direction: ltr;
 }
 .headerInner .headerNavSection {
   display: flex;
@@ -825,7 +825,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: max-content;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
-  left: 0px;
+  left: -135px;
   min-width: 150px;
   width: max-content;
 }
@@ -1485,8 +1485,8 @@ div.interfaceLinks-row a {
   direction: ltr; /* Even in Hebrew Interface, we want scroll bars on the right */
 }
 .readerPanel .he {
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
   unicode-bidi: initial;
 }
 }
@@ -1504,7 +1504,7 @@ div.interfaceLinks-row a {
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
   direction: ltr;
@@ -1530,7 +1530,7 @@ div.interfaceLinks-row a {
 }
 .readerPanel.hebrew .he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -1694,10 +1694,10 @@ div.interfaceLinks-row a {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .interface-hebrew .sidebarLayout {
-  direction: rtl;
+  direction: ltr;
 }
 .readerPanel.hebrew .followsContentLang {
-  direction: rtl;
+  direction: ltr;
 }
 .navSidebar {
   width: 420px;
@@ -3490,7 +3490,7 @@ display: none;
 .hebrew .textTableOfContents,
 .english .noLangToggleInHebrew .textTableOfContents,
 .bilingual .noLangToggleInHebrew .textTableOfContents{
-  text-align: right;
+  text-align: left;
 }
 .english .noLangToggleInHebrew .textTableOfContents,
 .bilingual .noLangToggleInHebrew .textTableOfContents{
@@ -5166,7 +5166,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-english .readerPanel.hebrew .textTableOfContents,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
 .interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
-  direction: rtl;
+  direction: ltr;
 }
 .basetext .text, .sheetContent .text {
   padding: 0 44px;
@@ -5280,7 +5280,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .bilingual .segment > .he,
 .bilingual .segment > p > .he {
-  text-align: right;
+  text-align: left;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
@@ -9081,15 +9081,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666;
 }
 .interface-hebrew #footer{
-  direction: rtl;
-  text-align: right;
+  direction: ltr;
+  text-align: left;
 }
 .interface-english #footer .int-he {
   display: none;
 }
 .interface-hebrew #footer .int-he {
   display: inline;
-  text-align: right;
+  text-align: left;
 }
 #footerInner {
   max-width: 1000px;
@@ -9105,7 +9105,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: left;
 }
 .interface-hebrew #footer .section {
-  text-align: right;
+  text-align: left;
 }
 #footer .section .header {
   color: #000;
@@ -9118,7 +9118,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: right;
 }
 .interface-hebrew #footer .section.last {
-  float: left;
+  float: right;
   text-align: left;
 }
 #footer .section a {

@@ -18,7 +18,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   display: none;
 }
 .interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
-	direction: rtl;
+	direction: ltr;
 }
 .he, .int-he {
     font-size: 100%;
@@ -931,7 +931,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-top: 20px;
 }
 .interface-hebrew #empty #howItWorks{
-	text-align: right;
+	text-align: left;
 }
 #empty h1 {
 	font-size: 32px;
@@ -1529,7 +1529,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	display:flex;
 }
 .interface-hebrew #addInterface .buttonBar{
-	direction: rtl;
+	direction: ltr;
 }
 
 .contentDiv > div {
@@ -1669,7 +1669,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 	width:100%;
 }
 .interface-hebrew .blockContainer{
-	direction: rtl;
+	direction: ltr;
 }
 #customTextContainer{
 	margin-bottom: 40px;
