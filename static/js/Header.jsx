@@ -439,10 +439,10 @@ const LoggedInButtons = ({headerMode}) => {
   return (
     <div className="loggedIn accountLinks">
       <a href="/texts/saved" aria-label="See My Saved Texts">
-        <img src="/static/icons/bookmarks.svg" />
+        <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')}/>
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-        <img src="/static/icons/notification.svg" />
+        <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
       </a>
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
       <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
@@ -502,11 +502,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <InterfaceText>Profile</InterfaceText>
           </a>
           <a href="/texts/saved" onClick={close}>
-            <img src="/static/icons/bookmarks.svg" />
+            <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
             <InterfaceText>Saved & History</InterfaceText>
           </a>
           <a href="/notifications" onClick={close}>
-            <img src="/static/icons/notification.svg" />
+            <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
             <InterfaceText>Notifications</InterfaceText>
           </a>
         </> : null }
