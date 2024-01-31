@@ -94,22 +94,22 @@ const Promo = () =>
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
+    <ModuleTitle h1={true}>A Living Library of Buddhist Text</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
-          and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
+          Pecha is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
+          and commentaries so that everyone can participate in the ongoing process of studying, interpreting,
+           and creating Buddhist text library.
         </EnglishText>
         <HebrewText>
-          ספריא היא ביתם של 3,000 שנות ספרות יהודית.
-          אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות,
-          ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך המתמשך של לימוד וחידוש בתורה.
+          དཔེ་ཆ་དྲ་ཚིགས་ནི་ལོ་ངོ་ཉིས་སྟོང་ལྔ་བརྒྱ་ལྷག་གི་ལོ་རྒྱུས་ལྡན་པའི་ནང་བསྟན་གསུང་རབ་རྣམས་ཀྱི་མཛོད་ཁང་ལྟ་བུ་ཞིག་ཡིན། ང་ཚོས་ཆ་རྐྱེན་གང་ཡང་མི་དགོས་པར་ནང་པའི་གསུང་རབ་ཁག་དང་འགྱུར་མ། གཞུང་འགྲེལ་བཅས་ལ་ཐུན་མོང་གིས་མཇལ་ཐུབ་པའི་གོ་སྐབས་སྤྲོད་ཀྱི་ཡོད། 
+          བྱེད་ཐབས་འདི་བརྒྱུད་ནས་སྐྱེས་བུ་སུ་ཞིག་ཡིན་རུང་ནང་བསྟན་གསུང་རབ་ལ་སློབ་གཉེར་དང་གཞུང་འགྲེལ་བྱེད་པ། ནང་བསྟན་གྱི་དཔེ་ཚོགས་ཀུན་འཛོམས་ཀྱི་དཔེ་མཛོད་འདི་ཇེ་ལེགས་ཇེ་རྒྱས་སུ་གཏོང་བའི་ལས་རིམ་ལ་ཞུགས་ཐུབ་ཀྱི་ཡོད།
         </HebrewText>
     </InterfaceText>
     <a href="/about" className="inTextLink">
       <InterfaceText>
           <EnglishText>Learn More ›</EnglishText>
-          <HebrewText>לקריאה נוספת ›</HebrewText>
+          <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
       </InterfaceText>
     </a>
       {!hideTitle && <InterfaceText>
@@ -154,7 +154,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
   return (
   <Module>
     <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
-          translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
+          translationLookup[translationsSlug]["title"] : "A Living Library of Buddhist Text"}</ModuleTitle>
         { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
