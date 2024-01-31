@@ -42,28 +42,28 @@ class Footer extends Component {
       <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="אודות">
-                <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
+                <Link href="/about" en="What is Pecha?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
-                <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
+                {/*<Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />
-                <Link href="/annualreport/2022" en="Annual Report" he='דו"ח שנתי' />
+                <Link href="/annualreport/2022" en="Annual Report" he='דו"ח שנתי' />*/}
                 <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
                 <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות פרטיות" />
             </Section>
 
             <Section en="Tools" he="כלים">
-                <Link href="/educators" en="Teach with Sefaria" he="מלמדים עם ספריא" />
-                <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />
+                {/*<Link href="/educators" en="Teach with Sefaria" he="מלמדים עם ספריא" />
+                <Link href="/calendars" en="Learning Schedules" he="לוח לימוד יומי" />*/}
                 <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
-                <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
+                {/*<Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />*/}
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
-                <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
-                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
+                {/*<Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />*/}
                 <Link href="/people" en="Authors" he="מחברים" />
                 <Link href="/collections" en="Collections" he="אסופות" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
-                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
+                {/*<Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />*/}
             </Section>
 
             <Section en="Developers" he="מפתחים">
@@ -74,11 +74,11 @@ class Footer extends Component {
             </Section>
 
             <Section en="Join Us" he="הצטרפו אלינו">
-                <DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
-                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />
+                {/*<DonateLink source={"Footer"}><InterfaceText text={{en:"Donate", he:"תרומות"}}/></DonateLink>
+                <Link href="/ways-to-give" en="Ways to Give" he="אפשרויות תרומה" />*/}
                 <Link href="/supporters" en="Supporters" he="תומכים" />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
-                <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
+                {/*<Link href="https://store.sefaria.org" en="Shop" he="חנות" />*/}
             </Section>
 
           <div className="section last connect">

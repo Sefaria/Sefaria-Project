@@ -113,7 +113,7 @@ const AboutSefaria = ({hideTitle}) => (
       </InterfaceText>
     </a>
       {!hideTitle && <InterfaceText>
-          <EnglishText>
+          {/*<EnglishText>
             <a className="button get-start" href="/sheets/210670">
                 <img src="/static/icons/vector.svg"/>
                 <div className="get-start">
@@ -128,7 +128,7 @@ const AboutSefaria = ({hideTitle}) => (
                   הכירו את ספריא (2 דק')
                 </div>
             </a>
-          </HebrewText>
+          </HebrewText>*/}
       </InterfaceText>
     }
   </Module>
@@ -199,15 +199,15 @@ const TheJewishLibrary = ({hideTitle}) => (
 );
 
 
-const SupportSefaria = ({blue}) => (
-  <Module blue={blue}>
+const SupportSefaria = ({white}) => (
+  <Module blue={white}>{/*
     <ModuleTitle>Support Sefaria</ModuleTitle>
     <InterfaceText>Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
       <InterfaceText>Make a Donation</InterfaceText>
-    </DonateLink>
+    </DonateLink>*/}
   </Module>
 );
 
@@ -587,7 +587,7 @@ const JoinTheCommunity = ({wide}) => {
 
 
 const GetTheApp = () => (
-  <Module>
+  <Module>{/*
     <ModuleTitle>Get the Mobile App</ModuleTitle>
     <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
     <br />
@@ -600,7 +600,7 @@ const GetTheApp = () => (
         href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
         platform='android'
         altText={Sefaria._("Sefaria app on Android")}
-    />
+    />*/}
   </Module>
 );
 
