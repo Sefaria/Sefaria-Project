@@ -305,6 +305,7 @@ class TocTree(object):
         
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0 and include_first_section:
             # `d["firstSection"]` assumes `include_first_section` is True
+            #  this code seems to never actually get run
             d["refs_to_base_texts"] = {btitle:
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
                 for btitle in d["base_text_titles"]

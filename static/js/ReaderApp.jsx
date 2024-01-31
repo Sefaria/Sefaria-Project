@@ -1426,6 +1426,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
+    // `attemptConvertCommToBase` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    // `replaceHistory`: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
@@ -1465,7 +1467,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef, mode: "Text",
         ...options
       };
-      if (filter.length > 0) {
+      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if attemptConvertCommToBase is true
         [panel, connectionPanel] = this.openPanelWithConnections(panelProps);
       }
       else {
@@ -1485,7 +1487,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   }
   openPanelWithConnections(panelProps) {
-    let connectionPanel;
+    // in the case of multipanel, create two panels based on panelProps
+    let connectionPanel;  // in mobile, connectionPanel will remain undefined
     if (this.props.multiPanel) {
         const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
         connectionPanel = this.makePanelState(connectionPanelProps);

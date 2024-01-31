@@ -171,7 +171,7 @@ class ReaderPanel extends Component {
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions, [], false);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
   updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
     const newVersions = {
