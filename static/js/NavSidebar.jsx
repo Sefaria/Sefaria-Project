@@ -94,7 +94,7 @@ const Promo = () =>
 const AboutSefaria = ({hideTitle}) => (
   <Module>
     {!hideTitle ?
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
+    <ModuleTitle h1={true}>A Living Library of Buddhist Text</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
           Pecha is home to 2500 years of Buddhist texts. We are offering free access to texts, translations,
@@ -154,7 +154,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
   return (
   <Module>
     <ModuleTitle h1={true}>{translationLookup[translationsSlug] ?
-          translationLookup[translationsSlug]["title"] : "A Living Library of Torah"}</ModuleTitle>
+          translationLookup[translationsSlug]["title"] : "A Living Library of Buddhist Text"}</ModuleTitle>
         { translationLookup[translationsSlug] ?
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>

@@ -113,7 +113,7 @@ const Strings = {
     "Recently Published": "ཉེ་ཆར་གསར་སྤེལ་བྱས་པ།",
     "Make a Sheet": "ཤོག་ངོས་ཤིག་བཟོས།",
     "Combine sources from our library with your own comments, questions, images, and videos.": "ང་ཚོའི་དཔེ་མཛོད་ནང་གི་རྒྱུ་ཆ་རྣམས་ཁྱེད་རང་ཉིད་ཀྱི་མཆན་འགྲེལ་དང་དོགས་འདྲི། འདྲ་པར། ་བརྙན་དང་བཅས་ལ་མཉམ་སྡེབ་བྱོས།",
-    "A Living Library of Torah": "ནང་ཆོས་ཀྱི་དཔེ་མཛོད་ཅིག",
+    "A Living Library of Buddhist Text": "ནང་ཆོས་ཀྱི་དཔེ་མཛོད་ཅིག",
 
     // Search
     "Results for": "འདིའི་གྲུབ་འབྲས་ཁག",
