@@ -1254,8 +1254,11 @@ def delete_ref_topic_link(tref, to_topic, link_type, lang):
 
     topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref, 'dataSource': 'learning-team'}
     link = RefTopicLink().load(topic_link)
-    if link is None:
-        return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
+    if link is None:  # first check if there is a link with dataSource 'learning-team', then just check if there is any link
+        topic_link = {"toTopic": to_topic, "linkType": link_type, 'ref': tref}
+        link = RefTopicLink().load(topic_link)
+        if link is None:
+            return {"error": f"Link between {tref} and {to_topic} doesn't exist."}
 
     if lang in link.order.get('availableLangs', []):
         link.order['availableLangs'].remove(lang)
