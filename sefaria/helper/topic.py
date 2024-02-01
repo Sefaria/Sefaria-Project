@@ -1172,15 +1172,9 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     link.dataSource = 'learning-team'
     link.ref = new_tref
 
+
+
     current_descriptions = getattr(link, 'descriptions', {})
-
-    requested_review_state = description.get("review_state")
-    current_review_state = current_descriptions.get(interface_lang).get("review_state")
-    approved_review_state = None
-
-    if requested_review_state and current_review_state:
-        approved_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
-
     current_descriptions_in_lang = current_descriptions.get(interface_lang)
     for key in description.keys():
         if key == "review_state":
