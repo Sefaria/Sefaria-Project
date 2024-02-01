@@ -171,12 +171,10 @@ const PromptWrapper = ({text}) => {
     return promptComponent
 }
 const ReviewStateWrapper = ({topic, text}) => {
-    console.log(text)
     let reviewIndicatorComponent = null;
     const [reviewStateEn, setReviewStateEn] = useState(text.descriptions?.en?.review_state);
     const [reviewStateHe, setReviewStateHe] = useState(text.descriptions?.he?.review_state);
     const markReviewed = function(){
-        console.log("markReviewed")
         let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
         let setFun = Sefaria.interfaceLang == "english" ? setReviewStateEn : setReviewStateHe;
         let postData = {"topic": topic, "is_new": false, 'new_ref': text.ref, 'interface_lang': Sefaria.interfaceLang};

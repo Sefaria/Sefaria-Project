@@ -1157,6 +1157,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
   const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
+  const [isPublishConfirmationShown, setPublishConfirmationShown] = useState(false);
   buttonsToDisplay = buttonsToDisplay.filter(item => item !== null && item !== undefined)
 
   const showGenerationConfirmation = () => {
@@ -1173,11 +1174,27 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       setGenerateConfirmationShown(true);
     }
   };
+    const showPublishConfirmation = () => {
+    if (!isPublishConfirmationShown) {
+      const isConfirmed = window.confirm("Are you sure you want to publish prompts?");
+
+      if (isConfirmed) {
+        alert("You clicked OK!");
+      } else {
+        alert("You clicked Cancel or closed the popup.");
+      }
+
+      // Update state to prevent showing the popup again
+      setPublishConfirmationShown(true);
+    }
+  };
+
   const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
                           "generate": ["Generate", showGenerationConfirmation],
+                          "publish": ["Publish", showPublishConfirmation],
                           "edit": ["Edit", toggleEditCategory]};
 
   let wrapper = "";
