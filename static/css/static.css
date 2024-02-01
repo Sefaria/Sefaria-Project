@@ -695,11 +695,17 @@ p.registration-links a:hover{
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }*/
-#supportersPage h3, #supportersPage p, #supportersPage h2 {
+#supportersPage h3, #supportersPage h2 {
   text-align: left;
   max-width: revert;
 }
-.interface-hebrew #supportersPage h3, #supportersPage p, #supportersPage h2 {
+#supportersPage p{
+  font-size: 16px;
+  color: #666;
+  text-align: left;
+  max-width: revert;
+}
+.interface-hebrew #supportersPage h3, .interface-hebrew #supportersPage p, .interface-hebrew #supportersPage h2 {
   max-width: revert;
   text-align: right;
 }
@@ -822,10 +828,6 @@ p.registration-links a:hover{
 }
 #linkExplorerPage {
   padding-top: 60px;
-}
-#supportersPage p{
-  font-size: 16px;
-  color: #666;
 }
 #linkerPage h2 {
   margin: 30px 0 30px 0;
