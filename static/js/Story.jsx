@@ -180,6 +180,7 @@ const PromptWrapper = ({text}) => {
     return promptComponent
 }
 const ReviewStateWrapper = ({topic, text}) => {
+    console.log(text)
     let reviewIndicatorComponent = null;
     const [reviewStateEn, setReviewStateEn] = useState(text.descriptions?.en?.review_state);
     const [reviewStateHe, setReviewStateHe] = useState(text.descriptions?.he?.review_state);
@@ -213,7 +214,6 @@ const ReviewStateWrapper = ({topic, text}) => {
 
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
-    console.log(text)
     const versions = text.versions || {}
     const params = Sefaria.util.getUrlVersionsParams(versions);
     const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
