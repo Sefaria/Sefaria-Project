@@ -695,7 +695,15 @@ p.registration-links a:hover{
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }*/
-#supportersPage{
+#supportersPage h3, #supportersPage p, #supportersPage h2 {
+  text-align: left;
+  max-width: revert;
+}
+.interface-hebrew #supportersPage h3, #supportersPage p, #supportersPage h2 {
+  max-width: revert;
+  text-align: right;
+}
+#supportersPage {
   text-align: center;
 }
 #supportersPage .leading-supporters p.tagline:first-child {
@@ -751,6 +759,9 @@ p.registration-links a:hover{
 }
 .container.doc.legal.static .inner {
   margin-top: -400px;
+}
+.interface-hebrew .container.doc.legal.static .inner {
+  margin-top: -440px;
 }
 #aboutHeader {
   color: white;
@@ -3321,6 +3332,7 @@ display: none;
 }
 #aboutSidebar.updates {
   position: fixed;
+  left: revert;
 }
 .interface-english #aboutSidebar {
   text-align: left;
@@ -3328,12 +3340,18 @@ display: none;
 .interface-hebrew #aboutSidebar {
   text-align: right;
 }
-#aboutSidebar.jobs {
-  top: 110px !important;
-}
 .interface-hebrew #aboutSidebar h1 {
   font-size: 22px;
-  margin: 0 30px 30px 30px;
+  margin: 0 50px 30px 30px;
+}
+.interface-hebrew #aboutPage .inner {
+  margin-top: -470px;
+}
+.interface-hebrew #teamPage .inner {
+  margin-top: -470px;
+}
+.interface-hebrew #jobsPage .inner {
+  margin-top: -520px;
 }
 #aboutSidebar h1 {
   margin: 0 0 30px 50px;
@@ -3342,13 +3360,6 @@ display: none;
 }
 #aboutPage h1, #teamPage h2, #testimonialsPage h1 {
   text-align: left;
-}
-#supportersPage h3, #supportersPage p, #supportersPage h2 {
-  text-align: left !important;
-  max-width: revert !important;
-}
-.interface-hebrew #aboutSidebar.metrics h1 {
-  margin: 0 0 30px 30px;
 }
 #aboutSidebar.updates h1 {
   margin: 0 50px 30px 50px;
@@ -3447,14 +3458,26 @@ display: none;
 #testimonialsPage .inner {
   margin-top: -390px;
 }
+.interface-hebrew #testimonialsPage .inner {
+  margin-top: -430px;
+}
 #updatersPage .globalUpdateForm {
   margin-top: 50px
+}
+.interface-hebrew #supportersPage .inner {
+  margin-top: -430px;
 }
 #supportersPage .inner {
   margin-top: -390px;
 }
 #metricsPage .inner {
   margin-top: -420px;
+}
+.interface-hebrew #metricsPage .inner {
+  margin-top: -460px;
+}
+.interface-hebrew #annualReport .inner {
+margin-top: -450px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 130px
