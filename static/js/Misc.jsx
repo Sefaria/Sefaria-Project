@@ -1154,17 +1154,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addCategory, toggleAddCategory] = useEditToggle();
   const [reorderCategory, toggleReorderCategory] = useEditToggle();
   const [addSource, toggleAddSource] = useEditToggle();
-  const [generate, toggleGenerate] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
-                          "source": ["Add a source", toggleAddSource],
-                          "section": ["Add section", toggleAddSection],
-                          "reorder": ["Reorder sources", toggleReorderCategory],
-                          "generate": ["Generate", toggleGenerate],
-                          "edit": ["Edit", toggleEditCategory]};
-
-
   const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
 
   const showGenerationConfirmation = () => {
@@ -1181,16 +1172,18 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       setGenerateConfirmationShown(true);
     }
   };
-
+  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+                          "source": ["Add a source", toggleAddSource],
+                          "section": ["Add section", toggleAddSection],
+                          "reorder": ["Reorder sources", toggleReorderCategory],
+                          "generate": ["Generate", showGenerationConfirmation],
+                          "edit": ["Edit", toggleEditCategory]};
 
   let wrapper = "";
   let adminButtonsSpan = null;
   if (Sefaria.is_moderator) {
     if (editCategory) {
       adminButtonsSpan = <CategoryEditorWrapper toggle={toggleEditCategory} data={data} type={type}/>;
-    }
-    else if (generate) {
-      showGenerationConfirmation()
     }
       else if (addSource) {
       adminButtonsSpan = <SourceEditor topic={data.slug} close={toggleAddSource}/>;
