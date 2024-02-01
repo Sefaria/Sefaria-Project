@@ -764,7 +764,7 @@ p.registration-links a:hover{
   margin-top: -620px;
 }
 .interface-hebrew .container.doc.legal.static .inner {
-  margin-top: -440px;
+  margin-top: -50px;
 }
 #aboutHeader {
   color: white;
@@ -3345,13 +3345,13 @@ display: none;
   margin: 0 50px 30px 30px;
 }
 .interface-hebrew #aboutPage .inner {
-  margin-top: -470px;
+  margin-top: -680px;
 }
 .interface-hebrew #teamPage .inner {
-  margin-top: -470px;
+  margin-top: -620px;
 }
 .interface-hebrew #jobsPage .inner {
-  margin-top: -520px;
+  margin-top: -50px;
 }
 #aboutSidebar h1 {
   margin: 0 0 30px 50px;
@@ -3393,6 +3393,9 @@ display: none;
 .annualReport {
   margin: -620px 0 300px 0;
   padding-top: 35px;
+}
+.interface-hebrew .annualReport {
+  margin: -660px 0 300px 0;
 }
 .annualReport a {
   color: blue;
@@ -3465,13 +3468,13 @@ display: none;
   margin-top: -580px;
 }
 .interface-hebrew #testimonialsPage .inner {
-  margin-top: -430px;
+  margin-top: -640px;
 }
 #updatersPage .globalUpdateForm {
   margin-top: 50px
 }
 .interface-hebrew #supportersPage .inner {
-  margin-top: -430px;
+  margin-top: -630px;
 }
 #supportersPage .inner {
   margin-top: -570px;
@@ -3480,10 +3483,7 @@ display: none;
   margin-top: -600px;
 }
 .interface-hebrew #metricsPage .inner {
-  margin-top: -460px;
-}
-.interface-hebrew #annualReport .inner {
-margin-top: -450px;
+  margin-top: -670px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 100px
