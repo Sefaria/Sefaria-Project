@@ -1157,6 +1157,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
   const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
+  buttonsToDisplay = buttonsToDisplay.filter(item => item !== null && item !== undefined)
 
   const showGenerationConfirmation = () => {
     if (!isGenerateConfirmationShown) {

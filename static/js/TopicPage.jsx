@@ -312,17 +312,29 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const existsSourceRefWithContextWithoutPrompt = (refs) => {
+    if (!refs) {
+        return false;
+    }
+
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+
+    return refs.some((ref) => {
+        return ref.descriptions && ref.descriptions[lang]?.context && ref.descriptions[lang]?.context != '' &&
+            !ref.descriptions[lang]?.prompt;
+    });
+};
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
+  const generateButtonName = existsSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs)  ? "generate" : null
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <div>
       
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["generate", "source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={[generateButtonName, "source", "edit", "reorder"]}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
