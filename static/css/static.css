@@ -3326,9 +3326,12 @@ display: none;
   position: sticky;
   left: 15px;
   top: 150px;
+  width: 400px;
 }
 #aboutSidebar.updates {
   position: fixed;
+}
+.interface-hebrew #aboutSidebar.updates {
   left: revert;
 }
 .interface-english #aboutSidebar {
