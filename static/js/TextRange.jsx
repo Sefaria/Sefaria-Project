@@ -131,7 +131,7 @@ class TextRange extends Component {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       // console.log("Re-rewriting spanning ref")
-      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, this.props.versionLanguage);
+      this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, [], false);
       return;
     }
 
