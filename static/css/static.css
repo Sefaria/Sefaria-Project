@@ -749,16 +749,13 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutPage .inner {
-  margin-top: -420px;
+  margin-top: -610px;
 }
 #teamPage .inner {
-  margin-top: -400px;
+  margin-top: -580px;
 }
-#jobsPage .inner {
-  margin-top: -475px;
-}
-.container.doc.legal.static .inner {
-  margin-top: -400px;
+#jobsPage .inner #jobsPageContent {
+  margin-top: -620px;
 }
 .interface-hebrew .container.doc.legal.static .inner {
   margin-top: -440px;
@@ -1401,6 +1398,7 @@ p.registration-links a:hover{
   font-size: 18px;
 }
 .static.legal iframe {
+  margin-top: -600px;
   width: 100%;
   height: 600px;
   border: 1px solid #aaa;
@@ -3327,9 +3325,6 @@ display: none;
   left: 15px;
   top: 150px;
 }
-#annualReport .inner {
-  margin-top: -410px;
-}
 #aboutSidebar.updates {
   position: fixed;
   left: revert;
@@ -3388,7 +3383,7 @@ display: none;
   text-decoration: underline;
 }
 .annualReport {
-  margin: -10px 0 300px 0;
+  margin: -620px 0 300px 0;
   padding-top: 35px;
 }
 .annualReport a {
@@ -3459,7 +3454,7 @@ display: none;
   margin-left: -5px;
 }
 #testimonialsPage .inner {
-  margin-top: -390px;
+  margin-top: -580px;
 }
 .interface-hebrew #testimonialsPage .inner {
   margin-top: -430px;
@@ -3471,10 +3466,10 @@ display: none;
   margin-top: -430px;
 }
 #supportersPage .inner {
-  margin-top: -390px;
+  margin-top: -570px;
 }
 #metricsPage .inner {
-  margin-top: -420px;
+  margin-top: -600px;
 }
 .interface-hebrew #metricsPage .inner {
   margin-top: -460px;
@@ -3483,7 +3478,7 @@ display: none;
 margin-top: -450px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 130px
+    margin-top: 100px
 }
 #updatesPanelContent .navSideBar {
     margin-left: 200px;
