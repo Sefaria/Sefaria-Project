@@ -1136,6 +1136,13 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
+def _calculate_approved_review_state(current, requested):
+    if current == "reviewed":
+        return "reviewed"
+    if requested == "edited":
+        return "edited"
+    if requested == "reviewed":
+        return "reviewed"
 def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
                       interface_lang='en', linkType='about', description={}):
     """
@@ -1166,9 +1173,23 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     link.ref = new_tref
 
     current_descriptions = getattr(link, 'descriptions', {})
+
+    requested_review_state = description.get("review_state")
+    current_review_state = current_descriptions.get(interface_lang).get("review_state")
+    approved_review_state = None
+
+    if requested_review_state and current_review_state:
+        approved_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
+
     current_descriptions_in_lang = current_descriptions.get(interface_lang)
     for key in description.keys():
-        if current_descriptions_in_lang.get(key) != description.get(key):
+        if key == "review_state":
+            requested_review_state = description.get("review_state")
+            current_review_state = current_descriptions_in_lang.get("review_state")
+            approved_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
+            if current_review_state:
+                current_descriptions_in_lang[key] = approved_review_state
+        elif current_descriptions_in_lang.get(key) != description.get(key):
             current_descriptions_in_lang[key] = description.get(key)
     link.descriptions = current_descriptions
     # if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
