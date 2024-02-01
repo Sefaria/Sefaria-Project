@@ -7589,7 +7589,6 @@ a .button:hover {
   display: flex;
   justify-content: space-between;
   flex-direction: row;
-  align-content: center;
   align-items: center;
   flex-wrap: nowrap;
   width: 100%;
