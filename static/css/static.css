@@ -3361,6 +3361,9 @@ display: none;
 #aboutPage h1, #teamPage h2, #testimonialsPage h1 {
   text-align: left;
 }
+.interface-hebrew #aboutPage h1, .interface-hebrew #teamPage h2, .interface-hebrew #testimonialsPage h1 {
+  text-align: right;
+}
 #aboutSidebar.updates h1 {
   margin: 0 50px 30px 50px;
   font-weight: 100;
