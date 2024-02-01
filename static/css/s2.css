@@ -192,7 +192,7 @@ body, .en, .int-en {
   font-size: 122%;
 }
 .int-he {
-  direction: rtl;
+  direction: ltr;
 }
 .int-he.enInHe {
   direction: ltr;
