@@ -3316,9 +3316,6 @@ display: none;
   left: 15px;
   top: 150px;
 }
-body:has(#bannerMessage) .aboutSidebar {
-  top: 200px;
-}
 #annualReport .inner {
   margin-top: -410px;
 }
