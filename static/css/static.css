@@ -3377,6 +3377,9 @@ display: none;
   margin: 0 !important;
   color: #666666;
 }
+#aboutSidebar li:last-child {
+  padding: 10px 10px 200px 10px;
+}
 #aboutSidebar a {
   text-decoration: none !important;
   font-size: 16px !important;
