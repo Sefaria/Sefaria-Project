@@ -3322,6 +3322,15 @@ display: none;
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
+.mobileAbout h1 {
+  font-family: 'Roboto', sans-serif;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 22px;
+  margin: 40px 0 0 20px !important;
+  line-height: 26px;
+  color: var(--dark-grey);
+}
 #aboutSidebar {
   position: sticky;
   left: 15px;
@@ -3358,8 +3367,15 @@ display: none;
   font-size: 22px;
   font-weight: 300;
 }
-#aboutPage h1, #teamPage h2, #testimonialsPage h1 {
+#aboutPage h1, #testimonialsPage h1 {
   text-align: left;
+}
+#aboutPage h2 {
+  font-weight: normal;
+}
+#teamPage h2 {
+  text-align: left;
+  font-weight: normal;
 }
 .interface-hebrew #aboutPage h1, .interface-hebrew #teamPage h2, .interface-hebrew #testimonialsPage h1 {
   text-align: right;
@@ -3420,15 +3436,7 @@ display: none;
   overflow: auto;
   z-index: 2;
 }
-.mobileAbout h1 {
-  font-family: 'Roboto', sans-serif;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 22px;
-  margin: 0px 0 0 20px !important;
-  line-height: 26px;
-  color: var(--dark-grey);
-}
+
 .mobileAbout a {
   margin-left: -30px;
   font-family: "Roboto", sans-serif;
@@ -3495,9 +3503,24 @@ display: none;
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
   }
-  #teamPage .inner, #jobsPage .inner, #aboutPage .inner, #supportersPage .inner, #testimonialsPage .inner, #metricsPage .inner,
-  #annualReport .inner, .container.doc.legal.static .inner {
-    margin-top: 0;
+  #teamPage .inner, #jobsPage .inner, #supportersPage .inner, #testimonialsPage .inner, #metricsPage .inner,
+  #annualReport .inner {
+    margin-top: -50px;
+  }
+  .container.doc.legal.static .inner {
+    margin-top: 530px;
+  }
+  #aboutPage .inner {
+     margin-top: -70px;
+  }
+  #jobsPage .inner #jobsPageContent {
+    margin-top: 0px;
+  }
+  h1 .updatesHeader {
+    margin-top: -60px;
+  }
+  .annualReport {
+    margin: 0;
   }
 }
 #metricsBox {
