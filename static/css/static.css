@@ -763,9 +763,6 @@ p.registration-links a:hover{
 #jobsPage .inner #jobsPageContent {
   margin-top: -620px;
 }
-.interface-hebrew .container.doc.legal.static .inner {
-  margin-top: -50px;
-}
 #aboutHeader {
   color: white;
   margin-bottom: 250px;
@@ -3345,12 +3342,6 @@ display: none;
   font-size: 22px;
   margin: 0 50px 30px 30px;
 }
-.interface-hebrew #aboutPage .inner {
-  margin-top: -680px;
-}
-.interface-hebrew #teamPage .inner {
-  margin-top: -620px;
-}
 .interface-hebrew #jobsPage .inner {
   margin-top: -50px;
 }
@@ -3401,9 +3392,6 @@ display: none;
 .annualReport {
   margin: -620px 0 300px 0;
   padding-top: 35px;
-}
-.interface-hebrew .annualReport {
-  margin: -660px 0 300px 0;
 }
 .annualReport a {
   color: blue;
@@ -3467,23 +3455,14 @@ display: none;
 #testimonialsPage .inner {
   margin-top: -580px;
 }
-.interface-hebrew #testimonialsPage .inner {
-  margin-top: -640px;
-}
 #updatersPage .globalUpdateForm {
   margin-top: 50px
-}
-.interface-hebrew #supportersPage .inner {
-  margin-top: -630px;
 }
 #supportersPage .inner {
   margin-top: -570px;
 }
 #metricsPage .inner {
   margin-top: -600px;
-}
-.interface-hebrew #metricsPage .inner {
-  margin-top: -670px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 100px
@@ -3501,14 +3480,11 @@ display: none;
     margin-left: 0;
   }
   #teamPage .inner, #jobsPage .inner, #supportersPage .inner, #metricsPage .inner,
-  #annualReport .inner, #testimonialsPage .inner {
+  #annualReport .inner, #testimonialsPage .inner, .container.doc.legal.static .inner {
     margin-top: -50px;
   }
   #testimonialsPage .testimonial.section {
     margin-top: 30px
-  }
-  .container.doc.legal.static .inner {
-    margin-top: 530px;
   }
   #aboutPage .inner {
      margin-top: -70px;
@@ -3530,27 +3506,31 @@ display: none;
     font-style: normal;
     font-weight: 500 !important;
     font-size: 22px !important;
-    text-align: left !important;
+    text-align: left;
     line-height: 26px;
     color: var(--dark-grey);
+  }
+  .interface-hebrew h1.mobileAboutHeader, .interface-hebrew #aboutSidebar h1 {
+    text-align: right;
   }
   h1.mobileAboutHeader {
     margin: 40px 0 0 0 !important;
   }
   #aboutSidebar h1 {
-    margin: 40px 0 0 20px !important;
+    margin: 40px 50px 0 20px !important;
   }
   div .section.leading-supporters {
     margin-top: 40px;
   }
-  #supportersPage .leading-supporters p.tagline:first-child {
-    text-align: left;
-  }
+
   .updatesHeader, .jobsHeader, .mobileAboutHeader {
     display: block;
   }
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 0px;
+  }
+  .static.legal iframe {
+    margin-top: 40px;
   }
 }
 #metricsBox {
