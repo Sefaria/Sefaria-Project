@@ -212,6 +212,14 @@ data:
         'ROTATE_REFRESH_TOKENS': True,
         'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
     }
+    
+    # Celery
+    CELERY_REDIS_PORT = os.getenv("CELERY_REDIS_PORT")
+    CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
+    CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")
+    # Either define CELERY_SENTINEL_HEADLESS_URL if using sentinel or CELERY_REDIS_URL for a simple redis instance
+    CELERY_SENTINEL_HEADLESS_URL = os.getenv("CELERY_SENTINEL_HEADLESS_URL") 
+    CELERY_REDIS_URL = os.getenv("CELERY_REDIS_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 

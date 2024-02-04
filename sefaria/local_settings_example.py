@@ -255,6 +255,14 @@ SIMPLE_JWT = {
     'SIGNING_KEY': 'a signing key: at least 256 bits',
 }
 
+# Celery
+CELERY_REDIS_PORT = 6379
+CELERY_REDIS_BROKER_DB_NUM = 0
+CELERY_REDIS_RESULT_BACKEND_DB_NUM = 1
+# Either define CELERY_SENTINEL_HEADLESS_URL if using sentinel or CELERY_REDIS_URL for a simple redis instance
+CELERY_SENTINEL_HEADLESS_URL = None
+CELERY_REDIS_URL = "redis://127.0.0.1"
+
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
