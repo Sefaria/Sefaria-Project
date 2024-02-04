@@ -185,7 +185,7 @@ const ReviewStateWrapper = ({topic, text}) => {
             setReviewStateObj(updatedReviewStateObj);
         })
     }
-    return  <ReviewStateIndicator reviewState={reviewStateObj[lang]} callBack={markReviewed}></ReviewStateIndicator>
+    return  <ReviewStateIndicator reviewState={reviewStateObj[lang]} callBack={markReviewed}/>
 }
 
 const VisibilityWrapper = ({children, topic, text}) => {
