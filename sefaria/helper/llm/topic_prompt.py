@@ -2,9 +2,11 @@ from typing import List, Callable, Any, Optional, Dict
 import re
 from sefaria.model.text import Ref, library, TextChunk
 from sefaria.model.passage import Passage
-from sefaria.model.topic import Topic
+from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
+from sefaria.helper.llm.llm_interface import TopicPromptGenerationOutput
+from sefaria.utils.util import deep_update
 
 
 def _lang_dict_by_func(func: Callable[[str], Any]):
@@ -131,3 +133,21 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
         "topic": _make_topic_prompt_topic(sefaria_topic),
         "sources": [_make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
     }
+
+
+def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
+    for prompt in output.prompts:
+        link = RefTopicLink().load({
+            "ref": prompt.ref,
+            "toTopic": prompt.slug,
+            "dataSource": "learning-team",
+            "linkType": "about",
+        })
+        curr_descriptions = getattr(link, "descriptions", {})
+        description_edits = {output.lang: {
+            "title": prompt.title, "ai_title": prompt.title,
+            "prompt": prompt.prompt, "ai_prompt": prompt.prompt,
+            "published": False, "review_state": "not reviewed"
+        }}
+        setattr(link, "descriptions", deep_update(curr_descriptions, description_edits))
+        link.save()
