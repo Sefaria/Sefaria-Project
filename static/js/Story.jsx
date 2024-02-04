@@ -176,9 +176,11 @@ const ReviewStateWrapper = ({topic, text}) => {
     let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
     const [reviewStateObj, setReviewStateObj] = useState({"en":enReviewState, "he":heReviewState});
     const markReviewed = function(){
-        let postData = {"topic": topic, "is_new": false, 'new_ref': text.ref, 'interface_lang': Sefaria.interfaceLang};
-        postData.description = text.descriptions[lang]
-        postData.description["review_state"] = 'reviewed'
+        let postData = {"topic": topic,
+            "is_new": false,
+            'new_ref': text.ref,
+            'interface_lang': Sefaria.interfaceLang,
+            'description' : {...text.descriptions[lang], 'review_state': 'reviewed'}};
         Sefaria.updateTopicRef(text.ref, postData).then(response => {
             let updatedReviewStateObj = {...reviewStateObj};
             updatedReviewStateObj[lang] = "reviewed"
