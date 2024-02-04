@@ -664,7 +664,6 @@ Sefaria = extend(Sefaria, {
       if (!response.ok) { throw "error"; }
       const json = await response.json();
       if (json.error) { throw json; }
-      console.log(json)
       return json;
   },
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {

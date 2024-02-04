@@ -150,55 +150,60 @@ const ReviewStateIndicator = ({reviewState, callBack}) => {
 
 };
 
-const PromptWrapper = ({text}) => {
-    let promptComponent = null;
-    if (Sefaria.interfaceLang == "english"){
-        const isPromptPublished = text.descriptions?.en?.published
-        if (isPromptPublished !== false || Sefaria.is_moderator){
-        promptComponent = <div className={"systemText learningPrompt"}>
-            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-        </div>
-            }
-    }
-    else if (Sefaria.interfaceLang == "hebrew"){
-        const isPromptPublished = text.descriptions?.he?.published
-        if (isPromptPublished !== false || Sefaria.is_moderator){
-        promptComponent = <div className={"systemText learningPrompt"}>
-            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-        </div>
-            }
-    }
-    return promptComponent
-}
+// const PromptWrapper = ({text}) => {
+//     let promptComponent = null;
+//     if (Sefaria.interfaceLang == "english"){
+//         const isPromptPublished = text.descriptions?.en?.published
+//         if (isPromptPublished !== false || Sefaria.is_moderator){
+//         promptComponent = <div className={"systemText learningPrompt"}>
+//             <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+//         </div>
+//             }
+//     }
+//     else if (Sefaria.interfaceLang == "hebrew"){
+//         const isPromptPublished = text.descriptions?.he?.published
+//         if (isPromptPublished !== false || Sefaria.is_moderator){
+//         promptComponent = <div className={"systemText learningPrompt"}>
+//             <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+//         </div>
+//             }
+//     }
+//     return promptComponent
+// }
 const ReviewStateWrapper = ({topic, text}) => {
-    let reviewIndicatorComponent = null;
-    const [reviewStateEn, setReviewStateEn] = useState(text.descriptions?.en?.review_state);
-    const [reviewStateHe, setReviewStateHe] = useState(text.descriptions?.he?.review_state);
+    let enReviewState = text.descriptions?.en?.review_state;
+    let heReviewState = text.descriptions?.he?.review_state;
+    let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
+    const [reviewStateObj, setReviewStateObj] = useState({"en":enReviewState, "he":heReviewState});
     const markReviewed = function(){
-        let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
-        let setFun = Sefaria.interfaceLang == "english" ? setReviewStateEn : setReviewStateHe;
         let postData = {"topic": topic, "is_new": false, 'new_ref': text.ref, 'interface_lang': Sefaria.interfaceLang};
         postData.description = text.descriptions[lang]
         postData.description["review_state"] = 'reviewed'
         Sefaria.updateTopicRef(text.ref, postData).then(response => {
-            setFun("reviewed");
+            let updatedReviewStateObj = {...reviewStateObj};
+            updatedReviewStateObj[lang] = "reviewed"
+            setReviewStateObj(updatedReviewStateObj);
         })
     }
+    return  <ReviewStateIndicator reviewState={reviewStateObj[lang]} callBack={markReviewed}></ReviewStateIndicator>
+}
+
+const VisibilityWrapper = ({children, topic, text}) => {
+    let displayedComponents = null
     if (Sefaria.interfaceLang == "english") {
         const isPromptPublished = text.descriptions?.en?.published
         if (isPromptPublished !== false || Sefaria.is_moderator) {
-            reviewIndicatorComponent =
-                <ReviewStateIndicator reviewState={reviewStateEn} callBack={markReviewed}></ReviewStateIndicator>
+            displayedComponents = children
         }
     }
-    else if (Sefaria.interfaceLang == "hebrew"){
+    else if (Sefaria.interfaceLang == "hebrew") {
         const isPromptPublished = text.descriptions?.he?.published
-        if (isPromptPublished !== false || Sefaria.is_moderator){
-            reviewIndicatorComponent =  <ReviewStateIndicator reviewState={reviewStateHe} callBack={markReviewed}></ReviewStateIndicator>
+        if (isPromptPublished !== false || Sefaria.is_moderator) {
+            displayedComponents = children
         }
-            }
+    }
 
-    return reviewIndicatorComponent
+    return displayedComponents
 }
 
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
@@ -216,13 +221,18 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
+            <VisibilityWrapper topic={topic} text={text}>
             <div className={"headerWithAdminButtonsContainer"}>
             <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                 <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
             </CategoryHeader>
             <ReviewStateWrapper topic={topic} text={text}></ReviewStateWrapper>
                 </div>
-            <PromptWrapper text={text}></PromptWrapper>
+            {/*<PromptWrapper text={text}></PromptWrapper>*/}
+                <div className={"systemText learningPrompt"}>
+            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+        </div>
+            </VisibilityWrapper>
             <SaveLine
                 dref={text.ref}
                 versions={versions}
