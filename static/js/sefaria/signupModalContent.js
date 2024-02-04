@@ -13,7 +13,7 @@ const signUpModalContent = {
   [SignUpModalKind.ViewHistory]: {
     h2: {
       en: "Want to see where you've been?",
-      he: "רוצים לראות היכן הייתם?",
+      he: "מעוניינים לחזור לקריאות האחרונות שלכם?",
     },
     h3: {
       en: "Create a free account to do more on Sefaria",
