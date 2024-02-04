@@ -3322,15 +3322,7 @@ display: none;
 .svg-white {
   filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
 }
-.mobileAbout h1 {
-  font-family: 'Roboto', sans-serif;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 22px;
-  margin: 40px 0 0 20px !important;
-  line-height: 26px;
-  color: var(--dark-grey);
-}
+
 #aboutSidebar {
   position: sticky;
   left: 15px;
@@ -3499,13 +3491,21 @@ display: none;
 #updatesPanelContent .navSideBar {
     margin-left: 200px;
 }
+
+.mobileAboutHeader, .updatesHeader, .jobsHeader {
+  display: none;
+}
+
 @media (max-width: 700px) {
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
   }
-  #teamPage .inner, #jobsPage .inner, #supportersPage .inner, #testimonialsPage .inner, #metricsPage .inner,
-  #annualReport .inner {
+  #teamPage .inner, #jobsPage .inner, #supportersPage .inner, #metricsPage .inner,
+  #annualReport .inner, #testimonialsPage .inner {
     margin-top: -50px;
+  }
+  #testimonialsPage .testimonial.section {
+    margin-top: 30px
   }
   .container.doc.legal.static .inner {
     margin-top: 530px;
@@ -3516,11 +3516,41 @@ display: none;
   #jobsPage .inner #jobsPageContent {
     margin-top: 0px;
   }
+  div #teamMembersPageContent {
+    margin-top: 40px;
+  }
   h1 .updatesHeader {
     margin-top: -60px;
   }
   .annualReport {
     margin: 0;
+  }
+  #aboutSidebar h1, h1.mobileAboutHeader {
+    font-family: 'Roboto', sans-serif;
+    font-style: normal;
+    font-weight: 500 !important;
+    font-size: 22px !important;
+    text-align: left !important;
+    line-height: 26px;
+    color: var(--dark-grey);
+  }
+  h1.mobileAboutHeader {
+    margin: 40px 0 0 0 !important;
+  }
+  #aboutSidebar h1 {
+    margin: 40px 0 0 20px !important;
+  }
+  div .section.leading-supporters {
+    margin-top: 40px;
+  }
+  #supportersPage .leading-supporters p.tagline:first-child {
+    text-align: left;
+  }
+  .updatesHeader, .jobsHeader, .mobileAboutHeader {
+    display: block;
+  }
+  #updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-top: 0px;
   }
 }
 #metricsBox {
@@ -3531,12 +3561,4 @@ display: none;
 }
 .about.section {
   padding-top: 40px;
-}
-.updatesHeader, .jobsHeader {
-  display: none;
-}
-@media (max-width: 700px) {
-  .updatesHeader, .jobsHeader {
-    display: block;
-  }
 }

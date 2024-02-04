@@ -2891,7 +2891,7 @@ const JobsPageHeader = ({ jobsAreAvailable }) => {
     return (
         <>
             <header>
-                <h1 className="serif jobsHeader">
+                <h1 className="mobileAboutHeader">
                     <span className="int-en">Jobs at Sefaria</span>
                     <span className="int-he">משרות פנויות בספריא</span>
                 </h1>
