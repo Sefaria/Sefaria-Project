@@ -3493,9 +3493,11 @@ display: none;
   .interface-hebrew #aboutPage .inner {
     margin-top: -85px;
   }
-  #teamPage .inner, #jobsPage .inner, #supportersPage .inner, #metricsPage .inner,
-  #annualReport .inner, #testimonialsPage .inner, .container.doc.legal.static .inner {
-    margin-top: -50px;
+  .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner, #testimonialsPage .inner, #jobsPage .inner {
+    margin-top: -70px;
+  }
+  #teamPage .inner {
+    margin-top: -75px;
   }
   .interface-hebrew .about.section {
     padding-top: 50px;
@@ -3507,7 +3509,10 @@ display: none;
     margin-top: 50px;
   }
   #aboutPage .inner {
-     margin-top: -70px;
+     margin-top: -80px;
+  }
+  #aboutSidebar.mobileAbout ul {
+    padding-top: 10px;
   }
   #jobsPage .inner #jobsPageContent {
     margin-top: 0px;
@@ -3517,6 +3522,9 @@ display: none;
   }
   div #teamMembersPageContent {
     margin-top: 40px;
+  }
+  .interface-hebrew div #teamMembersPageContent {
+    margin-top: 50px;
   }
   .interface-hebrew div #teamMembersPageContent {
     margin-top: 60px;
@@ -3557,7 +3565,7 @@ display: none;
     margin-top: 0px;
   }
   .static.legal iframe {
-    margin-top: 40px;
+    margin-top: 60px;
   }
 }
 #metricsBox {
