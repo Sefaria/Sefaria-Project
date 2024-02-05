@@ -757,11 +757,23 @@ p.registration-links a:hover{
 #aboutPage .inner {
   margin-top: -610px;
 }
+.interface-hebrew #aboutPage .inner {
+  margin-top: -670px;
+}
+div .notificationsList {
+  margin-top: 20px;
+}
 #teamPage .inner {
   margin-top: -580px;
 }
+.interface-hebrew #teamPage .inner {
+  margin-top: -630px;
+}
 #jobsPage .inner #jobsPageContent {
   margin-top: -620px;
+}
+.interface-hebrew #jobsPage .inner #jobsPageContent {
+  margin-top: -670px;
 }
 #aboutHeader {
   color: white;
@@ -3337,16 +3349,15 @@ display: none;
 }
 .interface-hebrew #aboutSidebar h1 {
   font-size: 22px;
-  margin: 0 50px 30px 30px;
-}
-.interface-hebrew #jobsPage .inner {
-  margin-top: -50px;
+  margin: 0 50px 60px 30px;
 }
 #aboutSidebar h1 {
-  margin: 0 0 30px 50px;
+  margin: 0 0 60px 50px;
   font-size: 22px;
-  font-weight: 300;
+  font-weight: 500;
+  color: var(--dark-grey);
 }
+
 #aboutPage h1, #testimonialsPage h1 {
   text-align: left;
 }
@@ -3359,10 +3370,6 @@ display: none;
 }
 .interface-hebrew #aboutPage h1, .interface-hebrew #teamPage h2, .interface-hebrew #testimonialsPage h1 {
   text-align: right;
-}
-#aboutSidebar.updates h1 {
-  margin: 0 50px 30px 50px;
-  font-weight: 100;
 }
 #aboutSidebar.annualreport h1 {
   margin-left: 50px;
@@ -3388,7 +3395,10 @@ display: none;
 }
 .annualReport {
   margin: -620px 0 300px 0;
-  padding-top: 35px;
+  padding-top: 45px;
+}
+.interface-hebrew .annualReport {
+  padding-top: 0px;
 }
 .annualReport a {
   color: blue;
@@ -3452,17 +3462,26 @@ display: none;
 #testimonialsPage .inner {
   margin-top: -580px;
 }
+.interface-hebrew #testimonialsPage .inner {
+  margin-top: -630px;
+}
 #updatersPage .globalUpdateForm {
   margin-top: 50px
 }
 #supportersPage .inner {
   margin-top: -570px;
 }
+.interface-hebrew #supportersPage .inner {
+  margin-top: -630px;
+}
 #metricsPage .inner {
   margin-top: -600px;
 }
+.interface-hebrew #metricsPage .inner {
+  margin-top: -670px;
+}
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 100px
+    margin-top: 140px;
 }
 #updatesPanelContent .navSideBar {
     margin-left: 200px;
@@ -3470,6 +3489,9 @@ display: none;
 
 .mobileAboutHeader, .updatesHeader, .jobsHeader {
   display: none;
+}
+.interface-hebrew .container.doc.legal.static .inner {
+  margin-top: -40px;
 }
 
 @media (max-width: 700px) {
