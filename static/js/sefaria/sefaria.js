@@ -552,6 +552,7 @@ Sefaria = extend(Sefaria, {
   },
   ISOMap: {
     "ar": {"name": "Arabic", "nativeName": "عربى", "showTranslations": 1, "title": "نصوص يهودية بالعربية"},
+    "cn" :  {"name": "Chinese", "nativeName": "Mandarin", "showTranslations": 1, "title": "佛教文本中文"},
     "de": {"name": "German", "nativeName": "Deutsch", "showTranslations": 1, "title": "Jüdische Texte in Deutscher Sprache"},
     "en": {"name": "English", "nativeName": "English", "showTranslations": 1, "title": "Jewish Texts in English"},
     "eo": {"name": "Esperanto", "nativeName": "Esperanto", "showTranslations": 1, "title": "Judaj Tekstoj en Esperanto"},
@@ -564,6 +565,7 @@ Sefaria = extend(Sefaria, {
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
     "pt": {"name": "Portuguese", "nativeName": "Português", "showTranslations": 1, "title": "Textos judaicos em portugues"},
+    "sw" :  {"name": "Swahili", "nativeName": "Kiswahili", "showTranslations": 1, "title": "maandishi ya Kibuddha kwa Kiswahili"},
     "ru": {"name": "Russian", "nativeName": "Pусский", "showTranslations": 1, "title": "Еврейские тексты на русском языке"},
     "yi": {"name": "Yiddish", "nativeName": "יידיש", "showTranslations": 1, "title": "יידישע טעקסטן אויף יידיש"},
     "jrb": {"name": "Judeo-Arabic", "nativeName": "Arabia Yehudia", "showTranslations": 0},  // nativeName in English because hard to determine correct native name
