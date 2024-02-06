@@ -19,6 +19,7 @@ static_pages = [
     "henry-and-julia-koschitzky-apps",
     "adin-even-israel-steinsaltz",
     "william-davidson-talmud",
+    "nash-bravmann-collection",
     "linker",
     "ios",
     "mobile",
