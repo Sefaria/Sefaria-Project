@@ -11311,7 +11311,6 @@ body .homeFeedWrapper .content {
   padding-bottom: 20px;
 }
 
-
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
@@ -11370,6 +11369,12 @@ body .homeFeedWrapper .content {
   padding: 20px;
   display: flex;
 }
+
+/* extremely hacky, but required unless there's a major refactor of CategoryHeader logic */
+.story details > summary .topicStoryDescBlock > span:nth-child(1) {
+  flex: 1
+}
+
 
 .story details > summary .storyTitleBlock {
   background: url('/static/icons/arrow-down-bold.svg') no-repeat transparent;
