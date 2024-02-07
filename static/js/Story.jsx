@@ -72,11 +72,23 @@ SheetListStory.propTypes = {
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, collapsibleSummary, children}) => (
+const StoryFrame = ({cls, cardColor, collapsibleSummary, children}) => {
+
+const handleDetailOpen = (target) => {
+  const targetDetail = (target.closest("details"))
+  const details = document.querySelectorAll('details');
+  details.forEach((detail) => {
+      if (detail !== targetDetail) {
+          detail.removeAttribute("open");
+      }
+  });
+}
+
+return (
      <div className={'story ' + cls}>
-        {collapsibleSummary ? (<details><summary>{collapsibleSummary}</summary>{children}</details>) : children }
+        {collapsibleSummary ? (<details><summary onClick={(e)=>{handleDetailOpen(e.target)}}>{collapsibleSummary}</summary>{children}</details>) : children }
      </div>
-);
+)};
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
     cardColor:  PropTypes.string,
