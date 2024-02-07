@@ -48,7 +48,7 @@ class Text(View):
         if not versions_params:
             versions_params = ['primary']
         versions_params = [self.split_piped_params(param_str) for param_str in versions_params]
-        fill_in_missing_segments = request.GET.get('fill_in_missing_segments', False)
+        fill_in_missing_segments = bool(int(request.GET.get('fill_in_missing_segments', False)))
         return_format = request.GET.get('return_format', 'default')
         if return_format not in self.RETURN_FORMATS:
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
