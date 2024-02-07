@@ -156,7 +156,8 @@ const TopicStoryDescBlock = ({topic, text}) => (
 
 const TopicTextPassage = ({text, topic, bodyTextIsLink=false}) => {
   if (!text.ref) { return null; }
-  const isCurated = !!text.descriptions;
+  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
   const versions = text.versions || {}
   const params = Sefaria.util.getUrlVersionsParams(versions);
   const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
