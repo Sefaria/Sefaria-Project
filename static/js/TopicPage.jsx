@@ -598,6 +598,14 @@ const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, showFilterHeader,
   scrollableElement, onDisplayedDataChange, initialRenderSize, onSetTopicSort, topicSort
 }) => {
+  useEffect(()=>{
+    const details = document.querySelector(".story.topicPassageStory details");
+    console.log(details)
+    if (details) {
+      details.setAttribute("open", "");
+    }
+  },[data])
+
   return (
     <div className="topicTabContents">
       {!!data ?
