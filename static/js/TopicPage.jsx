@@ -600,7 +600,6 @@ const TopicPageTab = ({
 }) => {
   useEffect(()=>{
     const details = document.querySelector(".story.topicPassageStory details");
-    console.log(details)
     if (details) {
       details.setAttribute("open", "");
     }

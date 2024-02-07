@@ -163,7 +163,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false}) => {
   const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
   const heOnly = !text.en;
   const enOnly = !text.he;
-  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : Sefaria.interfaceLang;
   let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
   const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 
