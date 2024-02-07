@@ -82,6 +82,7 @@ const handleDetailOpen = (target) => {
           detail.removeAttribute("open");
       }
   });
+  targetDetail.scrollIntoView();
 }
 
 return (
