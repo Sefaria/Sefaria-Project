@@ -70,15 +70,20 @@ SheetListStory.propTypes = {
  *****************************/
 
 // todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
-const StoryFrame = ({cls, cardColor, children}) => (
+
+// todo: if we don't want the monopoly card effect, this component isn't needed.    // style={{"borderColor": cardColor || "#18345D"}}>
+const StoryFrame = ({cls, cardColor, collapsibleSummary, children}) => (
      <div className={'story ' + cls}>
-        {children}
+        {collapsibleSummary ? (<details><summary>{collapsibleSummary}</summary>{children}</details>) : children }
      </div>
 );
 StoryFrame.propTypes = {
     cls:        PropTypes.string,   // Story type as class name
-    cardColor:  PropTypes.string
+    cardColor:  PropTypes.string,
+    collapsibleSummary: PropTypes.func,
 };
+
+
 
 
 const StoryTypeBlock = ({en, he}) => (
@@ -127,47 +132,57 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
-const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
-    if (!text.ref) { return null; }
-    const versions = text.versions || {}
-    const params = Sefaria.util.getUrlVersionsParams(versions);
-    const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
-    const heOnly = !text.en;
-    const enOnly = !text.he;
-    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
-    let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
-    const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+const TopicStoryDescBlock = ({topic, text}) => (
+      <div className="topicStoryDescBlock">
+        <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+            <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}></StoryTitleBlock>
+        </CategoryHeader>
+        <div>{(Sefaria.index(Sefaria.parseRef(text.ref).index).primary_category).toUpperCase() }</div>
+      </div>
+)
 
-    return (
-        <StoryFrame cls="introducedTextPassageStory">
-            <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
-                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-            </CategoryHeader>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-            </div>
-            <SaveLine
-                dref={text.ref}
-                versions={versions}
-                toggleSignUpModal={toggleSignUpModal}
-                classes={"storyTitleWrapper"}
-                afterChildren={afterSave || null} >
-                <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
-            </SaveLine>
-            <ColorBarBox tref={text.ref}>
-                <StoryBodyBlock>
-                    {content}
-                </StoryBodyBlock>
-            </ColorBarBox>
-        </StoryFrame>
-    );
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false}) => {
+  if (!text.ref) { return null; }
+  const isCurated = !!text.descriptions;
+  const versions = text.versions || {}
+  const params = Sefaria.util.getUrlVersionsParams(versions);
+  const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
+  const heOnly = !text.en;
+  const enOnly = !text.he;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+  let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
+  const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+
+  return (
+    <StoryFrame
+      cls="topicPassageStory"
+      collapsibleSummary={isCurated ? <ColorBarBox tref={text.ref}><TopicStoryDescBlock topic={topic} text={text} /></ColorBarBox> : null}
+    >
+      {isCurated ?
+      <ColorBarBox tref={text.ref}>
+
+        <div className={"systemText learningPrompt"}>
+            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+        </div>
+      </ColorBarBox>
+
+        : null
+      }
+      <ColorBarBox tref={text.ref}>
+          <StoryBodyBlock>
+              {content}
+          </StoryBodyBlock>
+          <SimpleLinkedBlock classes={"contentText subHeading"} en={text.ref} he={text.heRef} url={url}/>
+
+      </ColorBarBox>
+    </StoryFrame>
+  );
 };
-IntroducedTextPassage.propTypes = {
-    intros: PropTypes.object,
-    text: textPropType,
-    afterSave: PropTypes.object,
-    toggleSignUpModal:  PropTypes.func
+TopicTextPassage.propTypes = {
+  text: textPropType,
 };
+
+
 
 const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
   if (!text.ref) { return null; }
@@ -221,17 +236,17 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, afterSave, toggleSignUpMo
             historyObject={historyObject}
             afterChildren={afterSave || null}
             toggleSignUpModal={toggleSignUpModal}>
-            <SimpleLinkedBlock 
+            <SimpleLinkedBlock
                 en={sheet.sheet_title}
                 he={sheet.sheet_title}
                 url={"/sheets/" + sheet.sheet_id}
                 classes={"sheetTitle storyTitle"}/>
         </SaveLine>
 
-        {(sheet.sheet_summary && !(compact || cozy)) ? 
+        {(sheet.sheet_summary && !(compact || cozy)) ?
         <SimpleInterfaceBlock classes={"storyBody"} en={sheet.sheet_summary} he={sheet.sheet_summary}/>
         : null}
-        
+
         {cozy ? null :
         <ProfileListing
           uid={sheet.publisher_id}
@@ -281,5 +296,5 @@ export {
   SheetBlock,
   StorySheetList,
   TextPassage,
-  IntroducedTextPassage
+  TopicTextPassage,
 };

@@ -10,8 +10,7 @@ import {TopicEditor} from './TopicEditor';
 import {AdminEditorButton, useEditToggle} from './AdminEditor';
 import {
   SheetBlock,
-  TextPassage,
-  IntroducedTextPassage
+  TopicTextPassage,
 } from './Story';
 import {
     TabView,
@@ -150,7 +149,7 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
-const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
+const refRenderWrapper = (topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -160,24 +159,13 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
     dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
 
-  const afterSave = (
-    <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
-      <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
-    </ToolTipped>
-  );
-
-  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
-
   // When running a test, topicTestVersion is respected.
   // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
   return (
-    <Passage
+    <TopicTextPassage
       key={item[0]}
       topic={topicData.slug}
       text={text}
-      afterSave={afterSave}
-      toggleSignUpModal={toggleSignUpModal}
       bodyTextIsLink= {true}
     />
   );
@@ -320,7 +308,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   return (
     <div>
-      
+
         <div className="navTitle tight">
                 <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
                 <h1>
@@ -758,7 +746,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
 }
 
 const TopicImage = ({photoLink, caption }) => {
-  
+
   return (
     <div class="topicImage">
       <ImageWithCaption photoLink={photoLink} caption={caption} />

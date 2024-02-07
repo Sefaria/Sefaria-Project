@@ -758,7 +758,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   margin-inline-start: 23px;
   margin-top: 3px;
 }
-.loggedIn .help { 
+.loggedIn .help {
   margin-inline-start: 17px;
 }
 .loggedIn .help img {
@@ -2188,7 +2188,8 @@ div.interfaceLinks-row a {
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topicPanel .mainColumn .story {
-    padding: 0 0 20px 0;
+    padding: 0;
+    margin-bottom: 20px;
 }
 .topicPanel .mainColumn .storySheetListItem {
   padding: 0 0 30px 0;
@@ -2226,7 +2227,10 @@ div.interfaceLinks-row a {
   font-size: 29px;
 }
 .topicPanel .story .storyTitle {
-  font-size: 24px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 600
 }
 .topicPanel h1 {
   --english-font: var(--english-serif-font-family);
@@ -2292,7 +2296,7 @@ div.interfaceLinks-row a {
 }
 .imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
-  max-width: 100%; 
+  max-width: 100%;
   height: auto;
   padding: 0 44;
   top: 121px;
@@ -2337,7 +2341,7 @@ div.interfaceLinks-row a {
   .topicImage{
     padding-left: 0;
     padding-right: 0;
-    margin-top: 30px;  
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -5465,8 +5469,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.enOnly .en{
   display: initial;
 }
-/* 
-This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+/*
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left.
 But not to use a display block directive that might break continuous mode for other English only texts
  */
 .readerPanel.hebrew.continuous .segment.enOnly .en{
@@ -11287,6 +11291,27 @@ body .homeFeedWrapper .content {
 .story .learningPrompt {
   padding: 10px 0 20px;
 }
+.story details .learningPrompt {
+  background-color: var(--highlight-blue-light);
+  margin-inline-start: -20px;
+  padding-inline-start: 20px;
+  padding-inline-end: 20px;
+  border-top: 1px solid var(--light-grey);
+}
+
+.story.topicPassageStory {
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+.story.topicPassageStory .storyBody {
+  padding-inline-end: 20px;
+  padding-top: 20px;
+}
+.story.topicPassageStory .contentText.subHeading {
+  padding-bottom: 20px;
+}
+
+
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
@@ -11329,6 +11354,38 @@ body .homeFeedWrapper .content {
 .interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
+
+.story details .storyBody {
+  margin-top: 0;
+}
+
+.story details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.story details > summary .topicStoryDescBlock {
+  background-color: var(--lightest-grey);
+  margin-inline-start: -20px;
+  padding: 20px;
+  display: flex;
+}
+
+.story details > summary .storyTitleBlock {
+  background: url('/static/icons/arrow-down-bold.svg') no-repeat transparent;
+  background-size: 14px;
+  background-position-y: center;
+  margin: 0;
+  padding: 0px 0px 1px 24px;
+  vertical-align: middle;
+}
+
+.story details[open] > summary .storyTitleBlock {
+  background: url('/static/icons/arrow-up-bold.svg') no-repeat transparent;
+  background-size: 14px;
+  background-position-y: center;
+}
+
 
 .story .storyBody {
   clear: both;

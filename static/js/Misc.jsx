@@ -2055,7 +2055,7 @@ function OnInView({ children, onVisible }) {
    *  `onVisible` callback function that will be called when given component(s) are visible within the viewport
    *  Ex. <OnInView onVisible={handleImageIsVisible}><img src="..." /></OnInView>
    */
-  const elementRef = useRef(); 
+  const elementRef = useRef();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -3253,11 +3253,11 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const ImageWithCaption = ({photoLink, caption }) => {
-  
+
   return (
     <div>
         <img class="imageWithCaptionPhoto" src={photoLink}/>
-        <div class="imageCaption"> 
+        <div class="imageCaption">
           <InterfaceText text={caption} />
         </div>
       </div>);
