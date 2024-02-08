@@ -340,14 +340,6 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        : null}
-       {topicData?.indexes?.length ?
-        <div>
-          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
-          <div className="authorIndexList">
-            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
-          </div>
-        </div>
-       : null}
     </div>
 );}
 
@@ -462,6 +454,8 @@ const TopicPage = ({
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
     let onClickFilterIndex = 2;
+    let authorWorksAdded = false
+
     for (let tabObj of tabDisplayData) {
       const { key } = tabObj;
       useIncrementalLoad(
@@ -475,6 +469,16 @@ const TopicPage = ({
         }),
         topic
       );
+
+
+      if (topicData?.indexes?.length && !authorWorksAdded) {
+        displayTabs.push({
+          title: {en: "Works on Sefaria", he: Sefaria.translation('hebrew', "Works on Sefaria")},
+          id: 'author-works-on-sefaria',
+        });
+        authorWorksAdded = true
+      }
+
       if (topicData?.tabs?.[key]) {
         displayTabs.push({
           title: topicData.tabs[key].title,
@@ -534,15 +538,23 @@ const TopicPage = ({
                           currTabName={tab}
                           setTab={setTab}
                           tabs={displayTabs}
-                          renderTab={t => (
+                          renderTab={t => {console.log(t); return (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
-                          )}
+                          )}}
                           containerClasses={"largeTabs"}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
+
+                        {topicData?.indexes?.length ? (
+                          <div className="authorIndexList">
+                            {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
+                          </div>
+                          ) : null }
+
+
                           {
                             tabDisplayData.map(tabObj => {
                               const { key, sortOptions, filterFunc, sortFunc, renderWrapper } = tabObj;
