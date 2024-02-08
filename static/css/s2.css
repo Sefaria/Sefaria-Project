@@ -2230,8 +2230,14 @@ div.interfaceLinks-row a {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-size: 16px;
-  font-weight: 600
+  font-weight: 600;
 }
+
+.topicPanel .story .storyTitle .int-he {
+  font-size: 18px;
+  font-weight: 600;
+}
+
 .topicPanel h1 {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
@@ -11385,10 +11391,19 @@ body .homeFeedWrapper .content {
   vertical-align: middle;
 }
 
+.interface-hebrew .story details > summary .storyTitleBlock {
+  background-position-x: right;
+  padding: 0px 24px 1px 0px;
+}
+
 .story details[open] > summary .storyTitleBlock {
   background: url('/static/icons/arrow-up-bold.svg') no-repeat transparent;
   background-size: 14px;
   background-position-y: center;
+}
+
+.interface-hebrew .story details[open] > summary .storyTitleBlock {
+  background-position-x: right;
 }
 
 
