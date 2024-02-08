@@ -3380,7 +3380,7 @@ display: none;
 }
 #aboutSidebar li {
   padding: 10px;
-  margin: 0 !important;
+  margin: 0;
   color: #666666;
 }
 #aboutSidebar li:last-child {
@@ -3410,7 +3410,7 @@ display: none;
   text-align: left;
 }
 .mobileAboutPage {
-  margin: 50px 0 300px 0;
+  margin: 50px 0 0 0;
   padding-top: 15px;
 }
 .mobileAbout {
@@ -3438,7 +3438,7 @@ display: none;
   padding-top: 10px;
   color: var(--dark-grey);
   display: block !important;
-  margin: 0 20px 0 50px;
+  margin-left: 60px;
   float: left;
 }
 .mobileAbout .fa-chevron-right {
@@ -3446,7 +3446,7 @@ display: none;
   padding-top: 10px;
   color: var(--dark-grey);
   display: block !important;
-  margin: 0 20px 0 20px;
+  margin-right: 30px;
 }
 #aboutSidebar .fa-chevron-right, #aboutSidebar .fa-chevron-left {
   display: none;
@@ -3573,8 +3573,17 @@ display: none;
   h1.mobileAboutHeader {
     margin: 40px 0 0 0 !important;
   }
-  #aboutSidebar h1 {
-    margin: 40px 50px 0 20px !important;
+  .interface-english #aboutSidebar li {
+    margin-left: 5px;
+  }
+  .interface-english #aboutSidebar h1 {
+    margin: 40px 50px 0 25px !important;
+  }
+  .interface-hebrew #aboutSidebar h1 {
+    margin: 40px 30px 0 20px !important;
+  }
+  .interface-hebrew #aboutSidebar li {
+    margin-right: -18px;
   }
   div .section.leading-supporters {
     margin-top: 40px;
