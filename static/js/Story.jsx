@@ -150,7 +150,7 @@ const TopicStoryDescBlock = ({topic, text}) => (
         <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
             <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}></StoryTitleBlock>
         </CategoryHeader>
-        <div>{(Sefaria.index(Sefaria._(Sefaria.parseRef(text.ref).index).primary_category)).toUpperCase() }</div>
+        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(text.ref).index).primary_category).toUpperCase()}</div>
       </div>
 )
 
