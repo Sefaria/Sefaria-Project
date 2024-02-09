@@ -122,7 +122,7 @@ const TranslationsHeader = () => (
     </h3>
     <div className="translationsDesc sans-serif">
       <InterfaceText>
-        <EnglishText>Sefaria acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
+        <EnglishText>Pecha acquires translations to enrich your learning experience. Preview or choose a different translation below.</EnglishText>
         <HebrewText>ספריא עושה מאמצים להוסיף תרגומים שונים לספרים כדי להעשיר את חווית הלמידה שלכם. כאן ניתן להחליף לתרגום אחר או לראות תצוגה מקדימה שלו לצד הטקסט הנוכחי.</HebrewText>
       </InterfaceText>
       <a href="/sheets/511573" target="_blank" className="inTextLink">
