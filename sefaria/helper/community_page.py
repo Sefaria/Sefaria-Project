@@ -153,7 +153,7 @@ def get_featured_item(data, date):
 def get_todays_data(data, date):
   todays_data = None
   for day_data in data:
-    if day_data.get("Date") == date:
+    if day_data["Date"] == date:
       todays_data = day_data
       break
   return todays_data
