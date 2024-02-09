@@ -322,8 +322,14 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
     if parasha is not None:
         # regex search for potential double parasha. there can be dash before or after name
         query["parasha"] = re.compile('(?:(?<=^)|(?<=-)){}(?=-|$)'.format(parasha))
-    p = db.parshiot.find(query, limit=1).sort([("date", 1)])
-    p = next(p)
+
+    p = db.parshiot.find(query).sort([("date", 1)]).limit(1)
+
+    try:
+        p = next(p)
+    except StopIteration:
+        p = None  # or handle the empty case appropriately
+
     return p
 
 
