@@ -248,6 +248,8 @@ const Strings = {
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
     "Sources": "מקורות",
+    "Key Sources": "מקורות מרכזיים",
+    "All Sources": "כל המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",

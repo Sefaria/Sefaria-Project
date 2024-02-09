@@ -368,6 +368,14 @@ const useTabDisplayData = (translationLanguagePreference) => {
       renderWrapper: refRenderWrapper,
     },
     {
+      key: 'key-sources',
+      fetcher: fetchBulkText.bind(null, translationLanguagePreference),
+      sortOptions: ['Relevance', 'Chronological'],
+      filterFunc: refFilter,
+      sortFunc: refSort,
+      renderWrapper: refRenderWrapper,
+    },
+    {
       key: 'sources',
       fetcher: fetchBulkText.bind(null, translationLanguagePreference),
       sortOptions: ['Relevance', 'Chronological'],
@@ -538,12 +546,12 @@ const TopicPage = ({
                           currTabName={tab}
                           setTab={setTab}
                           tabs={displayTabs}
-                          renderTab={t => {console.log(t); return (
+                          renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                             </div>
-                          )}}
+                          )}
                           containerClasses={"largeTabs"}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >

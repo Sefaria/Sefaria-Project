@@ -317,12 +317,12 @@ Sefaria = extend(Sefaria, {
     }
   },
     /**
-     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types. 
+     * Helps the BookPage toc translate the given integer to the correctly formatted display string for the section given the varying address types.
      * @param {string} addressType - The address type of the schema being requested
      * @param {number} i - The numeric section string from the database
      * @param {number} offset - If needed, an offest to allow section addresses that do not start counting with 0
-     * @returns {[string,string]} Section string in both languages. 
-     */  
+     * @returns {[string,string]} Section string in both languages.
+     */
   getSectionStringByAddressType: function(addressType, i, offset=0) {
     let section = i + offset;
     let enSection, heSection;
@@ -330,11 +330,11 @@ Sefaria = extend(Sefaria, {
       enSection = Sefaria.hebrew.intToDaf(section);
       heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
     } else if (addressType === "Year") {
-      enSection = section + 1241;  
+      enSection = section + 1241;
       heSection = Sefaria.hebrew.encodeHebrewNumeral(section+1);
       heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1);
     } else if (addressType === "Folio") {
-      enSection = Sefaria.hebrew.intToFolio(section);  
+      enSection = Sefaria.hebrew.intToFolio(section);
       heSection = Sefaria.hebrew.encodeHebrewFolio(enSection);
     } else {
       enSection = section + 1;
@@ -2520,15 +2520,15 @@ _media: {},
       for (let refObj of linkTypeObj.refs) {
         let tabKey = linkTypeSlug;
         if (tabKey === 'about') {
-          tabKey = refObj.is_sheet ? 'sheets' : 'sources';
+          tabKey = refObj.descriptions ? 'key-sources' : 'sources';
         }
         if (!tabs[tabKey]) {
           let { title } = linkTypeObj;
-          if (tabKey === 'sheets') {
-            title = {en: 'Sheets', he: Sefaria._('Sheets')};
+          if (tabKey === 'key-sources') {
+            title = {en: 'Key Sources', he: Sefaria.translation('hebrew', 'Key Sources')};
           }
           if (tabKey === 'sources') {
-            title = {en: 'Sources', he: Sefaria._('Sources')};
+            title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
           }
           tabs[tabKey] = {
             refMap: {},
@@ -2536,6 +2536,7 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
+        console.log(refObj)
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
@@ -2550,6 +2551,11 @@ _media: {},
       tabObj.refs = Object.values(tabObj.refMap);
       delete tabObj.refMap;
     }
+
+    if (tabs["key-sources"]) {
+      tabs["sources"]["title"] = {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')};
+    }
+
     data.tabs = tabs;
     return data;
   },
