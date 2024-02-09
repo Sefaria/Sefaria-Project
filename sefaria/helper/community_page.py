@@ -101,38 +101,41 @@ def get_community_page_items(date=None, language="english", diaspora=True, refre
 
 
 def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
-  todays_data = get_todays_data(data, date) # First we want the row in the sheet representing today. Always.
-  weekend_reading = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora) # What is this week's torah reading on Saturday. Can be a special reading for Holiday.
-  parashah_name = weekend_reading["parasha"]
-  parashah_topic = get_topic_by_parasha(parashah_name)
+    todays_data = get_todays_data(data, date)  # First we want the row in the sheet representing today. Always.
+    weekend_reading = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora)  # What is this week's torah reading on Saturday. Can be a special reading for Holiday.
 
-  if not todays_data or not (todays_data["Sheet URL"]):
-    sheet = None
-  else:
-    sheet = sheet_with_customization(todays_data)
-    if sheet:
-      if parashah_topic and todays_data["Parashah"] in [parashah_topic.parasha] + parashah_topic.get_titles():  # We have a matched official parasha to the day's entry in the sheet
-        parashah_name = parashah_topic.parasha
-        sheet["heading"] = {
-          "en": "This Week's Torah Portion: " + parashah_name,
-          "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
-        }
-      else:  
-        # We have a sheet row where the title doesn't match a known parasha. It might be a mid week holiday reading (doesnt appear in our parshiot db).
-        # Since this sheet column can now essentially be a custom block title, we dont know how to translate automatically, so
-        # this will also mostly rely on the fact that the Hebrew only shows up in Hebrew interface and Heb comms team can enter custom Hebrew to begin with.
-        sheet["heading"] = {
-          "en": "Torah Reading For: " + todays_data["Parashah"],
-          "he": "קריאת התורה ל:" + todays_data["Parashah"]
-        }
+    if weekend_reading is not None:
+        parashah_name = weekend_reading["parasha"]
+        parashah_topic = get_topic_by_parasha(parashah_name)
+    else:
+        # Handle the case where weekend_reading is None
+        # For example, return None or set default values for parashah_name and parashah_topic
+        return None  # Or other appropriate handling
 
-  if not parashah_topic and not sheet:
-    return None
+    if not todays_data or not (todays_data["Sheet URL"]):
+        sheet = None
+    else:
+        sheet = sheet_with_customization(todays_data)
+        if sheet:
+            if parashah_topic and todays_data["Parashah"] in [parashah_topic.parasha] + parashah_topic.get_titles():
+                parashah_name = parashah_topic.parasha
+                sheet["heading"] = {
+                    "en": "This Week's Torah Portion: " + parashah_name,
+                    "he": "פרשת השבוע: " + hebrew_parasha_name(parashah_name)
+                }
+            else:  
+                sheet["heading"] = {
+                    "en": "Torah Reading For: " + todays_data["Parashah"],
+                    "he": "קריאת התורה ל:" + todays_data["Parashah"]
+                }
 
-  return {
-    "topic": parashah_topic.contents() if parashah_topic else None,
-    "sheet": sheet
-  }
+    if not parashah_topic and not sheet:
+        return None
+
+    return {
+        "topic": parashah_topic.contents() if parashah_topic else None,
+        "sheet": sheet
+    }
 
 
 def get_featured_item(data, date):
