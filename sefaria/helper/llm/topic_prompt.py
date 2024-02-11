@@ -34,7 +34,7 @@ def _get_commentary_for_tref(tref: str) -> List[dict]:
                 lambda lang: JaggedTextArray(link_dict['text' if lang == 'en' else 'he']).flatten_to_string()),
         }
         temp_commentary['text'] = _lang_dict_by_func(
-            lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(temp_commentary.text[lang])))
+            lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(temp_commentary['text'][lang])))
         commentary += [temp_commentary]
     return commentary
 
