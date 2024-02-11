@@ -1137,12 +1137,21 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_category_mapping(rebuild=True)
 
 def _calculate_approved_review_state(current, requested):
-    if current == "reviewed":
-        return "reviewed"
-    if requested == "edited":
-        return "edited"
-    if requested == "reviewed":
-        return "reviewed"
+    state_to_num = {
+        "not reviewed": 0,
+        "edited": 1,
+        "reviewed": 2
+    }
+    # if current == "reviewed":
+    #     return "reviewed"
+    # if requested == "edited":
+    #     return "edited"
+    # if requested == "reviewed":
+    #     return "reviewed"
+    if state_to_num[requested] > state_to_num[current]:
+        return requested
+    else:
+        return current
 def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
                       interface_lang='en', linkType='about', description={}):
     """
