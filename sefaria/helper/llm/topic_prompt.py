@@ -1,13 +1,11 @@
 from typing import List, Callable, Any, Optional, Dict
 import re
-from celery import signature
 from sefaria.model.text import Ref, library, TextChunk
 from sefaria.model.passage import Passage
 from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.helper.llm.llm_interface import TopicPromptGenerationOutput
-from sefaria.helper.llm.tasks import save_topic_prompts
 from sefaria.utils.util import deep_update
 
 
@@ -153,10 +151,3 @@ def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
         }}
         setattr(link, "descriptions", deep_update(curr_descriptions, description_edits))
         link.save()
-
-
-def generate_and_save_topic_prompts(lang: str, sefaria_topic: Topic, orefs: List[Ref], contexts: List[str]):
-    topic_prompt_input = make_topic_prompt_input(lang, sefaria_topic, orefs, contexts)
-    generate_signature = signature('llm.generate_topic_prompts', args=(topic_prompt_input,))
-    chain = generate_signature | save_topic_prompts.s()
-    return chain()
