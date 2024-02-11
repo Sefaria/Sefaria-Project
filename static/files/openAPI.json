@@ -7244,7 +7244,7 @@
                         "example": "\"titles\": [\n    {\n        \"text\": \"Tabernacles\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Sukkos\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succos\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Booths\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"sukkot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"succot\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Succoth\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"Sukkoth\",\n        \"lang\": \"en\"\n    },\n    {\n        \"text\": \"חג הסוכות\",\n        \"lang\": \"he\"\n    },\n    {\n        \"text\": \"סכות\",\n        \"lang\": \"he\"\n    },\n    {\n        \"text\": \"Sukkot\",\n        \"lang\": \"en\",\n        \"primary\": true\n    },\n    {\n        \"text\": \"סוכות\",\n        \"lang\": \"he\",\n        \"primary\": true\n    }\n]"
                     },
                     "alt_ids": {
-                        "description": "This is a dictionary containing the keys of naming schemes, and ids of this topic represented in that naming scheme.  It’s used both for canonical names in other naming schemes and temporary storage of names when renaming slugs. All of the data here is for internal use, with the exception of the values `bfo` and `wikidata`. `bfo` refers to [basic formal ontology](https://github.com/BFO-ontology/BFO#implementations), and `wikidata` to the wikidata ontology of topics. ",
+                        "description": "This is a dictionary containing the keys of naming schemes, and ids of this topic represented in that naming scheme.  It’s used both for canonical names in other naming schemes and temporary storage of names when renaming slugs. All of the data here is for internal use, with the exception of the values `bfo` and `wikidata`. `bfo` refers to [basic formal ontology](https://developers.sefaria.org/docs/topic-ontology), and `wikidata` to the wikidata ontology of topics. ",
                         "type": "object",
                         "properties": {
                             "_temp_id": {
@@ -9351,7 +9351,7 @@
                         "type": "string"
                     },
                     "linkType": {
-                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://github.com/Sefaria/Sefaria-Project/wiki/Documentation-for-Topics-Hierarchy#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
                         "type": "string"
                     },
                     "class": {
@@ -9706,7 +9706,7 @@
                 "type": "object",
                 "properties": {
                     "linkType": {
-                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://github.com/Sefaria/Sefaria-Project/wiki/Documentation-for-Topics-Hierarchy#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
+                        "description": "The type of the link, based on the relationship within our ontology. Many links has an `is-a` relationship (such as `Genesis` `is-a` `Book`), but other topic-to-topic links have a variety of other types documented  [here](https://developers.sefaria.org/docs/topic-ontology#overview-of-sefaria-link-types). \n\nSome examples include `child-of`, `parent-of`, `sibling-of` etc. ",
                         "type": "string",
                         "example": "about"
                     },
@@ -11181,7 +11181,7 @@
                 "type": "object",
                 "properties": {
                     "linkType": {
-                        "description": "The type of link between the topic and the `Ref`. For more on Sefaria's topic ontology, see [here](https://github.com/Sefaria/Sefaria-Project/wiki/Documentation-for-Topics-Hierarchy#BFO-Overview). ",
+                        "description": "The type of link between the topic and the `Ref`. For more on Sefaria's topic ontology, see [here](https://developers.sefaria.org/docs/topic-ontology). ",
                         "type": "string",
                         "example": "about"
                     },
