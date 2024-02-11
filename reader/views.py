@@ -3092,7 +3092,7 @@ def topics_list_api(request):
 @staff_member_required
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
-        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.topic_prompt import generate_and_save_topic_prompts
         post_body = json.loads(request.body)
         lang = post_body.get('lang')
         topic = Topic.init(slug)
