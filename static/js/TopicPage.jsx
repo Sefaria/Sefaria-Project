@@ -22,7 +22,9 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption,
+    EnglishText,
+    HebrewText,
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -734,11 +736,34 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       })
     : null
   );
+
+
+  const LinkToSheetsSearchComponent = () => {
+
+    let searchUrlEn = `/search?q=${topicTitle.en}&tab=sheet&tvar=1&tsort=relevance&stopics_enFilters=${topicTitle.en}&svar=1&ssort=relevance`;
+    let searchUrlHe = `/search?q=${topicTitle.he}&tab=sheet&tvar=1&tsort=relevance&stopics_heFilters=${topicTitle.he}&svar=1&ssort=relevance`;
+      return (
+        <TopicSideSection title={{ en: "Sheets", he: "דפי מקורות" }}>
+          <InterfaceText>
+            <EnglishText>
+              <a href={searchUrlEn}>Related Sheets</a>
+            </EnglishText>
+            <HebrewText>
+              <a href={searchUrlHe}>דפי מקורות קשורים</a>
+            </HebrewText>
+          </InterfaceText>
+        </TopicSideSection>
+      );
+    };
+
+
   return (
     <div className={"topicSideColumn"}>
       { readingsComponent }
       { topicMetaData }
       { linksComponent }
+      <LinkToSheetsSearchComponent/>
+      <div>wat</div>
     </div>
   )
 }
