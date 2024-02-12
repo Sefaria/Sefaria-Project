@@ -3201,6 +3201,27 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
+@staff_member_required()
+def topic_ref_bulk_api(request):
+    data = json.loads(request.body)
+    all_links_touched = []
+    for data_item in data:
+        tref = data_item.get('ref', data_item.get("tref"))
+        tref = Ref(tref).normal()
+        slug = data_item.get("toTopic", data_item.get("topic"))
+        linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+        descriptions = data_item.get("descriptions", data_item.get("description"))
+        languages = descriptions.keys()
+        ref_topic_aggregated_dict = {}
+        for language in languages:
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=tref,
+                                               linkType=linkType, description=descriptions[language], interface_lang=language)
+            ref_topic_aggregated_dict = {**ref_topic_aggregated_dict, **ref_topic_dict}
+        all_links_touched.append(ref_topic_aggregated_dict)
+    return jsonResponse(all_links_touched)
+
+
+
 @staff_member_required
 def topic_ref_api(request, tref):
     """
