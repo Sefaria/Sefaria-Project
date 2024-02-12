@@ -339,15 +339,28 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  const generateButtonName = existsSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs)  ? "generate" : null
-  const publishButtonName = existsSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs)  ? "publish" : null
+  const generateButtonName = existsSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs)  ? "generate" : null;
+  const publishButtonName = existsSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs)  ? "publish" : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
+
+  const requestPublishUnpublishedPrompts = () => {
+      let refs = topicData.refs?.about?.refs
+      const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+      refs = refs.filter((ref) => {
+        return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
+    });
+      refs.forEach(ref => {
+       ref['slug'] = topic;
+       ref.descriptions[lang]["published"] = true;
+    });
+      Sefaria.updateBulkTopicRef(refs)
+};
 
   return (
     <div>
       
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={[publishButtonName, generateButtonName, "source", "edit", "reorder"]}>
+                <CategoryHeader publishButtonCallback={requestPublishUnpublishedPrompts} type="topics" data={topicData} buttonsToDisplay={[publishButtonName, generateButtonName, "source", "edit", "reorder"]}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>

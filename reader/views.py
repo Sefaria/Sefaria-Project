@@ -3208,7 +3208,7 @@ def topic_ref_bulk_api(request):
     for data_item in data:
         tref = data_item.get('ref', data_item.get("tref"))
         tref = Ref(tref).normal()
-        slug = data_item.get("toTopic", data_item.get("topic"))
+        slug = data_item.get("toTopic", data_item.get("slug"))
         linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
         descriptions = data_item.get("descriptions", data_item.get("description"))
         languages = descriptions.keys()

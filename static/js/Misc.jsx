@@ -1140,7 +1140,7 @@ const ConfirmationPopup = () => {
 };
 
 
-const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"]}) => {
+const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"], publishButtonCallback}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1180,6 +1180,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
 
       if (isConfirmed) {
         alert("You clicked OK!");
+        publishButtonCallback()
       } else {
         alert("You clicked Cancel or closed the popup.");
       }
