@@ -137,12 +137,15 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
 
 def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
     for prompt in output.prompts:
-        link = RefTopicLink().load({
+        query = {
             "ref": prompt.ref,
             "toTopic": prompt.slug,
             "dataSource": "learning-team",
             "linkType": "about",
-        })
+        }
+        link = RefTopicLink().load(query)
+        if link is None:
+            link = RefTopicLink(query)
         curr_descriptions = getattr(link, "descriptions", {})
         description_edits = {output.lang: {
             "title": prompt.title, "ai_title": prompt.title,
