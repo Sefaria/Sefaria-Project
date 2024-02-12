@@ -9,7 +9,6 @@ from dataclasses import dataclass
 class TopicPrompt:
     title: str
     prompt: str
-    lang: str
     ref: str
     slug: str
 
