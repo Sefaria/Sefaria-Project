@@ -763,7 +763,6 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, set
       { topicMetaData }
       { linksComponent }
       <LinkToSheetsSearchComponent/>
-      <div>wat</div>
     </div>
   )
 }
