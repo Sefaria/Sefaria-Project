@@ -637,7 +637,7 @@ class DropdownOptionList extends Component {
                     </td>
                     <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
-                      <span className="int-he" dir="rtl">{option.heName}</span>
+                      <span className="int-he" dir="ltr">{option.heName}</span>
                     </td>
                   </tr>
                 );
@@ -1351,7 +1351,7 @@ class DisplaySettingsButton extends Component {
       icon =
         <InterfaceText>
         <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
-        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
+        <HebrewText>ཀ</HebrewText>
         </InterfaceText>;
     } else {
       icon = <span className="textIcon">Aa</span>;
@@ -2665,7 +2665,6 @@ class FeedbackBox extends Component {
         if (data.error) {
             alert(data.error);
         } else {
-            console.log(data);
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
@@ -2845,7 +2844,7 @@ const SheetTitle = (props) => (
     contentEditable={props.editable}
     suppressContentEditableWarning={true}
     onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "ltr" :"ltr"}}
   >
   {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
   </span>

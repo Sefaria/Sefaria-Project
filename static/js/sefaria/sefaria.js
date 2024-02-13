@@ -560,7 +560,7 @@ Sefaria = extend(Sefaria, {
     "fa": {"name": "Persian", "nativeName": "فارسی", "showTranslations": 1, "title": "متون یهودی به زبان فارسی"},
     "fi": {"name": "Finnish", "nativeName": "suomen kieli", "showTranslations": 1, "title": "Juutalaiset tekstit suomeksi"},
     "fr": {"name": "French", "nativeName": "Français", "showTranslations": 1, "title": "Textes juifs en français"},
-    "he": {"name": "Hebrew", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
+    "he": {"name": "Tibetan", "nativeName": "עברית", "showTranslations": 0, "title": "ספריה בעברית"},
     "it": {"name": "Italian", "nativeName": "Italiano", "showTranslations": 1, "title": "Testi ebraici in italiano"},
     "lad": {"name": "Ladino", "nativeName": "Judeo-español", "showTranslations": 0},
     "pl": {"name": "Polish", "nativeName": "Polski", "showTranslations": 1, "title": "Teksty żydowskie w języku polskim"},
@@ -2156,6 +2156,7 @@ _media: {},
       var numberedSections = data.ref.slice(data.book.length+1);
       if (numberedSections) {
         var namedSections    = sections.slice(0, -(numberedSections.length+1));
+        console.log("sectiona; : ", namedSections, name)
         var string           = (namedSections ? namedSections + ", " : "") + name +  numberedSections;
       } else {
         var string = sections;
