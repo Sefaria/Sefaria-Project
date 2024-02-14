@@ -356,7 +356,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
       try {
           const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, refs);
           const refValues = response.map(item => item.anchorRef).join(", ");
-          alert("The following links have been published: " + refValues);
+          alert("The following prompts have been published: " + refValues);
         } catch (error) {
           console.error("Error occurred:", error);
         }
