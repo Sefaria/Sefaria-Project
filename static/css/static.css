@@ -3357,7 +3357,9 @@ display: none;
   font-weight: 500;
   color: var(--dark-grey);
 }
-
+#testimonialsPage p {
+  font-size: 16px;
+}
 #aboutPage h1, #testimonialsPage h1 {
   text-align: left;
 }
