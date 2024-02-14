@@ -648,42 +648,34 @@ Sefaria = extend(Sefaria, {
       if (json.error) { throw json; }
       return json;
   },
-    updateTopicRef: async function(tref, text) {
-      const data = JSON.stringify(text)
-      const response = await fetch(`/api/ref-topic-links/${tref}`,
-          {
-              method: "POST",
-              mode: 'same-origin',
-              headers: {
-                  'X-CSRFToken': Cookies.get('csrftoken'),
-              },
-              credentials: 'same-origin',
-              body: data
-          }
-      );
-      if (!response.ok) { throw "error"; }
-      const json = await response.json();
-      if (json.error) { throw json; }
-      return json;
-  },
-   updateBulkTopicRef: async function(listOfTopicRefLinks) {
-      const data = JSON.stringify(listOfTopicRefLinks)
-      const response = await fetch(this.apiHost + `/api/ref-topic-links/bulk`,
-          {
-              method: "POST",
-              mode: 'same-origin',
-              headers: {
-                  'X-CSRFToken': Cookies.get('csrftoken'),
-              },
-              credentials: 'same-origin',
-              body: data
-          }
-      );
-      if (!response.ok) { throw "error"; }
-      const json = await response.json();
-      if (json.error) { throw json; }
-      return json;
-  },
+
+    postToApi: async function(url, urlParams, payload) {
+    let apiUrl = this.apiHost + url;
+    if (urlParams) {
+        apiUrl += '?' + new URLSearchParams(urlParams).toString();
+    }
+    const response = await fetch(apiUrl.toString(), {
+        method: "POST",
+        mode: 'same-origin',
+        headers: {
+            'X-CSRFToken': Cookies.get('csrftoken'),
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        throw new Error("Error posting to API");
+    }
+
+    const json = await response.json();
+    if (json.error) {
+        throw new Error(json.error);
+    }
+
+    return json;
+},
   subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
       const responses = await Promise.all([
           Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),

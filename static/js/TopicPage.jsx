@@ -343,18 +343,24 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const publishButtonName = existsSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs)  ? "publish" : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
 
-  const requestPublishUnpublishedPrompts = () => {
+  const requestPublishUnpublishedPrompts = async () => {
       let refs = topicData.refs?.about?.refs
       const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
       refs = refs.filter((ref) => {
-        return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
-    });
+          return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
+      });
       refs.forEach(ref => {
-       ref['slug'] = topic;
-       ref.descriptions[lang]["published"] = true;
-    });
-      Sefaria.updateBulkTopicRef(refs)
-};
+          ref['slug'] = topic;
+          ref.descriptions[lang]["published"] = true;
+      });
+      try {
+          const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, refs);
+          const refValues = response.map(item => item.anchorRef).join(", ");
+          alert("The following links have been updated: " + refValues);
+        } catch (error) {
+          console.error("Error occurred:", error);
+        }
+  };
 
   return (
     <div>

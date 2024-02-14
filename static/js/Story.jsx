@@ -161,7 +161,7 @@ const ReviewStateWrapper = ({topic, text}) => {
             'new_ref': text.ref,
             'interface_lang': Sefaria.interfaceLang,
             'description' : {...text.descriptions[lang], 'review_state': 'reviewed'}};
-        Sefaria.updateTopicRef(text.ref, postData).then(response => {
+        Sefaria.postToApi(`/api/ref-topic-links/${text.ref}`, {}, postData).then(response => {
             let updatedReviewStateObj = {...reviewStateObj};
             updatedReviewStateObj[lang] = "reviewed"
             setReviewStateObj(updatedReviewStateObj);
