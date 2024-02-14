@@ -350,13 +350,13 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
           return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
       });
       refs.forEach(ref => {
-          ref['slug'] = topic;
+          ref['toTopic'] = topic;
           ref.descriptions[lang]["published"] = true;
       });
       try {
           const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, refs);
           const refValues = response.map(item => item.anchorRef).join(", ");
-          alert("The following links have been updated: " + refValues);
+          alert("The following links have been published: " + refValues);
         } catch (error) {
           console.error("Error occurred:", error);
         }
