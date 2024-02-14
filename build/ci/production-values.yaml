@@ -123,7 +123,7 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: contextus-es-http.elasticsearch.svc
+  SEARCH_HOST: elasticsearch-es-http.elasticsearch.svc
   disableScraping: false
   replicaCount: 2
   resources:
@@ -150,8 +150,6 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: true
-    SEARCH_HOST_ES6: "contextus-es-default-0.elasticsearch.svc"
-    SEARCH_HOST_ES8: "elasticsearch-8-es-default.elasticsearch.svc"
   topicsIndexing:
     enabled: true
   trello:
