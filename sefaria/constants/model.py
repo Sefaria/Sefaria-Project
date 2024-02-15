@@ -10,3 +10,23 @@ ALLOWED_ATTRS_IN_ABSTRACT_TEXT_RECORD = {
     'img': ['src', 'alt'],
     'a': ['dir', 'class', 'href', 'data-ref', "data-ven", "data-vhe", 'data-scroll-link'],
 }
+
+LANGUAGE_CODES = {
+    #maps ISO language codes to their nother language (i.e. jrb to Arabic rather than Judeo-Arabic)
+    "ar": "arabic",
+    "de": "german",
+    "en": "english",
+    "eo": "esperanto",
+    "es": "spanish",
+    "fa": "persian",
+    "fi": "finnish",
+    "fr": "french",
+    "he": "hebrew",
+    "it": "italian",
+    "lad": "ladino",
+    "pl": "polish",
+    "pt": "portuguese",
+    "ru": "russian",
+    "yi": "yiddish",
+    "jrb": "arabic",
+}

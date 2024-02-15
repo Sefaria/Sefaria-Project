@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect, memo} from 'react';
 import {
     SimpleInterfaceBlock,
     TwoOrThreeBox,
@@ -1557,7 +1557,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2021_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2022_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1727,7 +1727,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_2021_990_Public.pdf"
+                        href="/static/files/Sefaria_2022_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -1973,7 +1973,7 @@ const PoweredByPage = () => (
         />
         <Feature
             enTitle="Dicta"
-            enText="Dicta is a non-profit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            enText="Dicta is a nonprofit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
             enImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
             enImgAlt="Screenshot of Dicta"
             borderColor={palette.colors.lightblue}
@@ -2636,6 +2636,471 @@ const StaticHR = () =>
 const ConditionalLink = ({ link, children }) =>
   link ? <a href={link} target="_blank">{children}</a> : children;
 
+/*
+* Team Page
+*/
+
+// Takes an array and boolean proposition function to be evaluated against each element
+// Returns two arrays within an array
+// The first contains the elements for which the proposition function evaluates to true. The second contains the rest
+const partition = (arr, prop) =>
+    arr.reduce(
+        (accumulator, currentValue) => {
+            accumulator[prop(currentValue) ? 0 : 1].push(currentValue);
+            return accumulator;
+        },
+        [[], []]
+    );
+
+// Defines a comparator to be used for sorting team members
+const byLastName = () => {
+    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    return (a, b) => {
+        const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
+        const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
+        return lastNameA.localeCompare(lastNameB, locale);
+    };
+};
+
+const TeamTitle = ({ teamTitle }) => (
+    <div className="teamTitle">
+        <InterfaceText text={teamTitle} />
+    </div>
+);
+
+const TeamName = ({ teamName }) => (
+    <div className="teamName">
+        <InterfaceText text={teamName} />
+    </div>
+);
+
+const TeamMemberDetails = ({ teamMemberDetails }) => (
+    <div className="teamMemberDetails">
+        <TeamName teamName={teamMemberDetails.teamName} />
+        <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
+    </div>
+);
+
+const TeamMemberImage = ({ teamMember }) => (
+    <div className="teamMemberImage">
+        <img
+            src={teamMember.teamMemberImage}
+            alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
+        />
+    </div>
+);
+
+const TeamMember = ({ teamMember }) => (
+    <div className="teamMember">
+        <TeamMemberImage teamMember={teamMember} />
+        <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
+    </div>
+);
+
+const TeamMembers = ({ teamMembers }) => (
+    <>
+        {teamMembers.map((teamMember) => (
+            <TeamMember key={teamMember.id} teamMember={teamMember} />
+        ))}
+    </>
+);
+
+const BoardMember = ({ boardMember }) => (
+    <div className="teamBoardMember">
+        <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
+    </div>
+);
+
+const BoardMembers = ({ boardMembers }) => {
+    let chairmanBoardMember;
+    const chairmanIndex = boardMembers.findIndex(
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "chairman"
+    );
+    if (chairmanIndex !== -1) {
+        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+    }
+    const [cofounderBoardMembers, regularBoardMembers] = partition(
+        boardMembers,
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "co-founder"
+    );
+
+    return (
+        <>
+            {chairmanBoardMember && (
+                <BoardMember boardMember={chairmanBoardMember[0]} />
+            )}
+            {cofounderBoardMembers.map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+            {regularBoardMembers.sort(byLastName()).map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+        </>
+    );
+};
+
+const TeamMembersPage = memo(() => {
+    const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
+    const [teamBoardMembers, setTeamBoardMembers] = useState([]);
+    const [error, setError] = useState(null);
+
+    const fetchTeamMembersJSON = async () => {
+        const query = `
+            query {
+                teamMembers(pagination: { limit: -1 }) {
+                    data {
+                        id
+                        attributes {
+                            teamName
+                            teamTitle
+                            isTeamBoardMember
+                            teamMemberImage {
+                                data {
+                                    attributes {
+                                        url
+                                    }
+                                }
+                            }
+                            localizations {
+                                data {
+                                    attributes {
+                                        locale
+                                        teamName
+                                        teamTitle
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            `;
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const loadTeamMembers = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const teamMembersData = await fetchTeamMembersJSON();
+
+                const teamMembersFromStrapi =
+                    teamMembersData.data.teamMembers.data.map(
+                        (teamMember) => {
+                            const heLocalization =
+                                teamMember.attributes.localizations.data[0];
+
+                            return {
+                                id: teamMember.id,
+                                isTeamBoardMember:
+                                    teamMember.attributes.isTeamBoardMember,
+                                teamMemberImage:
+                                    teamMember.attributes.teamMemberImage
+                                        ?.data?.attributes?.url,
+                                teamMemberDetails: {
+                                    teamName: {
+                                        en: teamMember.attributes.teamName,
+                                        he: heLocalization.attributes
+                                            .teamName,
+                                    },
+                                    teamTitle: {
+                                        en: teamMember.attributes.teamTitle,
+                                        he: heLocalization.attributes
+                                            .teamTitle,
+                                    },
+                                },
+                            };
+                        }
+                    );
+
+                const [ordinaryMembers, boardMembers] = partition(
+                    teamMembersFromStrapi,
+                    (teamMember) => !teamMember.isTeamBoardMember
+                );
+
+                setOrdinaryTeamMembers(ordinaryMembers);
+                setTeamBoardMembers(boardMembers);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+    useEffect(() => {
+        loadTeamMembers();
+    }, []);
+
+    return (
+        <div>
+            {error ? (
+                <h1>{error}</h1>
+            ) : (
+                <>
+                    <section className="main-text team-members">
+                        <TeamMembers
+                            teamMembers={ordinaryTeamMembers.sort(byLastName())}
+                        />
+                    </section>
+                    <header>
+                        <h2>
+                            <span className="int-en">BOARD OF DIRECTORS</span>
+                            <span className="int-he">מועצת המנהלים</span>
+                        </h2>
+                    </header>
+                    <section className="main-text board-members">
+                        <BoardMembers boardMembers={teamBoardMembers} />
+                    </section>
+                </>
+            )}
+        </div>
+    );
+});
+
+/*
+* Jobs Page
+*/
+
+// Show a different header with a description of Sefaria for the page in the case that there are jobs available
+const JobsPageHeader = ({ jobsAreAvailable }) => {
+    return (
+        <>
+            <header>
+                <h1 className="serif">
+                    <span className="int-en">Jobs at Sefaria</span>
+                    <span className="int-he">משרות פנויות בספריא</span>
+                </h1>
+
+                {jobsAreAvailable ? (
+                    <>
+                        <h2>
+                            <span className="int-en">About Sefaria</span>
+                            <span className="int-he">אודות ספריא</span>
+                        </h2>
+                        <p>
+                            <span className="int-en">
+                                Sefaria is a nonprofit organization dedicated to creating the
+                                future of Torah in an open and participatory way. We are assembling
+                                a free, living library of Jewish texts and their interconnections,
+                                in Hebrew and in translation.
+                            </span>
+                            <span className="int-he">
+                                ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה
+                                באופן פתוח ומשותף. אנחנו בספריא מרכיבים ספרייה חיה וחופשית של טקסטים
+                                יהודיים וכלל הקישורים ביניהם, בשפת המקור ובתרגומים.
+                            </span>
+                        </p>
+                    </>
+                ) : null}
+            </header>
+        </>
+    );
+};
+
+const Job = ({ job }) => {
+    return (
+        <div className="job">
+            <a className="joblink" target="_blank" href={job.jobLink}>
+                {job.jobDescription}
+            </a>
+        </div>
+    );
+};
+
+// Show the list of job postings within a department category
+const JobsListForDepartment = ({ jobsList }) => {
+    return (
+        <section className="jobsListForDepartment">
+            {jobsList.map((job) => (
+                <Job key={job.id} job={job} />
+            ))}
+        </section>
+    );
+};
+
+// Job postings are grouped by department. This component will show the jobs for a specific department
+// Each department has a header for its category before showing a list of the job postings there
+const JobPostingsByDepartment = ({ department, departmentJobPostings }) => {
+    return (
+        <section className="section department englishOnly">
+            <header>
+                <h2 className="anchorable">{department}</h2>
+            </header>
+            <JobsListForDepartment key={department} jobsList={departmentJobPostings} />
+        </section>
+    );
+};
+
+// Show all the job postings grouped by department and render each department separately
+const GroupedJobPostings = ({ groupedJobPostings }) => {
+
+    return (
+        Object.entries(groupedJobPostings).map(([department, departmentJobPostings]) => {
+            return (
+                <JobPostingsByDepartment
+                    key={department}
+                    department={department}
+                    departmentJobPostings={departmentJobPostings}
+                />
+            );
+        })
+    );
+};
+
+
+const NoJobsNotice = () => {
+    return (
+        <div className="section nothing">
+            <p>
+                <span className="int-en">
+                    Sefaria does not currently have any open positions.
+                    Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
+                    to hear about our next openings.
+                </span>
+                <span className="int-he">
+                    ספריא איננה מחפשת כעת עובדים חדשים.
+                    עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>&nbsp;
+                    כדי להשאר מעודכנים במשרות עתידיות.
+                </span>
+            </p>
+        </div>
+    );
+};
+
+
+
+const JobsPage = memo(() => {
+    const [groupedJobPostings, setGroupedJobPostings] = useState({});
+    const [error, setError] = useState(null);
+
+    const fetchJobsJSON = async () => {
+        const currentDateTime = new Date().toISOString();
+        const query = `
+            query { 
+                jobPostings(
+                    pagination: { limit: -1 }
+                    filters: {
+                        jobPostingStartDate: { lte: \"${currentDateTime}\" }
+                        jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                    }
+                ) {
+                    data {
+                        id
+                        attributes {
+                            jobLink
+                            jobDescription
+                            jobDepartmentCategory
+                        }
+                    }
+                }
+            }
+        `;
+    
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
+    const loadJobPostings = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const jobsData = await fetchJobsJSON();
+
+                const jobsFromStrapi = jobsData.data?.jobPostings?.data?.map((jobPosting) => {
+                    return {
+                        id: jobPosting.id,
+                        jobLink: jobPosting.attributes.jobLink,
+                        jobDescription: jobPosting.attributes.jobDescription,
+                        jobDepartmentCategory: jobPosting.attributes.jobDepartmentCategory
+                            .split("_")
+                            .join(" "),
+                    };
+                });
+
+                // Group the job postings by department
+                const groupedJobs = jobsFromStrapi.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
+                    const category = jobPosting.jobDepartmentCategory;
+                    if (!jobPostingsGroupedByDepartment[category]) {
+                        jobPostingsGroupedByDepartment[category] = [];
+                    }
+                    jobPostingsGroupedByDepartment[category].push(jobPosting);
+                    return jobPostingsGroupedByDepartment;
+                }, {});
+
+                setGroupedJobPostings(groupedJobs);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+    useEffect(() => {
+        loadJobPostings();
+    }, []);
+
+    return (
+        <div>
+            {error ? (
+                <h1>{error}</h1>
+            ) : (
+                <>
+                    <JobsPageHeader jobsAreAvailable={Object.keys(groupedJobPostings)?.length} />
+                    {Object.keys(groupedJobPostings)?.length ? (
+                        <GroupedJobPostings groupedJobPostings={groupedJobPostings} />
+                    ) : (
+                        <NoJobsNotice />
+                    )}
+                </>
+            )}
+        </div>
+    );
+});
 
 export {
     RemoteLearningPage,
@@ -2648,5 +3113,7 @@ export {
     EducatorsPage,
     RabbisPage,
     DonatePage,
-    WordByWordPage
-}
+    WordByWordPage,
+    JobsPage,
+    TeamMembersPage,
+};

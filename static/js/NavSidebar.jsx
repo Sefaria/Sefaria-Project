@@ -97,7 +97,7 @@ const AboutSefaria = ({hideTitle}) => (
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
@@ -112,13 +112,24 @@ const AboutSefaria = ({hideTitle}) => (
           <HebrewText>לקריאה נוספת ›</HebrewText>
       </InterfaceText>
     </a>
-    { Sefaria.interfaceLang === 'english' && !hideTitle &&
-      <a className="button get-start" href="/sheets/210670">
-          <img src="/static/icons/vector.svg"/>
-          <div className="get-start">
-              Getting Started (2 min)
-          </div>
-      </a>
+      {!hideTitle && <InterfaceText>
+          <EnglishText>
+            <a className="button get-start" href="/sheets/210670">
+                <img src="/static/icons/vector.svg"/>
+                <div className="get-start">
+                  Getting Started (2 min)
+                </div>
+            </a>
+          </EnglishText>
+          <HebrewText>
+            <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
+                <img src="/static/icons/vector.svg"/>
+                <div className="get-start">
+                  הכירו את ספריא (2 דק')
+                </div>
+            </a>
+          </HebrewText>
+      </InterfaceText>
     }
   </Module>
 );
@@ -135,7 +146,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
     "fi": {title: "Tooran elävä kirjasto", body: "Sefaria on koti 3000 vuoden juutalaisille teksteille. Olemme voittoa tavoittelematon organisaatio, joka tarjoaa ilmaisen pääsyn teksteihin, käännöksiin ja kommentteihin, jotta kaikki voivat osallistua jatkuvaan Tooran opiskelu-, tulkkaus- ja luomisprosessiin."},
     "fr": {title: "Une bibliothèque vivante de la Torah", body: "Une bibliothèque de Torah vivante. Sefaria abrite 3 000 ans de textes juifs. Nous sommes une organisation à but non lucratif offrant un accès gratuit aux textes de la Torah, aux commentaires et aux traductions, afin que chacun puisse participer au processus infini de l'étude, de l'interprétation et de la création de la Torah."},
     "it": {title: "Una biblioteca vivente della Torah", body: "Sefaria ospita 3.000 anni di testi ebraici. Siamo un'organizzazione senza scopo di lucro che offre libero accesso a testi, traduzioni e commenti in modo che tutti possano partecipare al processo in corso di studio, interpretazione e creazione della Torah."},
-    "pl": {title: "Żywa Biblioteka Tory", body: "Sefaria jest domem dla 3000 lat żydowskich tekstów. Jesteśmy organizacją non-profit oferującą bezpłatny dostęp do tekstów, tłumaczeń i komentarzy, dzięki czemu każdy może uczestniczyć w bieżącym procesie studiowania, tłumaczenia i tworzenia Tory."},
+    "pl": {title: "Żywa Biblioteka Tory", body: "Sefaria jest domem dla 3000 lat żydowskich tekstów. Jesteśmy organizacją nonprofit oferującą bezpłatny dostęp do tekstów, tłumaczeń i komentarzy, dzięki czemu każdy może uczestniczyć w bieżącym procesie studiowania, tłumaczenia i tworzenia Tory."},
     "pt": {title: "Uma Biblioteca Viva da Torá", body: "Sefaria é o lar de 3.000 anos de textos judaicos. Somos uma organização sem fins lucrativos que oferece acesso gratuito a textos, traduções e comentários para que todos possam participar do processo contínuo de estudo, interpretação e criação da Torá."},
     "ru": {title: "Живая библиотека Торы", body: "Сефария является домом для еврейских текстов 3000-летней давности. Мы — некоммерческая организация, предлагающая бесплатный доступ к текстам, переводам и комментариям, чтобы каждый мог участвовать в продолжающемся процессе изучения, толкования и создания Торы."},
     "yi": {title: "א לעבעדיקע ביבליאטעק פון תורה", body: "אין ספֿריאַ איז אַ היים פֿון 3,000 יאָר ייִדישע טעקסטן. מיר זענען אַ נאַן-נוץ אָרגאַניזאַציע וואָס אָפפערס פריי אַקסעס צו טעקסטן, איבערזעצונגען און קאָמענטאַרן אַזוי אַז אַלעמען קענען אָנטייל נעמען אין די אָנגאָינג פּראָצעס פון לערנען, ינטערפּריטיישאַן און שאפן תורה."}
@@ -148,7 +159,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
           <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
@@ -191,7 +202,7 @@ const TheJewishLibrary = ({hideTitle}) => (
 const SupportSefaria = ({blue}) => (
   <Module blue={blue}>
     <ModuleTitle>Support Sefaria</ModuleTitle>
-    <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
+    <InterfaceText>Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />

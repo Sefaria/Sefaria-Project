@@ -1645,10 +1645,10 @@ def index_api(request, title, raw=False):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        with_content_counts = bool(request.GET.get("with_content_counts", False))
+        with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
         i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
-        if request.GET.get("with_related_topics", False):
+        if bool(int(request.GET.get("with_related_topics", False))):
             i["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
         return jsonResponse(i, callback=request.GET.get("callback", None))
@@ -1862,7 +1862,7 @@ def shape_api(request, title):
         else:
             cat_list = title.split("/")
             depth = request.GET.get("depth", 2)
-            include_dependents = request.GET.get("dependents", False)
+            include_dependents = bool(int(request.GET.get("dependents", False)))
             indexes = []
             if len(cat_list) == 1:
                 # try as corpus
@@ -2067,7 +2067,7 @@ def notes_api(request, note_id_or_ref):
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
-        private = request.GET.get("private", False)
+        private = bool(int(request.GET.get("private", False)))
         res = get_notes(oref, uid=creds["user_id"], public=(not private))
         return jsonResponse(res, cb)
 
@@ -2141,7 +2141,7 @@ def notes_api(request, note_id_or_ref):
 @catch_error_as_json
 def all_notes_api(request):
 
-    private = request.GET.get("private", False)
+    private = bool(int(request.GET.get("private", False)))
     if private:
         if not request.user.is_authenticated:
             res = {"error": "You must be logged in to access you notes."}
@@ -2157,17 +2157,17 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    if request.GET.get("private", False) and request.user.is_authenticated:
+    if bool(int(request.GET.get("private", False))) and request.user.is_authenticated:
         oref = Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
         }
-    elif request.GET.get("private", False) and not request.user.is_authenticated:
+    elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
+            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
@@ -2660,7 +2660,7 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = request.GET.get("ref_only", False)
+    ref_only = bool(int(request.GET.get("ref_only", False)))
     completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
@@ -2764,7 +2764,7 @@ def user_stats_api(request, uid):
     assert request.method == "GET", "Unsupported Method"
     u = request.user
     assert (u.is_active and u.is_staff) or (int(uid) == u.id)
-    quick = bool(request.GET.get("quick", False))
+    quick = bool(int(request.GET.get("quick", False)))
     if quick:
         return jsonResponse(public_user_data(uid))
     return jsonResponse(user_stats_data(uid))
@@ -3096,7 +3096,6 @@ def add_new_topic_api(request):
         isTopLevelDisplay = data["category"] == Topic.ROOT
         t = Topic({'slug': "", "isTopLevelDisplay": isTopLevelDisplay, "data_source": "sefaria", "numSources": 0})
         update_topic_titles(t, **data)
-
         if not isTopLevelDisplay:  # not Top Level so create an IntraTopicLink to category
             new_link = IntraTopicLink({"toTopic": data["category"], "fromTopic": t.slug, "linkType": "displays-under", "dataSource": "sefaria"})
             new_link.save()
@@ -3108,8 +3107,11 @@ def add_new_topic_api(request):
         t.data_source = "sefaria"  # any topic edited manually should display automatically in the TOC and this flag ensures this
         if "description" in data:
             t.change_description(data["description"], data.get("categoryDescription", None))
-        t.save()
 
+        if "image" in data:
+            t.image = data["image"]
+
+        t.save()
         library.build_topic_auto_completer()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
@@ -3559,6 +3561,38 @@ def profile_follow_api(request, ftype, slug):
         return jsonResponse(response)
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+@staff_member_required
+def topic_upload_photo(request, topic):
+    from io import BytesIO
+    import uuid
+    import base64
+    if request.method == "DELETE":
+        old_filename = request.GET.get("old_filename")
+        if old_filename is None:
+            return jsonResponse({"error": "You cannot remove an image as you haven't selected one yet."})
+        old_filename = f"topics/{old_filename.split('/')[-1]}"
+        GoogleStorageManager.delete_filename(old_filename, GoogleStorageManager.TOPICS_BUCKET)
+        topic = Topic.init(topic)
+        if hasattr(topic, "image"):
+            del topic.image
+            topic.save()
+        return jsonResponse({"success": "You have successfully removed the image."})
+    elif request.method == "POST":
+        file = request.POST.get('file')
+        old_filename = request.POST.get('old_filename')  # delete file from google storage if there is one there
+        if old_filename:
+            old_filename = f"topics/{old_filename.split('/')[-1]}"
+        img_file_in_mem = BytesIO(base64.b64decode(file))
+        img_url = GoogleStorageManager.upload_file(img_file_in_mem, f"topics/{request.user.id}-{uuid.uuid1()}.gif",
+                                                    GoogleStorageManager.TOPICS_BUCKET, old_filename=old_filename)
+        topic = Topic.init(topic)
+        if not hasattr(topic, "image"):
+            topic.image = {"image_uri": img_url, "image_caption": {"en": "", "he": ""}}
+        else:
+            topic.image["image_uri"] = img_url
+        topic.save()
+        return jsonResponse({"url": img_url})
+    return jsonResponse({"error": "Unsupported HTTP method."})
 
 @catch_error_as_json
 def profile_upload_photo(request):
@@ -4219,7 +4253,7 @@ def search_wrapper_api(request, es6_compat=False):
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
@@ -4565,7 +4599,7 @@ def rollout_health_api(request):
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
-        
+
     def is_database_reachable():
         try:
             from sefaria.system.database import db

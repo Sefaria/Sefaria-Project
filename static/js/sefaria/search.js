@@ -2,6 +2,7 @@ import $ from './sefariaJquery';
 import extend from 'extend';
 import FilterNode from './FilterNode';
 import SearchState from './searchState';
+import { SearchTotal } from "./searchTotal";
 
 
 class Search {
@@ -9,8 +10,8 @@ class Search {
       this.searchIndexText = searchIndexText;
       this.searchIndexSheet = searchIndexSheet;
       this._cache = {};
-      this.sefariaQueryQueue = {hits: {hits:[], total: 0, max_score: 0.0}, lastSeen: -1};
-      this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits:[]}};
+      this.sefariaQueryQueue = {hits: {hits:[], total: new SearchTotal(), max_score: 0.0}, lastSeen: -1};
+      this.dictaQueryQueue = {lastSeen: -1, hits: {total: new SearchTotal(), hits:[]}};
       this.queryDictaFlag = true;
       this.dictaCounts = null;
       this.sefariaSheetsResult = null;
@@ -39,7 +40,7 @@ class Search {
             }
 
             wrapper.addQuery($.ajax({
-                url: `${Sefaria.apiHost}/api/search-wrapper`,
+                url: `${Sefaria.apiHost}/api/search-wrapper/es8`,
                 type: 'POST',
                 data: jsonData,
                 contentType: "application/json; charset=utf-8",
@@ -47,6 +48,7 @@ class Search {
                 processData: false,
                 dataType: 'json',
                 success: data => {
+                    data.hits.total = new SearchTotal(data.hits.total);
                     this.cache(cacheKey, data);
                     resolve(data)
                 },
@@ -103,7 +105,8 @@ class Search {
         return new Promise((resolve, reject) => {
 
             if (this.queryDictaFlag && args.type === "text") {
-                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args && args['start'] > 0)) {
+                if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total.getValue() &&
+                    ('start' in args && args['start'] > 0)) {
                     /* don't make new queries if results are exhausted.
                      * 'start' is omitted on first query (defaults to 0). On a first query, we'll always want to query.
                      */
@@ -125,6 +128,7 @@ class Search {
                         contentType: 'application/json; charset=UTF-8',
                         data: jsonData,
                         success: data => {
+                            data.total = new SearchTotal({value: data.total});
                             this.cache(cacheKey, data);
                             resolve(data);
                         },
@@ -134,7 +138,7 @@ class Search {
 
             }
             else {
-                resolve({total: 0, hits: []});
+                resolve({total: new SearchTotal(), hits: []});
             }
         }).then(x => {
             if (args.type === "sheet") {
@@ -244,15 +248,16 @@ class Search {
         }
         if (!!filters.length) {
             const expression = new RegExp(`^(${filters.join('|')})(\/.*|$)`);
-            result.hits.total = this.buckets.reduce((total, currentBook) => {
+            const accumulatedTotal = this.buckets.reduce((total, currentBook) => {
                 if (expression.test(currentBook.key)) {
                     total += currentBook.doc_count;
                 }
                 return total
             }, 0);
+            result.hits.total = new SearchTotal({value: accumulatedTotal});
         }
         else {
-            result.hits.total = this.sefariaQueryQueue.hits.total + this.dictaQueryQueue.hits.total;
+            result.hits.total = this.sefariaQueryQueue.hits.total.combine(this.dictaQueryQueue.hits.total);
         }
 
         let sefariaHits = (this.queryDictaFlag)
@@ -327,8 +332,8 @@ class Search {
             if (args.type === 'text') {
                 this.dictaCounts = null;
                 this.queryDictaFlag = this.isDictaQuery(args);
-                this.sefariaQueryQueue = {hits: {hits: [], total: 0, max_score: 0.0}, lastSeen: -1};
-                this.dictaQueryQueue = {lastSeen: -1, hits: {total: 0, hits: []}};
+                this.sefariaQueryQueue = {hits: {hits: [], total: new SearchTotal(), max_score: 0.0}, lastSeen: -1};
+                this.dictaQueryQueue = {lastSeen: -1, hits: {total: new SearchTotal(), hits: []}};
                 this.queryAborter.abort();
             }
         }

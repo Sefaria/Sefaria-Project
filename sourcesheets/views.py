@@ -960,7 +960,7 @@ def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
     lang     = request.GET.get("lang")
-    filtered = request.GET.get("filtered", False)
+    filtered = bool(int(request.GET.get("filtered", False)))
     response = public_sheets(limit=limiter, skip=offset, lang=lang, filtered=filtered)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
@@ -1133,7 +1133,6 @@ def export_to_drive(request, credential, sheet_id):
     profile.save()
 
     return jsonResponse(new_file)
-
 
 @catch_error_as_json
 def upload_sheet_media(request):
