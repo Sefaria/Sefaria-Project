@@ -610,7 +610,7 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <InterfaceText>Account Settings</InterfaceText>
               </a></div>
               <div className="interfaceLinks-row languages">
-                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">עברית</a>
+                <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
               <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
@@ -633,7 +633,7 @@ const MobileInterfaceLanguageToggle = () => {
 
   const links = Sefaria.interfaceLang == "hebrew" ?
     <>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">עברית</a>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">བོད་ཡིག</a>
       <span className="separator">•</span>
       <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
     </>
@@ -641,7 +641,7 @@ const MobileInterfaceLanguageToggle = () => {
     <>
       <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
       <span className="separator">•</span>
-      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">עברית</a>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">བོད་ཡིག</a>
     </>;
 
   return (
