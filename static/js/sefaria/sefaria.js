@@ -654,7 +654,7 @@ Sefaria = extend(Sefaria, {
     if (urlParams) {
         apiUrl += '?' + new URLSearchParams(urlParams).toString();
     }
-    const response = await fetch(apiUrl.toString(), {
+    const response = await fetch(apiUrl, {
         method: "POST",
         mode: 'same-origin',
         headers: {

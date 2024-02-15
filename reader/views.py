@@ -3203,14 +3203,17 @@ def reorder_topics(request):
 
 @staff_member_required()
 def topic_ref_bulk_api(request):
-    data = json.loads(request.body)
+    """
+    API to create, edit and delete bulk RefTopicLinks
+    """
+    topic_links = json.loads(request.body)
     all_links_touched = []
-    for data_item in data:
-        tref = data_item.get('ref')
+    for link in topic_links:
+        tref = link.get('ref')
         tref = Ref(tref).normal()
-        slug = data_item.get("toTopic")
+        slug = link.get("toTopic")
         linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
-        descriptions = data_item.get("descriptions", data_item.get("description"))
+        descriptions = link.get("descriptions", link.get("description"))
         languages = descriptions.keys()
         ref_topic_aggregated_dict = {}
         for language in languages:
@@ -3222,7 +3225,7 @@ def topic_ref_bulk_api(request):
 
 
 
-@staff_member_required
+@catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks

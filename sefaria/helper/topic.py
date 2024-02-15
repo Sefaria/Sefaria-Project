@@ -1137,17 +1137,12 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_category_mapping(rebuild=True)
 
 def _calculate_approved_review_state(current, requested):
+    "This function calculates the review state of a description of topic link. Review state of a discription can only 'increse'"
     state_to_num = {
         "not reviewed": 0,
         "edited": 1,
         "reviewed": 2
     }
-    # if current == "reviewed":
-    #     return "reviewed"
-    # if requested == "edited":
-    #     return "edited"
-    # if requested == "reviewed":
-    #     return "reviewed"
     if state_to_num[requested] > state_to_num[current]:
         return requested
     else:

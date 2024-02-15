@@ -1112,34 +1112,6 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
-const ConfirmationPopup = () => {
-  const [isConfirmationShown, setConfirmationShown] = useState(false);
-
-  const showConfirmation = () => {
-    if (!isConfirmationShown) {
-      // Display a confirmation popup
-      const isConfirmed = window.confirm("Are you sure you want to proceed?");
-
-      // Check the user's response
-      if (isConfirmed) {
-        alert("You clicked OK!");
-      } else {
-        alert("You clicked Cancel or closed the popup.");
-      }
-
-      // Update state to prevent showing the popup again
-      setConfirmationShown(true);
-    }
-  };
-
-  return (
-    <div>
-      <button onClick={showConfirmation}>Show Confirmation</button>
-    </div>
-  );
-};
-
-
 const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"], publishButtonCallback}) => {
   /*
   Provides an interface for using admin tools.

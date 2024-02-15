@@ -312,43 +312,43 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const existsSourceRefWithContextWithoutPrompt = (refs) => {
+const getSourceRefWithContextWithoutPrompt = (refs) => {
     if (!refs) {
-        return false;
+        return [];
     }
 
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
 
-    return refs.some((ref) => {
-        return ref.descriptions && ref.descriptions[lang]?.context && ref.descriptions[lang]?.context != '' &&
-            !ref.descriptions[lang]?.prompt;
+    return refs.filter((ref) => {
+        return ref.descriptions?.[lang]?.context != '' &&
+            !ref.descriptions?.[lang]?.prompt;
     });
 };
-const existsSourceRefExplicitlyNotPublished = (refs) => {
+const getSourceRefExplicitlyNotPublished = (refs) => {
     if (!refs) {
-        return false;
+        return [];
     }
 
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
 
-    return refs.some((ref) => {
-        return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
+    return refs.filter((ref) => {
+        return ref.descriptions?.[lang]?.published === false;
     });
 };
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
+  const sourceRefWithContextWithoutPrompt = getSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs);
+  const generateButtonName = sourceRefWithContextWithoutPrompt > 0 ? "generate" : null;
+  const sourceRefExplicitlyNotPublished = getSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs);
+  const publishButtonName = sourceRefExplicitlyNotPublished.length > 0 ? "publish" : null;
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-  const generateButtonName = existsSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs)  ? "generate" : null;
-  const publishButtonName = existsSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs)  ? "publish" : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
 
   const requestPublishUnpublishedPrompts = async () => {
-      let refs = topicData.refs?.about?.refs
       const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-      refs = refs.filter((ref) => {
-          return (ref.descriptions && ref.descriptions[lang]?.hasOwnProperty('published') && !ref.descriptions[lang]?.published)
-      });
+      let refs = sourceRefExplicitlyNotPublished;
+      console.log(refs)
       refs.forEach(ref => {
           ref['toTopic'] = topic;
           ref.descriptions[lang]["published"] = true;

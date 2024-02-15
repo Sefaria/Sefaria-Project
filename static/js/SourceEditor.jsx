@@ -8,11 +8,8 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
-    const title = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.title || '') : (origData?.descriptions?.he?.title || '');
-    const prompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.prompt || '') : (origData?.descriptions?.he?.prompt || '');
-    // const aiPrompt = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.ai_prompt || '') : (origData?.descriptions?.he?.ai_prompt || '');
-    // const aiTitle = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.ai_title || '') : (origData?.descriptions?.he?.ai_title || '');
-    const context = Sefaria.interfaceLang === 'english' ? (origData?.descriptions?.en?.context || '') : (origData?.descriptions?.he?.context || '');
+    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+    const { title = '', prompt = '', context = '' } = origData?.descriptions?.[langKey] || {};
 
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
                                                 prompt: prompt, context: context
@@ -50,9 +47,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         let refInUrl = isNew ? displayRef : origData.ref;
         let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
         let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
-        // if (data.enTitle.length > 0) {
         postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "context": data.context, "review_state": "edited"};
-        // }
         requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
@@ -93,7 +88,6 @@ const SourceEditor = ({topic, close, origData={}}) => {
         const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
-    console.log(data)
     let previousTitleItem  = data.enTitle ? "Previous Title" : null
     let previousPromptItem  = data.prompt ? "Previous Prompt" : null
     return <div>
