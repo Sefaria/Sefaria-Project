@@ -438,12 +438,12 @@ invalids = [
         "about": {
             "title": {
                 "en": "About Us",
-                "he": "עלינו"
+                "he": "ང་ཚོའི་སྐོར།"
             },
             "image_uri": 67890,
             "description": {
                 "en": "Description in English",
-                "he": "תיאור בעברית"
+                "he": "བོད་ཡིག་ནང་འགྲེལ་བ།"
             }
         }
     },
@@ -454,18 +454,18 @@ invalids = [
     "about": {
         "title": {
             "en": "About Us",
-            "he": "עלינו"
+            "he": "ང་ཚོའི་སྐོར།"
         },
         "image_uri": "gs://bucket/image.jpg",
         "description": {
             "en": "Description in English",
-            "he": "תיאור בעברית"
+            "he": " བོད་ཡིག་ནང་འགྲེལ་བ།"
         }
     },
     "mobile": {
         "title": {
             "en": "Mobile App",
-            "he": "אפליקציה ניידת"
+            "he": "ཁ་པར་མཉེན་ཆས།"
         },
         "android_link": "https://play.google.com/store/apps/details?id=com.example.app",
         "ios_link": "https://apps.apple.com/us/app/example-app/id1234567890",
