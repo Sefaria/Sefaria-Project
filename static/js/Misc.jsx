@@ -637,7 +637,7 @@ class DropdownOptionList extends Component {
                     </td>
                     <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
-                      <span className="int-he" dir="rtl">{option.heName}</span>
+                      <span className="int-he" dir="ltr">{option.heName}</span>
                     </td>
                   </tr>
                 );
@@ -841,7 +841,7 @@ class LanguageToggleButton extends Component {
   render() {
     var url = this.props.url || "";
     return (<a href={url} className="languageToggle" onClick={this.toggle}>
-              <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
+              <img className="en" src="/static/img/ka.svg" alt="Hebrew Language Toggle Icon" />
               <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
   }
@@ -1350,8 +1350,8 @@ class DisplaySettingsButton extends Component {
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
         <InterfaceText>
-        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
-        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt="Toggle Reader Menu Display Settings"/></HebrewText>
+        <EnglishText><img src="/static/img/lang_icon_english.svg" alt="Toggle Reader Menu Display Settings"/></EnglishText>
+        <HebrewText>ཀ</HebrewText>
         </InterfaceText>;
     } else {
       icon = <span className="textIcon">Aa</span>;
@@ -2845,7 +2845,7 @@ const SheetTitle = (props) => (
     contentEditable={props.editable}
     suppressContentEditableWarning={true}
     onBlur={props.editable ? props.blurCallback : null}
-    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "ltr" :"ltr"}}
   >
   {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
   </span>

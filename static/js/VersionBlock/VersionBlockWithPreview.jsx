@@ -38,7 +38,7 @@ function VersionBlockWithPreview({currentRef, version, currObjectVersions, openV
                     <OpenConnectionTabButton
                         srefs={srefs}
                         openInTabCallback={openInTabCallback}
-                        openStrings={['Open Text', 'פתיחת טקסט']}
+                        openStrings={['Open Text', 'གཞུང་འབྱེད་པ།']}
                     />
                 </div>
             </details>

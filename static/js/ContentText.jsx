@@ -2,6 +2,7 @@ import React from "react";
 import {useContentLang} from './Hooks';
 import Sefaria from './sefaria/sefaria';
 import ReactMarkdown from "react-markdown";
+import { hebrewToTibetan } from './sefaria/boNumber.js'
 
 const ContentText = (props) => {
    /* Renders content language throughout the site (content that comes from the database and is not interface language).
@@ -78,12 +79,14 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
 }
 
 const ContentSpan = ({lang, content, isHTML, markdown}) => {
+  //pecha.org code
+  let boContent = hebrewToTibetan(content, lang )
   return isHTML ?
-          <span className={`contentSpan ${lang}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: content}}/>
+          <span className={`contentSpan ${lang}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: boContent}}/>
           : markdown ? <span className={`contentSpan ${lang}`} lang={lang} key={lang}>
-                         <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{content}</ReactMarkdown>
+                         <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{boContent}</ReactMarkdown>
                        </span>
-          : <span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>;
+          : <span className={`contentSpan ${lang}`} lang={lang} key={lang}>{boContent}</span>;
 }
 
 export {ContentText, VersionContent};

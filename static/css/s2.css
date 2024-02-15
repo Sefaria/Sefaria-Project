@@ -192,7 +192,7 @@ body, .en, .int-en {
   font-size: 122%;
 }
 .int-he {
-  direction: rtl;
+  direction: ltr;
 }
 .int-he.enInHe {
   direction: ltr;
@@ -201,7 +201,7 @@ body, .en, .int-en {
   unicode-bidi: isolate;
 }
 .int-en.heInEn {
-  direction: rtl;
+  direction: ltr;
 }
 .btn, .btn-sm, .btn-xs {
   display: inline-block;
@@ -400,7 +400,7 @@ body.hasBannerMessage #s2.headerOnly {
   height: 180px;
 }
 .interface-hebrew #bannerMessage {
-  direction: rtl;
+  direction: ltr;
 }
 #bannerMessageClose {
   position: absolute;
@@ -473,14 +473,14 @@ input.noselect {
   -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
 .interface-hebrew {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-hebrew .int-en,
 .interface-english .int-he {
   display: none;
 }
 .interface-hebrew #panelWrapBox {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english #panelWrapBox,
 .readerApp.interface-english .readerPanel {
@@ -729,7 +729,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding-top: 12px;
 }
 .ui-autocomplete .ui-menu-item.hebrew-result a {
-  direction: rtl;
+  direction: ltr;
 }
 .ui-autocomplete .ui-menu-item.english-result a {
   direction: ltr;
@@ -883,7 +883,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display: block;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-option.int-bi {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-option.int-bi {
   direction: ltr;
@@ -1154,7 +1154,7 @@ div.interfaceLinks-row a {
   line-height: 1.5;
 }
 .interface-hebrew .sefariaModalContent {
-  direction: rtl;
+  direction: ltr;
 }
 .sefariaModalContent a {
   color: white;
@@ -1261,7 +1261,7 @@ div.interfaceLinks-row a {
 
 .interface-hebrew #defaultModal {
     text-align: right;
-    direction: rtl;
+    direction: ltr;
 }
 
 #defaultModalBody {
@@ -1377,7 +1377,7 @@ div.interfaceLinks-row a {
   padding: 6px 12px;
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item {
-  direction: rtl;
+  direction: ltr;
   text-align: right;
 }
 .ui-autocomplete .ui-menu-item img {
@@ -1405,7 +1405,7 @@ div.interfaceLinks-row a {
   display: none;
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item a {
-  direction: rtl;
+  direction: ltr;
   text-align: right;
 }
 #globalWarningMessage {
@@ -1934,7 +1934,7 @@ div.interfaceLinks-row a {
   line-height: 60px;
 }
 .interface-hebrew .readerNavTop {
-  direction: rtl;
+  direction: ltr;
 }
 .readerNavTop .readerNavTopStart {
   display: flex;
@@ -2022,7 +2022,7 @@ div.interfaceLinks-row a {
 .interface-hebrew .sidebarSearch .searchBox,
 .interface-hebrew .sidebarSearch .version,
 .interface-hebrew .sidebarSearch .result-title {
-  direction: rtl;
+  direction: ltr;
 }
 .sidebarSearch .searchBox {
   display: flex;
@@ -2466,7 +2466,7 @@ h1 .languageToggle .he {
   margin-bottom: 40px;
 }
 .readerPanel.hebrew .navToggles {
-    direction: rtl;
+    direction: ltr;
 }
 .readerNavMenu .navToggles {
     flex-direction: row;
@@ -3283,7 +3283,7 @@ display: none;
   align-items: start;
 }
 .interface-hebrew .textTableOfContents .structToggles{
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .textTableOfContents .structToggles{
   direction: ltr;
@@ -3506,7 +3506,7 @@ display: none;
 }
 .english .noLangToggleInHebrew .textTableOfContents,
 .bilingual .noLangToggleInHebrew .textTableOfContents{
-  direction: rtl;
+  direction: ltr;
 }
 .bookPage .button.allVersionsButton {
   color: #999;
@@ -3843,7 +3843,7 @@ select {
 .modTools .modtoolsButton .he,
 .bookPage .content .versionDownloadButton .he {
     font-family: "Heebo", sans-serif;
-    direction: rtl;
+    direction: ltr;
     text-align: right;
 }
 .modTools a .modtoolsButton,
@@ -4547,10 +4547,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-hebrew .readerPanel .readerNavMenu .tagsList .gridBox {
-  direction: rtl;
+  direction: ltr;
 }
 .tagsList .heOnly {
-  direction: rtl;
+  direction: ltr;
 }
 .tagsList .enOnly {
   direction: ltr;
@@ -4678,7 +4678,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 .interface-hebrew .trans-pref-header-container .trans-pref-reset {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-hebrew .trans-pref-header-container .trans-pref-reset .smallText {
   padding-bottom: 2px;
@@ -4867,7 +4867,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
 }
 .hebrew .readerControls .readerTextToc {
-  direction: rtl;
+  direction: ltr;
 }
 .english .readerControls .readerTextToc {
   direction: ltr;
@@ -4876,7 +4876,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-hebrew .bilingual .readerControls .readerTextToc {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
@@ -5459,7 +5459,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment.heOnly{
   text-align: right;
-  direction: rtl;
+  direction: ltr;
 }
 .segment.enOnly{
   text-align: left;
@@ -5747,7 +5747,7 @@ But not to use a display block directive that might break continuous mode for ot
   height: 100%;
 }
 .interface-hebrew .connectionsPanelHeader {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .connectionsPanelHeader {
   direction: ltr;
@@ -5964,7 +5964,7 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .textList .recentFilterSet.filterSet {
-  direction: rtl;
+  direction: ltr;
 }
 .textList.singlePanel .connectionsHeader .topFilters{
   overflow-x: scroll;
@@ -6462,7 +6462,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .webpageList .webpage.hebrew{
   text-align: right;
-  direction: rtl;
+  direction: ltr;
 }
 .webpageList .webpage .icon {
   margin-right: 10px;
@@ -6498,7 +6498,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .interface-hebrew .webpageList .webpage .webpageMetadata {
   text-align: right;
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .webpageList .webpage .webpageMetadata {
   text-align: left;
@@ -6775,13 +6775,13 @@ But not to use a display block directive that might break continuous mode for ot
   content: " ";
 }
 .topicList.topicsHe {
-  direction: rtl;
+  direction: ltr;
 }
 .topicList.topicsEn {
   direction: ltr;
 }
 .interface-hebrew .topicList.topicsEn {
-  direction: rtl;
+  direction: ltr;
 }
 
 .topicButton {
@@ -7721,7 +7721,7 @@ a .button:hover {
   direction: ltr;
 }
 .readerPanel.hebrew .named-entity-wrapper {
-  direction: rtl;
+  direction: ltr;
 }
 .lexicon-results .named-entity-description {
   margin-top: 13px;
@@ -7799,7 +7799,7 @@ a .button:hover {
   display: inline;
 }
 .lexicon-content .headword.he, .lexicon-content .definition-content.he {
-  direction: rtl;
+  direction: ltr;
 }
 .lexicon-content .headword.en, .lexicon-content .definition-content.en {
   direction: ltr;
@@ -7920,7 +7920,7 @@ a .button:hover {
   direction: ltr;
 }
 .readerPanel .collectionsList .heCollections .gridBox {
-  direction: rtl;
+  direction: ltr;
 }
 .collectionListing {
   display: flex;
@@ -8211,7 +8211,7 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   cursor: auto;
 }
 .interface-hebrew .sheetMetaDataBox .authorStatement {
-  direction: rtl;
+  direction: ltr;
 }
 .editorSidebarToggle {
   position: fixed;
@@ -9317,7 +9317,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: flex;
 }
 .readerPanel.hebrew .aboutBox .aboutAuthor .aboutAuthorInner{
-  direction: rtl;
+  direction: ltr;
 }
 .aboutBox .aboutAuthor .authorName{
   margin-inline-start: 5px;
@@ -9402,7 +9402,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
-  direction: rtl;
+  direction: ltr;
 }
 .versionsBox div:not(:first-child) .versionLanguage {
   padding-top: 25px;
@@ -9689,7 +9689,7 @@ span.purim-emoji img{
   font-size: 16px;
 }
 .interface-hebrew .sheetContent .element-link .popup {
-  direction: rtl;
+  direction: ltr;
 }
 
 .sheetContent .element-link .popup input {
@@ -10642,7 +10642,7 @@ cursor: pointer;
   left: 0;
 }
 .interface-hebrew .editorToggleHeader {
-  direction: rtl;
+  direction: ltr;
 }
 .editorToggleHeader .button {
   padding: 5px 8px;
@@ -10663,7 +10663,7 @@ cursor: pointer;
   box-sizing: border-box;
 }
 .interface-hebrew .feedbackOverlay {
-  direction: rtl;
+  direction: ltr;
 }
 .feedbackOverlay .buttonContainer {
   margin-top: 50px;
@@ -11311,7 +11311,7 @@ body .homeFeedWrapper .content {
   padding-inline-start: 20px;
 }
 .readerPanel.hebrew .savedHistoryList .colorBarBox{
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .citationLine,
 .interface-english .learnMoreLink {
@@ -11627,7 +11627,7 @@ body .homeFeedWrapper.userStats {
   font-size: 16px;
 }
 .editTextInfo #newIndex #heTitle {
-  direction: rtl;
+  direction: ltr;
 }
 .interface-english .editTextInfo .static label {
   text-align: left;
@@ -11917,7 +11917,7 @@ body .homeFeedWrapper.userStats {
 .userStats .yourPopularSheetsBlock > div {
   padding: 10px 0;
 }
-.userStats .chartLabel {
+.userStats .chaltrabel {
   text-align: center;
   padding-top: 8px;
 }
@@ -12377,7 +12377,7 @@ span.ref-link-color-3 {color: blue}
   border-radius: 6px;
   right: 0px;
 }
-.beitMidrashUser .userDetailsMenu[dir="rtl"] {
+.beitMidrashUser .userDetailsMenu[dir="ltr"] {
   position: absolute;
   background-color: black;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
