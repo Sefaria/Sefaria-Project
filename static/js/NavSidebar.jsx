@@ -94,12 +94,10 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
       e.preventDefault();
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
-    console.log("all_history");
-    gtag('event', 'page_view', {link_pressed: 'all_history', logged_in: !!Sefaria._uid});
+    gtag('event', 'recently_viewed', {link_pressed: 'all_history', logged_in: !!Sefaria._uid});
    }
    const trackItem = (ref, pos) => {
-       console.log("trackItem", ref, pos);
-       gtag('event', 'page_view', {ref: ref, link_pressed: 'ref', position: pos})
+       gtag('event', 'recently_viewed', {ref: ref, link_pressed: 'ref', position: pos})
     }
    const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
