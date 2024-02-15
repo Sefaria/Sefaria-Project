@@ -301,9 +301,7 @@ class TextRange extends Component {
     const formatEnAsPoetry = data && data.formatEnAsPoetry
     const formatHeAsPoetry = data && data.formatHeAsPoetry
 
-    const showNumberLabel =  data && data.categories &&
-                              data.categories[0] !== "Liturgy" &&
-                              data.categories[0] !== "Reference";
+    const showNumberLabel =  data && data.categories
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
