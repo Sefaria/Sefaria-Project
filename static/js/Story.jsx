@@ -150,11 +150,10 @@ const ReviewStateIndicator = ({reviewState, callBack}) => {
 
 };
 
-const ReviewStateWrapper = ({topic, text}) => {
-    let enReviewState = text.descriptions?.en?.review_state;
-    let heReviewState = text.descriptions?.he?.review_state;
+const useReviewState = (topic, text) => {
     let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
-    const [reviewStateObj, setReviewStateObj] = useState({"en":enReviewState, "he":heReviewState});
+    let review = text.descriptions?.[lang]?.review_state;
+    const [reviewState, setReviewState] = useState(review);
     const markReviewed = function(){
         let postData = {"topic": topic,
             "is_new": false,
@@ -162,12 +161,10 @@ const ReviewStateWrapper = ({topic, text}) => {
             'interface_lang': Sefaria.interfaceLang,
             'description' : {...text.descriptions[lang], 'review_state': 'reviewed'}};
         Sefaria.postToApi(`/api/ref-topic-links/${text.ref}`, {}, postData).then(response => {
-            let updatedReviewStateObj = {...reviewStateObj};
-            updatedReviewStateObj[lang] = "reviewed"
-            setReviewStateObj(updatedReviewStateObj);
+            setReviewState("reviewed");
         })
     }
-    return  <ReviewStateIndicator reviewState={reviewStateObj[lang]} callBack={markReviewed}/>
+    return [reviewState, markReviewed]
 }
 
 const VisibilityWrapper = ({children, topic, text}) => {
@@ -190,7 +187,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
-
+    const [state, reviewStateCallback] = useReviewState(topic, text)
 
 
     return (
@@ -200,7 +197,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
                 <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                     <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
                 </CategoryHeader>
-                <ReviewStateWrapper topic={topic} text={text}/>
+                <ReviewStateIndicator reviewState={state} callBack={reviewStateCallback}/>
             </div>
                 <div className={"systemText learningPrompt"}>
             <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
