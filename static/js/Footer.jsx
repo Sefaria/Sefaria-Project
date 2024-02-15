@@ -85,7 +85,7 @@ class Footer extends Component {
               <div className="header connect">
                   <InterfaceText>Connect</InterfaceText>
               </div>
-              <NewsletterSignUpForm contextName="Footer" />
+              {/*<NewsletterSignUpForm contextName="Footer" />*/}
               <LikeFollowButtons />
               <div className="socialLinks">
                   <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true}/>
@@ -135,7 +135,7 @@ class LikeFollowButtons extends Component {
         if (d.getElementById(id)) return;
         js = d.createElement(s); js.id = id;
         js.src = Sefaria.interfaceLang ==  "hebrew" ?
-          "https://connect.facebook.net/he_IL/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
+          "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
           : "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
         fjs.parentNode.insertBefore(js, fjs);
       }(document, 'script', 'facebook-jssdk'));
@@ -183,7 +183,7 @@ class LikeFollowButtons extends Component {
                   href="https://twitter.com/SefariaProject"
                   data-show-screen-name="false"
                   data-show-count="false"
-                  data-lang={lang}></a>
+                  data-lang={"en"}></a>
               </div>
             </div>);
   }
