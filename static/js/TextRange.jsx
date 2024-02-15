@@ -238,7 +238,7 @@ class TextRange extends Component {
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
 
-    const side = this.props.settings.language == "hebrew" ? "right" : "left";
+    const side = this.props.settings.language == "hebrew" ? "left" : "left";
     const selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
     const fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
@@ -287,23 +287,21 @@ class TextRange extends Component {
       const sectionStrings   = Sefaria.sectionString(ref);
       const oref             = Sefaria.ref(ref);
       const useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
-      title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
-      heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.named;
+      title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.numbered;
+      heTitle          = useShortString ? sectionStrings.he.numbered : sectionStrings.he.numbered;
     } else if (data && !this.props.basetext) {
       title            = data.ref;
       heTitle          = data.heRef;
       ref              = data.ref;
     } else if (!data) {
       title            = "Loading...";
-      heTitle          = "טעינה...";
+      heTitle          = "Loading...";
       ref              = null;
     }
     const formatEnAsPoetry = data && data.formatEnAsPoetry
     const formatHeAsPoetry = data && data.formatHeAsPoetry
 
-    const showNumberLabel =  data && data.categories &&
-                              data.categories[0] !== "Liturgy" &&
-                              data.categories[0] !== "Reference";
+    const showNumberLabel =  data && data.categories 
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 

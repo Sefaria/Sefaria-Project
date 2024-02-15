@@ -107,7 +107,7 @@ class ReaderApp extends Component {
     }).map(panel => this.makePanelState(panel));
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
-    const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
+    const layoutOrientation = (props.interfaceLang == "hebrew") ? "ltr" : "ltr";
 
     this.state = {
       panels: panels,

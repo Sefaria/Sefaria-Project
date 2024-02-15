@@ -22,7 +22,7 @@ function VersionInformation({currentRef, version}) {
             <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
               <span className="versionDetailsLabel">
                 {`${Sefaria._("Digitization")}: `}
-              < /span>
+              </span>
               <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
                 {Sefaria._("Sefaria")}
               </a>
