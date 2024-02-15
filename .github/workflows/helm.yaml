@@ -55,7 +55,7 @@ jobs:
           extra_plugins: |
             conventional-changelog-conventionalcommits@6.1.0
             semantic-release-monorepo@7.0.5
-            @semantic-release/commit-analyzer@10.0.1
+            @semantic-release/commit-analyzer@9.0.2
           extends: |
             semantic-release-monorepo
         env:
