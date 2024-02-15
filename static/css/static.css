@@ -3495,8 +3495,13 @@ display: none;
 .interface-hebrew .container.doc.legal.static .inner {
   margin-top: -40px;
 }
-
-@media (max-width: 700px) {
+@media (max-width: 1000px) {
+  #aboutSidebar {
+    display: none;
+  }
+  #aboutSidebar.mobileAbout {
+    display: block;
+  }
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
   }
