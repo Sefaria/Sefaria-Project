@@ -341,10 +341,10 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
-              <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
-              <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
-              <ToolsButton en="Translations" he="תרגומים" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
+              <ToolsButton en="About this Text" he="ཆོས་མཛོད་འདིའི་སྐོར།" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+              <ToolsButton en="Table of Contents" he="རེའུ་མིག" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
+              <ToolsButton en="Search in this Text" he="ཆོས་མཛོད་འདིའི་ནང་ཚོལ།" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
+              <ToolsButton en="Translations" he="འགྱུར་མ་ཁག" image="translation.svg"  urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} count={resourcesButtonCounts.translations} />
             </div>
           }
           {showConnectionSummary ?
@@ -739,11 +739,11 @@ const ResourcesList = ({ masterPanelMode, setConnectionsMode, counts }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
-      <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
-      <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
-      <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
-      <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
+      <ToolsButton en="Sheets" he="ཤོག་ངོས།" image="sheet.svg" count={counts["sheets"]} urlConnectionsMode="Sheets" onClick={() => setConnectionsMode("Sheets")} />
+      <ToolsButton en="Web Pages" he="དྲ་ངོས་ཁག" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
+      <ToolsButton en="Topics" he="བཇོད་གཞི།" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
+      <ToolsButton en="Manuscripts" he="Manuscripts" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
+      <ToolsButton en="Pecha Readings" he="དཔེ་ཆ་ཀློག་མཁན།" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
     </div>
   );
 }
@@ -756,13 +756,13 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
-      <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
-      <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
-      {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
-      <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
-      {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
-      <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
-      <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
+      <ToolsButton en="Add to Sheet" he="ཤོག་ངོས་ནང་སྣོན།" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddToSheet) : setConnectionsMode("Add To Sheet", { "addSource": "mainPanel" })} />
+      <ToolsButton en="Dictionaries" he="ཚིག་མཛོད།" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
+      {openComparePanel ? <ToolsButton en="Compare Text" he="ཆོས་མཛོད་གཤིབ་བསྡུར།" image="compare-panel.svg" onClick={openComparePanel} /> : null}
+      <ToolsButton en="Notes" he="མཆན།" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
+      {masterPanelMode !== "Sheet" ? <ToolsButton en="Share" he="བརྒྱུད་བསྐུར།" image="share.svg" onClick={() => setConnectionsMode("Share")} /> : null}
+      <ToolsButton en="Feedback" he="བསམ་འཆར།" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
+      <ToolsButton en="Advanced" he="ཞིབ་ཕྲ།" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
     </div>
   );
 }
@@ -1302,9 +1302,9 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
 
     return (
       <div>
-        <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
-        {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
+        <ToolsButton en="Add Translation" he="འགྱུར་མ་གསར་སྣོན།" image="tools-translate.svg" onClick={addTranslation} />
+        <ToolsButton en="Add Connection" he="འབྲེལ་ཡོད་གསར་སྣོན།" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
+        {editText ? (<ToolsButton en="Edit Text" he="ཆོས་མཛོད་རྩོམ་སྒྲིག" image="tools-edit-text.svg" onClick={editText} />) : null}
       </div>
     );
 }
