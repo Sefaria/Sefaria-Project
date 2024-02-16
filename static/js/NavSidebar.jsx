@@ -501,7 +501,7 @@ const AboutTopics = ({hideTitle}) => (
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>
         <HebrewText>
-דפי הנושא מציגים מקורות נבחרים מארון הספרים היהודי עבור אלפי נושאים. ניתן לדפדף לפי קטגוריה או לחפש לפי נושא ספציפי, ובסרגל הצד מוצגים הנושאים הפופולריים ביותר ואלה הקשורים אליהם.  הקליקו ושוטטו בין הנושאים השונים כדי ללמוד עוד.
+        བརྗོད་གཞིའི་ཤོག་ངོས་ཀྱིས་གཙོ་བོ་ཆེད་འདེམ་བྱས་པའི་བརྗོད་གཞི་སྟོང་ཕྲག་མང་པོའི་རྒྱུ་ཆ་རྣམས་བརྗོད་བྱའི་སྒོ་ནས་རིགས་སོ་སོར་དབྱེ་བའི་སྡེ་ཚན་གསལ་སྟོན་བྱེད་པ་ཡིན། དེའི་ཕྱིར་ཁྱེད་ཀྱིས་སྡེ་ཚན་རེ་རེ་བྱས་ཏེ་གཟིགས་ཐུབ་ཅིང་། བྱེ་བྲག་གིས་འཚོལ་ཞིབ་བྱེད་པ་ཡང་ན་བརྗོད་གཞི་རྒྱུགས་ཆེ་ཤོས་རྣམས་དང་དེ་འབྲེལ་གྱི་རྒྱུ་ཆ་ཁག་གཟིགས་ཞིབ་ཀྱང་བྱེད་ཆོག་པ་ཡིན།
         </HebrewText>
         <EnglishText>
         Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.
