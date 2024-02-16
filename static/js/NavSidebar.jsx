@@ -613,7 +613,7 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <ModuleTitle>Stay Connected</ModuleTitle>
       <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
       <br />
-      <NewsletterSignUpForm context="sidebar" />
+      {/*<NewsletterSignUpForm context="sidebar" />*/}
 
       <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
         <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />

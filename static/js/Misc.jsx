@@ -303,7 +303,7 @@ class ProfilePic extends Component {
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
+                <span className="int-he">{ showDefault ? "འདྲ་པར་སྣོན།" : "གསར་པ་ནང་འཇུག་བྱོས།" }</span>
               </label>
             </div>) : null
           }
@@ -1984,15 +1984,15 @@ class LoginPrompt extends Component {
       <div className="loginPrompt">
         <div className="loginPromptMessage">
           <span className="int-en">Please log in to use this feature.</span>
-          <span className="int-he">עליך להיות מחובר בכדי להשתמש באפשרות זו.</span>
+          <span className="int-he">ཁྱད་ཆོས་འདི་བེད་སྤྱོད་གཏོང་ཆེད་ནང་འཛུལ་བྱེད་རོགས།</span>
         </div>
         <a className="button" href={"/login" + nextParam}>
           <span className="int-en">Log In</span>
-          <span className="int-he">התחברות</span>
+          <span className="int-he">ནང་འཛུལ།</span>
         </a>
         <a className="button" href={"/register" + nextParam}>
           <span className="int-en">Sign Up</span>
-          <span className="int-he">הרשמה</span>
+          <span className="int-he">ཞུགས་ཐོ་གསར་འགོད།</span>
         </a>
       </div>);
   }
@@ -2558,7 +2558,7 @@ Dropdown.propTypes = {
 class LoadingMessage extends Component {
   render() {
     var message = this.props.message || "Loading...";
-    var heMessage = this.props.heMessage || "טוען מידע...";
+    var heMessage = this.props.heMessage || "ཏོག་ཙམ་སྒུག་རོགས།...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>
