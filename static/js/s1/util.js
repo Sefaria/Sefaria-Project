@@ -790,11 +790,11 @@ sjs.textBrowser = {
 							"<div id='browserMessage'></div><br>" +
 							"<div id='browserOK' class='button disabled'>" + 
 								"<span class='int-en'>OK</span>" + 
-								"<span class='int-he'>אישור</span>" +
+								"<span class='int-he'>འགྲིག</span>" +
 							"</div>" +
 							(abs ? "<div id='browserCancel' class='button'>" +
 									"<span class='int-en'>Cancel</span>" + 
-									"<span class='int-he'>ביטול</span>" +
+									"<span class='int-he'>ཕྱིར་འཐེན།</span>" +
 								"</div>" : "") +
 						"</div>" +
 				   "</div>";
@@ -1011,7 +1011,7 @@ sjs.textBrowser = {
 		// Update the top path UI per the _path list. 
 		var html = "<span class='browserNavHome browserPathItem' data-index='0'>" + 
 						"<span class='int-en'>All Texts</span>" +
-						"<span class='int-he'>כל הטקסטים</span>" + 
+						"<span class='int-he'>དཔེ་ཆ་ཡོངས་རྫོགས།</span>" + 
 					"</span>";
 		for (var i = 0; i < this._path.length; i++) {
 			var name = sjs.interfaceLang == "he" ? Sefaria.hebrewTerm(this._path[i]) : this._path[i]
@@ -1131,7 +1131,7 @@ sjs.textBrowser = {
 	_setInitialMessage: function() {
     	sjs.textBrowser._setPreview("<div class='empty'>" +
     									"<span class='int-en'>Browse texts with the menu on the left.</span>" +
-    									"<span class='int-he'>העזרו בתפריט המקורות מימין כדי לבחור את המקור שברצונכם להוסיף</span>" +
+    									"<span class='int-he'>གཡོན་ངོས་ཀྱི་ཐོ་གཞུང་འདིའི་ནང་གི་དཔེ་ཆར་མིག་བཤེར་བྱོས།</span>" +
     								"</div>");
 	},
 	_handleNavClick: function() {
