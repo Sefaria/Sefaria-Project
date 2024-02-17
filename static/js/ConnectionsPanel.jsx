@@ -375,8 +375,8 @@ class ConnectionsPanel extends Component {
                 // looked at
                 (this.props.masterPanelMode == "Sheet" && this.props.title !== "Sheet") ?
                     <>
-                      <ToolsButton en="About this Source" he="אודות מקור זה" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
-                      <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
+                      <ToolsButton en="About this Source" he="མ་ཕྱི་འདིའི་སྐོར།" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
+                      <ToolsButton en="Translations" he="འགྱུར་མ་ཁག" image="translation.svg" count={resourcesButtonCounts["translations"]} urlConnectionsMode="Translations" onClick={() => this.props.setConnectionsMode("Translations")} />
                     </>
                   :
                   null
@@ -791,17 +791,17 @@ const AboutSheetButtons = ({ setConnectionsMode, masterPanelSheetId }) => {
 
   return (<div className="topToolsButtons">
     {isOwner ?
-        <ToolsButton en="Publish Settings" he="הגדרות פרסום" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en="Publish Settings" he="Publish Settings" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
         :
-        <ToolsButton en="About this Sheet" he="אודות דף המקורות" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
+        <ToolsButton en="About this Sheet" he="ཤོག་ངོས་འདིའི་སྐོར།" image="about-text.svg" urlConnectionsMode="AboutSheet" onClick={() => setConnectionsMode("AboutSheet")} />
     }
     {showEditButton  ?
-        <ToolsButton en="Edit" he="עריכה" image="note.svg" onClick={() => {
+        <ToolsButton en="Edit" he="རྩོམ་སྒྲིག" image="note.svg" onClick={() => {
           window.location = `//${window.location.host}/sheets/${masterPanelSheetId}?editor=1`;
         }} />
         : null }
 
-    <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
+    <ToolsButton en="Share" he="བརྒྱུད་སྐུར།" image="share.svg" onClick={() => setConnectionsMode("Share")} />
   </div>);
 }
 

@@ -78,7 +78,7 @@ class AboutBox extends Component {
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
                       <span className="int-en">About This Text</span>
-                      <span className="int-he">אודות ספר זה</span>
+                      <span className="int-he">ཆོས་མཛོད་འདིའི་སྐོར།</span>
                   </h2>
                   <div className="aboutTitle">
                       {d.title.stripHtml()}
