@@ -228,7 +228,7 @@ const SponsorADay = () => (
 const AboutTextCategory = ({cats}) => {
   const tocObject = Sefaria.tocObjectByCategories(cats);
   const enTitle = "About " + tocObject.category;
-  const heTitle = "אודות " + tocObject.heCategory;
+  const heTitle = "སྐོར། " + tocObject.heCategory;
 
   if ((Sefaria.interfaceLang === "hebrew" && !tocObject.heDesc) ||
       (Sefaria.interfaceLang === "english" && !tocObject.enDesc)) {
