@@ -1143,12 +1143,13 @@ def _calculate_approved_review_state(current, requested):
         "edited": 1,
         "reviewed": 2
     }
-    if state_to_num[requested] > state_to_num[current]:
+    default_num = state_to_num['not reviewed']
+    if state_to_num.get(requested, default_num) > state_to_num.get(current, default_num):
         return requested
     else:
         return current
 def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
-                      interface_lang='en', linkType='about', description={}):
+                      interface_lang='en', linkType='about', description=None):
     """
     API helper function used by SourceEditor for editing sources associated with topics which are stored as RefTopicLink
     Slug, orig_tref, and linkType define the original RefTopicLink if one existed.
@@ -1158,6 +1159,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     :param linkType: (str) 'about' is used for most topics, except for 'authors' case
     :param description: (dict) Dictionary of title and prompt corresponding to `interface_lang`
     """
+    description = description or {}
     topic_obj = Topic.init(slug)
     if topic_obj is None:
         return {"error": "Topic does not exist."}
@@ -1179,7 +1181,7 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
 
 
     current_descriptions = getattr(link, 'descriptions', {})
-    current_descriptions_in_lang = current_descriptions.get(interface_lang)
+    current_descriptions_in_lang = current_descriptions.get(interface_lang, {})
     for key in description.keys():
         if key == "review_state":
             requested_review_state = description.get("review_state")
