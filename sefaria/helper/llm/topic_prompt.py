@@ -168,10 +168,10 @@ def get_ref_context_hints_by_lang(ref_topic_links: List[dict]) -> Dict[str, List
     ref__context_hints_by_lang = defaultdict(list)
     for ref_topic_link in ref_topic_links:
         oref = Ref(ref_topic_link['ref'])
-        description = ref_topic_link.get('description', {})
+        description = ref_topic_link.get('descriptions', {})
         for lang, prompt_dict in description.items():
             context_hint = prompt_dict.get('ai_context', '')
             curr_prompt = prompt_dict.get('prompt', '')
             if context_hint and not curr_prompt:
-                ref__context_hints_by_lang[lang] += [(oref, curr_prompt)]
+                ref__context_hints_by_lang[lang] += [(oref, context_hint)]
     return ref__context_hints_by_lang
