@@ -1137,7 +1137,7 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_category_mapping(rebuild=True)
 
 def _calculate_approved_review_state(current, requested):
-    "This function calculates the review state of a description of topic link. Review state of a discription can only 'increse'"
+    "Calculates the review state of a description of topic link. Review state of a description can only 'increase'"
     state_to_num = {
         "not reviewed": 0,
         "edited": 1,
