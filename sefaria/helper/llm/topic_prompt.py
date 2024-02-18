@@ -14,6 +14,21 @@ def _lang_dict_by_func(func: Callable[[str], Any]):
     return {lang: func(lang) for lang in ('en', 'he')}
 
 
+def _get_commentary_from_link_dict(link_dict: dict) -> Optional[dict]:
+    if link_dict['category'] not in {'Commentary'}:
+        return
+    if not link_dict['sourceHasEn']:
+        return
+    commentary = {
+        "ref": link_dict['sourceRef'],
+        "text": _lang_dict_by_func(
+            lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string()),
+    }
+    commentary['text'] = _lang_dict_by_func(
+        lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary['text'][lang])))
+    return commentary
+
+
 def _get_commentary_for_tref(tref: str) -> List[dict]:
     """
     Return list of commentary for tref. Currently only considers English commentary.
@@ -25,17 +40,8 @@ def _get_commentary_for_tref(tref: str) -> List[dict]:
     commentary = []
 
     for link_dict in get_links(tref, with_text=True):
-        if link_dict['category'] not in {'Commentary'}:
-            continue
-        if not link_dict['sourceHasEn']:
-            continue
-        temp_commentary = {
-            "ref": link_dict['sourceRef'],
-            "text": _lang_dict_by_func(
-                lambda lang: JaggedTextArray(link_dict['text' if lang == 'en' else 'he']).flatten_to_string()),
-        }
-        temp_commentary['text'] = _lang_dict_by_func(
-            lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(temp_commentary['text'][lang])))
+        temp_commentary = _get_commentary_from_link_dict(link_dict)
+        if not temp_commentary: continue
         commentary += [temp_commentary]
     return commentary
 
