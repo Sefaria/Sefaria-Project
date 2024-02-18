@@ -348,7 +348,6 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const requestPublishUnpublishedPrompts = async () => {
       const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
       let refs = sourceRefExplicitlyNotPublished;
-      console.log(refs)
       refs.forEach(ref => {
           ref['toTopic'] = topic;
           ref.descriptions[lang]["published"] = true;
