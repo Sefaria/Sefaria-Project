@@ -3204,7 +3204,7 @@ def reorder_topics(request):
 @staff_member_required()
 def topic_ref_bulk_api(request):
     """
-    API to create, edit and delete bulk RefTopicLinks
+    API to bulk edit RefTopicLinks
     """
     topic_links = json.loads(request.body)
     all_links_touched = []
