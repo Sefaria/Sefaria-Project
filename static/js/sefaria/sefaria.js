@@ -608,45 +608,17 @@ Sefaria = extend(Sefaria, {
       return response;
   },
   subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
-    const response = await fetch(`/api/subscribe/${email}`,
-        {
-            method: "POST",
-            mode: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': Cookies.get('csrftoken'),
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
-                educator: educatorCheck,
-                firstName: firstName,
-                lastName: lastName
-            })
-        }
-    );
-    if (!response.ok) { throw "error"; }
-    const json = await response.json();
-    if (json.error) { throw json; }
-    return json;
+      const payload = {
+        language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+        educator: educatorCheck,
+        firstName: firstName,
+        lastName: lastName,
+      };
+      return await Sefaria.postToApi(`/api/subscribe/${email}`, null, payload);
   },
   subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
-      const response = await fetch(`/api/subscribe/steinsaltz/${email}`,
-          {
-              method: "POST",
-              mode: 'same-origin',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': Cookies.get('csrftoken'),
-              },
-              credentials: 'same-origin',
-              body: JSON.stringify({firstName, lastName}),
-          }
-      );
-      if (!response.ok) { throw "error"; }
-      const json = await response.json();
-      if (json.error) { throw json; }
-      return json;
+      const payload = {firstName, lastName};
+      return await Sefaria.postToApi(`/api/subscribe/steinsaltz/${email}`, null, payload);
   },
 
     postToApi: async function(url, urlParams, payload) {
