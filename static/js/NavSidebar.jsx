@@ -94,11 +94,11 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
       e.preventDefault();
       toggleSignUpModal(SignUpModalKind.ViewHistory);
     }
-    gtag('event', 'recently_viewed', {link_pressed: 'all_history', logged_in: !!Sefaria._uid});
+    gtag('event', 'recently_viewed', {link_type: 'all_history', logged_in: !!Sefaria._uid});
    }
    const trackItem = (ref, pos) => {
-       gtag('event', 'recently_viewed', {ref: ref, link_pressed: 'ref', position: pos})
-    }
+     gtag('event', 'recently_viewed', {link_text: ref, link_type: 'ref', link_pos: pos})
+   }
    const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
