@@ -500,7 +500,8 @@ Sefaria = extend(Sefaria, {
     const versions = requiredVersions.map(obj =>
         Sefaria.makeParamsStringForAPIV3(obj.language, obj.versionTitle)
     );
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeText}`;
+    const mergeTextInt = mergeText ? 1 : 0;
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}`;
     return url;
   },
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
