@@ -3089,7 +3089,7 @@ def topics_list_api(request):
     return response
 
 
-@csrf_exempt
+@staff_member_required
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
