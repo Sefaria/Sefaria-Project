@@ -1,4 +1,5 @@
-from typing import List, Callable, Any, Optional, Dict
+from typing import List, Callable, Any, Optional, Dict, Tuple
+from collections import defaultdict
 import re
 from sefaria.model.text import Ref, library, TextChunk
 from sefaria.model.passage import Passage
@@ -154,3 +155,23 @@ def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
         }}
         setattr(link, "descriptions", deep_update(curr_descriptions, description_edits))
         link.save()
+
+
+def get_ref_context_hints_by_lang(ref_topic_links: List[dict]) -> Dict[str, List[Tuple[Ref, str]]]:
+    """
+    Helper function for topic generation API
+    Returns dict where keys are the languages of ref_topic_links that should be generated and the values are the Refs
+    and context hints that should be inputs to the generation process
+    @param ref_topic_links:
+    @return:
+    """
+    ref__context_hints_by_lang = defaultdict(list)
+    for ref_topic_link in ref_topic_links:
+        oref = Ref(ref_topic_link['ref'])
+        description = ref_topic_link.get('description', {})
+        for lang, prompt_dict in description.items():
+            context_hint = prompt_dict.get('ai_context', '')
+            curr_prompt = prompt_dict.get('prompt', '')
+            if context_hint and not curr_prompt:
+                ref__context_hints_by_lang[lang] += [(oref, curr_prompt)]
+    return ref__context_hints_by_lang

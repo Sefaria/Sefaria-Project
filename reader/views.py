@@ -3093,12 +3093,13 @@ def topics_list_api(request):
 def generate_topic_prompts_api(request, slug: str):
     if request.method == "POST":
         from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
-        post_body = json.loads(request.body)
-        lang = post_body.get('lang')
+        from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
         topic = Topic.init(slug)
-        orefs = [Ref(tref) for tref in post_body.get('refs')]
-        context_hints = post_body.get('context_hints')
-        generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
+        post_body = json.loads(request.body)
+        ref_topic_links = post_body.get('ref_topic_links')
+        for lang, ref__context_hints in get_ref_context_hints_by_lang(ref_topic_links).items():
+            orefs, context_hints = zip(*ref__context_hints)
+            generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
         return jsonResponse({"acknowledged": True}, status=202)
     return jsonResponse({"error": "This API only accepts POST requests."})
 
