@@ -1,5 +1,43 @@
 import pytest
 from sefaria.helper.llm.topic_prompt import *
+from sefaria.helper.llm.topic_prompt import _lang_dict_by_func, _get_commentary_from_link_dict
+
+
+@pytest.mark.parametrize(('fn', 'expected'), [
+    [lambda x: x, {'en': 'en', 'he': 'he'}],
+])
+def test_lang_dict_by_func(fn, expected):
+    assert _lang_dict_by_func(fn) == expected
+
+
+@pytest.mark.parametrize(('link_dict', 'expected'), [
+    [  # simple case
+        {
+            "category": "Commentary", "sourceHasEn": True, "sourceRef": "Job 1", "text": "Yo", "he": "Jo",
+        }, {
+           "ref": "Job 1", "text": {"en": "Yo", "he": "Jo"} ,
+        }
+    ],
+    [  # only english
+        {
+            "category": "Commentary", "sourceHasEn": True, "sourceRef": "Job 1", "text": "Yo"
+        }, {
+        "ref": "Job 1", "text": {"en": "Yo", "he": ""} ,
+    }
+    ],
+    [  # not commentary
+        {
+            "category": "Not Commentary", "sourceHasEn": True,
+        }, None
+    ],
+    [  # not english
+        {
+            "category": "Commentary", "sourceHasEn": False,
+        }, None
+    ]
+])
+def test_get_commentary_from_link_dict(link_dict, expected):
+    assert _get_commentary_from_link_dict(link_dict) == expected
 
 
 @pytest.mark.parametrize(('ref_topic_links', 'ref__context_hints_by_lang'), [
@@ -66,4 +104,5 @@ from sefaria.helper.llm.topic_prompt import *
 ])
 def test_get_ref_context_hints_by_lang(ref_topic_links, ref__context_hints_by_lang):
     assert get_ref_context_hints_by_lang(ref_topic_links) == ref__context_hints_by_lang
+
 
