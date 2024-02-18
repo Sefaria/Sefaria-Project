@@ -196,7 +196,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
                     <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
                         <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
                     </CategoryHeader>
-                    <ReviewStateIndicator reviewState={state} callBack={reviewStateCallback}/>
+                    <ReviewStateIndicator reviewState={state} onClick={markReviewed}/>
                 </div>
                     <div className={"systemText learningPrompt"}>
                         <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
