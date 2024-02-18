@@ -138,7 +138,7 @@ const reviewStateToDisplayedTextMap = {
     "not reviewed": "Not Reviewed",
     "edited": "Edited"
 }
-const ReviewStateIndicator = ({reviewState, callBack}) => {
+const ReviewStateIndicator = ({reviewState, onClick}) => {
     if (!reviewState){
         return null}
     let reviewStateClassName = reviewStateToClassNameMap[reviewState];
