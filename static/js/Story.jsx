@@ -144,7 +144,7 @@ const ReviewStateIndicator = ({reviewState, onClick}) => {
     let reviewStateClassName = reviewStateToClassNameMap[reviewState];
     let displayedText = reviewStateToDisplayedTextMap[reviewState];
     return (
-    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={callBack}>
+    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={onClick}>
         {displayedText}
     </div>)
 
