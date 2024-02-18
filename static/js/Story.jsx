@@ -1,4 +1,4 @@
-import React  from 'react';
+import React, {useState} from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
@@ -127,6 +127,56 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
+
+const reviewStateToClassNameMap = {
+    "reviewed": "reviewed",
+    "not reviewed": "notReviewed",
+    "edited": "edited"
+}
+const reviewStateToDisplayedTextMap = {
+    "reviewed": "Reviewed",
+    "not reviewed": "Not Reviewed",
+    "edited": "Edited"
+}
+const ReviewStateIndicator = ({reviewState, callBack}) => {
+    if (!reviewState){
+        return null}
+    let reviewStateClassName = reviewStateToClassNameMap[reviewState];
+    let displayedText = reviewStateToDisplayedTextMap[reviewState];
+    return (
+    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={callBack}>
+        {displayedText}
+    </div>)
+
+};
+
+const useReviewState = (topic, text) => {
+    let lang = Sefaria.interfaceLang == "english" ? 'en' : 'he';
+    let review = text.descriptions?.[lang]?.review_state;
+    const [reviewState, setReviewState] = useState(review);
+    const markReviewed = function(){
+        let postData = {"topic": topic,
+            "is_new": false,
+            'new_ref': text.ref,
+            'interface_lang': Sefaria.interfaceLang,
+            'description' : {...text.descriptions[lang], 'review_state': 'reviewed'}};
+        Sefaria.postToApi(`/api/ref-topic-links/${text.ref}`, {}, postData).then(response => {
+            setReviewState("reviewed");
+        })
+    }
+    return [reviewState, markReviewed]
+}
+
+const VisibilityWrapper = ({children, topic, text}) => {
+    let displayedComponents = null;
+    let lang = Sefaria.interfaceLang == "english" ? 'he' : 'en';
+    const isPromptPublished = text.descriptions?.[lang]?.published;
+    if (isPromptPublished !== false || Sefaria.is_moderator) {
+            displayedComponents = children;
+        }
+    return displayedComponents
+}
+
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
     const versions = text.versions || {}
@@ -137,15 +187,22 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
+    const [state, reviewStateCallback] = useReviewState(topic, text)
+
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
-            <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
-                <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-            </CategoryHeader>
-            <div className={"systemText learningPrompt"}>
-                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+            <VisibilityWrapper topic={topic} text={text}>
+            <div className={"headerWithAdminButtonsContainer"}>
+                <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+                    <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
+                </CategoryHeader>
+                <ReviewStateIndicator reviewState={state} callBack={reviewStateCallback}/>
             </div>
+                <div className={"systemText learningPrompt"}>
+            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+        </div>
+            </VisibilityWrapper>
             <SaveLine
                 dref={text.ref}
                 versions={versions}

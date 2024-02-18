@@ -3201,13 +3201,39 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
+@staff_member_required()
+def topic_ref_bulk_api(request):
+    """
+    API to create, edit and delete bulk RefTopicLinks
+    """
+    topic_links = json.loads(request.body)
+    all_links_touched = []
+    for link in topic_links:
+        tref = link.get('ref')
+        tref = Ref(tref).normal()
+        slug = link.get("toTopic")
+        linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+        descriptions = link.get("descriptions", link.get("description"))
+        languages = descriptions.keys()
+        ref_topic_aggregated_dict = {}
+        for language in languages:
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=tref,
+                                               linkType=linkType, description=descriptions[language], interface_lang=language)
+            ref_topic_aggregated_dict = {**ref_topic_aggregated_dict, **ref_topic_dict}
+        all_links_touched.append(ref_topic_aggregated_dict)
+    return jsonResponse(all_links_touched)
+
+
+
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
-
-    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    try:
+        data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    except Exception as e:
+        data = json.loads(request.body)
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input

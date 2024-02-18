@@ -23,7 +23,10 @@ const options_for_form = {
         type: 'textarea',
         markdown: true
     },
-    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
+    "Prompt": {label: "Source Description", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
+    "Previous Prompt": {label: "Previous Source Description", field: "prompt", placeholder: "", type: 'textarea readonly'},
+    "Context for Prompt": {label: "Context for Prompt", field: "context", placeholder: "Why was this source added", type: 'textarea'},
+    "Previous Title": {label: "Previous Title", field: "enTitle", placeholder: "", type: 'readonly'},
     "English Short Description": {
         label: "English Short Description for Table of Contents", field: "enCategoryDescription",
         placeholder: "Add a short description.", type: 'input'
@@ -177,6 +180,15 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
                          placeholder={Sefaria._(placeholder)}/>;
                 break;
+            case 'textarea readonly':
+                obj = <textarea readOnly  className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
+                         placeholder={Sefaria._(placeholder)}/>;
+                break;
+            case 'readonly':
+                const inputTypeReadOnly = field.includes('Year') ? 'number' : 'text';
+                obj = <input readOnly type={inputTypeReadOnly} id={field} onChange={setInputValue} defaultValue={data[field]}
+                         placeholder={Sefaria._(placeholder)}/>;
+                break;
             default:
                 const inputType = field.includes('Year') ? 'number' : 'text';
                 obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
@@ -202,7 +214,9 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 <div id="newIndex">
                     <AdminToolHeader title={title} close={close} validate={preprocess}/>
                     {items.map((x) => {
-                        if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                        if (!x) {
+                            return null;
+                        } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;

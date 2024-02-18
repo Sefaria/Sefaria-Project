@@ -312,17 +312,61 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const getSourceRefWithContextWithoutPrompt = (refs) => {
+    if (!refs) {
+        return [];
+    }
+
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+
+    return refs.filter((ref) => {
+        return ref.descriptions?.[lang]?.context != '' &&
+            !ref.descriptions?.[lang]?.prompt;
+    });
+};
+const getSourceRefExplicitlyNotPublished = (refs) => {
+    if (!refs) {
+        return [];
+    }
+
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+
+    return refs.filter((ref) => {
+        return ref.descriptions?.[lang]?.published === false;
+    });
+};
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
+  const sourceRefWithContextWithoutPrompt = getSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs);
+  const generateButtonName = sourceRefWithContextWithoutPrompt > 0 ? "generate" : null;
+  const sourceRefExplicitlyNotPublished = getSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs);
+  const publishButtonName = sourceRefExplicitlyNotPublished.length > 0 ? "publish" : null;
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
+
+  const requestPublishUnpublishedPrompts = async () => {
+      const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+      let refs = sourceRefExplicitlyNotPublished;
+      console.log(refs)
+      refs.forEach(ref => {
+          ref['toTopic'] = topic;
+          ref.descriptions[lang]["published"] = true;
+      });
+      try {
+          const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, refs);
+          const refValues = response.map(item => item.anchorRef).join(", ");
+          alert("The following prompts have been published: " + refValues);
+        } catch (error) {
+          console.error("Error occurred:", error);
+        }
+  };
+
   return (
     <div>
       
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
+                <CategoryHeader publishButtonCallback={requestPublishUnpublishedPrompts} type="topics" data={topicData} buttonsToDisplay={[publishButtonName, generateButtonName, "source", "edit", "reorder"]}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
