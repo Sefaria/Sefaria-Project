@@ -2,14 +2,15 @@
 Celery tasks for the LLM server
 """
 from typing import List
-from celery import shared_task, signature
+from celery import signature
+from sefaria.celery_setup.app import app
 from sefaria.model.topic import Topic
 from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import save_topic_prompt_output, make_topic_prompt_input
 from sefaria.helper.llm.llm_interface import TopicPromptGenerationOutput
 
 
-@shared_task(name="web.save_topic_prompts")
+@app.task(name="web.save_topic_prompts")
 def save_topic_prompts(raw_output: TopicPromptGenerationOutput):
     output = TopicPromptGenerationOutput.create(raw_output)
     save_topic_prompt_output(output)
