@@ -1139,15 +1139,28 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
 def _calculate_approved_review_state(current, requested):
     "This function calculates the review state of a description of topic link. Review state of a discription can only 'increse'"
     state_to_num = {
+        None: -1,
         "not reviewed": 0,
         "edited": 1,
         "reviewed": 2
     }
-    default_num = state_to_num['not reviewed']
-    if state_to_num.get(requested, default_num) > state_to_num.get(current, default_num):
+    if state_to_num[requested] > state_to_num[current]:
         return requested
     else:
         return current
+
+def _get_merged_descriptions(current_descriptions, requested_descriptions):
+    from sefaria.utils.util import deep_update
+    for lang, requested_description_in_lang in requested_descriptions.items():
+        current_descriptions_in_lang = current_descriptions.get(lang, {})
+        current_review_state = current_descriptions_in_lang.get("review_state")
+        requested_review_state = requested_description_in_lang.get("review_state")
+        merged_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
+        if merged_review_state:
+            requested_description_in_lang['review_state'] = merged_review_state
+    return deep_update(current_descriptions, requested_descriptions)
+
+
 def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
                       interface_lang='en', linkType='about', description=None):
     """
@@ -1178,23 +1191,8 @@ def edit_topic_source(slug, orig_tref, new_tref="", creating_new_link=True,
     link.dataSource = 'learning-team'
     link.ref = new_tref
 
-
-
     current_descriptions = getattr(link, 'descriptions', {})
-    current_descriptions_in_lang = current_descriptions.get(interface_lang, {})
-    for key in description.keys():
-        if key == "review_state":
-            requested_review_state = description.get("review_state")
-            current_review_state = current_descriptions_in_lang.get("review_state")
-            approved_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
-            if current_review_state:
-                current_descriptions_in_lang[key] = approved_review_state
-        elif current_descriptions_in_lang.get(key) != description.get(key):
-            current_descriptions_in_lang[key] = description.get(key)
-    link.descriptions = current_descriptions
-    # if current_descriptions.get(interface_lang, {}) != description:  # has description in this language changed?
-    #     current_descriptions[interface_lang] = description
-    #     link.descriptions = current_descriptions
+    link.descriptions = _get_merged_descriptions(current_descriptions, {interface_lang: description})
 
     if hasattr(link, 'generatedBy') and getattr(link, 'generatedBy', "") == TopicLinkHelper.generated_by_sheets:
         del link.generatedBy  # prevent link from getting deleted when topic cronjob runs
