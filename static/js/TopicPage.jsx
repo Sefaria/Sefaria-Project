@@ -320,7 +320,7 @@ const getSourceRefWithContextWithoutPrompt = (refs) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
 
     return refs.filter((ref) => {
-        return ref.descriptions?.[lang]?.context != '' &&
+        return ref.descriptions?.[lang]?.context.length > 0  &&
             !ref.descriptions?.[lang]?.prompt;
     });
 };
