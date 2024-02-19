@@ -14,10 +14,12 @@
 
 
 	<div class="inner">
-        <h1 class="mobileAboutHeader">
-            <span class="int-en">Metrics</span>
-            <span class="int-he">מדדים</span>
-        </h1>
+        {% if request.user_agent.is_mobile %}
+            <h1 class="mobileAboutHeader">
+                <span class="int-en">Metrics</span>
+                <span class="int-he">מדדים</span>
+            </h1>
+        {% endif %}
 		<div id="metricsBox">
 			{% trans "Loading..." %}
 		</div>
