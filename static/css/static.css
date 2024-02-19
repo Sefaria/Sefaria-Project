@@ -3495,8 +3495,21 @@ display: none;
 .interface-hebrew .container.doc.legal.static .inner {
   margin-top: -40px;
 }
-
-@media (max-width: 700px) {
+@media (max-width: 1000px) {
+  #aboutSidebar {
+    position: relative;
+  }
+  #aboutSidebar.updates {
+    position: relative;
+  }
+  #aboutSidebar.mobileAbout {
+    position: revert;
+    left: revert;
+    display: block;
+  }
+  #updatesPanelContent .readerNavMenu {
+    position: relative;
+  }
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
   }
@@ -3574,6 +3587,9 @@ display: none;
   }
   h1.mobileAboutHeader {
     margin: 40px 0 0 0 !important;
+  }
+  #aboutSidebar li:last-child {
+    padding: 10px 10px 60px 10px;
   }
   .interface-english #aboutSidebar li {
     margin-left: 5px;
