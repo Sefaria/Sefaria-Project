@@ -184,19 +184,7 @@ class ConnectionsPanel extends Component {
     return !prevRefs.compare(nextRefs);
   }
   sectionRef() {
-    const humanRefForm = Sefaria.humanRef(this.props.srefs);
-    let sectionRef = Sefaria.sectionRef(humanRefForm);
-    if (!sectionRef) {
-      //Sefaria.sectionRef checks Sefaria ref cache, if a segment ref isn't there, derive section ref from the segment ref instead,
-      //for example, given this.props.srefs value of ["Genesis 3:3"] return "Genesis 3"
-      if (!!humanRefForm && typeof humanRefForm === "string") {
-        sectionRef = humanRefForm.split(":")[0];
-      }
-      else {
-        sectionRef = this.props.srefs;
-      }
-    }
-    return sectionRef;
+    return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs), true) || this.props.srefs;
   }
   loadData() {
     let ref = this.sectionRef();

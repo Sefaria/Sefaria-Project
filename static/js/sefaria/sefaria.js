@@ -274,10 +274,17 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
-  sectionRef: function(ref) {
+  sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
+    if (deriveIfNotFound && !oref) { //couldn't find `ref` in cache so try to derive it
+        const humanRefForm = Sefaria.humanRef(ref);
+        if (!!humanRefForm && humanRefForm.length > 0) {
+            return humanRefForm.split(":")[0]; // "Genesis 3:3" yields "Genesis 3"
+        }
+    }
     return oref ? oref.sectionRef : null;
+
   },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
@@ -2225,7 +2232,7 @@ _media: {},
   getBaseRefAndFilter(ref) {
     // This is a helper function for openPanel.
     // `ref` can be an array or a string
-    // This converts a commentary ref(s) (Rashi on Genesis 3:3:1)
+    // This function converts a commentary ref(s) (Rashi on Genesis 3:3:1)
     // to a base ref(s) (Genesis 3:3) and returns the filter ["Rashi"].
     let filter, book;
     if (Array.isArray(ref)) {
