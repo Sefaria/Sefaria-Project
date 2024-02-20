@@ -6,10 +6,10 @@
 {% block description %}The Jack Nash and Ludwig Bravmann Collection is a free, online library of Rabbi Adin Steinsaltz's major commentaries in Hebrew and English. Interlinked to Sefaria’s vast and ever-growing corpus of Jewish text, The Nash-Bravmann collection will further integrate Rabbi Steinsaltz’s Torah into the Jewish library, while also bringing these already-renowned commentaries to an even wider global audience. This exciting partnership was made possible by a generous donation by the Pershing Square Foundation in honor of Jack Nash and Ludwig (Lou) Bravmann, two pioneering Jewish philanthropists whose lifelong support of Rabbi Steinsaltz was essential to his outsized output and impact.{% endblock %}
 
 {% block css %}
-    #davidsonTalmud {
+    #nashBravemannCollection {
         text-align: justify;
     }
-    #davidsonTalmud p {
+    #nashBravemannCollection p {
         margin-bottom: 20px;
     }
     #cardBlock {
@@ -24,21 +24,7 @@
         padding: 40px 20px;
       }
     }
-    #davidsonTalmud h1 {
-<!--        border-bottom: 1px solid #CCC;-->
-<!--        color: black;-->
-<!--        text-transform: uppercase;-->
-<!--        padding-bottom: 10px;-->
-<!--        margin-bottom: 50px;-->
-<!--        font-family: inherit;-->
-<!--        text-align: center;-->
-<!--        width: 80%;-->
-<!--        margin-inline-end: auto;-->
-<!--        margin-inline-start: auto;-->
-        /* English Content H2 */
-
-
-        height: 40px;
+    #nashBravemannCollection h1 {
         font-size: 30px;
         color: #000;
         margin-bottom: 5px;
@@ -48,29 +34,13 @@
         --hebrew-serif-font-family);
         text-align: unset;
         letter-spacing: 0;
-<!--        font-style: normal;-->
-<!--        font-weight: 400;-->
-<!--        font-size: 30px;-->
         line-height: 36px;
         margin: 0 0 35px;
     }
     #cardBlock p {
         color: #666;
     }
-    #davidsonTalmud h2 {
-<!--        font-family: inherit;-->
-<!--        color: black;-->
-<!--        border: none;-->
-<!--        text-transform: none;-->
-<!--        font-size: 24px;-->
-<!--        font-style: italic;-->
-<!--        margin-bottom: 4px;-->
-<!--        padding: 0;-->
-<!--        width: 317px;-->
-<!--        height: 48px;-->
-<!--        left: 276px;-->
-<!--        top: 534px;-->
-
+    #nashBravemannCollection h2 {
         text-align: start;
         color: #666666;
         position: relative;
@@ -97,8 +67,8 @@
         height: 300px;
         left: 276px;
         top: 1357px;
-        object-fit: cover;
         margin: 0 22px 22px 0;
+        object-fit: cover;
     }
 
     #davidsonQuote {
@@ -115,14 +85,7 @@
     line-height: 31px;
     text-align: center;
     }
-<!--    #davidsonQuote .int-en {-->
-<!--        font-style: italic;-->
-<!--        margin-top: 10px;-->
-<!--        font-family: "adobe-garamond-pro", Georgia, serif;-->
-<!--    }-->
-<!--    .interface-hebrew #davidsonQuote .int-he {-->
-<!--        font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;-->
-<!--    }-->
+
 
     #nashBravemannQuote {
         text-align: center;
@@ -139,9 +102,8 @@
 
 {% block content %}
 
-<div id="davidsonTalmud" class="container static">
+<div id="nashBravemannCollection" class="container static">
     <div class="inner">
-<!--        <div id="cardBlock">-->
             <h1>
                 <div>
                     <span class="int-en">The Nash and Bravmann Collection</span>
@@ -158,20 +120,16 @@
                 <span class="int-en">The Collection launched in March 2024 with Rabbi Steinsaltz's Talmud, Tanach and Mishnah Torah Commentaries, and will continue to evolve as we add more of Rabbi Steinsaltz’s texts.</span>
                 <span class="int-he">בתלמוד ויליאם דוידסון כלולים תרגומי התלמוד המלאים של <a href="https://steinsaltz.org/bio" target="_blank">הרב עדין אבן־ישראל שטיינזלץ</a> לעברית ולאנגלית של ימינו. בתמיכתם הנדיבה של אנשי עמותת וויליאם דייוידסון, תרגומים אלו זמינים במסגרת רשיון<a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank" > Creative Commons</a>, וניתנים לשימוש אפילו מחוץ לספריא.</span>
             </p>
-<!--        </div>-->
 
         <h2>
             <span class="int-en">Jack Nash</span>
             <span class="int-he">וויליאם דייוידסון</span>
         </h2>
-<!--        <div id="davidsonDates">-->
-<!--            <span class="int-en">April 10, 1929 – July 30, 2008</span>-->
-<!--            <span class="int-he">5 בדצמבר, 1922 - 13 במרץ, 2009</span>-->
-<!--        </div>-->
+
         <img id="nashPhoto" src="{% static 'img/jack-nash.png' %}" alt="Headshot of Jack Nash">
 
         <p>
-            <span class="int-en">Jack Nash was a former chairman of Oppenheimer & Company and a pioneer of the modern hedge fund. Nash was born in Germany and immigrated to the United States with his family at the beginning of World War II when he was 11. He attended Stuyvesant High School in Manhattan and graduated from City College in 1953.</span>
+            <span class="int-en">Jack Nash (April 10, 1929 - July 30, 2008) was a former chairman of Oppenheimer & Company and a pioneer of the modern hedge fund. Nash was born in Germany and immigrated to the United States with his family at the beginning of World War II when he was 11. He attended Stuyvesant High School in Manhattan and graduated from City College in 1953.</span>
             <span class="int-he">"וויליאם דייוידסון היה איש עסקים ונדבן ידוע ברחבי העולם, שהוקיר את משפחתו ומורשתו היהודית יותר מכל דבר אחר. במשך כל חייו, דייוידסון תמך בפרויקטים וארגונים ששימרו וחיזקו את עקרונות החיים היהודיים והמשכיותם. מהוריו למד שהצלחה בעסקים מעניקה לאדם את האפשרות לסייע לאחרים. פילוסופיית החיים של משפחתו עיצבה את חייו כאדם בוגר.</span>
         </p>
          
@@ -184,19 +142,15 @@
             <span class="int-en">Nash along with his wife, Helen Englander, donated millions of dollars to Jewish causes, as well as to other cultural and social institutions.</span>
             <span class="int-he">"בשנת 2005, הקים את קרן וויליאם דייוידסון, קרן פרטית בבעלות משפחתו שמטרתה קידום וחיזוק הכלכלה, התרבות והמעורבות אזרחית בדרום-מזרח מישיגן, במדינת ישראל, ובקרב הקהילה היהודית ברחבי העולם. ״אחד הסודות להגשמה עצמית בחיים״, אמר פעם, ״הוא להיות מסוגל לעשות בעבור אחרים״. בכדי להנציח את חייו ורוח נדבנותו, התלמוד על שמו, בתרגומו לאנגלית ועברית מודרנית על ידי <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a>, זמין כעת לכולם.</span>
         </p>
-
-        <img id="bravemannPhoto" src="{% static 'img/ludwig-bravmann.png' %}" alt="Headshot of Ludwig Bravmann">
-        <h2>
+       <h2>
             <span class="int-en">Ludwig (Lou) Bravmann</span>
             <span class="int-he">וויליאם דייוידסון</span>
         </h2>
-        <div id="davidsonDates">
-            <span class="int-en">April 15, 1925 - November 16, 2020</span>
-            <span class="int-he">5 בדצמבר, 1922 - 13 במרץ, 2009</span>
-        </div>
+        <img id="bravemannPhoto" src="{% static 'img/ludwig-bravmann.png' %}" alt="Headshot of Ludwig Bravmann">
+
 
         <p>
-            <span class="int-en">Ludwig Bravmann was an inspiring and storied Wall Street veteran. He began his career at Oppenheimer & Company in 1952 as the Firm's third employee. Bravman advanced quickly, named a General Partner in 1962, and served as Chairman of the Management Committee from 1975-1982. His commitment to his clients led him to become a Managing Director - Investments of Oppenheimer, a Firm which has evolved into a national boutique with global access. Bravman embodied the guiding spirit of Oppenheimer – a strong work ethic, a love of the markets, the joy of helping his clients succeed, and the memorable friendships made along the way.</span>
+            <span class="int-en">Ludwig (Lou) Bravmann (April 15, 1925 - November 16, 2022) was an inspiring and storied Wall Street veteran. He began his career at Oppenheimer & Company in 1952 as the Firm's third employee. Bravman advanced quickly, named a General Partner in 1962, and served as Chairman of the Management Committee from 1975-1982. His commitment to his clients led him to become a Managing Director - Investments of Oppenheimer, a Firm which has evolved into a national boutique with global access. Bravman embodied the guiding spirit of Oppenheimer – a strong work ethic, a love of the markets, the joy of helping his clients succeed, and the memorable friendships made along the way.</span>
             <span class="int-he">"וויליאם דייוידסון היה איש עסקים ונדבן ידוע ברחבי העולם, שהוקיר את משפחתו ומורשתו היהודית יותר מכל דבר אחר. במשך כל חייו, דייוידסון תמך בפרויקטים וארגונים ששימרו וחיזקו את עקרונות החיים היהודיים והמשכיותם. מהוריו למד שהצלחה בעסקים מעניקה לאדם את האפשרות לסייע לאחרים. פילוסופיית החיים של משפחתו עיצבה את חייו כאדם בוגר.</span>
         </p>
 
@@ -217,30 +171,21 @@
             <span class="int-he">"בשנת 2005, הקים את קרן וויליאם דייוידסון, קרן פרטית בבעלות משפחתו שמטרתה קידום וחיזוק הכלכלה, התרבות והמעורבות אזרחית בדרום-מזרח מישיגן, במדינת ישראל, ובקרב הקהילה היהודית ברחבי העולם. ״אחד הסודות להגשמה עצמית בחיים״, אמר פעם, ״הוא להיות מסוגל לעשות בעבור אחרים״. בכדי להנציח את חייו ורוח נדבנותו, התלמוד על שמו, בתרגומו לאנגלית ועברית מודרנית על ידי <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a>, זמין כעת לכולם.</span>
         </p>
 
-<!--        <p id="davidsonQuote">-->
         <div id="nashBravemannQuote">
         <h1>
-<!--            <span >-->
                 עֵץ־חַיִּ֣ים הִ֭יא לַמַּחֲזִיקִ֣ים בָּ֑הּ וְֽתֹמְכֶ֥יהָ מְאֻשָּֽׁר ׃
-<!--            <a href="/Deuteronomy.33.4">Deuteronomy 33:4</a>-->
-<!--            </span>-->
-<!--            <span >-->
+
                 <br><br>She is a tree of life to those who grasp her,<br>
                 And whoever holds on to her is happy.
-<!--            <a href="/Deuteronomy.33.4">דברים ל״ג:ד</a>-->
-<!--                </span>-->
+
         </h1>
         </div>
 
-<!--</p>-->
 
-
-<!--        <div id="davidsonLicense">-->
         <p>
             <span class="int-en">The William Davidson digital edition of the Koren Noé Talmud, with commentary by <a href="/adin-even-israel-steinsaltz">Rabbi Adin Even-Israel Steinsaltz</a>, was released with a <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a> license by <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">Koren Publishers</a>.</span>
             <span class="int-he">הגרסה הדיגיטלית של תלמוד קורן נואה על שמו של וויליאם דייוידסון, הכולל את פירושיו של <a href="/adin-even-israel-steinsaltz">הרב עדין אבן ישראל (שטיינזַלץ)</a>, יצא לאור בהוצאת <a href="https://www.korenpub.com/koren_en_usd/declaration.html/" target="_blank">קורן</a> ושוחרר תחת רשיון מסוג <a href="https://creativecommons.org/licenses/by-nc/4.0/legalcode" target="_blank">CC BY-NC</a>.
             </span>
-<!--        </div>-->
          </p>
     </div>
 </div>
