@@ -1422,11 +1422,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, attemptConvertCommToBase=true, replaceHistory=false) {
+  openPanelAt(n, ref, currVersions, options, replace, attemptConvertCommentaryRefToBaseRef=true, replaceHistory=false) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
-    // `attemptConvertCommToBase` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    // `attemptConvertCommentaryRefToBaseRef` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     // `replaceHistory`: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
@@ -1444,10 +1444,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
-      let filter;
-      ({ref, filter} = Sefaria.getBaseRefAndFilter(ref, attemptConvertCommToBase));
+      let filter = [];
+      if (attemptConvertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+        ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
+      }
       let refs, currentlyVisibleRef, highlightedRefs;
-      if (ref.constructor === Array) {
+      if (Array.isArray(ref)) {
         // When called with an array, set highlight for the whole spanning range of the array
         refs = ref;
         currentlyVisibleRef = Sefaria.normRef(ref);
@@ -1467,8 +1469,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef, mode: "Text",
         ...options
       };
-      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if attemptConvertCommToBase is true
-        [panel, connectionPanel] = this.openPanelWithConnections(panelProps);
+      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if attemptConvertCommentaryRefToBaseRef is true
+        [panel, connectionPanel] = this.makePanelWithConnectionsState(panelProps);
       }
       else {
         panel = this.makePanelState(panelProps);
@@ -1486,7 +1488,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
 
   }
-  openPanelWithConnections(panelProps) {
+  makePanelWithConnectionsState(panelProps) {
     // in the case of multipanel, create two panels based on panelProps
     let connectionPanel;  // in mobile, connectionPanel will remain undefined
     if (this.props.multiPanel) {

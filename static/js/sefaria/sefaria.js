@@ -2187,56 +2187,58 @@ _media: {},
       // only returns true for commentaries with a base_text_mapping to one and only one base_text_title
       return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
   },
-  convertCommToBase(parsedRef, book) {
-    // converts commentary refs to base refs:
+  isCommentaryRefWithBaseText(ref) {
+      // only returns true for commentaries with a base_text_mapping to one and only one base_text_title
+      let refToCheck = Array.isArray(ref) ? ref[0] : ref;
+      const parsedRef = Sefaria.parseRef(refToCheck);
+      const book = Sefaria.index(parsedRef.index);
+      return this.isCommentaryWithBaseText(book);
+  },
+  convertCommentaryRefToBaseRef(commRef) {
+    // converts commentary ref, `commRef`, to base ref:
     // example input and output: Rashi on Genesis 1:2 => Genesis 1:2,
     //                           Rashi on Exodus 2:3:1 => Exodus 2:3
-    if (!book || !this.isCommentaryWithBaseText(book)) {  // if book is not isCommentaryWithBaseText just return the ref
-        return Sefaria.humanRef(parsedRef.ref);
+    const book = Sefaria.index(commRef.index);
+    if (!book || !this.isCommentaryWithBaseText(book)) {
+        // if book is not isCommentaryWithBaseText just return the ref
+        return Sefaria.humanRef(commRef.ref);
     }
     const base_text = book.base_text_titles[0];
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
-    const parsedRefCopy = Object.create(parsedRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
-    if (parsedRef.sections.length <= 2 || !many_to_one) {
+    const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
+    if (commRef.sections.length <= 2 || !many_to_one) {
         // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.  in this case, sections stay the same so just change the book title
-        parsedRefCopy.ref = parsedRef.ref.replace(book.title, base_text);
-        return Sefaria.humanRef(parsedRefCopy.ref);
+        commRef.ref = commRef.ref.replace(book.title, base_text);
+        return Sefaria.humanRef(commRefCopy.ref);
     }
     else if (many_to_one) {
         // Rashi on Genesis 1:2:4 => Genesis 1:2; sections and book title need to change
-        parsedRefCopy.sections = parsedRefCopy.sections.slice(0, parsedRef.sections.length - 1);
-        parsedRefCopy.toSections = parsedRefCopy.toSections.slice(0, parsedRef.toSections.length - 1);
-        parsedRefCopy.book = parsedRefCopy.index = parsedRefCopy.index.replace(book.title, base_text);
-        parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, base_text);
-        parsedRefCopy.ref = parsedRefCopy.ref.split(' ').slice(0, -1).join(' ');
-        return Sefaria.humanRef(Sefaria.makeRef(parsedRefCopy));
+        commRefCopy.sections = commRefCopy.sections.slice(0, commRef.sections.length - 1);
+        commRefCopy.toSections = commRefCopy.toSections.slice(0, commRef.toSections.length - 1);
+        commRefCopy.book = commRefCopy.index = commRefCopy.index.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.split(' ').slice(0, -1).join(' ');
+        return Sefaria.humanRef(Sefaria.makeRef(commRefCopy));
     }
-    return Sefaria.humanRef(parsedRef.ref);
+    return Sefaria.humanRef(commRef.ref);
   },
-  getBaseRefAndFilter(ref, attemptConvertCommToBase) {
-    // if `attemptConvertCommToBase`, this function converts a commentary ref (Rashi on Genesis 3:3:1) to a base ref (Genesis 3:3)
-    // and return the filter ["Rashi"]
+  getBaseRefAndFilter(ref) {
+    // This is a helper function for openPanel.
     // `ref` can be an array or a string
-    if (!attemptConvertCommToBase) {
-        return {ref: ref, filter: []};
-    }
-    let parsedRefs = [];
-    let firstParsedRef, book;  // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
-    if (ref.constructor === Array) {
-        parsedRefs = ref.map(x => Sefaria.parseRef(x));
-        firstParsedRef = parsedRefs[0];
-        book = Sefaria.index(firstParsedRef.index);
-        ref = parsedRefs.map(x => Sefaria.convertCommToBase(x, book));
+    // This converts a commentary ref(s) (Rashi on Genesis 3:3:1)
+    // to a base ref(s) (Genesis 3:3) and returns the filter ["Rashi"].
+    let filter, book;
+    if (Array.isArray(ref)) {
+        const parsedRefs = ref.map(x => Sefaria.parseRef(x)); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRefs[0].index);
+        ref = parsedRefs.map(x => Sefaria.convertCommentaryRefToBaseRef(x));
     }
     else {
-        firstParsedRef = Sefaria.parseRef(ref);
-        book = Sefaria.index(firstParsedRef.index);
-        ref = Sefaria.convertCommToBase(firstParsedRef, book);
+        const parsedRef = Sefaria.parseRef(ref); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRef.index);
+        ref = Sefaria.convertCommentaryRefToBaseRef(parsedRef);
     }
-    let filter = [];
-    if (this.isCommentaryWithBaseText(book)) {
-        filter = [book.collectiveTitle];
-    }
+    filter = book?.collectiveTitle ? [book.collectiveTitle] : [];
     return {ref: ref, filter: filter};
   },
   commentaryList: function(title, toc) {
