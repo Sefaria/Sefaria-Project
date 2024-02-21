@@ -1093,12 +1093,12 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
-const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
+const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
-      {buttonsToDisplay.map((key, i) => {
+      {buttonIDs.map((key, i) => {
         const top = i === 0;
-        const bottom = i === buttonsToDisplay.length - 1;
+        const bottom = i === buttonIDs.length - 1;
         const [buttonText, toggleAddingTopics] = buttonOptions[key];
         return (
           <AdminEditorButton
@@ -1112,7 +1112,7 @@ const AllAdminButtons = ({ buttonOptions, buttonsToDisplay, adminClasses }) => {
     </span>
   );
 };
-const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcategory", "edit"], publishButtonCallback}) => {
+const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
@@ -1120,7 +1120,8 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
         for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
-  `buttonsToDisplay` is a list that says in the specified order we want all of the buttons in buttonOptions
+  `toggleButtonIDs` is a list that says in the specified order we want all of the buttons in buttonOptions. Each element is a key in buttonOptions.
+  `actionButtons` is an object where each key is an ID of a new button in the list and each value is an array of form [English Display Text, callback]. actionButtons will always appear after toggleButtonIDs.
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
   const [addCategory, toggleAddCategory] = useEditToggle();
@@ -1128,47 +1129,13 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
   const [addSource, toggleAddSource] = useEditToggle();
   const [addSection, toggleAddSection] = useEditToggle();
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
-  const [isGenerateConfirmationShown, setGenerateConfirmationShown] = useState(false);
-  const [isPublishConfirmationShown, setPublishConfirmationShown] = useState(false);
-  buttonsToDisplay = buttonsToDisplay.filter(item => item !== null && item !== undefined)
+  const buttonIDs = toggleButtonIDs.concat(Object.keys(actionButtons));
 
-  const showGenerationConfirmation = () => {
-    if (!isGenerateConfirmationShown) {
-      const isConfirmed = window.confirm("Are you sure you want to generate prompts?");
-
-      if (isConfirmed) {
-        alert("You clicked OK!");
-      } else {
-        alert("You clicked Cancel or closed the popup.");
-      }
-
-      // Update state to prevent showing the popup again
-      setGenerateConfirmationShown(true);
-    }
-  };
-    const showPublishConfirmation = () => {
-    if (!isPublishConfirmationShown) {
-      const isConfirmed = window.confirm("Are you sure you want to publish prompts?");
-
-      if (isConfirmed) {
-        alert("You clicked OK!");
-        publishButtonCallback()
-      } else {
-        alert("You clicked Cancel or closed the popup.");
-      }
-
-      // Update state to prevent showing the popup again
-      setPublishConfirmationShown(true);
-    }
-  };
-
-  const buttonOptions = {"subcategory": ["Add sub-category", toggleAddCategory],
+  const buttonOptions = Object.apply({"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
-                          "generate": ["Generate", showGenerationConfirmation],
-                          "publish": ["Publish", showPublishConfirmation],
-                          "edit": ["Edit", toggleEditCategory]};
+                          "edit": ["Edit", toggleEditCategory]}, actionButtons);
 
   let wrapper = "";
   let adminButtonsSpan = null;
@@ -1189,7 +1156,7 @@ const CategoryHeader =  ({children, type, data = [], buttonsToDisplay = ["subcat
       const adminClasses = classNames({adminButtons: 1, hiddenButtons});
         adminButtonsSpan = <AllAdminButtons
         buttonOptions={buttonOptions}
-        buttonsToDisplay={buttonsToDisplay}
+        buttonIDs={buttonIDs}
         adminClasses={adminClasses}
       />;
     }
