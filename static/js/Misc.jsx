@@ -1120,7 +1120,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
         for `type` === 'books' it's the name of the book
         for `type` === 'topics' it's a dictionary of the topic object
         for `type` === 'sources' it's a list where the first item is topic slug and second item is source data
-  `toggleButtonIDs` is a list that says in the specified order we want all of the buttons in buttonOptions. Each element is a key in buttonOptions.
+  `toggleButtonIDs` is a list of IDs that appear in buttonOptions. Each ID will create a button that performs the toggle action specified for it in buttonOptions. toggleButtonIDs will always appear before actionButtons
   `actionButtons` is an object where each key is an ID of a new button in the list and each value is an array of form [English Display Text, callback]. actionButtons will always appear after toggleButtonIDs.
    */
   const [editCategory, toggleEditCategory] = useEditToggle();
