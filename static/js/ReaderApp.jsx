@@ -1423,12 +1423,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.openPanelAt(0, ref, currVersions, options);
   }
   openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
-    // Open a new panel after `n` with the new ref
-    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
-    // If book level, Open book toc
-    // `convertCommentaryRefToBaseRef` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
-    // `replaceHistory`: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
-    // `saveLastPlace`: whether to save user history.
+    /* Open a new panel or replace existing panel. If book level, Open book toc
+    * @param {int} n: Open new panel after `n` with the new ref
+    * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
+    * @param {Object} currVersions: Object with properties `en` and `he`
+    * @param {Object} options: options to use for new panel
+    * @param {bool} replace: whether to replace existing panel at `n`, otherwise insert new panel at `n`
+    * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
+    * @param {bool} saveLastPlace: whether to save user history.
+    */
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
