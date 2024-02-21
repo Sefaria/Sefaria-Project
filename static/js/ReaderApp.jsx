@@ -1823,7 +1823,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
     if ((panel.mode !== 'Sheet' && !panel.refs.length ) || panel.mode === 'Connections') { return; }
-    console.log('saveLastPlace ', this.getHistoryObject(panel, hasSidebar));
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {
