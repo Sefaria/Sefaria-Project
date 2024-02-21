@@ -312,61 +312,59 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
-const getSourceRefWithContextWithoutPrompt = (refs) => {
-    if (!refs) {
-        return [];
-    }
-
+const getLinksToGenerate = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-
-    return refs.filter((ref) => {
+    return refTopicLinks.filter((ref) => {
         return ref.descriptions?.[lang]?.context.length > 0  &&
             !ref.descriptions?.[lang]?.prompt;
     });
 };
-const getSourceRefExplicitlyNotPublished = (refs) => {
-    if (!refs) {
-        return [];
-    }
-
+const getLinksToPublish = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-
-    return refs.filter((ref) => {
+    return refTopicLinks.filter((ref) => {
         return ref.descriptions?.[lang]?.published === false;
     });
 };
+
+const publishPrompts = async (topicSlug, linksToPublish) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    linksToPublish.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+        ref.descriptions[lang]["published"] = true;
+    });
+    try {
+        const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, linksToPublish);
+        const refValues = response.map(item => item.anchorRef).join(", ");
+        alert("The following prompts have been published: " + refValues);
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
+const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
+    const linksToGenerate = getLinksToGenerate(refTopicLinks);
+    const linksToPublish = getLinksToPublish(refTopicLinks);
+    const actionButtons = {};
+    if (linksToGenerate.length > 0) {
+        actionButtons['generate'] = ["Generate", () => {console.log('generate')}];
+    }
+    if (linksToPublish.length > 0) {
+        actionButtons['publish'] = ["Publish", () => publishPrompts(topicSlug, linksToPublish)];
+    }
+
+    return actionButtons;
+};
+
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
-  const sourceRefWithContextWithoutPrompt = getSourceRefWithContextWithoutPrompt(topicData.refs?.about?.refs);
-  const generateButtonName = sourceRefWithContextWithoutPrompt.length > 0 ? "generate" : null;
-  const sourceRefExplicitlyNotPublished = getSourceRefExplicitlyNotPublished(topicData.refs?.about?.refs);
-  const publishButtonName = sourceRefExplicitlyNotPublished.length > 0 ? "publish" : null;
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
-
-  const requestPublishUnpublishedPrompts = async () => {
-      const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-      let refs = sourceRefExplicitlyNotPublished;
-      console.log(refs)
-      refs.forEach(ref => {
-          ref['toTopic'] = topic;
-          ref.descriptions[lang]["published"] = true;
-      });
-      try {
-          const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, refs);
-          const refValues = response.map(item => item.anchorRef).join(", ");
-          alert("The following prompts have been published: " + refValues);
-        } catch (error) {
-          console.error("Error occurred:", error);
-        }
-  };
+  const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
 
   return (
     <div>
-      
         <div className="navTitle tight">
-                <CategoryHeader publishButtonCallback={requestPublishUnpublishedPrompts} type="topics" data={topicData} buttonsToDisplay={[publishButtonName, generateButtonName, "source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>

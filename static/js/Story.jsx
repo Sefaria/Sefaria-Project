@@ -194,7 +194,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
         <StoryFrame cls="introducedTextPassageStory">
             <VisibilityWrapper topic={topic} text={text}>
             <div className={"headerWithAdminButtonsContainer"}>
-                <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+                <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
                     <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
                 </CategoryHeader>
                 <ReviewStateIndicator reviewState={state} callBack={reviewStateCallback}/>
@@ -239,7 +239,7 @@ const TextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=
 
   return (
     <StoryFrame cls="textPassageStory">
-      <CategoryHeader type="sources" data={[topic, text]} buttonsToDisplay={["edit"]}>
+      <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
           <SaveLine
             dref={text.ref}
             versions={versions}
