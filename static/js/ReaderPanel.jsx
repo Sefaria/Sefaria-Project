@@ -236,27 +236,35 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], attemptConvertCommentaryRefToBaseRef=true) {
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
-    attemptConvertCommentaryRefToBaseRef = this.state.compare ? false : attemptConvertCommentaryRefToBaseRef;
+    convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
     // console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    if (ref.constructor !== Array) {
+    let refs;
+    if (!Array.isArray(ref)) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
         this.openSheet(ref);
         return;
       }
+      refs = [ref];
+    }
+    else {
+      refs = ref;
+    }
+    if (this.replaceHistory) {
+      this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
     this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
-                          true, attemptConvertCommentaryRefToBaseRef, this.replaceHistory);
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);

@@ -1422,11 +1422,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace, attemptConvertCommentaryRefToBaseRef=true, replaceHistory=false) {
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
     // Open a new panel after `n` with the new ref
     // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
-    // `attemptConvertCommentaryRefToBaseRef` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    // `convertCommentaryRefToBaseRef` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     // `replaceHistory`: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
@@ -1445,7 +1445,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       });
     } else {  // Text
       let filter = [];
-      if (attemptConvertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
         ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
       }
       let refs, currentlyVisibleRef, highlightedRefs;
@@ -1469,7 +1469,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef, mode: "Text",
         ...options
       };
-      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if attemptConvertCommentaryRefToBaseRef is true
+      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if convertCommentaryRefToBaseRef is true
         [panel, connectionPanel] = this.makePanelWithConnectionsState(panelProps);
       }
       else {
@@ -1484,9 +1484,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       newPanels.push(connectionPanel);
     }
     this.setState({panels: newPanels});
-    const panelNumToSave = !replaceHistory ? n+1 : n;
-    this.saveLastPlace(panel, panelNumToSave, !!connectionPanel);
-
+    if (saveLastPlace) {
+      this.saveLastPlace(panel, n + 1, !!connectionPanel);
+    }
   }
   makePanelWithConnectionsState(panelProps) {
     // in the case of multipanel, create two panels based on panelProps
@@ -1823,6 +1823,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
     if ((panel.mode !== 'Sheet' && !panel.refs.length ) || panel.mode === 'Connections') { return; }
+    console.log('saveLastPlace ', this.getHistoryObject(panel, hasSidebar));
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {
