@@ -1428,6 +1428,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // If book level, Open book toc
     // `convertCommentaryRefToBaseRef` if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
     // `replaceHistory`: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
+    // `saveLastPlace`: whether to save user history.
     this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?

@@ -237,8 +237,10 @@ class ReaderPanel extends Component {
     });
   }
   showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
-    // Set the current primary text `ref`, which may be either a string or an array of strings.
-    // `replaceHistory` - bool whether to replace browser history rather than push for this change
+    /* Set the current primary text `ref`, which may be either a string or an array of strings.
+    * `replaceHistory` - bool whether to replace browser history rather than push for this change
+    * `` -
+    */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
     convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
