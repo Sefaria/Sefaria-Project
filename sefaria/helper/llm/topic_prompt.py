@@ -7,6 +7,8 @@ from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput
+from sefaria_llm_interface import Topic as LLMTopic
+from sefaria_ll
 from sefaria.utils.util import deep_update
 
 
@@ -73,18 +75,18 @@ def _get_surrounding_text(oref: Ref) -> Optional[Dict[str, str]]:
         return _lang_dict_by_func(lambda lang: context_ref.text(lang).as_string())
 
 
-def _make_topic_prompt_topic(sefaria_topic: Topic) -> dict:
+def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     """
     Return a dict that can be instantiated as `sefaria_interface.Topic` in the LLM repo.
     This represents the basic metadata of a topic for the LLM repo to process.
     :param sefaria_topic:
     :return:
     """
-    return {
-        "slug": sefaria_topic.slug,
-        "description": getattr(sefaria_topic, 'description', {}),
-        "title": _lang_dict_by_func(sefaria_topic.get_primary_title),
-    }
+    return LLMTopic(
+        slug=sefaria_topic.slug,
+        description=getattr(sefaria_topic, 'description', {}),
+        title=_lang_dict_by_func(sefaria_topic.get_primary_title)
+    )
 
 
 def _make_topic_prompt_source(oref: Ref, context: str) -> dict:
@@ -135,9 +137,10 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
     :param contexts:
     :return:
     """
+    # TODO use llm interface class
     return {
         "lang": lang,
-        "topic": _make_topic_prompt_topic(sefaria_topic),
+        "topic": _make_llm_topic(sefaria_topic),
         "sources": [_make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
     }
 
