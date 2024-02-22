@@ -1131,7 +1131,7 @@ const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcate
   const [hiddenButtons, setHiddenButtons] = useHiddenButtons(true);
   const buttonIDs = toggleButtonIDs.concat(Object.keys(actionButtons));
 
-  const buttonOptions = Object.apply({"subcategory": ["Add sub-category", toggleAddCategory],
+  const buttonOptions = Object.assign({"subcategory": ["Add sub-category", toggleAddCategory],
                           "source": ["Add a source", toggleAddSource],
                           "section": ["Add section", toggleAddSection],
                           "reorder": ["Reorder sources", toggleReorderCategory],
