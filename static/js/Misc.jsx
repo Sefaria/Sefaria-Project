@@ -1112,7 +1112,7 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
     </span>
   );
 };
-const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons}) => {
+const CategoryHeader =  ({children, type, data = [], toggleButtonIDs = ["subcategory", "edit"], actionButtons = {}}) => {
   /*
   Provides an interface for using admin tools.
   `type` is 'sources', 'cats', 'books' or 'topics'
