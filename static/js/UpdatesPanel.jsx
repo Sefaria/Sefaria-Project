@@ -26,15 +26,23 @@ class UpdatesPanel extends Component {
       error: null
     };
   }
+
   componentDidMount() {
-    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    window.addEventListener('scroll', this.handleScroll);
     this.getMoreNotifications();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScroll);
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var $scrollable = $(window);
     var margin = 600;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const currentScrollPosition = window.scrollY + margin;
+
+    if (currentScrollPosition >= scrollableHeight) {
       this.getMoreNotifications();
     }
   }

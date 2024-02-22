@@ -3485,6 +3485,9 @@ display: none;
 #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 140px;
 }
+#updatersPage .readerNavMenu {
+    position: relative;
+}
 #updatesPanelContent .navSideBar {
     margin-left: 200px;
 }
@@ -3506,9 +3509,6 @@ display: none;
     position: revert;
     left: revert;
     display: block;
-  }
-  #updatesPanelContent .readerNavMenu {
-    position: relative;
   }
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
