@@ -6,7 +6,7 @@
         "description": "The Sefaria API endpoints allows live access to Sefaria's structured database of Jewish texts and their interconnections.",
         "contact": {
             "url": "https://www.sefaria.org",
-            "email": "dev@sefaria.org"
+            "email": "developers@sefaria.org"
         },
         "license": {
             "name": "GNU AGPLv3",
