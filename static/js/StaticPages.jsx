@@ -1931,12 +1931,12 @@ const PoweredByPage = () => (
     <StaticPage optionalClass="englishOnly">
         <Header
             enTitle="Powered by Sefaria"
-            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
+            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
             heTitle="Powered by Sefaria"
-            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
-            enActionURL="https://github.com/Sefaria"
+            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
+            enActionURL="https://developers.sefaria.org/"
             enActionText="Create Something New"
-            heActionURL="https://github.com/Sefaria"
+            heActionURL="https://developers.sefaria.org/"
             heActionText="Create Something New"
             newTab={true}
         />
@@ -2016,10 +2016,10 @@ const PoweredByPage = () => (
         <GreyBox>
             <H2Block en="Tell us about your projects!" he="Tell us about your projects!"/>
             <EnBlock padded={true}>
-                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
             </EnBlock>
             <HeBlock padded={true}>
-                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
             </HeBlock>
             <Spacer/>
         </GreyBox>
