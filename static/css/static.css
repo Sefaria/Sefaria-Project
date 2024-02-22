@@ -3340,6 +3340,7 @@ display: none;
 }
 .interface-hebrew #aboutSidebar.updates {
   left: revert;
+  margin-right: 0;
 }
 .interface-english #aboutSidebar {
   text-align: left;
@@ -3498,20 +3499,36 @@ display: none;
 .interface-hebrew .container.doc.legal.static .inner {
   margin-top: -40px;
 }
-@media (max-width: 1000px) {
+@media (max-width: 1100px) {
+  #updatesPanelContent .readerNavMenu .content .contentInner {
+    margin-left: 0;
+    margin-top: 0;
+  }
   #aboutSidebar {
     position: relative;
+    top: 90px;
+    right: 0;
+    left: 0;
+  }
+  #aboutSidebar h1 {
+    display: none;
   }
   #aboutSidebar.updates {
     position: relative;
+    top: 90px;
   }
   #aboutSidebar.mobileAbout {
     position: revert;
     left: revert;
     display: block;
+    top: revert;
+    margin-right: revert;
   }
-  #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-left: 0;
+  .interface-english #aboutSidebar.mobileAbout h1.int-en {
+    display: block;
+  }
+  .interface-hebrew #aboutSidebar.mobileAbout h1.int-he {
+    display: block;
   }
   .interface-hebrew #teamPage .inner, .interface-hebrew #jobsPage .inner,
   .interface-hebrew #annualReport .inner,
@@ -3609,9 +3626,6 @@ display: none;
 
   .updatesHeader, .jobsHeader, .mobileAboutHeader {
     display: block;
-  }
-  #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 0px;
   }
   .static.legal iframe {
     margin-top: 60px;
