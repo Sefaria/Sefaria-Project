@@ -11,8 +11,8 @@ from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput
 
 
 @app.task(name="web.save_topic_prompts")
-def save_topic_prompts(raw_output: TopicPromptGenerationOutput):
-    output = TopicPromptGenerationOutput.create(raw_output)
+def save_topic_prompts(raw_output: dict):
+    output = TopicPromptGenerationOutput(**raw_output)
     save_topic_prompt_output(output)
 
 

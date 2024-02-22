@@ -6,32 +6,29 @@ from sefaria.model.passage import Passage
 from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput
+from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput, TopicPromptInput, TopicPromptSource, TopicPromptCommentary
 from sefaria_llm_interface import Topic as LLMTopic
-from sefaria_ll
 from sefaria.utils.util import deep_update
 
 
-def _lang_dict_by_func(func: Callable[[str], Any]):
+def _lang_dict_by_func(func: Callable[[str], Any]) -> Dict[str, Any]:
     return {lang: func(lang) for lang in ('en', 'he')}
 
 
-def _get_commentary_from_link_dict(link_dict: dict) -> Optional[dict]:
+def _get_commentary_from_link_dict(link_dict: dict) -> Optional[TopicPromptCommentary]:
     if link_dict['category'] not in {'Commentary'}:
         return
     if not link_dict['sourceHasEn']:
         return
-    commentary = {
-        "ref": link_dict['sourceRef'],
-        "text": _lang_dict_by_func(
-            lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string()),
-    }
-    commentary['text'] = _lang_dict_by_func(
-        lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary['text'][lang])))
-    return commentary
+    commentary_text = _lang_dict_by_func(lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string()),
+    commentary_text = _lang_dict_by_func(lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary_text[lang])))
+    return TopicPromptCommentary(
+        ref=link_dict['sourceRef'],
+        text=commentary_text
+    )
 
 
-def _get_commentary_for_tref(tref: str) -> List[dict]:
+def _get_commentary_for_tref(tref: str) -> List[TopicPromptCommentary]:
     """
     Return list of commentary for tref. Currently only considers English commentary.
     :param tref:
@@ -89,7 +86,7 @@ def _make_llm_topic(sefaria_topic: Topic) -> LLMTopic:
     )
 
 
-def _make_topic_prompt_source(oref: Ref, context: str) -> dict:
+def _make_topic_prompt_source(oref: Ref, context: str) -> TopicPromptSource:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptSource` in the LLM repo.
     This represents the basic metadata of a source for the LLM repo to process.
@@ -113,21 +110,22 @@ def _make_topic_prompt_source(oref: Ref, context: str) -> dict:
     if index.get_primary_category() == "Tanakh":
         commentary = _get_commentary_for_tref(oref.normal())
     surrounding_text = _get_surrounding_text(oref)
-    return {
-        "ref": oref.normal(),
-        "categories": index.categories,
-        "book_description": book_description,
-        "book_title": book_title,
-        "comp_date": pub_year,
-        "author_name": author_name,
-        "context_hint": context,
-        "text": text,
-        "commentary": commentary,
-        "surrounding_text": surrounding_text,
-    }
+
+    return TopicPromptSource(
+        ref=oref.normal(),
+        categories=index.categories,
+        book_description=book_description,
+        book_title=book_title,
+        comp_date=pub_year,
+        author_name=author_name,
+        context_hint=context,
+        text=text,
+        commentary=commentary,
+        surrounding_text=surrounding_text,
+    )
 
 
-def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], contexts: List[str]) -> dict:
+def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], contexts: List[str]) -> TopicPromptInput:
     """
     Return a dict that can be instantiated as `sefaria_interface.TopicPromptInput` in the LLM repo.
     This represents the full input required for the LLM repo to generate topic prompts.
@@ -137,12 +135,11 @@ def make_topic_prompt_input(lang: str, sefaria_topic: Topic, orefs: List[Ref], c
     :param contexts:
     :return:
     """
-    # TODO use llm interface class
-    return {
-        "lang": lang,
-        "topic": _make_llm_topic(sefaria_topic),
-        "sources": [_make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
-    }
+    return TopicPromptInput(
+        lang=lang,
+        topic=_make_llm_topic(sefaria_topic),
+        sources=[_make_topic_prompt_source(oref, context) for oref, context in zip(orefs, contexts)]
+    )
 
 
 def save_topic_prompt_output(output: TopicPromptGenerationOutput) -> None:
