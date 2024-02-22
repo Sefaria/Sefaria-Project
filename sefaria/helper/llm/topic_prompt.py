@@ -6,7 +6,7 @@ from sefaria.model.passage import Passage
 from sefaria.model.topic import Topic, RefTopicLink
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
-from sefaria.helper.llm.llm_interface import TopicPromptGenerationOutput
+from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput
 from sefaria.utils.util import deep_update
 
 
