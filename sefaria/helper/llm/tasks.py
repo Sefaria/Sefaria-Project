@@ -7,7 +7,7 @@ from sefaria.celery_setup.app import app
 from sefaria.model.topic import Topic
 from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import save_topic_prompt_output, make_topic_prompt_input
-from sefaria.helper.llm.llm_interface import TopicPromptGenerationOutput
+from sefaria_llm_interface.topic_prompt import TopicPromptGenerationOutput
 
 
 @app.task(name="web.save_topic_prompts")
