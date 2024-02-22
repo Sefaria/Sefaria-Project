@@ -3309,7 +3309,7 @@ def global_activity(request, page=1):
     if page > 40:
         return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
-            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:developers@sefaria.org'>email us</a>."
         })
 
     if "api" in request.GET:
@@ -3352,7 +3352,7 @@ def user_activity(request, slug, page=1):
     if page > 40:
         return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
-            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:developers@sefaria.org'>email us</a>."
         })
 
     q              = {"user": profile.id}
