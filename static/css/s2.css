@@ -110,7 +110,7 @@ a, a:hover {
 @font-face {
   /*Tibetan | Monlam-bodyig bold */
   font-family: 'Monlam-bodyig bold';
-    src: url('/static/fonts/Monlam-bodyig bold.ttf');
+    src: url('/static/fonts/Monlam-bodyig Regular.ttf');
   unicode-range: U+0F00-0FFF, U+10300-1032F,  U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
 :root {
@@ -119,7 +119,7 @@ a, a:hover {
   --hebrew-sans-serif-font-family: "JhomoLangma Sarchen", "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  --hebrew-serif-font-family: "Monlam-bodyig bold", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --hebrew-serif-font-family: "Monlam-bodyig Regular", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
