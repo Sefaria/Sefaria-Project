@@ -264,5 +264,13 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+
+    <script type="text/javascript">
+      (function(k) {
+          const s=document.createElement('script');s.module=true;s.defer=true;
+          s.src="https://cdn.feedbucket.app/assets/feedbucket.js";
+          s.dataset.feedbucket=k;document.head.appendChild(s);
+      })('0csPeBQ216w32NZdoqnk')
+      </script>
 </body>
 </html>
