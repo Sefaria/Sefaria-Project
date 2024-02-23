@@ -2537,7 +2537,6 @@ _media: {},
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }
-        console.log(refObj)
         const ref = refObj.is_sheet ? parseInt(refObj.ref.replace('Sheet ', '')) : refObj.ref;
         if (refObj.order) {
             refObj.order = {...refObj.order, availableLangs: refObj?.order?.availableLangs || [],
