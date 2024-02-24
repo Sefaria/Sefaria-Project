@@ -9,10 +9,10 @@ const SourceEditor = ({topic, close, origData={}}) => {
     const [displayRef, setDisplayRef] = useState(origData.lang === 'he' ?
                                                             (origData.heRef || "") :  (origData.ref || "") );
     const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
-    const { title = '', prompt = '', context = '' } = origData?.descriptions?.[langKey] || {};
+    const { title = '', prompt = '', ai_context = '' } = origData?.descriptions?.[langKey] || {};
 
     const [data, setData] = useState({enTitle: title,  // use enTitle for hebrew or english case
-                                                prompt: prompt, context: context
+                                                prompt, ai_context
                                                 });
     const [changed, setChanged] = useState(false);
     const [savingStatus, setSavingStatus] = useState(false);
@@ -47,7 +47,7 @@ const SourceEditor = ({topic, close, origData={}}) => {
         let refInUrl = isNew ? displayRef : origData.ref;
         let url = `/api/ref-topic-links/${Sefaria.normRef(refInUrl)}`;
         let postData = {"topic": topic, "is_new": isNew, 'new_ref': displayRef, 'interface_lang': Sefaria.interfaceLang};
-        postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "context": data.context, "review_state": "edited"};
+        postData['description'] = {"title": data.enTitle, "prompt": data.prompt, "ai_context": data.ai_context, "review_state": "edited"};
         requestWithCallBack({url, data: postData, setSavingStatus, redirect: () => window.location.href = "/topics/"+topic});
     }
 
