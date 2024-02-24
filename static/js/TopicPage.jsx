@@ -326,6 +326,20 @@ const getLinksToPublish = (refTopicLinks = []) => {
     });
 };
 
+const generatePrompts = async(topicSlug, linksToGenerate) => {
+    linksToGenerate.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+    });
+    const payload = {ref_topic_links: linksToGenerate};
+    try {
+        await Sefaria.postToApi(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
+        const refValues = linksToGenerate.map(item => item.ref).join(", ");
+        alert("The following prompts are generating: " + refValues);
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
 const publishPrompts = async (topicSlug, linksToPublish) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     linksToPublish.forEach(ref => {
@@ -346,7 +360,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
     const linksToPublish = getLinksToPublish(refTopicLinks);
     const actionButtons = {};
     if (linksToGenerate.length > 0) {
-        actionButtons['generate'] = ["Generate", () => {console.log('generate')}];
+        actionButtons['generate'] = ["Generate", () => generatePrompts(topicSlug, linksToGenerate)];
     }
     if (linksToPublish.length > 0) {
         actionButtons['publish'] = ["Publish", () => publishPrompts(topicSlug, linksToPublish)];
