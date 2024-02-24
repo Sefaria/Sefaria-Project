@@ -20,7 +20,7 @@ def _get_commentary_from_link_dict(link_dict: dict) -> Optional[TopicPromptComme
         return
     if not link_dict['sourceHasEn']:
         return
-    commentary_text = _lang_dict_by_func(lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string()),
+    commentary_text = _lang_dict_by_func(lambda lang: JaggedTextArray(link_dict.get('text' if lang == 'en' else 'he', '')).flatten_to_string())
     commentary_text = _lang_dict_by_func(lambda lang: re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(commentary_text[lang])))
     return TopicPromptCommentary(
         ref=link_dict['sourceRef'],
