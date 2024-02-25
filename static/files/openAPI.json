@@ -4871,7 +4871,7 @@
                         "description": "Successful response"
                     }
                 },
-                "deprecated": false,
+                "deprecated": true,
                 "summary": "Text API",
                 "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
             },
@@ -4910,8 +4910,7 @@
         "schemas": {
             "ref": {
                 "description": "A string representing a citation to a Jewish text. \n\nA valid `Ref` consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
-                "type": "string",
-                "example": "Mishnah Peah 4:2"
+                "type": "string"
             },
             "versionData": {
                 "title": "Root Type for versionData",
