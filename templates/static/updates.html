@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{% trans "New Additions to the Sefaria Library" %}{% endblock %}
 
@@ -15,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
   {% include '_sidebar.html' with whichPage='updates' title="Updates" heTitle="עדכונים" %}
 {% endif %}

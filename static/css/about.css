@@ -1,0 +1,4 @@
+#staticContentWrapper #content {
+  display: flex;
+  flex-direction: row;
+}

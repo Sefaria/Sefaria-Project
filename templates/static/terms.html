@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{% trans "Terms of Use" %} | {% trans "Sefaria" %}{% endblock %}
 
 {% block description %}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='terms' title="Terms of Use" heTitle="תנאי שימוש" %}
 {% endif %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-
+{% load static %}
 {% block title %}{% trans "About Sefaria" %}{% endblock %}
 
 {% block description %}{% trans "Sefaria is a nonprofit organization dedicated to building the future of Jewish learning in an open and participatory way." %}{% endblock %}
@@ -18,27 +18,13 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" heTitle="מהי ספריא" %}
 {% endif %}
 <main id="aboutPage" class="biReady container static sans-serif">
-{#    <div id="aboutCover">#}
-{#        <video id="aboutVideo" poster="/static/img/home-video.jpg" preload="auto" autoplay="true" loop="loop" muted="muted" volume="0">#}
-{#            <source src="/static/img/home-video.webm" type="video/webm">#}
-{#            <source src="/static/img/home-video.mp4" type="video/mp4">#}
-{#            Video of sofer writing letters of the Torah#}
-{#        </video>#}
-{#    </div>#}
     <div class="inner">
         <header><h1 class="mobileAboutHeader"><span class="int-he">מהי ספריא</span></h1></header>
-{#        <header id="aboutHeader" class="sans-serif-in-hebrew">#}
-{#        <h1 id="aboutTitle">#}
-{#            <span class="int-he">אודות ספריא</span>#}
-{#        </h1>#}
-{#        <div id="aboutTitleSub">#}
-{#            <span class="int-he">ספרייה חיה של טקסטים יהודיים</span>#}
-{#        </div>#}
-{#        </header>#}
         <section class="about section">
             <p class="first">
                 <span class="int-he">אנו עַם הספר. במשך אלפי שנים מתקיימים התרבות, המסורת והערכים שלנו באמצעות הטקסטים שלנו.

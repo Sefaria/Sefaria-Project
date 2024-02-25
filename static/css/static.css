@@ -755,7 +755,7 @@ p.registration-links a:hover{
   width: 100%;
 }
 #aboutPage .inner {
-  margin-top: -620px;
+  margin-top: 45px;
 }
 .interface-hebrew #aboutPage .inner {
   margin-top: -670px;
@@ -764,13 +764,13 @@ div .notificationsList {
   margin-top: 20px;
 }
 #teamPage .inner {
-  margin-top: -580px;
+  margin-top: 90px;
+}
+#jobsPage .inner {
+  margin-top: 45px;
 }
 .interface-hebrew #teamPage .inner {
   margin-top: -630px;
-}
-#jobsPage .inner #jobsPageContent {
-  margin-top: -620px;
 }
 .interface-hebrew #jobsPage .inner #jobsPageContent {
   margin-top: -670px;
@@ -3330,13 +3330,7 @@ display: none;
 }
 
 #aboutSidebar {
-  position: sticky;
-  left: 15px;
-  top: 150px;
-  width: 400px;
-}
-#aboutSidebar.updates {
-  position: fixed;
+  margin-top: 70px;
 }
 .interface-hebrew #aboutSidebar.updates {
   left: revert;
@@ -3354,9 +3348,11 @@ display: none;
 }
 #aboutSidebar h1 {
   margin: 0 0 60px 50px;
+  padding-top: 60px;
   font-size: 22px;
   font-weight: 500;
   color: var(--dark-grey);
+  min-width: max-content;
 }
 #testimonialsPage p {
   font-size: 16px;
@@ -3382,6 +3378,7 @@ display: none;
   list-style-type: none;
 }
 #aboutSidebar li {
+  min-width: max-content;
   padding: 10px;
   margin: 0;
   color: #666666;
@@ -3397,8 +3394,7 @@ display: none;
   text-decoration: underline;
 }
 .annualReport {
-  margin: -620px 0 300px 0;
-  padding-top: 45px;
+  margin: 85px 0 300px 0;
 }
 .interface-hebrew .annualReport {
   padding-top: 0px;
@@ -3463,7 +3459,7 @@ display: none;
   margin-left: -5px;
 }
 #testimonialsPage .inner {
-  margin-top: -580px;
+  margin-top: 90px;
 }
 .interface-hebrew #testimonialsPage .inner {
   margin-top: -630px;
@@ -3472,19 +3468,20 @@ display: none;
   margin-top: 50px
 }
 #supportersPage .inner {
-  margin-top: -570px;
+  margin-top: 85px;
 }
+
 .interface-hebrew #supportersPage .inner {
   margin-top: -630px;
 }
 #metricsPage .inner {
-  margin-top: -600px;
+  margin-top: 60px;
 }
 .interface-hebrew #metricsPage .inner {
   margin-top: -670px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 140px;
+    margin-top: 115px;
 }
 #updatersPage .readerNavMenu {
     position: relative;
@@ -3496,10 +3493,16 @@ display: none;
 .mobileAboutHeader, .updatesHeader, .jobsHeader {
   display: none;
 }
+.container.doc.legal.static .inner {
+  margin-top: 675px;
+}
 .interface-hebrew .container.doc.legal.static .inner {
   margin-top: -40px;
 }
-@media (max-width: 1100px) {
+@media (max-width: 800px) {
+  div.notificationsList {
+    width: 50%;
+  }
   #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-left: 0;
     margin-top: 0;
@@ -3518,11 +3521,8 @@ display: none;
     top: 90px;
   }
   #aboutSidebar.mobileAbout {
-    position: revert;
-    left: revert;
+    margin-top: -150px;
     display: block;
-    top: revert;
-    margin-right: revert;
   }
   .interface-english #aboutSidebar.mobileAbout h1.int-en {
     display: block;

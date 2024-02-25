@@ -16,6 +16,7 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
     {% if not request.user_agent.is_mobile %}
         {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
     {% endif %}

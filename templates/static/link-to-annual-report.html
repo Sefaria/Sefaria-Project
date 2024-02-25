@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load i18n %}
-
+{% load static %}
 {% block title %}{% trans "Annual Report" %}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='annualreport' title="Annual Report" heTitle='דו"ח שנתי' %}
 {% endif %}

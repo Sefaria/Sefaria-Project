@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{% trans "Sefaria's Supporters" %}{% endblock %}
 
 {% block description %}{% trans "Sefaria gratefully acknowledges the following donors whose generosity and leadership are making Sefaria possible." %}{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" heTitle="התומכים שלנו" %}
 {% endif %}
