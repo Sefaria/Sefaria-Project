@@ -24,7 +24,9 @@
 {% endif %}
 <main id="aboutPage" class="biReady container static">
     <div class="inner">
-        <header><h1 class="mobileAboutHeader"><span class="int-en">What is Sefaria?</span></h1></header>
+        {% if request.user_agent.is_mobile %}
+            <header><h1 class="mobileAboutHeader"><span class="int-en">What is Sefaria?</span></h1></header>
+        {% endif %}
         <section class="about section">
 
             <p class="first">

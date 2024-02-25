@@ -101,9 +101,11 @@
 {% endif %}
 <div id="testimonialsPage" class="biReady container static">
     <div class="inner">
-        <h1 class="mobileAboutHeader">
-            <span>Sefaria’s Impact – Reflections and Insights from Users</span>
-        </h1>
+        {% if request.user_agent.is_mobile %}
+            <h1 class="mobileAboutHeader">
+                <span>Sefaria’s Impact – Reflections and Insights from Users</span>
+            </h1>
+        {% endif %}
 
         <div class="testimonial section">
             <p>
