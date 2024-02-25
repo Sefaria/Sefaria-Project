@@ -221,6 +221,14 @@ div .notificationsList {
 .container.doc.legal.static .inner {
   margin-top: 675px;
 }
+@media (max-width: 800px) {
+  #updatersPage .globalUpdateForm {
+    width: 270px;
+  }
+  div.notificationsList {
+    width: 50%;
+  }
+}
 @media (max-width: 600px) {
   #updatersPage .globalUpdateForm {
     margin-top: 50px;
