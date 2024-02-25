@@ -474,7 +474,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
@@ -920,7 +920,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
 }
-  
+
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
