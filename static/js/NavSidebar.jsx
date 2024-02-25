@@ -144,7 +144,8 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    return <Module>
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
                 {recentlyViewedList}
-                <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All history ></InterfaceText></a>
+                <a href="/texts/history" id="history" onClick={handleAllHistory}>
+                <InterfaceText>All history </InterfaceText><i className="fa fa-chevron-right"></i></a>
              </Module>
 
 }

@@ -1719,6 +1719,9 @@ div.interfaceLinks-row a {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+.navSidebarModule #history .fa-chevron-right {
+  font-size: small;
+}
 .connectionsPanel .navSidebarModule{
   padding: initial;
 }
