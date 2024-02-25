@@ -455,8 +455,8 @@ const Strings = {
     "Alternate English Titles": "חלופות כותר לועזיות",
     "Optional": "אופציונלי",
     "Recently viewed": "נצפו לאחרונה",
-    "All history >": "כל ההסטוריה >",
-    "All History": "כל ההסטוריה >",
+    "All history ": "כל ההסטוריה ",
+    "All History": "כל ההסטוריה",
 
 
     //user stats

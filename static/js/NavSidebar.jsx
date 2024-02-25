@@ -149,7 +149,9 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
                 {recentlyViewedList}
                 <a href="/texts/history" id="history" onClick={handleAllHistory}>
-                <InterfaceText>All history </InterfaceText><i className="fa fa-chevron-right"></i></a>
+                <InterfaceText>All history </InterfaceText>
+                    {Sefaria.interfaceLang === 'hebrew' ? <i className="fa fa-chevron-left"></i> : <i className="fa fa-chevron-right"></i>}
+                    </a>
              </Module>
 
 }
