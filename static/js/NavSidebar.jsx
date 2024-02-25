@@ -86,7 +86,21 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
     <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
-
+const RecentlyViewedList = ({items}) => {
+   const trackItem = (ref, pos) => {
+     gtag('event', 'recently_viewed', {link_text: ref, link_type: 'ref', link_pos: pos})
+   }
+   const refToDisplay = (x) => {
+     return Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref;
+   }
+   const recentlyViewedListItems = items.map((x, i) => {
+                                        return <li>
+                                                    <a href={x.ref}
+                                                       onClick={() => trackItem(x.ref, i+1)}>{refToDisplay(x)}
+                                                    </a>
+                                            </li>});
+   return <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
+}
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
    const handleAllHistory = (e) => {
@@ -96,9 +110,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
     }
     gtag('event', 'recently_viewed', {link_type: 'all_history', logged_in: !!Sefaria._uid});
    }
-   const trackItem = (ref, pos) => {
-     gtag('event', 'recently_viewed', {link_text: ref, link_type: 'ref', link_pos: pos})
-   }
+
    const filterRecentlyViewedItems = () => {
         let itemsToShow = [];
         let booksFound = [];
@@ -111,9 +123,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
         itemsToShow = itemsToShow.slice(0, 3);
         setRecentlyViewedItems(itemsToShow);
    }
-   const refToDisplay = (x) => {
-        return Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref;
-   }
+
    useEffect( () => {
        if (!Sefaria.userHistory.loaded) {
            Sefaria.loadUserHistory(20, filterRecentlyViewedItems);
@@ -125,13 +135,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
-   const recentlyViewedListItems = recentlyViewedItems.map((x, i) => {
-                                        return <li>
-                                                    <a href={x.ref}
-                                                       onClick={() => trackItem(x.ref, i+1)}>{refToDisplay(x)}
-                                                    </a>
-                                            </li>});
-   const recentlyViewedList = <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
+   const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems}/>;
    if (mobile) {
        return <Module><div className="recentlyViewedMobile">
               <div id="header">
