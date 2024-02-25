@@ -88,7 +88,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 };
 
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
-   const [recentlyViewedItems, setRecentlyViewedItems] = useState(null);
+   const [recentlyViewedItems, setRecentlyViewedItems] = useState([]);
    const handleAllHistory = (e) => {
     if (!Sefaria._uid) {
       e.preventDefault();
@@ -108,10 +108,11 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
            itemsToShow.push(x);
         }});
 
-        itemsToShow = itemsToShow.slice(0, 3).map((x, i) => {
-            return <li><a href={x.ref} onClick={() => trackItem(x.ref, i+1)}>{Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref}</a></li>;
-         });
+        itemsToShow = itemsToShow.slice(0, 3);
         setRecentlyViewedItems(itemsToShow);
+   }
+   const refToDisplay = (x) => {
+        return Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref;
    }
    useEffect( () => {
        if (!Sefaria.userHistory.loaded) {
@@ -120,21 +121,29 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
            filterRecentlyViewedItems();
        }
    }, []);
+
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
+   const recentlyViewedListItems = recentlyViewedItems.map((x, i) => {
+                                        return <li>
+                                                    <a href={x.ref}
+                                                       onClick={() => trackItem(x.ref, i+1)}>{refToDisplay(x)}
+                                                    </a>
+                                            </li>});
+   const recentlyViewedList = <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
    if (mobile) {
        return <Module><div className="recentlyViewedMobile">
               <div id="header">
                  <InterfaceText>Recently Viewed</InterfaceText>
                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
               </div>
-              <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedItems}</ul></div></div>
+              {recentlyViewedList}</div>
               </Module>;
    }
    return <Module>
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
-                <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedItems}</ul></div>
+                {recentlyViewedList}
                 <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All history ></InterfaceText></a>
              </Module>
 
