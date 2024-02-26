@@ -167,10 +167,10 @@ const useReviewState = (topic, text) => {
     return [reviewState, markReviewed]
 }
 
-const VisibilityWrapper = ({children, topic, text}) => {
-    let lang = Sefaria.interfaceLang === "english" ? 'he' : 'en';
+const VisibilityWrapper = ({children, text}) => {
+    let lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     const isPromptPublished = text.descriptions?.[lang]?.published;
-    if (isPromptPublished !== false || Sefaria.is_moderator) {
+    if (isPromptPublished === true || Sefaria.is_moderator) {
             return children;
         }
     return null;
@@ -191,7 +191,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
-            <VisibilityWrapper topic={topic} text={text}>
+            <VisibilityWrapper text={text}>
                 <div className={"headerWithAdminButtonsContainer"}>
                     <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
                         <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
