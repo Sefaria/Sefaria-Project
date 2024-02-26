@@ -169,7 +169,7 @@ const useReviewState = (topic, text) => {
 
 const VisibilityWrapper = ({children, topic, text}) => {
     let displayedComponents = null;
-    let lang = Sefaria.interfaceLang == "english" ? 'he' : 'en';
+    let lang = Sefaria.interfaceLang === "english" ? 'he' : 'en';
     const isPromptPublished = text.descriptions?.[lang]?.published;
     if (isPromptPublished !== false || Sefaria.is_moderator) {
             displayedComponents = children;
