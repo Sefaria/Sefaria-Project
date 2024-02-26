@@ -150,6 +150,14 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
+const hasPrompts = (description) => {
+    /**
+     * returns true if description has a title
+     * If description is explicitly marked as not published, only return true if user is a moderator
+     */
+    return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
+}
+
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
@@ -166,11 +174,10 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
     </ToolTipped>
   );
 
-  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
 
   // When running a test, topicTestVersion is respected.
   // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
+  const Passage = hasPrompts(text?.descriptions?.[langKey]) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}

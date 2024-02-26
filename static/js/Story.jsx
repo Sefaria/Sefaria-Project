@@ -167,15 +167,6 @@ const useReviewState = (topic, text) => {
     return [reviewState, markReviewed]
 }
 
-const VisibilityWrapper = ({children, text}) => {
-    let lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-    const isPromptPublished = text.descriptions?.[lang]?.published;
-    if (isPromptPublished === true || Sefaria.is_moderator) {
-            return children;
-        }
-    return null;
-}
-
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
     const versions = text.versions || {}
@@ -191,17 +182,15 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
-            <VisibilityWrapper text={text}>
-                <div className={"headerWithAdminButtonsContainer"}>
-                    <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
-                        <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                    </CategoryHeader>
-                    <ReviewStateIndicator reviewState={state} onClick={markReviewed}/>
-                </div>
-                <div className={"systemText learningPrompt"}>
-                    <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-                </div>
-            </VisibilityWrapper>
+            <div className={"headerWithAdminButtonsContainer"}>
+                <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
+                    <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
+                </CategoryHeader>
+                <ReviewStateIndicator reviewState={state} onClick={markReviewed}/>
+            </div>
+            <div className={"systemText learningPrompt"}>
+                <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+            </div>
             <SaveLine
                 dref={text.ref}
                 versions={versions}
