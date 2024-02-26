@@ -86,19 +86,17 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
     <InterfaceText markdown={{en: enText, he: heText}} />
   </Module>
 };
+
+const RecentlyViewedItem = ({oref, pos}) => {
+   const trackItem = () => {
+     gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref', link_pos: pos})
+   }
+   return <li>
+            <a href={oref.ref} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
+         </li>;
+}
 const RecentlyViewedList = ({items}) => {
-   const trackItem = (ref, pos) => {
-     gtag('event', 'recently_viewed', {link_text: ref, link_type: 'ref', link_pos: pos})
-   }
-   const refToDisplay = (x) => {
-     return Sefaria.interfaceLang === "hebrew" ? x.he_ref : x.ref;
-   }
-   const recentlyViewedListItems = items.map((x, i) => {
-                                        return <li>
-                                                    <a href={x.ref}
-                                                       onClick={() => trackItem(x.ref, i+1)}>{refToDisplay(x)}
-                                                    </a>
-                                            </li>});
+   const recentlyViewedListItems = items.map((x, i) => { return <RecentlyViewedItem oref={x} pos={i+1}/>});
    return <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
 }
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
@@ -136,6 +134,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
      return null;
    }
    const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems}/>;
+   const chevron = Sefaria._v({"en": <i className="fa fa-chevron-right"></i>, "he": <i className="fa fa-chevron-left"></i>})
    if (mobile) {
        return <Module><div className="recentlyViewedMobile">
               <div id="header">
@@ -149,9 +148,8 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
                 {recentlyViewedList}
                 <a href="/texts/history" id="history" onClick={handleAllHistory}>
-                <InterfaceText>All history </InterfaceText>
-                    {Sefaria.interfaceLang === 'hebrew' ? <i className="fa fa-chevron-left"></i> : <i className="fa fa-chevron-right"></i>}
-                    </a>
+                <InterfaceText>All history </InterfaceText>{chevron}
+                </a>
              </Module>
 
 }
