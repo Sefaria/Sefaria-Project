@@ -24,9 +24,9 @@ const options_for_form = {
         markdown: true
     },
     "Prompt": {label: "Source Description", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
-    "Previous Prompt": {label: "Previous Source Description", field: "prompt", placeholder: "", type: 'textarea readonly'},
+    "Previous Prompt": {label: "Previous Source Description", field: "prompt", placeholder: "", type: 'textarea', readOnly:true},
     "Context for Prompt": {label: "Context for Prompt", field: "ai_context", placeholder: "Why was this source added", type: 'textarea'},
-    "Previous Title": {label: "Previous Title", field: "enTitle", placeholder: "", type: 'readonly'},
+    "Previous Title": {label: "Previous Title", field: "enTitle", placeholder: "", readOnly:true},
     "English Short Description": {
         label: "English Short Description for Table of Contents", field: "enCategoryDescription",
         placeholder: "Add a short description.", type: 'input'

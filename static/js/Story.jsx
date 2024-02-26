@@ -138,13 +138,13 @@ const reviewStateToDisplayedTextMap = {
     "not reviewed": "Not Reviewed",
     "edited": "Edited"
 }
-const ReviewStateIndicator = ({reviewState, callBack}) => {
+const ReviewStateIndicator = ({reviewState, onClick}) => {
     if (!reviewState){
         return null}
     let reviewStateClassName = reviewStateToClassNameMap[reviewState];
     let displayedText = reviewStateToDisplayedTextMap[reviewState];
     return (
-    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={callBack}>
+    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={onClick}>
         {displayedText}
     </div>)
 
@@ -168,13 +168,12 @@ const useReviewState = (topic, text) => {
 }
 
 const VisibilityWrapper = ({children, topic, text}) => {
-    let displayedComponents = null;
     let lang = Sefaria.interfaceLang === "english" ? 'he' : 'en';
     const isPromptPublished = text.descriptions?.[lang]?.published;
     if (isPromptPublished !== false || Sefaria.is_moderator) {
-            displayedComponents = children;
+            return children;
         }
-    return displayedComponents
+    return null;
 }
 
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
@@ -187,21 +186,21 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
     let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
     const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
-    const [state, reviewStateCallback] = useReviewState(topic, text)
+    const [state, markReviewed] = useReviewState(topic, text)
 
 
     return (
         <StoryFrame cls="introducedTextPassageStory">
             <VisibilityWrapper topic={topic} text={text}>
-            <div className={"headerWithAdminButtonsContainer"}>
-                <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
-                    <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
-                </CategoryHeader>
-                <ReviewStateIndicator reviewState={state} callBack={reviewStateCallback}/>
-            </div>
+                <div className={"headerWithAdminButtonsContainer"}>
+                    <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
+                        <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
+                    </CategoryHeader>
+                    <ReviewStateIndicator reviewState={state} onClick={markReviewed}/>
+                </div>
                 <div className={"systemText learningPrompt"}>
-            <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
-        </div>
+                    <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
+                </div>
             </VisibilityWrapper>
             <SaveLine
                 dref={text.ref}
