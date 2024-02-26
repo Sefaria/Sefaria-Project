@@ -65,7 +65,7 @@ spec:
         - name: web_celery
           image: "{{ .Values.web_celery.containerImage.imageRegistry }}:{{ .Values.web_celery.containerImage.tag }}"
           imagePullPolicy: Always
-          args: [ "python manage.py migrate && gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 300 --threads {{ .Values.web_celery.resources.web.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+          args: [ "celery -A app.sefaria.celery_setup.app worker -Q {{ .Values.web_celery.queue }}" ]
           env:
             # WEB_CONCURRENCY is used for determining the number of server workers
             - name: WEB_CONCURRENCY
