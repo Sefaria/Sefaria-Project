@@ -113,12 +113,18 @@ a, a:hover {
     src: url('/static/fonts/Monlam-bodyig Regular.ttf');
   unicode-range: U+0F00-0FFF, U+10300-1032F,  U+10380-1039F, U+0FCF, U+0FD0, U+0FD1, U+0FD2, U+0FD3, U+0FD4;
 }
+@font-face {
+  /*English | Arial regular*/
+  font-family: 'IndUni-P-Regular';
+    src: url('/static/fonts/IndUni-P-Regular.otf');
+  unicode-range: U+0000, U+007F;
+}
 :root {
   /* font stacks */
-  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-sans-serif-font-family:"Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "JhomoLangma Sarchen", "Heebo", "Roboto", sans-serif;
 
-  --english-serif-font-family: "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  --english-serif-font-family: "IndUni-P-Regular", "Cardo", "Meltho",  "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
   --hebrew-serif-font-family: "Monlam-bodyig Regular", "Noto Color Emoji", "EnglishInHebrew Serif Font", "Cardo", "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
