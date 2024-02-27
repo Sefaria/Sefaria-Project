@@ -10514,17 +10514,21 @@ cursor: pointer;
   font-size: 16px;
   margin: 0;
   padding: 6px 9px;
-  border: 1px solid #EDEDEC;
-  background-color: #EDEDEC;
-  border-radius: 6px;
 }
+
+.tab-view .tab-list .tab.popover {
+  position: relative;
+  display: inline-block;
+}
+
+
 .tab-view .tab-list .tab.filter.open {
   background-color: inherit;
 }
 .tab-view .tab-list .tab.filter img {
   margin: 0 0 1px 6px;
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
 }
 .interface-hebrew .tab-view .tab-list .tab.filter img {
   margin: 0 6px 1px 0;
@@ -10551,6 +10555,25 @@ cursor: pointer;
 .tab-view.largeTabs .tab-list .active .tab {
   border-bottom: 4px solid var(--light-grey);
 }
+
+.langSelectPopover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: start;
+  width: 200px;
+}
+
+.langSelectPopover .active {
+  background-color: var(--sefaria-blue);
+  color: #fff;
+}
+
 @media (max-width: 540px) {
   .profile-page .tab-view .tab .tabIcon {
     display: none;

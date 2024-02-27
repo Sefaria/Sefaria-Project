@@ -3276,6 +3276,61 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
+const LangSelectInterface = ({callback}) => {
+  const [selectedOpt, setSelectedOpt] = useState("source");
+
+  const handleOptionChange = (event) => {
+    setSelectedOpt(event.target.value);
+    callback(event.target.value);
+  };
+
+  return (
+    <div className="langSelectPopover"
+      onClick={(e) => {
+          e.stopPropagation();
+          e.nativeEvent.stopImmediatePropagation();
+        }
+      }
+    >
+      <h2>Source Language</h2>
+      <div className={classNames({active: selectedOpt === "source" })}>
+        <input
+          type="radio"
+          id="source"
+          name="options"
+          value="source"
+          checked={selectedOpt === "source"}
+          onChange={handleOptionChange}
+        />
+        <label htmlFor="source">Source</label>
+      </div>
+      <div className={classNames({active: selectedOpt === "translation" })}>
+        <input
+          type="radio"
+          id="translation"
+          name="options"
+          value="translation"
+          checked={selectedOpt === "translation"}
+          onChange={handleOptionChange}
+        />
+        <label htmlFor="translation">Translation</label>
+      </div>
+      <div className={classNames({active: selectedOpt === "sourcewtrans" })}>
+        <input
+          type="radio"
+          id="sourcewtrans"
+          name="options"
+          value="sourcewtrans"
+          checked={selectedOpt === "sourcewtrans"}
+          onChange={handleOptionChange}
+        />
+        <label htmlFor="sourcewtrans">Source With Translation</label>
+      </div>
+    </div>
+  );
+
+}
+
 
 export {
   AppStoreButton,
@@ -3343,5 +3398,6 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption,
+  LangSelectInterface
 };

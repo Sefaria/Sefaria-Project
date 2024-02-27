@@ -25,6 +25,7 @@ import {
     ImageWithCaption,
     EnglishText,
     HebrewText,
+    LangSelectInterface,
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -428,6 +429,7 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
     const [portal, setPortal] = useState(null);
     const tabDisplayData = useTabDisplayData(translationLanguagePreference, versionPref);
     const topicImage = topicData.image;
@@ -474,6 +476,7 @@ const TopicPage = ({
     // Set up tabs and register incremental load hooks
     const displayTabs = [];
     let onClickFilterIndex = 2;
+    let onClickLangToggleIndex = 2;
     let authorWorksAdded = false
 
     for (let tabObj of tabDisplayData) {
@@ -509,15 +512,30 @@ const TopicPage = ({
     if (displayTabs.length) {
       displayTabs.push({
         title: {
-          en: "Filter",
-          he: Sefaria._("Filter")
+          en: "",
+          he: ""
         },
         id: 'filter',
-        icon: `/static/icons/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`,
+        icon: `/static/icons/filter.svg`,
         justifyright: true
       });
       onClickFilterIndex = displayTabs.length - 1;
     }
+
+    if (displayTabs.length) {
+      displayTabs.push({
+        title: {
+          en: "A",
+          he: Sefaria._("A")
+        },
+        id: 'langToggle',
+        popover: true
+      });
+      onClickLangToggleIndex = displayTabs.length - 1;
+    }
+
+
+
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     let sidebar = null;
     if (topicData) {
@@ -548,6 +566,19 @@ const TopicPage = ({
             );
         }
     }
+
+    const handleLangSelectInterfaceChange = (selection) => {
+      const closestReaderPanel = document.querySelector(".langSelectPopover").closest(".readerPanel")
+      closestReaderPanel.classList.remove("bilingual", "hebrew", "english");
+
+      let langSelection;
+      if (selection === "source") {langSelection = "hebrew"}
+      else if (selection === "translation") {langSelection = "english"}
+      else langSelection = "bilingual";
+
+      closestReaderPanel.classList.add(langSelection)
+    }
+
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
@@ -559,13 +590,17 @@ const TopicPage = ({
                           setTab={setTab}
                           tabs={displayTabs}
                           renderTab={t => (
-                            <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                            <div className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
+                              {t.popover && showLangSelectInterface ? <LangSelectInterface callback={(result) => handleLangSelectInterfaceChange(result)}/> : null}
                             </div>
                           )}
                           containerClasses={"largeTabs"}
-                          onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
+                          onClickArray={{
+                            [onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader),
+                            [onClickLangToggleIndex]: ()=>{setShowLangSelectInterface(!showLangSelectInterface)}
+                          }}
                         >
 
                         {topicData?.indexes?.length ? (
@@ -573,7 +608,6 @@ const TopicPage = ({
                             {topicData.indexes.map(({url, title, description}) => <AuthorIndexItem key={url} url={url} title={title} description={description}/>)}
                           </div>
                           ) : null }
-
 
                           {
                             tabDisplayData.map(tabObj => {
