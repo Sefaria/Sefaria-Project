@@ -152,7 +152,7 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
-const refRenderWrapper = (topicData, topicTestVersion) => item => {
+const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion, langPref) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
@@ -162,6 +162,7 @@ const refRenderWrapper = (topicData, topicTestVersion) => item => {
     dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
 
+
   // When running a test, topicTestVersion is respected.
   // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
   return (
@@ -170,6 +171,7 @@ const refRenderWrapper = (topicData, topicTestVersion) => item => {
       topic={topicData.slug}
       text={text}
       bodyTextIsLink= {true}
+      langPref={langPref}
     />
   );
 };
@@ -428,6 +430,7 @@ const TopicPage = ({
     const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
+    const [langPref, setLangPref] = useState(Sefaria.interfaceLang);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const [showLangSelectInterface, setShowLangSelectInterface] = useState(false);
     const [portal, setPortal] = useState(null);
@@ -568,16 +571,18 @@ const TopicPage = ({
     }
 
     const handleLangSelectInterfaceChange = (selection) => {
-      const closestReaderPanel = document.querySelector(".langSelectPopover").closest(".readerPanel")
-      closestReaderPanel.classList.remove("bilingual", "hebrew", "english");
-
-      let langSelection;
-      if (selection === "source") {langSelection = "hebrew"}
-      else if (selection === "translation") {langSelection = "english"}
-      else langSelection = "bilingual";
-
-      closestReaderPanel.classList.add(langSelection)
+      if (selection === "source") {setLangPref("hebrew")}
+      else if (selection === "translation") {setLangPref("english")}
+      else setLangPref(null);
     }
+
+    const getCurrentLang = () => {
+      if (langPref === "hebrew") {return "source"}
+      else if (langPref === "english") {return "translation"}
+      else {return "sourcewtrans"}
+    }
+
+    const currentLang = getCurrentLang()
 
     return <div className={classStr}>
         <div className="content noOverflowX" ref={scrollableElement}>
@@ -593,7 +598,7 @@ const TopicPage = ({
                             <div className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
-                              {t.popover && showLangSelectInterface ? <LangSelectInterface callback={(result) => handleLangSelectInterfaceChange(result)}/> : null}
+                              {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)}/> : null}
                             </div>
                           )}
                           containerClasses={"largeTabs"}
@@ -628,7 +633,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion)}
+                                  renderItem={renderWrapper(toggleSignUpModal, topicData, topicTestVersion, langPref)}
                                   onSetTopicSort={onSetTopicSort}
                                   topicSort={topicSort}
                                 />

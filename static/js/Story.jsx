@@ -144,7 +144,7 @@ const TopicStoryDescBlock = ({topic, text}) => (
       </div>
 )
 
-const TopicTextPassage = ({text, topic, bodyTextIsLink=false}) => {
+const TopicTextPassage = ({text, topic, bodyTextIsLink=false, langPref}) => {
   if (!text.ref) { return null; }
   const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
   const isCurated = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
@@ -153,7 +153,7 @@ const TopicTextPassage = ({text, topic, bodyTextIsLink=false}) => {
   const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
   const heOnly = !text.en;
   const enOnly = !text.he;
-  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : langPref;
   let innerContent = <ContentText html={{en: text.en, he: text.he}} overrideLanguage={overrideLanguage} bilingualOrder={["he", "en"]} />;
   const content = bodyTextIsLink ? <a href={url} style={{ textDecoration: 'none' }}>{innerContent}</a> : innerContent;
 

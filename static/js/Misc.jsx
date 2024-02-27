@@ -3276,8 +3276,9 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
-const LangSelectInterface = ({callback}) => {
-  const [selectedOpt, setSelectedOpt] = useState("source");
+const LangSelectInterface = ({callback, defaultVal}) => {
+  console.log(defaultVal)
+  const [selectedOpt, setSelectedOpt] = useState(defaultVal);
 
   const handleOptionChange = (event) => {
     setSelectedOpt(event.target.value);
