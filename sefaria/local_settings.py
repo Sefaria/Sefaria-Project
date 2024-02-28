@@ -1,12 +1,9 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 from datetime import timedelta
-import sys
 import structlog
 import sefaria.system.logging as sefaria_logging
 import os
-
-# These are things you need to change!
 
 ################
 # YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE
@@ -14,28 +11,30 @@ import os
 # You can set the path to /path/to/Sefaria-Project/db.sqlite, since we git-ignore all sqlite files
 # (you do not need to create the empty db.sqlite file, as Django will handle that later)
 # ########################################
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/home/lungsang/Desktop/database/db.sqlite', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
-        'USER': '', # Not used with sqlite3.
-        'PASSWORD': '', # Not used with sqlite3.
-        'HOST': '', # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '', # Set to empty string for default. Not used with sqlite3.
-    }
-}
-
 """
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'name of db table here',
-        'USER': 'name of db user here',
-        'PASSWORD': 'password here',
-        'HOST': '127.0.0.1',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'sefaria', # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
+        'USER': 'sefaria',                      # Not used with sqlite3.
+        'PASSWORD': os.getenv("POSTGRESQL_PASSWORD", "POSTGRESQL_PASSWORD not defined!"),                     # Not used with sqlite3.
+        'HOST': os.getenv("POSTGRESQL_HOST", "POSTGRESQL_HOST not defined"),                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
     }
-}"""
+}
+"""
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv("POSTGRESQL_DATABASE_NAME", "POSTGRESQL_DATABASE_NAME not defined!"),
+        'USER': os.getenv("POSTGRESQL_USER", "POSTGRESQL_USER not defined!"),
+        'PASSWORD': os.getenv("POSTGRESQL_PASSWORD", "POSTGRESQL_PASSWORD not defined!"),
+        'HOST': os.getenv("POSTGRESQL_HOST", "POSTGRESQL_HOST not defined!"),
+        # os.getenv("POSTGRESQL_PORT", "POSTGRESQL_PORT not defined!"),
+        'PORT': 5432
+    }
+}
 
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
@@ -45,23 +44,10 @@ DOMAIN_LANGUAGES = {}
 ################ These are things you can change! ###########################################################################
 SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
-
 ADMINS = (
-     ('Your Name', 'you@example.com'),
+    ('Your Name', 'you@example.com'),
 )
-PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
-
-MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
-# This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
-MONGO_HOST = "localhost"
-MONGO_PORT = 27017 # Not used if the above is a list
-# Name of the MongoDB database to use.
-SEFARIA_DB = 'sefaria' # Change if you named your db something else
-SEFARIA_DB_USER = '' # Leave user and password blank if not using Mongo Auth
-SEFARIA_DB_PASSWORD = ''
-APSCHEDULER_NAME = "apscheduler"
-
+PINNED_IPCOUNTRY = "IL"  # change if you want parashat hashavua to be diaspora.
 
 """ These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
@@ -90,54 +76,72 @@ USER_AGENTS_CACHE = 'default'
 SHARED_DATA_CACHE_ALIAS = 'shared'
 
 """THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
-"""
 CACHES = {
     "shared": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
+        # "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
+        "LOCATION": os.getenv("REDIS_HOST", "REDIS_HOST not defined"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            #"SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
+            # "SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
             "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
         },
         "TIMEOUT": None,
     },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
+        # "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
+        "LOCATION": os.getenv("REDIS_HOST", "REDIS_HOST not defined!"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            #"PASSWORD": "secretpassword", # Optional
+            "PASSWORD": os.getenv("REDIS_PASSWORD", ""),  # Optional
         },
         "TIMEOUT": 60 * 60 * 24 * 30,
     },
 }
-"""
 
 SITE_PACKAGE = "sites.sefaria"
 
 
-
-
-
-
-
 ################ These are things you DO NOT NEED to touch unless you know what you are doing. ##############################
-DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
+DEBUG = os.getenv("DEBUG", True)
+
+REMOTE_HOSTS = os.getenv('REMOTE_HOSTS', 'staging.pecha.org').replace(" ", "")
+
+LOCAL_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    "0.0.0.0",
+    '[::1]'
+]
+
+ALLOWED_HOSTS = REMOTE_HOSTS.split(',') + LOCAL_HOSTS
+
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 
-# Location of Strapi CMS instance
-# For local development, Strapi is located at http://localhost:1337 by default
+# GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "messageName",
+    "repetition": 1,
+    "is_fundraising": True,
+    "style":      "modal" # "modal" or "banner"
+    "condition":  {"returning_only": True}
+}
+"""
+
+
 STRAPI_LOCATION = None
 STRAPI_PORT = None
+SENTRY_DSN = None
+CLIENT_SENTRY_DSN = None
 
 
 MANAGERS = ADMINS
 
-SECRET_KEY = 'insert your long random secret key here !'
+SECRET_KEY = 'SECRET_KEY'
 
 
 EMAIL_HOST = 'localhost'
@@ -151,14 +155,19 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #    "MANDRILL_API_KEY": "your api key",
 # }
 
+MONGO_HOST = os.getenv("MONGO_HOST", "ENV_NAME not defined")
+MONGO_PORT = 27017  # os.getenv("MONGO_PORT", "ENV_NAME not defined")
+# Name of the MongoDB database to use.
+SEFARIA_DB = os.getenv("MONGO_DATABASE_NAME", "ENV_NAME not defined")
+# Leave user and password blank if not using Mongo Auth
+SEFARIA_DB_USER = ''
+SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
-# URL to connect to ES server.
-# Set this to https://sefaria.org/api/search to connect to production search.
-# If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
-SEARCH_URL = "http://localhost:9200"
-
-SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_ADMIN = "http://localhost:9200"
+# Whether to send texts and source sheet to Search Host for indexing after save
+SEARCH_INDEX_ON_SAVE = False
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
 
@@ -167,9 +176,12 @@ USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
 
-SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
-SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
+SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data'  # used for Data
+SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export'  # used for exporting texts
 
+
+# DafRoulette server
+RTC_SERVER = ''  # Root URL/IP of the server
 
 GOOGLE_GTAG = 'your gtag id here'
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
@@ -193,7 +205,7 @@ SALESFORCE_CLIENT_SECRET = ""
 # Issue bans to Varnish on update.
 USE_VARNISH = False
 FRONT_END_URL = "http://localhost:8000"  # This one wants the http://
-VARNISH_ADM_ADDR = "localhost:6082" # And this one doesn't
+VARNISH_ADM_ADDR = "localhost:6082"  # And this one doesn't
 VARNISH_HOST = "localhost"
 VARNISH_FRNT_PORT = 8040
 VARNISH_SECRET = "/etc/varnish/secret"
@@ -201,6 +213,7 @@ VARNISH_SECRET = "/etc/varnish/secret"
 USE_VARNISH_ESI = False
 
 # Prevent modification of Index records
+DISABLE_INDEX_SAVE = False
 DISABLE_INDEX_SAVE = False
 
 # Turns off search autocomplete suggestions, which are reinitialized on every server reload
@@ -305,12 +318,3 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
-
-SENTRY_DSN = None
-CLIENT_SENTRY_DSN = None
-
-# Fail gracefully when decorator conditional_graceful_exception on function. This should be set to True on production
-# Example: If a text or ref cannot be properly loaded, fail gracefully and let the server continue to run
-FAIL_GRACEFULLY = False
-if "pytest" in sys.modules:
-    FAIL_GRACEFULLY = False
