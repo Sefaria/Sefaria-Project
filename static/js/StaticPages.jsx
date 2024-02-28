@@ -9,7 +9,6 @@ import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
-import Sefaria  from './sefaria/sefaria';
 
 
 /*  Templates:

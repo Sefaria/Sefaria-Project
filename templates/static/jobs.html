@@ -5,6 +5,13 @@
 
 {% block description %}{% trans "Job openings at Sefaria, a nonprofit technology organization dedicated to building the Jewish future." %}{% endblock %}
 
+{% block css %}
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
+{% endblock %}
+
 {% block js %}
 <script>
     {% autoescape off %}
@@ -15,7 +22,6 @@
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='jobs' title="Jobs at Sefaria" heTitle="משרות פנויות בספריא" %}
 {% endif %}

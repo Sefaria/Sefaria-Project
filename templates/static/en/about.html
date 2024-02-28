@@ -14,11 +14,13 @@
     #aboutPage a {
         text-decoration: underline;
     }
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
 
 {% endblock %}
-
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='about' title="What is Sefaria?" heTitle="מהי ספריא" %}
 {% endif %}

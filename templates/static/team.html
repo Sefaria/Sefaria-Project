@@ -6,6 +6,14 @@
 
 {% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
 
+{% block css %}
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
+
+{% endblock %}
+
 {% block js %}
 <script>
     {% autoescape off %}
@@ -16,7 +24,6 @@
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
     {% if not request.user_agent.is_mobile %}
         {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
     {% endif %}

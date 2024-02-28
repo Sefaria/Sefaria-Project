@@ -6,9 +6,14 @@
 
 {% block description %}{% trans "See graphs charting Sefaria's progress since 2013 across metrics including word counts, number of links and number of source sheets." %}{% endblock %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% block css %}
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
+{% endblock %}
 
+{% block content %}
 {% if not request.user_agent.is_mobile %}
     {% include '_sidebar.html' with whichPage='metrics' title="Metrics" heTitle="מדדים" %}
 {% endif %}
