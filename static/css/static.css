@@ -3522,10 +3522,15 @@ div .notificationsList {
   .interface-hebrew #aboutPage .inner {
     margin-top: -85px;
   }
-  .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner, #testimonialsPage .inner, #jobsPage .inner {
+  .interface-english .container.doc.legal.static .inner,
+  .interface-english #annualReport .inner,
+  .interface-english #metricsPage .inner,
+  .interface-english #supportersPage .inner,
+  .interface-english #testimonialsPage .inner,
+  .interface-english #jobsPage .inner {
     margin-top: -70px;
   }
-  #teamPage .inner {
+  .interface-english #teamPage .inner {
     margin-top: -75px;
   }
   .interface-hebrew .about.section {
