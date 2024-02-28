@@ -1744,21 +1744,21 @@ div.interfaceLinks-row a {
   display: revert;
 }
 .singlePanel .recentlyViewed #header {
-    margin-bottom: 10px;
-    margin-right: 10px;
-    margin-left: 10px;
-    padding: 5px 0 5px 0;
-    border-bottom: 1px solid var(--light-grey);
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-left: 10px;
+  padding: 5px 0 5px 0;
+  border-bottom: 1px solid var(--light-grey);
+  display: flex;
+  justify-content: space-between;
 }
 .singlePanel .recentlyViewed #history span.int-he {
-  float: left;
   padding-left: 5px;
   color: var(--medium-grey);
 }
 
 .singlePanel .recentlyViewed #history span.int-en {
   padding-right: 5px;
-  float: right;
   color: var(--medium-grey);
 }
 .readerPanel .navSidebarModule h3,
