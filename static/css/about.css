@@ -229,7 +229,7 @@ div .notificationsList {
     width: 50%;
   }
 }
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   #updatersPage .globalUpdateForm {
     margin-top: 50px;
     width: 270px;
