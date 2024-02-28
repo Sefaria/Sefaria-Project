@@ -63,8 +63,7 @@
                     "name": "name",
                     "description": "An arbitrary text string to match against Sefaria's data collections.",
                     "schema": {
-                        "type": "string",
-                        "default": "torah"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -87,8 +86,7 @@
                         "name": "tref",
                         "description": "The `tref` parameter must a valid Sefaria ref to a text.",
                         "schema": {
-                            "type": "string",
-                            "default":  "Numbers 12.1"
+                            "type": "string"
                         },
                         "in": "path",
                         "required": true
@@ -167,8 +165,7 @@
                     "name": "tref",
                     "description": "A valid Sefaria ref",
                     "schema": {
-                        "type": "string",
-                        "default": "Numbers.17.2"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -255,8 +252,7 @@
                     "name": "word",
                     "description": "The word or phrase to search for in the lexicons.",
                     "schema": {
-                        "type": "string",
-                        "default": "שבת"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -455,8 +451,7 @@
                     "name": "index",
                     "description": "A valid Sefaria Index",
                     "schema": {
-                        "type": "string",
-                        "default": "Mishnah Berakhot"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -489,14 +484,6 @@
                         "in": "query"
                     },
                     {
-                        "name": "zone_name",
-                        "description": "By default, the API attempts to return the calendars for the client's timezone. If you want another region you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
                         "name": "year",
                         "description": "By default the API returns for the current time. You can override it by using a combination of the `year`, `day`, and `month` params - all three of which must be used, or else the API will fallback to the default.",
                         "schema": {
@@ -518,6 +505,12 @@
                         "schema": {
                             "type": "number"
                         },
+                        "in": "query"
+                    },
+                    {
+                        "name": "timezone",
+                        "description": "By default, the API attempts to return the calendars for the client's timezone. If you want another region you can override it. Timezone names are in accordance with [IANA Standards](https://www.iana.org/time-zones)",
+                        "schema": {},
                         "in": "query"
                     }
                 ],
@@ -675,8 +668,7 @@
                     "name": "topic_slug",
                     "description": "The slug of a topic in the Sefaria system. (To find all of the slugs, you can run `api/topics` without a path parameter to see the data for each topic in our database).",
                     "schema": {
-                        "type": "string",
-                        "default": "rosh-hashanah"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -1175,8 +1167,7 @@
                     "name": "parasha",
                     "description": "The _Parasha_ for which you'd like to generate relevant metadata, most notably the schedule of when it is next read. \n\n*Note*: The _Parasha_ must be in English written with a capitalized first letter, so `Noach` is valid, but `noach` will return an empty array. Any parshiyot with special characters (i.e. apostrophes, or spaces) should have those special characters percent url encoded. ",
                     "schema": {
-                        "type": "string",
-                        "default": "Noach"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -1307,8 +1298,7 @@
                     "name": "tref",
                     "description": "A valid Sefaria textual `Ref`.",
                     "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Esther 1.1"
+                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -1423,8 +1413,7 @@
                     "name": "lang",
                     "description": "An ISO 639-1 language code.",
                     "schema": {
-                        "type": "string",
-                        "default": "fr"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -2377,8 +2366,7 @@
                     "name": "tref",
                     "description": "A Sefaria-specific reference, `Ref`. This should be a segment `Ref` (the most specific reference possible), or bottom level section `Ref` (i.e.  a section of text on level up, a section is an array of segments). If a `Ref` is passed in which is not a segment level or a bottom level section, the response will be to the first bottom level section `Ref` (e.g. `Genesis` will resolve to the bottom level section `Ref` of `Genesis 1`)",
                     "schema": {
-                        "type": "string",
-                        "default": "Esther 1.1"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -2578,8 +2566,7 @@
                     "name": "topic_slug",
                     "description": "The slug of the desired topic",
                     "schema": {
-                        "type": "string",
-                        "default": "moses"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -2625,7 +2612,7 @@
             ]
         },
         "/api/words/completion/{word}/{lexicon}": {
-            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
+            "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input. \n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels.",
             "get": {
                 "parameters": [
                     {
@@ -2661,8 +2648,7 @@
                         "name": "lexicon",
                         "description": "An optional text string matching the name of one of Sefaria's lexicons to limit the search.",
                         "schema": {
-                            "type": "string",
-                            "default": "Klein Dictionary"
+                            "type": "string"
                         },
                         "in": "path",
                         "required": true
@@ -2749,8 +2735,7 @@
                     "name": "word",
                     "description": "An arbitrary text string to match against Sefaria's lexicon collections.",
                     "schema": {
-                        "type": "string",
-                        "default": "שב"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -2805,8 +2790,7 @@
                     "name": "tref",
                     "description": "A valid Sefaria textual `Ref`.",
                     "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Obadiah 1.2"
+                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -2815,7 +2799,7 @@
         },
         "/api/topics-graph/{topic_slug}": {
             "summary": "Topic Graph API",
-            "description": "An endpoint to retrieve links between various topics. ",
+            "description": "And enpoint to retrieve links between various topics. ",
             "get": {
                 "responses": {
                     "200": {
@@ -2988,8 +2972,7 @@
                     "name": "topic_slug",
                     "description": "A valid Sefaria slug for a topic in the database. ",
                     "schema": {
-                        "type": "string",
-                        "default": "shabbat"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -3169,8 +3152,7 @@
                     "name": "tref",
                     "description": "A valid Sefaria textual `Ref`",
                     "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Shabbat 2b.2"
+                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -3248,8 +3230,7 @@
                     "name": "name",
                     "description": "The English name of a valid Sefaria term. ",
                     "schema": {
-                        "type": "string",
-                        "default": "HaChovel"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -3800,8 +3781,7 @@
                     "name": "tref",
                     "description": "A valid Sefaria textual `Ref`. ",
                     "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Deuteronomy 1.1"
+                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -4491,8 +4471,7 @@
                     "name": "index_title",
                     "description": "A title of a valid Sefaria `Index`. For a complete list of works in the [Sefaria](sefaria.org) library, as well as their index titles, query the [api/index](https://www.sefaria.org/api/index/) endpoint. ",
                     "schema": {
-                        "type": "string",
-                        "default": "Genesis"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -4578,8 +4557,7 @@
                     "name": "ref_list",
                     "description": "List of strings separated by '+'",
                     "schema": {
-                        "type": "string",
-                        "default": "Genesis 50+Mishnah Peah 3"
+                        "type": "string"
                     },
                     "in": "path",
                     "required": true
@@ -4871,7 +4849,7 @@
                         "description": "Successful response"
                     }
                 },
-                "deprecated": true,
+                "deprecated": false,
                 "summary": "Text API",
                 "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
             },
@@ -4897,8 +4875,7 @@
                     "name": "tref",
                     "description": "A valid textual `Ref` to a Sefaria text.",
                     "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Shabbat 22a.10"
+                        "$ref": "#/components/schemas/ref"
                     },
                     "in": "path",
                     "required": true
@@ -4910,7 +4887,8 @@
         "schemas": {
             "ref": {
                 "description": "A string representing a citation to a Jewish text. \n\nA valid `Ref` consists of a title string followed optionally by a section string or a segment string. \n\nA title string is any one of the known text titles or title variants in the Sefaria Database.",
-                "type": "string"
+                "type": "string",
+                "example": "Mishnah Peah 4:2"
             },
             "versionData": {
                 "title": "Root Type for versionData",
