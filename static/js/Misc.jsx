@@ -3293,7 +3293,8 @@ const LangSelectInterface = ({callback, defaultVal}) => {
       }
     >
       <h2>Source Language</h2>
-      <div className={classNames({active: selectedOpt === "source" })}>
+      <div className={classNames({active: selectedOpt === "source", radioChoice: 1 })}>
+        <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
         <input
           type="radio"
           id="source"
@@ -3302,9 +3303,9 @@ const LangSelectInterface = ({callback, defaultVal}) => {
           checked={selectedOpt === "source"}
           onChange={handleOptionChange}
         />
-        <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
       </div>
-      <div className={classNames({active: selectedOpt === "translation" })}>
+      <div className={classNames({active: selectedOpt === "translation", radioChoice: 1 })}>
+        <label htmlFor="translation"><InterfaceText>Translation</InterfaceText></label>
         <input
           type="radio"
           id="translation"
@@ -3313,9 +3314,9 @@ const LangSelectInterface = ({callback, defaultVal}) => {
           checked={selectedOpt === "translation"}
           onChange={handleOptionChange}
         />
-        <label htmlFor="translation"><InterfaceText>Translation</InterfaceText></label>
       </div>
-      <div className={classNames({active: selectedOpt === "sourcewtrans" })}>
+      <div className={classNames({active: selectedOpt === "sourcewtrans", radioChoice: 1 })}>
+        <label htmlFor="sourcewtrans"><InterfaceText>Source with Translation</InterfaceText></label>
         <input
           type="radio"
           id="sourcewtrans"
@@ -3324,7 +3325,6 @@ const LangSelectInterface = ({callback, defaultVal}) => {
           checked={selectedOpt === "sourcewtrans"}
           onChange={handleOptionChange}
         />
-        <label htmlFor="sourcewtrans"><InterfaceText>Source with Translation</InterfaceText></label>
       </div>
     </div>
   );
