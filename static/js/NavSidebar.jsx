@@ -137,7 +137,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    if (mobile) {
        return <Module><div className="recentlyViewed">
               <div id="header">
-                 <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
+                 <InterfaceText>Recently Viewed</InterfaceText>
                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
               </div>
               {recentlyViewedList}</div>
