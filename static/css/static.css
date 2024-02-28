@@ -3383,7 +3383,7 @@ div .notificationsList {
 }
 #aboutSidebar a {
   text-decoration: none !important;
-  font-size: 16px !important;
+  font-size: 16px;
 }
 #aboutSidebar a:hover {
   text-decoration: underline;
@@ -3425,18 +3425,18 @@ div .notificationsList {
   display: block;
   font-size: 16px;
 }
-.mobileAbout .fa-chevron-left {
+#aboutSidebar.mobileAbout .fa-chevron-left {
   padding-top: 10px;
   color: var(--dark-grey);
-  display: block !important;
+  display: block;
   margin-left: 60px;
   float: left;
 }
-.mobileAbout .fa-chevron-right {
+#aboutSidebar.mobileAbout .fa-chevron-right {
   float: right;
   padding-top: 10px;
   color: var(--dark-grey);
-  display: block !important;
+  display: block;
   margin-right: 30px;
 }
 #aboutSidebar .fa-chevron-right, #aboutSidebar .fa-chevron-left {
@@ -3568,8 +3568,8 @@ div .notificationsList {
   #aboutSidebar.mobileAbout h1, h1.mobileAboutHeader {
     font-family: 'Roboto', sans-serif;
     font-style: normal;
-    font-weight: 500 !important;
-    font-size: 22px !important;
+    font-weight: 500;
+    font-size: 22px;
     text-align: left;
     line-height: 26px;
     color: var(--dark-grey);
