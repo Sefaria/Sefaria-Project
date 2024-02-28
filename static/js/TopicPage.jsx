@@ -245,13 +245,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
     ];
     if (topicData.description) {
       sidebarModules.unshift({
-        type: "TitledText",
-        props: {
-          enTitle: "About",
-          heTitle: Sefaria._("About"),
-          enText: topicData.description.en,
-          heText: topicData.description.he
-        }
+        type: "AboutTopics",
       });
     }
 
