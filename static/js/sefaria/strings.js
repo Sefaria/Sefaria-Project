@@ -253,6 +253,7 @@ const Strings = {
     "Source" : "מקור",
     "Translation": "תרגום",
     "Source with Translation": "מקור עם תרגום",
+    "Source Language": "שפת המקורות",
     "Digitization" : "דיגיטציה",
     "License" : "רשיון",
     "Revision History" : "היסטורית עריכה",
