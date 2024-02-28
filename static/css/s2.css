@@ -1735,28 +1735,28 @@ div.interfaceLinks-row a {
   border: none;
   padding: 0;
 }
-.recentlyViewedMobile {
+.singlePanel .recentlyViewed {
   background-color: var(--lightest-grey);
   padding: 10px 5px 10px 5px;
   margin: -5px -15px -5px -15px;
 }
-.recentlyViewedMobile ul {
+.singlePanel .recentlyViewed ul {
   display: revert;
 }
-.recentlyViewedMobile #header {
+.singlePanel .recentlyViewed #header {
     margin-bottom: 10px;
     margin-right: 10px;
     margin-left: 10px;
     padding: 5px 0 5px 0;
     border-bottom: 1px solid var(--light-grey);
 }
-.recentlyViewedMobile #history span.int-he {
+.singlePanel .recentlyViewed #history span.int-he {
   float: left;
   padding-left: 5px;
   color: var(--medium-grey);
 }
 
-.recentlyViewedMobile #history span.int-en {
+.singlePanel .recentlyViewed #history span.int-en {
   padding-right: 5px;
   float: right;
   color: var(--medium-grey);
@@ -1810,11 +1810,11 @@ div.interfaceLinks-row a {
   padding: 0;
   margin: 0;
 }
-.recentlyViewedMobile .navSidebarLink {
-  padding: 0 10px 0 10px;
+.singlePanel .recentlyViewed .navSidebarLink {
+  padding: 0 25px 0 25px;
 }
-.navSidebarLink.recentlyViewed ul {
-  display: revert;
+.multiPanel .recentlyViewed #history span::after {
+  content: "\203A";
 }
 .navSidebarLink > ul > li {
   display: inline;

@@ -134,22 +134,22 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
      return null;
    }
    const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems}/>;
-   const chevron = Sefaria._v({"en": <i className="fa fa-chevron-right"></i>, "he": <i className="fa fa-chevron-left"></i>})
    if (mobile) {
-       return <Module><div className="recentlyViewedMobile">
+       return <Module><div className="recentlyViewed">
               <div id="header">
-                 <InterfaceText>Recently Viewed</InterfaceText>
+                 <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
               </div>
               {recentlyViewedList}</div>
               </Module>;
    }
-   return <Module>
+   return <Module><div className="recentlyViewed">
             <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
                 {recentlyViewedList}
                 <a href="/texts/history" id="history" onClick={handleAllHistory}>
-                <InterfaceText>All history </InterfaceText>{chevron}
+                <InterfaceText>All history </InterfaceText>
                 </a>
+            </div>
              </Module>
 
 }
