@@ -1737,28 +1737,29 @@ div.interfaceLinks-row a {
 }
 .singlePanel .recentlyViewed {
   background-color: var(--lightest-grey);
-  padding: 10px 5px 10px 5px;
-  margin: -5px -15px -5px -15px;
+  padding-inline: 10px 10px;
+  padding-block: 5px 5px;
+  margin-inline: -15px -15px;
+  margin-block: -5px -5px;
 }
 .singlePanel .recentlyViewed ul {
   display: revert;
 }
 .singlePanel .recentlyViewed #header {
-  margin-bottom: 10px;
-  margin-right: 10px;
-  margin-left: 10px;
-  padding: 5px 0 5px 0;
+  margin-block-end: 10px;
+  margin-inline: 10px 10px;
+  padding-block: 5px 5px;
   border-bottom: 1px solid var(--light-grey);
   display: flex;
   justify-content: space-between;
 }
 .singlePanel .recentlyViewed #history span.int-he {
-  padding-left: 5px;
+  padding-inline-start: 5px;
   color: var(--medium-grey);
 }
 
 .singlePanel .recentlyViewed #history span.int-en {
-  padding-right: 5px;
+  padding-inline-end: 5px;
   color: var(--medium-grey);
 }
 .readerPanel .navSidebarModule h3,
@@ -1811,7 +1812,8 @@ div.interfaceLinks-row a {
   margin: 0;
 }
 .singlePanel .recentlyViewed .navSidebarLink {
-  padding: 0 25px 0 25px;
+  padding-inline-start: 25px;
+  padding-inline-end: 25px;
 }
 .multiPanel .recentlyViewed #history span::after {
   content: "\203A";
