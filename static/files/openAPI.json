@@ -950,109 +950,6 @@
                 }
             ]
         },
-        "/api/manuscripts/{tref}": {
-            "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
-            "get": {
-                "parameters": [
-                    {
-                        "examples": {
-                            "Tanakh Example": {
-                                "value": "Numbers 12.1"
-                            },
-                            "Talmud Example": {
-                                "value": "Berakhot 2a.1"
-                            }
-                        },
-                        "name": "tref",
-                        "description": "The `tref` parameter must a valid Sefaria ref to a text.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "Manuscript JSON": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/ManuscriptJSON"
-                                    }
-                                },
-                                "examples": {
-                                    "Esther 4:14-15": {
-                                        "value": [
-                                            {
-                                                "manuscript_slug": "leningrad-codex-(1008-ce)",
-                                                "page_id": "LC_Folio_435r",
-                                                "image_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A.jpg",
-                                                "thumbnail_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A_thumbnail.jpg",
-                                                "anchorRef": "Esther 4:17-6:2",
-                                                "anchorRefExpanded": [
-                                                    "Esther 5:14"
-                                                ],
-                                                "manuscript": {
-                                                    "slug": "leningrad-codex-(1008-ce)",
-                                                    "title": "Leningrad Codex (1008 CE)",
-                                                    "he_title": "כתב יד לנינגרד (1008)",
-                                                    "source": "https://dornsife.usc.edu/wsrp/biblical-manuscripts",
-                                                    "description": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin",
-                                                    "he_description": ""
-                                                }
-                                            },
-                                            {
-                                                "manuscript_slug": "megilat-ester-or-1047-(17th-century)",
-                                                "page_id": "Esther",
-                                                "image_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20mid.jpg",
-                                                "thumbnail_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20thumb.png",
-                                                "anchorRef": "Esther",
-                                                "anchorRefExpanded": [
-                                                    "Esther 5:14"
-                                                ],
-                                                "manuscript": {
-                                                    "slug": "megilat-ester-or-1047-(17th-century)",
-                                                    "title": "Megilat Ester, Or 1047 (17th Century)",
-                                                    "he_title": "מגילת אסתר Or 1047 (מאה 17)",
-                                                    "source": "https://www.bl.uk/collection-items/megilat-ester-or-1047",
-                                                    "description": "",
-                                                    "he_description": ""
-                                                }
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "summary": "Manuscripts",
-                "description": "This call retrieves all associated manuscript data and metadata for a given Sefaria `tref`. "
-            },
-            "parameters": [
-                {
-                    "examples": {
-                        "Tanakh Example": {
-                            "value": "Numbers.17.2"
-                        },
-                        "Talmud Example": {
-                            "value": "Berakhot.2a.1"
-                        }
-                    },
-                    "name": "tref",
-                    "description": "A valid Sefaria ref",
-                    "schema": {
-                        "default": "Numbers.17.2",
-                        "type": "string"
-                    },
-                    "in": "path",
-                    "required": true
-                }
-            ]
-        },
         "/api/name/{name}": {
             "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria",
             "get": {
@@ -1901,289 +1798,6 @@
                     "schema": {
                         "default": "Noah",
                         "type": "string"
-                    },
-                    "in": "path",
-                    "required": true
-                }
-            ]
-        },
-        "/api/texts/{tref}": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "callback",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "context",
-                        "description": "The `context` param defaults to `1`, which allows for the API to return the entire context for the desired segment. When you explicitly set `context=0` only the desired segment is returned, without any of the accompanying context.",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "commentary",
-                        "description": "The `commentary` param defaults to `0`, which turns off commentary being returned in the response. When you explicitly set `commentary=1` all of commentary to that specific connection is returned in list of JSON objects containing the text of the commentaries",
-                        "schema": {
-                            "maximum": 1,
-                            "minimum": 0,
-                            "type": "integer"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "pad",
-                        "description": "By default this is set to `1` which ensures that any references at the title level will return only the first section of a book instead of its entirety. If you want the API to return the entire content of the book set pad to `0`",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "examples": {
-                            "The Contemporay Torah: JPS 2006": {
-                                "value": "The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
-                            }
-                        },
-                        "name": "ven",
-                        "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "firstAvailableRef",
-                        "description": "If a given text reference doesn't return any content, setting this to `1` will return the first reference that does. \n\nSometimes this occurs when a text reference may pass our ref checking logic, but doesn't exist e.g. `https://www.sefaria.org/api/texts/Berakhot 1a?firstAvailableRef=1`, and sometimes this occurs when a translation is incomplete. Defaults to `0`",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "vhe",
-                        "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "layer",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "alts",
-                        "description": "Returns the `alt structures` for the target text in the JSON response object.",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "wrapLinks",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "wrapNamedEntities",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "stripItags",
-                        "description": "Sefaria texts include footnotes and other `iTags` in the response. This param defaults to `0` which leaves them in. Changing it to `1` will remove them.",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "multiple",
-                        "description": "If the absolute value of this param is greater than `1` the API response will return include `|n|` text API responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will contain the previous consecutive chapter[s].",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "examples": {
-                            "German": {
-                                "value": "DE"
-                            },
-                            "Arabic": {
-                                "value": "AR"
-                            }
-                        },
-                        "name": "transLangPref",
-                        "description": "Unless explicitly specified, the texts API returns a default version for the `he` and `text` responses (usually in Hebrew & English respectfully). Passing an ISO 639-1 language code here will prioritize text versions in that target language if available.",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "fallbackOnDefaultVersion",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "name": "sheets",
-                        "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead you should use the `Related API`._",
-                        "schema": {
-                            "type": "boolean"
-                        },
-                        "in": "query"
-                    },
-                    {
-                        "examples": {
-                            "Tanakh": {
-                                "value": "Kohelet 5:10"
-                            },
-                            "Talmud": {
-                                "value": "Shabbat 22a.10"
-                            },
-                            "Talmud Amud": {
-                                "value": "Shabbat 22a"
-                            },
-                            "Tanakh Chapter": {
-                                "value": "Exodus 10"
-                            },
-                            "Commentary": {
-                                "value": "Rashi on Genesis 1:1:1"
-                            }
-                        },
-                        "name": "tref",
-                        "description": "A valid textual `Ref` to a Sefaria text.",
-                        "schema": {
-                            "$ref": "#/components/schemas/ref"
-                        },
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/textAPIReponse"
-                                },
-                                "examples": {
-                                    "Shabbat 22a.1": {
-                                        "value": {
-                                            "ref": "Shabbat 22a:1",
-                                            "heRef": "שבת כ״ב א:א׳",
-                                            "isComplex": false,
-                                            "text": [],
-                                            "he": [],
-                                            "versions": [],
-                                            "textDepth": 2,
-                                            "sectionNames": [],
-                                            "addressTypes": [],
-                                            "lengths": [],
-                                            "length": 314,
-                                            "heTitle": "שבת כ״ב א",
-                                            "titleVariants": [],
-                                            "heTitleVariants": [],
-                                            "type": "Talmud",
-                                            "primary_category": "Talmud",
-                                            "book": "Shabbat",
-                                            "categories": [],
-                                            "order": [],
-                                            "sections": [],
-                                            "toSections": [],
-                                            "isDependant": false,
-                                            "indexTitle": "Shabbat",
-                                            "heIndexTitle": "שבת",
-                                            "sectionRef": "Shabbat 22a",
-                                            "firstAvailableSectionRef": "Shabbat 22a:1",
-                                            "heSectionRef": "שבת כ״ב א",
-                                            "isSpanning": false,
-                                            "versionTitle": "William Davidson Edition - English",
-                                            "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
-                                            "shortVersionTitle": "Koren - Steinsaltz",
-                                            "shortVersionTitleInHebrew": "",
-                                            "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1",
-                                            "versionStatus": "locked",
-                                            "versionNotes": "English from The William Davidson digital edition of the <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>",
-                                            "extendedNotes": "",
-                                            "extendedNotesHebrew": "",
-                                            "versionNotesInHebrew": "תרגום אנגלי של תלמוד מהדורת ויליאם דיוידסון מתוך מהדורת <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Noé</a> עם פירוש <a href='/adin-even-israel-steinsaltz'>הרב עדין אבן ישראל שטיינזלץ</a>, בהוצאת קורן ירושלים",
-                                            "digitizedBySefaria": false,
-                                            "license": "CC-BY-NC",
-                                            "formatEnAsPoetry": false,
-                                            "heVersionTitle": "William Davidson Edition - Vocalized Aramaic",
-                                            "heVersionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
-                                            "heShortVersionTitle": "",
-                                            "heShortVersionTitleInHebrew": "",
-                                            "heVersionSource": "https://www.sefaria.org",
-                                            "heVersionStatus": "locked",
-                                            "heVersionNotes": "Aramaic from The William Davidson digital edition of the <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>\nNikud (vocalization) by <a href='https://dicta.org.il/'>Dicta - the Israel Center for Text Analysis</a>",
-                                            "heExtendedNotes": "",
-                                            "heExtendedNotesHebrew": "",
-                                            "heVersionNotesInHebrew": "הטקסט הארמי של מהדורת וויליאם דייוידסון הדיגיטלית מתוך <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>תלמוד קורן מהדורת נאה</a>, עם באור מאת <a href='/adin-even-israel-steinsaltz'>הרב אבן־ישראל (שטיינזלץ)</a>\nמנוקד על ידי <a href='https://dicta.org.il/'>דיקטה - המרכז הישראלי לניתוח טקסטים</a>",
-                                            "heDigitizedBySefaria": false,
-                                            "heLicense": "CC-BY-NC",
-                                            "formatHeAsPoetry": false,
-                                            "title": "Shabbat 22a",
-                                            "heBook": "שבת",
-                                            "alts": [],
-                                            "index_offsets_by_depth": {},
-                                            "next": "Shabbat 22b",
-                                            "prev": "Shabbat 21b",
-                                            "commentary": [],
-                                            "sheets": [],
-                                            "layer": []
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "description": "Successful response"
-                    }
-                },
-                "deprecated": true,
-                "summary": "Texts (v1)",
-                "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
-            },
-            "parameters": [
-                {
-                    "examples": {
-                        "Tanakh": {
-                            "value": "Kohelet 5:10"
-                        },
-                        "Talmud": {
-                            "value": "Shabbat 22a.10"
-                        },
-                        "Talmud Amud": {
-                            "value": "Shabbat 22a"
-                        },
-                        "Tanakh Chapter": {
-                            "value": "Exodus 10"
-                        },
-                        "Commentary": {
-                            "value": "Rashi on Genesis 1:1:1"
-                        }
-                    },
-                    "name": "tref",
-                    "description": "A valid textual `Ref` to a Sefaria text.",
-                    "schema": {
-                        "$ref": "#/components/schemas/ref",
-                        "default": "Rashi on Genesis 1:1:1"
                     },
                     "in": "path",
                     "required": true
@@ -4898,6 +4512,394 @@
                     "schema": {
                         "default": "שב",
                         "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/manuscripts/{tref}": {
+            "summary": "For a given `tref` (textual ref), if a manuscript exists, returns a list of all relevant data as well as the image URL for each associated manuscript.",
+            "get": {
+                "parameters": [
+                    {
+                        "examples": {
+                            "Tanakh Example": {
+                                "value": "Numbers 12.1"
+                            },
+                            "Talmud Example": {
+                                "value": "Berakhot 2a.1"
+                            }
+                        },
+                        "name": "tref",
+                        "description": "The `tref` parameter must a valid Sefaria ref to a text.",
+                        "schema": {
+                            "default": "Numbers 12.1",
+                            "type": "string"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "Manuscript JSON": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ManuscriptJSON"
+                                    }
+                                },
+                                "examples": {
+                                    "Esther 4:14-15": {
+                                        "value": [
+                                            {
+                                                "manuscript_slug": "leningrad-codex-(1008-ce)",
+                                                "page_id": "LC_Folio_435r",
+                                                "image_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A.jpg",
+                                                "thumbnail_url": "https://manuscripts.sefaria.org/leningrad-color/BIB_LENCDX_F435A_thumbnail.jpg",
+                                                "anchorRef": "Esther 4:17-6:2",
+                                                "anchorRefExpanded": [
+                                                    "Esther 5:14"
+                                                ],
+                                                "manuscript": {
+                                                    "slug": "leningrad-codex-(1008-ce)",
+                                                    "title": "Leningrad Codex (1008 CE)",
+                                                    "he_title": "כתב יד לנינגרד (1008)",
+                                                    "source": "https://dornsife.usc.edu/wsrp/biblical-manuscripts",
+                                                    "description": "Bruce Zuckerman, West Semitic Research, in collaboration with the Ancient Biblical Manuscript Center; courtesy Russian National Library, Saltykov-Schedrin",
+                                                    "he_description": ""
+                                                }
+                                            },
+                                            {
+                                                "manuscript_slug": "megilat-ester-or-1047-(17th-century)",
+                                                "page_id": "Esther",
+                                                "image_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20mid.jpg",
+                                                "thumbnail_url": "https://storage.googleapis.com/sefaria-manuscripts/misc/Megilat%20Ester%2C%20Or%201047%20-%20thumb.png",
+                                                "anchorRef": "Esther",
+                                                "anchorRefExpanded": [
+                                                    "Esther 5:14"
+                                                ],
+                                                "manuscript": {
+                                                    "slug": "megilat-ester-or-1047-(17th-century)",
+                                                    "title": "Megilat Ester, Or 1047 (17th Century)",
+                                                    "he_title": "מגילת אסתר Or 1047 (מאה 17)",
+                                                    "source": "https://www.bl.uk/collection-items/megilat-ester-or-1047",
+                                                    "description": "",
+                                                    "he_description": ""
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "summary": "Manuscripts",
+                "description": "This call retrieves all associated manuscript data and metadata for a given Sefaria `tref`. "
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Tanakh Example": {
+                            "value": "Numbers.17.2"
+                        },
+                        "Talmud Example": {
+                            "value": "Berakhot.2a.1"
+                        }
+                    },
+                    "name": "tref",
+                    "description": "A valid Sefaria ref",
+                    "schema": {
+                        "default": "Numbers.17.2",
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
+        },
+        "/api/texts/{tref}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "callback",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "context",
+                        "description": "The `context` param defaults to `1`, which allows for the API to return the entire context for the desired segment. When you explicitly set `context=0` only the desired segment is returned, without any of the accompanying context.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "commentary",
+                        "description": "The `commentary` param defaults to `0`, which turns off commentary being returned in the response. When you explicitly set `commentary=1` all of commentary to that specific connection is returned in list of JSON objects containing the text of the commentaries",
+                        "schema": {
+                            "maximum": 1,
+                            "minimum": 0,
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "pad",
+                        "description": "By default this is set to `1` which ensures that any references at the title level will return only the first section of a book instead of its entirety. If you want the API to return the entire content of the book set pad to `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "The Contemporay Torah: JPS 2006": {
+                                "value": "The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
+                            }
+                        },
+                        "name": "ven",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with roman characters as of the content in the `text` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "firstAvailableRef",
+                        "description": "If a given text reference doesn't return any content, setting this to `1` will return the first reference that does. \n\nSometimes this occurs when a text reference may pass our ref checking logic, but doesn't exist e.g. `https://www.sefaria.org/api/texts/Berakhot 1a?firstAvailableRef=1`, and sometimes this occurs when a translation is incomplete. Defaults to `0`",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "vhe",
+                        "description": "Unless explicitly specified, the texts API returns a default version of a text with Hebrew characters as of the content in the `he` response. Passing a specific `versionTitle` here will load that text version if it exists instead of the default.\n",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "layer",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "alts",
+                        "description": "Returns the `alt structures` for the target text in the JSON response object.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "wrapLinks",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "wrapNamedEntities",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "stripItags",
+                        "description": "Sefaria texts include footnotes and other `iTags` in the response. This param defaults to `0` which leaves them in. Changing it to `1` will remove them.",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "multiple",
+                        "description": "If the absolute value of this param is greater than `1` the API response will return include `|n|` text API responses which include `|n|-1` additional consecutive sections of the targeted text if they exist. If the integer is positive, it will return the next consecutive chapter[s], and if negative it will contain the previous consecutive chapter[s].",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "German": {
+                                "value": "DE"
+                            },
+                            "Arabic": {
+                                "value": "AR"
+                            }
+                        },
+                        "name": "transLangPref",
+                        "description": "Unless explicitly specified, the texts API returns a default version for the `he` and `text` responses (usually in Hebrew & English respectfully). Passing an ISO 639-1 language code here will prioritize text versions in that target language if available.",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "fallbackOnDefaultVersion",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "name": "sheets",
+                        "description": "The `sheets` param defaults to `0`, which turns off user-generated Sefaria Sheet data from being returned in the response. When you explicitly set `sheets=1` all of the user-generated sheet content to that specific connection is returned in list of JSON objects.\n\n_This usage is deprecated. Instead you should use the `Related API`._",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "in": "query"
+                    },
+                    {
+                        "examples": {
+                            "Tanakh": {
+                                "value": "Kohelet 5:10"
+                            },
+                            "Talmud": {
+                                "value": "Shabbat 22a.10"
+                            },
+                            "Talmud Amud": {
+                                "value": "Shabbat 22a"
+                            },
+                            "Tanakh Chapter": {
+                                "value": "Exodus 10"
+                            },
+                            "Commentary": {
+                                "value": "Rashi on Genesis 1:1:1"
+                            }
+                        },
+                        "name": "tref",
+                        "description": "A valid textual `Ref` to a Sefaria text.",
+                        "schema": {
+                            "$ref": "#/components/schemas/ref",
+                            "default": "Rashi on Genesis 1:1:1"
+                        },
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/textAPIReponse"
+                                },
+                                "examples": {
+                                    "Shabbat 22a.1": {
+                                        "value": {
+                                            "ref": "Shabbat 22a:1",
+                                            "heRef": "שבת כ״ב א:א׳",
+                                            "isComplex": false,
+                                            "text": [],
+                                            "he": [],
+                                            "versions": [],
+                                            "textDepth": 2,
+                                            "sectionNames": [],
+                                            "addressTypes": [],
+                                            "lengths": [],
+                                            "length": 314,
+                                            "heTitle": "שבת כ״ב א",
+                                            "titleVariants": [],
+                                            "heTitleVariants": [],
+                                            "type": "Talmud",
+                                            "primary_category": "Talmud",
+                                            "book": "Shabbat",
+                                            "categories": [],
+                                            "order": [],
+                                            "sections": [],
+                                            "toSections": [],
+                                            "isDependant": false,
+                                            "indexTitle": "Shabbat",
+                                            "heIndexTitle": "שבת",
+                                            "sectionRef": "Shabbat 22a",
+                                            "firstAvailableSectionRef": "Shabbat 22a:1",
+                                            "heSectionRef": "שבת כ״ב א",
+                                            "isSpanning": false,
+                                            "versionTitle": "William Davidson Edition - English",
+                                            "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
+                                            "shortVersionTitle": "Koren - Steinsaltz",
+                                            "shortVersionTitleInHebrew": "",
+                                            "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1",
+                                            "versionStatus": "locked",
+                                            "versionNotes": "English from The William Davidson digital edition of the <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>",
+                                            "extendedNotes": "",
+                                            "extendedNotesHebrew": "",
+                                            "versionNotesInHebrew": "תרגום אנגלי של תלמוד מהדורת ויליאם דיוידסון מתוך מהדורת <a href='https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1'>Noé</a> עם פירוש <a href='/adin-even-israel-steinsaltz'>הרב עדין אבן ישראל שטיינזלץ</a>, בהוצאת קורן ירושלים",
+                                            "digitizedBySefaria": false,
+                                            "license": "CC-BY-NC",
+                                            "formatEnAsPoetry": false,
+                                            "heVersionTitle": "William Davidson Edition - Vocalized Aramaic",
+                                            "heVersionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
+                                            "heShortVersionTitle": "",
+                                            "heShortVersionTitleInHebrew": "",
+                                            "heVersionSource": "https://www.sefaria.org",
+                                            "heVersionStatus": "locked",
+                                            "heVersionNotes": "Aramaic from The William Davidson digital edition of the <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>Koren Noé Talmud</a>, with commentary by <a href='/adin-even-israel-steinsaltz'>Rabbi Adin Even-Israel Steinsaltz</a>\nNikud (vocalization) by <a href='https://dicta.org.il/'>Dicta - the Israel Center for Text Analysis</a>",
+                                            "heExtendedNotes": "",
+                                            "heExtendedNotesHebrew": "",
+                                            "heVersionNotesInHebrew": "הטקסט הארמי של מהדורת וויליאם דייוידסון הדיגיטלית מתוך <a href='https://www.korenpub.com/koren_en_usd/koren/talmud/koren-talmud-bavli-no.html'>תלמוד קורן מהדורת נאה</a>, עם באור מאת <a href='/adin-even-israel-steinsaltz'>הרב אבן־ישראל (שטיינזלץ)</a>\nמנוקד על ידי <a href='https://dicta.org.il/'>דיקטה - המרכז הישראלי לניתוח טקסטים</a>",
+                                            "heDigitizedBySefaria": false,
+                                            "heLicense": "CC-BY-NC",
+                                            "formatHeAsPoetry": false,
+                                            "title": "Shabbat 22a",
+                                            "heBook": "שבת",
+                                            "alts": [],
+                                            "index_offsets_by_depth": {},
+                                            "next": "Shabbat 22b",
+                                            "prev": "Shabbat 21b",
+                                            "commentary": [],
+                                            "sheets": [],
+                                            "layer": []
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Successful response"
+                    }
+                },
+                "deprecated": true,
+                "summary": "Texts (v1)",
+                "description": "Retrieve the text and some additional metadata for a specific Sefaria textual `Ref`"
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Tanakh": {
+                            "value": "Kohelet 5:10"
+                        },
+                        "Talmud": {
+                            "value": "Shabbat 22a.10"
+                        },
+                        "Talmud Amud": {
+                            "value": "Shabbat 22a"
+                        },
+                        "Tanakh Chapter": {
+                            "value": "Exodus 10"
+                        },
+                        "Commentary": {
+                            "value": "Rashi on Genesis 1:1:1"
+                        }
+                    },
+                    "name": "tref",
+                    "description": "A valid textual `Ref` to a Sefaria text.",
+                    "schema": {
+                        "$ref": "#/components/schemas/ref",
+                        "default": "Rashi on Genesis 1:1:1"
                     },
                     "in": "path",
                     "required": true
