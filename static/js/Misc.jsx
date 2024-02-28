@@ -3292,7 +3292,7 @@ const LangSelectInterface = ({callback, defaultVal}) => {
         }
       }
     >
-      <h2>Source Language</h2>
+      <div className="langHeader"><InterfaceText>Source Language</InterfaceText></div>
       <div className={classNames({active: selectedOpt === "source", radioChoice: 1 })}>
         <label htmlFor="source"><InterfaceText>Source</InterfaceText></label>
         <input
