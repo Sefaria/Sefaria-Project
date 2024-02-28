@@ -3276,7 +3276,7 @@ const AppStoreButton = ({ platform, href, altText }) => {
   );
 };
 
-const LangSelectInterface = ({callback, defaultVal}) => {
+const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [selectedOpt, setSelectedOpt] = useState(defaultVal);
 
   const handleOptionChange = (event) => {
@@ -3284,11 +3284,25 @@ const LangSelectInterface = ({callback, defaultVal}) => {
     callback(event.target.value);
   };
 
+  useEffect(()=>{
+    document.querySelector('.langSelectPopover').focus()
+  },[])
+
   return (
     <div className="langSelectPopover"
+      tabIndex="0"
       onClick={(e) => {
           e.stopPropagation();
           e.nativeEvent.stopImmediatePropagation();
+        }
+      }
+
+      onBlur={(e) => {
+            setTimeout(() => {
+              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
+                closeInterface();
+              }
+            }, 50);
         }
       }
     >
