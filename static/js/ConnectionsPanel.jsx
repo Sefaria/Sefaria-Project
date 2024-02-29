@@ -184,7 +184,7 @@ class ConnectionsPanel extends Component {
     return !prevRefs.compare(nextRefs);
   }
   sectionRef() {
-    return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
+    return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs), true) || this.props.srefs;
   }
   loadData() {
     let ref = this.sectionRef();
