@@ -87,16 +87,16 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
   </Module>
 };
 
-const RecentlyViewedItem = ({oref, pos}) => {
+const RecentlyViewedItem = ({oref}) => {
    const trackItem = () => {
-     gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref', link_pos: pos})
+     gtag('event', 'recently_viewed', {link_text: oref.ref, link_type: 'ref'})
    }
    return <li>
             <a href={oref.ref} onClick={() => trackItem()}>{Sefaria._v({"he": oref.he_ref, "en": oref.ref})}</a>
          </li>;
 }
 const RecentlyViewedList = ({items}) => {
-   const recentlyViewedListItems = items.map((x, i) => { return <RecentlyViewedItem oref={x} pos={i+1}/>});
+   const recentlyViewedListItems = items.map((x, i) => { return <RecentlyViewedItem oref={x} key={`RecentlyViewedItem${i}`}/>});
    return <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
 }
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
@@ -144,7 +144,7 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
               </Module>;
    }
    return <Module><div className="recentlyViewed">
-            <ModuleTitle h1={true}><InterfaceText>Recently Viewed</InterfaceText></ModuleTitle>
+            <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
                 {recentlyViewedList}
                 <a href="/texts/history" id="history" onClick={handleAllHistory}>
                 <InterfaceText>All history </InterfaceText>
