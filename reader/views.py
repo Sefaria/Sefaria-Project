@@ -3047,7 +3047,11 @@ def topic_page(request, topic, test_version=None):
         # try to normalize
         topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
-            raise Http404
+            topics = TopicSet({"titles.text": topic})
+            if topics.count() == 0:
+                raise Http404
+            else:
+                topic_obj = sorted(topics, key=lambda x: getattr(x, "numSources", 0))[-1]
         topic = topic_obj.slug
 
     props = {
