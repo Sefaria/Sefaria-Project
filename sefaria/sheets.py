@@ -1017,7 +1017,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	"""
 	new_topic_list = []
 	from sefaria.model import library
-	topic_map = library.get_topic_mapping()
+	topic_map = library.get_topic_slug_mapping()
 	if len(topic_list) > 0:
 		for topic in topic_list:
 			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)

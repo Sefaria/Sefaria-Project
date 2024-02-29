@@ -3047,10 +3047,10 @@ def topic_page(request, topic, test_version=None):
         # try to normalize
         topic_obj = Topic.init(SluggedAbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
-            topics = TopicSet({"titles.text": topic})
-            if topics.count() == 0:
+            if topic not in library.get_topic_title_mapping():
                 raise Http404
             else:
+                topics = [Topic.init(x) for x in library.get_topic_title_mapping()[topic]]
                 topic_obj = sorted(topics, key=lambda x: getattr(x, "numSources", 0))[-1]
         topic = topic_obj.slug
 

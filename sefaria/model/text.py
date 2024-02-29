@@ -4963,7 +4963,9 @@ class Library(object):
         self._ref_resolver = None
 
         # Topics
-        self._topic_mapping = {}
+        self._topic_slug_mapping = {}
+        self._topic_title_mapping = {}
+
 
         # Virtual books
         self._virtual_books = []
@@ -5013,7 +5015,8 @@ class Library(object):
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
         self.get_simple_term_mapping_json(rebuild=True)
-        self._build_topic_mapping()
+        self._build_topic_slug_mapping()
+        self._build_topic_title_mapping()
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
@@ -5050,7 +5053,8 @@ class Library(object):
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
-        self.get_topic_mapping(rebuild=rebuild)
+        self.get_topic_slug_mapping(rebuild=rebuild)
+        self.get_topic_title_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_topic_toc_category_mapping(rebuild=rebuild)
@@ -5700,21 +5704,21 @@ class Library(object):
         :param slug: String
         :returns: topic map for the given slug Dictionary
         """
-        return self._topic_mapping[slug]
+        return self._topic_slug_mapping[slug]
 
-    def get_topic_mapping(self, rebuild=False):
+    def get_topic_slug_mapping(self, rebuild=False):
         """
         Returns the topic mapping if it exists, if not rebuilds it and returns
         :param rebuild: Boolean (optional, default set to False)
         """
-        tm = self._topic_mapping
+        tm = self._topic_slug_mapping
         if not tm or rebuild:
-            tm = self._build_topic_mapping()
+            tm = self._build_topic_slug_mapping()
         return tm
 
-    def _build_topic_mapping(self):
+    def _build_topic_slug_mapping(self):
         """
-        Builds the topic mapping. The topic mapping is a dictionary with keys, where each key
+        Builds the topic slug mapping. The topic mapping is a dictionary with keys, where each key
         is a slug of a topic.
         That key contains the value of another dictionary, with the keys "en" and "he".
         The "en" field has a value of the topic's English primary title, and the "he" field has a
@@ -5722,8 +5726,32 @@ class Library(object):
         :returns: topic map for the given slug Dictionary
         """
         from .topic import Topic, TopicSet
-        self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
-        return self._topic_mapping
+        self._topic_slug_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
+        return self._topic_slug_mapping
+
+    def get_topic_title_mapping(self, rebuild=False):
+        """
+        Returns the topic title mapping if it exists, if not rebuilds it and returns
+        :param rebuild: Boolean (optional, default set to False)
+        """
+        tm = self._topic_title_mapping
+        if not tm or rebuild:
+            tm = self._build_topic_title_mapping()
+        return tm
+
+    def _build_topic_title_mapping(self):
+        """
+        Builds the topic title mapping. The topic title mapping is a dictionary with keys, where each key
+        is a title and the value is a list of all slugs with that title as a primary or alt title.
+        :returns: topic title map
+        """
+        from .topic import TopicSet
+        from collections import defaultdict
+        self._topic_title_mapping = defaultdict(list)
+        for topic in TopicSet():
+            for title in topic.get_titles():
+                self._topic_title_mapping[title].append(topic.slug)
+        return self._topic_title_mapping
 
     def get_ref_resolver(self, rebuild=False):
         resolver = self._ref_resolver
