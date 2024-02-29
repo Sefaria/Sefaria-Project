@@ -1738,7 +1738,6 @@ div.interfaceLinks-row a {
 .singlePanel .recentlyViewed {
   background-color: var(--lightest-grey);
   padding-inline: 10px 10px;
-  padding-block: 5px 5px;
   margin-inline: -15px -15px;
   margin-block: -5px -5px;
 }
@@ -1753,7 +1752,16 @@ div.interfaceLinks-row a {
   display: flex;
   justify-content: space-between;
 }
-
+.singlePanel .recentlyViewed #header h1 {
+  margin-bottom: 0;
+}
+.singlePanel .recentlyViewed #header h1 span {
+  font-size: 16px;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+}
+.singlePanel .recentlyViewed #header a {
+  margin-block-start: 5px;
+}
 .singlePanel .recentlyViewed #history span {
   color: var(--medium-grey);
 }

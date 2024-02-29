@@ -133,24 +133,26 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
    if (!Sefaria.userHistory.items || Sefaria.userHistory.items.length === 0) {
      return null;
    }
+   const allHistoryPhrase = mobile ? "All History" : "All history ";
    const recentlyViewedList = <RecentlyViewedList items={recentlyViewedItems}/>;
-   if (mobile) {
-       return <Module><div className="recentlyViewed">
-              <div id="header">
-                 <InterfaceText>Recently Viewed</InterfaceText>
-                 <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>All History</InterfaceText></a>
-              </div>
-              {recentlyViewedList}</div>
-              </Module>;
-   }
-   return <Module><div className="recentlyViewed">
-            <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
-                {recentlyViewedList}
-                <a href="/texts/history" id="history" onClick={handleAllHistory}>
-                <InterfaceText>All history </InterfaceText>
-                </a>
+   return <Module>
+            <div className="recentlyViewed">
+                <div id="header">
+                  <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
+                  {!mobile && recentlyViewedList}
+                  <a href="/texts/history" id="history" onClick={handleAllHistory}><InterfaceText>{allHistoryPhrase}</InterfaceText></a>
+                </div>
+                {mobile && recentlyViewedList}
             </div>
-             </Module>
+          </Module>;
+   // return <Module><div className="recentlyViewed">
+   //          <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
+   //              {recentlyViewedList}
+   //              <a href="/texts/history" id="history" onClick={handleAllHistory}>
+   //              <InterfaceText>All history </InterfaceText>
+   //              </a>
+   //          </div>
+   //           </Module>
 
 }
 
