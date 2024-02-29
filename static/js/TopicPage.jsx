@@ -239,15 +239,11 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       });
 
     const sidebarModules = [
+      {type: "AboutTopics"},
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
-    if (topicData.description) {
-      sidebarModules.unshift({
-        type: "AboutTopics",
-      });
-    }
 
     return (
         <div className="readerNavMenu noLangToggleInHebrew">
