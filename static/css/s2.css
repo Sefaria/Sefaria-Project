@@ -1753,13 +1753,8 @@ div.interfaceLinks-row a {
   display: flex;
   justify-content: space-between;
 }
-.singlePanel .recentlyViewed #history span.int-he {
-  padding-inline-start: 5px;
-  color: var(--medium-grey);
-}
 
-.singlePanel .recentlyViewed #history span.int-en {
-  padding-inline-end: 5px;
+.singlePanel .recentlyViewed #history span {
   color: var(--medium-grey);
 }
 .readerPanel .navSidebarModule h3,
