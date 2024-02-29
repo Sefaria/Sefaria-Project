@@ -3052,32 +3052,34 @@ def topic_page(request, topic, test_version=None):
             else:
                 topics = [Topic.init(x) for x in library.get_topic_title_mapping()[topic]]
                 topic_obj = sorted(topics, key=lambda x: getattr(x, "numSources", 0))[-1]
-        topic = topic_obj.slug
 
     props = {
         "initialMenu": "topics",
-        "initialTopic": topic,
+        "initialTopic": topic_obj.slug,
         "initialTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
         "initialTopicSort": urllib.parse.unquote(request.GET.get('sort', 'Relevance')),
         "initialTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         },
-        "topicData": _topic_page_data(topic),
+        "topicData": _topic_page_data(topic_obj.slug),
     }
 
     if test_version is not None:
         props["topicTestVersion"] = test_version
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
-    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
+    primary_title = topic_obj.get_primary_title(short_lang)
+    title = primary_title + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': primary_title}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
+    topic_canonical_url = canonical_url(request).replace(topic, primary_title).split("?")[0] # remove '?sort=Relevance'
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
+        "canonical_url": topic_canonical_url,
     })
 
 @catch_error_as_json
