@@ -3299,9 +3299,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
 
       onBlur={(e) => {
             setTimeout(() => {
-              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
                 closeInterface();
-              }
             }, 50);
         }
       }
