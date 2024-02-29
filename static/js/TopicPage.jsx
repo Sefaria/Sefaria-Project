@@ -582,6 +582,13 @@ const TopicPage = ({
       else {return "sourcewtrans"}
     }
 
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.click();
+      }
+    }
+
     const currentLang = getCurrentLang()
 
     return <div className={classStr}>
@@ -595,7 +602,7 @@ const TopicPage = ({
                           setTab={setTab}
                           tabs={displayTabs}
                           renderTab={t => (
-                            <div className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
+                            <div tabIndex="0" onKeyDown={(e)=>handleKeyDown(e)} className={classNames({tab: 1, noselect: 1, popover: t.popover , filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               <InterfaceText text={t.title} />
                               { t.icon ? <img src={t.icon} alt={`${t.title.en} icon`} /> : null }
                               {t.popover && showLangSelectInterface ? <LangSelectInterface defaultVal={currentLang} callback={(result) => handleLangSelectInterfaceChange(result)} closeInterface={()=>{setShowLangSelectInterface(false)}}/> : null}

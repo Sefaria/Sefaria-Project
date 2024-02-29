@@ -508,6 +508,13 @@ const FilterableList = ({
                 key={option}
                 className={classNames({'sans-serif': 1, 'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => setSort(option)}
+                tabIndex="0"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.target.click();
+                  }
+                }}
               >
                 <InterfaceText context="FilterableList">{option}</InterfaceText>
               </span>
@@ -3282,6 +3289,7 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const handleOptionChange = (event) => {
     setSelectedOpt(event.target.value);
     callback(event.target.value);
+    closeInterface();
   };
 
   useEffect(()=>{
@@ -3299,7 +3307,9 @@ const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
 
       onBlur={(e) => {
             setTimeout(() => {
+              if (!document.querySelector('.langSelectPopover').contains(document.activeElement)) {
                 closeInterface();
+              }
             }, 50);
         }
       }
