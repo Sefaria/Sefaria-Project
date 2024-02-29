@@ -96,7 +96,7 @@ const RecentlyViewedItem = ({oref}) => {
          </li>;
 }
 const RecentlyViewedList = ({items}) => {
-   const recentlyViewedListItems = items.map((x, i) => { return <RecentlyViewedItem oref={x} key={`RecentlyViewedItem${i}`}/>});
+   const recentlyViewedListItems = items.map(x => { return <RecentlyViewedItem oref={x} key={`RecentlyViewedItem${x.ref}`}/>});
    return <div className={"navSidebarLink serif recentlyViewed"}><ul>{recentlyViewedListItems}</ul></div>;
 }
 const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
