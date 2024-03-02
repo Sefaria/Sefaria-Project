@@ -1432,7 +1432,7 @@ class ShareBox extends Component {
       Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
     const shareTwitter = function () {
-      Sefaria.util.openInNewTab("https://x.com/share?url=" + encodeURIComponent(url));
+      Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
     };
     const shareEmail = function () {
       Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
@@ -1461,7 +1461,7 @@ class ShareBox extends Component {
         </ConnectionsPanelSection>
         <ConnectionsPanelSection title="More Options">
           <ToolsButton en="Share on Facebook" he="פייסבוק" icon="facebook-official" onClick={shareFacebook} />
-          <ToolsButton en="Share on X" he="X" icon="x-twitter" onClick={shareTwitter} />
+          <ToolsButton en="Share on Twitter" he="טוויטר" icon="twitter" onClick={shareTwitter} />
           <ToolsButton en="Share by Email" he="אימייל" icon="envelope-o" onClick={shareEmail} />
         </ConnectionsPanelSection>
       </div>);
