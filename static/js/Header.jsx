@@ -186,6 +186,8 @@ class SearchBar extends Component {
   initAutocomplete() {
     $.widget( "custom.sefariaAutocomplete", $.ui.autocomplete, {
       _renderItem: function(ul, item) {
+        console.log(ul);
+        console.log(item);
         const override = item.label.match(this._searchOverrideRegex());
         const is_hebrew = Sefaria.hebrew.isHebrew(item.label);
         return $( "<li></li>" )
@@ -395,76 +397,180 @@ SearchBar.propTypes = {
   hideHebrewKeyboard: PropTypes.bool,
 };
 import Downshift from 'downshift';
+import { useCombobox } from 'downshift';
 
+const SearchSuggestion = ({ item }) => {
+    const _searchOverridePre = Sefaria._('Search for') +': "';
+    const _searchOverridePost = '"';
+  const _searchOverrideRegex = function() {
+  return new RegExp(`^${RegExp.escape(_searchOverridePre)}(.*)${RegExp.escape(_searchOverridePost)}`);
+  };
+  const _type_icon_map = {
+      "Collection": "collection.svg",
+      "AuthorTopic": "iconmonstr-pen-17.svg",
+      "TocCategory": "iconmonstr-view-6.svg",
+      "PersonTopic": "iconmonstr-hashtag-1.svg",
+      "Topic": "iconmonstr-hashtag-1.svg",
+      "ref": "iconmonstr-book-15.svg",
+      "search": "iconmonstr-magnifier-2.svg",
+      "Term": "iconmonstr-script-2.svg",
+      "User": "iconmonstr-user-2%20%281%29.svg"
+    }
+  const _type_icon = function(item) {
+    if (item.type === "User" && item.pic !== "") {
+      return item.pic;
+    } else {
+      return `/static/icons/${_type_icon_map[item.type]}`;
+    }
+  }
+  const getURLForObject = function(type, key) {
+    if (type === "Collection") {
+      return `/collections/${key}`;
+    } else if (type === "TocCategory") {
+      return `/texts/${key.join('/')}`;
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
+      return `/topics/${key}`;
+    } else if (type === "ref") {
+      return `/${key.replace(/ /g, '_')}`;
+    } else if (type === "User") {
+      return `/profile/${key}`;
+    }
+  }
+  const override = item.label.match(_searchOverrideRegex());
+  const isHebrew = Sefaria.hebrew.isHebrew(item.label);
+
+  return (
+     <div className="ui-menu-item"
+        data-item-autocomplete={item}
+        className={`
+          search-override ${!!override ? 'search-override' : ''}
+          hebrew-result ${!!isHebrew ? 'hebrew-result' : ''} 
+          english-result ${!isHebrew ? 'english-result' : ''}
+        `}>
+      <img alt={item.type}
+           className={`ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}`}
+           src={_type_icon(item)} />
+      <a href={getURLForObject(item.type, item.key)} role="option" data-type-key={`${item.type}-${item.key}`}>
+        {item.label}
+      </a>
+    </div>  );
+};
 const Autocomplete = () => {
   const [suggestions, setSuggestions] = useState([]);
   const searchOverridePre = Sefaria._('Search for') +': "';
   const searchOverridePost = '"';
-  const fetchSuggestions = (inputValue) => {
-    Sefaria.getName(inputValue)
-      .then(d => {
-        const comps = d["completion_objects"].map(o => {
-          const c = {...o};
-          c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
-          c["label"] = o["title"];
-          return c;
-        });
-        if (comps.length > 0) {
-          const q = `${searchOverridePre}${inputValue}${searchOverridePost}`;
-          setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
-        } else {
-          setSuggestions([]);
-        }
-      })
-      .catch(e => {
-        console.error('Error fetching autocomplete suggestions:', e);
-        setSuggestions([]);
-      });
-  };
+  // const fetchSuggestions = (inputValue) => {
+  //   console.log(inputValue)
+  //   if (inputValue.length < 3){
+  //     console.log("smaller than 3")
+  //     setSuggestions([]);
+  //     return;
+  //   }
+  //   Sefaria.getName(inputValue)
+  //     .then(d => {
+  //       const comps = d["completion_objects"].map(o => {
+  //         const c = {...o};
+  //         c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
+  //         c["label"] = o["title"];
+  //         return c;
+  //       });
+  //       if (comps.length > 0) {
+  //         const q = `${searchOverridePre}${inputValue}${searchOverridePost}`;
+  //         console.log("many comps")
+  //         setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
+  //       } else {
+  //         console.log("no comps")
+  //         setSuggestions([]);
+  //       }
+  //     })
+  //     .catch(e => {
+  //       console.log('error')
+  //       console.error('Error fetching autocomplete suggestions:', e);
+  //       setSuggestions([]);
+  //     });
+  // };
+  const fetchSuggestions = async (inputValue) => {
+  if (inputValue.length < 3){
+      console.log("smaller than 3")
+      setSuggestions([]);
+      return;
+    }
+  try {
+    const d = await Sefaria.getName(inputValue);
+    // group d by types [{"catName": name,
+    // 'items' : [item1, item2]}]
+    console.log(d)
+    const comps = d["completion_objects"].map(o => {
+      const c = {...o};
+      c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
+      c["label"] = o["title"];
+      return c;
+    });
+    if (comps.length > 0) {
+      const q = `${searchOverridePre}${inputValue}${searchOverridePost}`;
+      setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
+      console.log(comps)
+
+    } else {
+      setSuggestions([]);
+    }
+  } catch (error) {
+    console.error('Error fetching autocomplete suggestions:', error);
+    setSuggestions([]);
+  }
+};
+
+ const {
+    isOpen,
+    getMenuProps,
+    getInputProps,
+    getItemProps,
+    highlightedIndex,
+  } = useCombobox({
+    items: suggestions,
+    itemToString: (item) => (item ? item.name : ''),
+    onInputValueChange: ({ inputValue }) => {
+      fetchSuggestions(inputValue);
+    },
+    onSelectedItemChange: ({ selectedItem }) => {
+      console.log('Selected:', selectedItem);
+    },
+  });
 
   return (
-    <Downshift
-      onChange={(selection) => {
-        console.log('Selected:', selection);
-      }}
-      itemToString={(item) => (item ? item.name : '')}
-    >
-      {({
-        getInputProps,
-        getItemProps,
-        getMenuProps,
-        isOpen,
-        inputValue,
-        highlightedIndex,
-      }) => (
-        <div style={{ position: 'relative' }}>
-          <input
-            {...getInputProps({
-              placeholder: 'Search...',
-              onChange: (e) => fetchSuggestions(e.target.value),
-            })}
-          />
-          <div {...getMenuProps()} style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999, }}>
-            {isOpen && suggestions.map((suggestion, index) => (
-              <div
-                {...getItemProps({
-                  key: suggestion.value,
-                  index,
-                  item: suggestion,
-                  style: {
-                    backgroundColor: highlightedIndex === index ? 'lightgray' : 'white',
-                  },
-                })}
-              >
-                {suggestion.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </Downshift>
+    <div style={{ position: 'relative' }}>
+      <input {...getInputProps()} placeholder="Search..." />
+      <ul  className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front"
+        style={{ display: 'block', top: '48.5px', left: '1440px', width: '481px' }}
+        {...getMenuProps()}
+        // style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
+        //   style="display: none; width: 585px; top: 48.5035px; left: 1653.35px;"
+        //   style={{ width: '585px', top: '48.5035px', left: '1653.35px' }}
+      >
+        {isOpen &&
+          suggestions.map((suggestion, index) => (
+            <li
+              {...getItemProps({
+                key: suggestion.value,
+                index,
+                item: suggestion,
+                style: {
+                  backgroundColor:
+                    highlightedIndex === index ? '#EDEDEC' : '',
+                },
+
+              })}
+            >
+              {/*{suggestion.label}*/}
+              <SearchSuggestion item={suggestion}/>
+            </li>
+          ))}
+      </ul>
+    </div>
   );
 };
+
+
 
 
 
