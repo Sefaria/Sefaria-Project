@@ -211,8 +211,16 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertFalse('<' in data['versions'][0]['text'])
 
+    def test_strip_only_footnotes(self):
+        vtitle = "The Contemporary Torah, Jewish Publication Society, 2006"
+        response = c.get(f"/api/v3/texts/Genesis%201:1?version=english|{vtitle}&return_format=strip_only_footnotes")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertFalse('<i class="footnote">' in data['versions'][0]['text'])
+
+
     def test_error_return_format(self):
         response = c.get(f"/api/v3/texts/Shulchan_Arukh%2C_Orach_Chayim.1:1?return_format=not_valid")
         self.assertEqual(400, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only'].")
+        self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes'].")
