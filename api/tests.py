@@ -181,7 +181,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_fill_in_missing_segments(self):
         vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
-        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=true")
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=1")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data['versions'][0]['text']) > 2)
