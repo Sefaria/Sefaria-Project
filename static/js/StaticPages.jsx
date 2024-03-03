@@ -1463,13 +1463,13 @@ const DonatePage = () => (
                 borderColor="#4B71B7"
             />,
             <FeatureBox
-                enTitle="Sponsor a Text"
+                enTitle="Join a Giving Circle"
                 heTitle=""
-                enText="There are many opportunities to sponsor a text or translation in Sefaria's ever growing library and receive a personal dedication. "
+                enText="Become a lead supporter of Sefaria and ensure a vibrant future for the Jewish textual tradition."
                 heText=""
-                enButtonText="Learn More"
+                enButtonText="Join Now"
                 heButtonText=""
-                enButtonUrl="https://drive.google.com/file/d/1FU8bHy7jZz86aywF7_kYMV0N3_h-k0nM/view"
+                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
