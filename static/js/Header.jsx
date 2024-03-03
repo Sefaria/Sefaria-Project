@@ -45,6 +45,7 @@ class Header extends Component {
 
     const headerContent = (
       <>
+        <Autocomplete/>
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
@@ -60,6 +61,7 @@ class Header extends Component {
             showSearch={this.props.showSearch}
             openTopic={this.props.openTopic}
             openURL={this.props.openURL} />
+
 
           { Sefaria._uid ?
             <LoggedInButtons headerMode={this.props.headerMode}/>
@@ -392,6 +394,79 @@ SearchBar.propTypes = {
   fullWidth:          PropTypes.bool,
   hideHebrewKeyboard: PropTypes.bool,
 };
+import Downshift from 'downshift';
+
+const Autocomplete = () => {
+  const [suggestions, setSuggestions] = useState([]);
+  const searchOverridePre = Sefaria._('Search for') +': "';
+  const searchOverridePost = '"';
+  const fetchSuggestions = (inputValue) => {
+    Sefaria.getName(inputValue)
+      .then(d => {
+        const comps = d["completion_objects"].map(o => {
+          const c = {...o};
+          c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
+          c["label"] = o["title"];
+          return c;
+        });
+        if (comps.length > 0) {
+          const q = `${searchOverridePre}${inputValue}${searchOverridePost}`;
+          setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
+        } else {
+          setSuggestions([]);
+        }
+      })
+      .catch(e => {
+        console.error('Error fetching autocomplete suggestions:', e);
+        setSuggestions([]);
+      });
+  };
+
+  return (
+    <Downshift
+      onChange={(selection) => {
+        console.log('Selected:', selection);
+      }}
+      itemToString={(item) => (item ? item.name : '')}
+    >
+      {({
+        getInputProps,
+        getItemProps,
+        getMenuProps,
+        isOpen,
+        inputValue,
+        highlightedIndex,
+      }) => (
+        <div style={{ position: 'relative' }}>
+          <input
+            {...getInputProps({
+              placeholder: 'Search...',
+              onChange: (e) => fetchSuggestions(e.target.value),
+            })}
+          />
+          <div {...getMenuProps()} style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999, }}>
+            {isOpen && suggestions.map((suggestion, index) => (
+              <div
+                {...getItemProps({
+                  key: suggestion.value,
+                  index,
+                  item: suggestion,
+                  style: {
+                    backgroundColor: highlightedIndex === index ? 'lightgray' : 'white',
+                  },
+                })}
+              >
+                {suggestion.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Downshift>
+  );
+};
+
+
 
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
