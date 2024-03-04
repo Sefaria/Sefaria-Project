@@ -10466,6 +10466,13 @@ cursor: pointer;
   margin-inline-end: 30px;
   cursor: pointer;
 }
+
+.tab-view .tab-list .tab.popover {
+  margin-inline-end: 0;
+  margin-inline-start: 5px;
+}
+
+
 .tab-view .tab-list .tab a {
   color: inherit;
 }
@@ -10574,6 +10581,14 @@ cursor: pointer;
   margin-inline: 15px;
   background-color: var(--lighter-grey);
   cursor: pointer;
+}
+
+.langSelectPopover .radioChoice:nth-of-type(2) {
+  border-radius: 6px 6px 0px 0px;
+}
+
+.langSelectPopover .radioChoice:nth-of-type(4) {
+  border-radius: 0px 0px 6px 6px;
 }
 
 .langSelectPopover .radioChoice label {
@@ -11360,7 +11375,7 @@ body .homeFeedWrapper .content {
   color: #666;
 }
 .story .learningPrompt {
-  padding: 10px 0 20px;
+  padding: 20px 0 20px;
 }
 .story details .learningPrompt {
   background-color: var(--highlight-blue-light);
@@ -11371,7 +11386,7 @@ body .homeFeedWrapper .content {
 }
 
 .story.topicPassageStory {
-  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .story.topicPassageStory .storyBody {
