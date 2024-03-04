@@ -618,9 +618,6 @@ const StayConnected = () => { // TODO: remove? looks like we are not using this
       <a target="_blank" className="button small white appButton iconOnly" href={fbURL}>
         <img src="/static/icons/facebook.svg" alt={Sefaria._("Sefaria on Facebook")} />
       </a>
-      <a target="_blank" className="button small white appButton iconOnly" href="https://twitter.com/SefariaProject">
-        <img src="/static/icons/twitter.svg" alt={Sefaria._("Sefaria on Twitter")} />
-      </a>
       <a target="_blank" className="button small white appButton iconOnly" href="https://www.instagram.com/sefariaproject">
         <img src="/static/icons/instagram.svg" alt={Sefaria._("Sefaria on Instagram")} />
       </a>
