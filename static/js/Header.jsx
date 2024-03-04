@@ -234,7 +234,7 @@ class SearchBar extends Component {
           });
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
-            response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
+            response([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
           } else {
             response([])
           }
@@ -306,8 +306,14 @@ class SearchBar extends Component {
     Sefaria.getName(query)
       .then(d => {
         // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-        if (Sefaria.isACaseVariant(query, d)) {
-          this.submitSearch(Sefaria.repairCaseVariant(query, d));
+        const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
+        if (repairedCaseVariant !== query) {
+          this.submitSearch(repairedCaseVariant);
+          return;
+        }
+        const repairedQuery = Sefaria.repairGershayimVariant(query, d);
+        if (repairedQuery !== query) {
+          this.submitSearch(repairedQuery);
           return;
         }
 
@@ -326,7 +332,6 @@ class SearchBar extends Component {
 
         } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
-
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
@@ -434,10 +439,10 @@ const LoggedInButtons = ({headerMode}) => {
   return (
     <div className="loggedIn accountLinks">
       <a href="/texts/saved" aria-label="See My Saved Texts">
-        <img src="/static/icons/bookmarks.svg" />
+        <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')}/>
       </a>
       <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-        <img src="/static/icons/notification.svg" />
+        <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
       </a>
       { Sefaria._siteSettings.TORAH_SPECIFIC ? <HelpButton /> : null}
       <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
@@ -497,11 +502,11 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <InterfaceText>Profile</InterfaceText>
           </a>
           <a href="/texts/saved" onClick={close}>
-            <img src="/static/icons/bookmarks.svg" />
+            <img src="/static/icons/bookmarks.svg" alt={Sefaria._('Bookmarks')} />
             <InterfaceText>Saved & History</InterfaceText>
           </a>
           <a href="/notifications" onClick={close}>
-            <img src="/static/icons/notification.svg" />
+            <img src="/static/icons/notification.svg" alt={Sefaria._('Notifications')} />
             <InterfaceText>Notifications</InterfaceText>
           </a>
         </> : null }

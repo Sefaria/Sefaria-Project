@@ -960,7 +960,7 @@ def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
     lang     = request.GET.get("lang")
-    filtered = request.GET.get("filtered", False)
+    filtered = bool(int(request.GET.get("filtered", False)))
     response = public_sheets(limit=limiter, skip=offset, lang=lang, filtered=filtered)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
@@ -1134,7 +1134,6 @@ def export_to_drive(request, credential, sheet_id):
 
     return jsonResponse(new_file)
 
-
 @catch_error_as_json
 def upload_sheet_media(request):
     if not request.user.is_authenticated:
@@ -1157,7 +1156,7 @@ def upload_sheet_media(request):
         else:
             im = Image.open(img_file_in_mem)
             img_file = BytesIO()
-            im.thumbnail(max_img_size, Image.ANTIALIAS)
+            im.thumbnail(max_img_size, Image.LANCZOS)
             im.save(img_file, format=im.format)
             img_file.seek(0)
 

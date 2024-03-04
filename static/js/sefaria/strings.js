@@ -35,7 +35,7 @@ const Strings = {
     "Stay Connected": "הישארו מעודכנים",
     "Get updates on new texts, learning resources, features, and more.": "קבלו עדכונים על מקורות חדשים, כלי למידה חדשים ועוד.",
     "Support Sefaria": "תמכו בספריא",
-    "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה.",
+    "Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.": "ספריא היא מאגר פתוח וחינמי. תמכו בנו בעזרת תרומה.",
     "Make a Donation": "לתרומה",
     "Join the Conversation": "קחו חלק בשיח" ,
     "Explore the Community": "לעמוד הקהילה",
@@ -243,6 +243,8 @@ const Strings = {
     "Select Version": "בחירת מהדורה",
     "Select Translation": "בחירת תרגום",
     "View in Sidebar": "פתיחת תרגום",
+    'Select': 'בחירה',
+    'Currently Selected': 'נוכחי',
     "Merged from": "נוצר ממיזוג",
     "Source" : "מקור",
     "Sources": "מקורות",
@@ -401,6 +403,7 @@ const Strings = {
     "Describe the issue..." : "טקסט המשוב",
     "Report an issue with the text" : "דיווח על בעיה בטקסט",
     "Request translation" : "בקשה לתרגום",
+    "Go to translations": "לרשימת התרגומים",
     "Report a bug" : "דיווח על תקלה באתר",
     "Get help" : "עזרה",
     "Help": "עזרה",
@@ -533,6 +536,11 @@ const Strings = {
     'Citing': 'מצטט',
     'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
     'Sefaria Linker': 'במרשתת ההפניות',
+
+    //alt tags
+    'Notifications': 'עדכונים',
+    'Bookmarks': 'שמורים',
+    'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
   },
 
   _i18nInterfaceStringsWithContext: {

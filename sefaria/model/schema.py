@@ -125,6 +125,9 @@ class TitleGroup(object):
         return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
+        is_primary = len([t for t in self.titles if (t["lang"] == lang and t["text"] == text and t.get('primary'))])
+        if is_primary:
+            self._primary_title[lang] = None
         self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
         return self
 
@@ -240,7 +243,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
     A Term is a shared title node.  It can be referenced and used by many different Index nodes.
-    Examples:  Noah, Perek HaChovel, Even HaEzer
+    Examples:  Noah, HaChovel
     Terms that use the same TermScheme can be ordered.
     """
     collection = 'term'
@@ -585,7 +588,7 @@ class TreeNode(object):
         """
         callback(self, **kwargs)
         for child in self.children:
-            child.traverse_to_string(callback, **kwargs)
+            child.traverse_tree(callback, **kwargs)
 
     def traverse_to_string(self, callback, depth=0, **kwargs):
         st = callback(self, depth, **kwargs)
@@ -1073,12 +1076,11 @@ class NumberedTitledTreeNode(TitledTreeNode):
     def address_regex(self, lang, **kwargs):
         group = "a0"
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
-        if not self._addressTypes[0].stop_parsing(lang):
-            for i in range(1, self.depth):
-                group = "a{}".format(i)
-                reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
-                if not kwargs.get("strict", False):
-                    reg += "?"
+        for i in range(1, self.depth):
+            group = "a{}".format(i)
+            reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
+            if not kwargs.get("strict", False):
+                reg += "?"
 
         if kwargs.get("match_range"):
             # TODO there is a potential error with this regex. it fills in toSections starting from highest depth and going to lowest.
@@ -1089,14 +1091,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += r"(?=\S)"  # must be followed by something (Lookahead)
             group = "ar0"
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
-            if not self._addressTypes[0].stop_parsing(lang):
-                reg += "?"
-                for i in range(1, self.depth):
-                    reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
-                    group = "ar{}".format(i)
-                    reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
-                    # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
-                    reg += ")?"
+            reg += "?"
+            for i in range(1, self.depth):
+                reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
+                group = "ar{}".format(i)
+                reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
+                # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
+                reg += ")?"
             reg += r")?"  # end range clause
         return reg
 
@@ -1373,11 +1374,11 @@ class SchemaNode(TitledTreeNode):
         """
         return self.address()[1:]
 
-    def ref(self):
+    def ref(self, force_update=False):
         from . import text
         d = {
             "index": self.index,
-            "book": self.full_title("en"),
+            "book": self.full_title("en", force_update=force_update),
             "primary_category": self.index.get_primary_category(),
             "index_node": self,
             "sections": [],
@@ -2072,15 +2073,6 @@ class AddressType(object):
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)
         )"""
 
-    def stop_parsing(self, lang):
-        """
-        If this is true, the regular expression will stop parsing at this address level for this language.
-        It is currently checked for only in the first address position, and is used for Hebrew Talmud addresses.
-        :param lang: "en" or "he"
-        :return bool:
-        """
-        return False
-
     def toNumber(self, lang, s):
         """
         Return the numerical form of s in this address scheme
@@ -2351,11 +2343,6 @@ class AddressTalmud(AddressType):
 
         return reg
 
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
-
     def toNumber(self, lang, s, **kwargs):
         amud_b_list = ['b', 'B', 'ᵇ']
         if lang == "en":
@@ -2489,11 +2476,6 @@ class AddressFolio(AddressType):
             reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
         return reg
-
-    def stop_parsing(self, lang):
-        if lang == "he":
-            return True
-        return False
 
     def toNumber(self, lang, s, **kwargs):
         if lang == "en":

@@ -9,7 +9,7 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
-import {ContentLanguageContext, AdContext} from './context';
+import {ContentLanguageContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
@@ -21,11 +21,14 @@ import {
   EducatorsPage,
   RabbisPage,
   DonatePage,
-  WordByWordPage
+  WordByWordPage,
+  JobsPage,
+  TeamMembersPage,
 } from './StaticPages';
 import {
   SignUpModal,
   InterruptingMessage,
+  Banner,
   CookiesNotification,
   CommunityPagePreviewControls
 } from './Misc';
@@ -50,6 +53,7 @@ class ReaderApp extends Component {
         searchQuery:             props.initialQuery,
         searchTab:               props.initialSearchTab,
         tab:                     props.initialTab,
+        topicSort:               props.initialTopicSort,
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters:        props.initialTextSearchFilters,
@@ -166,6 +170,7 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       tab:                     state.tab                     || null,
+      topicSort:               state.topicSort               || null,
       webPagesFilter:          state.webPagesFilter          || null,
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null
@@ -199,6 +204,13 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
+    if (Sefaria._uid) {
+      // A logged in user is automatically a returning visitor
+      Sefaria.markUserAsReturningVisitor();
+    } else if (Sefaria.isNewVisitor()) {
+      // Initialize entries for first-time visitors to determine if they are new or returning presently or in the future
+      Sefaria.markUserAsNewVisitor();
+    }
   }
   componentWillUnmount() {
     window.removeEventListener("popstate", this.handlePopState);
@@ -378,6 +390,7 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.tab !== next.tab) ||
+          (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -461,7 +474,7 @@ class ReaderApp extends Component {
             break;
           case "search":
             const query = state.searchQuery ? encodeURIComponent(state.searchQuery) : "";
-            hist.title = state.searchQuery ? state.searchQuery + " | " : "";
+            hist.title = state.searchQuery ? state.searchQuery.stripHtml() + " | " : "";
             hist.title += Sefaria._(siteName + " Search");
             hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchTab}` +
               state.textSearchState.makeURL({ prefix: 't', isStart: false }) +
@@ -471,6 +484,7 @@ class ReaderApp extends Component {
           case "topics":
             if (state.navigationTopic) {
               hist.url = state.topicTestVersion ? `topics/${state.topicTestVersion}/${state.navigationTopic}` : `topics/${state.navigationTopic}`;
+              hist.url = hist.url + (state.topicSort ? `&sort=${state.topicSort}` : '');
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else if (state.navigationTopicCategory) {
@@ -906,7 +920,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
 }
-  
+
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -956,7 +970,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace});
+    this.openPanelAt(n, citationRef, currVersions, {scrollToHighlighted: !!replace}, false);
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -1333,10 +1347,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const { dependentPanel, isDependentPanelConnections } = this._getDependentPanel(n);
 
     // make sure object reference changes for setState()
-    dependentPanel.currVersions = {...panel.currVersions};
     panel.currVersions = {...panel.currVersions};
+    if (this.props.multiPanel) { //there is no dependentPanel in mobile
+      dependentPanel.currVersions = {...panel.currVersions};
 
-    dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+      dependentPanel.settings.language = this._getPanelLangOnVersionChange(dependentPanel, versionLanguage, isDependentPanelConnections);
+    }
     this.setState({panels: this.state.panels});
   }
   navigatePanel(n, ref, currVersions={en: null, he: null}) {
@@ -1406,13 +1422,21 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options, replace) {
-    // Open a new panel after `n` with the new ref
-    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
-    // If book level, Open book toc
+  openPanelAt(n, ref, currVersions, options, replace, convertCommentaryRefToBaseRef=true, replaceHistory=false, saveLastPlace=true) {
+    /* Open a new panel or replace existing panel. If book level, Open book toc
+    * @param {int} n: Open new panel after `n` with the new ref
+    * @param {string} ref: ref to use for new panel.  `ref` can refer to book, actual ref, or sheet.
+    * @param {Object} currVersions: Object with properties `en` and `he`
+    * @param {Object} options: options to use for new panel
+    * @param {bool} replace: whether to replace existing panel at `n`, otherwise insert new panel at `n`
+    * @param {bool} convertCommentaryRefToBaseRef: if true and ref is commentary ref (Rashi on Genesis 3:3:1), open Genesis 3:3 with Rashi's comments in the sidebar
+    * @param {bool} replaceHistory: can be true when openPanelAt is called from showBaseText in cases of ref normalizing in TextRange when we want to replace history with normalized ref
+    * @param {bool} saveLastPlace: whether to save user history.
+    */
+    this.replaceHistory = Boolean(replaceHistory);
     const parsedRef = Sefaria.parseRef(ref);
     const index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
-    let panel;
+    let panel, connectionPanel;
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
@@ -1425,8 +1449,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         ...options
       });
     } else {  // Text
+      let filter = [];
+      if (convertCommentaryRefToBaseRef && Sefaria.isCommentaryRefWithBaseText(ref)) {
+        ({ref, filter} = Sefaria.getBaseRefAndFilter(ref));
+      }
       let refs, currentlyVisibleRef, highlightedRefs;
-      if (ref.constructor === Array) {
+      if (Array.isArray(ref)) {
         // When called with an array, set highlight for the whole spanning range of the array
         refs = ref;
         currentlyVisibleRef = Sefaria.normRef(ref);
@@ -1437,21 +1465,48 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         currentlyVisibleRef = ref;
         highlightedRefs = [];
       }
-      //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({
+      let panelProps = {
         refs,
         currVersions,
         highlightedRefs,
+        filter,
+        recentFilters: filter,
         currentlyVisibleRef, mode: "Text",
         ...options
-      });
+      };
+      if (filter.length > 0) {  // there will be a filter such as ["Rashi"] if convertCommentaryRefToBaseRef is true
+        [panel, connectionPanel] = this.makePanelWithConnectionsState(panelProps);
+      }
+      else {
+        panel = this.makePanelState(panelProps);
+      }
+      panel.currentlyVisibleRef = Sefaria.humanRef(panelProps.currentlyVisibleRef);
     }
 
     const newPanels = this.state.panels.slice();
     newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
+    if (connectionPanel) {
+      newPanels.push(connectionPanel);
+    }
     this.setState({panels: newPanels});
-    this.saveLastPlace(panel, n+1);
+    if (saveLastPlace) {
+      this.saveLastPlace(panel, n + 1, !!connectionPanel);
+    }
   }
+  makePanelWithConnectionsState(panelProps) {
+    // in the case of multipanel, create two panels based on panelProps
+    let connectionPanel;  // in mobile, connectionPanel will remain undefined
+    if (this.props.multiPanel) {
+        const connectionPanelProps = {...panelProps, mode: "Connections", connectionsMode: "TextList", connectionsCategory: "Commentary"};
+        connectionPanel = this.makePanelState(connectionPanelProps);
+    } else {
+        panelProps = {...panelProps, mode: "TextAndConnections", connectionsMode: "TextList", connectionsCategory: "Commentary", highlightedRefs: panelProps.refs};
+    }
+    const panel = this.makePanelState(panelProps);
+    panel.showHighlight = true;
+    return [panel, connectionPanel];
+  }
+
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
@@ -1923,6 +1978,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let elsToStrip = container.querySelectorAll(linksToStrip);
       elsToStrip.forEach(el => el.outerHTML = el.innerText);
 
+
+      // Collapse all spans that are not rangeSpan. This is also needed for specifically pasting into Google Docs in Chrome to work.
+      let SourceTextSpans = container.querySelectorAll('span:not(.rangeSpan)');
+      SourceTextSpans.forEach(el => el.outerHTML = el.innerText);
+
       html = container.outerHTML;
       textOnly = Sefaria.util.htmlToText(html);
       selectedEls = container;
@@ -2060,7 +2120,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
-      var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
+      var openConnectionsPanel           = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
       var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
@@ -2086,6 +2146,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
                     <ReaderPanel
+                      openPanelAt={this.openPanelAt}
                       panelPosition={i}
                       initialState={panel}
                       interfaceLang={this.props.interfaceLang}
@@ -2099,7 +2160,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       onSearchResultClick={onSearchResultClick}
                       onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
-                      onOpenConnectionsClick={onOpenConnectionsClick}
+                      openConnectionsPanel={openConnectionsPanel}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
                       setConnectionsFilter={setConnectionsFilter}
@@ -2153,20 +2214,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 {panels}
                  </div>) : null;
 
-    var interruptingMessage = Sefaria.interruptingMessage ?
-      (<InterruptingMessage
-          messageName={Sefaria.interruptingMessage.name}
-          messageHTML={Sefaria.interruptingMessage.html}
-          style={Sefaria.interruptingMessage.style}
-          repetition={Sefaria.interruptingMessage.repetition}
-          onClose={this.rerender} />) : <Promotions rerender={this.rerender} adType="banner"/>;
-    const sefariaModal = (
+    const signUpModal = (
       <SignUpModal
         onClose={this.toggleSignUpModal}
         show={this.state.showSignUpModal}
         modalContentKind={this.state.modalContentKind}
       />
     );
+
     const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
@@ -2177,18 +2232,23 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
 
     return (
-      <AdContext.Provider value={this.getUserContext()}>
-      <div id="readerAppWrap">
-        {interruptingMessage}
-        <div className={classes} onClick={this.handleInAppLinkClick}>
-          {header}
-          {panels}
-          {sefariaModal}
-          {communityPagePreviewControls}
-          <CookiesNotification />
-        </div>
-      </div>
-      </AdContext.Provider>
+      // The Strapi context is put at the highest level of scope so any component or children within ReaderApp can use the static content received
+      // InterruptingMessage modals and Banners will always render if available but stay hidden initially
+      <StrapiDataProvider>
+        <AdContext.Provider value={this.getUserContext()}>
+          <div id="readerAppWrap">
+            <InterruptingMessage />
+            <Banner onClose={this.setContainerMode} />
+            <div className={classes} onClick={this.handleInAppLinkClick}>
+              {header}
+              {panels}
+              {signUpModal}
+              {communityPagePreviewControls}
+              <CookiesNotification />
+            </div>
+          </div>
+        </AdContext.Provider>
+      </StrapiDataProvider>
     );
   }
 }
@@ -2255,5 +2315,7 @@ export {
   EducatorsPage,
   RabbisPage,
   DonatePage,
-  WordByWordPage
+  WordByWordPage,
+  JobsPage,
+  TeamMembersPage,
 };

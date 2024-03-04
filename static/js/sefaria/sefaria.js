@@ -9,8 +9,7 @@ import Track from './track';
 import Hebrew from './hebrew';
 import Util from './util';
 import $ from './sefariaJquery';
-import {useContext} from "react";
-import {ContentLanguageContext} from "../context";
+import Cookies from 'js-cookie';
 
 
 let Sefaria = Sefaria || {
@@ -275,10 +274,17 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
-  sectionRef: function(ref) {
+  sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
+    if (deriveIfNotFound && !oref) { //couldn't find `ref` in cache so try to derive it
+        const humanRefForm = Sefaria.humanRef(ref);
+        if (!!humanRefForm && humanRefForm.length > 0) {
+            return humanRefForm.split(":")[0]; // "Genesis 3:3" yields "Genesis 3"
+        }
+    }
     return oref ? oref.sectionRef : null;
+
   },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
@@ -349,6 +355,7 @@ Sefaria = extend(Sefaria, {
         return (text.indexOf(title) > -1);
     });
   },
+  _eras:  ["GN", "RI", "AH", "CO"],
   makeRefRe: function(titles) {
     // Construct and store a Regular Expression for matching citations
     // based on known books, or a list of titles explicitly passed
@@ -487,6 +494,36 @@ Sefaria = extend(Sefaria, {
 
     return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
+  makeParamsStringForAPIV3: function(language, versionTitle) {
+    if (versionTitle) {
+        return `${language}|${versionTitle}`;
+    } else if (language) {
+        return language;
+    }
+  },
+  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText) {
+    const host = Sefaria.apiHost;
+    const endPoint = '/api/v3/texts/';
+    const versions = requiredVersions.map(obj =>
+        Sefaria.makeParamsStringForAPIV3(obj.language, obj.versionTitle)
+    );
+    const mergeTextInt = mergeText ? 1 : 0;
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}`;
+    return url;
+  },
+  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
+    // ref is segment ref or bottom level section ref
+    // requiredVersions is array of objects that can have language and versionTitle
+    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText);
+    //TODO here's the place for getting it from cache
+    const apiObject = await Sefaria._ApiPromise(url);
+    //TODO here's the place for all changes we want to add, and saving in cache
+    return apiObject;
+  },
+  getAllTranslationsWithText: async function(ref) {
+    let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{language: 'translation', versionTitle: 'all'}], false);
+    return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
+  },
   _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
     if (sheetIds.length === 0) { return Promise.resolve({}); }
@@ -568,6 +605,64 @@ Sefaria = extend(Sefaria, {
     }
     return Promise.resolve(this._versions[ref]);
   },
+  _portals: {},
+  getPortal: async function(portalSlug) {
+      const cachedPortal = Sefaria._portals[portalSlug];
+      if (cachedPortal) {
+          return cachedPortal;
+      }
+      const response = await this._ApiPromise(`${Sefaria.apiHost}/api/portals/${portalSlug}`);
+      Sefaria._portals[portalSlug] = response;
+      return response;
+  },
+  subscribeSefariaNewsletter: async function(firstName, lastName, email, educatorCheck) {
+    const response = await fetch(`/api/subscribe/${email}`,
+        {
+            method: "POST",
+            mode: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': Cookies.get('csrftoken'),
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                language: Sefaria.interfaceLang === "hebrew" ? "he" : "en",
+                educator: educatorCheck,
+                firstName: firstName,
+                lastName: lastName
+            })
+        }
+    );
+    if (!response.ok) { throw "error"; }
+    const json = await response.json();
+    if (json.error) { throw json; }
+    return json;
+  },
+  subscribeSteinsaltzNewsletter: async function(firstName, lastName, email) {
+      const response = await fetch(`/api/subscribe/steinsaltz/${email}`,
+          {
+              method: "POST",
+              mode: 'same-origin',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': Cookies.get('csrftoken'),
+              },
+              credentials: 'same-origin',
+              body: JSON.stringify({firstName, lastName}),
+          }
+      );
+      if (!response.ok) { throw "error"; }
+      const json = await response.json();
+      if (json.error) { throw json; }
+      return json;
+  },
+  subscribeSefariaAndSteinsaltzNewsletter: async function(firstName, lastName, email, educatorCheck) {
+      const responses = await Promise.all([
+          Sefaria.subscribeSefariaNewsletter(firstName, lastName, email, educatorCheck),
+          Sefaria.subscribeSteinsaltzNewsletter(firstName, lastName, email),
+      ]);
+      return {status: "ok"};
+  },
   filterVersionsObjByLangs: function(versionsObj, langs, includeFilter) {
       /**
        * @versionsObj {object} whode keys are language codes ('he', 'en' etc.) and values are version objects (like the object that getVersions returns)
@@ -605,13 +700,13 @@ Sefaria = extend(Sefaria, {
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isBaseText true
+     * Gets all versions except Hebrew versions that have isSource true
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(result => {
         let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
         if (heVersions.length) {
             versions.he = heVersions;
         }
@@ -1045,6 +1140,15 @@ Sefaria = extend(Sefaria, {
           throw new Error("Use of Sefaria.ref() with a callback has been deprecated in favor of Sefaria.getRef()");
       }
       return ref ? this.getRefFromCache(ref) : null;
+  },
+  openTransBannerApplies: (book, textLanguage) => {
+      /**
+       * Should we display OpenTransBanner?
+       * Return `true` if `book`s corpus is Tanakh, Mishnah or Bavli AND textLanguage isn't Hebrew
+       */
+      const applicableCorpora = ["Tanakh", "Mishnah", "Bavli"];
+      const currCorpus = Sefaria.index(book)?.corpus;
+      return textLanguage !== "hebrew" && applicableCorpora.indexOf(currCorpus) !== -1;
   },
   _lookups: {},
 
@@ -1934,8 +2038,36 @@ _media: {},
           data["completions"][0] != query.slice(0, data["completions"][0].length))
   },
   repairCaseVariant: function(query, data) {
-    // Used when isACaseVariant() is true to prepare the alternative
-    return data["completions"][0] + query.slice(data["completions"][0].length);
+    if (Sefaria.isACaseVariant(query, data)) {
+        const completionArray = data["completion_objects"].map(x => x.title);
+        let normalizedQuery = query.toLowerCase();
+        let bestMatch = "";
+        let bestMatchLength = 0;
+
+        completionArray.forEach((completion) => {
+            let normalizedCompletion = completion.toLowerCase();
+            if (normalizedQuery.includes(normalizedCompletion) && normalizedCompletion.length > bestMatchLength) {
+                bestMatch = completion;
+                bestMatchLength = completion.length;
+            }
+        });
+        return bestMatch + query.slice(bestMatch.length);
+    }
+    return query;
+  },
+  repairGershayimVariant: function(query, data) {
+    if (!data["is_ref"] && data.completions && !data.completions.includes(query)) {
+        function normalize_gershayim(string) {
+            return string.replace('״', '"');
+        }
+        const normalized_query = normalize_gershayim(query);
+        for (let c of data.completions) {
+            if (normalize_gershayim(c) === normalized_query) {
+                return c;
+            }
+        }
+    }
+    return query;
   },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
@@ -2058,6 +2190,72 @@ _media: {},
     result.he.numbered = sections;
 
     return result;
+  },
+  isCommentaryWithBaseText(book) {
+      /* Only returns true for commentaries with a base_text_mapping to one and only one base_text_title
+       * @param {Object} book: Corresponds to a book in Sefaria.toc
+       */
+      return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
+  },
+  isCommentaryRefWithBaseText(ref) {
+      /* This is a helper function for openPanelAt. Determines whether the ref(s) are part of a commentary
+       * with a base_text_mapping to one and only one base_text_title.
+       * Example: "Ibn Ezra on Genesis 3" returns True because this commentary has a base_text_mapping to one and only one book, Genesis.
+       * @param {string/array of strings} ref: if array, checks the first ref
+       */
+      let refToCheck = Array.isArray(ref) ? ref[0] : ref;
+      const parsedRef = Sefaria.parseRef(refToCheck);
+      const book = Sefaria.index(parsedRef.index);
+      return this.isCommentaryWithBaseText(book);
+  },
+  convertCommentaryRefToBaseRef(commRef) {
+    /* Converts commentary ref, `commRef`, to base ref:
+     @param {string} commRef - string to be converted.
+     Example input and output: commRef = "Rashi on Genesis 1:2" returns "Genesis 1:2",
+                               commRef = "Rashi on Exodus 2:3:1" returns "Exodus 2:3"
+     */
+    const book = Sefaria.index(commRef.index);
+    if (!book || !this.isCommentaryWithBaseText(book)) {
+        // if book is not isCommentaryWithBaseText just return the ref
+        return Sefaria.humanRef(commRef.ref);
+    }
+    const base_text = book.base_text_titles[0];
+    const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
+    const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
+    if (commRef.sections.length <= 2 || !many_to_one) {
+        // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.  in this case, sections stay the same so just change the book title
+        commRef.ref = commRef.ref.replace(book.title, base_text);
+        return Sefaria.humanRef(commRefCopy.ref);
+    }
+    else if (many_to_one) {
+        // Rashi on Genesis 1:2:4 => Genesis 1:2; sections and book title need to change
+        commRefCopy.sections = commRefCopy.sections.slice(0, commRef.sections.length - 1);
+        commRefCopy.toSections = commRefCopy.toSections.slice(0, commRef.toSections.length - 1);
+        commRefCopy.book = commRefCopy.index = commRefCopy.index.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.split(' ').slice(0, -1).join(' ');
+        return Sefaria.humanRef(Sefaria.makeRef(commRefCopy));
+    }
+    return Sefaria.humanRef(commRef.ref);
+  },
+  getBaseRefAndFilter(ref) {
+    /* This is a helper function for openPanelAt. This function converts a commentary ref(s) (Rashi on Genesis 3:3:1)
+     to a base ref(s) (Genesis 3:3) and returns the filter ["Rashi"].
+     `ref` can be an array or a string, in which case the returned ref will be an array or string
+     */
+    let filter, book;
+    if (Array.isArray(ref)) {
+        const parsedRefs = ref.map(x => Sefaria.parseRef(x)); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRefs[0].index);
+        ref = parsedRefs.map(x => Sefaria.convertCommentaryRefToBaseRef(x));
+    }
+    else {
+        const parsedRef = Sefaria.parseRef(ref); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRef.index);
+        ref = Sefaria.convertCommentaryRefToBaseRef(parsedRef);
+    }
+    filter = book?.collectiveTitle ? [book.collectiveTitle] : [];
+    return {ref: ref, filter: filter};
   },
   commentaryList: function(title, toc) {
     var title = arguments.length == 0 || arguments[0] === undefined ? null : arguments[0];
@@ -2254,6 +2452,29 @@ _media: {},
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
   },
+    isNewVisitor: () => {
+        return (
+            ("isNewVisitor" in sessionStorage &&
+                JSON.parse(sessionStorage.getItem("isNewVisitor"))) ||
+            (!("isNewVisitor" in sessionStorage) && !("isReturningVisitor" in localStorage))
+        );
+    },
+    isReturningVisitor: () => {
+        return (
+            !Sefaria.isNewVisitor() &&
+            "isReturningVisitor" in localStorage &&
+            JSON.parse(localStorage.getItem("isReturningVisitor"))
+        );
+    },
+    markUserAsNewVisitor: () => {
+        sessionStorage.setItem("isNewVisitor", "true");
+        // Setting this at this time will make the current new visitor a returning one once their session is cleared
+        localStorage.setItem("isReturningVisitor", "true");
+    },
+    markUserAsReturningVisitor: () => {
+      sessionStorage.setItem("isNewVisitor", "false");
+      localStorage.setItem("isReturningVisitor", "true");
+    },
   uploadProfilePhoto: (formData) => {
     return new Promise((resolve, reject) => {
       if (Sefaria._uid) {
@@ -2318,6 +2539,7 @@ _media: {},
 
   },
   _tableOfContentsDedications: {},
+    _strapiContent: null,
   _inAppAds: null,
   _stories: {
     stories: [],
@@ -2958,6 +3180,7 @@ Sefaria.unpackBaseProps = function(props){
       "slug",
       "is_moderator",
       "is_editor",
+      "is_sustainer",
       "full_name",
       "profile_pic_url",
       "is_history_enabled",
@@ -2972,8 +3195,6 @@ Sefaria.unpackBaseProps = function(props){
       "last_place",
       "interfaceLang",
       "multiPanel",
-      "interruptingMessage",
-
       "community",
       "followRecommendations",
       "trendingTopics",

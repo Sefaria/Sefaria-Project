@@ -1,11 +1,11 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect, memo} from 'react';
 import {
     SimpleInterfaceBlock,
-    NewsletterSignUpForm,
     TwoOrThreeBox,
     ResponsiveNBox,
     NBox, InterfaceText,
 } from './Misc';
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import Cookies from 'js-cookie';
@@ -1557,7 +1557,7 @@ const DonatePage = () => (
             enTitle="Where does my gift go? How does Sefaria use the donations it receives?"
             heTitle=""
             enText="<p>Generally, gifts made to Sefaria are considered “unrestricted,” meaning that our staff allocates funds where they’re needed most. This includes everything from the text and learning you see on your screen to the technology support that keeps us online to the time and energy of the Sefaria team.</p>
-                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2021_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
+                    <p><a href='https://www.guidestar.org/profile/46-4406454'>Sefaria has a Platinum rating on GuideStar</a> and we’re devoted to making sure we’re transparent and open with our donors. For a closer look at our financials, <a target='_blank' href='/static/files/Sefaria_2022_990_Public.pdf'>download the most recent Sefaria 990</a>.</p>"
             heText=""
             colorBar="#B8D4D3"
         />
@@ -1727,7 +1727,7 @@ const DonatePage = () => (
                         rounded={true}
                         tall={false}
                         newTab={true}
-                        href="/static/files/Sefaria_2021_990_Public.pdf"
+                        href="/static/files/Sefaria_2022_990_Public.pdf"
                         he_href=""
                         he=""
                         en="See Here"
@@ -1928,13 +1928,16 @@ const WordByWordPage = () => (
 
 
 const PoweredByPage = () => (
-    <StaticPage>
+    <StaticPage optionalClass="englishOnly">
         <Header
             enTitle="Powered by Sefaria"
-            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
-            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in our GitHub repository!"
-            enActionURL="https://github.com/Sefaria"
+            enText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
+            heTitle="Powered by Sefaria"
+            heText="Did you know that Sefaria’s open data and API can be used by anyone to create new technological solutions for learning Torah? You can find it all for free in the Sefaria Developer Portal!"
+            enActionURL="https://developers.sefaria.org/"
             enActionText="Create Something New"
+            heActionURL="https://developers.sefaria.org/"
+            heActionText="Create Something New"
             newTab={true}
         />
         <GreyBox>
@@ -1942,6 +1945,9 @@ const PoweredByPage = () => (
             <EnBlock padded={true}>
                 <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
             </EnBlock>
+            <HeBlock padded={true}>
+                <p>We do our best to ensure that the texts we put in our library come with a Creative Commons license, so the texts can be used and reused, for free. We also make all of our code available for open source use by other developers in any way they’d like. To date, there are more than 70 projects Powered by Sefaria, and nearly 100 sites linked to the Sefaria library through our Linker API.</p>
+            </HeBlock>
             <Spacer/>
         </GreyBox>
         <GreyBox light={true}>
@@ -1954,6 +1960,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of AlHaTorah"
             borderColor={palette.colors.darkteal}
             link="https://alhatorah.org/"
+            heText="AlHaTorah is a website with a broad range of tools for studying Tanakh, including study guides broken down by parashah, biblical art, and interactive modules. Among the available sources, AlHaTorah makes use of biblical commentaries from Sefaria’s library."
+            heTitle="AlHaTorah"
+            heImg="/static/img/powered-by-landing-page/alhatorah.org_.png"
+            heImgAlt="Screenshot of AlHaTorah"
         />
         <Feature
             enTitle="AllDaf"
@@ -1962,6 +1972,10 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of AllDaf"
             borderColor={palette.colors.yellow}
             link="https://alldaf.org/"
+            heTitle="AllDaf"
+            heText="This app for learning Daf Yomi from the Orthodox Union provides users with personalized feeds that adapt to learners’ interests, supporting study of the Daf in a user-friendly and approachable format. The English text on AllDaf is sourced from Sefaria."
+            heImg="/static/img/powered-by-landing-page/alldaf.org_.png"
+            heImgAlt="Screenshot of AllDaf"
         />
         <Feature
             enTitle="Hadran"
@@ -1970,14 +1984,22 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of Hadran"
             borderColor={palette.colors.green}
             link="https://hadran.org.il/"
+            heTitle="Hadran"
+            heText="Founded in 2018 by a group of women studying Talmud together, Hadran aims to make the study of Talmud more accessible to Jewish women at all levels of learning. Among the resources they provide are guides to learning Daf Yomi, and these lessons use texts from Sefaria."
+            heImg="/static/img/powered-by-landing-page/hadran.org.il_daf_yevamot-63_.png"
+            heImgAlt="Screenshot of Hadran"
         />
         <Feature
             enTitle="Dicta"
-            enText="Dicta is a non-profit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            enText="Dicta is a nonprofit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
             enImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
             enImgAlt="Screenshot of Dicta"
             borderColor={palette.colors.lightblue}
             link="https://dicta.org.il/"
+            heTitle="Dicta"
+            heText="Dicta is a nonprofit research organization based in Israel that applies cutting-edge machine learning and natural language processing (the ability of a computer program to understand human language as it is spoken and written) to the analysis of Hebrew texts. Sefaria and Dicta often collaborate, sharing texts and splitting the costs of shared projects. Dicta offers a broad range of tools for free use by anyone, including the ability to add nikud (vocalization) to text as you type, intuitive Talmud and Bible search, and more."
+            heImg="/static/img/powered-by-landing-page/talmudsearch.dicta.org.il_.png"
+            heImgAlt="Screenshot of Dicta"
         />
         <Feature
             enTitle="Artscroll Smart Siddur"
@@ -1986,46 +2008,50 @@ const PoweredByPage = () => (
             enImgAlt="Screenshot of Artscroll Smart Siddur"
             borderColor={palette.colors.red}
             link="https://www.artscroll.com/Categories/DSD.html"
+            heTitle="Artscroll Smart Siddur"
+            heText="This app converts the popular ArtSchool Siddur into a fully digital format, including hyperlinks to secondary sources, translations, and commentary, as well as the ability to customize your siddur experience.  When you click on citations to non-ArtScroll books in the siddur's footnotes, they include texts from the Sefaria library."
+            heImg="/static/img/powered-by-landing-page/artscroll siddur.png"
+            heImgAlt="Screenshot of Artscroll Smart Siddur"
         />
         <GreyBox>
             <H2Block en="Tell us about your projects!" he="Tell us about your projects!"/>
             <EnBlock padded={true}>
-                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
             </EnBlock>
+            <HeBlock padded={true}>
+                <p>Have you used Sefaria’s data to build an app, visualization, website, or other digital tool? Tell us about it! We’d love to see your project. You can also reach out to us with your questions about our open source data and API by writing to us at <a href="mailto:developers@sefaria.org">developers@sefaria.org</a>.</p>
+            </HeBlock>
             <Spacer/>
         </GreyBox>
 
         <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="Explore a few more projects">
             {[["HaTanakh.com", "http://www.hatanakh.com/"],
                 ["Koveah", "https://koveah.org/"],
-                ["Parasha Bytes", "https://parashabytes.zemon.name/bytes/"],
                 ["Shnayim Mikra", "http://www.shnayim.com/"],
                 ["Russel Neiss' Micrography", "https://github.com/rneiss/micrography"],
                 ["Sefaria Wordpress Plugin", "https://github.com/JoshMB/sefaria-wp-plugin"],
-                ["Mizmor Shir", "http://mizmor-shir.herokuapp.com/"],
                 ["Capish - Interactive Learning", "https://capish.me/"],
                 ["Sefer Similarity Map", "https://jhostyk.github.io/SeferSimilarityMap/"],
                 ["Sefaria Space: (Topic Museum + Text Mania)", "https://sefaria-space.web.app/"],
                 ["T'Feeling", "https://tfeeling.netlify.app/"],
                 ["The Taryag Mitzvos", "https://thetaryag.com/"],
-                ["Visualizations of Sefaria", "https://guedalia.github.io/testab/test"],
                 ["Gematriaphone", "http://alexboxer.com/gematriaphone/"],
                 ["Yamim Noraim Machzor", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Sefaria Sidebar Extension", "https://github.com/DovOps/SefariaSidebarExtension/"],
                 ["Kindle Seforim", "https://kindleseforim.paritcher.com/"],
                 ["The Jewish Story Through Books", "https://joshcooper417.github.io/"]
-            ].map(i =>
+            ].map(([enText, hrefURL]) =>
                 <SimpleButton
                     white={true}
                     rounded={false}
                     tall={true}
                     newTab={true}
-                    href={i[1]}
-                    en={i[0]}
+                    href={hrefURL}
+                    en={enText}
+                    he={enText}
                 />)
             }
         </ButtonRow>
-
 
     </StaticPage>
 );
@@ -2636,6 +2662,471 @@ const StaticHR = () =>
 const ConditionalLink = ({ link, children }) =>
   link ? <a href={link} target="_blank">{children}</a> : children;
 
+/*
+* Team Page
+*/
+
+// Takes an array and boolean proposition function to be evaluated against each element
+// Returns two arrays within an array
+// The first contains the elements for which the proposition function evaluates to true. The second contains the rest
+const partition = (arr, prop) =>
+    arr.reduce(
+        (accumulator, currentValue) => {
+            accumulator[prop(currentValue) ? 0 : 1].push(currentValue);
+            return accumulator;
+        },
+        [[], []]
+    );
+
+// Defines a comparator to be used for sorting team members
+const byLastName = () => {
+    const locale = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
+    return (a, b) => {
+        const lastNameA = a.teamMemberDetails.teamName[locale].split(" ").pop();
+        const lastNameB = b.teamMemberDetails.teamName[locale].split(" ").pop();
+        return lastNameA.localeCompare(lastNameB, locale);
+    };
+};
+
+const TeamTitle = ({ teamTitle }) => (
+    <div className="teamTitle">
+        <InterfaceText text={teamTitle} />
+    </div>
+);
+
+const TeamName = ({ teamName }) => (
+    <div className="teamName">
+        <InterfaceText text={teamName} />
+    </div>
+);
+
+const TeamMemberDetails = ({ teamMemberDetails }) => (
+    <div className="teamMemberDetails">
+        <TeamName teamName={teamMemberDetails.teamName} />
+        <TeamTitle teamTitle={teamMemberDetails.teamTitle} />
+    </div>
+);
+
+const TeamMemberImage = ({ teamMember }) => (
+    <div className="teamMemberImage">
+        <img
+            src={teamMember.teamMemberImage}
+            alt={`Headshot of ${teamMember.teamMemberDetails.teamName.en}`}
+        />
+    </div>
+);
+
+const TeamMember = ({ teamMember }) => (
+    <div className="teamMember">
+        <TeamMemberImage teamMember={teamMember} />
+        <TeamMemberDetails teamMemberDetails={teamMember.teamMemberDetails} />
+    </div>
+);
+
+const TeamMembers = ({ teamMembers }) => (
+    <>
+        {teamMembers.map((teamMember) => (
+            <TeamMember key={teamMember.id} teamMember={teamMember} />
+        ))}
+    </>
+);
+
+const BoardMember = ({ boardMember }) => (
+    <div className="teamBoardMember">
+        <TeamMemberDetails teamMemberDetails={boardMember.teamMemberDetails} />
+    </div>
+);
+
+const BoardMembers = ({ boardMembers }) => {
+    let chairmanBoardMember;
+    const chairmanIndex = boardMembers.findIndex(
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "chairman"
+    );
+    if (chairmanIndex !== -1) {
+        chairmanBoardMember = boardMembers.splice(chairmanIndex, 1);
+    }
+    const [cofounderBoardMembers, regularBoardMembers] = partition(
+        boardMembers,
+        (boardMember) =>
+            boardMember.teamMemberDetails.teamTitle.en.toLowerCase() ===
+            "co-founder"
+    );
+
+    return (
+        <>
+            {chairmanBoardMember && (
+                <BoardMember boardMember={chairmanBoardMember[0]} />
+            )}
+            {cofounderBoardMembers.map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+            {regularBoardMembers.sort(byLastName()).map((boardMember) => (
+                <BoardMember key={boardMember.id} boardMember={boardMember} />
+            ))}
+        </>
+    );
+};
+
+const TeamMembersPage = memo(() => {
+    const [ordinaryTeamMembers, setOrdinaryTeamMembers] = useState([]);
+    const [teamBoardMembers, setTeamBoardMembers] = useState([]);
+    const [error, setError] = useState(null);
+
+    const fetchTeamMembersJSON = async () => {
+        const query = `
+            query {
+                teamMembers(pagination: { limit: -1 }) {
+                    data {
+                        id
+                        attributes {
+                            teamName
+                            teamTitle
+                            isTeamBoardMember
+                            teamMemberImage {
+                                data {
+                                    attributes {
+                                        url
+                                    }
+                                }
+                            }
+                            localizations {
+                                data {
+                                    attributes {
+                                        locale
+                                        teamName
+                                        teamTitle
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            `;
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const loadTeamMembers = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const teamMembersData = await fetchTeamMembersJSON();
+
+                const teamMembersFromStrapi =
+                    teamMembersData.data.teamMembers.data.map(
+                        (teamMember) => {
+                            const heLocalization =
+                                teamMember.attributes.localizations.data[0];
+
+                            return {
+                                id: teamMember.id,
+                                isTeamBoardMember:
+                                    teamMember.attributes.isTeamBoardMember,
+                                teamMemberImage:
+                                    teamMember.attributes.teamMemberImage
+                                        ?.data?.attributes?.url,
+                                teamMemberDetails: {
+                                    teamName: {
+                                        en: teamMember.attributes.teamName,
+                                        he: heLocalization.attributes
+                                            .teamName,
+                                    },
+                                    teamTitle: {
+                                        en: teamMember.attributes.teamTitle,
+                                        he: heLocalization.attributes
+                                            .teamTitle,
+                                    },
+                                },
+                            };
+                        }
+                    );
+
+                const [ordinaryMembers, boardMembers] = partition(
+                    teamMembersFromStrapi,
+                    (teamMember) => !teamMember.isTeamBoardMember
+                );
+
+                setOrdinaryTeamMembers(ordinaryMembers);
+                setTeamBoardMembers(boardMembers);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+    useEffect(() => {
+        loadTeamMembers();
+    }, []);
+
+    return (
+        <div>
+            {error ? (
+                <h1>{error}</h1>
+            ) : (
+                <>
+                    <section className="main-text team-members">
+                        <TeamMembers
+                            teamMembers={ordinaryTeamMembers.sort(byLastName())}
+                        />
+                    </section>
+                    <header>
+                        <h2>
+                            <span className="int-en">BOARD OF DIRECTORS</span>
+                            <span className="int-he">מועצת המנהלים</span>
+                        </h2>
+                    </header>
+                    <section className="main-text board-members">
+                        <BoardMembers boardMembers={teamBoardMembers} />
+                    </section>
+                </>
+            )}
+        </div>
+    );
+});
+
+/*
+* Jobs Page
+*/
+
+// Show a different header with a description of Sefaria for the page in the case that there are jobs available
+const JobsPageHeader = ({ jobsAreAvailable }) => {
+    return (
+        <>
+            <header>
+                <h1 className="serif">
+                    <span className="int-en">Jobs at Sefaria</span>
+                    <span className="int-he">משרות פנויות בספריא</span>
+                </h1>
+
+                {jobsAreAvailable ? (
+                    <>
+                        <h2>
+                            <span className="int-en">About Sefaria</span>
+                            <span className="int-he">אודות ספריא</span>
+                        </h2>
+                        <p>
+                            <span className="int-en">
+                                Sefaria is a nonprofit organization dedicated to creating the
+                                future of Torah in an open and participatory way. We are assembling
+                                a free, living library of Jewish texts and their interconnections,
+                                in Hebrew and in translation.
+                            </span>
+                            <span className="int-he">
+                                ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה
+                                באופן פתוח ומשותף. אנחנו בספריא מרכיבים ספרייה חיה וחופשית של טקסטים
+                                יהודיים וכלל הקישורים ביניהם, בשפת המקור ובתרגומים.
+                            </span>
+                        </p>
+                    </>
+                ) : null}
+            </header>
+        </>
+    );
+};
+
+const Job = ({ job }) => {
+    return (
+        <div className="job">
+            <a className="joblink" target="_blank" href={job.jobLink}>
+                {job.jobDescription}
+            </a>
+        </div>
+    );
+};
+
+// Show the list of job postings within a department category
+const JobsListForDepartment = ({ jobsList }) => {
+    return (
+        <section className="jobsListForDepartment">
+            {jobsList.map((job) => (
+                <Job key={job.id} job={job} />
+            ))}
+        </section>
+    );
+};
+
+// Job postings are grouped by department. This component will show the jobs for a specific department
+// Each department has a header for its category before showing a list of the job postings there
+const JobPostingsByDepartment = ({ department, departmentJobPostings }) => {
+    return (
+        <section className="section department englishOnly">
+            <header>
+                <h2 className="anchorable">{department}</h2>
+            </header>
+            <JobsListForDepartment key={department} jobsList={departmentJobPostings} />
+        </section>
+    );
+};
+
+// Show all the job postings grouped by department and render each department separately
+const GroupedJobPostings = ({ groupedJobPostings }) => {
+
+    return (
+        Object.entries(groupedJobPostings).map(([department, departmentJobPostings]) => {
+            return (
+                <JobPostingsByDepartment
+                    key={department}
+                    department={department}
+                    departmentJobPostings={departmentJobPostings}
+                />
+            );
+        })
+    );
+};
+
+
+const NoJobsNotice = () => {
+    return (
+        <div className="section nothing">
+            <p>
+                <span className="int-en">
+                    Sefaria does not currently have any open positions.
+                    Please follow us on <a target="_blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
+                    to hear about our next openings.
+                </span>
+                <span className="int-he">
+                    ספריא איננה מחפשת כעת עובדים חדשים.
+                    עקבו אחרינו ב<a target="_blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>&nbsp;
+                    כדי להשאר מעודכנים במשרות עתידיות.
+                </span>
+            </p>
+        </div>
+    );
+};
+
+
+
+const JobsPage = memo(() => {
+    const [groupedJobPostings, setGroupedJobPostings] = useState({});
+    const [error, setError] = useState(null);
+
+    const fetchJobsJSON = async () => {
+        const currentDateTime = new Date().toISOString();
+        const query = `
+            query { 
+                jobPostings(
+                    pagination: { limit: -1 }
+                    filters: {
+                        jobPostingStartDate: { lte: \"${currentDateTime}\" }
+                        jobPostingEndDate: { gte: \"${currentDateTime}\" }
+                    }
+                ) {
+                    data {
+                        id
+                        attributes {
+                            jobLink
+                            jobDescription
+                            jobDepartmentCategory
+                        }
+                    }
+                }
+            }
+        `;
+    
+        try {
+            const response = await fetch(STRAPI_INSTANCE + "/graphql", {
+                method: "POST",
+                mode: "cors",
+                cache: "no-cache",
+                credentials: "omit",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                redirect: "follow",
+                referrerPolicy: "no-referrer",
+                body: JSON.stringify({ query }),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    };
+    
+    const loadJobPostings = async () => {
+        if (typeof STRAPI_INSTANCE !== "undefined" && STRAPI_INSTANCE) {
+            try {
+                const jobsData = await fetchJobsJSON();
+
+                const jobsFromStrapi = jobsData.data?.jobPostings?.data?.map((jobPosting) => {
+                    return {
+                        id: jobPosting.id,
+                        jobLink: jobPosting.attributes.jobLink,
+                        jobDescription: jobPosting.attributes.jobDescription,
+                        jobDepartmentCategory: jobPosting.attributes.jobDepartmentCategory
+                            .split("_")
+                            .join(" "),
+                    };
+                });
+
+                // Group the job postings by department
+                const groupedJobs = jobsFromStrapi.reduce((jobPostingsGroupedByDepartment, jobPosting) => {
+                    const category = jobPosting.jobDepartmentCategory;
+                    if (!jobPostingsGroupedByDepartment[category]) {
+                        jobPostingsGroupedByDepartment[category] = [];
+                    }
+                    jobPostingsGroupedByDepartment[category].push(jobPosting);
+                    return jobPostingsGroupedByDepartment;
+                }, {});
+
+                setGroupedJobPostings(groupedJobs);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setError("Error: Sefaria's CMS cannot be reached");
+            }
+        } else {
+            setError("Error: Sefaria's CMS cannot be reached");
+        }
+    };
+
+    useEffect(() => {
+        loadJobPostings();
+    }, []);
+
+    return (
+        <div>
+            {error ? (
+                <h1>{error}</h1>
+            ) : (
+                <>
+                    <JobsPageHeader jobsAreAvailable={Object.keys(groupedJobPostings)?.length} />
+                    {Object.keys(groupedJobPostings)?.length ? (
+                        <GroupedJobPostings groupedJobPostings={groupedJobPostings} />
+                    ) : (
+                        <NoJobsNotice />
+                    )}
+                </>
+            )}
+        </div>
+    );
+});
 
 export {
     RemoteLearningPage,
@@ -2648,5 +3139,7 @@ export {
     EducatorsPage,
     RabbisPage,
     DonatePage,
-    WordByWordPage
-}
+    WordByWordPage,
+    JobsPage,
+    TeamMembersPage,
+};

@@ -38,10 +38,11 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.system.cache import in_memory_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle
-from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.model.user_profile import UserProfile, user_link
-from sefaria.model.collection import CollectionSet
+from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
+from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
@@ -58,7 +59,7 @@ from sefaria.model.webpage import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
-from reader.views import base_props, render_template 
+from reader.views import base_props, render_template
 from sefaria.helper.link import add_links_from_csv, delete_links_from_text, get_csv_links_by_refs
 
 if USE_VARNISH:
@@ -169,7 +170,36 @@ def accounts(request):
     })
 
 
-def subscribe(request, email):
+def generic_subscribe_to_newsletter_api(request, org, email):
+    """
+    Generic view for subscribing a user to a newsletter
+    """
+    org_subscribe_fn_map = {
+        "sefaria": subscribe_sefaria_newsletter,
+        "steinsaltz": subscribe_steinsaltz,
+    }
+    body = json.loads(request.body)
+    first_name = body.get("firstName", None)
+    last_name = body.get("lastName", None)
+    try:
+        subscribe = org_subscribe_fn_map.get(org)
+        if not subscribe:
+            return jsonResponse({"error": f"Organization '{org}' not recognized."})
+        if subscribe(request, email, first_name, last_name):
+            return jsonResponse({"status": "ok"})
+        else:
+            logger.error(f"Failed to subscribe to list")
+            return jsonResponse({"error": _("Sorry, there was an error.")})
+    except ValueError as e:
+        logger.error(f"Failed to subscribe to list: {e}")
+        return jsonResponse({"error": _("Sorry, there was an error.")})
+
+
+def subscribe_sefaria_newsletter_view(request, email):
+    return generic_subscribe_to_newsletter_api(request, 'sefaria', email)
+
+
+def subscribe_sefaria_newsletter(request, email, first_name, last_name):
     """
     API for subscribing to mailing lists, in `lists` url param.
     Currently active lists are:
@@ -178,18 +208,26 @@ def subscribe(request, email):
     body = json.loads(request.body)
     language = body.get("language", "")
     educator = body.get("educator", False)
-    first_name = body.get("firstName", None)
-    last_name = body.get("lastName", None)
-    try:
-        crm_mediator = CrmMediator()
-        if crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language):
-            return jsonResponse({"status": "ok"})
-        else:
-            logger.error("Failed to subscribe to list")
-            return jsonResponse({"error": _("Sorry, there was an error.")})
-    except ValueError as e:
-        logger.error(f"Failed to subscribe to list: {e}")
-        return jsonResponse({"error": _("Sorry, there was an error.")})
+    crm_mediator = CrmMediator()
+    return crm_mediator.subscribe_to_lists(email, first_name, last_name, educator=educator, lang=language)
+
+
+def subscribe_steinsaltz(request, email, first_name, last_name):
+    """
+    API for subscribing to Steinsaltz newsletter
+    """
+    import requests
+
+    data = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+    }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post('https://steinsaltz-center.org/api/mailer',
+                             data=json.dumps(data), headers=headers)
+    return response.ok
+
 
 @login_required
 def unlink_gauth(request):
@@ -202,7 +240,7 @@ def unlink_gauth(request):
             return redirect(f"/profile/{profile.slug}")
         else:
             return jsonResponse({"status": "ok"})
-    except: 
+    except:
         return jsonResponse({"error": "Failed to delete Google account"})
 
 
@@ -501,7 +539,7 @@ def collections_image_upload(request, resize_image=True):
             image = Image.open(temp_uploaded_file)
             resized_image_file = BytesIO()
             if resize_image:
-                image.thumbnail(MAX_FILE_DIMENSIONS, Image.ANTIALIAS)
+                image.thumbnail(MAX_FILE_DIMENSIONS, Image.LANCZOS)
             image.save(resized_image_file, optimize=True, quality=70, format="PNG")
             resized_image_file.seek(0)
             bucket_name = GoogleStorageManager.COLLECTIONS_BUCKET
@@ -968,6 +1006,56 @@ def delete_user_by_email(request):
                 return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
         except:
             return jsonResponse({"failure": "user not deleted: try again or contact a developer"})
+
+
+
+@staff_member_required
+def delete_sheet_by_id(request):
+
+    from django.contrib.auth.models import User
+    from sefaria.utils.user import delete_user_account
+    if request.method == 'GET':
+        form = SefariaDeleteSheet()
+        return render_template(request, "delete-sheet.html", None, {'form': form, 'next': next})
+    elif request.method == 'POST':
+        user = User.objects.get(id=request.user.id)
+        sheet_id = request.POST.get("sid")
+        password = request.POST.get("password")
+        try:
+            if not user.check_password(password):
+                return jsonResponse({"failure": "incorrect password"})
+        except:
+            return jsonResponse({"failure": "incorrect password"})
+        try:
+
+            import sefaria.search as search
+            id = int(sheet_id)
+            sheet = db.sheets.find_one({"id": id})
+            if not sheet:
+                return jsonResponse({"error": "Sheet %d not found." % id})
+
+            db.sheets.remove({"id": id})
+            process_sheet_deletion_in_collections(id)
+            process_sheet_deletion_in_notifications(id)
+
+            try:
+                es_index_name = search.get_new_and_current_index_names("sheet")['current']
+                search.delete_sheet(es_index_name, id)
+            except NewConnectionError as e:
+                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            except AuthorizationException as e:
+                logger.warn("Failed to connect to elastic search server on sheet delete.")
+
+
+            return jsonResponse({"success": f"deleted sheet {sheet_id}"})
+
+        except:
+            return jsonResponse({"failure": "sheet not deleted: try again or contact a developer"})
+
+
+
+
+
 
 
 

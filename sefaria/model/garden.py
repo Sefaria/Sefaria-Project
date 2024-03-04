@@ -441,24 +441,16 @@ class GardenStop(abst.AbstractMongoRecord):
         # Time
         # This is similar to logic on Index.composition_time_period() refactor
         if getattr(self, "start", None) is None or getattr(self, "end", None) is None:
-            if getattr(i, "compDate", None):
-                errorMargin = int(getattr(i, "errorMargin", 0))
-                self.startIsApprox = self.endIsApprox = errorMargin > 0
-
-                try:
-                    year = int(getattr(i, "compDate"))
-                    self.start = year - errorMargin
-                    self.end = year + errorMargin
-                except ValueError as e:
-                    years = getattr(i, "compDate").split("-")
-                    if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                        years[0] = -int(years[1])
-                        years[1] = int(years[2])
-                    self.start = int(years[0]) - errorMargin
-                    self.end = int(years[1]) + errorMargin
-
-            elif author and author.mostAccurateTimePeriod():
-                tp = author.mostAccurateTimePeriod()
+            years = getattr(i, 'compDate', [])
+            if years and len(years) > 0:
+                self.startIsApprox = self.endIsApprox = getattr(i, "hasErrorMargin", False)
+                if len(years) > 1:
+                    self.start = years[0]
+                    self.end = years[1]
+                else:
+                    self.start = self.end = years[0]
+            elif author and author.most_accurate_time_period():
+                tp = author.most_accurate_time_period()
                 self.start = tp.start
                 self.end = tp.end
                 self.startIsApprox = tp.startIsApprox

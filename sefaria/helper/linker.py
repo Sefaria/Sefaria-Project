@@ -52,8 +52,8 @@ class _FindRefsTextOptions:
     @attr version_preferences_by_corpus: dict of dicts of the form { <corpus>: { <lang>: <vtitle> }}
     """
 
-    debug: bool = False
     with_text: bool = False
+    debug: bool = False
     max_segments: int = 0
     version_preferences_by_corpus: dict = None
 
@@ -62,10 +62,11 @@ class _FindRefsTextOptions:
 class _FindRefsText:
     title: str
     body: str
+    lang: str
 
-    def __post_init__(self):
-        from sefaria.utils.hebrew import is_mostly_hebrew
-        self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
+    # def __post_init__(self):
+    #     from sefaria.utils.hebrew import is_mostly_hebrew
+    #     self.lang = 'he' if is_mostly_hebrew(self.body) else 'en'
 
 
 def _unpack_find_refs_request(request):
@@ -75,9 +76,11 @@ def _unpack_find_refs_request(request):
 
 
 def _create_find_refs_text(post_body) -> _FindRefsText:
+    from sefaria.utils.hebrew import is_mostly_hebrew
     title = post_body['text']['title']
     body = post_body['text']['body']
-    return _FindRefsText(title, body)
+    lang = post_body['lang'] if 'lang' in post_body else 'he' if is_mostly_hebrew(body) else 'en'
+    return _FindRefsText(title, body, lang)
 
 
 def _create_find_refs_options(get_body: dict, post_body: dict) -> _FindRefsTextOptions:

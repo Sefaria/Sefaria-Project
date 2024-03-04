@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import {DonateLink, EnglishText, HebrewText, NewsletterSignUpForm} from './Misc'
+import {AppStoreButton, DonateLink, EnglishText, HebrewText, ImageWithCaption} from './Misc'
+import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 
@@ -50,6 +50,10 @@ const Modules = ({type, props}) => {
     "WhoToFollow":            WhoToFollow,
     "Image":                  Image,
     "Wrapper":                Wrapper,
+    "PortalAbout":            PortalAbout,
+    "PortalMobile":           PortalMobile,
+    "PortalOrganization":     PortalOrganization,
+    "PortalNewsletter":       PortalNewsletter,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -93,7 +97,7 @@ const AboutSefaria = ({hideTitle}) => (
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>
       <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
@@ -108,13 +112,24 @@ const AboutSefaria = ({hideTitle}) => (
           <HebrewText>לקריאה נוספת ›</HebrewText>
       </InterfaceText>
     </a>
-    { Sefaria.interfaceLang === 'english' && !hideTitle &&
-      <a className="button get-start" href="/sheets/210670">
-          <img src="/static/icons/vector.svg"/>
-          <div className="get-start">
-              Getting Started (2 min)
-          </div>
-      </a>
+      {!hideTitle && <InterfaceText>
+          <EnglishText>
+            <a className="button get-start" href="/sheets/210670">
+                <img src="/static/icons/vector.svg"/>
+                <div className="get-start">
+                  Getting Started (2 min)
+                </div>
+            </a>
+          </EnglishText>
+          <HebrewText>
+            <a className="button get-start" href="https://youtu.be/rCADxtqPqnw">
+                <img src="/static/icons/vector.svg"/>
+                <div className="get-start">
+                  הכירו את ספריא (2 דק')
+                </div>
+            </a>
+          </HebrewText>
+      </InterfaceText>
     }
   </Module>
 );
@@ -131,7 +146,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
     "fi": {title: "Tooran elävä kirjasto", body: "Sefaria on koti 3000 vuoden juutalaisille teksteille. Olemme voittoa tavoittelematon organisaatio, joka tarjoaa ilmaisen pääsyn teksteihin, käännöksiin ja kommentteihin, jotta kaikki voivat osallistua jatkuvaan Tooran opiskelu-, tulkkaus- ja luomisprosessiin."},
     "fr": {title: "Une bibliothèque vivante de la Torah", body: "Une bibliothèque de Torah vivante. Sefaria abrite 3 000 ans de textes juifs. Nous sommes une organisation à but non lucratif offrant un accès gratuit aux textes de la Torah, aux commentaires et aux traductions, afin que chacun puisse participer au processus infini de l'étude, de l'interprétation et de la création de la Torah."},
     "it": {title: "Una biblioteca vivente della Torah", body: "Sefaria ospita 3.000 anni di testi ebraici. Siamo un'organizzazione senza scopo di lucro che offre libero accesso a testi, traduzioni e commenti in modo che tutti possano partecipare al processo in corso di studio, interpretazione e creazione della Torah."},
-    "pl": {title: "Żywa Biblioteka Tory", body: "Sefaria jest domem dla 3000 lat żydowskich tekstów. Jesteśmy organizacją non-profit oferującą bezpłatny dostęp do tekstów, tłumaczeń i komentarzy, dzięki czemu każdy może uczestniczyć w bieżącym procesie studiowania, tłumaczenia i tworzenia Tory."},
+    "pl": {title: "Żywa Biblioteka Tory", body: "Sefaria jest domem dla 3000 lat żydowskich tekstów. Jesteśmy organizacją nonprofit oferującą bezpłatny dostęp do tekstów, tłumaczeń i komentarzy, dzięki czemu każdy może uczestniczyć w bieżącym procesie studiowania, tłumaczenia i tworzenia Tory."},
     "pt": {title: "Uma Biblioteca Viva da Torá", body: "Sefaria é o lar de 3.000 anos de textos judaicos. Somos uma organização sem fins lucrativos que oferece acesso gratuito a textos, traduções e comentários para que todos possam participar do processo contínuo de estudo, interpretação e criação da Torá."},
     "ru": {title: "Живая библиотека Торы", body: "Сефария является домом для еврейских текстов 3000-летней давности. Мы — некоммерческая организация, предлагающая бесплатный доступ к текстам, переводам и комментариям, чтобы каждый мог участвовать в продолжающемся процессе изучения, толкования и создания Торы."},
     "yi": {title: "א לעבעדיקע ביבליאטעק פון תורה", body: "אין ספֿריאַ איז אַ היים פֿון 3,000 יאָר ייִדישע טעקסטן. מיר זענען אַ נאַן-נוץ אָרגאַניזאַציע וואָס אָפפערס פריי אַקסעס צו טעקסטן, איבערזעצונגען און קאָמענטאַרן אַזוי אַז אַלעמען קענען אָנטייל נעמען אין די אָנגאָינג פּראָצעס פון לערנען, ינטערפּריטיישאַן און שאפן תורה."}
@@ -144,7 +159,7 @@ const AboutTranslatedText = ({translationsSlug}) => {
           translationLookup[translationsSlug]["body"] :
           <InterfaceText>
           <EnglishText>
-          Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations,
+          Sefaria is home to 3,000 years of Jewish texts. We are a nonprofit organization offering free access to texts, translations,
           and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.
         </EnglishText>
         <HebrewText>
@@ -187,7 +202,7 @@ const TheJewishLibrary = ({hideTitle}) => (
 const SupportSefaria = ({blue}) => (
   <Module blue={blue}>
     <ModuleTitle>Support Sefaria</ModuleTitle>
-    <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
+    <InterfaceText>Sefaria is an open source, nonprofit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
       <img src="/static/img/heart.png" alt="donation icon" />
@@ -486,12 +501,11 @@ const AboutTopics = ({hideTitle}) => (
     <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>
         <HebrewText>
-בדפי הנושא מלוקטים מקורות נבחרים ודפי מקורות של משתמשים על נושא מסוים. המקורות המופיעים בדפי הנושא נאספים ממאגרים קיימים של ספרות יהודית (דוגמת 'אספקלריא') ומתוך דפי מקורות פומביים של משתמשי ספריא.
+דפי הנושא מציגים מקורות נבחרים מארון הספרים היהודי עבור אלפי נושאים. ניתן לדפדף לפי קטגוריה או לחפש לפי נושא ספציפי, ובסרגל הצד מוצגים הנושאים הפופולריים ביותר ואלה הקשורים אליהם.  הקליקו ושוטטו בין הנושאים השונים כדי ללמוד עוד.
         </HebrewText>
         <EnglishText>
-            Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.
+        Topics Pages present a curated selection of various genres of sources on thousands of chosen subjects. You can browse by category, search for something specific, or view the most popular topics — and related topics — on the sidebar. Explore and click through to learn more.
         </EnglishText>
-
     </InterfaceText>
   </Module>
 );
@@ -577,14 +591,16 @@ const GetTheApp = () => (
     <ModuleTitle>Get the Mobile App</ModuleTitle>
     <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
     <br />
-    <a target="_blank" className="button small white appButton ios" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
-      <img src="/static/icons/ios.svg" alt={Sefaria._("Sefaria app on IOS")} />
-      <InterfaceText>iOS</InterfaceText>
-    </a>
-    <a target="_blank" className="button small white appButton" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
-      <img src="/static/icons/android.svg" alt={Sefaria._("Sefaria app on Android")} />
-      <InterfaceText>Android</InterfaceText>
-    </a>
+    <AppStoreButton
+        href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+        platform='ios'
+        altText={Sefaria._("Sefaria app on IOS")}
+    />
+    <AppStoreButton
+        href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        platform='android'
+        altText={Sefaria._("Sefaria app on Android")}
+    />
   </Module>
 );
 
@@ -789,6 +805,58 @@ const DownloadVersions = ({sref}) => {
         </div>
         </Module>
     );
+};
+
+
+const PortalAbout = ({title, description, image_uri, image_caption}) => {
+    return(
+        <Module>
+            <ModuleTitle en={title.en} he={title.he} />
+            <div className="portalTopicImageWrapper">
+                <ImageWithCaption photoLink={image_uri} caption={image_caption} />
+            </div>
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+        </Module>
+    )
+};
+
+
+const PortalMobile = ({title, description, android_link, ios_link}) => {
+    return(
+        <Module>
+            <div className="portalMobile">
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
+                <AppStoreButton href={ios_link} platform={'ios'} altText='Steinsaltz app on iOS' />
+                <AppStoreButton href={android_link} platform={'android'} altText='Steinsaltz app on Android' />
+            </div>
+        </Module>
+    )
+};
+const PortalOrganization = ({title, description}) => {
+    return(
+        <Module>
+                <ModuleTitle en={title.en} he={title.he} />
+                {description && <InterfaceText markdown={{en: description.en, he: description.he}} />}
+        </Module>
+    )
+};
+
+
+const PortalNewsletter = ({title, description}) => {
+    let titleElement = <ModuleTitle en={title.en} he={title.he} />;
+
+    return(
+        <Module>
+            {titleElement}
+            <InterfaceText markdown={{en: description.en, he: description.he}} />
+            <NewsletterSignUpForm
+                includeEducatorOption={false}
+                emailPlaceholder={{en: "Email Address", he: "כתובת מייל"}}
+                subscribe={Sefaria.subscribeSefariaAndSteinsaltzNewsletter}
+            />
+        </Module>
+    )
 };
 
 

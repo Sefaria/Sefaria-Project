@@ -3,110 +3,26 @@
 
 {% block title %}{% trans "Jobs at Sefaria" %}{% endblock %}
 
-{% block description %}{% trans "Job openings at Sefaria, a non-profit technology organization dedicated to building the Jewish future." %}{% endblock %}
+{% block description %}{% trans "Job openings at Sefaria, a nonprofit technology organization dedicated to building the Jewish future." %}{% endblock %}
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'jobsPageContent';
+    DJANGO_VARS.reactComponentName = 'JobsPage';
+    {% endautoescape %}
+</script>
+{% endblock %}
 
 {% block content %}
 
 <main id="jobsPage" class="container biReady static">
     <div class="inner">
-        <header>
-            <h1 class="serif">
-                <span class="int-en">Jobs at Sefaria</span>
-                <span class="int-he">משרות פנויות בספריא</span>
-            </h1>
 
-            <!-- Comment out when jobs page has no content -->
-<!--             <h2>
-                <span class="int-en">About Sefaria</span>
-                <span class="int-he">אודות ספריא</span>
-            </h2>
-            <p>
-                <span class="int-en">
-                    Sefaria is a non-profit organization dedicated to creating the future of Torah in an open and
-                    participatory way.
-                    We are assembling a free, living library of Jewish texts and their interconnections, in Hebrew and
-                    in translation.
-                </span>
-                <span class="int-he">
-                    ספריא היא ארגון ללא מטרות רווח שמטרתו יצירת הדור הבא של לימוד התורה באופן פתוח ומשותף.
-                    אנחנו בספריא מרכיבים ספרייה חיה וחופשית של טקסטים יהודיים וכלל הקישורים ביניהם, בשפת המקור ובתרגומים.
-                </span>
-            </p> -->
-            <!-- Comment out when jobs page has no content -->
-        </header>
-
-
-        <!---<section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Operations</h2>
-            </header>
-            <section class="jobsListForDepartment">
-                <div class="job"><a class="jobLink" target="_blank" href=""></a></div>
-            </section>
-        </section>--->
-        <!--
-        <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Engineering</h2>
-            </header>
-            <section class="jobsListForDepartment">
-            </section>
-        </section>
-      <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Marketing and Communications</h2>
-            </header>
-            <section class="jobsListForDepartment">
-                <div class="job"><a class="" target="_blank" href=""></a></div>
-            </section>
-        </section>
-        <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">HR and Operations</h2>
-            </header>
-            <section class="jobsListForDepartment">
-                <div class="job"><a class="" target="_blank" href=""></a></div>
-            </section>
-        </section>
-        <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Learning</h2>
-            </header>
-            <section class="jobsListForDepartment">
-                <div class="job"><a class="jobLink" target="_blank" href="">n</a></div>
-            </section>
-        </section>
-       <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Product</h2>
-            </header>
-           <section class="jobsListForDepartment">
-                <div class="job"><a class="jobLink" target="_blank" href=""></a></div>
-            </section>
-           <section class="jobsListForDepartment">
-                <div class="job"><a class="jobLink" target="_blank" href=""></a></div>
-            </section>
-        </section>
-        <section class="section department englishOnly">
-            <header>
-                <h2 class="anchorable">Israel Team</h2>
-            </header>
-        </section>--->
-
-        <div class="section nothing">
-            <p>
-                <span class="int-en">
-                    Sefaria does not currently have any open positions.
-                    Please follow us on <a _target="blank" href="http://www.facebook.com/sefaria.org" >Facebook</a>
-                    to hear about our next openings.
-                </span>
-                <span class="int-he">
-                    ספריא איננה מחפשת כעת עובדים חדשים.
-                    עקבו אחרינו ב<a _target="blank" href="http://www.facebook.com/sefaria.org" >פייסבוק</a>
-                    כדי להשאר מעודכנים במשרות עתידיות.
-                </span>
-            </p>
+        <div id="jobsPageContent">
+            <h1 id="appLoading">Loading...</h1>
         </div>
+
 
         <aside class="solicitationNotice">
             <p>

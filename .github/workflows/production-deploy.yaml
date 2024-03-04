@@ -97,6 +97,8 @@ jobs:
 #         cache-to: type=registry,ref=$gcr.io/${{ secrets.PROD_GKE_PROJECT }}/{{ secrets.IMAGE_NAME }}-${{ matrix.app }}/cache,mode=max
           context: .
           push: true
+          build-args: |
+            TYPE=build-prod
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -218,7 +220,6 @@ jobs:
           IMAGE_NAME: "${{ secrets.IMAGE_NAME }}"
           CHART_VERSION: "${{ steps.chart_version.outputs.chart_version }}"
       - name: Update workflow default chart
-        if: github.ref == 'refs/heads/master'
         run: > 
           curl -L 
           -X PATCH 

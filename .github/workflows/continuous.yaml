@@ -1,11 +1,7 @@
 name: Continuous
 on:
   push:
-    branches:
-      - "*"
   pull_request:
-    branches:
-      - "*"
 
 concurrency:
   group: ${{ github.ref }}
@@ -93,6 +89,8 @@ jobs:
 #         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
           context: .
           push: true
+          build-args: |
+            TYPE=build
           file: ./build/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -198,6 +196,9 @@ jobs:
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
   sandbox-deploy:
+    concurrency:
+      group: dev-mongo
+      cancel-in-progress: false
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     needs: build-derived
@@ -267,6 +268,9 @@ jobs:
           WAIT_DURATION: "3000"
           GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
   pytest-job:
+    concurrency:
+      group: dev-mongo
+      cancel-in-progress: false
     if: ${{ github.event_name == 'pull_request' }}
     name: "PyTest"  # This name is referenced when slacking status
     needs:
@@ -311,12 +315,10 @@ jobs:
           | sed 's/[^a-z0-9\.\-]//g')
           >> $GITHUB_OUTPUT
       - name: Start Job
-        run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          WEB_IMAGE_NAME: us-east1-docker.pkg.dev/${{secrets.DEV_PROJECT}}/containers/sefaria-web-${{ steps.branch-name.outputs.current_branch }}
-          WEB_IMAGE_TAG: sha-${{ steps.get-sha.outputs.sha_short }}
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 60

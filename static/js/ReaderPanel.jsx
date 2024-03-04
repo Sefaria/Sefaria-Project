@@ -31,6 +31,7 @@ import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
+import { TextColumnBannerChooser } from './TextColumnBanner';
 import {
   CloseButton,
   MenuButton,
@@ -166,11 +167,11 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, replace, currVersions);
+      this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
   updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
     const newVersions = {
@@ -180,6 +181,17 @@ class ReaderPanel extends Component {
     };
     if (Sefaria.util.object_equals(this.state.currVersions, newVersions)) { return; }
     this.conditionalSetState({ currVersions: newVersions });
+  }
+  openConnectionsPanel(ref, additionalState) {
+    /**
+     * Decides whether to open a new connections panel or to open connections in the current panel
+     * depending on whether we're in multi-panel mode
+     */
+    if (this.props.multiPanel) {
+      this.props.openConnectionsPanel(ref, null, additionalState);
+    } else {
+      this.openConnectionsInPanel(ref, additionalState);
+    }
   }
   openConnectionsInPanel(ref, additionalState) {
     let refs = typeof ref == "string" ? [ref] : ref;
@@ -224,52 +236,37 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
-    // Set the current primary text `ref`, which may be either a string or an array of strings.
-    // `replaceHistory` - bool whether to replace browser history rather than push for this change
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
+    /* Set the current primary text `ref`, which may be either a string or an array of strings.
+    * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
+    * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
     // console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor === Array) {
-      // When called with an array, set highlight for the whole spanning range
-      refs = ref;
-      currentlyVisibleRef = Sefaria.humanRef(ref);
-      let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-      highlightedRefs = [].concat.apply([], splitArray);
-    } else {
+    let refs;
+    if (!Array.isArray(ref)) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
         this.openSheet(ref);
         return;
       }
       refs = [ref];
-      currentlyVisibleRef = ref;
-      highlightedRefs = [];
     }
-
+    else {
+      refs = ref;
+    }
     if (this.replaceHistory) {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
-    this.conditionalSetState({
-      mode: "Text",
-      refs,
-      filter,
-      currentlyVisibleRef,
-      currVersions,
-      highlightedRefs,
-      recentFilters: [],
-      menuOpen: null,
-      compare: false,
-      sheetID: null,
-      connectionsMode: "Resources",
-      settings: this.state.settings
-    });
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);
@@ -526,6 +523,9 @@ class ReaderPanel extends Component {
         history.state ? !history.state.panels[0].mode : true // on page load history state may not yet exist -- in that case force update
         : false
     this.conditionalSetState({tab: tab})
+  }
+  onSetTopicSort(topicSort) {
+    this.conditionalSetState({topicSort});
   }
   currentMode() {
     return this.state.mode;
@@ -919,6 +919,8 @@ class ReaderPanel extends Component {
           <TopicPage
             tab={this.state.tab}
             setTab={this.setTab}
+            onSetTopicSort={this.onSetTopicSort}
+            topicSort={this.state.topicSort}
             topic={this.state.navigationTopic}
             topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
@@ -1106,7 +1108,7 @@ class ReaderPanel extends Component {
             openDisplaySettings={this.openDisplaySettings}
             currentLayout={this.currentLayout}
             onError={this.onError}
-            openSidePanel={this.openSidePanel}
+            openConnectionsPanel={this.openConnectionsPanel}
             connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
             connectionsCategory={this.state.connectionsCategory}
             closePanel={this.props.closePanel}
@@ -1254,6 +1256,9 @@ class ReaderControls extends Component {
       }
     });
   }
+  openTranslations() {
+    this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
+  }
   componentDidMount() {
     const title = this.props.currentRef;
     if (title) {
@@ -1383,7 +1388,14 @@ class ReaderControls extends Component {
           />
           <DisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    let transLangPrefSuggBann = hideHeader || connectionsHeader ? null : <TranslationLanguagePreferenceSuggestionBanner setTranslationLanguagePreference={this.props.setTranslationLanguagePreference} />;
+    const openTransBannerApplies = () => Sefaria.openTransBannerApplies(this.props.currentBook(), this.props.settings.language);
+    let banner = (hideHeader || connectionsHeader) ? null : (
+        <TextColumnBannerChooser
+            setTranslationLanguagePreference={this.props.setTranslationLanguagePreference}
+            openTranslations={this.openTranslations}
+            openTransBannerApplies={openTransBannerApplies}
+        />
+    );
     const classes = classNames({
       readerControls: 1,
       connectionsHeader: mode == "Connections",
@@ -1403,7 +1415,7 @@ class ReaderControls extends Component {
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
         {readerControls}
-        {transLangPrefSuggBann}
+        {banner}
       </div>
     );
   }
@@ -1436,61 +1448,6 @@ ReaderControls.propTypes = {
   historyObject:           PropTypes.object,
   setTranslationLanguagePreference: PropTypes.func.isRequired,
 };
-
-
-const TranslationLanguagePreferenceSuggestionBanner = ({ setTranslationLanguagePreference }) => {
-  const [accepted, setAccepted] = useState(false);
-  const [closed, setClosed] = useState(false);
-
-  const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
-  const { translation_language_preference_suggestion } = Sefaria;
-  if (closed || (!accepted && cookie("translation_language_preference_suggested")) || !translation_language_preference_suggestion) {
-    return null;
-  }
-  const closeBanner = () => {
-    setClosed(true);
-    cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
-    Sefaria.editProfileAPI({settings: {translation_language_preference_suggested: true}});
-  }
-  const accept = () => {
-    setAccepted(true);
-    setTranslationLanguagePreference(translation_language_preference_suggestion);
-  }
-  const lang = Sefaria.translateISOLanguageCode(translation_language_preference_suggestion);
-
-  return (
-    <div className="readerControls transLangPrefSuggBann">
-      <div className="readerControlsInner transLangPrefSuggBannInner sans-serif">
-        {
-          accepted ? (
-            <div className="transLangPrefCentered">
-              <InterfaceText>
-                  <EnglishText> Thanks! We'll show you {lang} translations first when we have them. </EnglishText>
-                  <HebrewText>תודה! כשנוכל, נציג לכם תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר אלו יהיו זמינים. </HebrewText>
-              </InterfaceText>
-            </div>
-          ) : (
-            <div className="transLangPrefCentered">
-            <InterfaceText>
-                <EnglishText> Prefer to see <span className="bold"> {lang} </span> translations when available? </EnglishText>
-                <HebrewText>האם תעדיפו לראות תרגומים בשפה ה<span className="bold">{Sefaria._(lang)}</span> כאשר הם זמינים?</HebrewText>
-            </InterfaceText>
-            <div className="yesNoGroup">
-              <a className="yesNoButton" onClick={accept}>
-                <InterfaceText>Yes</InterfaceText>
-              </a>
-              <a className="yesNoButton" onClick={closeBanner}>
-                <InterfaceText>No</InterfaceText>
-              </a>
-            </div>
-          </div>
-          )
-        }
-        <CloseButton onClick={closeBanner} />
-      </div>
-    </div>
-  );
-}
 
 
 class ReaderDisplayOptionsMenu extends Component {

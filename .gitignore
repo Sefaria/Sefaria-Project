@@ -81,6 +81,7 @@ node_modules
 #####################
 venv/
 .python-version
+.node-version
 
 # Partner files #
 #################

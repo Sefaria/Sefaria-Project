@@ -132,16 +132,10 @@ OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
-"""
-GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "messageName",
-    "repetition": 1,
-    "is_fundraising": True,
-    "style":      "modal" # "modal" or "banner"
-    "condition":  {"returning_only": True}
-}
-"""
+# Location of Strapi CMS instance
+# For local development, Strapi is located at http://localhost:1337 by default
+STRAPI_LOCATION = None
+STRAPI_PORT = None
 
 
 MANAGERS = ADMINS
@@ -162,7 +156,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
 # ElasticSearch server
-SEARCH_ADMIN = "http://localhost:9200"
+# URL to connect to ES server.
+# Set this to https://sefaria.org/api/search to connect to production search.
+# If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
+SEARCH_URL = "http://localhost:9200"
+
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'

@@ -141,7 +141,7 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: elasticsearch-data
+  SEARCH_HOST: elasticsearch-es-http.elasticsearch.svc
   disableScraping: false
   replicaCount: 2
   resources:
@@ -183,6 +183,8 @@ cronJobs:
     enabled: true
   trello:
     enabled: true
+  trends:
+    enabled: true
   weeklyEmailNotifications:
      enabled: true
 secrets:
@@ -193,7 +195,7 @@ secrets:
   slackWebhook:
     ref: slack-webhook-production
 instrumentation:
-  enabled: true
+  enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"
   jaegerEndpoint: "jaeger-agent-dev.monitoring.svc.cluster.local:6831"
 
@@ -206,7 +208,6 @@ localSettings:
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_ADMIN: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://www.sefaria.org"
@@ -216,7 +217,6 @@ localSettings:
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   SITE_PACKAGE: "sites.sefaria"
-  SEARCH_HOST: elasticsearch.data
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"

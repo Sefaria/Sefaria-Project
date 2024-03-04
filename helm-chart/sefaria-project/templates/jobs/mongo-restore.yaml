@@ -40,6 +40,11 @@ spec:
       containers:
         - name: mongo-backup-restorer-{{ .Values.deployEnv }}
           image: mongo:4.4
+          resources:
+            requests:
+              cpu: 500m
+            limits:
+              cpu: 750m
           volumeMounts:
             - name: shared-volume
               mountPath: /storage

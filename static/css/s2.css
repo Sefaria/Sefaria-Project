@@ -607,7 +607,7 @@ input.noselect {
 }
 .mobileNavMenu {
   position: fixed;
-  height: calc(100% - 60px);
+  height: calc(100vh - 60px);
   box-sizing: border-box;
   top: 60px;
   width: 100%;
@@ -616,6 +616,18 @@ input.noselect {
   z-index: 1000;
   overflow-y: scroll;
 }
+div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
+  position: fixed; /*This takes the 60px of the header plus 120px of the banner into account */
+  height: calc(100vh - 180px);
+  top: 180px;
+}
+@supports not selector(:has(a, b)) {
+  /* Fallback for when :has() is unsupported */
+  .mobileNavMenu {
+    position: absolute;
+  }
+}
+
 .mobileNavMenu.closed {
   display: none;
 }
@@ -701,7 +713,7 @@ input.noselect {
   color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
-  border-top: solid 1px #ccc;
+  border-bottom: solid 1px #ccc;
   padding-top: 12px;
 }
 .ui-autocomplete .ui-menu-item.hebrew-result a {
@@ -751,6 +763,7 @@ input.noselect {
 }
 .loggedIn .help img {
   height: 24px;
+  margin-bottom: 3px;
 }
 .accountLinks.anon .help {
   margin-top: 6px;
@@ -1214,9 +1227,81 @@ div.interfaceLinks-row a {
   margin: 0 0 30px;
   color: #333;
 }
-.interface-hebrew #interruptingMessage h1{
+.interface-hebrew #interruptingMessage h1 {
   font-style: normal;
 }
+
+/* Styles used from previously existing modals */
+
+.line-break {
+  white-space: pre-wrap;
+}
+
+#defaultModal {
+    width: 410px;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.interface-english #defaultModal {
+    text-align: left;
+}
+
+.interface-hebrew #defaultModal {
+    text-align: right;
+    direction: rtl;
+}
+
+#defaultModalBody {
+    color: #555555;
+    margin-top: 0;
+}
+
+#defaultModalBody .reactMarkdown {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#defaultModal #defaultModalBody .sub {
+    color: var(--medium-grey);
+    font-size: 12px;
+    font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+
+#defaultModal .button {
+    margin-bottom: 20px;
+}
+
+#defaultModal img {
+    max-width: 100%;
+}
+
+#defaultModal .buttons {
+    text-align: right;
+}
+
+.leader {
+    font-weight: bold;
+}
+
+.center {
+    text-align: center;
+}
+
+#email-input-wrapper {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.newsletterInput#email-input {
+    width: 300px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 7px;
+    border: 1px solid #EEEEEE;
+    color: var(--beit-midrash-grey);
+}
+
 .header .my-profile img {
   height: 24px;
   width: 24px;
@@ -1782,7 +1867,8 @@ div.interfaceLinks-row a {
   color: inherit;
   cursor: pointer;
 }
-.navSidebar a.inTextLink {
+.navSidebar a.inTextLink,
+.translationsDesc  a.inTextLink {
   color: inherit;
   text-decoration: underline;
   margin-inline-start: 5px;
@@ -2204,6 +2290,71 @@ div.interfaceLinks-row a {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
+.imageWithCaptionPhoto{
+  border: 1px solid #EDEDEC;
+  max-width: 100%; 
+  height: auto;
+  padding: 0 44;
+  top: 121px;
+  left: 835px;
+}
+.imageCaption .int-en {
+  font-family: Roboto;
+}
+.imageCaption .int-he {
+    font-family: Roboto;
+  }
+.imageCaption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15px;
+  letter-spacing: 0em;
+  color: var(--dark-grey);
+  width: 100%;
+}
+.topicImage{
+  padding-left: 44px;
+  padding-right: 44px;
+}
+.navSidebarModule .portalMobile .button {
+  margin-top: 0;
+}
+.portalTopicImageWrapper {
+    padding-top: 5px;
+    margin-bottom: 25px;
+}
+.portalTopicImageWrapper .topicImage {
+    padding-left: 0;
+    padding-right: 0;
+}
+@media (max-width: 600px) {
+  .imageWithCaptionPhoto{
+    height: auto;
+    max-width: calc(66.67vw);
+    max-height: calc(66.67vw);
+    margin-bottom: 10px;
+  }
+  .topicImage{
+    padding-left: 0;
+    padding-right: 0;
+    margin-top: 30px;  
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .imageCaption {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 15px;
+    letter-spacing: 0em;
+    color: var(--dark-grey);
+    width: 80vw;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+
+}
 .readerPanel .translationsPage h2 {
   margin: 40px 0 0 0;
   font-size: 24px;
@@ -2260,7 +2411,6 @@ h1 .languageToggle .he {
 }
 .authorIndexTitle {
   margin-top: 30px;
-  margin-bottom: 17px;
 }
 .sectionTitleText.authorIndexTitle .int-en {
   text-transform: none;
@@ -3371,6 +3521,92 @@ display: none;
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
+.versionBlock.with-preview .versionPreviewWithOptionalEllipsis {
+  --english-font: "adobe-garamond-pro", var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 18px;
+  display: block;
+}
+.versionBlock .versionPreview {
+  --line-height: 22px;
+  line-height: var(--line-height);
+  text-decoration: none;
+}
+.versionBlock .versionPreview big {
+  font-size: inherit;
+}
+.versionBlock .versionPreview i.footnote {
+  display: none;
+}
+.versionBlock.with-preview {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.versionBlock .versionPreview.shouldAttemptTruncation  {
+  display: block;
+  overflow: hidden;
+  --max-lines: 5;
+  max-height: calc(var(--line-height) * var(--max-lines));
+}
+.version-with-preview-title-line {
+  display: inline;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--medium-grey);
+  margin-inline-start: 5px;
+}
+.version-with-preview-title-line .open-details {
+  display: inline;
+  margin-inline-end: 5px;
+  font-style: italic;
+}
+.versionBlock.with-preview summary {
+  margin-top: 10px;
+}
+[open] .versionBlock.with-preview summary {
+  margin-bottom: 10px;
+}
+.versionBlock.with-preview details summary::before {
+  content: url('/static/icons/little-chevron-down.svg');
+}
+.versionBlock.with-preview details[open] summary::before {
+  content: url('/static/icons/little-chevron-up.svg');
+}
+.versionBlock.with-preview summary::-webkit-details-marker {
+  /*hide marker for safari*/
+  display: none;
+}
+.versionBlock.with-preview summary {
+  /*hide marker for chrome*/
+  list-style: none;
+  cursor: pointer;
+}
+details .open-details::before {
+  margin-inline-end: 5px;
+}
+.version-with-preview-title-line .selectButton {
+  text-decoration: none;
+}
+.version-with-preview-title-line .selectButton.currSelectButton {
+  cursor: default;
+}
+.version-with-preview-title-line .selectButton:not(.currSelectButton) {
+  color: var(--select-blue);
+}
+.version-with-preview-title-line .selectButton::before {
+  content: "•";
+  margin-inline-end: 5px;
+  color: var(--medium-grey);
+}
+.version-block-with-preview-details {
+  background-color: var(--lighter-grey);
+  border-radius: 6px;
+  padding: 10px;
+}
+.versionDetails-version-title {
+  color: black;
+}
 .bookPage .versionBlock .versionTitle{
   font-style: normal;
   font-weight: normal;
@@ -3378,9 +3614,15 @@ display: none;
   line-height: 29px;
   max-inline-size: max-content;
 }
-.versionsBox .versionBlock {
-  padding: 20px 0;
+.versionsBox .versionBlock:not(.with-preview) {
   border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+.versionsBox .versionBlock.with-preview {
+  padding: 15px 0;
+}
+.language-block .versionLanguage {
+  border-bottom: solid 1px #CCC;
 }
 .bookPage .versionsBox .versionBlock{
   padding-top: 20px;
@@ -4373,6 +4615,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls.transLangPrefSuggBann {
   background-color: #EDEDEC;
+  z-index: 99;
 }
 .readerControls .readerControlsInner.transLangPrefSuggBannInner {
   justify-content: center;
@@ -4559,10 +4802,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 40px;
   height: 56px;
   line-height: 56px;
-  color: #999;
+  color: #666666;
   font-size: 20px;
   display: inline-block;
   cursor: pointer;
+}
+.readerOptions .int-en {
+  margin-right: 4px;
+}
+.readerOptions .int-he {
+  margin-left: 8px;
+}
+.readerOptions .int-he img {
+    height: 18px;
 }
 .rightButtons .readerOptions {
   vertical-align: middle;
@@ -5272,7 +5524,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #666;
+  color: #000;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -5406,7 +5658,8 @@ But not to use a display block directive that might break continuous mode for ot
   font-family: "Heebo", sans-serif;
 }
 /* Footnotes */
-.segment sup {
+.segment sup,
+.versionPreview sup {
   margin-left: .2em;
   margin-right: .2em;
   text-decoration: none;
@@ -6398,7 +6651,8 @@ But not to use a display block directive that might break continuous mode for ot
 .connection-buttons.access-user .connection-button.delete-link{
   display:none;
 }
-.connection-buttons .connection-button{
+.connection-buttons .connection-button,
+.version-block-with-preview-details .connection-button{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -6410,6 +6664,14 @@ But not to use a display block directive that might break continuous mode for ot
   display: flex;
   flex-flow: row wrap;
   align-items: center;
+}
+.version-block-with-preview-details .connection-button {
+  font-size: 14px;
+  color: var(--dark-grey);
+  margin-top: 15px;
+}
+.version-block-with-preview-details img {
+  padding-inline-start: 15px;
 }
 .singlePanel .connection-buttons .connection-button{
   text-align: start;
@@ -6429,7 +6691,8 @@ But not to use a display block directive that might break continuous mode for ot
   text-align: center;
   font-size: 18px;
 }
-.connection-buttons .connection-button::before{
+.connection-buttons .connection-button::before,
+.version-block-with-preview-details .connection-button::before{
   display: block;
   content: ' ';
   background-size: 15px 15px;
@@ -6438,7 +6701,11 @@ But not to use a display block directive that might break continuous mode for ot
   width: 15px;
   margin-inline-end: 5px;
 }
-.connection-buttons .panel-open-link::before{
+.version-block-with-preview-details .connection-button::before {
+  height: 18px;
+}
+.connection-buttons .panel-open-link::before,
+.version-block-with-preview-details .connection-button::before{
   background-image: url("/static/icons/open-panel.svg");
 }
 .connection-buttons .delete-link::before{
@@ -6923,6 +7190,7 @@ But not to use a display block directive that might break continuous mode for ot
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  margin-bottom: 4px;
 }
 .profile-page {
   background-color: var(--lightest-grey);
@@ -8341,6 +8609,25 @@ h3.aboutSheetHeader {
   border-width: 1px;
 }
 
+.translationsHeader {
+  margin-bottom: 35px;
+}
+
+.translationsHeader h3 {
+  text-transform: none;
+  color: var(--dark-grey);
+  font-size: var(--sans-serif-h3-font-size);
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.translationsHeader .translationsDesc {
+  font-size: var(--sans-serif-body-font-size);
+  color: var(--dark-grey);
+}
+
 .aboutSheetPanel hr {
   height: 0px;
   border: 1px solid var(--light-grey);
@@ -9111,7 +9398,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionLanguage .versionCount {
   color: #999;
 }
-.versionsBox a.selectButton {
+.versionsBox a.selectButton:not(.version-with-preview-title-line .selectButton) {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -9123,7 +9410,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 18px;
   cursor: pointer;
 }
-.versionsBox a.selectButton.currSelectButton {
+.versionsBox a.selectButton.currSelectButton:not(.version-with-preview-title-line .selectButton) {
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
@@ -10858,6 +11145,11 @@ body .homeFeedWrapper .content {
     border: 0;
     margin: 0;
   }
+  .topicPanel .navSidebar {
+    width: unset;
+    border-top: 30px solid #FBFBFA;
+    margin: 0;
+  }
 }
 .sideColumn .topicSideColumn {
   margin-bottom: 20px;
@@ -11208,7 +11500,7 @@ body .homeFeedWrapper.userStats {
   float: right;
   margin-right: 30px;
 }
-#categoryChooserMenu {
+.categoryChooserMenu {
   overflow: hidden;
   background: url("/static/img/arrow-down.png") 98% 20px/10px 10px no-repeat #ffffff;
   width: 100%;
@@ -11239,7 +11531,7 @@ body .homeFeedWrapper.userStats {
   display: inline-block;
 }
 
-#categoryChooserMenu select {
+.categoryChooserMenu select {
   background: transparent;
   font-size: 16px;
   width: 680px;
@@ -11248,14 +11540,14 @@ body .homeFeedWrapper.userStats {
   padding: 4px 25px 4px 10px;
 }
 
-.connectionsPanel .editTextInfo #categoryChooserMenu {
+.connectionsPanel .editTextInfo .categoryChooserMenu {
   width: 102%;
 }
 
 .connectionsPanel .editTextInfo .collectionsWidget {
   width: 70%;
 }
-.connectionsPanel .editTextInfo #categoryChooserMenu select {
+.connectionsPanel .editTextInfo .categoryChooserMenu select {
   width: 98.5%;
 }
 
@@ -11266,11 +11558,11 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex {
   margin: 50px auto;
 }
-.searchBox #categoryChooserMenu {
+.searchBox .categoryChooserMenu {
   width: 97%;
   background: url("/static/img/arrow-down.png") 99% 20px/10px 10px no-repeat #ffffff;
 }
-.searchBox #categoryChooserMenu select {
+.searchBox .categoryChooserMenu select {
   width: 100%;
 }
 .searchBox .editTextInfo #newIndex input {
@@ -11279,7 +11571,7 @@ body .homeFeedWrapper.userStats {
 .searchBox .editTextInfo #newIndex #topicDesc {
   width: 92%;
 }
-#categoryChooserMenu img {
+.categoryChooserMenu img {
   opacity: 0.43;
   padding: 0 5px;
   height: 10px;
@@ -11363,14 +11655,14 @@ body .homeFeedWrapper.userStats {
 }
 @media screen and (max-width: 680px) {
 
-  #categoryChooserMenu {
+  .categoryChooserMenu {
     background: url("/static/img/arrow-down.png") 300px 20px/10px 10px no-repeat #ffffff;
     width: 320px;
   }
   .editTextInfo .static .headerWithButtons h1 {
     margin: 30px;
   }
-  #categoryChooserMenu select {
+  .categoryChooserMenu select {
     width: 340px;
   }
   .editTextInfo #newIndex input {

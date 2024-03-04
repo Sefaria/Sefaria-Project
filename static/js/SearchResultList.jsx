@@ -6,7 +6,7 @@ import extend from 'extend';
 import classNames from 'classnames';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
-import { FilterNode } from './sefaria/search';
+import { SearchTotal } from "./sefaria/searchTotal";
 import SearchTextResult from './SearchTextResult';
 import SearchSheetResult from './SearchSheetResult';
 import SearchFilters from './SearchFilters';
@@ -69,13 +69,11 @@ const SearchTopic = (props) => {
                 {topicCategory}
                 {"enDesc" in props.topic ?
                     <div className="topicDescSearchResult systemText">
-                       <InterfaceText text={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
+                       <InterfaceText markdown={{en:props.topic.enDesc, he:props.topic.heDesc}}/>
                     </div> : null}
                 {sourcesSheetsDiv}
         </div>
 }
-
-
 
 
 class SearchResultList extends Component {
@@ -87,7 +85,7 @@ class SearchResultList extends Component {
         runningQueries: this._typeObjDefault(null),
         isQueryRunning: this._typeObjDefault(false),
         moreToLoad:     this._typeObjDefault(true),
-        totals:         this._typeObjDefault(0),
+        totals:         this._typeObjDefault(new SearchTotal()),
         pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
@@ -127,7 +125,7 @@ class SearchResultList extends Component {
     componentWillReceiveProps(newProps) {
       if(this.props.query !== newProps.query) {
         this.setState({
-          totals: this._typeObjDefault(0),
+          totals: this._typeObjDefault(new SearchTotal()),
           hits: this._typeObjDefault([]),
           moreToLoad: this._typeObjDefault(true),
         });
@@ -245,7 +243,7 @@ class SearchResultList extends Component {
       this.setState(this.state);
     }
     totalResults() {
-      return this.types.reduce((accum, type) => (this.state.totals[type] + accum), 0);
+      return this.types.reduce((accum, type) => (this.state.totals[type].combine(accum)), new SearchTotal());
     }
     updateTotalResults() {
       this.props.updateTotalResults(this.totalResults());
@@ -324,11 +322,12 @@ class SearchResultList extends Component {
       args.success = data => {
               this.updateRunningQuery(type, null);
               if (this.state.pagesLoaded[type] === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
+                const currTotal = data.hits.total;
                 let state = {
                   hits: extend(this.state.hits, {[type]: data.hits.hits}),
-                  totals: extend(this.state.totals, {[type]: data.hits.total}),
+                  totals: extend(this.state.totals, {[type]: currTotal}),
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
-                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
+                  moreToLoad: extend(this.state.moreToLoad, {[type]: currTotal.getValue() > this.querySize[type]})
                 };
                 this.setState(state, () => {
                   this.updateTotalResults();
@@ -336,7 +335,7 @@ class SearchResultList extends Component {
                 });
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
-                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total);
+                Sefaria.track.event("Search", `${this.props.searchInBook? "SidebarSearch ": ""}Query: ${type}`, query_label, data.hits.total.getValue());
               }
 
               if (data.aggregations) {
@@ -395,7 +394,7 @@ class SearchResultList extends Component {
 
           this.state.hits[type] = nextHits;
           this.state.pagesLoaded[type] += 1;
-          if (this.state.pagesLoaded[type] * this.querySize[type] >= this.state.totals[type] ) {
+          if (this.state.pagesLoaded[type] * this.querySize[type] >= this.state.totals[type].getValue() ) {
             this.state.moreToLoad[type] = false;
           }
 
@@ -522,14 +521,13 @@ const SearchTabs = ({clickTextButton, clickSheetButton, textTotal, sheetTotal, c
 
 
 const SearchTab = ({label, total, onClick, active}) => {
-  total = total.addCommas()
   const classes = classNames({"search-dropdown-button": 1, active});
 
   return (
     <div className={classes} onClick={onClick} onKeyPress={e => {e.charCode === 13 ? onClick(e) : null}} role="button" tabIndex="0">
       <div className="type-button-title">
         <InterfaceText>{label}</InterfaceText>&nbsp;
-        <InterfaceText>{`(${total})`}</InterfaceText>
+        <InterfaceText>{`(${total.asString()})`}</InterfaceText>
       </div>
     </div>
   );

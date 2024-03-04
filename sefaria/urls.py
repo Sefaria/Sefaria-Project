@@ -14,6 +14,7 @@ import sefaria.views as sefaria_views
 import sourcesheets.views as sheets_views
 import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
+import api.views as api_views
 
 from sefaria.site.urls import site_urlpatterns
 
@@ -85,25 +86,26 @@ urlpatterns += [
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
-    url(r'^api/profile/user_history$', reader_views.user_history_api), 
+    url(r'^api/profile/user_history$', reader_views.user_history_api),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^settings/account/user$', reader_views.account_user_update),
-    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api), 
+    url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
-    url(r'^api/interrupting-messages/read/(?P<message>.+)$', reader_views.interrupting_messages_read_api),
 ]
 
 # Topics
 urlpatterns += [
     url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_category_page),
-    url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),    
+    url(r'^topics/all/(?P<letter>.)$', reader_views.all_topics_page),
     url(r'^topics/?$', reader_views.topics_page),
     url(r'^topics/b/(?P<topic>.+)$', reader_views.topic_page_b),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
-    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api)
+    url(r'^api/topic/completion/(?P<topic>.+)', reader_views.topic_completion_api),
+    url(r'^api/topics/images/(?P<topic>.+)$', reader_views.topic_upload_photo)
+
 ]
 
 # Calendar Redirects
@@ -149,6 +151,7 @@ urlpatterns += [
     url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
+    url(r'^api/v3/texts/(?P<tref>.+)$', api_views.Text.as_view()),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -190,9 +193,9 @@ urlpatterns += [
     url(r'^api/sheets/?$',                                            sheets_views.save_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/delete$',                     sheets_views.delete_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/add$',                        sheets_views.add_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api), 
+    url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api), 
+    url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
@@ -230,7 +233,7 @@ urlpatterns += [
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
     url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
     url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
-    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api), 
+    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api),
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
     url(r'^api/collections/(?P<slug>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.collections_pin_sheet_api),
@@ -239,7 +242,9 @@ urlpatterns += [
 # Search API
 urlpatterns += [
     url(r'^api/dummy-search$', reader_views.dummy_search_api),
-    url(r'^api/search-wrapper$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper/es6$', reader_views.search_wrapper_api, {'es6_compat': True}),
+    url(r'^api/search-wrapper/es8$', reader_views.search_wrapper_api),
+    url(r'^api/search-wrapper$', reader_views.search_wrapper_api, {'es6_compat': True}),
     url(r'^api/search-path-filter/(?P<book_title>.+)$', reader_views.search_path_filter),
 ]
 
@@ -269,6 +274,11 @@ urlpatterns += [
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 
+# Portals API
+urlpatterns += [
+    url(r'^api/portals/(?P<slug>.+)$', reader_views.portals_api),
+]
+
 # History API
 urlpatterns += [
     url(r'^api/history/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.texts_history_api),
@@ -286,8 +296,8 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
-] 
-# SEC-AUDIT: do we also want to maybe move these to 'admin' 
+]
+# SEC-AUDIT: do we also want to maybe move these to 'admin'
 
 # Discussions
 urlpatterns += [
@@ -386,11 +396,12 @@ urlpatterns += [
 
 # Email Subscribe
 urlpatterns += [
-    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe),
+    url(r'^api/subscribe/(?P<org>.+)/(?P<email>.+)$', sefaria_views.generic_subscribe_to_newsletter_api),
+    url(r'^api/subscribe/(?P<email>.+)$', sefaria_views.subscribe_sefaria_newsletter_view),
 ]
 
 # Admin
-urlpatterns += [ 
+urlpatterns += [
     url(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     url(r'^admin/reset/cache$', sefaria_views.reset_cache),
     url(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),
@@ -404,6 +415,7 @@ urlpatterns += [
     url(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     url(r'^admin/delete/user-account', sefaria_views.delete_user_by_email, name="delete/user-account"),
+    url(r'^admin/delete/sheet$', sefaria_views.delete_sheet_by_id, name="delete/sheet"),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
     url(r'^admin/rebuild/citation-links/(?P<title>.+)$', sefaria_views.rebuild_citation_links),
     url(r'^admin/delete/citation-links/(?P<title>.+)$', sefaria_views.delete_citation_links),

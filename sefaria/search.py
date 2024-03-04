@@ -20,7 +20,6 @@ from collections import defaultdict
 import time as pytime
 logger = structlog.get_logger(__name__)
 
-from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
 from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError
@@ -31,12 +30,13 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
+from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
+from sefaria.helper.search import get_elasticsearch_client
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
-es_client = Elasticsearch(SEARCH_ADMIN)
+es_client = get_elasticsearch_client()
 index_client = IndicesClient(es_client)
 
 tracer = structlog.get_logger(__name__)
@@ -52,7 +52,7 @@ def delete_text(oref, version, lang):
         curr_index = get_new_and_current_index_names('text')['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=curr_index, doc_type='text', id=id)
+        es_client.delete(index=curr_index, id=id)
     except Exception as e:
         logger.error("ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -76,7 +76,7 @@ def delete_version(index, version, lang):
 
 def delete_sheet(index_name, id):
     try:
-        es_client.delete(index=index_name, doc_type='sheet', id=id)
+        es_client.delete(index=index_name, id=id)
     except Exception as e:
         logger.error("ERROR deleting sheet {}".format(id))
 
@@ -147,7 +147,7 @@ def index_sheet(index_name, id):
             "dateModified": sheet.get("dateModified", None),
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, doc_type='sheet', id=id, body=doc)
+        es_client.create(index=index_name, id=id, body=doc)
         global doc_count
         doc_count += 1
         return True
@@ -220,7 +220,6 @@ def get_exact_english_analyzer():
             "icu_normalizer",
         ],
         "filter": [
-            "standard",
             "lowercase",
             "icu_folding",
         ],
@@ -259,7 +258,7 @@ def create_index(index_name, type):
         }
     }
     print('Creating index {}'.format(index_name))
-    index_client.create(index=index_name, body=settings)
+    index_client.create(index=index_name, settings=settings)
 
     if type == 'text':
         put_text_mapping(index_name)
@@ -326,7 +325,7 @@ def put_text_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(doc_type='text', body=text_mapping, index=index_name)
+    index_client.put_mapping(body=text_mapping, index=index_name)
 
 
 def put_sheet_mapping(index_name):
@@ -392,7 +391,7 @@ def put_sheet_mapping(index_name):
             }
         }
     }
-    index_client.put_mapping(doc_type='sheet', body=sheet_mapping, index=index_name)
+    index_client.put_mapping(body=sheet_mapping, index=index_name)
 
 def get_search_categories(oref, categories):
     toc_tree = library.get_toc_tree()
@@ -593,7 +592,6 @@ class TextIndexer(object):
                 cls._bulk_actions += [
                     {
                         "_index": cls.index_name,
-                        "_type": "text",
                         "_id": make_text_doc_id(tref, vtitle, vlang),
                         "_source": doc
                     }
@@ -614,6 +612,17 @@ class TextIndexer(object):
             return content
 
     @classmethod
+    def modify_text_in_doc(cls, content):
+        content = AbstractTextRecord.strip_imgs(content)
+        content = cls.remove_footnotes(content)
+        content = strip_cantillation(content, strip_vowels=False).strip()
+        content = re.sub(r'<[^>]+>', ' ', content)     # replace HTML tags with space so that words dont get smushed together
+        content = re.sub(r'\([^)]+\)', ' ', content)   # remove all parens
+        while "  " in content:                                 # make sure there are not many spaces in a row
+            content = content.replace("  ", " ")
+        return content
+        
+    @classmethod
     def make_text_index_document(cls, tref, heTref, version, lang, version_priority, content, categories, hebrew_version_title):
         """
         Create a document for indexing from the text specified by ref/version/lang
@@ -621,15 +630,8 @@ class TextIndexer(object):
         # Don't bother indexing if there's no content
         if not content:
             return False
-        content = AbstractTextRecord.strip_imgs(content)
-        content = cls.remove_footnotes(content)
-        content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
-        content_wo_cant = re.sub(r'<[^>]+>', ' ', content_wo_cant)     # replace HTML tags with space so that words dont get smushed together
-        content_wo_cant = re.sub(r'\([^)]+\)', ' ', content_wo_cant)   # remove all parens
-        while "  " in content_wo_cant:                                 # make sure there are not many spaces in a row
-            content_wo_cant = content_wo_cant.replace("  ", " ")
-
-        if len(content_wo_cant) == 0:
+        content = cls.modify_text_in_doc(content)
+        if len(content) == 0:
             return False
 
         oref = Ref(tref)
@@ -657,9 +659,9 @@ class TextIndexer(object):
             "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
-            #"hebmorph_semi_exact": content_wo_cant,
-            "exact": content_wo_cant,
-            "naive_lemmatizer": content_wo_cant,
+            #"hebmorph_semi_exact": content,
+            "exact": content,
+            "naive_lemmatizer": content,
             'hebrew_version_title': hebrew_version_title,
         }
 
