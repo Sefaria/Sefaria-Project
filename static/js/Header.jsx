@@ -455,6 +455,85 @@ const SearchSuggestion = ({ item }) => {
       </a>
     </div>  );
 };
+ const InputBox = ({getInputProps}) => {
+    const [searchFocused, setSearchFocused] = useState(false);
+    // const [query, setQuery] = useState('');
+    useEffect(() => {
+      showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
+    }, []);
+   const { onBlur, ...otherProps } = getInputProps();
+
+    const handleSearchKeyUp = (event) => {
+      if (event.keyCode !== 13 || document.querySelector(".ui-state-focus")) return;
+      const inputQuery = event.target.value;
+      if (!inputQuery) return;
+      if (catchSearchOverride(inputQuery)) return;
+      submitSearch(inputQuery);
+    };
+
+    const handleSearchButtonClick = () => {
+      const inputQuery = document.querySelector(".search").value;
+      if (inputQuery) {
+        submitSearch(inputQuery);
+      } else {
+        document.querySelector(".search").focus();
+      }
+    };
+    const showVirtualKeyboardIcon = (show) => {
+      if (document.getElementById('keyboardInputMaster')) {
+        return; // if keyboard is open, ignore
+      }
+      // if (Sefaria.interfaceLang === 'english' && !this.props.hideHebrewKeyboard) {
+      if (Sefaria.interfaceLang === 'english') {
+        const keyboardInitiator = document.querySelector(".keyboardInputInitiator");
+        if (keyboardInitiator) {
+          keyboardInitiator.style.display = show ? "inline" : "none";
+        }
+      }
+    };
+    const focusSearch = () => {
+      setSearchFocused(true);
+      showVirtualKeyboardIcon(true);
+    };
+
+    const blurSearch = (e) => {
+      onBlur(e)
+      const parent = document.getElementById('searchBox');
+      if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
+        setSearchFocused(false);
+        showVirtualKeyboardIcon(false);
+      }
+    };
+
+    const inputClasses = classNames({
+      search: 1,
+      serif: 1,
+      keyboardInput: Sefaria.interfaceLang === "english",
+      hebrewSearch: Sefaria.interfaceLang === "hebrew"
+    });
+
+    const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
+
+    console.log(getInputProps())
+
+    return (
+      <div id="searchBox"
+           className={searchBoxClasses}>
+        <SearchButton onClick={handleSearchButtonClick} />
+        <input
+          className={inputClasses}
+          id="searchInput"
+          placeholder={Sefaria._("Search")}
+          // onKeyUp={handleSearchKeyUp}
+          onFocus={focusSearch}
+          onBlur={blurSearch}
+          maxLength={75}
+          title={Sefaria._("Search for Texts or Keywords Here")}
+          {...otherProps}
+        />
+      </div>
+    );
+  };
 const Autocomplete = () => {
   const [suggestions, setSuggestions] = useState([]);
   const searchOverridePre = Sefaria._('Search for') +': "';
@@ -520,7 +599,65 @@ const Autocomplete = () => {
   }
 };
 
- const {
+//   const handleSearchKeyUp = function (event) {
+//     if (event.keyCode !== 13 || $(".ui-state-focus").length > 0) { return; }
+//     const query = $(event.target).val();
+//     if (!query) { return; }
+//     if (this.catchSearchOverride(query)) { return; }
+//     this.submitSearch(query);
+//   }
+//   const handleSearchButtonClick = function (event) {
+//     const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+//     if (query) {
+//       this.submitSearch(query);
+//     } else {
+//       $(ReactDOM.findDOMNode(this)).find(".search").focus();
+//     }
+//   }
+//
+//   const focusSearch = function (e) {
+//     const parent = document.getElementById('searchBox');
+//     this.setState({searchFocused: true});
+//     this.showVirtualKeyboardIcon(true);
+//   }
+//    const blurSearch = function (e) {
+//     // check that you're actually focusing in on element outside of searchBox
+//     // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
+//     const parent = document.getElementById('searchBox');
+//     if (!parent.contains(e.relatedTarget)) {
+//       if (!document.getElementById('keyboardInputMaster')) {
+//         // if keyboard is open, don't just close it and don't close search
+//         this.setState({searchFocused: false});
+//       }
+//       this.showVirtualKeyboardIcon(false);
+//     }
+//   }
+//   const inputClasses = classNames({
+//       search: 1,
+//       serif: 1,
+//       keyboardInput: Sefaria.interfaceLang === "english",
+//       hebrewSearch: Sefaria.interfaceLang === "hebrew"
+//     });
+//    const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
+// const InputBox = () => {
+//   return(
+//            <div id="searchBox"
+//                 // className={searchBoxClasses}
+//            >
+//         <SearchButton onClick={handleSearchButtonClick} />
+//         <input className={inputClasses}
+//           id="searchInput"
+//           placeholder={Sefaria._("Search")}
+//           onKeyUp={handleSearchKeyUp}
+//           onFocus={focusSearch}
+//           onBlur={blurSearch}
+//           maxLength={75}
+//           title={Sefaria._("Search for Texts or Keywords Here")}
+//             {...getInputProps()}/>
+//       </div>
+//   )
+// }
+   const {
     isOpen,
     getMenuProps,
     getInputProps,
@@ -537,19 +674,22 @@ const Autocomplete = () => {
     },
   });
 
+
   return (
     <div style={{ position: 'relative' }}>
-      <input {...getInputProps()} placeholder="Search..." />
-      <ul  className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front"
-        style={{ display: 'block', top: '48.5px', left: '1440px', width: '481px' }}
+      {/*<input {...getInputProps()} placeholder="Search..." />*/}
+      <InputBox getInputProps={getInputProps} />
+      <ul
+          // className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front"
+        // style={{ display: 'block', top: '48.5px', left: '1440px', width: '481px' }}
         {...getMenuProps()}
-        // style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
+        style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
         //   style="display: none; width: 585px; top: 48.5035px; left: 1653.35px;"
         //   style={{ width: '585px', top: '48.5035px', left: '1653.35px' }}
       >
         {isOpen &&
           suggestions.map((suggestion, index) => (
-            <li
+            <div
               {...getItemProps({
                 key: suggestion.value,
                 index,
@@ -563,7 +703,7 @@ const Autocomplete = () => {
             >
               {/*{suggestion.label}*/}
               <SearchSuggestion item={suggestion}/>
-            </li>
+            </div>
           ))}
       </ul>
     </div>
