@@ -1,7 +1,8 @@
 name: Run Integration Tests
 on:
-  workflow_dispatch: {}
-  merge_group: {}
+  push:
+    branches:
+      - playwright-tests
 
 concurrency: integration_environment
 
