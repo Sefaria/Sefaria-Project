@@ -1,0 +1,34 @@
+.container {
+    position:absolute;
+    top:50%;
+    place-items: center;
+    height: 100vh;
+    right:0px;
+    max-height: 50vh;
+    z-index: 99999;
+  }
+  #messageImage{
+    width:30px;
+    height:30px;
+    margin-right: 10px;
+  }
+  #crossImage{
+    width:15px;
+    height:15px;
+    margin-right: 20px;
+    position:relative;
+    top:120px;
+    left:0px;
+  } 
+  .hidden {
+    display: none;
+  }
+  
+  #feedbucketContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  
+  
