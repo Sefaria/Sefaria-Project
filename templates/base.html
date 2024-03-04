@@ -57,6 +57,7 @@
     <link rel="manifest" href="{% static 'icons/manifest.json' %}?v=xQzLlLp7oR">
     <link rel="mask-icon" href="{% static 'icons/safari-pinned-tab.svg' %}?v=xQzLlLp7oR" color="#273557">
     <link rel="shortcut icon" href="{% static 'icons/favicon-pecha.png'%}?v=xQzLlLp7oR">
+    <link rel="stylesheet" href="{% static 'css/feedbucketStyle.css' %}">
     <meta name="theme-color" content="#273557">
 
 
@@ -264,5 +265,44 @@
     {% render_bundle 'main' %}
 
     {% block js %}{% endblock %}
+
+
+    <div class="container" id="imageContainer">   
+      <img src="https://cdn.pixabay.com/photo/2017/01/10/03/54/icon-1968237_640.png" alt="icon" id="messageImage">
+      <img src="https://cdn.icon-icons.com/icons2/2406/PNG/512/times_error_fail_failure_failed_cross_icon_145926.png" alt="icon" id="crossImage" class="hidden">
+    </div> 
+    
+    <script type="text/javascript">
+      // This function will load the feedbucket script dynamically
+      function loadFeedbucket() {
+        const s = document.createElement('script');
+        s.module = true;
+        s.defer = true;
+        s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+        s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+        document.head.appendChild(s);
+        const crossImage =document.querySelector("#crossImage")
+        const messageImage =document.querySelector("#messageImage")
+    
+        const feedbucket = document.querySelector("feedbucket-app")
+        // Remove the event listener so the script isn't loaded multiple times
+        messageImage.classList.toggle('hidden')
+        crossImage.classList.toggle('hidden')
+        let container=document.getElementById('imageContainer')
+        if(feedbucket.classList.contains('hidden')){
+          feedbucket.classList.remove('hidden')
+        }else{
+          feedbucket.classList.add('hidden')
+        }
+      }
+    
+      // Add click event listener to the container
+      document.getElementById('imageContainer').addEventListener('click', loadFeedbucket);
+    </script>
+
+
+
+
+    
 </body>
 </html>
