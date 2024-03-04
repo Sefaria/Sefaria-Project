@@ -1467,7 +1467,7 @@ const DonatePage = () => (
                 heTitle=""
                 enText="Become a lead supporter of Sefaria and ensure a vibrant future for the Jewish textual tradition."
                 heText=""
-                enButtonText="Join Now"
+                enButtonText="Join Now or Learn More"
                 heButtonText=""
                 enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
                 heButtonUrl=""
