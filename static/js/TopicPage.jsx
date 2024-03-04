@@ -239,21 +239,11 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       });
 
     const sidebarModules = [
+      {type: "AboutTopics"},
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
-    if (topicData.description) {
-      sidebarModules.unshift({
-        type: "TitledText",
-        props: {
-          enTitle: "About",
-          heTitle: Sefaria._("About"),
-          enText: topicData.description.en,
-          heText: topicData.description.he
-        }
-      });
-    }
 
     return (
         <div className="readerNavMenu noLangToggleInHebrew">
