@@ -2,7 +2,7 @@ name: Run Integration Tests
 on:
   push:
     branches:
-      - playwright_integration
+      - master
 
 concurrency: integration_environment
 
