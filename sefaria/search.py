@@ -744,7 +744,7 @@ def index_from_queue():
     queue = db.index_queue.find()
     for item in queue:
         try:
-            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], False)
+            TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"])
             db.index_queue.remove(item)
         except Exception as e:
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
