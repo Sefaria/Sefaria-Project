@@ -2069,6 +2069,78 @@ _media: {},
     }
     return query;
   },
+  makeSegmentsV3: function(data, withContext, sheets=false) {
+    // Returns a flat list of annotated segment objects,
+    // derived from the walking the text in data
+    if (!data || "error" in data) { return []; }
+    let segments  = [];
+    let highlight = data.sections.length === data.textDepth;
+    let versions = data.versions;
+    const primary = versions.filter(v => v.isPrimary)[0];
+    const translation = versions.filter(v => !v.isPrimary)[0];
+    let wrapPrimary = (typeof primary.text == "string");
+    let wrapTranslation = (typeof translation.text == "string");
+    let primaryVersion = wrapPrimary ? [primary.text] : primary.text;
+    let translationVersion = wrapTranslation ? [translation.text] : translation.text;
+    let topLength = Math.max(data.lengths[0], data.lengths[1]);
+    primaryVersion = primaryVersion.pad(topLength, "");
+    translationVersion = translationVersion.pad(topLength, "");
+    let he = primaryVersion;
+    let en = translationVersion;
+
+    const index_offsets_by_depth = this._get_offsets(data, topLength);
+    var start = (data.textDepth == data.sections.length && !withContext ?
+                  data.sections.slice(-1)[0] : 1+index_offsets_by_depth[0]);
+    if (!data.isSpanning) {
+      for (var i = 0; i < topLength; i++) {
+        var number = i+start;
+        var delim  = data.textDepth == 1 ? " " : ":";
+        var ref = data.sectionRef + delim + number;
+        segments.push({
+          ref: ref,
+          en: en[i],
+          he: he[i],
+          number: number,
+          highlight: highlight && number >= data.sections.slice(-1)[0] && number <= data.toSections.slice(-1)[0],
+          alt: ("alts" in data && i < data.alts.length) ? data.alts[i] : null
+        });
+      }
+    } else {
+      for (var n = 0; n < topLength; n++) {
+        var en2 = typeof en[n] == "string" ? [en[n]] : en[n];
+        var he2 = typeof he[n] == "string" ? [he[n]] : he[n];
+        var length = Math.max(en2.length, he2.length);
+        en2 = en2.pad(length, "");
+        he2 = he2.pad(length, "");
+        var baseRef     = data.book;
+        var baseSection = data.sections.slice(0,-2).join(":");
+        var delim       = baseSection ? ":" : " ";
+        var baseRef     = baseSection ? baseRef + " " + baseSection : baseRef;
+
+        start = (n == 0 ? start : 1+index_offsets_by_depth[n]);
+        for (var i = 0; i < length; i++) {
+          var startSection = data.sections.slice(-2)[0];
+          var section = typeof startSection == "string" ?
+                        Sefaria.hebrew.intToDaf(n+Sefaria.hebrew.dafToInt(startSection))
+                        : n + startSection;
+          var number  = i + start;
+          var ref = baseRef + delim + section + ":" + number;
+          segments.push({
+            ref: ref,
+            en: en2[i],
+            he: he2[i],
+            number: number,
+            highlight: highlight &&
+                        ((n == 0 && number >= data.sections.slice(-1)[0]) ||
+                         (n == topLength-1 && number <= data.toSections.slice(-1)[0]) ||
+                         (n > 0 && n < topLength -1)),
+            alt: ("alts" in data && n < data.alts.length && i < data.alts[n].length) ? data.alts[n][i] : null
+          });
+        }
+      }
+    }
+    return segments;
+  },
   makeSegments: function(data, withContext, sheets=false) {
     // Returns a flat list of annotated segment objects,
     // derived from the walking the text in data

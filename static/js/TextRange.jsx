@@ -12,16 +12,26 @@ import {ContentText} from "./ContentText";
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
+
+
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
   componentDidMount() {
     this._isMounted = true;
-    let data = this.getText();
-    if (data && !this.dataPrefetched) {
-      // If data was populated server side, onTextLoad was never called
-      this.onTextLoad(data);
-    } else if (this.props.basetext || this.props.segmentNumber) {
-      this.placeSegmentNumbers();
-    }
-    window.addEventListener('resize', this.handleResize);
+    this.getText().then(data => {
+      this.state['data'] = data;
+      if (data && !this.dataPrefetched) {
+        // If data was populated server side, onTextLoad was never called
+        this.onTextLoad(data);
+      } else if (this.props.basetext || this.props.segmentNumber) {
+        this.placeSegmentNumbers();
+      }
+      window.addEventListener('resize', this.handleResize);
+    });
+
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -99,6 +109,18 @@ class TextRange extends Component {
       this.handleClick(event);
     }
   }
+  
+  getRef(ref) {
+    const versions = [{
+      language: 'hebrew', versionTitle: this.props.currVersions.he || null,
+    }, {
+      language: 'english', versionTitle: this.props.currVersions.en || null,
+    }]
+
+    let data = Sefaria.getTextsFromAPIV3(ref, versions, true);
+    return data
+  }
+
   getText() {
     let settings = {
       context: this.props.withContext ? 1 : 0,
@@ -109,15 +131,17 @@ class TextRange extends Component {
       translationLanguagePreference: this.props.translationLanguagePreference,
       versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
     };
-    let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
-    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
-      this.textLoading = true;
-      Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
-    } else if (!!data && this.props.isCurrentlyVisible) {
-      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
-    }
-    return data;
+    return this.getRef(this.props.sref);
+    // let data = Sefaria.getTextFromCache(this.props.sref, settings);
+
+    // if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
+    //   this.textLoading = true;
+    //   Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
+    // } else if (!!data && this.props.isCurrentlyVisible) {
+    //   this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    // }
+    // return data;
   }
   onTextLoad(data) {
     // Initiate additional API calls when text data first loads
@@ -184,8 +208,7 @@ class TextRange extends Component {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
-    let data = this.getText();
-    if (!data) { return; }
+    this.getText().then(data => {
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
     this._prefetchLinksAndNotes(data);
@@ -217,6 +240,7 @@ class TextRange extends Component {
      }
     }
     this.dataPrefetched = true;
+  });
   }
   placeSegmentNumbers() {
     // console.log("placeSegmentNumbers", this.props.sref);
@@ -280,7 +304,7 @@ class TextRange extends Component {
   }
 
   render() {
-    const data = this.getText();
+    const data = this.state.data;
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;
@@ -322,7 +346,7 @@ class TextRange extends Component {
       strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
-    let segments      = Sefaria.makeSegments(data, this.props.withContext);
+    let segments      = Sefaria.makeSegmentsV3(data, this.props.withContext);
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
