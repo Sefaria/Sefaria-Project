@@ -145,15 +145,6 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
                 {mobile && recentlyViewedList}
             </div>
           </Module>;
-   // return <Module><div className="recentlyViewed">
-   //          <ModuleTitle h1={true}>Recently Viewed</ModuleTitle>
-   //              {recentlyViewedList}
-   //              <a href="/texts/history" id="history" onClick={handleAllHistory}>
-   //              <InterfaceText>All history </InterfaceText>
-   //              </a>
-   //          </div>
-   //           </Module>
-
 }
 
 const Promo = () =>
