@@ -9,6 +9,7 @@ test('Navigate to bereshit', async ({ context }) => {
   await page.locator('.sectionLink').first().click();
   await expect(page).toHaveTitle(/Genesis 1/);
   // wait until Bereshit is visible
+  await page.getByRole('heading', { name: 'Loading...' }).getByText('Loading...').waitFor({ state: 'detached' });
   await page.waitForSelector('text=Bereshit', { state: 'visible' });
   await page.getByText('בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃').isVisible();
 });
@@ -16,9 +17,8 @@ test('Navigate to bereshit', async ({ context }) => {
 test('Verify translations', async ({ context }) => {
   const page = await goToPageWithLang(context, '/Berakhot.28b.4?vhe=Wikisource_Talmud_Bavli&lang=bi&with=all&lang2=he');
   await page.getByRole('link', { name: 'Translations (4)' }).click();
-  await page.getByRole('link', { name: 'Select Translation' }).first().click();
-  await page.getByRole('heading', { name: 'Loading...' }).getByText('Loading...').waitFor({ state: 'detached' });
-  await page.getByText('Tractate Berakot by A. Cohen, Cambridge University Press, 1921Current Translatio').isVisible();
+  await page.locator('#panel-1').getByText('Loading...').waitFor({ state: 'detached' });
+  page.getByText('A. Cohen, Cambridge University Press, 1921', { exact: true })
 });
 
 test('Get word description', async ({ context }) => {
