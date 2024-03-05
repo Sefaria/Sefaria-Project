@@ -3389,6 +3389,9 @@ div .notificationsList {
   text-decoration: underline;
 }
 .annualReport {
+  padding-top: 85px;
+}
+.interface-hebrew .annualReport {
   padding-top: 95px;
 }
 .annualReport a {
@@ -3414,7 +3417,6 @@ div .notificationsList {
   overflow: auto;
   z-index: 2;
 }
-
 .mobileAbout a {
   margin-left: -30px;
   font-family: "Roboto", sans-serif;
@@ -3451,6 +3453,9 @@ div .notificationsList {
   margin-left: -5px;
 }
 #testimonialsPage .inner {
+  margin-top: 80px;
+}
+.interface-hebrew #testimonialsPage .inner {
   margin-top: 90px;
 }
 #supportersPage .inner {
@@ -3460,7 +3465,7 @@ div .notificationsList {
   margin-top: 60px;
 }
 #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-top: 170px;
+    margin-top: 160px;
 }
 #updatersPage .readerNavMenu {
     position: relative;
