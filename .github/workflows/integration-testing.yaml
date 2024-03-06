@@ -193,13 +193,10 @@ jobs:
       - name: Set SANDBOX_URL
         run: echo "SANDBOX_URL=http://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}/texts" >> $GITHUB_ENV
       
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
       
       - name: Install dependencies
         run: npm ci
