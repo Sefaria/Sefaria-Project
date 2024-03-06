@@ -120,6 +120,10 @@ class TextRange extends Component {
     return data;
   }
   onTextLoad(data) {
+    if (data.error) {
+      // If there was an error, don't update the state
+      return;
+    }
     // Initiate additional API calls when text data first loads
     this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
