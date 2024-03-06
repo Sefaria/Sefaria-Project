@@ -9204,22 +9204,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer .section.connect .socialLinks a {
   color: #666;
 }
-#footer #socialButtons {
-  margin-bottom: 6px;
-}
-#footer #facebookButton {
-  display: inline-block;
-  vertical-align: top;
-}
-#footer #twitterButton {
-  display: inline-block;
-  vertical-align: top;
-  margin-left: 4px;
-}
-.interface-hebrew #footer #twitterButton {
-  margin-left: 0;
-  margin-right: 4px;
-}
 #footer #siteLanguageToggle {
   color: #999;
   margin-top: 30px;
