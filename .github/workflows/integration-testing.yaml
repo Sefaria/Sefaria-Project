@@ -1,8 +1,7 @@
 name: Run Integration Tests
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch: {}
+  merge_group: {}
 
 concurrency: integration_environment
 
