@@ -214,12 +214,15 @@ data:
     }
     
     # Celery
-    CELERY_REDIS_PORT = os.getenv("CELERY_REDIS_PORT")
+    REDIS_PORT = os.getenv("REDIS_PORT")
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
     CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
     CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")
-    # Either define CELERY_SENTINEL_HEADLESS_URL if using sentinel or CELERY_REDIS_URL for a simple redis instance
-    CELERY_SENTINEL_HEADLESS_URL = os.getenv("CELERY_SENTINEL_HEADLESS_URL") 
-    CELERY_REDIS_URL = os.getenv("CELERY_REDIS_URL")
+    # Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
+    SENTINEL_HEADLESS_URL = os.getenv("SENTINEL_HEADLESS_URL") 
+    SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
+    SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
+    REDIS_URL = os.getenv("REDIS_URL")
 
     MOBILE_APP_KEY = os.getenv("MOBILE_APP_KEY")
 

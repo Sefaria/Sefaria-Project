@@ -1,26 +1,13 @@
-import dns.resolver
-from sefaria.settings import CELERY_REDIS_URL, CELERY_SENTINEL_HEADLESS_URL, \
-    CELERY_REDIS_BROKER_DB_NUM, CELERY_REDIS_RESULT_BACKEND_DB_NUM
-from sefaria.settings import CELERY_REDIS_PORT as CPORT
+from sefaria.settings import (REDIS_URL, REDIS_PASSWORD, REDIS_PORT, CELERY_REDIS_BROKER_DB_NUM,
+                             CELERY_REDIS_RESULT_BACKEND_DB_NUM, SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD,
+                             SENTINEL_TRANSPORT_OPTS)
+from sefaria.celery_setup.generate_config import generate_config, SentinelConfig, RedisConfig
 
 
-def add_db_num_to_url(url, db_num):
-    return url.replace(f':{CPORT}', f':{CPORT}/{db_num}')
+def generate_config_from_env():
+    return generate_config(
+        RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT, CELERY_REDIS_BROKER_DB_NUM, CELERY_REDIS_RESULT_BACKEND_DB_NUM),
+        SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS)
+    )
 
 
-if CELERY_SENTINEL_HEADLESS_URL:
-    redisdns = dns.resolver.resolve(CELERY_SENTINEL_HEADLESS_URL, 'A')
-    addressstring = []
-    for res in redisdns.response.answer:
-        for item in res.items:
-            addressstring.append(f"sentinel://{item.to_text()}:{CPORT}")
-    joined_address = ";".join(addressstring)
-
-    # celery config vars
-    broker_url = add_db_num_to_url(joined_address, CELERY_REDIS_BROKER_DB_NUM)
-    result_backend = add_db_num_to_url(joined_address, CELERY_REDIS_RESULT_BACKEND_DB_NUM)
-    result_backend_transport_options = {}
-    broker_transport_options = {}
-else:
-    broker_url = add_db_num_to_url(f"{CELERY_REDIS_URL}:{CPORT}", CELERY_REDIS_BROKER_DB_NUM)
-    result_backend = add_db_num_to_url(f"{CELERY_REDIS_URL}:{CPORT}", CELERY_REDIS_RESULT_BACKEND_DB_NUM)

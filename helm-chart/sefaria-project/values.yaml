@@ -351,11 +351,14 @@ secrets:
     #   RECAPTCHA_PUBLIC_KEY:
     #   RECAPTCHA_PRIVATE_KEY:
     #   SIMPLE_JWT_SIGNING_KEY:
-    #   CELERY_REDIS_PORT
+    #   REDIS_PORT
+    #   REDIS_PASSWORD
     #   CELERY_REDIS_BROKER_DB_NUM
     #   CELERY_REDIS_RESULT_BACKEND_DB_NUM
-    #   CELERY_SENTINEL_HEADLESS_URL
-    #   CELERY_REDIS_URL
+    #   SENTINEL_HEADLESS_URL
+    #   SENTINEL_TRANSPORT_OPTS
+    #   SENTINEL_PASSWORD
+    #   REDIS_URL
     #   MOBILE_APP_KEY:
   backupManager:
     # If you're using a reference to an existing secret then the data: section
