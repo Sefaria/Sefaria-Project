@@ -8,9 +8,12 @@
     z-index: 99999;
   }
   #messageImage{
-    width:30px;
-    height:30px;
+    width:13px;
+    height:13px;
     margin-right: 10px;
+    background-color: #b83c64;
+    border-radius: 50%;
+    padding: 5px;
   }
   #crossImage{
     width:15px;
