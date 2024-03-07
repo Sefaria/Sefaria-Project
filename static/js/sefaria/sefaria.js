@@ -524,6 +524,26 @@ Sefaria = extend(Sefaria, {
     let returnObj = await Sefaria.getTextsFromAPIV3(ref, [{language: 'translation', versionTitle: 'all'}], false);
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
   },
+  _adaptApiResponse: function(versionsResponse) {
+      // takes an api-v3 texts response for primary and translation versions, and add the texts to 'he' and 'text' to be like old api texts response
+      const versions = versionsResponse.versions;
+      let primary, translation;
+      if (versions[0].isPrimary && !versions[1].isSource) {
+          [primary, translation] = versions;
+      } else {
+          [translation, primary] = versions;
+      }
+      ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle } = translation);
+      ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle } = primary);
+  },
+  getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj) {
+      // versionObjs are objects with language and versionTitle
+      primaryVersionObj = primaryVersionObj || {language: 'primary'};
+      translationVersionObj = translationVersionObj || {language: 'translation'};
+      const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true);
+      Sefaria._adaptApiResponse(versionsResponse);
+      return versionsResponse;
+  },
   _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
     if (sheetIds.length === 0) { return Promise.resolve({}); }
