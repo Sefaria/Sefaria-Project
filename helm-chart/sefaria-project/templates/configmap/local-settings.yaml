@@ -26,3 +26,13 @@ data:
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
   FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
   SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}
+  {{- if .Values.tasks.enabled }}
+  REDIS_URL: {{ .Values.tasks.redis.url }}
+  REDIS_PORT: {{ .Values.tasks.redis.port | quote }}
+  CELERY_REDIS_BROKER_DB_NUM: {{ .Values.tasks.redis.brokerNumber | quote }}
+  CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.tasks.redis.backendNumber | quote }}
+  CELERY_QUEUES: {{ fromYaml (include "sefaria.tasks.queues" .) | toJson | quote }}
+  SENTINEL_HEADLESS_URL: {{ .Values.tasks.sentinel.headlessUrl }}
+  SENTINEL_PORT: {{ .Values.tasks.sentinel.port | quote }}
+  SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.sentinel.transportOptions | toJson | quote }}
+  {{- end }}

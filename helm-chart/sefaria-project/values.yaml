@@ -235,6 +235,34 @@ varnish:
     image: ibmcom/varnish-metrics-exporter
     tag: 0.32.0
 
+tasks:
+  enabled: false
+  resources:
+    requests:
+      memory: "100Mi"
+      cpu: "100m"
+    limits:
+      memory: "200Mi"
+      cpu: "400m"
+  replicaCount: 1
+  redis:
+    url: redis.redis.svc
+    port: 6379
+    passwordRef:
+      name: redis-password
+      key: password
+    brokerNumber: 3
+    backendNumber: 4
+  sentinel:
+    headlessUrl: redis-headless.redis.svc
+    port: 26379
+    transportOptions: {}
+    passwordRef:
+      name: sentinel-password
+      key: password
+  queues:
+    llm: default-llm
+
 ingress:
  # You can set path: serviceName: and port: for each host. By default they are
  # set to '/*', 'nginx', '80' respectively for each. Do note that changing this
@@ -389,7 +417,6 @@ secrets:
     # should be commented out and vice-versa.
     ref: elastic-admin
     # data:
-
 
 # Settings for various cronjobs
 cronJobs:
