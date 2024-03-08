@@ -17,6 +17,7 @@
 		<div id="metricsBox">
 			{% trans "Loading..." %}
 		</div>
+        <div id="table_div"></div>
 	</div>
 </div>
 
@@ -105,5 +106,33 @@
 		google.charts.load('current', {'packages':['corechart']});
 		google.charts.setOnLoadCallback(makeCharts);
 	});
+          google.charts.load('current', {'packages':['table']});
+      google.charts.setOnLoadCallback(drawTable);
+
+      function drawTable() {
+        var last_update = metrics.length-1;
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        for (var field in titles) {
+    		if (titles.hasOwnProperty(field)) {
+       			{#makeChart(field);#}
+               data.addColumn('number', field);
+
+    		}
+		}
+        for (var i=metrics.length-1; i>=metrics.length-365; i=i-30){
+            let timestamp = metrics[i]["timestamp"]["$date"];
+            let d = new Date(timestamp);
+            let row = [d]
+            for (let field in titles) {
+                if (titles.hasOwnProperty(field)) {
+                    row.push(metrics[i][field]);
+                }
+            }
+            data.addRows([row]);
+          }
+        var table = new google.visualization.Table(document.getElementById('table_div'));
+        table.draw(data, {showRowNumber: false, width: '100%', height: '100%'});
+      }
 </script>
 {% endblock %}
