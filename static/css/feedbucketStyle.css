@@ -1,28 +1,37 @@
-.container {
+.feedback_container {
     position:absolute;
     top:50%;
     place-items: center;
-    height: 100vh;
+    height: min-content;
+    cursor: pointer;
     right:0px;
     max-height: 50vh;
     z-index: 99999;
   }
   #messageImage{
-    width:13px;
-    height:13px;
+    width:20px;
+    height:20px;
     margin-right: 10px;
     background-color: #b83c64;
     border-radius: 50%;
-    padding: 5px;
+    padding: 10px;
   }
   #crossImage{
-    width:15px;
-    height:15px;
-    margin-right: 20px;
+    width:20px;
+    height:20px;
+    margin-right: 10px;
     position:relative;
     top:120px;
     left:0px;
+    border:1px grey solid;
+    border-radius: 50%;
+    padding: 7px;
   } 
+  #crossImage:hover{
+    background-color: lightgrey;
+    border: none;
+    transition: 0.5s ease all;
+  }
   .hidden {
     display: none;
   }
