@@ -218,7 +218,6 @@ jobs:
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
   ending-notification:
           runs-on: ubuntu-latest
-          if: ${{ always() && github.event_name == 'pull_request' }}
           needs:
             - run-tests
           steps:
