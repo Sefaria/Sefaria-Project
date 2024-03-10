@@ -154,6 +154,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
   run-tests:
+    name: "Playwright"   # This name is referenced when slacking status
     needs:
       - build-derived
       - variables
@@ -215,3 +216,22 @@ jobs:
           retention-days: 30
       - name: Uninstall
         run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
+  ending-notification:
+          runs-on: ubuntu-latest
+          if: ${{ always() && github.event_name == 'pull_request' }}
+          needs:
+            - run-tests
+          steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-node@v2
+              with:
+                node-version: '14'
+            - run: npm ci
+              working-directory: ./build/notify
+            - run: node notifyEnd.js
+              working-directory: ./build/notify
+              env:
+                SLACK_TEST_SUCCESS_WEBHOOK_URL: ${{secrets.SLACK_TEST_SUCCESS_WEBHOOK_URL}}
+                SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
+                GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

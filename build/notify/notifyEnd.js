@@ -22,6 +22,7 @@ console.log(`
 const jobKeys = [
     "Jest",
     "PyTest",
+    "Playwright",
 ];
 
 (async function() {
