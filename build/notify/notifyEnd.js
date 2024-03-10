@@ -25,6 +25,8 @@ const jobKeys = [
     "Playwright",
 ];
 
+const activeJobKeys = [];
+
 (async function() {
     // Get the committer via the commit
     let commit;
@@ -66,6 +68,7 @@ const jobKeys = [
     actionJobs.data.jobs.forEach(j => {
         if (jobKeys.includes(j.name)) {
             jobsResults[j.name] = {conclusion: j.conclusion, url: j.html_url};
+            activeJobKeys.push(j.name);
         }
     });
 
@@ -106,7 +109,7 @@ const jobKeys = [
 
     console.log(JSON.stringify(slackMsg));
 
-    const overallSuccess = jobKeys.every(k => succeeded(jobsResults[k]));
+    const overallSuccess = activeJobKeys.every(k => succeeded(jobsResults[k]));
     const webhookUrl = overallSuccess ? slackSuccessUrl : slackFailureUrl;
     const webhook = new IncomingWebhook(webhookUrl);
 
