@@ -2206,7 +2206,20 @@ _media: {},
       let refToCheck = Array.isArray(ref) ? ref[0] : ref;
       const parsedRef = Sefaria.parseRef(refToCheck);
       const book = Sefaria.index(parsedRef.index);
-      return this.isCommentaryWithBaseText(book);
+      if (!this.isCommentaryWithBaseText(book)) {
+          return false;
+      }
+
+      // by this point, we know the book is in the right form, but we still need to check that the ref is in the right form
+      // The ref 'Ramban on Genesis, Introduction 1' shouldn't generate "Genesis, Introduction 1"
+      // this can be tested by modifying the ref and then calling parseRef on the modified ref
+      const parsedRefCopy = Object.create(parsedRef);
+      const baseText = book.base_text_titles[0];
+      parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, baseText);
+      if (Sefaria.parseRef(parsedRefCopy.ref).error) {
+          return false;
+      }
+      return true;
   },
   convertCommentaryRefToBaseRef(commRef) {
     /* Converts commentary ref, `commRef`, to base ref:
@@ -2222,9 +2235,9 @@ _media: {},
     const base_text = book.base_text_titles[0];
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
     const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
-    if (commRef.sections.length <= 2 || !many_to_one) {
+    if (commRefCopy.sections.length <= 2 || !many_to_one) {
         // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.  in this case, sections stay the same so just change the book title
-        commRef.ref = commRef.ref.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
         return Sefaria.humanRef(commRefCopy.ref);
     }
     else if (many_to_one) {
