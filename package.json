@@ -120,7 +120,10 @@
     "setupFilesAfterEnv": [
       "<rootDir>/static/js/setupJest.js"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": [
+      "<rootDir>/e2e-tests/"
+    ]
   },
   "babel": {
     "presets": [
