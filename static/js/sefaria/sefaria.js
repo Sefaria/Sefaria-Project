@@ -2211,15 +2211,20 @@ _media: {},
       }
 
       // by this point, we know the book is in the right form, but we still need to check that the ref is in the right form
-      // The ref 'Ramban on Genesis, Introduction 1' shouldn't generate "Genesis, Introduction 1"
-      // this can be tested by modifying the ref and then calling parseRef on the modified ref
-      const parsedRefCopy = Object.create(parsedRef);
+      return Sefaria.isCommentaryRefValid(book, parsedRef);
+  },
+  isCommentaryRefValid(book, parsedRef) {
+      /* This is a helper function for isCommentaryRefWithBaseText.  After isCommentaryRefWithBaseText determines
+       * the ref belongs to the right kind of book, we still need to check the ref is in valid form.
+       * The ref 'Ramban on Genesis, Introduction 1' shouldn't generate "Genesis, Introduction 1" ' +
+       * this can be tested by modifying the parsedRef and then calling Sefaria.parseRef on the modified parsedRef
+       * @param {Object} parsedRef: Object created with Sefaria.parseRef.  Its `ref` property is what we need to check
+       * @param {Object} book: Object created with Sefaria.index.  We want to use `book`'s metadata to modify the ref.
+       */
+      const parsedRefCopy = Object.create(parsedRef);  // copy object to avoid modifying Sefaria._parseRef
       const baseText = book.base_text_titles[0];
       parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, baseText);
-      if (Sefaria.parseRef(parsedRefCopy.ref).error) {
-          return false;
-      }
-      return true;
+      return (!Sefaria.parseRef(parsedRefCopy.ref).error);
   },
   convertCommentaryRefToBaseRef(commRef) {
     /* Converts commentary ref, `commRef`, to base ref:
