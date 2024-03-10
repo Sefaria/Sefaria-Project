@@ -533,13 +533,14 @@ Sefaria = extend(Sefaria, {
       } else {
           [translation, primary] = versions;
       }
+      //TODO - one version (translation is missing or is same as primary (-user asked for same, or defaults are same))
       ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle } = translation);
       ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle } = primary);
   },
   getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj) {
       // versionObjs are objects with language and versionTitle
       primaryVersionObj = primaryVersionObj || {language: 'primary'};
-      translationVersionObj = translationVersionObj || {language: 'translation'};
+      translationVersionObj = translationVersionObj || {language: 'translation'}; //TODO language prefernces; when defauld primary and trnaslation is the same
       const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true);
       Sefaria._adaptApiResponse(versionsResponse);
       return versionsResponse;
