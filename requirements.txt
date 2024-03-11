@@ -12,7 +12,6 @@ diff_match_patch==20200713
 django_mobile==0.7.0
 django-anymail==7.2.*
 django-debug-toolbar==2.2 # not used in prod
-django-easy-timezones==0.8.0
 django-recaptcha==2.0.6
 django-redis==4.11.*
 django-structlog==1.6.2
@@ -66,7 +65,7 @@ babel
 python-bidi
 requests
 Cerberus
-celery[redis]==5.2.7
+celery[redis]==5.2.6
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
