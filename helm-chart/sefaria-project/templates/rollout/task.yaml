@@ -16,6 +16,7 @@ metadata:
 spec:
   strategy:
     blueGreen:
+      activeService: web-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
       prePromotionAnalysis:
         templates:
