@@ -61,11 +61,11 @@ class Header extends Component {
         </div>
 
         <div className="headerLinksSection">
-          <SearchBar
-            onRefClick={this.props.onRefClick}
-            showSearch={this.props.showSearch}
-            openTopic={this.props.openTopic}
-            openURL={this.props.openURL} />
+          {/*<SearchBar*/}
+          {/*  onRefClick={this.props.onRefClick}*/}
+          {/*  showSearch={this.props.showSearch}*/}
+          {/*  openTopic={this.props.openTopic}*/}
+          {/*  openURL={this.props.openURL} />*/}
 
 
           { Sefaria._uid ?
@@ -399,7 +399,6 @@ SearchBar.propTypes = {
   fullWidth:          PropTypes.bool,
   hideHebrewKeyboard: PropTypes.bool,
 };
-import Downshift from 'downshift';
 import { useCombobox } from 'downshift';
 
 const SearchSuggestion = ({ item }) => {
@@ -426,19 +425,7 @@ const SearchSuggestion = ({ item }) => {
       return `/static/icons/${_type_icon_map[item.type]}`;
     }
   }
-  const getURLForObject = function(type, key) {
-    if (type === "Collection") {
-      return `/collections/${key}`;
-    } else if (type === "TocCategory") {
-      return `/texts/${key.join('/')}`;
-    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
-    } else if (type === "ref") {
-      return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
-      return `/profile/${key}`;
-    }
-  }
+
   const override = item.label.match(_searchOverrideRegex());
   const isHebrew = Sefaria.hebrew.isHebrew(item.label);
 
@@ -449,24 +436,29 @@ const SearchSuggestion = ({ item }) => {
           search-override ${!!override ? 'search-override' : ''}
           hebrew-result ${!!isHebrew ? 'hebrew-result' : ''} 
           english-result ${!isHebrew ? 'english-result' : ''}
-        `}>
+        `}
+     // onFocus={getInputProps().onChange({ target: { value: item.title }})}
+         >
       <img alt={item.type}
            className={`ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}`}
            src={_type_icon(item)} />
-      <a href={getURLForObject(item.type, item.key)} role="option" data-type-key={`${item.type}-${item.key}`}>
+       <a href={item.url} role="option" data-type-key={`${item.type}-${item.key}`}>
         {item.label}
       </a>
     </div>  );
 };
- const InputBox = ({getInputProps, ...props}) => {
+ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     const [searchFocused, setSearchFocused] = useState(false);
     // const [query, setQuery] = useState('');
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
     }, []);
-   const { onBlur, ...otherProps } = getInputProps();
+   const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
+
    const clearSearchBox = function () {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefariaAutocomplete("close");
+    // $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefariaAutocomplete("close");
+     console.log("clearSearchBox")
+     getInputProps().onChange({ target: { value: '' } });
   }
    const submitSearch = (query) => {
     Sefaria.getName(query)
@@ -499,7 +491,7 @@ const SearchSuggestion = ({ item }) => {
           redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
-          closeSearchAutocomplete();
+          // closeSearchAutocomplete();
           showSearch(query);
         }
       });
@@ -514,29 +506,15 @@ const SearchSuggestion = ({ item }) => {
     }
     props.showSearch(query);
 
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
+    // $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
     props.onNavigate && props.onNavigate();
   }
 
-  const getURLForObject = (type, key) => {
-    if (type === "Collection") {
-      return `/collections/${key}`;
-    } else if (type === "TocCategory") {
-      return `/texts/${key.join('/')}`;
-    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
-    } else if (type === "ref") {
-      return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
-      return `/profile/${key}`;
-    }
-  }
-
-  const redirectToObject = (type, key) => {
-    Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
-    closeSearchAutocomplete();
+  const redirectToObject = (item) => {
+    Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+    // closeSearchAutocomplete();
     clearSearchBox();
-    const url = getURLForObject(type, key);
+    const url = item.url
     const handled = props.openURL(url);
     if (!handled) {
       window.location = url;
@@ -544,49 +522,41 @@ const SearchSuggestion = ({ item }) => {
     props.onNavigate && props.onNavigate();
   }
 
-  const closeSearchAutocomplete = () => {
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
-  }
-  const _searchOverridePre = Sefaria._('Search for') +': "';
-  const _searchOverridePost = '"';
-  const _searchOverrideRegex = function () {
-    return RegExp(`^${RegExp.escape(_searchOverridePre)}(.*)${RegExp.escape(_searchOverridePost)}`);
-  }
-  const catchSearchOverride = function(query) {
-    const override = query.match(_searchOverrideRegex());
-    if (override) {
-      if (Sefaria.site) {
-        Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]);
+  // const closeSearchAutocomplete = () => {
+  //   // $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
+  //   console.log("closeSearchAutocomplete")
+  // }
+
+
+    const handleSearchKeyDown = (event) => {
+      onKeyDown(event)
+      // if (event.keyCode !== 13 || document.querySelector(".ui-state-focus")) return;
+      if (event.keyCode !== 13) return;
+      const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
+      if (highlightedItem  && highlightedItem.type != 'search'){
+        redirectToObject(highlightedItem);
+        return;
       }
-      closeSearchAutocomplete();
-      showSearch(override[1]);
-      $(ReactDOM.findDOMNode(this)).find("input.search").val(override[1]);
-      return true;
-    }
-    return false;
-  }
-    const handleSearchKeyUp = (event) => {
-      if (event.keyCode !== 13 || document.querySelector(".ui-state-focus")) return;
-      const inputQuery = event.target.value;
+      const inputQuery = otherDownShiftProps.value
       if (!inputQuery) return;
-      if (catchSearchOverride(inputQuery)) return;
       submitSearch(inputQuery);
     };
 
     const handleSearchButtonClick = () => {
-      const inputQuery = document.querySelector(".search").value;
+      const inputQuery = otherDownShiftProps.value
       if (inputQuery) {
         submitSearch(inputQuery);
       } else {
-        document.querySelector(".search").focus();
+        // document.querySelector(".search").focus();
+        focusSearch()
       }
     };
+
     const showVirtualKeyboardIcon = (show) => {
       if (document.getElementById('keyboardInputMaster')) {
         return; // if keyboard is open, ignore
       }
-      // if (Sefaria.interfaceLang === 'english' && !this.props.hideHebrewKeyboard) {
-      if (Sefaria.interfaceLang === 'english') {
+      if (Sefaria.interfaceLang === 'english' && !props.hideHebrewKeyboard) {
         const keyboardInitiator = document.querySelector(".keyboardInputInitiator");
         if (keyboardInitiator) {
           keyboardInitiator.style.display = show ? "inline" : "none";
@@ -615,6 +585,7 @@ const SearchSuggestion = ({ item }) => {
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
+    console.log(otherDownShiftProps)
 
 
     return (
@@ -625,23 +596,23 @@ const SearchSuggestion = ({ item }) => {
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
-          onKeyUp={handleSearchKeyUp}
+          onKeyDown={handleSearchKeyDown}
           onFocus={focusSearch}
           onBlur={blurSearch}
           maxLength={75}
           title={Sefaria._("Search for Texts or Keywords Here")}
-          {...otherProps}
+          {...otherDownShiftProps}
         />
       </div>
     );
   };
-const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex }) => {
+const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) => {
     function groupByType(objects) {
     const groupedData = {};
 
     // Group objects by their "type"
     objects.forEach(obj => {
-        let objType = obj.type.includes("topic") || obj.type.includes("Topic") ? "topic" : obj.type;
+        let objType = obj.type in ["Topic", "PersonTopic"] ? "Topic" : obj.type;
         if (!groupedData[objType]) {
             groupedData[objType] = [];
         }
@@ -686,7 +657,6 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
     return (
         <>
             {suggestions.map((suggestion, index) => {
-                console.log(universalInitialIndex + index); // Log inside map function
                 const universalIndex = universalInitialIndex + index
                 return (
                     <div
@@ -699,8 +669,7 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
                             },
                         })}
                     >
-                        {/*{suggestion.label}*/}
-                        <SearchSuggestion item={suggestion} />
+                        <SearchSuggestion item={suggestion}/>
                     </div>
                 );
             })}
@@ -712,7 +681,19 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
   const [suggestions, setSuggestions] = useState([]);
   const searchOverridePre = Sefaria._('Search for') +': "';
   const searchOverridePost = '"';
-
+  const getURLForObject = function(type, key) {
+    if (type === "Collection") {
+      return `/collections/${key}`;
+    } else if (type === "TocCategory") {
+      return `/texts/${key.join('/')}`;
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
+      return `/topics/${key}`;
+    } else if (type === "ref") {
+      return `/${key.replace(/ /g, '_')}`;
+    } else if (type === "User") {
+      return `/profile/${key}`;
+    }
+  }
   const fetchSuggestions = async (inputValue) => {
   if (inputValue.length < 3){
       console.log("smaller than 3")
@@ -725,42 +706,11 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
     // 'items' : [item1, item2]}]
 
 
-function sortByType(objects, typePriorities) {
-    // Create a map to store type priorities
-    const typePriorityMap = {};
-    typePriorities.forEach((type, index) => {
-        typePriorityMap[type] = index;
-    });
-
-    // Sort objects by type
-    objects.sort((a, b) => {
-        const typeA = a.type.includes("topic") || a.type.includes("Topic") ? "topic" : a.type;
-        const typeB = b.type.includes("topic") || b.type.includes("Topic") ? "topic" : b.type;
-
-        // If both types are in type priorities, compare their priorities
-        if (typePriorityMap.hasOwnProperty(typeA) && typePriorityMap.hasOwnProperty(typeB)) {
-            return typePriorityMap[typeA] - typePriorityMap[typeB];
-        }
-        // If only one type is in type priorities, it comes first
-        else if (typePriorityMap.hasOwnProperty(typeA)) {
-            return -1;
-        } else if (typePriorityMap.hasOwnProperty(typeB)) {
-            return 1;
-        }
-        // If neither type is in type priorities, sort alphabetically
-        else {
-            return typeA.localeCompare(typeB);
-        }
-    });
-
-    return objects;
-}
-    d["completion_objects"] = sortByType(d["completion_objects"], [])
-
     const comps = d["completion_objects"].map(o => {
       const c = {...o};
       c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
       c["label"] = o["title"];
+      c["url"] = getURLForObject(c["type"], c["key"])
       return c;
     });
     if (comps.length > 0) {
@@ -789,11 +739,14 @@ function sortByType(objects, typePriorities) {
       fetchSuggestions(inputValue);
     },
     onSelectedItemChange: ({ selectedItem }) => {
-      console.log('Selected:', selectedItem);
+      // console.log('Selected:', selectedItem);
+      console.log(highlightedIndex)
+      // getInputProps().onChange({ target: { value: selectedItem.title } });
     },
   });
-
-
+   if (highlightedIndex > -1) {
+     console.log(suggestions[highlightedIndex])
+   }
   return (
     <div style={{ position: 'relative' }}>
       {/*<input {...getInputProps()} placeholder="Search..." />*/}
@@ -802,6 +755,9 @@ function sortByType(objects, typePriorities) {
             showSearch={showSearch}
             openTopic={openTopic}
             openURL={openURL}
+            suggestions={suggestions}
+            hideHebrewKeyboard={false}
+            highlightedIndex={highlightedIndex}
       />
       <ul
           // className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front"
