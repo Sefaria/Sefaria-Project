@@ -266,46 +266,13 @@
 
     {% block js %}{% endblock %}
 
-
-    <div class="feedback_container" id="imageContainer">   
-      <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" color="#d73449" style="color:#FFFFFF" height="16" width="16" xmlns="http://www.w3.org/2000/svg" id="messageImage">
-        <path fill="none" d="M0 0h24v24H0z"></path>
-        <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"></path>
-      </svg>
-      <img src="https://cdn.icon-icons.com/icons2/2406/PNG/512/times_error_fail_failure_failed_cross_icon_145926.png" alt="icon" id="crossImage" class="hidden">
-    </div>
-    
     <script type="text/javascript">
-      // This function will load the feedbucket script dynamically
-      function loadFeedbucket() {
-        const s = document.createElement('script');
-        s.module = true;
-        s.defer = true;
-        s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
-        s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
-        document.head.appendChild(s);
-        const crossImage =document.querySelector("#crossImage");
-        const messageImage =document.querySelector("#messageImage");
-    
-        const feedbucket = document.querySelector("feedbucket-app");
-        // Remove the event listener so the script isn't loaded multiple times
-        messageImage.classList.toggle('hidden');
-        crossImage.classList.toggle('hidden');
-        let container=document.getElementById('imageContainer');
-        if(feedbucket.classList.contains('hidden')){
-          feedbucket.classList.remove('hidden');
-        }else{
-          feedbucket.classList.add('hidden');
-        }
-      }
-    
-      // Add click event listener to the container
-      document.getElementById('imageContainer').addEventListener('click', loadFeedbucket);
-    </script>
-    
-
-
-
+      (function(k) {
+          const s=document.createElement('script');s.module=true;s.defer=true;
+          s.src="https://cdn.feedbucket.app/assets/feedbucket.js";
+          s.dataset.feedbucket=k;document.head.appendChild(s);
+      })('0csPeBQ216w32NZdoqnk')
+  </script>
 
     
 </body>
