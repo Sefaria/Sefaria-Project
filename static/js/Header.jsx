@@ -613,8 +613,8 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="/help">
-                <InterfaceText>Help</InterfaceText>
+              <div><a className="interfaceLinks-row bottom" id="help-link" href="#">
+                <InterfaceText>Feedback Tool</InterfaceText>
               </a></div>
             </div>
             <hr className="interfaceLinks-hr"/>
