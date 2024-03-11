@@ -250,7 +250,7 @@ tasks:
     port: 6379
     passwordRef:
       name: redis-password
-      key: password
+      key: REDIS_PASSWORD
     brokerNumber: 3
     backendNumber: 4
   sentinel:
@@ -259,7 +259,7 @@ tasks:
     transportOptions: {}
     passwordRef:
       name: sentinel-password
-      key: password
+      key: SENTINEL_PASSWORD
   queues:
     llm: default-llm
 
