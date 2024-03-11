@@ -65,7 +65,7 @@ babel
 python-bidi
 requests
 Cerberus
-celery[redis]==5.2.6
+celery[redis]
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
