@@ -402,11 +402,7 @@ SearchBar.propTypes = {
 import { useCombobox } from 'downshift';
 
 const SearchSuggestion = ({ item }) => {
-    const _searchOverridePre = Sefaria._('Search for') +': "';
-    const _searchOverridePost = '"';
-  const _searchOverrideRegex = function() {
-  return new RegExp(`^${RegExp.escape(_searchOverridePre)}(.*)${RegExp.escape(_searchOverridePost)}`);
-  };
+
   const _type_icon_map = {
       "Collection": "collection.svg",
       "AuthorTopic": "iconmonstr-pen-17.svg",
@@ -418,6 +414,7 @@ const SearchSuggestion = ({ item }) => {
       "Term": "iconmonstr-script-2.svg",
       "User": "iconmonstr-user-2%20%281%29.svg"
     }
+
   const _type_icon = function(item) {
     if (item.type === "User" && item.pic !== "") {
       return item.pic;
@@ -426,19 +423,15 @@ const SearchSuggestion = ({ item }) => {
     }
   }
 
-  const override = item.label.match(_searchOverrideRegex());
   const isHebrew = Sefaria.hebrew.isHebrew(item.label);
 
   return (
      <div className="ui-menu-item"
         data-item-autocomplete={item}
         className={`
-          search-override ${!!override ? 'search-override' : ''}
           hebrew-result ${!!isHebrew ? 'hebrew-result' : ''} 
           english-result ${!isHebrew ? 'english-result' : ''}
-        `}
-     // onFocus={getInputProps().onChange({ target: { value: item.title }})}
-         >
+        `}>
       <img alt={item.type}
            className={`ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}`}
            src={_type_icon(item)} />
@@ -447,9 +440,10 @@ const SearchSuggestion = ({ item }) => {
       </a>
     </div>  );
 };
- const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
+
+const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     const [searchFocused, setSearchFocused] = useState(false);
-    // const [query, setQuery] = useState('');
+
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
     }, []);
@@ -607,7 +601,7 @@ const SearchSuggestion = ({ item }) => {
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) => {
-    function groupByType(objects) {
+  function groupByType(objects) {
     const groupedData = {};
 
     // Group objects by their "type"
@@ -619,7 +613,8 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
         groupedData[objType].push(obj);
     });
 
-    // Convert grouped data into the desired structure
+    //Convert to a datastructure like this: [{"catName": name,
+    // 'items' : [item1, item2]}]
     const result = Object.keys(groupedData).map(type => ({
         type,
         items: groupedData[type]
@@ -633,7 +628,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
     return (
         <>
             {groupedSuggestions.map((object, index) => {
-                const initialIndex = universalIndex;
+                const UniversalInitialIndexForGroup = universalIndex;
                 universalIndex += object.items.length;
                 return (
                     <SuggestionsGroup
@@ -641,7 +636,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
                         highlightedIndex={highlightedIndex}
                         key={index}
                         suggestions={object.items}
-                        universalInitialIndex={initialIndex}
+                        universalInitialIndex={UniversalInitialIndexForGroup}
                     />
                 );
             })}
@@ -696,15 +691,11 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
   }
   const fetchSuggestions = async (inputValue) => {
   if (inputValue.length < 3){
-      console.log("smaller than 3")
       setSuggestions([]);
       return;
     }
   try {
     const d = await Sefaria.getName(inputValue);
-    // group d by types [{"catName": name,
-    // 'items' : [item1, item2]}]
-
 
     const comps = d["completion_objects"].map(o => {
       const c = {...o};
@@ -738,18 +729,13 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
     onInputValueChange: ({ inputValue }) => {
       fetchSuggestions(inputValue);
     },
-    onSelectedItemChange: ({ selectedItem }) => {
-      // console.log('Selected:', selectedItem);
-      console.log(highlightedIndex)
-      // getInputProps().onChange({ target: { value: selectedItem.title } });
-    },
+    // onSelectedItemChange: ({ selectedItem }) => {
+    //   console.log(highlightedIndex)
+    // },
   });
-   if (highlightedIndex > -1) {
-     console.log(suggestions[highlightedIndex])
-   }
+
   return (
     <div style={{ position: 'relative' }}>
-      {/*<input {...getInputProps()} placeholder="Search..." />*/}
       <InputBox getInputProps={getInputProps}
             onRefClick={onRefClick}
             showSearch={showSearch}
@@ -760,31 +746,8 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
             highlightedIndex={highlightedIndex}
       />
       <ul
-          // className="ui-menu ui-widget ui-widget-content ui-autocomplete ui-front"
-        // style={{ display: 'block', top: '48.5px', left: '1440px', width: '481px' }}
         {...getMenuProps()}
-        style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
-        //   style="display: none; width: 585px; top: 48.5035px; left: 1653.35px;"
-        //   style={{ width: '585px', top: '48.5035px', left: '1653.35px' }}
-      >
-        {/*{isOpen &&*/}
-        {/*  suggestions.map((suggestion, index) => (*/}
-        {/*    <div*/}
-        {/*      {...getItemProps({*/}
-        {/*        key: suggestion.value,*/}
-        {/*        index,*/}
-        {/*        item: suggestion,*/}
-        {/*        style: {*/}
-        {/*          backgroundColor:*/}
-        {/*            highlightedIndex === index ? '#EDEDEC' : '',*/}
-        {/*        },*/}
-
-        {/*      })}*/}
-        {/*    >*/}
-        {/*      /!*{suggestion.label}*!/*/}
-        {/*      <SearchSuggestion item={suggestion}/>*/}
-        {/*    </div>*/}
-        {/*  ))}*/}
+        style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}>
           {isOpen &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}/>
           }
