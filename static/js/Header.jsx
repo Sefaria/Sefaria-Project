@@ -587,18 +587,18 @@ const ProfilePicMenu = ({len, url, name}) => {
         s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
         document.head.appendChild(s);
         const crossImage =document.querySelector("#crossImage");
-        console.log(crossImage.classList);
-    
-        const feedbucket = document.querySelector("feedbucket-app");
-        // Remove the event listener so the script isn't loaded multiple times
-        e.classList.toggle('hidden');
         crossImage.classList.toggle('hidden');
-        let container=document.getElementById('imageContainer');
-        if(feedbucket.classList.contains('hidden')){
+
+        const feedbucket = document.querySelector("feedbucket-app");
+        console.log(feedbucket.classList)
+        // Remove the event listener so the script isn't loaded multiple times
+        feedbucket.classList.toggle('hidden');
+        if(feedbucket.classList.toggle('hidden')){
           feedbucket.classList.remove('hidden');
+          crossImage.classList.remove('hidden');
         }else{
-          e.classList.toggle('hidden');
           feedbucket.classList.add('hidden');
+          crossImage.classList.add('hidden');
         }
   };
   useEffect(() => {
