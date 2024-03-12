@@ -1,4 +1,4 @@
-FROM gcr.io/production-deployment/base-web:v3.7-bullseye
+FROM gcr.io/production-deployment/base-web:v3.9-bullseye
 ARG TYPE=build-prod
 
 WORKDIR /app/
