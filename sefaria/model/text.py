@@ -385,7 +385,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         alt_titles = list(map(re.escape, full_title_list))
         reg = '(?P<title>' + '|'.join(sorted(alt_titles, key=len, reverse=True)) + r')($|[:., ]+)'
         try:
-            reg = re.compile(reg, max_mem=384 * 1024 * 1024)
+            options = re.Options()
+            options.max_mem = 384 * 1024 * 1024
+            reg = re.compile(reg, options=options)
         except TypeError:
             reg = re.compile(reg)
 
@@ -5606,7 +5608,9 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
             try:
-                reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
+                options = re.Options()
+                options.max_mem = 512 * 1024 * 1024
+                reg = re.compile(re_string, options=options)
             except TypeError:
                 reg = re.compile(re_string)
             self._title_regexes[key] = reg
