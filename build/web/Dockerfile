@@ -1,4 +1,4 @@
-FROM us-east1-docker.pkg.dev/production-deployment/base-web:v3.9-bullseye
+FROM us-east1-docker.pkg.dev/production-deployment/containers/base-web:3.9-bullseye
 ARG TYPE=build-prod
 
 WORKDIR /app/
