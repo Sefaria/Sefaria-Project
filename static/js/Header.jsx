@@ -5,6 +5,7 @@ import Component from 'react-class';
 import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import { useCombobox } from 'downshift';
 import {
   SearchButton,
   GlobalWarningMessage,
@@ -399,7 +400,6 @@ SearchBar.propTypes = {
   fullWidth:          PropTypes.bool,
   hideHebrewKeyboard: PropTypes.bool,
 };
-import { useCombobox } from 'downshift';
 
 const SearchSuggestion = ({ item }) => {
 
@@ -450,8 +450,6 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
    const clearSearchBox = function () {
-    // $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefariaAutocomplete("close");
-     console.log("clearSearchBox")
      getInputProps().onChange({ target: { value: '' } });
   }
    const submitSearch = (query) => {
@@ -485,7 +483,6 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
           redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
-          // closeSearchAutocomplete();
           showSearch(query);
         }
       });
@@ -500,13 +497,11 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     }
     props.showSearch(query);
 
-    // $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
     props.onNavigate && props.onNavigate();
   }
 
   const redirectToObject = (item) => {
     Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-    // closeSearchAutocomplete();
     clearSearchBox();
     const url = item.url
     const handled = props.openURL(url);
@@ -516,15 +511,9 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     props.onNavigate && props.onNavigate();
   }
 
-  // const closeSearchAutocomplete = () => {
-  //   // $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
-  //   console.log("closeSearchAutocomplete")
-  // }
-
 
     const handleSearchKeyDown = (event) => {
       onKeyDown(event)
-      // if (event.keyCode !== 13 || document.querySelector(".ui-state-focus")) return;
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
       if (highlightedItem  && highlightedItem.type != 'search'){
@@ -541,7 +530,6 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
       if (inputQuery) {
         submitSearch(inputQuery);
       } else {
-        // document.querySelector(".search").focus();
         focusSearch()
       }
     };
@@ -579,7 +567,6 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     });
 
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
-    console.log(otherDownShiftProps)
 
 
     return (
@@ -601,27 +588,28 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) => {
-  function groupByType(objects) {
-    const groupedData = {};
+  function groupByType(seggestedItems) {
+    const groupedItems = {};
 
-    // Group objects by their "type"
-    objects.forEach(obj => {
-        let objType = obj.type in ["Topic", "PersonTopic"] ? "Topic" : obj.type;
-        if (!groupedData[objType]) {
-            groupedData[objType] = [];
+    // Group items by their "type", "Topic" and "PersonTopic" considered same type
+    seggestedItems.forEach(item => {
+        let itemType = item.type in ["Topic", "PersonTopic"] ? "Topic" : item.type;
+        if (!groupedItems[itemType]) {
+            groupedItems[itemType] = [];
         }
-        groupedData[objType].push(obj);
+        groupedItems[itemType].push(item);
     });
 
-    //Convert to a datastructure like this: [{"catName": name,
-    // 'items' : [item1, item2]}]
-    const result = Object.keys(groupedData).map(type => ({
+    //Convert into a datastructure like this: [{"type": name,
+    //                                         "items" : [item1, item2]}]
+    const result = Object.keys(groupedItems).map(type => ({
         type,
-        items: groupedData[type]
+        items: groupedItems[type]
     }));
 
     return result;
 }
+
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
 
@@ -728,10 +716,7 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
     itemToString: (item) => (item ? item.name : ''),
     onInputValueChange: ({ inputValue }) => {
       fetchSuggestions(inputValue);
-    },
-    // onSelectedItemChange: ({ selectedItem }) => {
-    //   console.log(highlightedIndex)
-    // },
+    }
   });
 
   return (
@@ -755,10 +740,6 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
     </div>
   );
 };
-
-
-
-
 
 
 const LoggedOutButtons = ({mobile, loginOnly}) => {
