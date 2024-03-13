@@ -219,7 +219,6 @@ class ReaderApp extends Component {
     document.removeEventListener('copy', this.handleCopyEvent);
   }
   componentDidUpdate(prevProps, prevState) {
-    console.log(0, this.state,prevState )
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
 
     if (this.justPopped) {
