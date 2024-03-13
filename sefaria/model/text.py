@@ -380,6 +380,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         alt_titles = list(map(re.escape, full_title_list))
         reg = '(?P<title>' + '|'.join(sorted(alt_titles, key=len, reverse=True)) + r')($|[:., ]+)'
         try:
+            # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
             options = re.Options()
             options.max_mem = 384 * 1024 * 1024
             reg = re.compile(reg, options=options)
@@ -5603,6 +5604,7 @@ class Library(object):
         if not reg:
             re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
             try:
+                # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
                 options = re.Options()
                 options.max_mem = 512 * 1024 * 1024
                 reg = re.compile(re_string, options=options)
