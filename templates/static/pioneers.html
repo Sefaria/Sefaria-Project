@@ -1,0 +1,3841 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Daf Yomi | Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Learn the Talmud each day with Daf Yomi on Sefaria." %}{% endblock %}
+
+{% block css %}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="FFCF3D8B-D46F-6474-23F3-F422011A1027"] {
+  width: auto;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="FFCF3D8B-D46F-6474-23F3-F422011A1027"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="3BB3FEB5-3389-13DE-2067-C25CED0E6121"] {
+  width: 130px;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  opacity: 1;
+  display: block;
+  padding-top: 1rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="3BB3FEB5-3389-13DE-2067-C25CED0E6121"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="25390B61-57D2-1B48-CBDA-99BA15EC8359"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="25390B61-57D2-1B48-CBDA-99BA15EC8359"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="25390B61-57D2-1B48-CBDA-99BA15EC8359"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="05B28F8A-8C5E-69BC-73AD-67F73B195BAE"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-right: 0rem;
+  padding-left: 0rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="05B28F8A-8C5E-69BC-73AD-67F73B195BAE"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="05B28F8A-8C5E-69BC-73AD-67F73B195BAE"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="543CC7FB-66BB-0FC3-9C70-3F9571FD4C47"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="543CC7FB-66BB-0FC3-9C70-3F9571FD4C47"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="543CC7FB-66BB-0FC3-9C70-3F9571FD4C47"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="8F668482-C3C5-0C49-5AA3-354CCA39F41B"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="8F668482-C3C5-0C49-5AA3-354CCA39F41B"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="8F668482-C3C5-0C49-5AA3-354CCA39F41B"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="C915DCD2-7B1B-CE79-DC51-E52D54F3793F"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-right: 0rem;
+  padding-left: 0rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="C915DCD2-7B1B-CE79-DC51-E52D54F3793F"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="C915DCD2-7B1B-CE79-DC51-E52D54F3793F"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="EB9BA2AC-84BE-0FFF-278C-CFA06159CE6B"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="EB9BA2AC-84BE-0FFF-278C-CFA06159CE6B"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="EB9BA2AC-84BE-0FFF-278C-CFA06159CE6B"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="31010B49-7A4C-F6D4-E717-AFAB78028649"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="31010B49-7A4C-F6D4-E717-AFAB78028649"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="31010B49-7A4C-F6D4-E717-AFAB78028649"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="C2AF4F93-28CA-3219-C890-396EA060A671"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-right: 0rem;
+  padding-left: 0rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="C2AF4F93-28CA-3219-C890-396EA060A671"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="C2AF4F93-28CA-3219-C890-396EA060A671"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="83EA31D8-F856-101D-0922-153719814444"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="83EA31D8-F856-101D-0922-153719814444"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="83EA31D8-F856-101D-0922-153719814444"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="7E561BE9-E2C1-13DB-2A4C-1CF9D00B56D1"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="7E561BE9-E2C1-13DB-2A4C-1CF9D00B56D1"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="7E561BE9-E2C1-13DB-2A4C-1CF9D00B56D1"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="470441C0-4454-6292-93F1-90187CC38BB9"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-left: 0rem;
+  padding-right: 0rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="470441C0-4454-6292-93F1-90187CC38BB9"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="470441C0-4454-6292-93F1-90187CC38BB9"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="54488DF0-7A26-8176-AD8A-9433E5F74635"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-top: 0rem;
+  padding-left: 0rem;
+  padding-right: 0rem;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="54488DF0-7A26-8176-AD8A-9433E5F74635"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="54488DF0-7A26-8176-AD8A-9433E5F74635"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="DE6D1616-80FA-57EC-5AE2-24A391516B18"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="DE6D1616-80FA-57EC-5AE2-24A391516B18"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="DE6D1616-80FA-57EC-5AE2-24A391516B18"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="062B6B4B-2309-00C6-045B-C2DB7F42D87D"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-right: 0rem;
+  padding-left: 0rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="062B6B4B-2309-00C6-045B-C2DB7F42D87D"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="062B6B4B-2309-00C6-045B-C2DB7F42D87D"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="FD476536-FC4B-F7B0-D243-D1825014BA40"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="FD476536-FC4B-F7B0-D243-D1825014BA40"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="FD476536-FC4B-F7B0-D243-D1825014BA40"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="FA4964E3-6BFA-801A-AE06-A5EDB2955353"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="FA4964E3-6BFA-801A-AE06-A5EDB2955353"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="FA4964E3-6BFA-801A-AE06-A5EDB2955353"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="2B761A03-3A0C-52D2-C1F2-6AA560A39BA1"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="2B761A03-3A0C-52D2-C1F2-6AA560A39BA1"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="2B761A03-3A0C-52D2-C1F2-6AA560A39BA1"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="6E9F1A5A-B417-1F2A-7EC3-B40A01771B6C"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-bottom: 1.5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="6E9F1A5A-B417-1F2A-7EC3-B40A01771B6C"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="6E9F1A5A-B417-1F2A-7EC3-B40A01771B6C"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="DAD5D413-82B6-C94B-F08F-9B9F2E9B5EA0"] {
+  height: 1px;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 80%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="DAD5D413-82B6-C94B-F08F-9B9F2E9B5EA0"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="DAD5D413-82B6-C94B-F08F-9B9F2E9B5EA0"] {
+  clear: both;
+  border: none;
+  float: none;
+  background-color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="188B4A18-73C2-D0CC-46FC-B623D6BD9778"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+  padding-left: 5rem;
+  padding-right: 5rem;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="188B4A18-73C2-D0CC-46FC-B623D6BD9778"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="188B4A18-73C2-D0CC-46FC-B623D6BD9778"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="94DBD475-0A6D-9504-A0B4-003BBB3C9380"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="94DBD475-0A6D-9504-A0B4-003BBB3C9380"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="94DBD475-0A6D-9504-A0B4-003BBB3C9380"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="EA7D521A-66D5-BE66-17D6-A787B8053F75"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+  opacity: 1;
+  display: block;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="EA7D521A-66D5-BE66-17D6-A787B8053F75"] {
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+    display: block;
+  }
+}
+#page-theme [data-bach-id="EA7D521A-66D5-BE66-17D6-A787B8053F75"] {
+  word-break: break-word;
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="5E1158DD-7D82-CC15-E241-A6A3B8105D7E"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="5E1158DD-7D82-CC15-E241-A6A3B8105D7E"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="D7BEC9A1-E7FB-65F4-4481-BC3D94DC45DC"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="D7BEC9A1-E7FB-65F4-4481-BC3D94DC45DC"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="4D307C41-45CC-5FAD-D11C-870BAE719CE4"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="4D307C41-45CC-5FAD-D11C-870BAE719CE4"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="3CD3BC0D-16A9-5E97-A513-EFBC50D5221E"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="3CD3BC0D-16A9-5E97-A513-EFBC50D5221E"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B820905D-07EE-E379-901B-CF9E2AC07F65"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B820905D-07EE-E379-901B-CF9E2AC07F65"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="F6269AD5-5649-0F43-C9C8-37215DADDED0"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="F6269AD5-5649-0F43-C9C8-37215DADDED0"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="1D69F4F8-E725-3FB9-85A9-1C5036C35FD1"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="1D69F4F8-E725-3FB9-85A9-1C5036C35FD1"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="7D4265D5-91F7-A0B4-1197-57F67AFDC485"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="7D4265D5-91F7-A0B4-1197-57F67AFDC485"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="C0E413A8-4EC1-BF4E-D446-934B430D0794"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="C0E413A8-4EC1-BF4E-D446-934B430D0794"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="2870C7CB-162F-55BB-AE52-F2CB39A45E67"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="2870C7CB-162F-55BB-AE52-F2CB39A45E67"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="9C6C98B2-F294-FD06-5A7A-B2718D99B1C2"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="9C6C98B2-F294-FD06-5A7A-B2718D99B1C2"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="BC44E5AF-3B93-C666-FDCD-41DE34DCFBF0"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="BC44E5AF-3B93-C666-FDCD-41DE34DCFBF0"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="62324491-E0E7-7C2C-BD57-1727757A1B4F"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="62324491-E0E7-7C2C-BD57-1727757A1B4F"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="10EF8507-3665-29D1-4E20-223678F8E154"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="10EF8507-3665-29D1-4E20-223678F8E154"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="AC8D35E5-BE64-3C24-F814-1AD5823FDA62"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="AC8D35E5-BE64-3C24-F814-1AD5823FDA62"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="43A8E9C1-7795-9498-DE37-21D8FD987F41"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="43A8E9C1-7795-9498-DE37-21D8FD987F41"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="6FA13C9F-562B-238C-D8BF-260E57650E1C"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="6FA13C9F-562B-238C-D8BF-260E57650E1C"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B57B6DB0-33B1-DB89-345D-A38A1A28979E"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B57B6DB0-33B1-DB89-345D-A38A1A28979E"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="C183B914-D5DC-AE9E-98DA-A100D11B792C"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="C183B914-D5DC-AE9E-98DA-A100D11B792C"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="0BAF9834-1AA8-061D-7E91-AAD4BCD12E5D"] {
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+  margin-right: auto;
+  margin-left: auto;
+  float: none;
+  width: 100%;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="0BAF9834-1AA8-061D-7E91-AAD4BCD12E5D"] {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    float: none;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="37395778-ABF4-14E7-70B4-4778687137EA"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="37395778-ABF4-14E7-70B4-4778687137EA"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="949E08BB-B4B2-88B3-8F19-983DF1A53FD0"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="949E08BB-B4B2-88B3-8F19-983DF1A53FD0"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="35BA8EDF-978F-2348-1FB0-D82543924B01"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="35BA8EDF-978F-2348-1FB0-D82543924B01"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="312A3EDC-D54E-6F85-2822-5DE212DF449A"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="312A3EDC-D54E-6F85-2822-5DE212DF449A"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="43CFFD84-8447-1767-0E90-AB5BF4E190E1"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="43CFFD84-8447-1767-0E90-AB5BF4E190E1"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="6EF4F7C0-0981-AF77-C103-37DE3A5480A1"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="6EF4F7C0-0981-AF77-C103-37DE3A5480A1"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="4A5F5A52-79A9-F98F-DCBB-F71E087B71BA"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="4A5F5A52-79A9-F98F-DCBB-F71E087B71BA"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="2FA34B69-A22E-65E2-8039-502BBE3FE0ED"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="2FA34B69-A22E-65E2-8039-502BBE3FE0ED"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="90E81B10-43A5-7394-7FD4-9E0C76B170DB"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="90E81B10-43A5-7394-7FD4-9E0C76B170DB"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="5C8BC434-AC9E-D7DD-2287-D88467A8B055"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="5C8BC434-AC9E-D7DD-2287-D88467A8B055"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="5F6C0309-1416-BA1F-9960-DA98880E3259"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="5F6C0309-1416-BA1F-9960-DA98880E3259"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="6540D4D2-E086-A0D6-E667-059462EA28AC"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="6540D4D2-E086-A0D6-E667-059462EA28AC"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="EE0548B6-70DF-36AA-874E-722C57337366"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="EE0548B6-70DF-36AA-874E-722C57337366"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="C8876C1F-F5E5-370D-16A1-54220A174DB2"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="C8876C1F-F5E5-370D-16A1-54220A174DB2"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="A7EE26A8-4965-6CB3-78AF-C889AEAEC6BE"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="A7EE26A8-4965-6CB3-78AF-C889AEAEC6BE"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="9EC2FACE-D406-AD35-530C-DB549AB1CACE"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="9EC2FACE-D406-AD35-530C-DB549AB1CACE"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="BAB2B19D-C656-6837-6BDA-E42FE9DDA41D"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="BAB2B19D-C656-6837-6BDA-E42FE9DDA41D"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="CB28F9CE-493E-F758-2F75-9AE816D94257"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="CB28F9CE-493E-F758-2F75-9AE816D94257"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="17D2ABB7-42DD-21A4-0B41-E463D56999D1"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="17D2ABB7-42DD-21A4-0B41-E463D56999D1"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B25A6A40-9E8B-5F73-9B9F-4033893A6EF5"] {
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B25A6A40-9E8B-5F73-9B9F-4033893A6EF5"] {
+    padding-right: 0rem;
+    padding-left: 0rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="D85AA6D5-5FC3-730A-9CF6-D5AE60A3E4D7"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="D85AA6D5-5FC3-730A-9CF6-D5AE60A3E4D7"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="78D8AEFC-01EA-9497-0635-E0C3B2909193"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="78D8AEFC-01EA-9497-0635-E0C3B2909193"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="180E2B53-5DA4-D6E5-4EC6-ED11B05D1B0A"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="180E2B53-5DA4-D6E5-4EC6-ED11B05D1B0A"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B2FB4E38-13F4-63FB-702E-D48DA65EFCBA"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B2FB4E38-13F4-63FB-702E-D48DA65EFCBA"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="D26849D8-DA64-1CCB-A176-F73F5734B1B9"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="D26849D8-DA64-1CCB-A176-F73F5734B1B9"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="F1594B12-9C1A-551E-DE2C-7FB11F57F211"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="F1594B12-9C1A-551E-DE2C-7FB11F57F211"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="38C7B8CE-AD05-4AF1-5D6B-E88E634FA580"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="38C7B8CE-AD05-4AF1-5D6B-E88E634FA580"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="02345CB7-C141-FFD6-CBAD-AEF0FB199000"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="02345CB7-C141-FFD6-CBAD-AEF0FB199000"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B6FAA3FA-103F-3DE5-CD4F-3CE3FC9249C7"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B6FAA3FA-103F-3DE5-CD4F-3CE3FC9249C7"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="BDDD706C-981D-42CC-CCAC-F439BB05A33D"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="BDDD706C-981D-42CC-CCAC-F439BB05A33D"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="06380311-19A4-C765-C166-604FE0C5C67B"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="06380311-19A4-C765-C166-604FE0C5C67B"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="2B9451A2-D28E-049E-E232-DB1908C5223D"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="2B9451A2-D28E-049E-E232-DB1908C5223D"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="A817479F-9FC5-EB2F-E856-84FCB29244DC"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="A817479F-9FC5-EB2F-E856-84FCB29244DC"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="CD95EA9C-BC6A-965D-B78D-8EECC0FBBFB5"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="CD95EA9C-BC6A-965D-B78D-8EECC0FBBFB5"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="B05429C6-ACAD-B89B-A1CD-46B24315CBD2"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 5rem;
+  padding-right: 5rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="B05429C6-ACAD-B89B-A1CD-46B24315CBD2"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="F125A7D5-19D3-CEB0-5F01-8A62531F633F"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="F125A7D5-19D3-CEB0-5F01-8A62531F633F"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="52A8E60C-BF05-AA40-255D-152DA2AD9B09"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="52A8E60C-BF05-AA40-255D-152DA2AD9B09"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="AF657CB0-A55E-FD7D-847C-C9B1260557C5"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="AF657CB0-A55E-FD7D-847C-C9B1260557C5"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="EE623C40-978A-836D-CF4B-7ED1ADEED76E"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="EE623C40-978A-836D-CF4B-7ED1ADEED76E"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme [data-bach-id="80905AE5-97A1-5287-F7BB-D9377285A1BE"] {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  display: block;
+  border-style: solid;
+  border-width: 0px;
+  border-color: #18345d;
+}
+@media screen and (max-width: 767px) {
+  #page-theme [data-bach-id="80905AE5-97A1-5287-F7BB-D9377285A1BE"] {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    display: block;
+  }
+}
+/*! CSS Used from: Embedded */
+#page-theme .text-tint-1-4 {
+  color: rgb(253, 253, 253);
+}
+/*! CSS Used from: Embedded */
+#page-theme {
+  font-size: 1.6rem;
+  font-family: "Roboto", sans-serif;
+  background-color: #ffffff;
+  color: #ffffff;
+  min-height: 100%;
+}
+#page-theme p {
+  font-size: 1.6rem;
+  font-family: "Roboto", sans-serif;
+  line-height: 1.5em;
+  min-height: 1.5em;
+}
+#page-theme h2 {
+  font-family: "EB Garamond", serif;
+  line-height: 1.5em;
+  min-height: 1.5em;
+}
+#page-theme h2 {
+  font-size: 4rem;
+}
+#page-theme a {
+  color: #ffffff;
+  text-decoration: none;
+}
+#page-theme .page-container {
+  max-width: 800px;
+}
+@media screen and (max-width: 767px) {
+  #page-theme p {
+    font-size: 1.6rem;
+    font-family: "Roboto", sans-serif;
+    line-height: 1.5em;
+    min-height: 1.5em;
+  }
+}
+@media screen and (max-width: 767px) {
+  #page-theme h2 {
+    font-family: "EB Garamond", serif;
+    line-height: 1.5em;
+    min-height: 1.5em;
+  }
+}
+@media screen and (max-width: 767px) {
+  #page-theme h2 {
+    font-size: 4rem;
+  }
+}
+@media screen and (max-width: 767px) {
+  #page-theme a {
+    color: #ffffff;
+    text-decoration: none;
+  }
+}
+@media screen and (max-width: 767px) {
+  #page-theme .page-container {
+    max-width: 800px;
+  }
+}
+/*! CSS Used from: Embedded */
+body {
+  height: 100%;
+  width: 100%;
+  font-size: 10px;
+}
+* {
+  box-sizing: border-box;
+}
+img {
+  max-width: 100%;
+  font-style: italic;
+  vertical-align: middle;
+}
+.page-container {
+  margin: 0 auto;
+}
+.page-col-12 {
+  width: 100%;
+}
+.contain {
+  position: relative;
+}
+.page-column {
+  min-height: 1px;
+  float: left;
+}
+.page-column-inner {
+  position: relative;
+  max-width: 100%;
+}
+.clearfix {
+  display: block;
+}
+.clearfix::after,
+.clearfix::before {
+  content: " ";
+  display: table;
+  clear: both;
+}
+.bach-component {
+  position: relative;
+  max-width: 100%;
+}
+.bach-divider {
+  background-clip: content-box !important;
+  box-sizing: content-box !important;
+  border-top: 20px solid transparent !important;
+  border-bottom: 20px solid transparent !important;
+}
+.bach-text {
+  position: relative;
+  word-break: normal;
+}
+.bach-mobile-only {
+  display: none;
+}
+.bach-background-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.bach-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+@media screen and (max-width: 767px) {
+  .bach-mobile-only {
+    display: block;
+  }
+  .bach-desktop-only {
+    display: none;
+  }
+  .is-responsive .page-column {
+    width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+/*! CSS Used from: Embedded */
+body,
+div,
+span,
+h2,
+p,
+a,
+img,
+section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+body {
+  height: 100%;
+  width: 100%;
+  font-size: 10px;
+  margin: 0;
+}
+* {
+  box-sizing: border-box;
+}
+img {
+  max-width: 100%;
+  font-style: italic;
+  vertical-align: middle;
+}
+.page-container {
+  margin: 0 auto;
+}
+.page-col-12 {
+  width: 100%;
+}
+.contain {
+  position: relative;
+}
+.page-column {
+  min-height: 1px;
+  float: left;
+}
+.page-column-inner {
+  position: relative;
+  max-width: 100%;
+}
+.clearfix {
+  display: block;
+}
+.clearfix::after,
+.clearfix::before {
+  content: " ";
+  display: table;
+  clear: both;
+}
+.bach-component {
+  position: relative;
+  max-width: 100%;
+}
+.bach-divider {
+  background-clip: content-box !important;
+  box-sizing: content-box !important;
+  border-top: 20px solid transparent !important;
+  border-bottom: 20px solid transparent !important;
+}
+.bach-text {
+  position: relative;
+  word-break: normal;
+}
+.bach-mobile-only {
+  display: none;
+}
+.bach-background-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.bach-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+@media screen and (max-width: 767px) {
+  .bach-mobile-only {
+    display: block;
+  }
+  .bach-desktop-only {
+    display: none;
+  }
+  .is-responsive .page-column,
+  .page-column-inner {
+    width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+@media screen and (max-width: 767px) {
+  #page-theme .page-container {
+    max-width: 1200px;
+  }
+}
+/*! CSS Used fontfaces */
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEz0dL_nz.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEzQdL_nz.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEzwdL_nz.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEzMdL_nz.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEz8dL_nz.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEz4dL_nz.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOiCnqEu92Fr1Mu51QrEzAdLw.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xFIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xMIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xEIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xLIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xHIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xGIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1Mu51xIIzI.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic3CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic-CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic2CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic5CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic1CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic0CsTKlA.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: italic;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOjCnqEu92Fr1Mu51TzBic6CsQ.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxFIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxMIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxEIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxLIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxHIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxGIzIFKw.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOkCnqEu92Fr1MmgVxIIzI.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu72xKOzY.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu5mxKOzY.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7mxKOzY.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4WxKOzY.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7WxKOzY.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu7GxKOzY.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfCRc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfABc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfCBc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBxc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfCxc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfChc4EsA.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDY1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweD81ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDc1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDg1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDQ1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDU1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDs1Zw.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDY1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweD81ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDc1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDg1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDQ1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDU1ZzPJ.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGWmQSNjdsmc35JDF1K5GRweDs1Zw.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR4SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F,
+    U+FE2E-FE2F;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GRxSDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR5SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+1F00-1FFF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR2SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1,
+    U+03A3-03FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR6SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329,
+    U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR7SDktYw.woff2)
+    format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 600;
+  src: url(https://fonts.gstatic.com/s/ebgaramond/v27/SlGUmQSNjdsmc35JDF1K5GR1SDk.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+{% endblock %}
+
+{% block content %}
+<div id="dafyomiPage" class="static">
+  <div class="bach-canvas clearfix contain" id="page-theme">
+    <div data-bach-id="1436724">
+      <div class="bach-mobile-only">
+        <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+          <div class="bach-background"
+            style="background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%); top: 0px; bottom: 0px;">
+          </div>
+          <div class="bach-background"
+            style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+          </div>
+        </div>
+
+      </div>
+      <div class="bach-desktop-only">
+        <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+          <div class="bach-background"
+            style="background: linear-gradient(0deg, rgb(255, 255, 255) 0%, rgb(255, 255, 255) 100%); top: 0px; bottom: 0px;">
+          </div>
+          <div class="bach-background"
+            style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+          </div>
+        </div>
+
+      </div>
+      <section class="contain" data-bach-id="80905AE5-97A1-5287-F7BB-D9377285A1BE">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="B25A6A40-9E8B-5F73-9B9F-4033893A6EF5">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="0BAF9834-1AA8-061D-7E91-AAD4BCD12E5D">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix"><img class="bach-component bach-image" alt=""
+                    data-bach-id="3BB3FEB5-3389-13DE-2067-C25CED0E6121"
+                    src="https://ac-landing-pages-user-uploads-production.s3.amazonaws.com/0000140415/2cbad6d0-afdb-4807-bfaf-e8eddab7961e.png">
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="EE623C40-978A-836D-CF4B-7ED1ADEED76E">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="17D2ABB7-42DD-21A4-0B41-E463D56999D1">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="C183B914-D5DC-AE9E-98DA-A100D11B792C">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="EA7D521A-66D5-BE66-17D6-A787B8053F75">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span class="text-tint-1-4" style="font-size: 1.4em">Sefaria
+                          Pioneers</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="94DBD475-0A6D-9504-A0B4-003BBB3C9380">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p style="text-align: center"><span style="font-style: italic">10th Anniversary Gala 2024</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="AF657CB0-A55E-FD7D-847C-C9B1260557C5">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="CB28F9CE-493E-F758-2F75-9AE816D94257">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="B57B6DB0-33B1-DB89-345D-A38A1A28979E">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix"><img class="bach-component bach-image" alt=""
+                    data-bach-id="FFCF3D8B-D46F-6474-23F3-F422011A1027"
+                    src="https://ac-landing-pages-user-uploads-production.s3.amazonaws.com/0000140415/218aa698-a56f-42c1-b079-ff41c0ff06c3.png">
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="52A8E60C-BF05-AA40-255D-152DA2AD9B09">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="BAB2B19D-C656-6837-6BDA-E42FE9DDA41D">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="6FA13C9F-562B-238C-D8BF-260E57650E1C">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="188B4A18-73C2-D0CC-46FC-B623D6BD9778">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span style="font-size: 1.2em;font-style: italic">These remarkable individuals have each
+                          demonstrated a profound commitment to Sefaria, notably assisting the organization in its first
+                          year. We are forever grateful to these&nbsp;Pioneers, whose generosity is the very bedrock
+                          upon which we have been able to build a vibrant digital future for the Jewish
+                          people.&nbsp;</span></p>
+                      <p></p>
+                      <p><a href="https://sefaria.org/topics/parashat-bereshit" target="_self"
+                          class="bach-link-tracking" istracking="true"><span
+                            style="font-size: 1.2em;font-style: italic;text-decoration: underline">Parashat
+                            Bereshit</span></a><span style="font-size: 1.2em;font-style: italic"> — or Genesis — is
+                          dedicated to the Sefaria Pioneers.&nbsp;</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="F125A7D5-19D3-CEB0-5F01-8A62531F633F">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="9EC2FACE-D406-AD35-530C-DB549AB1CACE">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="43A8E9C1-7795-9498-DE37-21D8FD987F41">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="DAD5D413-82B6-C94B-F08F-9B9F2E9B5EA0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="B05429C6-ACAD-B89B-A1CD-46B24315CBD2">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+            <div class="bach-background"
+              style="background: linear-gradient(0deg, rgb(24, 52, 93) 0%, rgb(24, 52, 93) 100%); top: 0px; bottom: 0px;">
+            </div>
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="A7EE26A8-4965-6CB3-78AF-C889AEAEC6BE">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="AC8D35E5-BE64-3C24-F814-1AD5823FDA62">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="6E9F1A5A-B417-1F2A-7EC3-B40A01771B6C">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>Phyllis Cook</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="2B761A03-3A0C-52D2-C1F2-6AA560A39BA1">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>Phyllis is Managing Director of PLC Philanthropic Services, working with individuals,
+                          families, and nonprofits to achieve their philanthropic objectives. As a board member of the
+                          Jim Joseph Foundation, Phyllis championed and fiercely advocated for a 2013 gift to Sefaria
+                          that represented a full third of its Year 1 budget. Phyllis’s initial support solidified
+                          Sefaria's decade-long partnership with the Jim Joseph Foundation, one of our most generous
+                          donors.</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="CD95EA9C-BC6A-965D-B78D-8EECC0FBBFB5">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="C8876C1F-F5E5-370D-16A1-54220A174DB2">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="10EF8507-3665-29D1-4E20-223678F8E154">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="FA4964E3-6BFA-801A-AE06-A5EDB2955353"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="A817479F-9FC5-EB2F-E856-84FCB29244DC">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="EE0548B6-70DF-36AA-874E-722C57337366">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="62324491-E0E7-7C2C-BD57-1727757A1B4F">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="FD476536-FC4B-F7B0-D243-D1825014BA40">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>Felicia Herman</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="062B6B4B-2309-00C6-045B-C2DB7F42D87D">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>Felicia is Managing Director (North America) of the Maimonides Fund. She was previously
+                          the Executive Director of The Natan Fund, which was the very first philanthropic foundation to
+                          support Sefaria. Felicia was also one of Sefaria’s earliest board members, serving as a
+                          Director for seven years and championing Sefaria’s growth.</span></p>
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="2B9451A2-D28E-049E-E232-DB1908C5223D">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="6540D4D2-E086-A0D6-E667-059462EA28AC">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="BC44E5AF-3B93-C666-FDCD-41DE34DCFBF0">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="DE6D1616-80FA-57EC-5AE2-24A391516B18"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="06380311-19A4-C765-C166-604FE0C5C67B">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="5F6C0309-1416-BA1F-9960-DA98880E3259">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="9C6C98B2-F294-FD06-5A7A-B2718D99B1C2">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="54488DF0-7A26-8176-AD8A-9433E5F74635">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>Ilan Kaufthal</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="470441C0-4454-6292-93F1-90187CC38BB9">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>Ilan is Chairman of East Wind and has over 30 years of experience as an investment
+                          banker. In the spring of 2013, Ilan introduced Sefaria’s founders to Rabbi Adin Steinsaltz
+                          (zt”l); a meeting that led to the creation of the William Davidson Talmud, a historic project
+                          that has made the Talmud accessible like never before. Ilan also helped Sefaria’s founders
+                          hire its first CEO and negotiate critical library acquisitions. He has been and continues to
+                          be an indispensable supporter and adviser.&nbsp;</span></p>
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="BDDD706C-981D-42CC-CCAC-F439BB05A33D">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="5C8BC434-AC9E-D7DD-2287-D88467A8B055">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="2870C7CB-162F-55BB-AE52-F2CB39A45E67">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="7E561BE9-E2C1-13DB-2A4C-1CF9D00B56D1"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="B6FAA3FA-103F-3DE5-CD4F-3CE3FC9249C7">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="90E81B10-43A5-7394-7FD4-9E0C76B170DB">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="C0E413A8-4EC1-BF4E-D446-934B430D0794">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="83EA31D8-F856-101D-0922-153719814444">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>Joshua Kushner</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="C2AF4F93-28CA-3219-C890-396EA060A671">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>Joshua is Founder and Managing Partner of Thrive Capital. He is also a co-founder of
+                          Oscar, a health-insurance start-up that uses technology, design, and data to help humanize and
+                          simplify healthcare. Joshua hosted Sefaria’s launch event in 2013, joined the board as its
+                          fifth member, and served as a Director for ten years. Joshua has provided valuable guidance
+                          and advice to Sefaria and remains a dedicated supporter.&nbsp;</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="02345CB7-C141-FFD6-CBAD-AEF0FB199000">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="2FA34B69-A22E-65E2-8039-502BBE3FE0ED">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="7D4265D5-91F7-A0B4-1197-57F67AFDC485">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="31010B49-7A4C-F6D4-E717-AFAB78028649"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="38C7B8CE-AD05-4AF1-5D6B-E88E634FA580">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="4A5F5A52-79A9-F98F-DCBB-F71E087B71BA">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="1D69F4F8-E725-3FB9-85A9-1C5036C35FD1">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="EB9BA2AC-84BE-0FFF-278C-CFA06159CE6B">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>James Rothschild</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="C915DCD2-7B1B-CE79-DC51-E52D54F3793F">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>James is Co-Founder and Managing Partner of Tru Arrow Partners. He is a Trustee of Yad
+                          Hanadiv (the Rothschild Foundation), which continues the tradition of Rothschild family
+                          philanthropy in Israel. James and Yad Hanadiv are long-time supporters of Sefaria,
+                          notably&nbsp; helping&nbsp; Sefaria to develop a multi-faceted partnership with the National
+                          Library of Israel that we hope will continue long into the future.&nbsp;</span></p>
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="F1594B12-9C1A-551E-DE2C-7FB11F57F211">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="6EF4F7C0-0981-AF77-C103-37DE3A5480A1">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="F6269AD5-5649-0F43-C9C8-37215DADDED0">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component bach-divider" data-bach-id="8F668482-C3C5-0C49-5AA3-354CCA39F41B"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="D26849D8-DA64-1CCB-A176-F73F5734B1B9">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="43CFFD84-8447-1767-0E90-AB5BF4E190E1">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="B820905D-07EE-E379-901B-CF9E2AC07F65">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="543CC7FB-66BB-0FC3-9C70-3F9571FD4C47">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <h2 style="text-align: center"><span>Ilan &amp; Dana Rubinstein</span></h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="05B28F8A-8C5E-69BC-73AD-67F73B195BAE">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p><span>Ilan is a co-founder of Ruby Capital and Ruby Ventures. Dana is a doctoral candidate at
+                          the Hebrew University of Jerusalem and a researcher at the Franz Rosenzweig Center. In
+                          Sefaria’s early days, Ilan donated office space and even flew to Canada to help Sefaria’s
+                          founders secure initial funding. Dana’s help in setting Sefaria up as an Israeli entity has
+                          had a tremendous impact on Sefaria’s continued growth. Ilan, Dana, and the broader Rubinstein
+                          family sponsored Sefaria’s acquisition of the Nechama Leibowitz Collection and the Responsa of
+                          the Chatam Sofer (of whom the Rubinsteins are descendants!).&nbsp;</span></p>
+                      <p><span></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="B2FB4E38-13F4-63FB-702E-D48DA65EFCBA">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="312A3EDC-D54E-6F85-2822-5DE212DF449A">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="3CD3BC0D-16A9-5E97-A513-EFBC50D5221E">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="180E2B53-5DA4-D6E5-4EC6-ED11B05D1B0A">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="35BA8EDF-978F-2348-1FB0-D82543924B01">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="4D307C41-45CC-5FAD-D11C-870BAE719CE4">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="contain clearfix">
+                  <div class="bach-component" data-bach-id="25390B61-57D2-1B48-CBDA-99BA15EC8359">
+                    <div class="bach-mobile-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-desktop-only">
+                      <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                      </div>
+
+                    </div>
+                    <div class="bach-text">
+                      <p style="text-align: center"><span style="font-size: 0.7em;font-style: italic">Sefaria is a
+                          501(c)(3) nonprofit organization.&nbsp;</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="78D8AEFC-01EA-9497-0635-E0C3B2909193">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="949E08BB-B4B2-88B3-8F19-983DF1A53FD0">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="D7BEC9A1-E7FB-65F4-4481-BC3D94DC45DC">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="contain" data-bach-id="D85AA6D5-5FC3-730A-9CF6-D5AE60A3E4D7">
+        <div class="bach-mobile-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="bach-desktop-only">
+          <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+          </div>
+
+        </div>
+        <div class="contain" data-bach-id="37395778-ABF4-14E7-70B4-4778687137EA">
+          <div class="bach-mobile-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="bach-desktop-only">
+            <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+            </div>
+
+          </div>
+          <div class="page-container clearfix contain is-responsive">
+            <div class="contain page-column clearfix page-col-12 column-counter-1">
+              <div class="page-column-inner" data-bach-id="5E1158DD-7D82-CC15-E241-A6A3B8105D7E">
+                <div class="bach-mobile-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+                <div class="bach-desktop-only">
+                  <div class="bach-background-container" style="border-style: solid; border-color: transparent;">
+
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+
+
+</div>
+</div>
+
+
+</div>
+
+{% endblock %}

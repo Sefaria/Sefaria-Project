@@ -48,6 +48,8 @@ static_pages = [
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
     "team",
+    "pioneers",
+    "pioneers-take-two"
 ]
 
 static_pages_by_lang = [
