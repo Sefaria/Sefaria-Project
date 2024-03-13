@@ -65,6 +65,7 @@ babel
 python-bidi
 requests
 Cerberus
+google-re2
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
