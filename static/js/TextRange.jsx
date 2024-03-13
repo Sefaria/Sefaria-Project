@@ -34,8 +34,8 @@ class TextRange extends Component {
         !this.props.filter.compare(nextProps.filter))         { return true; }
     if (this.props.highlightedRefs && nextProps.highlightedRefs &&
         !this.props.highlightedRefs.compare(nextProps.highlightedRefs)) { return true; }
-    if (this.props.currVersions.en !== nextProps.currVersions.en) { return true; }
-    if (this.props.currVersions.he !== nextProps.currVersions.he) { return true; }
+    if (!Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.en, nextProps.currVersions.en)) { return true; }
+    if (!Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.he, nextProps.currVersions.he)) { return true; }
     if (this.props.translationLanguagePreference !== nextProps.translationLanguagePreference) { return true; }
     if (this.props.showHighlight !== nextProps.showHighlight) { return true; }
     // todo: figure out when and if this component receives settings at all
@@ -58,8 +58,8 @@ class TextRange extends Component {
   componentDidUpdate(prevProps, prevState) {
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
-      if (prevProps.currVersions.en !== this.props.currVersions.en ||
-          prevProps.currVersions.he !== this.props.currVersions.he ||
+      if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
+          !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
           prevProps.settings.language !== this.props.settings.language ||
           prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
           prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
@@ -102,8 +102,8 @@ class TextRange extends Component {
   getText() {
     let settings = {
       context: this.props.withContext ? 1 : 0,
-      enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null,
+      enVersion: this.props.currVersions.en?.versionTitle || null,
+      heVersion: this.props.currVersions.he?.versionTitle || null,
       // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
       firstAvailableRef: this.props.basetext ? 1 : 0,
       translationLanguagePreference: this.props.translationLanguagePreference,
@@ -115,7 +115,7 @@ class TextRange extends Component {
       this.textLoading = true;
       Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
     } else if (!!data && this.props.isCurrentlyVisible) {
-      this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+      this._updateCurrVersions(data);
     }
     return data;
   }
@@ -139,7 +139,7 @@ class TextRange extends Component {
       return;
     }
 
-    this._updateCurrVersions(data.versionTitle, data.heVersionTitle);
+    this._updateCurrVersions(data);
 
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
@@ -156,10 +156,10 @@ class TextRange extends Component {
       }.bind(this));
     }
   }
-  _updateCurrVersions(enVTitle, heVTitle) {
+  _updateCurrVersions(data) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
     if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
-    this.props.updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle);
+    this.props.updateCurrVersionsToMatchAPIResult(data.versionTitle, data.heVersionTitle);
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
@@ -199,8 +199,8 @@ class TextRange extends Component {
        Sefaria.getText(data.next, {
          context: 1,
          multiple: this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null,
+         enVersion: this.props.currVersions.en?.versionTitle || null,
+         heVersion: this.props.currVersions.he?.versionTitle || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
          versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
@@ -209,8 +209,8 @@ class TextRange extends Component {
        Sefaria.getText(data.prev, {
          context: 1,
          multiple: -this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en || null,
-         heVersion: this.props.currVersions.he || null,
+         enVersion: this.props.currVersions.en?.versionTitle || null,
+         heVersion: this.props.currVersions.he?.versionTitle || null,
          translationLanguagePreference: this.props.translationLanguagePreference,
          versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
        }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
@@ -359,8 +359,8 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
-            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en)[1] : 'en'}
-            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he)[1] : 'he'}
+            enLangCode={this.props.currVersions.en && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.en?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.en?.versionTitle)[1] : 'en'}
+            heLangCode={this.props.currVersions.he && /\[([a-z][a-z][a-z]?)\]$/.test(this.props.currVersions.he?.versionTitle) ? /\[([a-z][a-z][a-z]?)\]$/.exec(this.props.currVersions.he?.versionTitle)[1] : 'he'}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             highlight={highlight}
@@ -513,7 +513,7 @@ class TextSegment extends Component {
     else {
       const ven = refLink.attr("data-ven") ? refLink.attr("data-ven") : null;
       const vhe = refLink.attr("data-vhe") ? refLink.attr("data-vhe") : null;
-      let currVersions = {"en": ven, "he": vhe};
+      let currVersions = {"en": {versionTitle: ven}, "he": {versionTitle: vhe}};
       this.props.onCitationClick(newRef, this.props.sref, true, currVersions);
     }
 

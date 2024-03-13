@@ -422,7 +422,7 @@ const PortalNavSideBar = ({portal, entriesToDisplayList}) => {
 };
 
 const TopicPage = ({
-  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, showBaseText, navHome,
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, multiPanel, navHome,
   toggleSignUpModal, openDisplaySettings, setTab, openSearch, translationLanguagePreference, versionPref,
   topicTestVersion, onSetTopicSort, topicSort
 }) => {
@@ -592,7 +592,6 @@ TopicPage.propTypes = {
   openTopics:          PropTypes.func.isRequired,
   setTab:              PropTypes.func.isRequired,
   multiPanel:          PropTypes.bool,
-  showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,

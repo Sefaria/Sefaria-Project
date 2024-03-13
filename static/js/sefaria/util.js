@@ -50,10 +50,11 @@ class Util {
     }
     static getUrlVersionsParams(currVersions, i=0) {
       currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
+      console.log(111, currVersions);
       if (currVersions) {
         return Object.entries(currVersions)
-          .filter(([vlang, vtitle]) => !!vtitle)
-          .map(([vlang, vtitle]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(vtitle)}`)
+          .filter(([vlang, version]) => !!version?.versionTitle)
+          .map(([vlang, version]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(version.versionTitle)}`)
           .join("");
       } else {
         return "";

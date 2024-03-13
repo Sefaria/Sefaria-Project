@@ -990,6 +990,10 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   }, */
+  areCurrVersionObjectsEqual: function(version1, version2) {
+      console.log(555, version1, version2)
+      return version1?.versionTitle === version2?.versionTitle && version1?.languageFamilyName === version2?.languageFamilyName;
+  },
   _index: {}, // Cache for text index records
    index: function(text, index) {
     if (!index) {

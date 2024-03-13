@@ -67,7 +67,7 @@ class BookPage extends Component {
   }
   getData() {
     // Gets data about this text from cache, which may be null.
-    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he});
+    return Sefaria.text(this.getDataRef(), {context: 1, enVersion: this.props.currVersions.en?.versionTitle, heVersion: this.props.currVersions.he?.versionTitle});
   }
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
@@ -89,7 +89,7 @@ class BookPage extends Component {
     let currObjectVersions = {en: null, he: null};
     for(let [lang,ver] of Object.entries(this.props.currVersions)){
       if(!!ver){
-        let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);
+        let fullVer = versions.find(version => version.versionTitle == ver.versionTitle && version.language == lang);
         currObjectVersions[lang] = fullVer ? fullVer : null;
       }
     }
@@ -131,10 +131,10 @@ class BookPage extends Component {
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
   }
-  openVersion(version, language) {
+  openVersion(version, language, versionLanguageFamily) {
     // Selects a version and closes this menu to show it.
     // Calling this functon wihtout parameters resets to default
-    this.props.selectVersion(version, language);
+    this.props.selectVersion(version, language, versionLanguageFamily);
     this.props.close();
   }
   isBookToc() {
