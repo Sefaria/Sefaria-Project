@@ -2206,7 +2206,25 @@ _media: {},
       let refToCheck = Array.isArray(ref) ? ref[0] : ref;
       const parsedRef = Sefaria.parseRef(refToCheck);
       const book = Sefaria.index(parsedRef.index);
-      return this.isCommentaryWithBaseText(book);
+      if (!this.isCommentaryWithBaseText(book)) {
+          return false;
+      }
+
+      // by this point, we know the book is in the right form, but we still need to check that the ref is in the right form
+      return Sefaria.isCommentaryRefValid(book, parsedRef);
+  },
+  isCommentaryRefValid(book, parsedRef) {
+      /* This is a helper function for isCommentaryRefWithBaseText.  After isCommentaryRefWithBaseText determines
+       * the ref belongs to the right kind of book, we still need to check the ref is in valid form.
+       * The ref 'Ramban on Genesis, Introduction 1' shouldn't generate "Genesis, Introduction 1" ' +
+       * this can be tested by modifying the parsedRef and then calling Sefaria.parseRef on the modified parsedRef
+       * @param {Object} parsedRef: Object created with Sefaria.parseRef.  Its `ref` property is what we need to check
+       * @param {Object} book: Object created with Sefaria.index.  We want to use `book`'s metadata to modify the ref.
+       */
+      const parsedRefCopy = Object.create(parsedRef);  // copy object to avoid modifying Sefaria._parseRef
+      const baseText = book.base_text_titles[0];
+      parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, baseText);
+      return (!Sefaria.parseRef(parsedRefCopy.ref).error);
   },
   convertCommentaryRefToBaseRef(commRef) {
     /* Converts commentary ref, `commRef`, to base ref:
@@ -2222,9 +2240,9 @@ _media: {},
     const base_text = book.base_text_titles[0];
     const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
     const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
-    if (commRef.sections.length <= 2 || !many_to_one) {
+    if (commRefCopy.sections.length <= 2 || !many_to_one) {
         // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.  in this case, sections stay the same so just change the book title
-        commRef.ref = commRef.ref.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
         return Sefaria.humanRef(commRefCopy.ref);
     }
     else if (many_to_one) {
@@ -2404,6 +2422,17 @@ _media: {},
     });
   },
   userHistory: {loaded: false, items: []},
+  loadUserHistory: function (limit, callback) {
+      const skip = Sefaria.userHistory.items.length;
+      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              Sefaria.userHistory.loaded = true;
+              Sefaria.userHistory.items.push(...data);
+              callback();
+          });
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
