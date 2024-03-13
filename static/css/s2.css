@@ -758,7 +758,7 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   margin-inline-start: 23px;
   margin-top: 3px;
 }
-.loggedIn .help { 
+.loggedIn .help {
   margin-inline-start: 17px;
 }
 .loggedIn .help img {
@@ -2332,7 +2332,7 @@ div.interfaceLinks-row a {
 }
 .imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
-  max-width: 100%; 
+  max-width: 100%;
   height: auto;
   padding: 0 44;
   top: 121px;
@@ -2377,7 +2377,7 @@ div.interfaceLinks-row a {
   .topicImage{
     padding-left: 0;
     padding-right: 0;
-    margin-top: 30px;  
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -5505,8 +5505,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.enOnly .en{
   display: initial;
 }
-/* 
-This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+/*
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left.
 But not to use a display block directive that might break continuous mode for other English only texts
  */
 .readerPanel.hebrew.continuous .segment.enOnly .en{
@@ -8666,6 +8666,13 @@ h3.aboutSheetHeader {
 .translationsHeader .translationsDesc {
   font-size: var(--sans-serif-body-font-size);
   color: var(--dark-grey);
+}
+
+.gDocAdvertBanner {
+  top: 60px;
+  position: absolute;
+  width: 100%;
+  z-index: 101;
 }
 
 .aboutSheetPanel hr {

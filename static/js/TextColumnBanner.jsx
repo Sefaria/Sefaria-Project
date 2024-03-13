@@ -109,6 +109,36 @@ const OpenTransBanner = ({ openTranslations }) => {
     );
 };
 
+/**
+ *
+ * @returns {JSX.Element}
+ * @constructor
+ */
+export const GDocAdvertBanner = () => {
+    const buttons = [{
+        text: "Install Now",
+        onClick: () => { window.location.href = 'https://workspace.google.com/marketplace/app/sefaria/849562338091'; },
+        sideEffect: "close",
+    }];
+    const onClose = () => {
+        cookie("gdoc_advert_banner_shown", JSON.stringify(1), {path: "/"});
+    };
+
+
+
+    return (
+      !cookie("gdoc_advert_banner_shown") && document.location.href.includes('/sheets/') ?
+      <div className="gDocAdvertBanner">
+        <TextColumnBanner buttons={buttons} onClose={onClose}>
+            <InterfaceText>
+                <EnglishText> Add texts directly to your Google Docs with our new extension! <a href="https://www.sefaria.org/sheets/529099">Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ עם התוסף החדש שלנו! <a href="https://www.sefaria.org/sheets/529099">למדו עוד</a></HebrewText>
+            </InterfaceText>
+        </TextColumnBanner>
+      </div> : null
+    );
+};
+
 
 
 /**

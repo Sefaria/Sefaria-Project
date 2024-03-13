@@ -14,7 +14,7 @@ import {
   LanguageToggleButton,
   DonateLink
 } from './Misc';
-
+import { GDocAdvertBanner } from './TextColumnBanner';
 
 class Header extends Component {
   constructor(props) {
@@ -101,6 +101,7 @@ class Header extends Component {
       boxShadow: this.props.hasBoxShadow,
       mobile: !this.props.multiPanel
     });
+    console.log(this.props)
     return (
       <div className={headerClasses} role="banner">
         <div className={headerInnerClasses}>
@@ -117,6 +118,7 @@ class Header extends Component {
           close={this.props.onMobileMenuButtonClick} />
         }
         <GlobalWarningMessage />
+        <GDocAdvertBanner />
       </div>
     );
   }
