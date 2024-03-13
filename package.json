@@ -42,6 +42,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@playwright/test": "^1.42.1",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",
@@ -108,6 +109,7 @@
     "css-loader": "^3.2.0",
     "jest": "^24.9.0",
     "nodemon": "^1.9.2",
+    "playwright": "^1.42.1",
     "source-map-support": "^0.4.15",
     "style-loader": "^1.0.0",
     "webpack": "^5.60.0",
@@ -118,7 +120,10 @@
     "setupFilesAfterEnv": [
       "<rootDir>/static/js/setupJest.js"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "testPathIgnorePatterns": [
+      "<rootDir>/e2e-tests/"
+    ]
   },
   "babel": {
     "presets": [
