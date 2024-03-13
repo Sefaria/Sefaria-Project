@@ -17,12 +17,7 @@ import json
 import itertools
 from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
-try:
-    import re2 as re
-except ImportError:
-    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
-    import re
-
+import re2 as re
 from . import abstract as abst
 from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
