@@ -986,7 +986,7 @@
                     }
                 },
                 "summary": "Name",
-                "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria"
+                "description": "Serves primarily as an autocompleter, returning potential keyword matches for `Ref`s, book titles, authors, topics, and collections available on Sefaria."
             },
             "parameters": [
                 {
@@ -4235,7 +4235,7 @@
                         }
                     },
                     "name": "version",
-                    "description": "There are two possible forms for the string passed as the `version`:\n1. `language`\n2. `language|versionTitle`\n\nWhen in the form of `language`, all versions in that language are returned in the `versions` field of the response object. When in the form of `language>|<versionTitle`, only that specific version is returned in the `versions` field. \n\n\n**Notes**: \n- `language` is the full English name of the language. In cases of dialectics with varying sub-specifities, please pass the ‘mother’ language (so for example, `arabic` rather than `judeo-arabic`). This field is case insensitive.\n- `versionTitle` is the exact English `versionTitle` of the given `version` in the Sefaria database. \n- When only `language` is passed, the response will return a single version of the text in that language, the one that is highest priority in the Sefaria database.\n- Requests can have more than one `version` param. If no `version` was passed, the API defaults to `version=primary`.\n\n-----\n\n**Special Values**\nThe following values can be passed in as special values to the `version` parameter. \n- `source`: When `version=source` is passed, it retrieves the text in its \"source\" language (i.e. the original language the text was written in, versus a translation).\n- `translation`: When `version=translation`is passed, it retrieves a translation of the text. \n- `primary`: When `version=primary` is passed, it retrieves the primary text as per the Sefaria database (i.e. the `isPrimary` field on the `version` in the database is set to `True`). Usually the text returned is identical to what is returned with the special value of `source`, but it can also include other languages (e.g. Hebrew for the _Kuzari_, which was originally written in Arabic)\nall - get all texts in the required language.\n\n\nIf a required version is missing that information will be under the field warnings of the response.\n",
+                    "description": "There are two possible forms for the string passed as the `version`:\n1. `language`\n2. `language|versionTitle`\n\nWhen in the form of `language`, the primary version of that language is returned in the `versions` field of the response object. When in the form of `language>|<versionTitle`, only that specific version is returned in the `versions` field. \n\n\n**Notes**: \n- `language` is the full English name of the language. In cases of dialectics with varying sub-specifities, please pass the ‘mother’ language (so for example, `arabic` rather than `judeo-arabic`). This field is NOT case sensitive.\n- `versionTitle` is the exact English `versionTitle` of the given `version` in the Sefaria database. \n- When only `language` is passed, the response will return a single version of the text in that language, the one that is highest priority in the Sefaria database.\n- Requests can have more than one `version` param. If no `version` was passed, the API defaults to `version=primary`.\n\n-----\n\n**Special Values**\nThe following values can be passed in as special values to the `version` parameter. \n- `source`: When `version=source` is passed, it retrieves the text in its \"source\" language (i.e. the original language the text was written in, versus a translation).\n- `translation`: When `version=translation`is passed, it retrieves a translation of the text. \n- `primary`: When `version=primary` is passed, it retrieves the primary text as per the Sefaria database (i.e. the `isPrimary` field on the `version` in the database is set to `True`). Usually the text returned is identical to what is returned with the special value of `source`, but it can also include other languages (e.g. Hebrew for the _Kuzari_, which was originally written in Judeo-Arabic)\n- `all`: get all texts in the required language.\n\n\nIf a required version is missing that information will be under the field warnings of the response.\n",
                     "schema": {
                         "type": "string"
                     },
@@ -4391,7 +4391,7 @@
                 "parameters": [
                     {
                         "name": "limit",
-                        "description": "Number of results to return (0 indicates no limit)",
+                        "description": "Number of results to return (0 indicates no limit, and is the default)",
                         "schema": {
                             "default": 10,
                             "type": "integer"
@@ -4503,7 +4503,7 @@
                     }
                 },
                 "summary": "Word Completion",
-                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
+                "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input.\n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels and the second includes vowels."
             },
             "parameters": [
                 {
@@ -8408,105 +8408,8 @@
                     }
                 }
             },
-            "SearchPOSTData": {
-                "title": "Root Type for SearchPOSTData",
-                "description": "",
-                "type": "object",
-                "properties": {
-                    "aggs": {
-                        "description": "List of fields to aggregate on. Common fields are `path` for the `text` type and `group` or `topics` for the `sheet` type",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "field": {
-                        "description": "The field you want to query. Common fields to query are `exact` or `naive_lemmatizer` for the `text` and `merged` indexes. For querying the `sheet` index, commonly you'll query the `content` field",
-                        "type": "string"
-                    },
-                    "filter_fields": {
-                        "description": "Must be the same length as `filters`. Each entry specifies the field to apply the corresponding filter in `filters`. For queries of type `text` this has no effect since there's only one field to filter text queries on (`path`. this field is explained in `filters`). For `sheet` queries, the following fields can appear in `filter_fields`: `collections` (corresponds to the collections that the sheet is in), `topics_en` (corresponds to the topics for this sheet, translated into English), `topics_he` (corresponds to the topics for this sheet, translated into Hebrew).",
-                        "type": "array",
-                        "items": {}
-                    },
-                    "filters": {
-                        "description": "A list of filters to filter results. These filters cannot include RegEx. Any RegEx characters will be escaped. Each filter is applied to the corresponding field in the `filter_fields` list. E.g. if filters is `[\"Passover\", \"Torah Talks\"]` and `filter_fields` is `[\"topics_en\", \"collections\"]` then the `\"Passover\"` filter will be applied to the `\"topics_en\"` field and the `\"Torah Talks\"` filter will be applied to the `\"collections\"` field. For `text` queries, filters always applies to the `path` field of documents. This essentially corresponds to the category path of the book in Sefaria's table of contents (there are some differences with regards to commentary paths). For `sheet` queries, filters can be applied to `collections`, `topics_en` or `topics_he`. These fields are explained in `filter_fields` param.",
-                        "type": "array",
-                        "items": {}
-                    },
-                    "query": {
-                        "description": "Your search query.",
-                        "type": "string"
-                    },
-                    "size": {
-                        "format": "int32",
-                        "description": "For paginating results. The total number of results to return, starting from `start`",
-                        "type": "integer"
-                    },
-                    "slop": {
-                        "format": "int32",
-                        "description": "The maximum distance between each query word in the resulting document. `0` means an exact match must be found",
-                        "type": "integer"
-                    },
-                    "sort_fields": {
-                        "description": "List of fields to sort on. If `sort_method = 'score'` this list should have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the Sheet Rank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "sort_method": {
-                        "description": "How to sort results. If sort, the values are sorted according to `sort_fields`. If `score`, the value in `sort_fields` is multiplied with the default ElasticSearch score.",
-                        "enum": [
-                            "sort",
-                            "score"
-                        ],
-                        "type": "string"
-                    },
-                    "sort_reverse": {
-                        "description": "Whether or not to reverse the sort applied on `sort_fields`",
-                        "type": "boolean"
-                    },
-                    "sort_score_missing": {
-                        "format": "double",
-                        "description": "The number used in case there is a value missing in your `sort_field`",
-                        "type": "number"
-                    },
-                    "source_proj": {
-                        "description": "By default, the ElasticSearch document is not returned. Specifying `true` will return the entire document. Specifying a `str` or `list(str)` will perform a projection on the document for the specified fields",
-                        "type": "boolean"
-                    },
-                    "type": {
-                        "description": "The ElasticSearch index you want to query, and the results you expect to get back. `sheet` returns results from Sefaria's user generated source sheets, while `text` returns results from the library.",
-                        "enum": [
-                            "text",
-                            "sheet"
-                        ],
-                        "type": "string"
-                    }
-                },
-                "example": {
-                    "aggs": [
-                        "path"
-                    ],
-                    "field": "naive_lemmatizer",
-                    "filter_fields": [],
-                    "filters": [],
-                    "query": "banana",
-                    "size": 50,
-                    "slop": 10,
-                    "sort_fields": [
-                        "pagesheetrank"
-                    ],
-                    "sort_method": "score",
-                    "sort_reverse": false,
-                    "sort_score_missing": 0.04,
-                    "source_proj": true,
-                    "type": "text"
-                }
-            },
             "return_format": {
-                "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of three values:\n1. `text_only` - This strips footnotes, inline references and all html tags from the returned text\n2. `wrap_all_entities` - This wraps the HTML for links and topic links\n3. `default` - This returns the basic text as it’s saved in Sefaria’s DB\n",
+                "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of three values:\n1. `text_only` - This strips footnotes, inline references and all html tags from the returned text\n2. `strip_only_footnotes` - This only strips the footnotes and commentator <i> tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links\n4. `default` - This returns the basic text as it’s saved in Sefaria’s DB\n",
                 "type": "string"
             },
             "v3TextsJson": {
@@ -12511,6 +12414,103 @@
                         "title": "Some thoughts on Sefer Bereishit 1"
                     },
                     "lang": "en"
+                }
+            },
+            "SearchPOSTData": {
+                "title": "Root Type for SearchPOSTData",
+                "description": "",
+                "type": "object",
+                "properties": {
+                    "aggs": {
+                        "description": "List of fields to aggregate on. Common fields are `path` for the `text` type and `group` or `topics` for the `sheet` type",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "field": {
+                        "description": "The field you want to query. Common fields to query are `exact` or `naive_lemmatizer` for the `text` and `merged` indices. For querying the `sheet` index, commonly you'll query the `content` field",
+                        "type": "string"
+                    },
+                    "filter_fields": {
+                        "description": "Must be the same length as `filters`. Each entry specifies the field to apply the corresponding filter in `filters`. For queries of type `text` this has no effect since there's only one field to filter text queries on (`path`. this field is explained in `filters`). For `sheet` queries, the following fields can appear in `filter_fields`: `collections` (corresponds to the collections that the sheet is in), `topics_en` (corresponds to the topics for this sheet, translated into English), `topics_he` (corresponds to the topics for this sheet, translated into Hebrew).",
+                        "type": "array",
+                        "items": {}
+                    },
+                    "filters": {
+                        "description": "A list of filters to filter results. These filters cannot include RegEx. Any RegEx characters will be escaped. Each filter is applied to the corresponding field in the `filter_fields` list. E.g. if filters is `[\"Passover\", \"Torah Talks\"]` and `filter_fields` is `[\"topics_en\", \"collections\"]` then the `\"Passover\"` filter will be applied to the `\"topics_en\"` field and the `\"Torah Talks\"` filter will be applied to the `\"collections\"` field. For `text` queries, filters always applies to the `path` field of documents. This essentially corresponds to the category path of the book in Sefaria's table of contents (there are some differences with regards to commentary paths). For `sheet` queries, filters can be applied to `collections`, `topics_en` or `topics_he`. These fields are explained in `filter_fields` param.",
+                        "type": "array",
+                        "items": {}
+                    },
+                    "query": {
+                        "description": "Your search query.",
+                        "type": "string"
+                    },
+                    "size": {
+                        "format": "int32",
+                        "description": "For paginating results. The total number of results to return, starting from `start`",
+                        "type": "integer"
+                    },
+                    "slop": {
+                        "format": "int32",
+                        "description": "The maximum distance between each query word in the resulting document. `0` means an exact match must be found",
+                        "type": "integer"
+                    },
+                    "sort_fields": {
+                        "description": "List of fields to sort on. If `sort_method = 'score'` this list should have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the Sheet Rank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "sort_method": {
+                        "description": "How to sort results. If sort, the values are sorted according to `sort_fields`. If `score`, the value in `sort_fields` is multiplied with the default ElasticSearch score.",
+                        "enum": [
+                            "sort",
+                            "score"
+                        ],
+                        "type": "string"
+                    },
+                    "sort_reverse": {
+                        "description": "Whether or not to reverse the sort applied on `sort_fields`",
+                        "type": "boolean"
+                    },
+                    "sort_score_missing": {
+                        "format": "double",
+                        "description": "The number used in case there is a value missing in your `sort_field`",
+                        "type": "number"
+                    },
+                    "source_proj": {
+                        "description": "By default, the ElasticSearch document is not returned. Specifying `true` will return the entire document. Specifying a `str` or `list(str)` will perform a projection on the document for the specified fields",
+                        "type": "boolean"
+                    },
+                    "type": {
+                        "description": "The ElasticSearch index you want to query, and the results you expect to get back. `sheet` returns results from Sefaria's user generated source sheets, while `text` returns results from the library.",
+                        "enum": [
+                            "text",
+                            "sheet"
+                        ],
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "aggs": [
+                        "path"
+                    ],
+                    "field": "naive_lemmatizer",
+                    "filter_fields": [],
+                    "filters": [],
+                    "query": "banana",
+                    "size": 50,
+                    "slop": 10,
+                    "sort_fields": [
+                        "pagesheetrank"
+                    ],
+                    "sort_method": "score",
+                    "sort_reverse": false,
+                    "sort_score_missing": 0.04,
+                    "source_proj": true,
+                    "type": "text"
                 }
             }
         }
