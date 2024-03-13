@@ -49,6 +49,5 @@ ENV PATH=/usr/local/nvidia/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64/
 ENV LD_PRELOAD=/usr/local/nvidia/lib64/libnvidia-ml.so
 
-# the version of pydantic installed with spacy is currently broken. force upgrade to fixed version of pydantic.
-RUN pip install spacy[cuda116]~=3.5.0 pydantic~=1.10.0
+RUN pip install spacy[cuda116]~=3.7.0
 
