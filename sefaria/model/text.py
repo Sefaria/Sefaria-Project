@@ -388,7 +388,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             options = re.Options()
             options.max_mem = 384 * 1024 * 1024
             reg = re.compile(reg, options=options)
-        except TypeError:
+        except AttributeError:
             reg = re.compile(reg)
 
         return reg
@@ -5611,7 +5611,7 @@ class Library(object):
                 options = re.Options()
                 options.max_mem = 512 * 1024 * 1024
                 reg = re.compile(re_string, options=options)
-            except TypeError:
+            except AttributeError:
                 reg = re.compile(re_string)
             self._title_regexes[key] = reg
         return reg
