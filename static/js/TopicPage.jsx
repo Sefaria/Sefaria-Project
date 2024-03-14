@@ -316,7 +316,7 @@ const TopicSponsorship = ({topic_slug}) => {
 const getLinksToGenerate = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.ai_context.length > 0  &&
+        return ref.descriptions?.[lang]?.ai_context?.length > 0  &&
             !ref.descriptions?.[lang]?.prompt;
     });
 };
