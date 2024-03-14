@@ -131,7 +131,7 @@ Formally:
     def _normalize(self):
         self.ref = Ref(self.ref).normal()
 
-    def contents(self, ref):
+    def contents(self):
         d = super(Guide, self).contents()
         d["anchorRef"] = d["ref"]
         return d
