@@ -40,8 +40,8 @@ class Header extends Component {
       return null;
     }
     const logo = Sefaria.interfaceLang == "hebrew" ?
-      <img src="/static/img/logo.png" alt="Sefaria Logo"/> :
-      <img src="/static/img/logo.png" alt="Sefaria Logo"/>;
+      <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/> :
+      <img src="/static/img/pecha-logo.svg" alt="Sefaria Logo"/>;
 
     const headerContent = (
       <>
@@ -579,6 +579,28 @@ const ProfilePicMenu = ({len, url, name}) => {
     }
   };
 
+  const loadFeedBucket = (e) => {
+    const s = document.createElement('script');
+        s.module = true;
+        s.defer = true;
+        s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+        s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+        document.head.appendChild(s);
+        const crossImage =document.querySelector("#crossImage");
+        crossImage.classList.toggle('hidden');
+
+        const feedbucket = document.querySelector("feedbucket-app");
+        console.log(feedbucket.classList)
+        // Remove the event listener so the script isn't loaded multiple times
+        feedbucket.classList.toggle('hidden');
+        if(feedbucket.classList.toggle('hidden')){
+          feedbucket.classList.remove('hidden');
+          crossImage.classList.remove('hidden');
+        }else{
+          feedbucket.classList.add('hidden');
+          crossImage.classList.add('hidden');
+        }
+  };
   useEffect(() => {
     document.addEventListener('keydown', handleHideDropdown, true);
     document.addEventListener('click', handleClickOutside, true);
@@ -613,7 +635,7 @@ const ProfilePicMenu = ({len, url, name}) => {
                 <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`} id="select-hebrew-interface-link">བོད་ཡིག</a>
                 <a className={`${(Sefaria.interfaceLang == 'english') ? 'active':''}`} href={`/interface/english?next=${getCurrentPage()}`} id="select-english-interface-link">English</a>
               </div>
-              <div><a className="interfaceLinks-row bottom" id="help-link" href="#">
+              <div><a className="interfaceLinks-row" id="help-link" onClick={loadFeedBucket}>
                 <InterfaceText>Feedback Tool</InterfaceText>
               </a></div>
             </div>
