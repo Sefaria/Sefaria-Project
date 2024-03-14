@@ -30,6 +30,7 @@ import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
+import GuideBox from './GuideBox';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
@@ -326,6 +327,7 @@ class ConnectionsPanel extends Component {
         audio: Sefaria.mediaByRef(this.props.srefs).length,
         topics: Sefaria.topicsByRefCount(this.props.srefs) || 0,
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
+        guides: Sefaria.guidesByRef(this.props.srefs).length,
         translations: this.state.availableTranslations.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
       const showResourceButtons = Sefaria.is_moderator || Object.values(resourcesButtonCounts).some(elem => elem > 0);
@@ -341,6 +343,7 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
+              {resourcesButtonCounts?.guides ? <ToolsButton en="Learning Guide" he="מדריך" image="about-text.svg" urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
@@ -615,6 +618,12 @@ class ConnectionsPanel extends Component {
         sectionRef={this.state.sectionRef}
         openVersionInReader={this.props.selectVersion}
         viewExtendedNotes={this.props.viewExtendedNotes}
+      />);
+
+    } else if (this.props.mode === "Guide") {
+      content = (<GuideBox
+        masterPanelLanguage={this.props.masterPanelLanguage}
+        sref={this.props.srefs[0]}
       />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
