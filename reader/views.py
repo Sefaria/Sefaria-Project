@@ -2178,6 +2178,7 @@ def related_api(request, tref):
             "topics": get_topics_for_ref(tref, annotate=True),
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
+            "guides": Guide.load_for_client(tref)
         }
         for value in response.values():
             for item in value:
