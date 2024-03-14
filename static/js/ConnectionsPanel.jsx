@@ -89,8 +89,8 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Resources");
     }
 
-    if (prevProps.currVersions.en !== this.props.currVersions.en ||
-      prevProps.currVersions.he !== this.props.currVersions.he ||
+    if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
+      !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
       prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
       prevProps.srefs[0] !== this.props.srefs[0]) {
       this.getCurrentVersions();
@@ -234,7 +234,7 @@ class ConnectionsPanel extends Component {
   getData(cb) {
     // Gets data about this text from cache, which may be null.
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
+    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en?.versionTitle, heVersion: this.props.currVersions.he?.versionTitle, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -1279,7 +1279,7 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
       let currentLangParam;
       const langCode = masterPanelLanguage.slice(0, 2);
       if (currVersions[langCode]) {
-        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode]);
+        refString += "/" + encodeURIComponent(langCode) + "/" + encodeURIComponent(currVersions[langCode].versionTitle);
       }
       let path = "/edit/" + refString;
       let nextParam = "?next=" + encodeURIComponent(currentPath);

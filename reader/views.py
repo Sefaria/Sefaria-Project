@@ -339,7 +339,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
         if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
-            currVersions = {"en": versionEn, "he": versionHe}
+            currVersions = {"en": {'versionTitle': versionEn}, "he": {'versionTitle': versionHe}}
             if versionEn is not None and versionHe is not None:
                 curr_lang = kwargs.get("panelDisplayLanguage", "en")
                 for key in list(currVersions.keys()):
@@ -370,8 +370,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "ref": oref.normal(),
             "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
             "currVersions": {
-                "en": versionEn,
-                "he": versionHe,
+                "en": {'versionTitle': versionEn},
+                "he": {'versionTitle': versionHe},
             },
             "filter": filter,
             "versionFilter": versionFilter,
@@ -401,7 +401,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
             try:
-                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"]['versionTitle'], lang="en", version2=panel["currVersions"]["he"]['versionTitle'], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
             except NoVersionFoundError:
                 text_family = {}
@@ -1031,7 +1031,8 @@ def _get_user_calendar_params(request):
 def texts_list(request):
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, page="navigation", title=title, desc=desc)
+    props = get_user_history_props(request)
+    return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 
 def calendars(request):
@@ -1049,13 +1050,16 @@ def saved(request):
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
-def user_history(request):
+def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
-    props = {"userHistory": {"loaded": True, "items": uhistory}}
+    return {"userHistory": {"loaded": True, "items": uhistory}}
+
+def user_history(request):
+    props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)

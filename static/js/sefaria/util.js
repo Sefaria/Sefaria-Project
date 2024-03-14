@@ -52,8 +52,8 @@ class Util {
       currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
       if (currVersions) {
         return Object.entries(currVersions)
-          .filter(([vlang, vtitle]) => !!vtitle)
-          .map(([vlang, vtitle]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(vtitle)}`)
+          .filter(([vlang, version]) => !!version?.versionTitle)
+          .map(([vlang, version]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(version.versionTitle)}`)
           .join("");
       } else {
         return "";

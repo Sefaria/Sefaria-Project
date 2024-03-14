@@ -11,10 +11,6 @@ import {
   TextPassage
 } from './Story';
 import {
-  CategoryColorLine,
-  MenuButton,
-  DisplaySettingsButton,
-  TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
   InterfaceText,

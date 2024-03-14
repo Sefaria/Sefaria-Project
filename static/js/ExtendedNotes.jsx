@@ -13,7 +13,7 @@ class ExtendedNotes extends Component {
     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
   }
   getVersionData(versionList){
-    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
+    const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'].versionTitle : this.props.currVersions['he'].versionTitle;
     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
 

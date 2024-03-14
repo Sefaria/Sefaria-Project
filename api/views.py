@@ -7,7 +7,7 @@ from .api_warnings import *
 
 class Text(View):
 
-    RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only']
+    RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']
 
     def dispatch(self, request, *args, **kwargs):
         try:
