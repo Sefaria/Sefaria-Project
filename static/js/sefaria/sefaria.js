@@ -1956,11 +1956,11 @@ _media: {},
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media", "guides"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: [], guides: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
