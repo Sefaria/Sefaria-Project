@@ -131,16 +131,26 @@ Formally:
     def _normalize(self):
         self.ref = Ref(self.ref).normal()
 
+    def contents(self, ref):
+        d = super(Guide, self).contents()
+        d["anchorRef"] = d["ref"]
+        return d
+
+
+class GuideSet(abst.AbstractMongoSet):
+    recordClass = Guide
+
     @classmethod
-    def load_for_client(cls, tref):
+    def load_set_for_client(cls, tref):
         try:
             oref = Ref(tref)
         except InputError:
             return []
-        o = cls.load({"ref": oref.normal()})
 
-class GuideSet(abst.AbstractMongoSet):
-    recordClass = Guide
+        segment_refs = [r.normal() for r in oref.all_segment_refs()]
+
+        documents = cls({"ref": {"$in": segment_refs}}).contents()  # Presuming exact matches of normal refs
+        return documents
 
 def get_guide_for_ref(tref):
     """
