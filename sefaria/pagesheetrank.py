@@ -35,7 +35,8 @@ def paretosample(n, power=2.0):
   with probability mass function p(l) proportional to
   1/l^power.  The distribution is truncated at l = n.'''
     m = n + 1
-    while m > n: m = numpy.random.zipf(power)
+    while m > n:
+        m = numpy.random.zipf(power)
     return m
 
 
@@ -52,7 +53,8 @@ def random_web(n=1000, power=2.0):
         values = random.sample(range(n), lk)
         g.in_links[k] = values
         for j in values:
-            if g.number_out_links[j] == 0: g.dangling_pages.pop(j)
+            if g.number_out_links[j] == 0:
+                g.dangling_pages.pop(j)
             g.number_out_links[j] += 1
     return g
 
@@ -74,7 +76,8 @@ def create_web(g):
         link_inds = [(node2index[r_temp], count) for r_temp, count in list(links.items())]
         w.in_links[r_ind] = reduce(lambda a, b: a + [b[0]] * int(round(b[1])), link_inds, [])
         for j, count in link_inds:
-            if w.number_out_links[j] == 0: w.dangling_pages.pop(j)
+            if w.number_out_links[j] == 0:
+                w.dangling_pages.pop(j)
             w.number_out_links[j] += count
     return w
 

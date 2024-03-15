@@ -80,7 +80,8 @@ def modify_bulk_text(user: int, version: model.Version, text_map: dict, vsource=
     version.save()
 
     for old_text, new_text, oref in change_map.values():
-        if oref.normal() in error_map: continue
+        if oref.normal() in error_map:
+            continue
         kwargs['skip_links'] = kwargs.get('skip_links', False) or getattr(version, 'hasManuallyWrappedRefs', False)
         # hard-code `count_after` to False here. It will be called later on the whole index once
         # (which is all that's necessary)

@@ -32,5 +32,6 @@ def daf_to_section(daf):
     amud = daf[-1]
     daf = int(daf[:-1])
     section = daf * 2
-    if amud == "a": section -= 1
+    if amud == "a":
+        section -= 1
     return section
