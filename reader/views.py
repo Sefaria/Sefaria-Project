@@ -1031,7 +1031,8 @@ def _get_user_calendar_params(request):
 def texts_list(request):
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, page="navigation", title=title, desc=desc)
+    props = get_user_history_props(request)
+    return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 
 def calendars(request):
@@ -1049,13 +1050,16 @@ def saved(request):
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
-def user_history(request):
+def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
-    props = {"userHistory": {"loaded": True, "items": uhistory}}
+    return {"userHistory": {"loaded": True, "items": uhistory}}
+
+def user_history(request):
+    props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
