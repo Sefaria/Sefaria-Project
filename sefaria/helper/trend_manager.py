@@ -59,7 +59,7 @@ class SheetCreatorManager(TrendManager):
         self.public = public
 
     def getPersonInfo(self, trends):
-        if(self.public == False):
+        if not self.public:
             return TrendManager.getPersonInfo(self, trends)
         else:
             person_info_public = {
@@ -68,7 +68,7 @@ class SheetCreatorManager(TrendManager):
                 "period": self.period,
                 "value": False
             } if self.public else {}
-            if (self.public == True):
+            if self.public:
                 try:
                     if trends.get(self.key+"Public", {}).get(self.period) >= 1:
                         value = True
@@ -77,9 +77,9 @@ class SheetCreatorManager(TrendManager):
                     person_info_public["value"] = value
                 except:
                     person_info_public["value"] = False
-            if(person_info_public["value"] == False):
-                return person_info_public 
-        
+            if person_info_public["value"] is False:
+                return person_info_public
+
             person_info_public["value"] = TrendManager.getPersonInfo(self,trends)["value"]
             return person_info_public
 

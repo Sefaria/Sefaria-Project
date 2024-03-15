@@ -423,8 +423,8 @@ class UserProfile(object):
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
 
-        if "reading_history" in self.settings and self.settings["reading_history"] == True:
-            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
+        if "reading_history" in self.settings and self.settings["reading_history"]:
+            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] is False:
                 self._process_remove_history = True
 
     @staticmethod

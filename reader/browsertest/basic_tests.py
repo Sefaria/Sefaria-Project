@@ -83,22 +83,22 @@ class ChangeTextLanguage(SefariaTest):
         assert 'hebrew' in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert self.has_hebrew_text() == True
-        assert self.has_english_text() == False
+        assert self.has_hebrew_text() is True
+        assert self.has_english_text() is False
         self.toggle_on_text_settings()
         self.toggle_language_english()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert self.has_hebrew_text() == False
-        assert self.has_english_text() == True
+        assert self.has_hebrew_text() is False
+        assert self.has_english_text() is True
         self.toggle_on_text_settings()
         self.toggle_language_bilingual()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' in self.get_content_language()
-        assert self.has_hebrew_text() == True
-        assert self.has_english_text() == True
+        assert self.has_hebrew_text() is True
+        assert self.has_english_text() is True
         self.get_content_language()
 
 
@@ -270,20 +270,22 @@ class SidebarOpens(SefariaTest):
 
 
 class ChangeSiteLanguage(SefariaTest):
-    # Switch between Hebrew and English and sample a few of the objects to make sure 
-    # the language has actually changed.
-    
+    """
+    Switch between Hebrew and English and sample a few of the objects
+    to make sure the language has actually changed.
+    """
+
     every_build = True
     initial_url = "/texts"
 
     def body(self):
         self.click_ivrit_link()
         time.sleep(1)
-        assert self.driver.find_element_by_css_selector('.interface-hebrew') != None
-        
+        assert self.driver.find_element_by_css_selector('.interface-hebrew') is not None
+
         self.click_english_link()
         time.sleep(1)
-        assert self.driver.find_element_by_css_selector('.interface-english') != None
+        assert self.driver.find_element_by_css_selector('.interface-english') is not None
 
 '''
 class LinkExplorer(SefariaTest):

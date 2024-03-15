@@ -1273,7 +1273,7 @@ def get_sheet_categorization_info(find_without, skip_ids=[]):
 		sheet = db.sheets.aggregate([
 		{"$match": {"categories": {"$in": [None, []] }, "sources.outsideText": {"$exists": True}, "id": {"$nin": skip_ids}, "noTags": {"$in": [None, False]}, "status": "public"}},
 		{"$sample": {"size": 1}}]).next()
-	categories_all = list(filter(lambda x: x != None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
+	categories_all = list(filter(lambda x: x is not None, db.sheets.distinct("categories"))) # this is slow; maybe add index or ...?
 	categorize_props = {
 		"doesNotContain": find_without,
 		"sheetId": sheet['id'],

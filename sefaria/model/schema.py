@@ -2321,7 +2321,7 @@ class AddressTalmud(AddressType):
                 ref.toSections[-1] -= 1
 
     def _core_regex(self, lang, group_id=None, **kwargs):
-        if group_id and kwargs.get("for_js", False) == False:
+        if group_id and kwargs.get("for_js", False) is False:
             reg = r"(?P<" + group_id + r">"
         else:
             reg = r"("
