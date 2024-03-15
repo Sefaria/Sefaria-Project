@@ -607,7 +607,7 @@ $(function() {
 
         if (sjs.current.isComplex) {
             sjs.hideAbout();
-            sjs.alert.message("This text is not user editable - please email dev@sefaria.org");
+            sjs.alert.message("This text is not user editable - please email corrections@sefaria.org");
             return;
         }
 		if (!sjs._uid) {

@@ -1,0 +1,8 @@
+{
+   "name": "helm-chart",
+   "dependencies": {
+      "@semantic-release/commit-analyzer": "^10.0.1",
+      "conventional-changelog-conventionalcommits": "^6.1.0",
+      "semantic-release-monorepo": "^7.0.5"
+   }
+}

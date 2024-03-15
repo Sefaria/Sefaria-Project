@@ -141,7 +141,7 @@ nginx:
   containerImage:
     imageRegistry:
     tag:
-  SEARCH_HOST: elasticsearch-data
+  SEARCH_HOST: elasticsearch-es-http.elasticsearch.svc
   disableScraping: false
   replicaCount: 2
   resources:
@@ -179,8 +179,6 @@ cronJobs:
     enabled: true
   reindexElasticSearch:
     enabled: true
-    SEARCH_HOST_ES6: "elasticsearch-data"
-    SEARCH_HOST_ES8: "elasticsearch-es-http.elasticsearch.svc"
   topicsIndexing:
     enabled: true
   trello:
@@ -210,7 +208,6 @@ localSettings:
   }
   MONGO_HOST: "mongo"
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
-  SEARCH_URL: "http://elasticsearch-data:9200"
   TURN_SERVER: ''
   USE_CLOUDFLARE: false
   FRONT_END_URL:  "http://www.sefaria.org"

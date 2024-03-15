@@ -21,7 +21,8 @@ const Strings = {
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
     "Log in": "התחברות",
-    "Sign up": "הרשמה",
+    "Sign up": "להרשמה",
+    "Sign Up": "להרשמה",
 
     // Texts Page
     "Learn More": "לקריאה נוספת",
@@ -453,6 +454,10 @@ const Strings = {
     "Alternate Hebrew Titles": "חלופות כותר עבריות",
     "Alternate English Titles": "חלופות כותר לועזיות",
     "Optional": "אופציונלי",
+    "Recently viewed": "נצפו לאחרונה",
+    "All history ": "כל ההסטוריה ",
+    "All History": "כל ההסטוריה",
+
 
      //About
     "What is Sefaria?": "מהי ספריא",
@@ -546,6 +551,11 @@ const Strings = {
     'Citing': 'מצטט',
     'Sites that are listed here use the': 'אתרים המפורטים כאן משתמשים',
     'Sefaria Linker': 'במרשתת ההפניות',
+
+    //alt tags
+    'Notifications': 'עדכונים',
+    'Bookmarks': 'שמורים',
+    'Toggle Interface Language Menu' : 'פתח תפריט שפת ממשק',
   },
 
   _i18nInterfaceStringsWithContext: {

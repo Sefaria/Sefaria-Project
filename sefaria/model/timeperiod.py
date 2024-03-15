@@ -256,7 +256,7 @@ class LifePeriod(TimePeriod):
     def period_string(self, lang):
 
         if getattr(self, "start", None) == None and getattr(self, "end", None) == None:
-            return
+            return ""
 
         labels = self.getYearLabels(lang)
         approxMarker = self.getApproximateMarkers(lang)
