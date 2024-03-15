@@ -28,5 +28,17 @@ test('Search for Deuteronomy book', async ({ context }) => {
 // });
 
 test('Search in this text', async ({ context }) => {
-  // fill in test
+  const page = await goToPageWithLang(context, '/Mishnah_Berakhot.4.3?lang=he&with=all&lang2=he');
+  await page.getByRole('link', { name: 'Search in this Text' }).click();
+  await page.getByPlaceholder('Search in this text').fill("רבי");
+  await page.keyboard.press('Enter');
+  await page.waitForSelector('text=Searching...', { state: 'detached' });
+  //searchResultList
+  const list = page.locator('.searchResultList > .result');
+  const count = await list.count();
+  expect(count).toBeGreaterThan(1);
+
+  
+  
+  
 });
