@@ -3378,9 +3378,6 @@ div .notificationsList {
   margin: 0;
   color: #666666;
 }
-#aboutSidebar li:last-child {
-  padding: 10px 10px 200px 10px;
-}
 #aboutSidebar a {
   text-decoration: none !important;
   font-size: 16px;
@@ -3467,7 +3464,7 @@ div .notificationsList {
 #updatesPanelContent .readerNavMenu .content .contentInner {
     margin-top: 160px;
 }
-#updatersPage .readerNavMenu {
+#updatesPage .readerNavMenu {
     position: relative;
 }
 #updatesPanelContent .navSideBar {
@@ -3480,16 +3477,35 @@ div .notificationsList {
 .container.doc.legal.static .inner {
   margin-top: 675px;
 }
-@media (max-width: 800px) {
-  #updatersPage .globalUpdateForm {
-    width: 270px;
-  }
-  div.notificationsList {
-    width: 50%;
-  }
+/*@media (max-width: 800px) {*/
+/*  #updatesPage .globalUpdateForm {*/
+/*    width: 270px;*/
+/*  }*/
+/*  div.notificationsList {*/
+/*    width: 50%;*/
+/*  }*/
+/*}*/
+@media (max-width: 800px) and (min-width: 480px) {
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: column !important;
+    }
+    .container.doc.legal.static .inner,
+    #annualReport .inner,
+    #metricsPage .inner,
+    #supportersPage .inner,
+    #testimonialsPage .inner,
+    #aboutPage .inner,
+    #teamPage .inner,
+    #jobsPage .inner {
+      padding-top: 0;
+    }
+    #updatesPanelContent .readerNavMenu .content .contentInner {
+      margin-top: 0;
+    }
 }
 @media (max-width: 480px) {
-  #updatersPage .globalUpdateForm {
+  #updatesPage .globalUpdateForm {
     margin-top: 50px;
     width: 270px;
   }
@@ -3589,9 +3605,6 @@ div .notificationsList {
   }
   h1.mobileAboutHeader {
     margin: 40px 0 0 0 !important;
-  }
-  #aboutSidebar li:last-child {
-    padding: 10px 10px 60px 10px;
   }
   .interface-english #aboutSidebar li {
     margin-left: 5px;
