@@ -3,6 +3,7 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {requestWithCallBack, Autocompleter, InterfaceText} from "./Misc";
 import React, {useState} from "react";
+import {useRef} from "react";
 
 const SourceEditor = ({topic, close, origData={}}) => {
     const isNew = !origData.ref;
@@ -88,8 +89,11 @@ const SourceEditor = ({topic, close, origData={}}) => {
         const url = `/api/ref-topic-links/${origData.ref}?topic=${topic}&interface_lang=${Sefaria.interfaceLang}`;
         requestWithCallBack({url, type: "DELETE", redirect: () => window.location.href = `/topics/${topic}`});
     }
-    let previousTitleItem  = data.enTitle ? "Previous Title" : null
-    let previousPromptItem  = data.prompt ? "Previous Prompt" : null
+    const previousTitleItemRef = useRef(data.enTitle ? "Previous Title" : null); //use useRef to make value null even if component re-renders
+    const previousPromptItemRef = useRef(data.prompt ? "Previous Prompt" : null);
+    const previousTitleItem = previousTitleItemRef.current;
+    const previousPromptItem = previousPromptItemRef.current;
+
     return <div>
         <AdminEditor title="Source Editor" close={close}  data={data} savingStatus={savingStatus}
                 validate={validate} items={[previousTitleItem, "Title", previousPromptItem, "Prompt", "Context for Prompt"]} deleteObj={deleteTopicSource} updateData={updateData} isNew={isNew}
