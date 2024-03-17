@@ -114,10 +114,29 @@ const OpenTransBanner = ({ openTranslations }) => {
  * @returns {JSX.Element}
  * @constructor
  */
+
+const GDocAdvertText = () => {
+    return    <InterfaceText>
+                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href="https://www.sefaria.org/sheets/529099">Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ עם <span id="newExtension">התוסף החדש</span> שלנו! <a href="https://www.sefaria.org/sheets/529099">למדו עוד</a></HebrewText>
+             </InterfaceText>;
+}
+const GDocInstallLink = 'https://workspace.google.com/marketplace/app/sefaria/849562338091';
+export const GDocAdvertBox = () => {
+    const handleInstall = () => {
+        // set cookie and google analytics
+    }
+    return !cookie("gdoc_installed") &&
+            <div className="gDocAdvertBox">
+                <GDocAdvertText/>
+                <div id="installNow"><a href={GDocInstallLink} onClick={handleInstall}>Install Now</a></div>
+            </div>;
+}
+
 export const GDocAdvertBanner = () => {
     const buttons = [{
         text: "Install Now",
-        onClick: () => { window.location.href = 'https://workspace.google.com/marketplace/app/sefaria/849562338091'; },
+        onClick: () => { window.location.href = GDocInstallLink; },
         sideEffect: "close",
     }];
     const onClose = () => {
@@ -125,15 +144,11 @@ export const GDocAdvertBanner = () => {
     };
 
 
-
     return (
       !cookie("gdoc_advert_banner_shown") && document.location.href.includes('/sheets/') ?
       <div className="gDocAdvertBanner">
         <TextColumnBanner buttons={buttons} onClose={onClose}>
-            <InterfaceText>
-                <EnglishText> Add texts directly to your Google Docs with our new extension! <a href="https://www.sefaria.org/sheets/529099">Learn more</a></EnglishText>
-                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ עם התוסף החדש שלנו! <a href="https://www.sefaria.org/sheets/529099">למדו עוד</a></HebrewText>
-            </InterfaceText>
+            <GDocAdvertText/>
         </TextColumnBanner>
       </div> : null
     );
