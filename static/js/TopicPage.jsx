@@ -406,24 +406,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
-//     const aiInfoIcon = (
-//             <img src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
-//   );
-// const aiMessage = (
-//     <div className="header">
-//     <div className="myProfileBox">
-//   <div className="interfaceLinks">
-//     <div className="interfaceLinks-menu profile-menu aiToggle">
-//       <div className="interfaceLinks-header aiToggleMessage">
-//           Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a>
-//       </div>
-//       <hr className="interfaceLinks-hr" />
-//       <div className="interfaceLinks-row-aiToggle aiToggleMessage"><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></div>
-//     </div>
-//   </div>
-//         </div>
-//         </div>
-// );
+
 return (
     <div>
         <div className="navTitle tight">
