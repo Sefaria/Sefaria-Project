@@ -827,7 +827,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu.aiToggle {
   right: 0px;
-  /*min-width: 150px;*/
   width:198px;
 }
 
@@ -835,6 +834,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   left: 0px;
   min-width: 150px;
   width: max-content;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu.aiToggle {
+  left: 0px;
+  width:198px;
 }
 .interfaceLinks-menu.profile-menu.aiToggle a {
   color: #4B71B7;
@@ -849,6 +852,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
+.aiToggleMessage *{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+
 
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
   border-top: 1px solid #CCC;

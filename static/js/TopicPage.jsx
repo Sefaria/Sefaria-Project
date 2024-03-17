@@ -23,7 +23,7 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption, EnglishText, HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -380,10 +380,19 @@ const AiInfoTooltip = () => {
       <div className="interfaceLinks">
         <div className="interfaceLinks-menu profile-menu aiToggle">
           <div className="interfaceLinks-header aiToggleMessage">
-              Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a>
+              <InterfaceText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מאלכותית ועברו הגהה על ידי צוות העורכים שלנו.
+                      <a href={"/sheets/541399?lang=en"}> לפרטים נוספים</a></HebrewText>
+              </InterfaceText>
+
           </div>
           <hr className="interfaceLinks-hr" />
-          <div className="interfaceLinks-row-aiToggle aiToggleMessage"><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></div>
+          <div className="interfaceLinks-row-aiToggle aiToggleMessage">
+              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
+              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
+              </InterfaceText>
+          </div>
         </div>
       </div>
             </div>
@@ -392,7 +401,7 @@ const AiInfoTooltip = () => {
   return (
     <div className="ai-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
       {aiInfoIcon}
-      {showMessage && (
+      {(showMessage || true) && (
         <div className="ai-message">
           {aiMessage}
         </div>
