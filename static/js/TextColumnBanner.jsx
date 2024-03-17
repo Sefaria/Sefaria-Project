@@ -116,17 +116,22 @@ const OpenTransBanner = ({ openTranslations }) => {
  */
 
 const GDocAdvertText = () => {
+    const handleLearnMore = () => {
+        gtag('event', 'gdoc_learn_more');
+    }
     return    <InterfaceText>
-                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href="https://www.sefaria.org/sheets/529099">Learn more</a></EnglishText>
-                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ עם <span id="newExtension">התוסף החדש</span> שלנו! <a href="https://www.sefaria.org/sheets/529099">למדו עוד</a></HebrewText>
+                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href="https://www.sefaria.org/sheets/529099" onClick={handleLearnMore}>Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ עם <span id="newExtension">התוסף החדש</span> שלנו! <a href="https://www.sefaria.org/sheets/529099" onClick={handleLearnMore}>למדו עוד</a></HebrewText>
              </InterfaceText>;
 }
 const GDocInstallLink = 'https://workspace.google.com/marketplace/app/sefaria/849562338091';
 export const GDocAdvertBox = () => {
+    const gdocInstalled = 'gdoc_installed';
     const handleInstall = () => {
-        // set cookie and google analytics
+        cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
+        gtag('event', 'gdoc_installed', {loc: 'Resources Panel'});
     }
-    return !cookie("gdoc_installed") &&
+    return !cookie(gdocInstalled) &&
             <div className="gDocAdvertBox">
                 <GDocAdvertText/>
                 <div id="installNow"><a href={GDocInstallLink} onClick={handleInstall}>Install Now</a></div>

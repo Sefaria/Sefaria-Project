@@ -1787,9 +1787,9 @@ div.interfaceLinks-row a {
   margin-top: 18px;
   width: 99px;
   height: 30px;
-  border-radius: 6px;
 }
 .gDocAdvertBox #installNow a {
+  border-radius: 6px;
   text-align: center;
   background: #FFFFFF;
   color: #666666;
