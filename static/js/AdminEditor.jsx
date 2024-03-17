@@ -166,7 +166,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                           </select>
                         </div>;
     }
-    const item = ({label, field, placeholder, type, dropdown_data}) => {
+    const item = ({label, field, placeholder, type, dropdown_data, readOnly}) => {
         let obj;
         switch(type) {
             case 'dropdown':
@@ -177,21 +177,12 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 obj = <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>;
                 break;
             case 'textarea':
-                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
-                         placeholder={Sefaria._(placeholder)}/>;
-                break;
-            case 'textarea readonly':
-                obj = <textarea readOnly  className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
-                         placeholder={Sefaria._(placeholder)}/>;
-                break;
-            case 'readonly':
-                const inputTypeReadOnly = field.includes('Year') ? 'number' : 'text';
-                obj = <input readOnly type={inputTypeReadOnly} id={field} onChange={setInputValue} defaultValue={data[field]}
+                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]} readOnly={readOnly}
                          placeholder={Sefaria._(placeholder)}/>;
                 break;
             default:
                 const inputType = field.includes('Year') ? 'number' : 'text';
-                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
+                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]} readOnly={readOnly}
                          placeholder={Sefaria._(placeholder)}/>;
         }
 
