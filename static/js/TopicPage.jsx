@@ -369,14 +369,62 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
 
     return actionButtons;
 };
+const AiInfoTooltip = () => {
+  const [showMessage, setShowMessage] = useState(false);
+    const aiInfoIcon = (
+            <img src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
+    );
+    const aiMessage = (
+        <div className="header">
+        <div className="myProfileBox">
+      <div className="interfaceLinks">
+        <div className="interfaceLinks-menu profile-menu aiToggle">
+          <div className="interfaceLinks-header aiToggleMessage">
+              Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a>
+          </div>
+          <hr className="interfaceLinks-hr" />
+          <div className="interfaceLinks-row-aiToggle aiToggleMessage"><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></div>
+        </div>
+      </div>
+            </div>
+            </div>
+    );
+  return (
+    <div className="ai-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+      {aiInfoIcon}
+      {showMessage && (
+        <div className="ai-message">
+          {aiMessage}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
-
-  return (
+//     const aiInfoIcon = (
+//             <img src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
+//   );
+// const aiMessage = (
+//     <div className="header">
+//     <div className="myProfileBox">
+//   <div className="interfaceLinks">
+//     <div className="interfaceLinks-menu profile-menu aiToggle">
+//       <div className="interfaceLinks-header aiToggleMessage">
+//           Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a>
+//       </div>
+//       <hr className="interfaceLinks-hr" />
+//       <div className="interfaceLinks-row-aiToggle aiToggleMessage"><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></div>
+//     </div>
+//   </div>
+//         </div>
+//         </div>
+// );
+return (
     <div>
         <div className="navTitle tight">
                 <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
@@ -384,6 +432,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
+                <AiInfoTooltip/>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?
