@@ -23,7 +23,9 @@ import {
     ToolTipped,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption, EnglishText, HebrewText
+    ImageWithCaption,
+    EnglishText,
+    HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -401,7 +403,7 @@ const AiInfoTooltip = () => {
   return (
     <div className="ai-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
       {aiInfoIcon}
-      {(showMessage || true) && (
+      {showMessage && (
         <div className="ai-message">
           {aiMessage}
         </div>

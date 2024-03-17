@@ -779,6 +779,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
+
+.ai-tooltip .header .interfaceLinks {
+  cursor: default;
+}
+
 .header .interfaceLinks img {
   height: 18px;
   width: 18px;
@@ -856,6 +861,9 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 
+.ai-tooltip img{
+  margin-bottom: -19px;
+}
 
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
   border-top: 1px solid #CCC;
