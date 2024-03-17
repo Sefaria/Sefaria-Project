@@ -5352,6 +5352,67 @@
                     "required": false
                 }
             ]
+        },
+        "/api/category/{category_path}": {
+            "summary": "Category",
+            "description": "The category API takes a full category path in the request, e.g. /api/category/Tanakh/Torah/Genesis, and return the full category object found. The above request would return:",
+            "get": {
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CatJSON"
+                                },
+                                "examples": {
+                                    "Genesis": {
+                                        "value": {
+                                            "path": [
+                                                "Tanakh",
+                                                "Torah"
+                                            ],
+                                            "titles": [
+                                                {
+                                                    "lang": "en",
+                                                    "text": "Torah",
+                                                    "primary": true
+                                                },
+                                                {
+                                                    "lang": "he",
+                                                    "text": "תורה",
+                                                    "primary": true
+                                                }
+                                            ],
+                                            "lastPath": "Torah"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Category",
+                "description": "GET requests take a full category path in the request, e.g. `/api/category/Tanakh/Torah/Genesis`, and return the full category object found. \n\nIf the category is not found, the returned object will have an error attribute. If any element of the path is found, the API will return the closest parent in an attribute called `closest_parent`. This is useful for proactively looking up a category before posting an `Index` to it."
+            },
+            "parameters": [
+                {
+                    "examples": {
+                        "Genesis": {
+                            "value": "Tanakh/Torah/Genesis"
+                        },
+                        "Chiddushei Chatam Sofer": {
+                            "value": "Talmud/Bavli/Acharonim on Talmud/Chidushei Chatam Sofer"
+                        }
+                    },
+                    "name": "category_path",
+                    "description": "A valid Sefaria Category path",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "in": "path",
+                    "required": true
+                }
+            ]
         }
     },
     "components": {
@@ -12997,6 +13058,50 @@
                         },
                         "example": "    \"chapters\": [\n      16,\n      11,\n      10,\n      11\n    ]"
                     }
+                }
+            },
+            "CatJSON": {
+                "title": "Root Type for CatJSON",
+                "description": "JSON response for a Category GET request",
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "description": "The full path of the category",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "titles": {
+                        "description": "The titles for the category, in Hebrew and English.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TitlesJSON"
+                        }
+                    },
+                    "lastPath": {
+                        "description": "The immediate parent of the current category. So for example, with the category `Tanakh/Torah/Genesis`, the `lastPath` is `Torah`. ",
+                        "type": "string"
+                    }
+                },
+                "example": {
+                    "path": [
+                        "Tanakh",
+                        "Torah"
+                    ],
+                    "titles": [
+                        {
+                            "lang": "en",
+                            "text": "Torah",
+                            "primary": true
+                        },
+                        {
+                            "lang": "he",
+                            "text": "תורה",
+                            "primary": true
+                        }
+                    ],
+                    "lastPath": "Torah"
                 }
             }
         }
