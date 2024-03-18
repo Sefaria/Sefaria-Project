@@ -51,10 +51,11 @@ const SummaryBox = ({ prompt, onClick }) => {
         {prompt.question}
       </div>
       {prompt.commentaries.map((p, i) => {
+        let title = Sefaria.parseRef(p.commentaryRef).index.replace(/ on Pesach Haggadah$/, "")
         return (
           <div key={i} className="guidePromptBox" onClick={() => onClick(p.commentaryRef)}>
             <p>{p.summaryText}</p>
-            <span>{p.commentaryRef}</span>
+            <span>{title || p.commentaryRef}</span>
           </div>
         )
       })}

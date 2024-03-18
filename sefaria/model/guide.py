@@ -124,18 +124,27 @@ Formally:
     """
     collection = 'guide'
     required_attrs = [
-        'ref',  # Segment level Ref.  E.g., "Pesach Haggadah, Kadesh 2".
-        'questions'
+        'ref',  # May be section level, segment level, or ranged segment level.
+        'expanded_refs',  # list of segment level refs
+        'questions',
     ]
+
+    def __init__(self, attrs=None):
+        self.expanded_refs = []
+        super(Guide, self).__init__(attrs)
 
     def _normalize(self):
         self.ref = Ref(self.ref).normal()
+        self.set_expanded_refs()
+
+    def set_expanded_refs(self):
+        self.expanded_refs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
     def contents(self):
         d = super(Guide, self).contents()
         d["anchorRef"] = d["ref"]
+        d["anchorRefExpanded"] = d["expanded_refs"]
         return d
-
 
 class GuideSet(abst.AbstractMongoSet):
     recordClass = Guide
@@ -149,30 +158,5 @@ class GuideSet(abst.AbstractMongoSet):
 
         segment_refs = [r.normal() for r in oref.all_segment_refs()]
 
-        documents = cls({"ref": {"$in": segment_refs}}).contents()  # Presuming exact matches of normal refs
+        documents = cls({"expanded_refs": {"$in": segment_refs}}).contents()  # Presuming exact matches of normal refs
         return documents
-
-def get_guide_for_ref(tref):
-    """
-    Get the guides for a given reference.
-    :param tref:
-    :return:
-    """
-    oref = text.Ref(tref)
-    regex_list = oref.regex(as_list=True)
-    ref_clauses = [{"ref.sefaria_ref": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses }
-    results = GuideSet(query=query)
-    client_results = []
-    ref_re = "("+'|'.join(regex_list)+")"
-    matched_ref = []
-    for media in results:
-        for r in media.ref:
-            if re.match(ref_re, r['sefaria_ref']):
-                r['media_url'] = media.media_url
-                matched_ref.append(r)
-    for ref in matched_ref:
-        media_contents = media.client_contents(ref)
-        client_results.append(media_contents)
-
-    return client_results
