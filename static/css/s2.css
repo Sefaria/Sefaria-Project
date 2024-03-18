@@ -779,74 +779,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
-
-.ai-tooltip .header .interfaceLinks {
-  cursor: default;
-}
-
-.billy {
-  align-items: center;
-  background-attachment: scroll;
-  background-clip: border-box;
-  background-color: rgb(251, 251, 250);
-  background-image: none;
-  background-origin: padding-box;
-  background-position-x: 0%;
-  background-position-y: 0%;
-  background-repeat: repeat;
-  background-size: auto;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
-  color: rgb(102, 102, 102);
-  cursor: default;
-  display: block;
-  font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
-  font-size: 16px;
-  margin-inline-start: 10px;
-  margin-top: 2px;
-  min-width: 150px;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  /*position: absolute;*/
-  right: 0px;
-  top: 10px;
-  visibility: visible;
-  width: 198px;
-  z-index: 1;
-}
-
-.billy2 {
-  border-bottom-color: rgb(204, 204, 204);
-  border-bottom-style: solid;
-  border-bottom-width: 0.833333px;
-  color: #666666;
-  cursor: default;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 18px;
-  padding-bottom: 12px;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 12px;
-  visibility: visible
-}
-.billy2* {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.billy a{
-  color: #4B71B7;
-}
-.billy .billy-hr {
-  order-top: 1px solid #CCCCCC;
-  margin-top: 0px;
-  margin-bottom: 0px;
-}
-
 .header .interfaceLinks img {
   height: 18px;
   width: 18px;
@@ -873,8 +805,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display:none;
   overflow:hidden;
 }
-
-
 .header .interfaceLinks .interfaceLinks-menu.profile-menu {
   top: 10px;
   display: block;
@@ -885,7 +815,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: #000000;
   height: 23px;
 }
-
 .header .interfaceLinks .interfaceLinks-menu.profile-menu .profile-menu-middle {
   margin-top: 5px;
   margin-bottom: 5px;
@@ -895,55 +824,26 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   min-width: 150px;
   width: max-content;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu.aiToggle {
-  /*right: 0px;*/
-  right: 300px;
-  width:198px;
-}
-
-
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
   min-width: 150px;
   width: max-content;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu.aiToggle {
-  left: 0px;
-  width:198px;
-}
-.interfaceLinks-menu.profile-menu.aiToggle a {
-  color: #4B71B7;
-  font-family: inherit;
-}
-.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.aiToggleMessage {
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 14px;
   line-height: 18px;
-  color: #666666;
+  color: #999999;
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-
-/*.aiToggleMessage *{*/
-/*  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;*/
-/*}*/
-.billy *{
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-
-.ai-tooltip img{
-  margin-bottom: -19px;
-}
-
-
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
   border-top: 1px solid #CCC;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
@@ -996,28 +896,6 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 div.interfaceLinks-row a:hover {
   text-decoration: none;
-}
-.header .interfaceLinks .interfaceLinks-row-aiToggle {
-  align-items: center;
-  display: flex;
-  line-height: 18px;
-  text-align: right;
-  color: #666666;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 2px 12px 2px 12px;
-  font-size: 14px;
-  height: 23px;
-}
-.billy3 {
-  align-items: center;
-  display: flex;
-  line-height: 18px;
-  text-align: right;
-  color: #666666;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 2px 12px 2px 12px;
-  font-size: 14px;
-  height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-row.languages {
   display: flex;
@@ -2194,6 +2072,84 @@ div.interfaceLinks-row a {
   font-size: var(--serif-body-font-size);
   width: 100%;
 }
+
+.ai-info-messages-box {
+  background-color: rgb(251, 251, 250);
+  background-image: none;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
+  color: rgb(102, 102, 102);
+  cursor: default;
+  display: block;
+  font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  font-size: 16px;
+  margin-inline-start: 10px;
+  margin-top: 2px;
+  min-width: 150px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  top: 87px;
+  visibility: visible;
+  width: 198px;
+  z-index: 1;
+}
+
+.ai-info-first-message {
+  border-bottom-color: rgb(204, 204, 204);
+  border-bottom-style: solid;
+  border-bottom-width: 0.833333px;
+  color: #666666;
+  cursor: default;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 12px;
+  visibility: visible
+}
+.ai-info-first-message* {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-messages-box a{
+  color: #4B71B7;
+}
+.ai-info-messages-box .ai-info-messages-hr {
+  order-top: 1px solid #CCCCCC;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.ai-info-messages-box *{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-last-message {
+  align-items: center;
+  display: flex;
+  line-height: 18px;
+  text-align: right;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 2px 12px 2px 12px;
+  font-size: 14px;
+  height: 23px;
+}
+.ai-message{
+  z-index: 1;
+  position: absolute;
+}
+
+.ai-info-tooltip .ai-info-icon{
+  margin-bottom: -12px;
+}
+.ai-info-tooltip{
+  position: relative;
+}
+
 .sidebarSearch .searchTopMatter,
 .sidebarSearch .searchTopic {
   display: none;
@@ -2454,7 +2410,7 @@ div.interfaceLinks-row a {
 }
 .imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
-  max-width: 100%; 
+  max-width: 100%;
   height: auto;
   padding: 0 44;
   top: 121px;
@@ -2499,7 +2455,7 @@ div.interfaceLinks-row a {
   .topicImage{
     padding-left: 0;
     padding-right: 0;
-    margin-top: 30px;  
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -5627,8 +5583,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.enOnly .en{
   display: initial;
 }
-/* 
-This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+/*
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left.
 But not to use a display block directive that might break continuous mode for other English only texts
  */
 .readerPanel.hebrew.continuous .segment.enOnly .en{

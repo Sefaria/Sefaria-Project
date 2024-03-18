@@ -374,7 +374,7 @@ const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
 const AiInfoTooltip = () => {
   const [showMessage, setShowMessage] = useState(false);
     const aiInfoIcon = (
-            <img src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
+            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
     );
     const aiMessage1 = (
         <div className="header">
@@ -401,8 +401,8 @@ const AiInfoTooltip = () => {
             </div>
     );
         const aiMessage2 = (
-        <div className="billy">
-              <div className="billy2">
+        <div className="ai-info-messages-box">
+              <div className="ai-info-first-message">
               <InterfaceText>
                   <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
                   <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מאלכותית ועברו הגהה על ידי צוות העורכים שלנו.
@@ -410,8 +410,8 @@ const AiInfoTooltip = () => {
               </InterfaceText>
 
           </div>
-          <hr className="billy-hr" />
-          <div className="billy3">
+          <hr className="ai-info-messages-hr" />
+          <div className="ai-info-last-message">
               <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
               <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
               </InterfaceText>
@@ -419,9 +419,9 @@ const AiInfoTooltip = () => {
         </div>
     );
   return (
-    <div className="ai-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+    <div className="ai-info-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
       {aiInfoIcon}
-      {(true || showMessage) && (
+      {showMessage && (
         <div className="ai-message">
             {aiMessage2}
         </div>
