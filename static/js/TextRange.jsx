@@ -12,9 +12,16 @@ import {ContentText} from "./ContentText";
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
+
+  constructor(props) {
+    super(props);
+    this.state = {data: null};
+  }
+
   componentDidMount() {
     this._isMounted = true;
-    let data = this.getText();
+    this.setText()
+    let data = this.state.data;
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
@@ -27,7 +34,7 @@ class TextRange extends Component {
     this._isMounted = false;
     window.removeEventListener('resize', this.handleResize);
   }
-  shouldComponentUpdate(nextProps) {
+  shouldComponentUpdate(nextProps, nextState) {
     if (this.props.sref !== nextProps.sref)                   { return true; }
     if (!!this.props.filter !== !!nextProps.filter)           { return true; }
     if (this.props.filter && nextProps.filter &&
@@ -51,11 +58,16 @@ class TextRange extends Component {
           nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
+    if (this.state !== nextState) {return true;}
 
     return false;
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
+        !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he)) {
+      this.setText();
+    }
     // Place segment numbers again if update affected layout
     if (this.props.basetext || this.props.segmentNumber) {
       if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
@@ -99,25 +111,10 @@ class TextRange extends Component {
       this.handleClick(event);
     }
   }
-  getText() {
-    let settings = {
-      context: this.props.withContext ? 1 : 0,
-      enVersion: this.props.currVersions.en?.versionTitle || null,
-      heVersion: this.props.currVersions.he?.versionTitle || null,
-      // Support redirect of basetext for schema node refs.  Don't rewrite refs on sidebar to avoid infinite loop of cache misses.
-      firstAvailableRef: this.props.basetext ? 1 : 0,
-      translationLanguagePreference: this.props.translationLanguagePreference,
-      versionPref: Sefaria.versionPreferences.getVersionPref(this.props.sref),
-    };
-    let data = Sefaria.getTextFromCache(this.props.sref, settings);
-
-    if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
-      this.textLoading = true;
-      Sefaria.getText(this.props.sref, settings).then(this.onTextLoad);
-    } else if (!!data && this.props.isCurrentlyVisible) {
-      this._updateCurrVersions(data);
-    }
-    return data;
+  setText() {
+    Sefaria.getTextFromCurrVersions(this.props.sref, this.props.currVersions).then(data => {
+      this.setState({data: data});
+    })
   }
   onTextLoad(data) {
     if (data.error) {
@@ -134,7 +131,6 @@ class TextRange extends Component {
     } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      // console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, [], false);
       return;
     }
@@ -188,7 +184,7 @@ class TextRange extends Component {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
-    let data = this.getText();
+    let data = this.state.data;
     if (!data) { return; }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
@@ -223,7 +219,6 @@ class TextRange extends Component {
     this.dataPrefetched = true;
   }
   placeSegmentNumbers() {
-    // console.log("placeSegmentNumbers", this.props.sref);
     // Set the vertical offsets for segment numbers and link counts, which are dependent
     // on the rendered height of the text of each segment.
     if (!this.props.basetext) { return; }
@@ -284,7 +279,7 @@ class TextRange extends Component {
   }
 
   render() {
-    const data = this.getText();
+    const data = this.state.data;
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;

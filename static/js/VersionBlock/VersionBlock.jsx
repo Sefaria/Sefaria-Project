@@ -66,7 +66,8 @@ class VersionBlockUtils {
       if (renderMode === 'book-page') {
           window.location = `/${firstSectionRef}?v${version.language}=${version.versionTitle.replace(/\s/g,'_')}`;
       } else {
-          openVersionInReader(version.versionTitle, version.language, version.languageFamilyName);
+          const language = (renderMode === 'translation') ? 'en' : 'he';
+          openVersionInReader(version.versionTitle, language, version.languageFamilyName);
       }
       Sefaria.setVersionPreference(currRef, version.versionTitle, version.language);
   }

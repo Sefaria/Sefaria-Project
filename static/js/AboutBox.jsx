@@ -197,14 +197,14 @@ class AboutBox extends Component {
           {
               translationVersions.map((ve) => (
                   <VersionBlock
-                  key={`${ve.versionTitle}|${ve.actualLanguage}`}
-                  rendermode="about-box"
-                  sidebarDisplay = {true}
-                  version={ve}
-                  currObjectVersions={this.props.currObjectVersions}
-                  currentRef={this.props.srefs[0]}
-                  firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
-                  viewExtendedNotes={this.props.viewExtendedNotes}
+                      key={`${ve.versionTitle}|${ve.actualLanguage}`}
+                      rendermode="about-box"
+                      sidebarDisplay = {true}
+                      version={ve}
+                      currObjectVersions={this.props.currObjectVersions}
+                      currentRef={this.props.srefs[0]}
+                      firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
+                      viewExtendedNotes={this.props.viewExtendedNotes}
                    />
               ))
           }

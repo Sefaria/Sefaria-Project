@@ -12,7 +12,8 @@ function VersionTitleAndSelector({currentRef, version, currObjectVersions, openV
         }
         return shortVersionTitle;
     }
-    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, 'select-button',
+    const renderMode = 'translation'; //for now this component is only rendered from TranslationsBox
+    const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, renderMode,
         null, openVersionInReader);
     const buttonText = isSelected ? 'Currently Selected' : 'Select';
     return (

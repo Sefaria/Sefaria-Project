@@ -49,7 +49,7 @@ class ConnectionsPanel extends Component {
     this.state = {
       flashMessage: null,
       currObjectVersions: { en: null, he: null },
-      mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      // mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
@@ -62,7 +62,7 @@ class ConnectionsPanel extends Component {
   componentDidMount() {
     this._isMounted = true;
     this.loadData();
-    this.getCurrentVersions();
+    this.setCurrentVersions();
     this.debouncedCheckVisibleSegments = Sefaria.util.debounce(this.checkVisibleSegments, 100);
     this.addScrollListener();
   }
@@ -93,7 +93,7 @@ class ConnectionsPanel extends Component {
       !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
       prevProps.masterPanelLanguage !== this.props.masterPanelLanguage ||
       prevProps.srefs[0] !== this.props.srefs[0]) {
-      this.getCurrentVersions();
+      this.setCurrentVersions();
     }
 
     if (prevProps.mode !== this.props.mode || prevProps.connectionsCategory !== this.props.connectionsCategory) {
@@ -231,10 +231,10 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Resources");
     this.flashMessage("Success! You've created a new connection.");
   }
-  getData(cb) {
+  async getData() {
     // Gets data about this text from cache, which may be null.
     const versionPref = Sefaria.versionPreferences.getVersionPref(this.props.srefs[0]);
-    return Sefaria.getText(this.props.srefs[0], { context: 1, enVersion: this.props.currVersions.en?.versionTitle, heVersion: this.props.currVersions.he?.versionTitle, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(cb);
+    return await Sefaria.getTextFromCurrVersions(this.props.srefs[0], this.props.currVersions);
   }
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
@@ -249,34 +249,26 @@ class ConnectionsPanel extends Component {
       merged: lang === "he" ? !!d.heSources : !!d.sources,
     }
   }
-  getCurrentVersions() {
-    const data = this.getData((data) => {
-      let currentLanguage = this.props.masterPanelLanguage;
-      if (currentLanguage === "bilingual") {
-        currentLanguage = "hebrew"
-      }
-      if (!data || data.error) {
-        this.setState({
-          currObjectVersions: { en: null, he: null },
-          mainVersionLanguage: currentLanguage,
-        });
-        return
-      }
-      if (currentLanguage === "hebrew" && !data.he.length) {
-        currentLanguage = "english"
-      }
-      if (currentLanguage === "english" && !data.text.length) {
-        currentLanguage = "hebrew"
-      }
+  async setCurrentVersions() {
+    const data = await this.getData();
+    console.log(0, data)
+    let currentLanguage = this.props.masterPanelLanguage;
+    if (currentLanguage === "bilingual") {
+      currentLanguage = "hebrew"
+    }
+    if (!data || data.error) {
       this.setState({
-        currObjectVersions: {
-          en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
-          he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
-        },
-        mainVersionLanguage: currentLanguage,
-        sectionRef: data.sectionRef,
+        currObjectVersions: { en: null, he: null },
       });
+    }
+    this.setState({
+      currObjectVersions: {
+        en: ((this.props.masterPanelLanguage !== "hebrew" && !!data.text.length) || (this.props.masterPanelLanguage === "hebrew" && !data.he.length)) ? this.getVersionFromData(data, "en") : null,
+        he: ((this.props.masterPanelLanguage !== "english" && !!data.he.length) || (this.props.masterPanelLanguage === "english" && !data.text.length)) ? this.getVersionFromData(data, "he") : null,
+      },
+      sectionRef: data.sectionRef,
     });
+    console.log(1, this.state.currObjectVersions)
   }
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets

@@ -1245,7 +1245,7 @@ class ReaderControls extends Component {
      */
     if (!this.shouldShowVersion()) { return; }
     Sefaria.getTranslations(this.props.currentRef).then(versions => {
-      const enVTitle = this.props.currVersions.en.APIResult;
+      const enVTitle = this.props.currVersions.en?.APIResult;
       if (!enVTitle) {
         // merged version from API
         this.setDisplayVersionTitle({});
