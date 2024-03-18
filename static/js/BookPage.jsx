@@ -1182,9 +1182,9 @@ const EditTextInfo = function({initTitle, close}) {
     }
     let postJSON = JSON.stringify(postIndex);
     let title = enTitle.replace(/ /g, "_");
-    let url = `/api/v2/raw/index/${title}?dont_modify_schema=1`;  // we are modifying attributes in the existing Index but dont want to touch schema
+    let url = "/api/v2/raw/index/" + title;
     if ("oldTitle" in index.current) {
-      url += "&update=1";
+      url += "?update=1";
     }
     toggleInProgress();
     $.post(url,  {"json": postJSON}, function(data) {
