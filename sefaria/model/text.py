@@ -527,65 +527,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not d.get("categories"):
                 raise InputError("Please provide category for Index record: {}.".format(d.get("title")))
 
-            # Data is being loaded from dict in old format, rewrite to new format
-            # Assumption is that d has a complete title collection
-            if "schema" not in d:
-                node = getattr(self, "nodes", None)
-                if node:
-                    node._init_title_defaults()
-                else:
-                    node = JaggedArrayNode()
-
-                node.key = d.get("title")
-
-                if node.is_flat():
-                    sn = d.pop("sectionNames", None)
-                    if sn:
-                        node.sectionNames = sn
-                        node.depth = len(node.sectionNames)
-                    else:
-                        raise InputError("Please specify section names for Index record.")
-
-                    if d["categories"][0] == "Talmud":
-                        node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
-                            node.checkFirst = {
-                                "he": "משנה" + " " + d.get("heTitle"),
-                                "en": "Mishnah " + d.get("title")
-                            }
-                    elif d["categories"][0] == "Mishnah":
-                        node.addressTypes = ["Perek", "Mishnah"]
-                    else:
-                        if getattr(node, "addressTypes", None) is None:
-                            node.addressTypes = ["Integer" for _ in range(node.depth)]
-
-                    l = d.pop("length", None)
-                    if l:
-                        node.lengths = [l]
-
-                    ls = d.pop("lengths", None)
-                    if ls:
-                        node.lengths = ls  #overwrite if index.length is already there
-
-                #Build titles
-                node.add_title(d["title"], "en", True)
-
-                tv = d.pop("titleVariants", None)
-                if tv:
-                    for t in tv:
-                        lang = "he" if has_hebrew(t) else "en"
-                        node.add_title(t, lang)
-
-                ht = d.pop("heTitle", None)
-                if ht:
-                    node.add_title(ht, "he", True)
-
-                htv = d.pop("heTitleVariants", None)
-                if htv:
-                    for t in htv:
-                        node.add_title(t, "he")
-
-                d["schema"] = node.serialize()
 
             # todo: should this functionality be on load()?
             if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:

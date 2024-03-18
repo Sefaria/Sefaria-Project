@@ -1659,12 +1659,25 @@ def index_api(request, title, raw=False):
 
     if request.method == "POST":
         # use the update function if update is in the params
-
         func = tracker.update if request.GET.get("update", False) else tracker.add
         j = json.loads(request.POST.get("json"))
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         j["title"] = title.replace("_", " ")
+        title = j.get("oldTitle", j.get("title"))
+        book = None
+        try:
+            book = library.get_index(title)
+        except BookNameError:
+            pass
+        if 'schema' not in j:
+            if book:
+                # if book already exists and no schema provided, use old schema
+                j['schema'] = book.contents()['schema']
+            else:
+                # book doesn't exist and didn't receive a schema so flag it
+                return jsonResponse({"error": "A new index must be created with a schema."})
+
         #todo: move this to texts_api, pass the changes down through the tracker and text chunk
         #if "versionTitle" in j:
         #    if j["versionTitle"] == "Sefaria Community Translation":
@@ -1678,15 +1691,9 @@ def index_api(request, title, raw=False):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
-        else:
-            title = j.get("oldTitle", j.get("title"))
-            try:
-                library.get_index(title)  # getting the index just to tell if it exists
-                # Only allow staff and the person who submitted a text to edit
-                if not request.user.is_staff and not user_started_text(request.user.id, title):
-                   return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
-            except BookNameError:
-                pass  # if this is a new text, allow any logged in user to submit
+        elif book and not request.user.is_staff and not user_started_text(request.user.id, title):
+            # Only allow staff and the person who submitted a text to edit
+            return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
