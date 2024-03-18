@@ -1661,6 +1661,7 @@ def index_api(request, title, raw=False):
         # use the update function if update is in the params
 
         func = tracker.update if request.GET.get("update", False) else tracker.add
+        dont_modify_schema = bool(int(request.GET.get("dont_modify_schema", False)))
         j = json.loads(request.POST.get("json"))
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
@@ -1681,7 +1682,9 @@ def index_api(request, title, raw=False):
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
-                library.get_index(title)  # getting the index just to tell if it exists
+                book = library.get_index(title)
+                if dont_modify_schema:   # ignore any 'schema' that was passed in
+                    j['schema'] = book.contents()['schema']
                 # Only allow staff and the person who submitted a text to edit
                 if not request.user.is_staff and not user_started_text(request.user.id, title):
                    return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
