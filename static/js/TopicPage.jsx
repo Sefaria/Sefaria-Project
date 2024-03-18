@@ -376,7 +376,7 @@ const AiInfoTooltip = () => {
     const aiInfoIcon = (
             <img src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
     );
-    const aiMessage = (
+    const aiMessage1 = (
         <div className="header">
         <div className="myProfileBox">
       <div className="interfaceLinks">
@@ -400,12 +400,30 @@ const AiInfoTooltip = () => {
             </div>
             </div>
     );
+        const aiMessage2 = (
+        <div className="billy">
+              <div className="billy2">
+              <InterfaceText>
+                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
+                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מאלכותית ועברו הגהה על ידי צוות העורכים שלנו.
+                      <a href={"/sheets/541399?lang=en"}> לפרטים נוספים</a></HebrewText>
+              </InterfaceText>
+
+          </div>
+          <hr className="billy-hr" />
+          <div className="billy3">
+              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
+              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
+              </InterfaceText>
+          </div>
+        </div>
+    );
   return (
     <div className="ai-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
       {aiInfoIcon}
-      {showMessage && (
+      {(true || showMessage) && (
         <div className="ai-message">
-          {aiMessage}
+            {aiMessage2}
         </div>
       )}
     </div>

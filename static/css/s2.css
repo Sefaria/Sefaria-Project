@@ -784,6 +784,69 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   cursor: default;
 }
 
+.billy {
+  align-items: center;
+  background-attachment: scroll;
+  background-clip: border-box;
+  background-color: rgb(251, 251, 250);
+  background-image: none;
+  background-origin: padding-box;
+  background-position-x: 0%;
+  background-position-y: 0%;
+  background-repeat: repeat;
+  background-size: auto;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
+  color: rgb(102, 102, 102);
+  cursor: default;
+  display: block;
+  font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  font-size: 16px;
+  margin-inline-start: 10px;
+  margin-top: 2px;
+  min-width: 150px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  /*position: absolute;*/
+  right: 0px;
+  top: 10px;
+  visibility: visible;
+  width: 198px;
+  z-index: 1;
+}
+
+.billy2 {
+  border-bottom-color: rgb(204, 204, 204);
+  border-bottom-style: solid;
+  border-bottom-width: 0.833333px;
+  color: #666666;
+  cursor: default;
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  padding-bottom: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 12px;
+  visibility: visible
+}
+.billy2* {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.billy a{
+  color: #4B71B7;
+}
+.billy .billy-hr {
+  order-top: 1px solid #CCCCCC;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
 .header .interfaceLinks img {
   height: 18px;
   width: 18px;
@@ -810,6 +873,8 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   display:none;
   overflow:hidden;
 }
+
+
 .header .interfaceLinks .interfaceLinks-menu.profile-menu {
   top: 10px;
   display: block;
@@ -831,9 +896,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   width: max-content;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu.aiToggle {
-  right: 0px;
+  /*right: 0px;*/
+  right: 300px;
   width:198px;
 }
+
 
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
@@ -857,7 +924,11 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.aiToggleMessage *{
+
+/*.aiToggleMessage *{*/
+/*  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;*/
+/*}*/
+.billy *{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 
@@ -865,12 +936,14 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   margin-bottom: -19px;
 }
 
+
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header:not(:first-child) {
   border-top: 1px solid #CCC;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
+
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header {
   font-family: "Heebo", sans-serif;
 }
@@ -925,6 +998,17 @@ div.interfaceLinks-row a:hover {
   text-decoration: none;
 }
 .header .interfaceLinks .interfaceLinks-row-aiToggle {
+  align-items: center;
+  display: flex;
+  line-height: 18px;
+  text-align: right;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 2px 12px 2px 12px;
+  font-size: 14px;
+  height: 23px;
+}
+.billy3 {
   align-items: center;
   display: flex;
   line-height: 18px;
