@@ -1788,13 +1788,17 @@ div.interfaceLinks-row a {
   width: 99px;
   height: 30px;
 }
+.interface-hebrew .gDocAdvertBox #installNow {
+  width: 120px;
+}
+
 .gDocAdvertBox #installNow a {
   border-radius: 6px;
   text-align: center;
   background: #FFFFFF;
   color: #666666;
   text-decoration: none;
-  padding: 4px;
+  padding: 4px 9px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
   font-size: 16px;
   font-weight: 400;

@@ -11,7 +11,7 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import sanitizeHtml  from 'sanitize-html';
 import { SignUpModalKind } from './sefaria/signupModalContent';
-import { GDocAdvertBox, GDocAdvertBanner } from './TextColumnBanner';
+import { GDocAdvertBox } from './Misc.jsx';
 
 
 

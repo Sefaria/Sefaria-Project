@@ -60,6 +60,35 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
+const GDocAdvertText = () => {
+    return    <InterfaceText>
+                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href="https://sefaria.org/sheets/529099?origin=AddToSheetsPromo">Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href="https://sefaria.org/sheets/529099?origin=AddToSheetsPromo">למדו עוד</a></HebrewText>
+             </InterfaceText>;
+}
+const GDocAdvertBox = () => {
+    const ref = useRef(true);
+    useEffect(() => {
+        const firstRender = ref.current;
+        if (firstRender) {
+          ref.current = false;
+          if (!cookie(gdocInstalled)) { // on first render and "Install Now" has never been clicked before
+              gtag('event', 'promotion_shown', {loc: 'Resources Panel'});
+          }
+        }
+      })
+    const gdocInstalled = 'gdoc_installed';
+    const handleInstall = () => {
+        cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
+    }
+    return !cookie(gdocInstalled) &&
+            <div className="gDocAdvertBox">
+                <GDocAdvertText/>
+                <div id="installNow"><a href={'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet'}
+                                        onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
+            </div>;
+}
+
 const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
@@ -3343,5 +3372,6 @@ export {
   requestWithCallBack,
   OnInView,
   TopicPictureUploader,
-  ImageWithCaption
+  ImageWithCaption,
+  GDocAdvertBox
 };

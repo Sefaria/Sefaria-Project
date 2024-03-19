@@ -118,7 +118,6 @@ class Header extends Component {
           close={this.props.onMobileMenuButtonClick} />
         }
         <GlobalWarningMessage />
-        <GDocAdvertBanner />
       </div>
     );
   }
