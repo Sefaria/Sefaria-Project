@@ -45,17 +45,21 @@ const QuestionBox = ({ prompt, onClick }) => {
  * @returns {JSX.Element} The SummaryBox component.
  */
 const SummaryBox = ({ prompt, onClick }) => {
+  const title = (commentaryRef) => {
+    const index = Sefaria.parseRef(commentaryRef)?.index;
+    return index ? index.replace(/ on Pesach Haggadah$/, "") : commentaryRef;
+  }
+
   return (
     <div>
       <div className="guideTitle">
         {prompt.question}
       </div>
       {prompt.commentaries.map((p, i) => {
-        let title = Sefaria.parseRef(p.commentaryRef).index.replace(/ on Pesach Haggadah$/, "")
         return (
           <div key={i} className="guidePromptBox" onClick={() => onClick(p.commentaryRef)}>
             <p>{p.summaryText}</p>
-            <span>{title || p.commentaryRef}</span>
+            <span>{title(p.commentaryRef)}</span>
           </div>
         )
       })}
