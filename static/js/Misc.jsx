@@ -23,6 +23,8 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -67,11 +69,10 @@ const GDocAdvertText = () => {
              </InterfaceText>;
 }
 const GDocAdvertBox = () => {
-    const ref = useRef(true);
+    const firstRender = useRef(true);
     useEffect(() => {
-        const firstRender = ref.current;
-        if (firstRender) {
-          ref.current = false;
+        if (firstRender.current) {
+          firstRender.current = false;
           if (!cookie(gdocInstalled)) { // on first render and "Install Now" has never been clicked before
               gtag('event', 'promotion_shown', {loc: 'Resources Panel'});
           }
