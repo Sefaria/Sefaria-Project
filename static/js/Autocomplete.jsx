@@ -4,28 +4,64 @@ import classNames from "classnames";
 import {SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
+function groupByType(seggestedItems) {
+    const groupedItems = {};
 
-const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) => {
+    // Group items by their "type", "Topic" and "PersonTopic" considered same type
+    seggestedItems.forEach(item => {
+        let itemType = item.type in ["Topic", "PersonTopic"] ? "Topic" : item.type;
+        if (!groupedItems[itemType]) {
+            groupedItems[itemType] = [];
+        }
+        groupedItems[itemType].push(item);
+    });
 
-  const _type_icon_map = {
-      "Collection": "collection.svg",
-      "AuthorTopic": "iconmonstr-pen-17.svg",
-      "TocCategory": "iconmonstr-view-6.svg",
-      "PersonTopic": "iconmonstr-hashtag-1.svg",
-      "Topic": "iconmonstr-hashtag-1.svg",
-      "ref": "iconmonstr-book-15.svg",
-      "search": "iconmonstr-magnifier-2.svg",
-      "Term": "iconmonstr-script-2.svg",
-      "User": "iconmonstr-user-2%20%281%29.svg"
+    //Convert into a datastructure like this: [{"type": name,
+    //                                         "items" : [item1, item2]}]
+    const result = Object.keys(groupedItems).map(type => ({
+        type,
+        items: groupedItems[type]
+    }));
+    return result;
+};
+
+const getURLForObject = function(type, key) {
+    if (type === "Collection") {
+      return `/collections/${key}`;
+    } else if (type === "TocCategory") {
+      return `/texts/${key.join('/')}`;
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
+      return `/topics/${key}`;
+    } else if (type === "ref") {
+      return `/${key.replace(/ /g, '_')}`;
+    } else if (type === "User") {
+      return `/profile/${key}`;
     }
+  };
 
-  const _type_icon = function(itemType, itemPic) {
+
+const _type_icon = function(itemType, itemPic) {
     if (itemType === "User" && itemPic !== "") {
       return itemPic;
     } else {
       return `/static/icons/${_type_icon_map[itemType]}`;
     }
-  }
+  };
+
+const _type_icon_map = {
+  "Collection": "collection.svg",
+  "AuthorTopic": "iconmonstr-pen-17.svg",
+  "TocCategory": "iconmonstr-view-6.svg",
+  "PersonTopic": "iconmonstr-hashtag-1.svg",
+  "Topic": "iconmonstr-hashtag-1.svg",
+  "ref": "iconmonstr-book-15.svg",
+  "search": "iconmonstr-magnifier-2.svg",
+  "Term": "iconmonstr-script-2.svg",
+  "User": "iconmonstr-user-2%20%281%29.svg"
+}
+
+const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) => {
+
 
   const isHebrew = Sefaria.hebrew.isHebrew(itemLabel);
 
@@ -193,27 +229,6 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) => {
-  function groupByType(seggestedItems) {
-    const groupedItems = {};
-
-    // Group items by their "type", "Topic" and "PersonTopic" considered same type
-    seggestedItems.forEach(item => {
-        let itemType = item.type in ["Topic", "PersonTopic"] ? "Topic" : item.type;
-        if (!groupedItems[itemType]) {
-            groupedItems[itemType] = [];
-        }
-        groupedItems[itemType].push(item);
-    });
-
-    //Convert into a datastructure like this: [{"type": name,
-    //                                         "items" : [item1, item2]}]
-    const result = Object.keys(groupedItems).map(type => ({
-        type,
-        items: groupedItems[type]
-    }));
-
-    return result;
-}
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -275,19 +290,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
   const [suggestions, setSuggestions] = useState([]);
   const searchOverridePre = Sefaria._('Search for') +': "';
   const searchOverridePost = '"';
-  const getURLForObject = function(type, key) {
-    if (type === "Collection") {
-      return `/collections/${key}`;
-    } else if (type === "TocCategory") {
-      return `/texts/${key.join('/')}`;
-    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
-    } else if (type === "ref") {
-      return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
-      return `/profile/${key}`;
-    }
-  }
+
   const fetchSuggestions = async (inputValue) => {
   if (inputValue.length < 3){
       setSuggestions([]);
