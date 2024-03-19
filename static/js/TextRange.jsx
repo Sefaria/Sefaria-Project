@@ -25,14 +25,14 @@ class TextRange extends Component {
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
-    } else if (this.props.basetext || this.props.segmentNumber) {
-      this.placeSegmentNumbers();
+    } else {
+      this.conditionalPlaceSegmentNumbers();
     }
-    window.addEventListener('resize', this.handleResize);
+    window.addEventListener('resize', this.conditionalPlaceSegmentNumbers);
   }
   componentWillUnmount() {
     this._isMounted = false;
-    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener('resize', this.conditionalPlaceSegmentNumbers);
   }
   shouldComponentUpdate(nextProps, nextState) {
     if (this.props.sref !== nextProps.sref)                   { return true; }
@@ -85,12 +85,12 @@ class TextRange extends Component {
           (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
             // Rerender in case version has changed
             this.forceUpdate(function() {
-                this.placeSegmentNumbers();
+                this.conditionalPlaceSegmentNumbers();
             }.bind(this));
       }
     }
   }
-  handleResize() {
+  conditionalPlaceSegmentNumbers() {
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
     }
@@ -148,7 +148,7 @@ class TextRange extends Component {
 
     if (this._isMounted) {
       this.forceUpdate(function() {
-        this.placeSegmentNumbers();
+        this.conditionalPlaceSegmentNumbers();
         this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
@@ -261,7 +261,7 @@ class TextRange extends Component {
   onFootnoteClick(event) {
     event.preventDefault();
     $(event.target).closest("sup").next("i.footnote").toggle();
-    this.placeSegmentNumbers();
+    this.conditionalPlaceSegmentNumbers();
   }
   parashahHeader(data, segment, includeAliyout=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
@@ -374,7 +374,7 @@ class TextRange extends Component {
             unsetTextHighlight={this.props.unsetTextHighlight}
             formatEnAsPoetry={formatEnAsPoetry}
             formatHeAsPoetry={formatHeAsPoetry}
-            placeSegmentNumbers={this.placeSegmentNumbers}
+            placeSegmentNumbers={this.conditionalPlaceSegmentNumbers}
             navigatePanel={this.props.navigatePanel}
           />
         </span>
