@@ -48,16 +48,23 @@ class Util {
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
+    static _getVersionParams(version) {
+      return `${version.languageFamilyName}|${this.encodeVtitle(version.versionTitle)}`;
+    }
     static getUrlVersionsParams(currVersions, i=0) {
       currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
       if (currVersions) {
         return Object.entries(currVersions)
           .filter(([vlang, version]) => !!version?.versionTitle)
-          .map(([vlang, version]) =>`&v${vlang}${i > 1 ? i : ""}=${this.encodeVtitle(version.versionTitle)}`)
+          .map(([vlang, version]) =>`&v${vlang}${i > 1 ? i : ""}=${this._getVersionParams(version)}`)
           .join("");
       } else {
         return "";
       }
+    }
+    static getObjectFromUrlParam(param) {
+      const params = (params) ? param.split('|') : '|';
+      return {languageFamilyName: params[0], versionTitle: params[1]};
     }
     static getCurrVersionsWithoutAPIResultFields(currVersions) {
       /**

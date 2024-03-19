@@ -1150,7 +1150,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       let slug = path.slice(14);
       this.openTranslationsPage(slug);
     } else if (Sefaria.isRef(path.slice(1))) {
-      const currVersions = {en: {versionTitle: params.get("ven")}, he: {versionTitle: params.get("vhe")}};
+      const currVersions = {
+        en: Sefaria.util.getObjectFromUrlParam(params.get("ven")),
+        he: Sefaria.util.getObjectFromUrlParam(params.get("vhe"))
+      };
       const options = {showHighlight: path.slice(1).indexOf("-") !== -1};   // showHighlight when ref is ranged
       openPanel(Sefaria.humanRef(path.slice(1)), currVersions, options);
     } else {
