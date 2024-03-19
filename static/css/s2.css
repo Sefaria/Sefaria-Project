@@ -6768,6 +6768,18 @@ But not to use a display block directive that might break continuous mode for ot
   flex-wrap: wrap;
 }
 
+.toolsButtonContainer.blue {
+  background-color: var(--sefaria-blue);
+  color: white;
+  margin: -29px 34px 20px;
+  margin-inline-start: -34px;
+  margin-inline-end: -34px;
+  padding-inline-start: 68px;
+  padding-inline-end: 34px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
 .toolsButtonContainer .toolsButtonText,
 .toolsButtonContainer .toolsSecondaryButton {
   position: relative;
@@ -6788,6 +6800,17 @@ But not to use a display block directive that might break continuous mode for ot
   height: var(--sans-serif-small-font-size);
   margin-inline-start: 30px;
   align-self: flex-start;
+}
+
+.toolsButtonContainer.blue .experimentLabel {
+  --english-font: var(--english-sans-serif-font-family);
+  color: #ccc;
+  font-size: 14px;
+  border: 1px solid #CCCCCC;
+  border-radius: 6px;
+  float: inline-end;
+  padding: 2px;
+  line-height: 14px;
 }
 
 .linkArrow {
@@ -6898,6 +6921,9 @@ But not to use a display block directive that might break continuous mode for ot
 .toolsButton.textTypeface .toolsButtonText span.he{
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 122%;
+}
+.blue .toolsButton .toolsButtonIcon {
+  filter: invert(1);
 }
 .toolsButton .toolsButtonIcon {
   color: #999;
