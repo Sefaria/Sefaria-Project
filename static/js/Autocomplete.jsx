@@ -4,6 +4,27 @@ import classNames from "classnames";
 import {SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
+const _type_icon_map = {
+  "Collection": "collection.svg",
+  "AuthorTopic": "iconmonstr-pen-17.svg",
+  "TocCategory": "iconmonstr-view-6.svg",
+  "PersonTopic": "iconmonstr-hashtag-1.svg",
+  "Topic": "iconmonstr-hashtag-1.svg",
+  "ref": "iconmonstr-book-15.svg",
+  "search": "iconmonstr-magnifier-2.svg",
+  "Term": "iconmonstr-script-2.svg",
+  "User": "iconmonstr-user-2%20%281%29.svg"
+};
+
+const _type_icon = function(itemType, itemPic) {
+    if (itemType === "User" && itemPic !== "") {
+      return itemPic;
+    } else {
+      return `/static/icons/${_type_icon_map[itemType]}`;
+    }
+};
+
+
 function groupByType(seggestedItems) {
     const groupedItems = {};
 
@@ -37,31 +58,34 @@ const getURLForObject = function(type, key) {
     } else if (type === "User") {
       return `/profile/${key}`;
     }
-  };
+};
 
+const getQueryObj = (query) => {
+  return Sefaria.getName(query)
+    .then(d => {
+      const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
+      if (repairedCaseVariant !== query) {
+        return getQueryObj(repairedCaseVariant);
+      }
+      const repairedQuery = Sefaria.repairGershayimVariant(query, d);
+      if (repairedQuery !== query) {
+        return getQueryObj(repairedQuery);
+      }
 
-const _type_icon = function(itemType, itemPic) {
-    if (itemType === "User" && itemPic !== "") {
-      return itemPic;
-    } else {
-      return `/static/icons/${_type_icon_map[itemType]}`;
-    }
-  };
+      if (d["is_ref"]) {
+        return {'type': 'Ref', 'id': d["ref"]};
+      } else if (!!d["topic_slug"]) {
+        return {'type': 'Topic', 'id': d["topic_slug"]};
+      } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
+        return {'type': d["type"], 'id': d["key"]};
+      } else {
+        return {'type': "Search", 'id': query};
+      }
+    });
+};
 
-const _type_icon_map = {
-  "Collection": "collection.svg",
-  "AuthorTopic": "iconmonstr-pen-17.svg",
-  "TocCategory": "iconmonstr-view-6.svg",
-  "PersonTopic": "iconmonstr-hashtag-1.svg",
-  "Topic": "iconmonstr-hashtag-1.svg",
-  "ref": "iconmonstr-book-15.svg",
-  "search": "iconmonstr-magnifier-2.svg",
-  "Term": "iconmonstr-script-2.svg",
-  "User": "iconmonstr-user-2%20%281%29.svg"
-}
 
 const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) => {
-
 
   const isHebrew = Sefaria.hebrew.isHebrew(itemLabel);
 
@@ -82,7 +106,9 @@ const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) =>
 };
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
-                      onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard}) => {
+                      onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard,
+                       onNavigate = null                                    }) => {
+
     const [searchFocused, setSearchFocused] = useState(false);
 
     useEffect(() => {
@@ -94,40 +120,55 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
      getInputProps().onChange({ target: { value: '' } });
   }
    const _submitSearch = (query) => {
-    Sefaria.getName(query)
-      .then(d => {
-        const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
-        if (repairedCaseVariant !== query) {
-          _submitSearch(repairedCaseVariant);
-          return;
-        }
-        const repairedQuery = Sefaria.repairGershayimVariant(query, d);
-        if (repairedQuery !== query) {
-          _submitSearch(repairedQuery);
-          return;
-        }
+      getQueryObj(query).then(queryObj => {
+          console.log(queryObj)
+          let queryType = queryObj['type'];
+          let queryId = queryObj['id'];
 
-        if (d["is_ref"]) {
-          var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-          Sefaria.track.event("Search", action, query);
-          _clearSearchBox();
-          onRefClick(d["ref"]);
-          onNavigate && onNavigate();
+          if (queryType === 'Ref') {
+              let action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+              Sefaria.track.event("Search", action, queryId);
+              _clearSearchBox();
+              onRefClick(queryId);
+              onNavigate && onNavigate();
+          }
+          else if (queryType === 'Topic') {
+              Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+              _clearSearchBox();
+              openTopic(queryId);
+              onNavigate && onNavigate();
+          }
+          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+              _redirectToObject(queryType, queryId);
+          }
+          else {
+              Sefaria.track.event("Search", "Search Box Search", queryId);
+              _showSearch(queryId);
+          }
 
-        } else if (!!d["topic_slug"]) {
-          Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-          _clearSearchBox();
-          openTopic(d["topic_slug"]);
-          onNavigate && onNavigate();
 
-        } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
-          _redirectToObject(d["type"], d["key"]);
-        } else {
-          Sefaria.track.event("Search", "Search Box Search", query);
-          _showSearch(query);
-        }
-      });
-  }
+      }
+      )
+    //   if (d["is_ref"]) {
+    //   var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+    //   Sefaria.track.event("Search", action, query);
+    //   _clearSearchBox();
+    //   onRefClick(d["ref"]);
+    //   onNavigate && onNavigate();
+    //
+    // } else if (!!d["topic_slug"]) {
+    //   Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+    //   _clearSearchBox();
+    //   openTopic(d["topic_slug"]);
+    //   onNavigate && onNavigate();
+    //
+    // } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
+    //   _redirectToObject(d["type"], d["key"]);
+    // } else {
+    //   Sefaria.track.event("Search", "Search Box Search", query);
+    //   _showSearch(query);
+    // }
+    };
 
   const _showSearch = (query) => {
     query = query.trim();
@@ -139,7 +180,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     showSearch(query);
 
     onNavigate && onNavigate();
-  }
+  };
 
   const _redirectToObject = (item) => {
     Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
@@ -242,7 +283,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
                     <SuggestionsGroup
                         getItemProps={getItemProps}
                         highlightedIndex={highlightedIndex}
-                        key={index}
+                        key={object.type}
                         suggestions={object.items}
                         initialIndexForGroup={InitialIndexForGroup}
                     />
