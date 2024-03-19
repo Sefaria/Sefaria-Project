@@ -1463,13 +1463,13 @@ const DonatePage = () => (
                 borderColor="#4B71B7"
             />,
             <FeatureBox
-                enTitle="Sponsor a Text"
+                enTitle="Join a Giving Circle"
                 heTitle=""
-                enText="There are many opportunities to sponsor a text or translation in Sefaria's ever growing library and receive a personal dedication. "
+                enText="Become a lead supporter of Sefaria and ensure a vibrant future for the Jewish textual tradition."
                 heText=""
-                enButtonText="Learn More"
+                enButtonText="Join Now or Learn More"
                 heButtonText=""
-                enButtonUrl="https://drive.google.com/file/d/1FU8bHy7jZz86aywF7_kYMV0N3_h-k0nM/view"
+                enButtonUrl="https://donate.sefaria.org/campaign/giving-circles/c557214"
                 heButtonUrl=""
                 borderColor="#7C416F"
             />
@@ -2027,17 +2027,14 @@ const PoweredByPage = () => (
         <ButtonRow white={true} enTitle="Explore a few more projects" heTitle="Explore a few more projects">
             {[["HaTanakh.com", "http://www.hatanakh.com/"],
                 ["Koveah", "https://koveah.org/"],
-                ["Parasha Bytes", "https://parashabytes.zemon.name/bytes/"],
                 ["Shnayim Mikra", "http://www.shnayim.com/"],
                 ["Russel Neiss' Micrography", "https://github.com/rneiss/micrography"],
                 ["Sefaria Wordpress Plugin", "https://github.com/JoshMB/sefaria-wp-plugin"],
-                ["Mizmor Shir", "http://mizmor-shir.herokuapp.com/"],
                 ["Capish - Interactive Learning", "https://capish.me/"],
                 ["Sefer Similarity Map", "https://jhostyk.github.io/SeferSimilarityMap/"],
                 ["Sefaria Space: (Topic Museum + Text Mania)", "https://sefaria-space.web.app/"],
                 ["T'Feeling", "https://tfeeling.netlify.app/"],
                 ["The Taryag Mitzvos", "https://thetaryag.com/"],
-                ["Visualizations of Sefaria", "https://guedalia.github.io/testab/test"],
                 ["Gematriaphone", "http://alexboxer.com/gematriaphone/"],
                 ["Yamim Noraim Machzor", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Sefaria Sidebar Extension", "https://github.com/DovOps/SefariaSidebarExtension/"],
