@@ -73,21 +73,21 @@ const getQueryObj = (query) => {
       }
 
       if (d["is_ref"]) {
-        return {'type': 'Ref', 'id': d["ref"]};
+        return {'type': 'Ref', 'id': d["ref"], 'is_book': d['is_book']};
       } else if (!!d["topic_slug"]) {
-        return {'type': 'Topic', 'id': d["topic_slug"]};
+        return {'type': 'Topic', 'id': d["topic_slug"], 'is_book': d['is_book']};
       } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
-        return {'type': d["type"], 'id': d["key"]};
+        return {'type': d["type"], 'id': d["key"], 'is_book': d['is_book']};
       } else {
-        return {'type': "Search", 'id': query};
+        return {'type': "Search", 'id': query, 'is_book': d['is_book']};
       }
     });
 };
 
 
-const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) => {
+const SearchSuggestion = ({ type, label, url, pic }) => {
 
-  const isHebrew = Sefaria.hebrew.isHebrew(itemLabel);
+  const isHebrew = Sefaria.hebrew.isHebrew(label);
 
   return (
      <div
@@ -95,11 +95,11 @@ const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) =>
           ${isHebrew ? 'hebrew-result' : ''} 
           ${!isHebrew ? 'english-result' : ''}
         `}>
-      <img alt={itemType}
-           className={`ac-img-${itemType === "User" && itemPic === "" ? "UserPlaceholder" : itemType}`}
-           src={_type_icon(itemType, itemPic)} />
-       <a href={itemUrl}>
-        {itemLabel}
+      <img alt={type}
+           className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
+           src={_type_icon(type, pic)} />
+       <a href={url}>
+        {label}
       </a>
     </div>  );
 };
@@ -119,13 +119,10 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
      getInputProps().onChange({ target: { value: '' } });
   }
    const _submitSearch = (query) => {
-      getQueryObj(query).then(queryObj => {
-          console.log(queryObj)
-          let queryType = queryObj['type'];
-          let queryId = queryObj['id'];
+      getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
 
           if (queryType === 'Ref') {
-              let action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+              let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
               Sefaria.track.event("Search", action, queryId);
               _clearSearchBox();
               onRefClick(queryId);
@@ -292,11 +289,11 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                         })}
                     >
                         <SearchSuggestion
-                            itemKey={suggestion.key}
-                            itemType={suggestion.type}
-                            itemLabel={suggestion.label}
-                            itemUrl={suggestion.url}
-                            itemPic={suggestion.pic}
+                            key={suggestion.key}
+                            type={suggestion.type}
+                            label={suggestion.label}
+                            url={suggestion.url}
+                            pic={suggestion.pic}
                         />
                     </div>
                 );
