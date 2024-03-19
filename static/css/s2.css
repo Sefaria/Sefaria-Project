@@ -8716,13 +8716,6 @@ h3.aboutSheetHeader {
   color: var(--dark-grey);
 }
 
-.gDocAdvertBanner {
-  top: 60px;
-  position: absolute;
-  width: 100%;
-  z-index: 101;
-}
-
 .aboutSheetPanel hr {
   height: 0px;
   border: 1px solid var(--light-grey);

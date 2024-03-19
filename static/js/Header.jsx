@@ -14,7 +14,6 @@ import {
   LanguageToggleButton,
   DonateLink
 } from './Misc';
-import { GDocAdvertBanner } from './TextColumnBanner';
 
 class Header extends Component {
   constructor(props) {
