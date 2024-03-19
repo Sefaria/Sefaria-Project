@@ -100,7 +100,6 @@ class Header extends Component {
       boxShadow: this.props.hasBoxShadow,
       mobile: !this.props.multiPanel
     });
-    console.log(this.props)
     return (
       <div className={headerClasses} role="banner">
         <div className={headerInnerClasses}>
