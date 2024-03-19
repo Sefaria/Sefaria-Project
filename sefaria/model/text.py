@@ -17,13 +17,7 @@ import json
 import itertools
 from collections import defaultdict
 from bs4 import BeautifulSoup, Tag
-try:
-    import re2 as re
-    re.set_fallback_notification(re.FALLBACK_WARNING)
-except ImportError:
-    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
-    import re
-
+import re2 as re
 from . import abstract as abst
 from .schema import deserialize_tree, SchemaNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
@@ -385,12 +379,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         full_title_list = list(self.alt_titles_dict(lang).keys())
         alt_titles = list(map(re.escape, full_title_list))
         reg = '(?P<title>' + '|'.join(sorted(alt_titles, key=len, reverse=True)) + r')($|[:., ]+)'
-        try:
-            reg = re.compile(reg, max_mem=384 * 1024 * 1024)
-        except TypeError:
-            reg = re.compile(reg)
-
-        return reg
+        # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
+        options = re.Options()
+        options.max_mem = 384 * 1024 * 1024
+        return re.compile(reg, options=options)
 
     def get_alt_struct_node(self, title, lang=None):
         if not lang:
@@ -5606,10 +5598,10 @@ class Library(object):
         reg = self._title_regexes.get(key)
         if not reg:
             re_string = self.all_titles_regex_string(lang, with_terms, citing_only)
-            try:
-                reg = re.compile(re_string, max_mem=512 * 1024 * 1024)
-            except TypeError:
-                reg = re.compile(re_string)
+            # increase max memory b/c re2 is RAM limited and the titles regex exceeds this limit
+            options = re.Options()
+            options.max_mem = 512 * 1024 * 1024
+            reg = re.compile(re_string, options=options)
             self._title_regexes[key] = reg
         return reg
 

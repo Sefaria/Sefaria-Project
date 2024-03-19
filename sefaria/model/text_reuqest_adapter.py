@@ -175,6 +175,10 @@ class TextRequestAdapter:
                                        lambda string, _: text.AbstractTextRecord.remove_html(string),
                                        lambda string, _: ' '.join(string.split())]
 
+        elif self.return_format == 'strip_only_footnotes':
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
+                                       lambda string, _: ' '.join(string.split())]
+
         else:
             return
 

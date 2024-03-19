@@ -12,7 +12,6 @@ diff_match_patch==20200713
 django_mobile==0.7.0
 django-anymail==7.2.*
 django-debug-toolbar==2.2 # not used in prod
-django-easy-timezones==0.8.0
 django-recaptcha==2.0.6
 django-redis==4.11.*
 django-structlog==1.6.2
@@ -49,7 +48,7 @@ py2-py3-django-email-as-username==1.7.1
 pymongo==3.12.*
 pytest==6.1.1
 pytz
-pyyaml==5.3.1
+pyyaml==6.0.1
 rauth==0.7.3
 redis==3.5.3
 regex==2020.10.23
@@ -66,6 +65,7 @@ babel
 python-bidi
 requests
 Cerberus
+google-re2
 
 #opentelemetry-distro
 #opentelemetry-exporter-otlp

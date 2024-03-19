@@ -41,6 +41,7 @@
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.get_full_path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
+    {# Sefaria is stopping use of its Twitter account. However, according to Twitter dev docs, an account to reference as an attribute is still necessary for cards usage #}
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
