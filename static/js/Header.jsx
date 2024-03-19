@@ -46,12 +46,7 @@ class Header extends Component {
 
     const headerContent = (
       <>
-        <Autocomplete
-            onRefClick={this.props.onRefClick}
-            showSearch={this.props.showSearch}
-            openTopic={this.props.openTopic}
-            openURL={this.props.openURL}
-        />
+
         <div className="headerNavSection">
           { Sefaria._siteSettings.TORAH_SPECIFIC ?
           <a className="home" href="/" >{logo}</a> : null }
@@ -62,11 +57,12 @@ class Header extends Component {
         </div>
 
         <div className="headerLinksSection">
-          {/*<SearchBar*/}
-          {/*  onRefClick={this.props.onRefClick}*/}
-          {/*  showSearch={this.props.showSearch}*/}
-          {/*  openTopic={this.props.openTopic}*/}
-          {/*  openURL={this.props.openURL} />*/}
+        <Autocomplete
+            onRefClick={this.props.onRefClick}
+            showSearch={this.props.showSearch}
+            openTopic={this.props.openTopic}
+            openURL={this.props.openURL}
+        />
 
 
           { Sefaria._uid ?
@@ -140,266 +136,15 @@ Header.propTypes = {
 };
 
 
-class SearchBar extends Component {
-  constructor(props) {
-    super(props);
 
-    this.state = {
-      searchFocused: false
-    };
-    this._searchOverridePre = Sefaria._('Search for') +': "';
-    this._searchOverridePost = '"';
-    this._type_icon_map = {
-      "Collection": "collection.svg",
-      "AuthorTopic": "iconmonstr-pen-17.svg",
-      "TocCategory": "iconmonstr-view-6.svg",
-      "PersonTopic": "iconmonstr-hashtag-1.svg",
-      "Topic": "iconmonstr-hashtag-1.svg",
-      "ref": "iconmonstr-book-15.svg",
-      "search": "iconmonstr-magnifier-2.svg",
-      "Term": "iconmonstr-script-2.svg",
-      "User": "iconmonstr-user-2%20%281%29.svg"
-    }
-  }
-  componentDidMount() {
-    this.initAutocomplete();
-    window.addEventListener('keydown', this.handleFirstTab);
-  }
-  _type_icon(item) {
-    if (item.type === "User" && item.pic !== "") {
-      return item.pic;
-    } else {
-      return `/static/icons/${this._type_icon_map[item.type]}`;
-    }
-  }
-  _searchOverrideRegex() {
-    return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
-  }
-  // Returns true if override is caught.
-  catchSearchOverride(query) {
-    const override = query.match(this._searchOverrideRegex());
-    if (override) {
-      if (Sefaria.site) {
-        Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]);
-      }
-      this.closeSearchAutocomplete();
-      this.showSearch(override[1]);
-      $(ReactDOM.findDOMNode(this)).find("input.search").val(override[1]);
-      return true;
-    }
-    return false;
-  }
-  initAutocomplete() {
-    $.widget( "custom.sefariaAutocomplete", $.ui.autocomplete, {
-      _renderItem: function(ul, item) {
-        const override = item.label.match(this._searchOverrideRegex());
-        const is_hebrew = Sefaria.hebrew.isHebrew(item.label);
-        return $( "<li></li>" )
-          .addClass('ui-menu-item')
-          .data( "item.autocomplete", item )
-          .toggleClass("search-override", !!override)
-          .toggleClass("hebrew-result", !!is_hebrew)
-          .toggleClass("english-result", !is_hebrew)
-          .append(`<img alt="${item.type}" class="ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}" src="${this._type_icon(item)}">`)
-          .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
-          .appendTo( ul );
-      }.bind(this)
-    });
-    const anchorSide = Sefaria.interfaceLang === "hebrew" ? "right+" : "left-";
-    const sideGap = this.props.fullWidth ? 55 : Sefaria.interfaceLang === "hebrew" ? 38 : 40;
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete({
-      position: {my: anchorSide + sideGap + " top+18", at: anchorSide + "0 bottom"},
-      minLength: 3,
-      open: function($event, ui) {
-          const $widget = $("ul.ui-autocomplete");
-          $(".readerApp > .header").append($widget);
-      },
-      select: ( event, ui ) => {
-        event.preventDefault();
-
-        if (this.catchSearchOverride(ui.item.label)) {
-          return false;
-        }
-
-        this.redirectToObject(ui.item.type, ui.item.key);
-        $(".ui-state-focus").removeClass("ui-state-focus");
-
-        return false;
-      },
-      focus: ( event, ui ) => {
-        event.preventDefault();
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);
-        $(".ui-state-focus").removeClass("ui-state-focus");
-        $(`.ui-menu-item a[data-type-key="${ui.item.type}-${ui.item.key}"]`).parent().addClass("ui-state-focus");
-      },
-      source: (request, response) => Sefaria.getName(request.term)
-        .then(d => {
-          const comps = d["completion_objects"].map(o => {
-            const c = {...o};
-            c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
-            c["label"] = o["title"];
-            return c;
-          });
-          if (comps.length > 0) {
-            const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
-            response([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
-          } else {
-            response([])
-          }
-        }, e => response([]))
-    });
-  }
-  showVirtualKeyboardIcon(show){
-    if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
-      return; //this prevents the icon from flashing on every key stroke.
-    }
-    if(Sefaria.interfaceLang === 'english' && !this.props.hideHebrewKeyboard){
-      $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
-    }
-  }
-  focusSearch(e) {
-    const parent = document.getElementById('searchBox');
-    this.setState({searchFocused: true});
-    this.showVirtualKeyboardIcon(true);
-  }
-  blurSearch(e) {
-    // check that you're actually focusing in on element outside of searchBox
-    // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
-    const parent = document.getElementById('searchBox');
-    if (!parent.contains(e.relatedTarget)) {
-      if (!document.getElementById('keyboardInputMaster')) {
-        // if keyboard is open, don't just close it and don't close search
-        this.setState({searchFocused: false});
-      }
-      this.showVirtualKeyboardIcon(false);
-    }
-  }
-  showSearch(query) {
-    query = query.trim();
-    if (typeof sjs !== "undefined") {
-      query = encodeURIComponent(query);
-      window.location = `/search?q=${query}`;
-      return;
-    }
-    this.props.showSearch(query);
-
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
-    this.props.onNavigate && this.props.onNavigate();
-  }
-  getURLForObject(type, key) {
-    if (type === "Collection") {
-      return `/collections/${key}`;
-    } else if (type === "TocCategory") {
-      return `/texts/${key.join('/')}`;
-    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
-      return `/topics/${key}`;
-    } else if (type === "ref") {
-      return `/${key.replace(/ /g, '_')}`;
-    } else if (type === "User") {
-      return `/profile/${key}`;
-    }
-  }
-  redirectToObject(type, key) {
-    Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
-    this.closeSearchAutocomplete();
-    this.clearSearchBox();
-    const url = this.getURLForObject(type, key);
-    const handled = this.props.openURL(url);
-    if (!handled) {
-      window.location = url;
-    }
-    this.props.onNavigate && this.props.onNavigate();
-  }
-  submitSearch(query) {
-    Sefaria.getName(query)
-      .then(d => {
-        // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-        const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
-        if (repairedCaseVariant !== query) {
-          this.submitSearch(repairedCaseVariant);
-          return;
-        }
-        const repairedQuery = Sefaria.repairGershayimVariant(query, d);
-        if (repairedQuery !== query) {
-          this.submitSearch(repairedQuery);
-          return;
-        }
-
-        if (d["is_ref"]) {
-          var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-          Sefaria.track.event("Search", action, query);
-          this.clearSearchBox();
-          this.props.onRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-          this.props.onNavigate && this.props.onNavigate();
-
-        } else if (!!d["topic_slug"]) {
-          Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-          this.clearSearchBox();
-          this.props.openTopic(d["topic_slug"]);
-          this.props.onNavigate && this.props.onNavigate();
-
-        } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
-          this.redirectToObject(d["type"], d["key"]);
-        } else {
-          Sefaria.track.event("Search", "Search Box Search", query);
-          this.closeSearchAutocomplete();
-          this.showSearch(query);
-        }
-      });
-  }
-  closeSearchAutocomplete() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
-  }
-  clearSearchBox() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefariaAutocomplete("close");
-  }
-  handleSearchKeyUp(event) {
-    if (event.keyCode !== 13 || $(".ui-state-focus").length > 0) { return; }
-    const query = $(event.target).val();
-    if (!query) { return; }
-    if (this.catchSearchOverride(query)) { return; }
-    this.submitSearch(query);
-  }
-  handleSearchButtonClick(event) {
-    const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
-    if (query) {
-      this.submitSearch(query);
-    } else {
-      $(ReactDOM.findDOMNode(this)).find(".search").focus();
-    }
-  }
-  render() {
-    const inputClasses = classNames({
-      search: 1,
-      serif: 1,
-      keyboardInput: Sefaria.interfaceLang === "english",
-      hebrewSearch: Sefaria.interfaceLang === "hebrew"
-    });
-    const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
-
-    return (
-      <div id="searchBox" className={searchBoxClasses}>
-        <SearchButton onClick={this.handleSearchButtonClick} />
-        <input className={inputClasses}
-          id="searchInput"
-          placeholder={Sefaria._("Search")}
-          onKeyUp={this.handleSearchKeyUp}
-          onFocus={this.focusSearch}
-          onBlur={this.blurSearch}
-          maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")} />
-      </div>
-    );
-  }
-}
-SearchBar.propTypes = {
-  onRefClick:         PropTypes.func.isRequired,
-  showSearch:         PropTypes.func.isRequired,
-  openTopic:          PropTypes.func.isRequired,
-  openURL:            PropTypes.func.isRequired,
-  fullWidth:          PropTypes.bool,
-  hideHebrewKeyboard: PropTypes.bool,
-};
+// SearchBar.propTypes = {
+//   onRefClick:         PropTypes.func.isRequired,
+//   showSearch:         PropTypes.func.isRequired,
+//   openTopic:          PropTypes.func.isRequired,
+//   openURL:            PropTypes.func.isRequired,
+//   fullWidth:          PropTypes.bool,
+//   hideHebrewKeyboard: PropTypes.bool,
+// };
 
 const SearchSuggestion = ({ item }) => {
 
@@ -441,7 +186,8 @@ const SearchSuggestion = ({ item }) => {
     </div>  );
 };
 
-const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
+const InputBox = ({getInputProps, suggestions, highlightedIndex,
+                      onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard}) => {
     const [searchFocused, setSearchFocused] = useState(false);
 
     useEffect(() => {
@@ -449,88 +195,88 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     }, []);
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
-   const clearSearchBox = function () {
+   const _clearSearchBox = function () {
      getInputProps().onChange({ target: { value: '' } });
   }
-   const submitSearch = (query) => {
+   const _submitSearch = (query) => {
     Sefaria.getName(query)
       .then(d => {
         const repairedCaseVariant = Sefaria.repairCaseVariant(query, d);
         if (repairedCaseVariant !== query) {
-          submitSearch(repairedCaseVariant);
+          _submitSearch(repairedCaseVariant);
           return;
         }
         const repairedQuery = Sefaria.repairGershayimVariant(query, d);
         if (repairedQuery !== query) {
-          submitSearch(repairedQuery);
+          _submitSearch(repairedQuery);
           return;
         }
 
         if (d["is_ref"]) {
           var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
           Sefaria.track.event("Search", action, query);
-          clearSearchBox();
-          props.onRefClick(d["ref"]);
-          props.onNavigate && props.onNavigate();
+          _clearSearchBox();
+          onRefClick(d["ref"]);
+          onNavigate && onNavigate();
 
         } else if (!!d["topic_slug"]) {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-          clearSearchBox();
-          props.openTopic(d["topic_slug"]);
-          props.onNavigate && props.onNavigate();
+          _clearSearchBox();
+          openTopic(d["topic_slug"]);
+          onNavigate && onNavigate();
 
         } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
-          redirectToObject(d["type"], d["key"]);
+          _redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
-          showSearch(query);
+          _showSearch(query);
         }
       });
   }
 
-  const showSearch = (query) => {
+  const _showSearch = (query) => {
     query = query.trim();
     if (typeof sjs !== "undefined") {
       query = encodeURIComponent(query);
       window.location = `/search?q=${query}`;
       return;
     }
-    props.showSearch(query);
+    showSearch(query);
 
-    props.onNavigate && props.onNavigate();
+    onNavigate && onNavigate();
   }
 
-  const redirectToObject = (item) => {
+  const _redirectToObject = (item) => {
     Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-    clearSearchBox();
+    _clearSearchBox();
     const url = item.url
-    const handled = props.openURL(url);
+    const handled = openURL(url);
     if (!handled) {
       window.location = url;
     }
-    props.onNavigate && props.onNavigate();
+    onNavigate && onNavigate();
   }
 
 
-    const handleSearchKeyDown = (event) => {
+    const _handleSearchKeyDown = (event) => {
       onKeyDown(event)
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? suggestions[highlightedIndex] : null
       if (highlightedItem  && highlightedItem.type != 'search'){
-        redirectToObject(highlightedItem);
+        _redirectToObject(highlightedItem);
         return;
       }
       const inputQuery = otherDownShiftProps.value
       if (!inputQuery) return;
-      submitSearch(inputQuery);
+      _submitSearch(inputQuery);
     };
 
-    const handleSearchButtonClick = () => {
+    const _handleSearchButtonClick = () => {
       const inputQuery = otherDownShiftProps.value
       if (inputQuery) {
-        submitSearch(inputQuery);
+        _submitSearch(inputQuery);
       } else {
-        focusSearch()
+        _focusSearch()
       }
     };
 
@@ -538,19 +284,19 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
       if (document.getElementById('keyboardInputMaster')) {
         return; // if keyboard is open, ignore
       }
-      if (Sefaria.interfaceLang === 'english' && !props.hideHebrewKeyboard) {
+      if (Sefaria.interfaceLang === 'english' && !hideHebrewKeyboard) {
         const keyboardInitiator = document.querySelector(".keyboardInputInitiator");
         if (keyboardInitiator) {
           keyboardInitiator.style.display = show ? "inline" : "none";
         }
       }
     };
-    const focusSearch = () => {
+    const _focusSearch = () => {
       setSearchFocused(true);
       showVirtualKeyboardIcon(true);
     };
 
-    const blurSearch = (e) => {
+    const _blurSearch = (e) => {
       onBlur(e)
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
@@ -572,14 +318,14 @@ const InputBox = ({getInputProps, suggestions, highlightedIndex, ...props}) => {
     return (
       <div id="searchBox"
            className={searchBoxClasses}>
-        <SearchButton onClick={handleSearchButtonClick} />
+        <SearchButton onClick={_handleSearchButtonClick} />
         <input
           className={inputClasses}
           id="searchInput"
           placeholder={Sefaria._("Search")}
-          onKeyDown={handleSearchKeyDown}
-          onFocus={focusSearch}
-          onBlur={blurSearch}
+          onKeyDown={_handleSearchKeyDown}
+          onFocus={_focusSearch}
+          onBlur={_blurSearch}
           maxLength={75}
           title={Sefaria._("Search for Texts or Keywords Here")}
           {...otherDownShiftProps}
@@ -721,7 +467,8 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
 
   return (
     <div style={{ position: 'relative' }}>
-      <InputBox getInputProps={getInputProps}
+      <InputBox
+            getInputProps={getInputProps}
             onRefClick={onRefClick}
             showSearch={showSearch}
             openTopic={openTopic}
