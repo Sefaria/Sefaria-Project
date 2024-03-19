@@ -39,7 +39,6 @@ class Text(View):
             data['warnings'].append({representing_string: warning.get_message()})
         data.pop('missings')
         data.pop('available_langs')
-        return data
 
     def get(self, request, *args, **kwargs):
         if self.oref.is_empty() and not self.oref.index_node.is_virtual:
@@ -54,5 +53,5 @@ class Text(View):
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
         data = text_manager.get_versions_for_query()
-        data = self._handle_warnings(data)
+        self._handle_warnings(data)
         return jsonResponse(data)
