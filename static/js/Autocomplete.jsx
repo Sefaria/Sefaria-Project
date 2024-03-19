@@ -90,16 +90,15 @@ const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) =>
   const isHebrew = Sefaria.hebrew.isHebrew(itemLabel);
 
   return (
-     <div className="ui-menu-item"
-        // data-item-autocomplete={item}
+     <div
         className={`
-          hebrew-result ${!!isHebrew ? 'hebrew-result' : ''} 
-          english-result ${!isHebrew ? 'english-result' : ''}
+          ${isHebrew ? 'hebrew-result' : ''} 
+          ${!isHebrew ? 'english-result' : ''}
         `}>
       <img alt={itemType}
            className={`ac-img-${itemType === "User" && itemPic === "" ? "UserPlaceholder" : itemType}`}
            src={_type_icon(itemType, itemPic)} />
-       <a href={itemUrl} role="option" data-type-key={`${itemType}-${itemKey}`}>
+       <a href={itemUrl}>
         {itemLabel}
       </a>
     </div>  );
@@ -145,29 +144,8 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
               Sefaria.track.event("Search", "Search Box Search", queryId);
               _showSearch(queryId);
           }
-
-
       }
       )
-    //   if (d["is_ref"]) {
-    //   var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-    //   Sefaria.track.event("Search", action, query);
-    //   _clearSearchBox();
-    //   onRefClick(d["ref"]);
-    //   onNavigate && onNavigate();
-    //
-    // } else if (!!d["topic_slug"]) {
-    //   Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-    //   _clearSearchBox();
-    //   openTopic(d["topic_slug"]);
-    //   onNavigate && onNavigate();
-    //
-    // } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
-    //   _redirectToObject(d["type"], d["key"]);
-    // } else {
-    //   Sefaria.track.event("Search", "Search Box Search", query);
-    //   _showSearch(query);
-    // }
     };
 
   const _showSearch = (query) => {
