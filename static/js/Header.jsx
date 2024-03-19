@@ -146,7 +146,7 @@ Header.propTypes = {
 //   hideHebrewKeyboard: PropTypes.bool,
 // };
 
-const SearchSuggestion = ({ item }) => {
+const SearchSuggestion = ({ itemKey, itemType, itemLabel, itemUrl, itemPic }) => {
 
   const _type_icon_map = {
       "Collection": "collection.svg",
@@ -160,28 +160,28 @@ const SearchSuggestion = ({ item }) => {
       "User": "iconmonstr-user-2%20%281%29.svg"
     }
 
-  const _type_icon = function(item) {
-    if (item.type === "User" && item.pic !== "") {
-      return item.pic;
+  const _type_icon = function(itemType, itemPic) {
+    if (itemType === "User" && itemPic !== "") {
+      return itemPic;
     } else {
-      return `/static/icons/${_type_icon_map[item.type]}`;
+      return `/static/icons/${_type_icon_map[itemType]}`;
     }
   }
 
-  const isHebrew = Sefaria.hebrew.isHebrew(item.label);
+  const isHebrew = Sefaria.hebrew.isHebrew(itemLabel);
 
   return (
      <div className="ui-menu-item"
-        data-item-autocomplete={item}
+        // data-item-autocomplete={item}
         className={`
           hebrew-result ${!!isHebrew ? 'hebrew-result' : ''} 
           english-result ${!isHebrew ? 'english-result' : ''}
         `}>
-      <img alt={item.type}
-           className={`ac-img-${item.type === "User" && item.pic === "" ? "UserPlaceholder" : item.type}`}
-           src={_type_icon(item)} />
-       <a href={item.url} role="option" data-type-key={`${item.type}-${item.key}`}>
-        {item.label}
+      <img alt={itemType}
+           className={`ac-img-${itemType === "User" && itemPic === "" ? "UserPlaceholder" : itemType}`}
+           src={_type_icon(itemType, itemPic)} />
+       <a href={itemUrl} role="option" data-type-key={`${itemType}-${itemKey}`}>
+        {itemLabel}
       </a>
     </div>  );
 };
@@ -362,7 +362,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
     return (
         <>
             {groupedSuggestions.map((object, index) => {
-                const UniversalInitialIndexForGroup = universalIndex;
+                const InitialIndexForGroup = universalIndex;
                 universalIndex += object.items.length;
                 return (
                     <SuggestionsGroup
@@ -370,7 +370,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
                         highlightedIndex={highlightedIndex}
                         key={index}
                         suggestions={object.items}
-                        universalInitialIndex={UniversalInitialIndexForGroup}
+                        initialIndexForGroup={InitialIndexForGroup}
                     />
                 );
             })}
@@ -381,12 +381,12 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
 
 }
 
-const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, highlightedIndex }) => {
+const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex }) => {
 
     return (
         <>
             {suggestions.map((suggestion, index) => {
-                const universalIndex = universalInitialIndex + index
+                const universalIndex = initialIndexForGroup + index
                 return (
                     <div
                         key={suggestion.value}
@@ -398,7 +398,13 @@ const SuggestionsGroup = ({ suggestions, universalInitialIndex, getItemProps, hi
                             },
                         })}
                     >
-                        <SearchSuggestion item={suggestion}/>
+                        <SearchSuggestion
+                            itemKey={suggestion.key}
+                            itemType={suggestion.type}
+                            itemLabel={suggestion.label}
+                            itemUrl={suggestion.url}
+                            itemPic={suggestion.pic}
+                        />
                     </div>
                 );
             })}
