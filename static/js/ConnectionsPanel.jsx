@@ -624,6 +624,7 @@ class ConnectionsPanel extends Component {
       content = (<GuideBox
         masterPanelLanguage={this.props.masterPanelLanguage}
         sref={this.props.srefs[0]}
+        setPreviousSettings={this.props.setPreviousSettings}
       />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
@@ -741,6 +742,7 @@ ConnectionsPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   scrollPosition: PropTypes.number,
   setSideScrollPosition: PropTypes.func.isRequired,
+  setPreviousSettings: PropTypes.func,
 };
 
 

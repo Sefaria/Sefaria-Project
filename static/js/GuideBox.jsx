@@ -101,6 +101,7 @@ class GuideBox extends Component {
   setState(newState) {
     this.stateHistory.push(this.state);
     super.setState(newState);
+    this.props.setPreviousSettings({onClick: this.popState, url: "", backText: newState.backText});
   }
 
   /**
@@ -108,6 +109,7 @@ class GuideBox extends Component {
    */
   resetHistory() {
     this.stateHistory = [];
+    this.props.setPreviousSettings(null);
   }
 
   /**
@@ -116,22 +118,27 @@ class GuideBox extends Component {
   popState() {
     const lastState = this.stateHistory.pop();
     super.setState(lastState);
+    if (this.stateHistory.length === 0) {
+      this.props.setPreviousSettings(null);
+    }
+    else {
+      this.props.setPreviousSettings({onClick: this.popState, url: "", backText: lastState.backText});
+    }
   }
 
   onClickQuestion = (p) => {
-    this.setState({ promptState: SUMMARIES, livePrompt: p });
+    this.setState({ promptState: SUMMARIES, livePrompt: p, backText: "Questions" });
   }
 
 
   onClickSummary = (commentaryRef) => {
-    this.setState({ promptState: COMMENTARIES, commentaryRef: commentaryRef });
+    this.setState({ promptState: COMMENTARIES, commentaryRef: commentaryRef, backText: "Summary" });
   }
 
   render() {
     return (
       <section className="guideBox">
         <h2 className="guideHeader">
-          {this.stateHistory.length ? <i className="fa fa-chevron-left" onClick={() => this.popState()}></i> : null}
           <span className="int-en">Learning Guide</span>
           <span className="int-he">מדריך למידה</span>
         </h2>
