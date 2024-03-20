@@ -4532,23 +4532,58 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: 0;
   zIndex: 999;
 }
-
-.search-suggestion{
+.search-group-suggestions{
   border-bottom-color: rgb(204, 204, 204);
   border-bottom-style: solid;
   border-bottom-width: 0.766667px;
   display: flex;
-  /*font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";*/
-  /*font-size: 14px;*/
+  align-items: start;
+}
+.search-group-suggestions-items{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 80%;
+}
+
+.search-suggestion{
+  display: flex;
   list-style-type: none;
   padding-bottom: 6px;
   padding-left: 12px;
   padding-right: 12px;
   padding-top: 12px;
-  text-align: right;
+  /*text-align: right;*/
+  font-family: 'EB Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 23px;
+  }
+.search-suggestion a{
+  font-family: 'EB Garamond';
   }
 .hebrew-result.search-suggestion{
   direction: rtl;
+}
+
+.autocomplete-dropdown .type-icon{
+  display: inline-block;
+  opacity: .4;
+  height: 18px;
+  width: 18px;
+  margin-right: 10px;
+}
+.autocomplete-dropdown .type-title{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+/* or 129% */
+  color: #999999;
+  margin-top: 12px;
+  width: 20%;
 }
 
 .readerNavMenu .sheet {

@@ -1,7 +1,7 @@
 import Sefaria from "./sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import classNames from "classnames";
-import {SearchButton} from "./Misc";
+import {InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
 const _type_icon_map = {
@@ -14,6 +14,17 @@ const _type_icon_map = {
   "search": "iconmonstr-magnifier-2.svg",
   "Term": "iconmonstr-script-2.svg",
   "User": "iconmonstr-user-2%20%281%29.svg"
+};
+const type_title_map = {
+  "Collection": {"en": "Collections", "he": "אסופות"},
+  "AuthorTopic": {"en": "Authors", "he": "סופרים"},
+  "TocCategory": {"en": "Categories", "he": "קטגוריות"},
+  "PersonTopic": {"en": "Topics", "he": "נושאים"},
+  "Topic": {"en": "Topics", "he": "נושאים"},
+  "ref": {"en": "Books", "he": "ספרים"},
+  "search": {"en": "", "he": ""},
+  "Term": {"en": "Terms", "he": "מונחים"},
+  "User": {"en": "Users", "he": "משתמשים"}
 };
 
 const _type_icon = function(itemType, itemPic) {
@@ -103,9 +114,11 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, h
 
      {/*<div*/}
      {/*   className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>*/}
-      <img alt={type}
+     <img alt={type}
            className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
-           src={_type_icon(type, pic)} />
+           src={_type_icon(type, pic)}
+           className={'type-icon'}
+            />
        <a href={url}>
         {label}
       </a>
@@ -285,23 +298,22 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex }) => {
 
+    const pic = suggestions[0].pic;
+    const type = suggestions[0].type;
+    const enTitle = type_title_map[type]?.en;
+    const heTitle = type_title_map[type]?.he;
     return (
-        <>
+        <div className={"search-group-suggestions"}>
+
+            {(type != 'search') &&
+            <div className={'type-title'}><InterfaceText text={{en:enTitle, he:heTitle}} /></div>
+            }
+
+            <div className={"search-group-suggestions-items"}>
             {suggestions.map((suggestion, index) => {
                 const universalIndex = initialIndexForGroup + index
                 return (
-                    // <div
-                    //     key={suggestion.value}
-                    //     {...getItemProps({
-                    //         index: universalIndex,
-                    //         item: suggestion,
-                    //         style: {
-                    //             backgroundColor: highlightedIndex === universalIndex ? '#EDEDEC' : '',
-                    //         },
-                    //     })}
-                    //    classNames = "search-suggestion"
-                    //
-                    // >
+
                         <SearchSuggestion
                             key={suggestion.key}
                             type={suggestion.type}
@@ -314,10 +326,10 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             getItemProps = {getItemProps}
 
                         />
-                    // </div>
                 );
             })}
-        </>
+                </div>
+        </div>
     );
 };
 
