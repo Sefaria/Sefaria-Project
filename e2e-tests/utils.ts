@@ -26,6 +26,11 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
+    // TODO - add a generic no modals function
+    await newPage.evaluate(() => {
+        localStorage["modal_Purim Modal #4"] = 1
+    });
+    await newPage.goto(url);
     return newPage;
 }
 
@@ -49,6 +54,11 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     await context.addCookies(loginCookies);
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
+    await newPage.goto(url);
+    // TODO - add a generic no modals function
+    await newPage.evaluate(() => {
+        localStorage["modal_Purim Modal #4"] = 1
+    });
     await newPage.goto(url);
     return newPage;
 }
