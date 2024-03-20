@@ -85,23 +85,33 @@ const getQueryObj = (query) => {
 };
 
 
-const SearchSuggestion = ({ type, label, url, pic }) => {
+const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, highlightedIndex, getItemProps}) => {
 
   const isHebrew = Sefaria.hebrew.isHebrew(label);
 
   return (
-     <div
-        className={`
-          ${isHebrew ? 'hebrew-result' : ''} 
-          ${!isHebrew ? 'english-result' : ''}
-        `}>
+          <div
+        key={suggestion.value}
+        {...getItemProps({
+            index: universalIndex,
+            item: suggestion,
+            style: {
+                backgroundColor: highlightedIndex === universalIndex ? '#EDEDEC' : '',
+            },
+        })}
+       className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>
+
+     {/*<div*/}
+     {/*   className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>*/}
       <img alt={type}
            className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
            src={_type_icon(type, pic)} />
        <a href={url}>
         {label}
       </a>
-    </div>  );
+    </div>
+              // </div>
+);
 };
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
@@ -211,7 +221,9 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       onBlur(e)
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
-        setSearchFocused(false);
+        // setSearchFocused(false);
+        // debug:
+        setSearchFocused(true);
         showVirtualKeyboardIcon(false);
       }
     };
@@ -278,24 +290,31 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             {suggestions.map((suggestion, index) => {
                 const universalIndex = initialIndexForGroup + index
                 return (
-                    <div
-                        key={suggestion.value}
-                        {...getItemProps({
-                            index: universalIndex,
-                            item: suggestion,
-                            style: {
-                                backgroundColor: highlightedIndex === universalIndex ? '#EDEDEC' : '',
-                            },
-                        })}
-                    >
+                    // <div
+                    //     key={suggestion.value}
+                    //     {...getItemProps({
+                    //         index: universalIndex,
+                    //         item: suggestion,
+                    //         style: {
+                    //             backgroundColor: highlightedIndex === universalIndex ? '#EDEDEC' : '',
+                    //         },
+                    //     })}
+                    //    classNames = "search-suggestion"
+                    //
+                    // >
                         <SearchSuggestion
                             key={suggestion.key}
                             type={suggestion.type}
                             label={suggestion.label}
                             url={suggestion.url}
                             pic={suggestion.pic}
+                            suggestion = {suggestion}
+                            universalIndex = {universalIndex}
+                            highlightedIndex = {highlightedIndex}
+                            getItemProps = {getItemProps}
+
                         />
-                    </div>
+                    // </div>
                 );
             })}
         </>
@@ -350,7 +369,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
   });
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className={"search-container"}>
       <SearchInputBox
             getInputProps={getInputProps}
             onRefClick={onRefClick}
@@ -361,13 +380,15 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             hideHebrewKeyboard={false}
             highlightedIndex={highlightedIndex}
       />
-      <ul
+      <div
         {...getMenuProps()}
-        style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}>
-          {isOpen &&
+        // style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
+        className={"autocomplete-dropdown"}
+      >
+          {(isOpen || true) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}/>
           }
-      </ul>
+      </div>
     </div>
   );
 };
