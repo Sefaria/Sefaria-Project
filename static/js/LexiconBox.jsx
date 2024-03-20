@@ -154,8 +154,8 @@ class LexiconBox extends Component {
             <div>
               <div className="named-entity-ambiguous">
                 <i className="systemText">
-                  <span className="int-en">{`"${this.props.selectedNamedEntityText}" could refer to one of the following rabbis:`}</span>
-                  <span className="int-he">{`ייתכן ש-"${this.props.selectedNamedEntityText}" מתייחס לאחד הרבנים הבאים:`}</span>
+                  <span className="int-en">{`"${this.props.selectedNamedEntityText}" could refer to one of the following:`}</span>
+                  <span className="int-he">{`ייתכן ש-"${this.props.selectedNamedEntityText}" מתייחס לאחד מהבאים:`}</span>
                 </i>
               </div>
               { namedEntityContent }
