@@ -106,12 +106,12 @@ const AboutSefaria = ({hideTitle}) => (
           བྱེད་ཐབས་འདི་བརྒྱུད་ནས་སྐྱེས་བུ་སུ་ཞིག་ཡིན་རུང་ནང་བསྟན་གསུང་རབ་ལ་སློབ་གཉེར་དང་གཞུང་འགྲེལ་བྱེད་པ། ནང་བསྟན་གྱི་དཔེ་ཚོགས་ཀུན་འཛོམས་ཀྱི་དཔེ་མཛོད་འདི་ཇེ་ལེགས་ཇེ་རྒྱས་སུ་གཏོང་བའི་ལས་རིམ་ལ་ཞུགས་ཐུབ་ཀྱི་ཡོད།
         </HebrewText>
     </InterfaceText>
-    <a href="/about" className="inTextLink">
+    {/* <a href="/about" className="inTextLink">
       <InterfaceText>
           <EnglishText>Learn More ›</EnglishText>
           <HebrewText> མུ་མཐུད་གཟིགས། ›</HebrewText>
       </InterfaceText>
-    </a>
+    </a> */}
       {!hideTitle && <InterfaceText>
           {/*<EnglishText>
             <a className="button get-start" href="/sheets/210670">
