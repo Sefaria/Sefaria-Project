@@ -1670,13 +1670,9 @@ def index_api(request, title, raw=False):
             book = library.get_index(title)
         except BookNameError:
             pass
-        if 'schema' not in j:
-            if book:
-                # if book already exists and no schema provided, use old schema
-                j['schema'] = book.contents()['schema']
-            else:
-                # book doesn't exist and didn't receive a schema so flag it
-                return jsonResponse({"error": "A new index must be created with a schema."})
+        if 'schema' not in j and book:
+            # if book already exists and no schema provided, use old schema
+            j['schema'] = book.contents()['schema']
 
         #todo: move this to texts_api, pass the changes down through the tracker and text chunk
         #if "versionTitle" in j:

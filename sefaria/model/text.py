@@ -527,6 +527,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             if not d.get("categories"):
                 raise InputError("Please provide category for Index record: {}.".format(d.get("title")))
 
+            if 'schema' not in d:
+                raise InputError(f"Please provide schema for Index record: {d.get('title')}")
 
             # todo: should this functionality be on load()?
             if "oldTitle" in d and "title" in d and d["oldTitle"] != d["title"]:
