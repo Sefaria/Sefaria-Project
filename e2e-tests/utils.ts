@@ -1,10 +1,17 @@
 import {DEFAULT_LANGUAGE, LANGUAGES, testUser} from './globals'
 import {BrowserContext}  from 'playwright-core';
 import type { Page } from 'playwright-core';
-import os from 'os';
 
 let langCookies: any = [];
 let loginCookies: any = [];
+
+const hideModals = async (page: Page) => {
+    await page.evaluate(() => {
+        const style = document.createElement('style');
+        style.innerHTML = '#interruptingMessageBox {display: none;}';
+        document.head.appendChild(style);
+    });
+}
 
 export const changeLanguage = async (page: Page, language: string) => {
     await page.locator('.interfaceLinks-button').click()
@@ -26,11 +33,7 @@ export const goToPageWithLang = async (context: BrowserContext, url: string, lan
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
-    // TODO - add a generic no modals function
-    await newPage.evaluate(() => {
-        localStorage["modal_Purim Modal #4"] = 1
-    });
-    await newPage.goto(url);
+    await hideModals(newPage);
     return newPage;
 }
 
@@ -55,10 +58,6 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, use
     // this is a hack to get the cookie to work
     const newPage: Page = await context.newPage();
     await newPage.goto(url);
-    // TODO - add a generic no modals function
-    await newPage.evaluate(() => {
-        localStorage["modal_Purim Modal #4"] = 1
-    });
-    await newPage.goto(url);
+    await hideModals(newPage);
     return newPage;
 }
