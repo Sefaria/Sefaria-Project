@@ -80,12 +80,16 @@ class TextRequestAdapter:
             versions = [v for v in self.all_versions if lang_condition(v)]
             if vtitle != self.ALL and versions:
                 versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
+        if not versions:
+            if self.fill_in_missing_segments:
+                # we want to return a 'merged' version, so we need a base 'Version' for that
+                versions = [Version({'versionTitle': vtitle, 'languageFamilyName': lang})]
+            else:
+                self.return_obj['missings'].append((lang, vtitle))
         for version in versions:
             if all(version.languageFamilyName != v['languageFamilyName'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
                 self._append_version(version)
-        if not versions:
-            self.return_obj['missings'].append((lang, vtitle))
 
     def _add_ref_data_to_return_obj(self) -> None:
         oref = self.oref
