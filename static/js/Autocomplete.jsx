@@ -99,8 +99,20 @@ const getQueryObj = (query) => {
 const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, highlightedIndex, getItemProps}) => {
 
   const isHebrew = Sefaria.hebrew.isHebrew(label);
+  const searchOverridePre = Sefaria._('Search for') +': ';
+  const searchOverridePost = '"';
+  let searchOverrideText = null;
+
+  if (type === 'search'){
+      searchOverrideText =
+      <span className={"search-override-text"}>
+          {searchOverridePre}
+          <span>&nbsp;</span>
+          </span>
+  }
 
   return (
+      <a href={url}>
           <div
         key={suggestion.value}
         {...getItemProps({
@@ -111,19 +123,15 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, h
             },
         })}
        className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>
-
-     {/*<div*/}
-     {/*   className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>*/}
      <img alt={type}
            className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
            src={_type_icon(type, pic)}
            className={'type-icon'}
             />
-       <a href={url}>
+       {searchOverrideText}
         {label}
-      </a>
     </div>
-              // </div>
+      </a>
 );
 };
 
@@ -205,7 +213,8 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       _submitSearch(inputQuery);
     };
 
-    const _handleSearchButtonClick = () => {
+
+    const _handleSearchButtonClick = (event) => {
       const inputQuery = otherDownShiftProps.value
       if (inputQuery) {
         _submitSearch(inputQuery);
@@ -302,6 +311,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     const type = suggestions[0].type;
     const enTitle = type_title_map[type]?.en;
     const heTitle = type_title_map[type]?.he;
+
     return (
         <div className={"search-group-suggestions"}>
 
@@ -335,8 +345,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 
  const Autocomplete = ({onRefClick, showSearch, openTopic, openURL}) => {
   const [suggestions, setSuggestions] = useState([]);
-  const searchOverridePre = Sefaria._('Search for') +': "';
-  const searchOverridePost = '"';
+
 
   const fetchSuggestions = async (inputValue) => {
   if (inputValue.length < 3){
@@ -354,7 +363,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
       return c;
     });
     if (comps.length > 0) {
-      const q = `${searchOverridePre}${inputValue}${searchOverridePost}`;
+      const q = '“' + inputValue + "”";
       setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
 
     } else {

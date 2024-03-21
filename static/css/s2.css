@@ -4529,8 +4529,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #FFFFFF;
   position: absolute;
   top: 100%;
+  width: 130%;
   left: 0;
   zIndex: 999;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 0px 0px 6px 4px;
 }
 .search-group-suggestions{
   border-bottom-color: rgb(204, 204, 204);
@@ -4555,6 +4558,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-top: 12px;
   /*text-align: right;*/
   font-family: 'EB Garamond';
+  --hebrew-font: var(--hebrew-serif-font-family);
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
@@ -4562,17 +4566,35 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   }
 .search-suggestion a{
   font-family: 'EB Garamond';
-  }
+  --hebrew-font: var(--hebrew-serif-font-family);
+}
 .hebrew-result.search-suggestion{
   direction: rtl;
 }
+.autocomplete-dropdown .search-override-text{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  margin-top: 3px;
 
+  /* Dark Grey */
+  color: #666666;
+}
 .autocomplete-dropdown .type-icon{
   display: inline-block;
   opacity: .4;
   height: 18px;
   width: 18px;
+  margin-top: 2px;
+
+}
+.interface-english .autocomplete-dropdown .type-icon {
   margin-right: 10px;
+}
+.interface-hebrew .autocomplete-dropdown .type-icon {
+  margin-left: 10px;
 }
 .autocomplete-dropdown .type-title{
   font-family: 'Roboto';
@@ -4584,6 +4606,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999999;
   margin-top: 12px;
   width: 20%;
+}
+.autocomplete-dropdown .type-title .int-en{
+  margin-left: 15px;
+}
+.autocomplete-dropdown .type-title .int-he{
+  margin-right: 15px;
 }
 
 .readerNavMenu .sheet {
