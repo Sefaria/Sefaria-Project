@@ -376,31 +376,7 @@ const AiInfoTooltip = () => {
     const aiInfoIcon = (
             <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
     );
-    const aiMessage1 = (
-        <div className="header">
-        <div className="myProfileBox">
-      <div className="interfaceLinks">
-        <div className="interfaceLinks-menu profile-menu aiToggle">
-          <div className="interfaceLinks-header aiToggleMessage">
-              <InterfaceText>
-                  <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
-                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מאלכותית ועברו הגהה על ידי צוות העורכים שלנו.
-                      <a href={"/sheets/541399?lang=en"}> לפרטים נוספים</a></HebrewText>
-              </InterfaceText>
-
-          </div>
-          <hr className="interfaceLinks-hr" />
-          <div className="interfaceLinks-row-aiToggle aiToggleMessage">
-              <InterfaceText><EnglishText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>Feedback</a></EnglishText>
-              <HebrewText><a href={"https://sefaria.formstack.com/forms/ai_feedback_form"}>כתבו לנו</a></HebrewText>
-              </InterfaceText>
-          </div>
-        </div>
-      </div>
-            </div>
-            </div>
-    );
-        const aiMessage2 = (
+        const aiMessage = (
         <div className="ai-info-messages-box">
               <div className="ai-info-first-message">
               <InterfaceText>
@@ -423,7 +399,7 @@ const AiInfoTooltip = () => {
       {aiInfoIcon}
       {showMessage && (
         <div className="ai-message">
-            {aiMessage2}
+            {aiMessage}
         </div>
       )}
     </div>
