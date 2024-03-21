@@ -339,7 +339,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         index_details = library.get_index(oref.normal()).contents(with_content_counts=True)
         index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
         if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
-            currVersions = {"en": versionEn, "he": versionHe}
+            currVersions = {"en": {'versionTitle': versionEn}, "he": {'versionTitle': versionHe}}
             if versionEn is not None and versionHe is not None:
                 curr_lang = kwargs.get("panelDisplayLanguage", "en")
                 for key in list(currVersions.keys()):
@@ -370,8 +370,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "ref": oref.normal(),
             "refs": [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()],
             "currVersions": {
-                "en": versionEn,
-                "he": versionHe,
+                "en": {'versionTitle': versionEn},
+                "he": {'versionTitle': versionHe},
             },
             "filter": filter,
             "versionFilter": versionFilter,
@@ -401,7 +401,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             panel["settings"] = settings_override
         if mode != "Connections" and oref != None:
             try:
-                text_family = TextFamily(oref, version=panel["currVersions"]["en"], lang="en", version2=panel["currVersions"]["he"], lang2="he", commentary=False,
+                text_family = TextFamily(oref, version=panel["currVersions"]["en"]['versionTitle'], lang="en", version2=panel["currVersions"]["he"]['versionTitle'], lang2="he", commentary=False,
                                   context=True, pad=True, alts=True, wrapLinks=False, translationLanguagePreference=kwargs.get("translationLanguagePreference", None)).contents()
             except NoVersionFoundError:
                 text_family = {}
