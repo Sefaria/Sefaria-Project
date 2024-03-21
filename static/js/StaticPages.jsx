@@ -3128,6 +3128,68 @@ const JobsPage = memo(() => {
     );
 });
 
+
+/*
+* Products Page
+*/
+
+
+const product = ({ job }) => {
+    return (
+        <div className="job">
+            <a className="joblink" target="_blank" href={job.jobLink}>
+                {job.jobDescription}
+            </a>
+        </div>
+    );
+};
+
+
+
+const ProductsPage = memo(() => {
+    const [products, setProducts] = useState({});
+    const [error, setError] = useState(null);
+    
+    const loadProducts = async () => {
+        const dummy_data = {
+            "title": "My Sefaria Product",
+            "url": "www.sefaria.org",
+            "cta_labels": [
+                {
+                    "he": "הורידו עכשיו",
+                    "en": "Install now!", 
+                    "url": "www.example.com"
+                },
+                {
+                    "he": "חנות אפליקציות",
+                    "en": "App store", 
+                    "url": "www.example.com",
+                    "icon": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
+                }
+             ],
+            "type": "Experiment",
+            "rectanglionURL": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
+            "desc": {
+                "he": "אהגכלחדךגכחךדסכצד",
+                "en": "Abcdefghijklmno"
+            }
+        };
+        setProducts(dummy_data)
+    };
+
+    useEffect(() => {
+        loadProducts();
+    }, []);
+
+    return (
+        <div>
+           <h1>{products.title}</h1>
+           <h2>{products.desc.en}</h2>
+           <h3>{products.cta_labels[0].en}</h3>
+        </div>
+    );
+});
+
 export {
     RemoteLearningPage,
     SheetsLandingPage,
@@ -3142,4 +3204,5 @@ export {
     WordByWordPage,
     JobsPage,
     TeamMembersPage,
+    ProductsPage,
 };
