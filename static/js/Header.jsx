@@ -450,7 +450,6 @@ const LoggedInButtons = ({headerMode}) => {
   );
 }
 
-
 const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
   const classes = classNames({
     mobileNavMenu: 1,
@@ -511,7 +510,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           </a>
         </> : null }
 
-        <a href="/about">
+        <a href="/mobile-about-menu">
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>

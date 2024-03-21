@@ -6,6 +6,14 @@
 
 {% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
 
+{% block css %}
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
+
+{% endblock %}
+
 {% block js %}
 <script>
     {% autoescape off %}
@@ -16,16 +24,22 @@
 {% endblock %}
 
 {% block content %}
-
+    {% if not request.user_agent.is_mobile %}
+        {% include '_sidebar.html' with whichPage='team' title="Team" heTitle="צוות ספריא" %}
+    {% endif %}
     <main id="teamPage" class="container static sans-serif">
         <div class="inner">
             <header>
-                <h1>
-                    <span class="int-en serif">Team</span>
-                    <span class="int-he">צוות ספריא</span>
-                </h1>
+                {% if request.user_agent.is_mobile %}
+                    <h1 class="mobileAboutHeader">
+                        <span class="int-en">Team</span>
+                        <span class="int-he">צוות ספריא</span>
+                    </h1>
+                {% endif %}
+            <header>
+
             </header>
-            <div class="row static-text">
+                    <div class="row static-text">
                 <div id="teamMembersPageContent">
                     <h1 id="appLoading">Loading...</h1>
                 </div>

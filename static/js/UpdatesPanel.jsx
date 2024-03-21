@@ -12,7 +12,6 @@ import {
   InterfaceText,
 } from './Misc';
 
-
 class UpdatesPanel extends Component {
   constructor(props) {
     super(props);
@@ -27,15 +26,23 @@ class UpdatesPanel extends Component {
       error: null
     };
   }
+
   componentDidMount() {
-    $(ReactDOM.findDOMNode(this)).find(".content").bind("scroll", this.handleScroll);
+    window.addEventListener('scroll', this.handleScroll);
     this.getMoreNotifications();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('scroll', this.handleScroll);
   }
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
-    var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
+    var $scrollable = $(window);
     var margin = 600;
-    if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+    const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const currentScrollPosition = window.scrollY + margin;
+
+    if (currentScrollPosition >= scrollableHeight) {
       this.getMoreNotifications();
     }
   }
@@ -94,7 +101,7 @@ class UpdatesPanel extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
-              <h1><InterfaceText>Updates</InterfaceText></h1>
+              <h1 className="mobileAboutHeader"><InterfaceText>Updates</InterfaceText></h1>
 
               {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 
@@ -112,7 +119,6 @@ class UpdatesPanel extends Component {
               )}
               </div>
             </div>
-            <NavSidebar modules={sidebarModules} />
           </div>
           <Footer />
         </div>
@@ -198,6 +204,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="English Description (optional for Index and Version)"
             onChange={this.handleEnChange}
             rows="3"
@@ -206,6 +213,7 @@ class NewUpdateForm extends Component {
         </div>
         <div>
           <textarea
+            className="updateTextarea"
             placeholder="Hebrew Description (optional for Index and Version)"
             onChange={this.handleHeChange}
             rows="3"

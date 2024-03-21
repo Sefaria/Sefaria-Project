@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{% trans "Sefaria's Supporters" %}{% endblock %}
 
 {% block description %}{% trans "Sefaria gratefully acknowledges the following donors whose generosity and leadership are making Sefaria possible." %}{% endblock %}
 
+{% block css %}
+    #staticContentWrapper #content {
+      display: flex;
+      flex-direction: row;
+    }
+{% endblock %}
+
 {% block content %}
+{% if not request.user_agent.is_mobile %}
+    {% include '_sidebar.html' with whichPage='supporters' title="Our Supporters" heTitle="התומכים שלנו" %}
+{% endif %}
 <div id="supportersPage" class="container static biReady">
     <div class="inner">
-        <h1>
-            <span class="int-en">Our Supporters</span>
-            <span class="int-he">התומכים שלנו</span>
-        </h1>
+        {% if request.user_agent.is_mobile %}
+            <h1 class="mobileAboutHeader">
+                <span class="int-en">Our Supporters</span>
+                <span class="int-he">התומכים שלנו</span>
+            </h1>
+        {% endif %}
         <div class="section leading-supporters">
             <p class="tagline">
                 <span class="int-en">
