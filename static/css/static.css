@@ -3266,10 +3266,10 @@ div .notificationsList {
   margin-top: 90px;
 }
 .interface-hebrew #jobsPage .inner {
-  margin-top: 50px;
+  margin-top: 70px;
 }
 .interface-english #jobsPage .inner {
-  margin-top: 45px;
+  margin-top: 65px;
 }
 #aboutHeader {
   color: white;
@@ -3477,15 +3477,24 @@ div .notificationsList {
 .container.doc.legal.static .inner {
   margin-top: 675px;
 }
-/*@media (max-width: 800px) {*/
-/*  #updatesPage .globalUpdateForm {*/
-/*    width: 270px;*/
-/*  }*/
-/*  div.notificationsList {*/
-/*    width: 50%;*/
-/*  }*/
-/*}*/
-@media (max-width: 800px) and (min-width: 480px) {
+.container.doc.legal.static .inner,
+#annualReport .inner,
+#metricsPage .inner,
+#supportersPage .inner,
+#testimonialsPage .inner,
+#aboutPage .inner,
+#teamPage .inner,
+#jobsPage .inner {
+  margin-inline-start: 100px;
+}
+#updatesPanelContent .readerNavMenu .content .contentInner {
+  margin-inline-start: 100px;
+}
+.interface-hebrew #testimonialsPage .inner {
+  margin-inline-start: auto;
+  margin-inline-end: 100px;
+}
+@media (max-width: 1000px) and (min-width: 480px) {
     #staticContentWrapper #content {
       display: flex;
       flex-direction: column !important;
@@ -3499,9 +3508,11 @@ div .notificationsList {
     #teamPage .inner,
     #jobsPage .inner {
       padding-top: 0;
+      margin-inline-start: auto;
     }
     #updatesPanelContent .readerNavMenu .content .contentInner {
       margin-top: 0;
+      margin-inline-start: auto;
     }
 }
 @media (max-width: 480px) {
