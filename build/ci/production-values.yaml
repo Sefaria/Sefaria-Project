@@ -174,7 +174,7 @@ cronJobs:
   metrics:
     enabled: true
   nationBuilderSync:
-    enabled: true
+    enabled: false
   rambiWebpagesWeekly:
     enabled: true
   reindexElasticSearch:
