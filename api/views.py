@@ -24,7 +24,7 @@ class Text(View):
         params[1] = params[1].replace('_', ' ')
         return params
 
-    def _handle_warnings(self, data):
+    def _add_warnings(self, data):
         data['warnings'] = []
         for lang, vtitle in data['missings']:
             if lang == 'source':
@@ -53,5 +53,5 @@ class Text(View):
             return jsonResponse({'error': f'return_format should be one of those formats: {self.RETURN_FORMATS}.'}, status=400)
         text_manager = TextRequestAdapter(self.oref, versions_params, fill_in_missing_segments, return_format)
         data = text_manager.get_versions_for_query()
-        self._handle_warnings(data)
+        self._add_warnings(data)
         return jsonResponse(data)
