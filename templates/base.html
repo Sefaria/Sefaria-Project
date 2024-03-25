@@ -266,14 +266,47 @@
 
     {% block js %}{% endblock %}
 
-    <script type="text/javascript">
-      (function(k) {
-          const s=document.createElement('script');s.module=true;s.defer=true;
-          s.src="https://cdn.feedbucket.app/assets/feedbucket.js";
-          s.dataset.feedbucket=k;document.head.appendChild(s);
-      })('0csPeBQ216w32NZdoqnk')
-  </script>
 
-    
+    <div class="feedback_container" id="imageContainer">
+      <img src="https://cdn.icon-icons.com/icons2/2406/PNG/512/times_error_fail_failure_failed_cross_icon_145926.png" alt="icon" id="crossImage" class="hidden">
+    </div>
+
+    <script type="text/javascript">
+      // This function will load the feedbucket script dynamically
+      function loadFeedbucket() {
+        const s = document.createElement('script');
+        s.module = true;
+        s.defer = true;
+        s.src = "https://cdn.feedbucket.app/assets/feedbucket.js";
+        s.dataset.feedbucket = '0csPeBQ216w32NZdoqnk';
+        document.head.appendChild(s);
+        const crossImage =document.querySelector("#crossImage");
+        const messageImage =document.querySelector("#messageImage");
+
+        const feedbucket = document.querySelector("feedbucket-app");
+        // Remove the event listener so the script isn't loaded multiple times
+        let container=document.getElementById('imageContainer');
+        feedbucket.classList.toggle('hidden');
+        crossImage.classList.toggle('hidden');
+        if(!crossImage.classList.toggle('hidden')){
+          feedbucket.classList.add('hidden');
+          crossImage.classList.add('hidden');
+        }else{
+          feedbucket.classList.remove('hidden');
+          feedbucket.classList.remove('hidden');
+        }
+      }
+
+      // Add click event listener to the container
+      document.getElementById('crossImage').addEventListener('click', loadFeedbucket);
+    </script>
+
+
+    <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="b5a8d317-af7b-4b83-8801-84e6658f1f6e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+
+
+
+
+
 </body>
 </html>
