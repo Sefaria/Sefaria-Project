@@ -96,12 +96,14 @@ const getQueryObj = (query) => {
 };
 
 
-const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, highlightedIndex, getItemProps}) => {
-
+const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
+                              highlightedIndex, getItemProps,
+                                                            _submitSearch}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
-  const searchOverridePre = Sefaria._('Search for') +': ';
-  const searchOverridePost = '"';
+  const searchOverridePre = Sefaria._('Search for') +':';
+  const searchOverridePost = '”';
   let searchOverrideText = null;
+  let displayedLabel = label
 
   if (type === 'search'){
       searchOverrideText =
@@ -109,10 +111,18 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, h
           {searchOverridePre}
           <span>&nbsp;</span>
           </span>
+      displayedLabel = "“" + displayedLabel + "”"
   }
+  const submitSearchOverride = () => {
+      _submitSearch(label)
+    }
+
 
   return (
-      <a href={url}>
+      <a
+          href={url}
+          onClick={submitSearchOverride}
+      >
           <div
         key={suggestion.value}
         {...getItemProps({
@@ -129,7 +139,7 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, h
            className={'type-icon'}
             />
        {searchOverrideText}
-        {label}
+        {displayedLabel}
     </div>
       </a>
 );
@@ -137,6 +147,7 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex, h
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
                       onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard,
+               _clearSearchBox, _submitSearch, _showSearch, _redirectToObject,
                        onNavigate = null                                    }) => {
 
     const [searchFocused, setSearchFocused] = useState(false);
@@ -146,58 +157,58 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     }, []);
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
-   const _clearSearchBox = function () {
-     getInputProps().onChange({ target: { value: '' } });
-  }
-   const _submitSearch = (query) => {
-      getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-
-          if (queryType === 'Ref') {
-              let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-              Sefaria.track.event("Search", action, queryId);
-              _clearSearchBox();
-              onRefClick(queryId);
-              onNavigate && onNavigate();
-          }
-          else if (queryType === 'Topic') {
-              Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-              _clearSearchBox();
-              openTopic(queryId);
-              onNavigate && onNavigate();
-          }
-          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-              _redirectToObject(queryType, queryId);
-          }
-          else {
-              Sefaria.track.event("Search", "Search Box Search", queryId);
-              _showSearch(queryId);
-          }
-      }
-      )
-    };
-
-  const _showSearch = (query) => {
-    query = query.trim();
-    if (typeof sjs !== "undefined") {
-      query = encodeURIComponent(query);
-      window.location = `/search?q=${query}`;
-      return;
-    }
-    showSearch(query);
-
-    onNavigate && onNavigate();
-  };
-
-  const _redirectToObject = (item) => {
-    Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-    _clearSearchBox();
-    const url = item.url
-    const handled = openURL(url);
-    if (!handled) {
-      window.location = url;
-    }
-    onNavigate && onNavigate();
-  }
+  //  const _clearSearchBox = function () {
+  //    getInputProps().onChange({ target: { value: '' } });
+  // }
+  //  const _submitSearch = (query) => {
+  //     getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
+  //
+  //         if (queryType === 'Ref') {
+  //             let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+  //             Sefaria.track.event("Search", action, queryId);
+  //             _clearSearchBox();
+  //             onRefClick(queryId);
+  //             onNavigate && onNavigate();
+  //         }
+  //         else if (queryType === 'Topic') {
+  //             Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+  //             _clearSearchBox();
+  //             openTopic(queryId);
+  //             onNavigate && onNavigate();
+  //         }
+  //         else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+  //             _redirectToObject(queryType, queryId);
+  //         }
+  //         else {
+  //             Sefaria.track.event("Search", "Search Box Search", queryId);
+  //             _showSearch(queryId);
+  //         }
+  //     }
+  //     )
+  //   };
+  //
+  // const _showSearch = (query) => {
+  //   query = query.trim();
+  //   if (typeof sjs !== "undefined") {
+  //     query = encodeURIComponent(query);
+  //     window.location = `/search?q=${query}`;
+  //     return;
+  //   }
+  //   showSearch(query);
+  //
+  //   onNavigate && onNavigate();
+  // };
+  //
+  // const _redirectToObject = (item) => {
+  //   Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+  //   _clearSearchBox();
+  //   const url = item.url
+  //   const handled = openURL(url);
+  //   if (!handled) {
+  //     window.location = url;
+  //   }
+  //   onNavigate && onNavigate();
+  // }
 
 
     const _handleSearchKeyDown = (event) => {
@@ -278,7 +289,8 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       </div>
     );
   };
-const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) => {
+const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
+                                            _submitSearch}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -295,6 +307,8 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
                         key={object.type}
                         suggestions={object.items}
                         initialIndexForGroup={InitialIndexForGroup}
+
+                        _submitSearch={_submitSearch}
                     />
                 );
             })}
@@ -305,7 +319,8 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex}) =
 
 }
 
-const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex }) => {
+const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
+                                    _submitSearch}) => {
 
     const pic = suggestions[0].pic;
     const type = suggestions[0].type;
@@ -335,6 +350,8 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
 
+                            _submitSearch={_submitSearch}
+
                         />
                 );
             })}
@@ -363,7 +380,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
       return c;
     });
     if (comps.length > 0) {
-      const q = '“' + inputValue + "”";
+      const q = inputValue;
       setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
 
     } else {
@@ -374,6 +391,59 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     setSuggestions([]);
   }
 };
+    const _clearSearchBox = function () {
+     getInputProps().onChange({ target: { value: '' } });
+  }
+   const _submitSearch = (query) => {
+      getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
+
+          if (queryType === 'Ref') {
+              let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+              Sefaria.track.event("Search", action, queryId);
+              _clearSearchBox();
+              onRefClick(queryId);
+              onNavigate && onNavigate();
+          }
+          else if (queryType === 'Topic') {
+              Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+              _clearSearchBox();
+              openTopic(queryId);
+              onNavigate && onNavigate();
+          }
+          else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
+              _redirectToObject(queryType, queryId);
+          }
+          else {
+              Sefaria.track.event("Search", "Search Box Search", queryId);
+              _showSearch(queryId);
+          }
+      }
+      )
+    };
+
+  const _showSearch = (query) => {
+    query = query.trim();
+    if (typeof sjs !== "undefined") {
+      query = encodeURIComponent(query);
+      window.location = `/search?q=${query}`;
+      return;
+    }
+    showSearch(query);
+
+    onNavigate && onNavigate();
+  };
+
+  const _redirectToObject = (item) => {
+    Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
+    _clearSearchBox();
+    const url = item.url
+    const handled = openURL(url);
+    if (!handled) {
+      window.location = url;
+    }
+    onNavigate && onNavigate();
+  }
+
 
    const {
     isOpen,
@@ -400,6 +470,11 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             suggestions={suggestions}
             hideHebrewKeyboard={false}
             highlightedIndex={highlightedIndex}
+
+            _clearSearchBox={_clearSearchBox}
+            _submitSearch={_submitSearch}
+            _showSearch={_showSearch}
+            _redirectToObject={_redirectToObject}
       />
       <div
         {...getMenuProps()}
@@ -407,7 +482,9 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         className={"autocomplete-dropdown"}
       >
           {(isOpen || true) &&
-              <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}/>
+              <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
+                   getInputProps={getInputProps} _submitSearch={_submitSearch}
+              />
           }
       </div>
     </div>

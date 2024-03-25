@@ -4549,6 +4549,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 80%;
 }
 
+
 .search-suggestion{
   display: flex;
   list-style-type: none;
@@ -4563,7 +4564,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 18px;
   line-height: 23px;
-  }
+  cursor: pointer;
+}
 .search-suggestion a{
   font-family: 'EB Garamond';
   --hebrew-font: var(--hebrew-serif-font-family);
