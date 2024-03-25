@@ -57,7 +57,17 @@ function groupByType(seggestedItems) {
     return result;
 };
 
-const typesOrder = []
+const typesOrder = [
+        "search",
+        "ref",
+        "Collection",
+        "TocCategory",
+        "Topic",
+        "PersonTopic",
+        "AuthorTopic",
+        "User",
+        "Term",
+]
 function sortByTypeOrder(array) {
     const typeIndex = {};
     typesOrder.forEach((type, index) => {
@@ -139,13 +149,13 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
             <span>&nbsp;</span>
         </span>
     );
-    displayedLabel = (
+        displayedLabel = (
         <InterfaceText>
             <EnglishText>
-                {"“" + displayedLabel + "”"}
+                “{displayedLabel}”
             </EnglishText>
             <HebrewText>
-                {"”" + displayedLabel + "“"}
+                ”{displayedLabel}“
             </HebrewText>
         </InterfaceText>
     );
@@ -168,15 +178,18 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
             index: universalIndex,
             item: suggestion,
         })}
-       className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion
+       className={` search-suggestion
        ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}>
      <img alt={type}
            className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
            src={_type_icon(type, pic)}
            className={'type-icon'}
             />
+              <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}
+               search-suggestion-text`}>
        {searchOverrideText}
         {displayedLabel}
+                  </div>
     </div>
       </a>
 );
@@ -237,7 +250,8 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       onBlur(e)
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
-        setSearchFocused(false);
+        // setSearchFocused(false);
+        //debug
         showVirtualKeyboardIcon(false);
       }
     };
