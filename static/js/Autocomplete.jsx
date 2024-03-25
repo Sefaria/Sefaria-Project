@@ -1,7 +1,7 @@
 import Sefaria from "./sefaria/sefaria";
 import React, {useEffect, useState} from "react";
 import classNames from "classnames";
-import {InterfaceText, SearchButton} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, SearchButton} from "./Misc";
 import { useCombobox } from 'downshift';
 
 const _type_icon_map = {
@@ -130,16 +130,28 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
   const searchOverridePre = Sefaria._('Search for') +':';
   const searchOverridePost = '”';
   let searchOverrideText = null;
-  let displayedLabel = label
+  let displayedLabel = label;
 
-  if (type === 'search'){
-      searchOverrideText =
-      <span className={"search-override-text"}>
-          {searchOverridePre}
-          <span>&nbsp;</span>
-          </span>
-      displayedLabel = "“" + displayedLabel + "”"
-  }
+  if (type === 'search') {
+    searchOverrideText = (
+        <span className={"search-override-text"}>
+            {searchOverridePre}
+            <span>&nbsp;</span>
+        </span>
+    );
+    displayedLabel = (
+        <InterfaceText>
+            <EnglishText>
+                {"“" + displayedLabel + "”"}
+            </EnglishText>
+            <HebrewText>
+                {"”" + displayedLabel + "“"}
+            </HebrewText>
+        </InterfaceText>
+    );
+}
+
+
   const submitSearchOverride = () => {
       _submitSearch(label)
     }
@@ -227,9 +239,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
       onBlur(e)
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
-        // setSearchFocused(false);
-        // debug:
-        setSearchFocused(true);
+        setSearchFocused(false);
         showVirtualKeyboardIcon(false);
       }
     };

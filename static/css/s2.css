@@ -4557,21 +4557,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-left: 12px;
   padding-right: 12px;
   padding-top: 12px;
-  /*text-align: right;*/
   font-family: 'EB Garamond';
-  --hebrew-font: var(--hebrew-serif-font-family);
   font-style: normal;
   font-weight: 400;
   font-size: 18px;
   line-height: 23px;
   cursor: pointer;
 }
-.search-suggestion a{
-  font-family: 'EB Garamond';
-  --hebrew-font: var(--hebrew-serif-font-family);
-}
+
 .hebrew-result.search-suggestion{
   direction: rtl;
+  font-family: "Taamey Frank";
 }
 .autocomplete-dropdown .search-override-text{
   font-family: 'Roboto';
