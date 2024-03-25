@@ -167,11 +167,9 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
         {...getItemProps({
             index: universalIndex,
             item: suggestion,
-            style: {
-                backgroundColor: highlightedIndex === universalIndex ? '#EDEDEC' : '',
-            },
         })}
-       className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion`}>
+       className={`${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''} search-suggestion
+       ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}>
      <img alt={type}
            className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
            src={_type_icon(type, pic)}
@@ -470,7 +468,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
       />
       <div
         {...getMenuProps()}
-        // style={{ position: 'absolute', top: '100%', left: 0, zIndex: 999 }}
         className={"autocomplete-dropdown"}
       >
           {(isOpen || true) &&

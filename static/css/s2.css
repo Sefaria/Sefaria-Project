@@ -4564,7 +4564,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 23px;
   cursor: pointer;
 }
-
+.search-suggestion.highlighted{
+  background-color: #EDEDEC;
+}
 .hebrew-result.search-suggestion{
   direction: rtl;
   font-family: "Taamey Frank";
