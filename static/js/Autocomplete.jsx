@@ -67,7 +67,7 @@ const typesOrder = [
         "AuthorTopic",
         "User",
         "Term",
-]
+];
 function sortByTypeOrder(array) {
     const typeIndex = {};
     typesOrder.forEach((type, index) => {
@@ -133,12 +133,11 @@ const getQueryObj = (query) => {
 };
 
 
-const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
-                              highlightedIndex, getItemProps,
+const SearchSuggestion = ({ value, type, label, url, pic,
+                              universalIndex, highlightedIndex, getItemProps,
                                                             _submitSearch}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
   const searchOverridePre = Sefaria._('Search for') +':';
-  const searchOverridePost = '”';
   let searchOverrideText = null;
   let displayedLabel = label;
 
@@ -149,16 +148,11 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
             <span>&nbsp;</span>
         </span>
     );
-        displayedLabel = (
-        <InterfaceText>
-            <EnglishText>
-                “{displayedLabel}”
-            </EnglishText>
-            <HebrewText>
-                ”{displayedLabel}“
-            </HebrewText>
-        </InterfaceText>
-    );
+    displayedLabel = <>
+            <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
+            {displayedLabel}
+            <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
+        </>
 }
 
 
@@ -168,28 +162,22 @@ const SearchSuggestion = ({ type, label, url, pic, suggestion, universalIndex,
 
 
   return (
-      <a
-          href={url}
-          onClick={submitSearchOverride}
-      >
+      <a href={url} onClick={submitSearchOverride}>
           <div
-        key={suggestion.value}
-        {...getItemProps({
-            index: universalIndex,
-            item: suggestion,
-        })}
-       className={` search-suggestion
-       ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}>
-     <img alt={type}
-           className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type}`}
-           src={_type_icon(type, pic)}
-           className={'type-icon'}
-            />
+            key={value}
+            {...getItemProps({ index: universalIndex})}
+           className={` search-suggestion
+           ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}
+          >
+             <img alt={type}
+                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon`}
+                   src={_type_icon(type, pic)}/>
+
               <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}
                search-suggestion-text`}>
-       {searchOverrideText}
-        {displayedLabel}
-                  </div>
+               {searchOverrideText}
+                {displayedLabel}
+              </div>
     </div>
       </a>
 );
@@ -336,11 +324,12 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 
                         <SearchSuggestion
                             key={suggestion.key}
+                            value={suggestion.value}
                             type={suggestion.type}
                             label={suggestion.label}
                             url={suggestion.url}
                             pic={suggestion.pic}
-                            suggestion = {suggestion}
+
                             universalIndex = {universalIndex}
                             highlightedIndex = {highlightedIndex}
                             getItemProps = {getItemProps}
