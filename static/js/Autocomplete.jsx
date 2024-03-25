@@ -39,9 +39,9 @@ const _type_icon = function(itemType, itemPic) {
 function groupByType(seggestedItems) {
     const groupedItems = {};
 
-    // Group items by their "type", "Topic" and "PersonTopic" considered same type
+    // Group items by their "type"
     seggestedItems.forEach(item => {
-        let itemType = item.type in ["Topic", "PersonTopic"] ? "Topic" : item.type;
+        const itemType = item.type;
         if (!groupedItems[itemType]) {
             groupedItems[itemType] = [];
         }
@@ -56,6 +56,33 @@ function groupByType(seggestedItems) {
     }));
     return result;
 };
+
+const typesOrder = []
+function sortByTypeOrder(array) {
+    const typeIndex = {};
+    typesOrder.forEach((type, index) => {
+        typeIndex[type] = index;
+    });
+
+    return array.sort((a, b) => {
+        const typeAIndex = typeIndex[a.type];
+        const typeBIndex = typeIndex[b.type];
+
+        // If types are in the provided list, compare their index
+        if (typeAIndex !== undefined && typeBIndex !== undefined) {
+            if (typeAIndex < typeBIndex) {
+                return -1;
+            }
+            if (typeAIndex > typeBIndex) {
+                return 1;
+            }
+            return 0;
+        }
+
+        // If one of the types is not in the list, fallback to alphanumeric sorting
+        return a.type.localeCompare(b.type);
+    });
+}
 
 const getURLForObject = function(type, key) {
     if (type === "Collection") {
@@ -372,13 +399,22 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
   try {
     const d = await Sefaria.getName(inputValue);
 
-    const comps = d["completion_objects"].map(o => {
+    let comps = d["completion_objects"].map(o => {
       const c = {...o};
       c["value"] = `${o['title']}${o["type"] === "ref" ? "" : `(${o["type"]})`}`;
       c["label"] = o["title"];
-      c["url"] = getURLForObject(c["type"], c["key"])
+      c["url"] = getURLForObject(c["type"], c["key"]);
+
+      //"Topic" and "PersonTopic" considered same type:
+      const currentType = c["type"];
+      const newType = ["Topic", "PersonTopic"].includes(currentType) ? "Topic" : currentType;
+      c["type"] = newType;
+
+
       return c;
     });
+    comps = sortByTypeOrder(comps)
+    console.log(comps)
     if (comps.length > 0) {
       const q = inputValue;
       setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
