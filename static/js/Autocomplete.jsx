@@ -184,60 +184,6 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     }, []);
    const { onBlur, onKeyDown, ...otherDownShiftProps } = getInputProps();
 
-  //  const _clearSearchBox = function () {
-  //    getInputProps().onChange({ target: { value: '' } });
-  // }
-  //  const _submitSearch = (query) => {
-  //     getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
-  //
-  //         if (queryType === 'Ref') {
-  //             let action = queryIsBook ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-  //             Sefaria.track.event("Search", action, queryId);
-  //             _clearSearchBox();
-  //             onRefClick(queryId);
-  //             onNavigate && onNavigate();
-  //         }
-  //         else if (queryType === 'Topic') {
-  //             Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
-  //             _clearSearchBox();
-  //             openTopic(queryId);
-  //             onNavigate && onNavigate();
-  //         }
-  //         else if (queryType === "Person" || queryType === "Collection" || queryType === "TocCategory") {
-  //             _redirectToObject(queryType, queryId);
-  //         }
-  //         else {
-  //             Sefaria.track.event("Search", "Search Box Search", queryId);
-  //             _showSearch(queryId);
-  //         }
-  //     }
-  //     )
-  //   };
-  //
-  // const _showSearch = (query) => {
-  //   query = query.trim();
-  //   if (typeof sjs !== "undefined") {
-  //     query = encodeURIComponent(query);
-  //     window.location = `/search?q=${query}`;
-  //     return;
-  //   }
-  //   showSearch(query);
-  //
-  //   onNavigate && onNavigate();
-  // };
-  //
-  // const _redirectToObject = (item) => {
-  //   Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
-  //   _clearSearchBox();
-  //   const url = item.url
-  //   const handled = openURL(url);
-  //   if (!handled) {
-  //     window.location = url;
-  //   }
-  //   onNavigate && onNavigate();
-  // }
-
-
     const _handleSearchKeyDown = (event) => {
       onKeyDown(event)
       if (event.keyCode !== 13) return;
