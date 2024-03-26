@@ -190,8 +190,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
                       onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard,
-               _clearSearchBox, _submitSearch, _showSearch, _redirectToObject,
-                       onNavigate = null                                    }) => {
+               _clearSearchBox, _submitSearch, _showSearch, _redirectToObject}) => {
 
     const [searchFocused, setSearchFocused] = useState(false);
 
@@ -348,8 +347,21 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
- const Autocomplete = ({onRefClick, showSearch, openTopic, openURL}) => {
+ const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate = null}) => {
   const [suggestions, setSuggestions] = useState([]);
+  const {
+    isOpen,
+    getMenuProps,
+    getInputProps,
+    getItemProps,
+    highlightedIndex,
+  } = useCombobox({
+    items: suggestions,
+    itemToString: (item) => (item ? item.name : ''),
+    onInputValueChange: ({ inputValue }) => {
+      fetchSuggestions(inputValue);
+    }
+  });
 
 
   const fetchSuggestions = async (inputValue) => {
@@ -391,6 +403,12 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
      getInputProps().onChange({ target: { value: '' } });
   }
    const _submitSearch = (query) => {
+      if (highlightedIndex > -1 && suggestions[highlightedIndex].type === 'search')
+       {
+              _showSearch(query);
+              _clearSearchBox();
+              return;
+       }
       getQueryObj(query).then(({ type: queryType, id: queryId, is_book: queryIsBook }) => {
 
           if (queryType === 'Ref') {
@@ -412,6 +430,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
           else {
               Sefaria.track.event("Search", "Search Box Search", queryId);
               _showSearch(queryId);
+              _clearSearchBox();
           }
       }
       )
@@ -440,20 +459,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     onNavigate && onNavigate();
   }
 
-
-   const {
-    isOpen,
-    getMenuProps,
-    getInputProps,
-    getItemProps,
-    highlightedIndex,
-  } = useCombobox({
-    items: suggestions,
-    itemToString: (item) => (item ? item.name : ''),
-    onInputValueChange: ({ inputValue }) => {
-      fetchSuggestions(inputValue);
-    }
-  });
 
   return (
     <div className={"search-container"}>
