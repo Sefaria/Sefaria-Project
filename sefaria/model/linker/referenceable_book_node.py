@@ -1,4 +1,5 @@
 import dataclasses
+import copy
 from typing import List, Union, Optional
 from sefaria.model import abstract as abst
 from sefaria.model import text
@@ -116,30 +117,38 @@ class NumberedReferenceableBookNode(ReferenceableBookNode):
                 next_refereceable_depth += 1
         return next_refereceable_depth
 
-    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
-        serial = self._ja_node.serialize()
+    def _get_serialized_node(self) -> dict:
+        list_attrs = ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections')
+        serial = copy.deepcopy(self._ja_node.serialize())
         next_referenceable_depth = self._get_next_referenceable_depth()
+        if isinstance(self.address_class, schema.AddressTalmud):
+            serial['depth'] += 1
+            next_referenceable_depth = 1
+            for key, value in zip(list_attrs, ('Amud', 'Amud', 1, True)):
+                serial[key].insert(1, value)
         serial['depth'] -= next_referenceable_depth
-        if serial['depth'] < 0:
-            return []
         serial['default'] = False  # any JA node that has been modified should lose 'default' flag
-        if serial['depth'] <= 1 and self._ja_node.is_segment_level_dibur_hamatchil():
-            return [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
-        if (self._ja_node.depth - next_referenceable_depth) == 0:
-            if isinstance(self.address_class, schema.AddressTalmud):
-                serial['addressTypes'] = ["Amud"]
-                serial['sectionNames'] = ["Amud"]
-                serial['lengths'] = [1]
-                serial['referenceableSections'] = [True]
-            else:
-                return []
-        else:
-            for list_attr in ('addressTypes', 'sectionNames', 'lengths', 'referenceableSections'):
-                # truncate every list attribute by `next_referenceable_depth`
-                if list_attr not in serial: continue
-                serial[list_attr] = serial[list_attr][next_referenceable_depth:]
+        if serial['depth'] == 0:
+            raise ValueError("Can't serialize JaggedArray of depth 0")
+        for list_attr in list_attrs:
+            # truncate every list attribute by `next_referenceable_depth`
+            if list_attr not in serial:
+                continue
+            serial[list_attr] = serial[list_attr][next_referenceable_depth:]
+        return serial
+
+    def get_children(self, context_ref=None, **kwargs) -> [ReferenceableBookNode]:
+        try:
+            serial = self._get_serialized_node()
+        except ValueError:
+            return []
+        children = []
+        if self._ja_node.is_segment_level_dibur_hamatchil():
+            children += [DiburHamatchilNodeSet({"container_refs": context_ref.normal()})]
+            if serial['depth'] == 1:
+                return children
         new_ja = schema.JaggedArrayNode(serial=serial, index=getattr(self, 'index', None), **kwargs)
-        return [NumberedReferenceableBookNode(new_ja)]
+        return children + [NumberedReferenceableBookNode(new_ja)]
 
     def matches_section_context(self, section_context: 'SectionContext') -> bool:
         """

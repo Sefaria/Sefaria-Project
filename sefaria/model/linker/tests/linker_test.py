@@ -12,11 +12,18 @@ ref_resolver = library.get_ref_resolver()
 
 
 def test_referenceable_child():
+    from sefaria.model.schema import AddressAmud
     i = library.get_index("Rashi on Berakhot")
     assert i.nodes.depth == 3
     ref_node = NumberedReferenceableBookNode(i.nodes)
     child = ref_node.get_children(Ref("Rashi on Berakhot 2a"))[0]
-    assert isinstance(child, DiburHamatchilNodeSet)
+    assert child.__class__ == NumberedReferenceableBookNode
+    assert child.address_class.__class__ == AddressAmud
+
+    # one more level
+    child = child.get_children(Ref("Rashi on Berakhot 2a"))[0]
+    assert child.__class__ == DiburHamatchilNodeSet
+    assert child.query == {'container_refs': 'Rashi on Berakhot 2a'}
 
 
 def test_resolved_raw_ref_clone():
@@ -42,6 +49,7 @@ crrd = create_raw_ref_data
 
     # Amud split into two parts
     [crrd(['@בבלי', '@יבמות', '#סא', '#א']), ("Yevamot 61a",)],
+    [crrd(["@תוספות", "@פסחים", "#קו", "#א"]), ("Tosafot on Pesachim 106a",)],  # amud for commentary that has DH
     [crrd(['@בבלי', '#דף ב', '#עמוד א', '@במכות']), ("Makkot 2a",)],
     [crrd(['@בבלי', '#עמוד א', '#דף ב', '@במכות']), ("Makkot 2a",)],  # out of order daf and amud
     [crrd(['@בבלי', '#דף ב', '#עמוד ג', '@במכות']), tuple()],
