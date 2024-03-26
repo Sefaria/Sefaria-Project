@@ -2072,6 +2072,75 @@ div.interfaceLinks-row a {
   font-size: var(--serif-body-font-size);
   width: 100%;
 }
+
+.ai-info-messages-box {
+  background-color: rgb(251, 251, 250);
+  border-radius: 6px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
+  color: rgb(102, 102, 102);
+  cursor: default;
+  display: block;
+  font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
+  font-size: 16px;
+  margin-inline-start: 10px;
+  margin-top: -10px;
+  min-width: 150px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 198px;
+  z-index: 1;
+}
+
+.ai-info-first-message {
+  border-bottom-color: rgb(204, 204, 204);
+  border-bottom-style: solid;
+  border-bottom-width: 0.833333px;
+  color: #666666;
+  cursor: default;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 12px;
+}
+.ai-info-first-message* {
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-messages-box a{
+  color: #4B71B7;
+}
+.ai-info-messages-box .ai-info-messages-hr {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+.ai-info-messages-box *{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.ai-info-last-message {
+  align-items: center;
+  display: flex;
+  line-height: 18px;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 2px 12px 2px 12px;
+  font-size: 14px;
+  height: 23px;
+}
+.ai-message{
+  z-index: 1;
+  position: absolute;
+}
+
+.ai-info-tooltip .ai-info-icon{
+  margin-top: 12px;
+}
+.ai-info-tooltip{
+  position: relative;
+}
+
 .sidebarSearch .searchTopMatter,
 .sidebarSearch .searchTopic {
   display: none;
@@ -2332,7 +2401,7 @@ div.interfaceLinks-row a {
 }
 .imageWithCaptionPhoto{
   border: 1px solid #EDEDEC;
-  max-width: 100%; 
+  max-width: 100%;
   height: auto;
   padding: 0 44;
   top: 121px;
@@ -2377,7 +2446,7 @@ div.interfaceLinks-row a {
   .topicImage{
     padding-left: 0;
     padding-right: 0;
-    margin-top: 30px;  
+    margin-top: 30px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -5505,8 +5574,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment.enOnly .en{
   display: initial;
 }
-/* 
-This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left. 
+/*
+This is an attempt to fix dictionary entries in this layout (hebrew continuous) from having the headwords flip to the right instead of left.
 But not to use a display block directive that might break continuous mode for other English only texts
  */
 .readerPanel.hebrew.continuous .segment.enOnly .en{

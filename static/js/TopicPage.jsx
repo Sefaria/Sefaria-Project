@@ -21,9 +21,12 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
+    AiInfoTooltip,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption,
+    EnglishText,
+    HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -316,7 +319,7 @@ const TopicSponsorship = ({topic_slug}) => {
 const getLinksToGenerate = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.ai_context.length > 0  &&
+        return ref.descriptions?.[lang]?.ai_context?.length > 0  &&
             !ref.descriptions?.[lang]?.prompt;
     });
 };
@@ -376,7 +379,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
 
-  return (
+return (
     <div>
         <div className="navTitle tight">
                 <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
@@ -384,6 +387,7 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
+                <AiInfoTooltip/>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

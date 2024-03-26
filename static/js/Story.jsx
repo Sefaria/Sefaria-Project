@@ -139,7 +139,7 @@ const reviewStateToDisplayedTextMap = {
     "edited": "Edited"
 }
 const ReviewStateIndicator = ({reviewState, onClick}) => {
-    if (!reviewState){
+    if (!Sefaria.is_moderator || !reviewState){
         return null}
     let reviewStateClassName = reviewStateToClassNameMap[reviewState];
     let displayedText = reviewStateToDisplayedTextMap[reviewState];
