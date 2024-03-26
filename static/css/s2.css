@@ -2075,11 +2075,7 @@ div.interfaceLinks-row a {
 
 .ai-info-messages-box {
   background-color: rgb(251, 251, 250);
-  background-image: none;
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.25) 0px 1px 3px 0px;
   color: rgb(102, 102, 102);
   cursor: default;
@@ -2092,7 +2088,6 @@ div.interfaceLinks-row a {
   overflow-x: hidden;
   overflow-y: hidden;
   top: 87px;
-  visibility: visible;
   width: 198px;
   z-index: 1;
 }
@@ -2120,7 +2115,6 @@ div.interfaceLinks-row a {
   color: #4B71B7;
 }
 .ai-info-messages-box .ai-info-messages-hr {
-  order-top: 1px solid #CCCCCC;
   margin-top: 0px;
   margin-bottom: 0px;
 }
@@ -2131,7 +2125,6 @@ div.interfaceLinks-row a {
   align-items: center;
   display: flex;
   line-height: 18px;
-  text-align: right;
   color: #666666;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 2px 12px 2px 12px;
@@ -2144,7 +2137,7 @@ div.interfaceLinks-row a {
 }
 
 .ai-info-tooltip .ai-info-icon{
-  margin-bottom: -12px;
+  margin-top: 12px;
 }
 .ai-info-tooltip{
   position: relative;
