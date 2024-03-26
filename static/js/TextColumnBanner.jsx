@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from "react";
+import React, {useState} from "react";
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import {
@@ -108,13 +108,6 @@ const OpenTransBanner = ({ openTranslations }) => {
         </TextColumnBanner>
     );
 };
-
-/**
- *
- * @returns {JSX.Element}
- * @constructor
- */
-
 
 /**
  * Banner which appears right above text column and informs a user of an action they can take
