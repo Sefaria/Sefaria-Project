@@ -4522,6 +4522,105 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-transform: uppercase;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
+.search-container{
+  position: relative;
+}
+.autocomplete-dropdown{
+  background: #FFFFFF;
+  position: absolute;
+  top: 100%;
+  width: 130%;
+  left: 0;
+  zIndex: 999;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 0px 0px 6px 4px;
+}
+.search-group-suggestions{
+  border-bottom-color: rgb(204, 204, 204);
+  border-bottom-style: solid;
+  border-bottom-width: 0.766667px;
+  display: flex;
+  align-items: start;
+}
+.search-group-suggestions-items{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 80%;
+}
+
+
+.search-suggestion{
+  display: flex;
+  list-style-type: none;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 12px;
+  font-family: 'EB Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 23px;
+  cursor: pointer;
+}
+
+.search-suggestion-text{
+  font-family: 'EB Garamond';
+}
+.search-suggestion-text.hebrew-result{
+  font-family: "Taamey Frank";
+}
+.search-suggestion.highlighted{
+  background-color: #EDEDEC;
+}
+
+.autocomplete-dropdown .search-override-text{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  margin-top: 3px;
+
+  /* Dark Grey */
+  color: #666666;
+}
+.autocomplete-dropdown .type-icon{
+  display: inline-block;
+  opacity: .4;
+  height: 18px;
+  width: 18px;
+  margin-top: 2px;
+}
+.autocomplete-dropdown .type-icon.ac-img-User{
+  opacity: 1;
+}
+
+.interface-english .autocomplete-dropdown .type-icon {
+  margin-right: 10px;
+}
+.interface-hebrew .autocomplete-dropdown .type-icon {
+  margin-left: 10px;
+}
+.autocomplete-dropdown .type-title{
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+/* or 129% */
+  color: #999999;
+  margin-top: 12px;
+  width: 20%;
+}
+.autocomplete-dropdown .type-title .int-en{
+  margin-left: 15px;
+}
+.autocomplete-dropdown .type-title .int-he{
+  margin-right: 15px;
+}
+
 .readerNavMenu .sheet {
   display: flex;
   justify-content: space-between;
