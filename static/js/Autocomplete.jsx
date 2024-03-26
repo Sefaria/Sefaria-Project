@@ -140,8 +140,15 @@ const SearchSuggestion = ({ value, type, label, url, pic,
   const searchOverridePre = Sefaria._('Search for') +':';
   let searchOverrideText = null;
   let displayedLabel = label;
+  let onClickCallBack = null;
+
+  const submitSearchOverride = () => {
+      _submitSearch(label)
+    }
 
   if (type === 'search') {
+    onClickCallBack = submitSearchOverride;
+
     searchOverrideText = (
         <span className={"search-override-text"}>
             {searchOverridePre}
@@ -156,13 +163,11 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 }
 
 
-  const submitSearchOverride = () => {
-      _submitSearch(label)
-    }
+
 
 
   return (
-      <a href={url} onClick={submitSearchOverride}>
+      <a href={url} onClick={onClickCallBack}>
           <div
             key={value}
             {...getItemProps({ index: universalIndex})}
