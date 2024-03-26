@@ -4592,8 +4592,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 18px;
   width: 18px;
   margin-top: 2px;
-
 }
+.autocomplete-dropdown .type-icon.ac-img-User{
+  opacity: 1;
+}
+
 .interface-english .autocomplete-dropdown .type-icon {
   margin-right: 10px;
 }
