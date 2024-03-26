@@ -172,7 +172,12 @@ def current_domain_lang(request):
 
 class CORSDebugMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
-        if DEBUG:
+        """
+        CORS headers are normally added in nginx response.
+        However, nginx isn't normally running when debugging with localhost
+        """
+        origin = request.get_host()
+        if ('localhost' in origin or '127.0.0.1' in origin) and DEBUG:
             response["Access-Control-Allow-Origin"] = "*"
             response["Access-Control-Allow-Methods"] = "POST, GET"
             response["Access-Control-Allow-Headers"] = "*"
