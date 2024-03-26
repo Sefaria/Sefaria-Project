@@ -370,7 +370,6 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
       return c;
     });
     comps = sortByTypeOrder(comps)
-    console.log(comps)
     if (comps.length > 0) {
       const q = inputValue;
       setSuggestions([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
