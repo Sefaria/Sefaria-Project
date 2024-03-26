@@ -218,4 +218,4 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
   );
 });
 
-export { Promotions };
+export { Promotions, trackSidebarAdImpression, trackSidebarAdClick };

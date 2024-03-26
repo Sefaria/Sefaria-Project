@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import {trackSidebarAdClick, trackSidebarAdImpression} from "./Promotions";
 const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 
 /**
@@ -61,7 +62,6 @@ const __filterChildrenByLanguage = (children, language) => {
   let newChildren = chlArr.filter(x=> x.type == currLangComponent);
   return newChildren;
 };
-
 const GDocAdvertText = () => {
     return    <InterfaceText>
                 <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href="https://sefaria.org/sheets/529099?origin=AddToSheetsPromo">Learn more</a></EnglishText>
@@ -74,19 +74,21 @@ const GDocAdvertBox = () => {
         if (firstRender.current) {
           firstRender.current = false;
           if (!cookie(gdocInstalled)) { // on first render and "Install Now" has never been clicked before
-              gtag('event', 'promotion_shown', {loc: 'Resources Panel'});
+              trackSidebarAdImpression(gdocsCampaign);
           }
         }
       })
+    const gdocsCampaign = {campaignId: "GDocs_Promo_AddToSheet"};
     const gdocInstalled = 'gdoc_installed';
     const handleInstall = () => {
         cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
+        trackSidebarAdClick(gdocsCampaign);
     }
     return !cookie(gdocInstalled) &&
             <div className="gDocAdvertBox">
-                <GDocAdvertText/>
-                <div id="installNow"><a href={'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet'}
-                                        onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
+              <GDocAdvertText/>
+              <div id="installNow"><a href={'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet'}
+                                      onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
             </div>;
 }
 
