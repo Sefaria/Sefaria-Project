@@ -2083,11 +2083,10 @@ div.interfaceLinks-row a {
   font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
   font-size: 16px;
   margin-inline-start: 10px;
-  margin-top: 2px;
+  margin-top: -10px;
   min-width: 150px;
   overflow-x: hidden;
   overflow-y: hidden;
-  top: 87px;
   width: 198px;
   z-index: 1;
 }
@@ -2106,7 +2105,6 @@ div.interfaceLinks-row a {
   padding-left: 12px;
   padding-right: 12px;
   padding-top: 12px;
-  visibility: visible
 }
 .ai-info-first-message* {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
