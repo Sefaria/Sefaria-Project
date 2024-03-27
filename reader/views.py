@@ -3094,6 +3094,21 @@ def topics_list_api(request):
 
 
 @staff_member_required
+def generate_topic_prompts_api(request, slug: str):
+    if request.method == "POST":
+        from sefaria.helper.llm.tasks import generate_and_save_topic_prompts
+        from sefaria.helper.llm.topic_prompt import get_ref_context_hints_by_lang
+        topic = Topic.init(slug)
+        post_body = json.loads(request.body)
+        ref_topic_links = post_body.get('ref_topic_links')
+        for lang, ref__context_hints in get_ref_context_hints_by_lang(ref_topic_links).items():
+            orefs, context_hints = zip(*ref__context_hints)
+            generate_and_save_topic_prompts(lang, topic, orefs, context_hints)
+        return jsonResponse({"acknowledged": True}, status=202)
+    return jsonResponse({"error": "This API only accepts POST requests."})
+
+
+@staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
         data = json.loads(request.POST["json"])
@@ -3205,13 +3220,37 @@ def reorder_topics(request):
         results.append(topic.contents())
     return jsonResponse({"topics": results})
 
+@staff_member_required()
+def topic_ref_bulk_api(request):
+    """
+    API to bulk edit RefTopicLinks
+    """
+    topic_links = json.loads(request.body)
+    all_links_touched = []
+    for link in topic_links:
+        tref = link.get('ref')
+        tref = Ref(tref).normal()
+        slug = link.get("toTopic")
+        linkType = _CAT_REF_LINK_TYPE_FILTER_MAP['authors'][0] if AuthorTopic.init(slug) else 'about'
+        descriptions = link.get("descriptions", link.get("description"))
+        languages = descriptions.keys()
+        for language in languages:
+            ref_topic_dict = edit_topic_source(slug, orig_tref=tref, new_tref=tref,
+                                               linkType=linkType, description=descriptions[language], interface_lang=language)
+        all_links_touched.append(ref_topic_dict)
+    return jsonResponse(all_links_touched)
+
+
+
 @catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks, as well as creating, editing, and deleting of RefTopicLinks
     """
-
-    data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    try:
+        data = request.GET if request.method in ["DELETE", "GET"] else json.loads(request.POST.get('json'))
+    except Exception as e:
+        data = json.loads(request.body)
     slug = data.get('topic')
     interface_lang = 'en' if data.get('interface_lang') == 'english' else 'he'
     tref = Ref(tref).normal()  # normalize input
