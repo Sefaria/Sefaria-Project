@@ -248,18 +248,20 @@ tasks:
   redis:
     url: redis.redis.svc
     port: 6379
-    passwordRef:
-      name: redis-password
-      key: REDIS_PASSWORD
+    password:
+      secretRef:
+        name: redis-password
+        key: REDIS_PASSWORD
     brokerNumber: 3
     backendNumber: 4
   sentinel:
     headlessUrl: redis-headless.redis.svc
     port: 26379
     transportOptions: {}
-    passwordRef:
-      name: sentinel-password
-      key: SENTINEL_PASSWORD
+    password:
+      secretRef:
+        name: sentinel-password
+        key: SENTINEL_PASSWORD
   queues:
     llm: default-llm
 
