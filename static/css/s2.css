@@ -1768,7 +1768,7 @@ div.interfaceLinks-row a {
 
 .gDocAdvertBox {
   margin-top: 50px;
-  background: #EDEDEC;
+  background: var(--lighter-grey);
   padding: 20px;
   border-radius: 6px;
 }
@@ -1778,7 +1778,7 @@ div.interfaceLinks-row a {
   font-weight: 400;
   line-height: 19px;
   letter-spacing: 0em;
-  color: #666666;
+  color: var(--dark-grey);
 }
 .gDocAdvertBox span #newExtension {
   font-weight: 600;
@@ -1796,17 +1796,17 @@ div.interfaceLinks-row a {
   border-radius: 6px;
   text-align: center;
   background: #FFFFFF;
-  color: #666666;
+  color: var(--dark-grey);
   text-decoration: none;
   padding: 4px 9px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 19px;
   letter-spacing: 0em;
 }
 .gDocAdvertBox a {
-  font-family: Roboto;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 19px;
