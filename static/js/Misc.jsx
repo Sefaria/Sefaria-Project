@@ -1534,11 +1534,9 @@ const AiInfoTooltip = () => {
   return (
     <div className="ai-info-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
       {aiInfoIcon}
-      {showMessage && (
-        <div className="ai-message">
+        <div className={`ai-message ${showMessage ? 'visible' : ''}`}>
             {aiMessage}
         </div>
-      )}
     </div>
   );
 };
