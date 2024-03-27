@@ -23,6 +23,7 @@ import Cookies from "js-cookie";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+
 /**
  * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
@@ -59,6 +60,7 @@ const __filterChildrenByLanguage = (children, language) => {
   let newChildren = chlArr.filter(x=> x.type == currLangComponent);
   return newChildren;
 };
+
 
 const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=[]}) => {
   /**

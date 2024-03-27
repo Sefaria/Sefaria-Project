@@ -15,7 +15,6 @@ import {
   DonateLink
 } from './Misc';
 
-
 class Header extends Component {
   constructor(props) {
     super(props)
