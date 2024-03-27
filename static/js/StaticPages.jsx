@@ -3184,8 +3184,8 @@ const ProductsPage = memo(() => {
     return (
         <div>
            <h1>{products.title}</h1>
-           <h2>{products.desc.en}</h2>
-           <h3>{products.cta_labels[0].en}</h3>
+           {/* <h2>{products.desc}</h2>
+           <h3>{products.cta_labels}</h3> */}
         </div>
     );
 });
