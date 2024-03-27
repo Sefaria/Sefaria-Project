@@ -503,20 +503,21 @@ Sefaria = extend(Sefaria, {
         return language;
     }
   },
-  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText) {
+  makeUrlForAPIV3Text: function(ref, requiredVersions, mergeText, return_format) {
     const host = Sefaria.apiHost;
     const endPoint = '/api/v3/texts/';
     const versions = requiredVersions.map(obj =>
         Sefaria.makeParamsStringForAPIV3(obj.languageFamilyName, obj.versionTitle)
     );
     const mergeTextInt = mergeText ? 1 : 0;
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}`;
+    const return_format_string = (return_format) ? `&return_format=${return_format}` : '';
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}${return_format_string}`;
     return url;
   },
-  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
+  getTextsFromAPIV3: async function(ref, requiredVersions, mergeText, return_format) {
     // ref is segment ref or bottom level section ref
     // requiredVersions is array of objects that can have language and versionTitle
-    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText);
+    const url = Sefaria.makeUrlForAPIV3Text(ref, requiredVersions, mergeText, return_format);
     //TODO here's the place for getting it from cache
     const apiObject = await Sefaria._ApiPromise(url);
     //TODO here's the place for all changes we want to add, and saving in cache
@@ -545,7 +546,7 @@ Sefaria = extend(Sefaria, {
     // versionObjs are objects with language and versionTitle
     primaryVersionObj = (primaryVersionObj?.languageFamilyName) ? primaryVersionObj : {language: 'primary'};
     translationVersionObj = (translationVersionObj?.languageFamilyName) ? translationVersionObj : {language: 'translation'}; //TODO language prefernces; when defauld primary and trnaslation is the same
-    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true);
+    const versionsResponse = await Sefaria.getTextsFromAPIV3(ref, [primaryVersionObj, translationVersionObj], true, 'wrap_all_entities');
     Sefaria._adaptApiResponse(versionsResponse);
     return versionsResponse;
   },
@@ -2179,11 +2180,13 @@ _media: {},
           return x;
       })
   },
-  sectionString: function(ref) {
+  sectionString: function(ref, data) {
     // Returns a pair of nice strings (en, he) of the sections indicated in ref. e.g.,
     // "Genesis 4" -> "Chapter 4", "Guide for the Perplexed, Introduction" - > "Introduction"
-    var data = this.getRefFromCache(ref);
-    var result = {
+    if (!data) {
+        data = this.getRefFromCache(ref);
+    }
+    let result = {
           en: {named: "", numbered: ""},
           he: {named: "", numbered: ""}
         };

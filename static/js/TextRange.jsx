@@ -15,23 +15,19 @@ class TextRange extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {data: null};
+    this.state = {
+      data: null,
+      isMounted: false,
+    };
   }
-
   componentDidMount() {
-    this._isMounted = true;
-    this.setText()
-    let data = this.state.data;
-    if (data && !this.dataPrefetched) {
-      // If data was populated server side, onTextLoad was never called
-      this.onTextLoad(data);
-    } else {
-      this.conditionalPlaceSegmentNumbers();
-    }
+    console.log(55, this.props)
+    this.setState({isMounted: true});
+    this.setData()
     window.addEventListener('resize', this.conditionalPlaceSegmentNumbers);
   }
   componentWillUnmount() {
-    this._isMounted = false;
+    this.setState({isMounted: false});
     window.removeEventListener('resize', this.conditionalPlaceSegmentNumbers);
   }
   shouldComponentUpdate(nextProps, nextState) {
@@ -58,38 +54,36 @@ class TextRange extends Component {
           nextProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
           nextProps.layoutWidth !== this.props.layoutWidth))     { return true; }
     // lowlight ?
-    if (this.state !== nextState) {return true;}
+    if (this.state.data !== nextState.data) {return true;}
 
     return false;
   }
-
   componentDidUpdate(prevProps, prevState) {
+    if (this.state.data !== prevState.data) {
+      this.onTextLoad()
+    }
     if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
         !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he)) {
-      this.setText();
+      this.setData();
     }
     // Place segment numbers again if update affected layout
-    if (this.props.basetext || this.props.segmentNumber) {
-      if (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
-          !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
-          prevProps.settings.language !== this.props.settings.language ||
-          prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
-          prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
-          prevProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
-          prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
-          prevProps.settings.biLayout !== this.props.settings.biLayout ||
-          prevProps.settings.fontSize !== this.props.settings.fontSize ||
-          prevProps.layoutWidth !== this.props.layoutWidth ||
-          prevProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
-          !!prevProps.filter !== !!this.props.filter ||
-          (!!prevProps.filter && !prevProps.filter.compare(this.props.filter))) {
-            // Rerender in case version has changed
-            this.forceUpdate(function() {
-                this.conditionalPlaceSegmentNumbers();
-            }.bind(this));
-      }
-    }
+    if ((this.props.basetext || this.props.segmentNumber) &&
+        (!Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.en, this.props.currVersions.en) ||
+        !Sefaria.areCurrVersionObjectsEqual(prevProps.currVersions.he, this.props.currVersions.he) ||
+        prevProps.settings.language !== this.props.settings.language ||
+        prevProps.settings.layoutDefault !== this.props.settings.layoutDefault ||
+        prevProps.settings.layoutTanakh !== this.props.settings.layoutTanakh ||
+        prevProps.settings.aliyotTorah !== this.props.settings.aliyotTorah ||
+        prevProps.settings.layoutTalmud !== this.props.settings.layoutTalmud ||
+        prevProps.settings.biLayout !== this.props.settings.biLayout ||
+        prevProps.settings.fontSize !== this.props.settings.fontSize ||
+        prevProps.layoutWidth !== this.props.layoutWidth ||
+        prevProps.settings.punctuationTalmud !== this.props.settings.punctuationTalmud ||
+        !!prevProps.filter !== !!this.props.filter ||
+        (!!prevProps.filter && !prevProps.filter.compare(this.props.filter)))) {
+            this.conditionalPlaceSegmentNumbers();
   }
+}
   conditionalPlaceSegmentNumbers() {
     if (this.props.basetext || this.props.segmentNumber) {
       this.placeSegmentNumbers();
@@ -111,19 +105,19 @@ class TextRange extends Component {
       this.handleClick(event);
     }
   }
-  setText() {
+  setData() {
     const ref = this.props.withContext && Sefaria.sectionRef(this.props.sref) || this.props.sref;
     Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
       this.setState({data: data});
     })
   }
-  onTextLoad(data) {
+  onTextLoad() {
+    const data = this.state.data;
     if (data.error) {
       // If there was an error, don't update the state
       return;
     }
     // Initiate additional API calls when text data first loads
-    this.textLoading = false;
     if (this.props.basetext && this.props.sref !== data.ref) {
       // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
@@ -146,12 +140,8 @@ class TextRange extends Component {
 
     this.prefetchData();
 
-    if (this._isMounted) {
-      this.forceUpdate(function() {
-        this.conditionalPlaceSegmentNumbers();
-        this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
-      }.bind(this));
-    }
+    this.conditionalPlaceSegmentNumbers();
+    this.props.onTextLoad && this.props.onTextLoad(data.ref);
   }
   _updateCurrVersions(data) {
     // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
@@ -170,21 +160,15 @@ class TextRange extends Component {
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
       for (let i = 0; i < sectionRefs.length; i++) {
-        Sefaria.related(sectionRefs[i], function() {
-          if (this._isMounted) { this.forceUpdate(); }
-        }.bind(this));
+        Sefaria.related(sectionRefs[i]);
         if (Sefaria._uid) {
-          Sefaria.relatedPrivate(sectionRefs[i], function() {
-            if (this._isMounted) { this.forceUpdate(); }
-          }.bind(this));
+          Sefaria.relatedPrivate(sectionRefs[i]);
         }
       }
     }
   }
   prefetchData() {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
-    if (this.dataPrefetched) { return; }
-
     let data = this.state.data;
     if (!data) { return; }
 
@@ -193,31 +177,16 @@ class TextRange extends Component {
 
     if (this.props.prefetchNextPrev) {
      if (data.next) {
-       Sefaria.getText(data.next, {
-         context: 1,
-         multiple: this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en?.versionTitle || null,
-         heVersion: this.props.currVersions.he?.versionTitle || null,
-         translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: Sefaria.versionPreferences.getVersionPref(data.next),
-       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+       Sefaria.getTextFromCurrVersions(data.next, this.props.currVersions).then(this._prefetchLinksAndNotes);
      }
      if (data.prev) {
-       Sefaria.getText(data.prev, {
-         context: 1,
-         multiple: -this.props.prefetchMultiple,
-         enVersion: this.props.currVersions.en?.versionTitle || null,
-         heVersion: this.props.currVersions.he?.versionTitle || null,
-         translationLanguagePreference: this.props.translationLanguagePreference,
-         versionPref: Sefaria.versionPreferences.getVersionPref(data.prev),
-       }).then(ds => Array.isArray(ds) ? ds.map(d => this._prefetchLinksAndNotes(d)) : this._prefetchLinksAndNotes(ds));
+       Sefaria.getTextFromCurrVersions(data.prev, this.props.currVersions).then(this._prefetchLinksAndNotes);
      }
      if (data.indexTitle) {
         // Preload data that is used on Text TOC page
         Sefaria.getIndexDetails(data.indexTitle);
      }
     }
-    this.dataPrefetched = true;
   }
   placeSegmentNumbers() {
     // Set the vertical offsets for segment numbers and link counts, which are dependent
@@ -284,7 +253,7 @@ class TextRange extends Component {
     let title, heTitle, ref;
     if (data && this.props.basetext) {
       ref              = this.props.withContext ? data.sectionRef : data.ref;
-      const sectionStrings   = Sefaria.sectionString(ref);
+      const sectionStrings   = Sefaria.sectionString(ref, data);
       const oref             = Sefaria.ref(ref);
       const useShortString   = oref && Sefaria.util.inArray(oref.primary_category, ["Tanakh", "Mishnah", "Talmud", "Tanaitic", "Commentary"]) !== -1;
       title            = useShortString ? sectionStrings.en.numbered : sectionStrings.en.named;
@@ -329,7 +298,7 @@ class TextRange extends Component {
     let textSegments = segments.map((segment, i) => {
       let highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
-                            Sefaria.util.inArray(Sefaria.sectionRef(segment.ref), this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
+                            Sefaria.util.inArray(data.spanningRefs?.[0] || data.sectionRef, this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
       const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;
