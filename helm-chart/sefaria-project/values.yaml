@@ -246,22 +246,18 @@ tasks:
       cpu: "400m"
   replicaCount: 1
   redis:
-    url: redis.redis.svc
-    port: 6379
-    password:
+    url: "redis://127.0.0.1"
+    port: "6397"
+    brokerDBNumber: "0"
+    resultBackendDBNumber: "1"
+    sentinelURL: ""
+    transportOptions: {}
+    redisPassword:
       secretRef:
         name: redis-password
-        key: REDIS_PASSWORD
-    brokerNumber: 3
-    backendNumber: 4
-  sentinel:
-    headlessUrl: redis-headless.redis.svc
-    port: 26379
-    transportOptions: {}
-    password:
+    sentinelPassword:
       secretRef:
         name: sentinel-password
-        key: SENTINEL_PASSWORD
   queues:
     llm: default-llm
 
@@ -387,7 +383,6 @@ secrets:
     #   CELERY_REDIS_RESULT_BACKEND_DB_NUM
     #   CELERY_QUEUES
     #   SENTINEL_HEADLESS_URL
-    #   SENTINEL_PORT
     #   SENTINEL_TRANSPORT_OPTS
     #   SENTINEL_PASSWORD
     #   REDIS_URL
