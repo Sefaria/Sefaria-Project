@@ -30,6 +30,7 @@ import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
+import GuideBox from './GuideBox';
 import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
@@ -326,6 +327,7 @@ class ConnectionsPanel extends Component {
         audio: Sefaria.mediaByRef(this.props.srefs).length,
         topics: Sefaria.topicsByRefCount(this.props.srefs) || 0,
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
+        guides: Sefaria.guidesByRef(this.props.srefs).length,
         translations: this.state.availableTranslations.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
       const showResourceButtons = Sefaria.is_moderator || Object.values(resourcesButtonCounts).some(elem => elem > 0);
@@ -341,6 +343,7 @@ class ConnectionsPanel extends Component {
               masterPanelSheetId={this.props.masterPanelSheetId}
             /> :
             <div className="topToolsButtons">
+              {resourcesButtonCounts?.guides ? <ToolsButton en="Learning Guide" he="מדריך" image="iconmonstr-school-17.svg" blueBackground={true} experiment={true} urlConnectionsMode="Guide" onClick={() => this.props.setConnectionsMode("Guide")} /> : null}
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
@@ -617,6 +620,13 @@ class ConnectionsPanel extends Component {
         viewExtendedNotes={this.props.viewExtendedNotes}
       />);
 
+    } else if (this.props.mode === "Guide") {
+      content = (<GuideBox
+        masterPanelLanguage={this.props.masterPanelLanguage}
+        sref={this.props.srefs[0]}
+        setPreviousSettings={this.props.setPreviousSettings}
+      />);
+
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
         key={`Translations`}
@@ -732,6 +742,7 @@ ConnectionsPanel.propTypes = {
   translationLanguagePreference: PropTypes.string,
   scrollPosition: PropTypes.number,
   setSideScrollPosition: PropTypes.func.isRequired,
+  setPreviousSettings: PropTypes.func,
 };
 
 
@@ -1320,7 +1331,7 @@ AdvancedToolsList.propTypes = {
 
 const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count = null, control = "interface", typeface = "system", alwaysShow = false,
-                       secondaryHe, secondaryEn, greyColor=false }) => {
+                       secondaryHe, secondaryEn, greyColor=false, blueBackground=false, experiment=false }) => {
   const clickHandler = (e) => {
     e.preventDefault();
     gtag("event", "feature_clicked", {name: `tools_button_${en}`})
@@ -1341,12 +1352,13 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   const wrapperClasses = classNames({ toolsButton: 1, [nameClass]: 1, [control + "Control"]: 1, [typeface + "Typeface"]: 1, noselect: 1, greyColor: greyColor })
   return (
     count == null || count > 0 || alwaysShow ?
-    <div className="toolsButtonContainer">
+    <div className={classNames({toolsButtonContainer: 1, blue: blueBackground})}>
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
-          {control == "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
+          {control === "interface" ? <InterfaceText text={{ en: en, he: he }} /> : <ContentText text={{ en: en, he: he }} />}
           {count ? (<span className="connectionsCount">({count})</span>) : null}
+          {experiment ? <span className="experimentLabel">Experiment</span> : null}
         </span>
       </a>
       {secondaryEn && secondaryHe ? <a className="toolsSecondaryButton" onClick={clickHandler}><InterfaceText text={{ en: secondaryEn, he: secondaryHe }} /> <img className="linkArrow" src={`/static/img/${Sefaria.interfaceLang === "hebrew" ? "arrow-left-bold" : "arrow-right-bold"}.svg`} aria-hidden="true"></img></a> : null}
@@ -1362,6 +1374,8 @@ ToolsButton.propTypes = {
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
+  blueBackground: PropTypes.bool,
+  experiment: PropTypes.bool,
   secondaryEn: PropTypes.string,
   secondaryHe: PropTypes.string
 };
