@@ -21,9 +21,12 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
+    AiInfoTooltip,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption,
+    EnglishText,
+    HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -150,6 +153,14 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
+const hasPrompts = (description) => {
+    /**
+     * returns true if description has a title
+     * If description is explicitly marked as not published, only return true if user is a moderator
+     */
+    return description?.title?.length && (Sefaria.is_moderator || description?.published !== false);
+}
+
 const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => item => {
   const text = item[1];
   const topicTitle = topicData && topicData.primaryTitle;
@@ -166,11 +177,10 @@ const refRenderWrapper = (toggleSignUpModal, topicData, topicTestVersion) => ite
     </ToolTipped>
   );
 
-  const hasPrompts = text.descriptions && text.descriptions[langKey] && text.descriptions[langKey].title;
 
   // When running a test, topicTestVersion is respected.
   // const Passage = (topicTestVersion && hasPrompts) ? IntroducedTextPassage : TextPassage;
-  const Passage = hasPrompts ? IntroducedTextPassage : TextPassage;
+  const Passage = hasPrompts(text?.descriptions?.[langKey]) ? IntroducedTextPassage : TextPassage;
   return (
     <Passage
       key={item[0]}
@@ -306,21 +316,78 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const getLinksToGenerate = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter((ref) => {
+        return ref.descriptions?.[lang]?.ai_context?.length > 0  &&
+            !ref.descriptions?.[lang]?.prompt;
+    });
+};
+const getLinksToPublish = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter((ref) => {
+        return ref.descriptions?.[lang]?.published === false;
+    });
+};
+
+const generatePrompts = async(topicSlug, linksToGenerate) => {
+    linksToGenerate.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+    });
+    const payload = {ref_topic_links: linksToGenerate};
+    try {
+        await Sefaria.postToApi(`/api/topics/generate-prompts/${topicSlug}`, {}, payload);
+        const refValues = linksToGenerate.map(item => item.ref).join(", ");
+        alert("The following prompts are generating: " + refValues);
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
+const publishPrompts = async (topicSlug, linksToPublish) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    linksToPublish.forEach(ref => {
+        ref['toTopic'] = topicSlug;
+        ref.descriptions[lang]["published"] = true;
+    });
+    try {
+        const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, linksToPublish);
+        const refValues = response.map(item => item.anchorRef).join(", ");
+        alert("The following prompts have been published: " + refValues);
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+
+const getTopicHeaderAdminActionButtons = (topicSlug, refTopicLinks) => {
+    const linksToGenerate = getLinksToGenerate(refTopicLinks);
+    const linksToPublish = getLinksToPublish(refTopicLinks);
+    const actionButtons = {};
+    if (linksToGenerate.length > 0) {
+        actionButtons['generate'] = ["Generate", () => generatePrompts(topicSlug, linksToGenerate)];
+    }
+    if (linksToPublish.length > 0) {
+        actionButtons['publish'] = ["Publish", () => publishPrompts(topicSlug, linksToPublish)];
+    }
+
+    return actionButtons;
+};
+
 const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTopic, openDisplaySettings, openSearch, topicImage }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
-  const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
-
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
-  return (
+  const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
+
+return (
     <div>
-      
         <div className="navTitle tight">
-                <CategoryHeader type="topics" data={topicData} buttonsToDisplay={["source", "edit", "reorder"]}>
+                <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
                 <h1>
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
+                <AiInfoTooltip/>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?

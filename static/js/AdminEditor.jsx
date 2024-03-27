@@ -23,7 +23,10 @@ const options_for_form = {
         type: 'textarea',
         markdown: true
     },
-    "Prompt": {label: "Prompt", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
+    "Prompt": {label: "Source Description", field: "prompt", placeholder: "Add a prompt.", type: 'textarea'},
+    "Previous Prompt": {label: "Previous Source Description", field: "prompt", placeholder: "", type: 'textarea', readOnly:true},
+    "Context for Prompt": {label: "Context for Prompt", field: "ai_context", placeholder: "Why was this source added", type: 'textarea'},
+    "Previous Title": {label: "Previous Title", field: "enTitle", placeholder: "", readOnly:true},
     "English Short Description": {
         label: "English Short Description for Table of Contents", field: "enCategoryDescription",
         placeholder: "Add a short description.", type: 'input'
@@ -163,7 +166,7 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                           </select>
                         </div>;
     }
-    const item = ({label, field, placeholder, type, dropdown_data}) => {
+    const item = ({label, field, placeholder, type, dropdown_data, readOnly}) => {
         let obj;
         switch(type) {
             case 'dropdown':
@@ -174,12 +177,12 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 obj = <TitleVariants update={(newTitles) => handleTitleVariants(newTitles, field)} titles={titles} id={field}/>;
                 break;
             case 'textarea':
-                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]}
+                obj = <textarea className="default" id={field} onChange={setInputValue} defaultValue={data[field]} readOnly={readOnly}
                          placeholder={Sefaria._(placeholder)}/>;
                 break;
             default:
                 const inputType = field.includes('Year') ? 'number' : 'text';
-                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]}
+                obj = <input type={inputType} id={field} onChange={setInputValue} defaultValue={data[field]} readOnly={readOnly}
                          placeholder={Sefaria._(placeholder)}/>;
         }
 
@@ -202,7 +205,9 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, updateData, 
                 <div id="newIndex">
                     <AdminToolHeader title={title} close={close} validate={preprocess}/>
                     {items.map((x) => {
-                        if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                        if (!x) {
+                            return null;
+                        } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
                             return null;
                         } else if (x === "Category Menu") {
                             return catMenu;
