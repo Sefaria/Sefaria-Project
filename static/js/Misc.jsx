@@ -1509,12 +1509,13 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 )};
 
 const AiInfoTooltip = () => {
-  const [showMessage, setShowMessage] = useState(false);
+  const [mouseOnIcon, setMouseOnIcon] = useState(false);
+  const [mouseOnMessage, setMouseOnMessage] = useState(false);
     const aiInfoIcon = (
-            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
+            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon" onMouseEnter={() => setMouseOnIcon(true)} onMouseLeave={() => setMouseOnIcon(false)}/>
     );
         const aiMessage = (
-        <div className="ai-info-messages-box">
+        <div className="ai-info-messages-box" onMouseEnter={() => setMouseOnMessage(true)} onMouseLeave={() => setMouseOnMessage(false)}>
               <div className="ai-info-first-message">
               <InterfaceText>
                   <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
@@ -1532,9 +1533,9 @@ const AiInfoTooltip = () => {
         </div>
     );
   return (
-    <div className="ai-info-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+    <div className="ai-info-tooltip">
       {aiInfoIcon}
-        <div className={`ai-message ${showMessage ? 'visible' : ''}`}>
+        <div className={`ai-message ${(mouseOnIcon || mouseOnMessage) ? 'visible' : ''}`}>
             {aiMessage}
         </div>
     </div>

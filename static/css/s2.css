@@ -2132,11 +2132,13 @@ div.interfaceLinks-row a {
   z-index: 1;
   position: absolute;
   opacity: 0;
-  transition: opacity 2s ease;
+  visibility: hidden;
+  transition: opacity 2s ease, visibility 0s 2s;
 }
 
 .ai-message.visible {
   opacity: 1;
+  visibility: visible;
   transition: opacity 0.5s ease;
 }
 
