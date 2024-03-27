@@ -1719,6 +1719,9 @@ div.interfaceLinks-row a {
   margin-bottom: 34px;
   padding: 0 44px;
 }
+.navSidebarModule #history .fa {
+  font-size: small;
+}
 .connectionsPanel .navSidebarModule{
   padding: initial;
 }
@@ -1731,6 +1734,36 @@ div.interfaceLinks-row a {
 .singlePanel .contentInner .navSidebarModule h1 {
   border: none;
   padding: 0;
+}
+.singlePanel .recentlyViewed {
+  background-color: var(--lightest-grey);
+  padding-inline: 10px 10px;
+  margin-inline: -15px -15px;
+  margin-block: -5px -5px;
+}
+.singlePanel .recentlyViewed ul {
+  display: revert;
+}
+.singlePanel .recentlyViewed #header {
+  margin-block-end: 10px;
+  margin-inline: 10px 10px;
+  padding-block: 5px 5px;
+  border-bottom: 1px solid var(--light-grey);
+  display: flex;
+  justify-content: space-between;
+}
+.singlePanel .recentlyViewed #header h1 {
+  margin-bottom: 0;
+}
+.singlePanel .recentlyViewed #header h1 span {
+  font-size: 16px;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+}
+.singlePanel .recentlyViewed #header a {
+  margin-block-start: 5px;
+}
+.singlePanel .recentlyViewed #history span {
+  color: var(--medium-grey);
 }
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1,
@@ -1780,6 +1813,13 @@ div.interfaceLinks-row a {
   flex-wrap:wrap;
   padding: 0;
   margin: 0;
+}
+.singlePanel .recentlyViewed .navSidebarLink {
+  padding-inline-start: 25px;
+  padding-inline-end: 25px;
+}
+.multiPanel .recentlyViewed #history span::after {
+  content: "\203A";
 }
 .navSidebarLink > ul > li {
   display: inline;
@@ -3567,11 +3607,20 @@ display: none;
 [open] .versionBlock.with-preview summary {
   margin-bottom: 10px;
 }
-.versionBlock.with-preview summary::marker {
+.versionBlock.with-preview details summary::before {
   content: url('/static/icons/little-chevron-down.svg');
 }
-[open] .versionBlock.with-preview summary::marker {
+.versionBlock.with-preview details[open] summary::before {
   content: url('/static/icons/little-chevron-up.svg');
+}
+.versionBlock.with-preview summary::-webkit-details-marker {
+  /*hide marker for safari*/
+  display: none;
+}
+.versionBlock.with-preview summary {
+  /*hide marker for chrome*/
+  list-style: none;
+  cursor: pointer;
 }
 details .open-details::before {
   margin-inline-end: 5px;
@@ -9175,22 +9224,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer .section.connect .socialLinks a {
   color: #666;
-}
-#footer #socialButtons {
-  margin-bottom: 6px;
-}
-#footer #facebookButton {
-  display: inline-block;
-  vertical-align: top;
-}
-#footer #twitterButton {
-  display: inline-block;
-  vertical-align: top;
-  margin-left: 4px;
-}
-.interface-hebrew #footer #twitterButton {
-  margin-left: 0;
-  margin-right: 4px;
 }
 #footer #siteLanguageToggle {
   color: #999;

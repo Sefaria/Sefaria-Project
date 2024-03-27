@@ -167,11 +167,11 @@ class ReaderPanel extends Component {
     if (this.props.multiPanel) {
       this.props.onCitationClick(citationRef, textRef, replace, currVersions);
     } else {
-      this.showBaseText(citationRef, replace, currVersions);
+      this.showBaseText(citationRef, replace, currVersions, [], true);
     }
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
-    this.showBaseText(ref, replaceHistory, currVersions);
+    this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
   updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
     const newVersions = {
@@ -236,52 +236,37 @@ class ReaderPanel extends Component {
       highlightedRefsInSheet
     });
   }
-  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[]) {
-    // Set the current primary text `ref`, which may be either a string or an array of strings.
-    // `replaceHistory` - bool whether to replace browser history rather than push for this change
+  showBaseText(ref, replaceHistory, currVersions={en: null, he: null}, filter=[], convertCommentaryRefToBaseRef=true) {
+    /* Set the current primary text `ref`, which may be either a string or an array of strings.
+    * @param {bool} `replaceHistory` - whether to replace browser history rather than push for this change
+    * @param {bool} `convertCommentaryRefToBaseRef` - whether to try to convert commentary refs like "Rashi on Genesis 3:2" to "Genesis 3:2"
+    */
     if (!ref) { return; }
     this.replaceHistory = Boolean(replaceHistory);
+    convertCommentaryRefToBaseRef = this.state.compare ? false : convertCommentaryRefToBaseRef;
     // console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode === "Connections" && this.props.masterPanelLanguage === "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
       this.state.settings.language = "bilingual";
     }
-    let refs, currentlyVisibleRef, highlightedRefs;
-    if (ref.constructor === Array) {
-      // When called with an array, set highlight for the whole spanning range
-      refs = ref;
-      currentlyVisibleRef = Sefaria.humanRef(ref);
-      let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
-      highlightedRefs = [].concat.apply([], splitArray);
-    } else {
+    let refs;
+    if (!Array.isArray(ref)) {
       const oRef = Sefaria.parseRef(ref);
       if (oRef.book === "Sheet") {
         this.openSheet(ref);
         return;
       }
       refs = [ref];
-      currentlyVisibleRef = ref;
-      highlightedRefs = [];
     }
-
+    else {
+      refs = ref;
+    }
     if (this.replaceHistory) {
       this.props.saveLastPlace({ mode: "Text", refs, currVersions, settings: this.state.settings }, this.props.panelPosition);
     }
-    this.conditionalSetState({
-      mode: "Text",
-      refs,
-      filter,
-      currentlyVisibleRef,
-      currVersions,
-      highlightedRefs,
-      recentFilters: [],
-      menuOpen: null,
-      compare: false,
-      sheetID: null,
-      connectionsMode: "Resources",
-      settings: this.state.settings
-    });
+    this.props.openPanelAt(this.props.panelPosition, ref, currVersions, {settings: this.state.settings},
+                          true, convertCommentaryRefToBaseRef, this.replaceHistory, false);
   }
   openSheet(sheetRef, replaceHistory) {
     this.replaceHistory = Boolean(replaceHistory);

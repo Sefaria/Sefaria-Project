@@ -274,10 +274,17 @@ Sefaria = extend(Sefaria, {
     let index = Sefaria.index(pRef.index);
     return index && index.categories ? index.categories : [];
   },
-  sectionRef: function(ref) {
+  sectionRef: function(ref, deriveIfNotFound=false) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
+    if (deriveIfNotFound && !oref) { //couldn't find `ref` in cache so try to derive it
+        const humanRefForm = Sefaria.humanRef(ref);
+        if (!!humanRefForm && humanRefForm.length > 0) {
+            return humanRefForm.split(":")[0]; // "Genesis 3:3" yields "Genesis 3"
+        }
+    }
     return oref ? oref.sectionRef : null;
+
   },
   splitSpanningRefNaive: function(ref){
       if (ref.indexOf("-") == -1) { return ref; }
@@ -500,7 +507,8 @@ Sefaria = extend(Sefaria, {
     const versions = requiredVersions.map(obj =>
         Sefaria.makeParamsStringForAPIV3(obj.language, obj.versionTitle)
     );
-    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeText}`;
+    const mergeTextInt = mergeText ? 1 : 0;
+    const url = `${host}${endPoint}${ref}?version=${versions.join('&version=')}&fill_in_missing_segments=${mergeTextInt}`;
     return url;
   },
   getTextsFromAPIV3: async function(ref, requiredVersions, mergeText) {
@@ -692,13 +700,13 @@ Sefaria = extend(Sefaria, {
   },
   getTranslations: async function(ref) {
     /**
-     * Gets all versions except Hebrew versions that have isBaseText true
+     * Gets all versions except Hebrew versions that have isSource true
      * @ref {string} ref
      * @returns {string: [versions]} Versions by language
      */
     return Sefaria.getVersions(ref).then(result => {
         let versions = Sefaria.filterVersionsObjByLangs(result, ['he'], false);
-        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isBaseText: false});
+        let heVersions = Sefaria.filterVersionsArrayByAttr(result?.he || [], {isSource: false});
         if (heVersions.length) {
             versions.he = heVersions;
         }
@@ -2183,6 +2191,90 @@ _media: {},
 
     return result;
   },
+  isCommentaryWithBaseText(book) {
+      /* Only returns true for commentaries with a base_text_mapping to one and only one base_text_title
+       * @param {Object} book: Corresponds to a book in Sefaria.toc
+       */
+      return book?.dependence === "Commentary" && !!book?.base_text_titles && !!book?.base_text_mapping && book?.base_text_titles.length === 1;
+  },
+  isCommentaryRefWithBaseText(ref) {
+      /* This is a helper function for openPanelAt. Determines whether the ref(s) are part of a commentary
+       * with a base_text_mapping to one and only one base_text_title.
+       * Example: "Ibn Ezra on Genesis 3" returns True because this commentary has a base_text_mapping to one and only one book, Genesis.
+       * @param {string/array of strings} ref: if array, checks the first ref
+       */
+      let refToCheck = Array.isArray(ref) ? ref[0] : ref;
+      const parsedRef = Sefaria.parseRef(refToCheck);
+      const book = Sefaria.index(parsedRef.index);
+      if (!this.isCommentaryWithBaseText(book)) {
+          return false;
+      }
+
+      // by this point, we know the book is in the right form, but we still need to check that the ref is in the right form
+      return Sefaria.isCommentaryRefValid(book, parsedRef);
+  },
+  isCommentaryRefValid(book, parsedRef) {
+      /* This is a helper function for isCommentaryRefWithBaseText.  After isCommentaryRefWithBaseText determines
+       * the ref belongs to the right kind of book, we still need to check the ref is in valid form.
+       * The ref 'Ramban on Genesis, Introduction 1' shouldn't generate "Genesis, Introduction 1" ' +
+       * this can be tested by modifying the parsedRef and then calling Sefaria.parseRef on the modified parsedRef
+       * @param {Object} parsedRef: Object created with Sefaria.parseRef.  Its `ref` property is what we need to check
+       * @param {Object} book: Object created with Sefaria.index.  We want to use `book`'s metadata to modify the ref.
+       */
+      const parsedRefCopy = Object.create(parsedRef);  // copy object to avoid modifying Sefaria._parseRef
+      const baseText = book.base_text_titles[0];
+      parsedRefCopy.ref = parsedRefCopy.ref.replace(book.title, baseText);
+      return (!Sefaria.parseRef(parsedRefCopy.ref).error);
+  },
+  convertCommentaryRefToBaseRef(commRef) {
+    /* Converts commentary ref, `commRef`, to base ref:
+     @param {string} commRef - string to be converted.
+     Example input and output: commRef = "Rashi on Genesis 1:2" returns "Genesis 1:2",
+                               commRef = "Rashi on Exodus 2:3:1" returns "Exodus 2:3"
+     */
+    const book = Sefaria.index(commRef.index);
+    if (!book || !this.isCommentaryWithBaseText(book)) {
+        // if book is not isCommentaryWithBaseText just return the ref
+        return Sefaria.humanRef(commRef.ref);
+    }
+    const base_text = book.base_text_titles[0];
+    const many_to_one = book.base_text_mapping.startsWith("many_to_one");  // four options, two start with many_to_one and two start with one_to_one
+    const commRefCopy = Object.create(commRef);  // need to create a copy so that the Sefaria._parseRef cache isn't changed
+    if (commRefCopy.sections.length <= 2 || !many_to_one) {
+        // Rashi on Genesis 1:2 => Genesis 1:2 and Rashi on Genesis => Genesis.  in this case, sections stay the same so just change the book title
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
+        return Sefaria.humanRef(commRefCopy.ref);
+    }
+    else if (many_to_one) {
+        // Rashi on Genesis 1:2:4 => Genesis 1:2; sections and book title need to change
+        commRefCopy.sections = commRefCopy.sections.slice(0, commRef.sections.length - 1);
+        commRefCopy.toSections = commRefCopy.toSections.slice(0, commRef.toSections.length - 1);
+        commRefCopy.book = commRefCopy.index = commRefCopy.index.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.replace(book.title, base_text);
+        commRefCopy.ref = commRefCopy.ref.split(' ').slice(0, -1).join(' ');
+        return Sefaria.humanRef(Sefaria.makeRef(commRefCopy));
+    }
+    return Sefaria.humanRef(commRef.ref);
+  },
+  getBaseRefAndFilter(ref) {
+    /* This is a helper function for openPanelAt. This function converts a commentary ref(s) (Rashi on Genesis 3:3:1)
+     to a base ref(s) (Genesis 3:3) and returns the filter ["Rashi"].
+     `ref` can be an array or a string, in which case the returned ref will be an array or string
+     */
+    let filter, book;
+    if (Array.isArray(ref)) {
+        const parsedRefs = ref.map(x => Sefaria.parseRef(x)); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRefs[0].index);
+        ref = parsedRefs.map(x => Sefaria.convertCommentaryRefToBaseRef(x));
+    }
+    else {
+        const parsedRef = Sefaria.parseRef(ref); // get a parsed ref version of `ref` in order to access book's collective title, base_text_titles, and base_text_mapping
+        book = Sefaria.index(parsedRef.index);
+        ref = Sefaria.convertCommentaryRefToBaseRef(parsedRef);
+    }
+    filter = book?.collectiveTitle ? [book.collectiveTitle] : [];
+    return {ref: ref, filter: filter};
+  },
   commentaryList: function(title, toc) {
     var title = arguments.length == 0 || arguments[0] === undefined ? null : arguments[0];
     /** Returns the list of commentaries for 'title' which are found in Sefaria.toc **/
@@ -2330,6 +2422,17 @@ _media: {},
     });
   },
   userHistory: {loaded: false, items: []},
+  loadUserHistory: function (limit, callback) {
+      const skip = Sefaria.userHistory.items.length;
+      const url = `/api/profile/user_history?secondary=0&annotate=1&limit=${limit}&skip=${skip}`;
+      fetch(url)
+          .then(response => response.json())
+          .then(data => {
+              Sefaria.userHistory.loaded = true;
+              Sefaria.userHistory.items.push(...data);
+              callback();
+          });
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``

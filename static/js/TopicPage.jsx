@@ -231,7 +231,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <InterfaceText markdown={{en: description.en, he: description.he}} />
+                <InterfaceText markdown={{en: description.en, he: description.he}} disallowedMarkdownElements={['a']}/>
               </div>
               : null }
             </div>
@@ -239,21 +239,11 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
       });
 
     const sidebarModules = [
+      {type: "AboutTopics"},
       {type: "Promo"},
       {type: "TrendingTopics"},
       {type: "SponsorADay"},
     ];
-    if (topicData.description) {
-      sidebarModules.unshift({
-        type: "TitledText",
-        props: {
-          enTitle: "About",
-          heTitle: Sefaria._("About"),
-          enText: topicData.description.en,
-          heText: topicData.description.he
-        }
-      });
-    }
 
     return (
         <div className="readerNavMenu noLangToggleInHebrew">
@@ -280,6 +270,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, compare, initi
 const TopicSponsorship = ({topic_slug}) => {
     // TODO: Store this data somewhere intelligent
     const topic_sponsorship_map = {
+        "parashat-bereshit": {
+            "en": "Parashat Bereshit, or Genesis, is dedicated to the [Sefaria Pioneers](https://sefaria.ac-page.com/pioneers), Sefaria's earliest champions whose immense generosity was essential to the genesis of Sefaria and the digital future of Torah.",
+            "he": "פרשת בראשית מוקדשת [לחלוצי ספריא](https://sefaria.ac-page.com/pioneers), מי שעודדו ותמכו בנו בראשית דרכנו ושבזכות נדיבותם הרבה עלה באפשרותנו ליצור את העתיד הדיגיטלי של התורה ושאר המקורות."
+        },
         "parashat-lech-lecha": {
             "en": "Sponsored by The Rita J. & Stanley H. Kaplan Family Foundation in honor of Scott and Erica Belsky’s wedding anniversary.",
             "he": "נתרם על-ידי קרן משפחת ריטה ג’. וסטנלי ה. קפלן, לכבוד יום הנישואים של סקוט ואריקה בלסקי."
@@ -307,7 +301,7 @@ const TopicSponsorship = ({topic_slug}) => {
 
     return (
         <div className="dedication">
-            <InterfaceText text={sponsorship_language}/>
+            <InterfaceText markdown={sponsorship_language}/>
         </div>
     );
 }
@@ -512,7 +506,7 @@ const TopicPage = ({
         if (topicData.portal_slug) {
             Sefaria.getPortal(topicData.portal_slug).then(setPortal);
             if (portal) {
-                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about"]}/> // "mobile", "organization", "newsletter"]}/>
+                sidebar = <PortalNavSideBar portal={portal} entriesToDisplayList={["about", "mobile", "organization", "newsletter"]}/>
             }
         } else {
            sidebar = (

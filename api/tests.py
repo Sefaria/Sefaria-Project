@@ -119,7 +119,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_api_get_text_bad_text(self):
         response = c.get('/api/v3/texts/Life_of_Pi.13.13')
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Could not find title in reference: Life of Pi.13.13")
 
@@ -135,13 +135,13 @@ class APITextsTests(SefariaTestCase):
 
     def test_api_get_text_bad_sections(self):
         response = c.get('/api/v3/texts/Job.6-X')
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "Couldn't understand text sections: 'Job.6-X'.")
 
     def test_api_get_text_empty_ref(self):
         response = c.get("/api/v3/texts/Berakhot.1a")
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(404, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(data["error"], "We have no text for Berakhot 1a.")
 
@@ -181,7 +181,7 @@ class APITextsTests(SefariaTestCase):
 
     def test_fill_in_missing_segments(self):
         vtitle = "Maimonides' Mishneh Torah, edited by Philip Birnbaum, New York, 1967"
-        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=true")
+        response = c.get(f"/api/v3/texts/Mishneh_Torah,_Sabbath_1?version=english|{vtitle}&fill_in_missing_segments=1")
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data['versions'][0]['text']) > 2)
@@ -211,8 +211,16 @@ class APITextsTests(SefariaTestCase):
         data = json.loads(response.content)
         self.assertFalse('<' in data['versions'][0]['text'])
 
+    def test_strip_only_footnotes(self):
+        vtitle = "The Contemporary Torah, Jewish Publication Society, 2006"
+        response = c.get(f"/api/v3/texts/Genesis%201:1?version=english|{vtitle}&return_format=strip_only_footnotes")
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertFalse('<i class="footnote">' in data['versions'][0]['text'])
+
+
     def test_error_return_format(self):
         response = c.get(f"/api/v3/texts/Shulchan_Arukh%2C_Orach_Chayim.1:1?return_format=not_valid")
         self.assertEqual(400, response.status_code)
         data = json.loads(response.content)
-        self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only'].")
+        self.assertEqual(data['error'], "return_format should be one of those formats: ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes'].")

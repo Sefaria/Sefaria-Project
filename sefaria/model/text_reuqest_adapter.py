@@ -9,7 +9,12 @@ from sefaria.utils.hebrew import hebrew_term
 from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
 
-class TextManager:
+class TextRequestAdapter:
+    """
+    This class is used for getting texts for client side (API or SSR)
+    It takes the same params as the api/v3/text (ref, version_params that are language and versionTitle, fill_in_missing_segments, and return_format
+    It returns a JSON-like object for an HTTP response.
+    """
     ALL = 'all'
     PRIMARY = 'primary'
     SOURCE = 'source'
@@ -38,7 +43,6 @@ class TextManager:
         for attr in ['chapter', 'title']:
             fields.remove(attr)
         version_details = {f: getattr(version, f, "") for f in fields}
-        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle, self.fill_in_missing_segments)
 
         if self.fill_in_missing_segments:
             # we need a new VersionSet of only the relevant versions for merging. copy should be better than calling for mongo
@@ -46,7 +50,8 @@ class TextManager:
             relevant_versions.remove(lambda v: v.languageFamilyName != version.languageFamilyName)
         else:
             relevant_versions = [version]
-        text_range.versions = relevant_versions
+        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle,
+                               self.fill_in_missing_segments, relevant_versions)
         version_details['text'] = text_range.text
 
         sources = getattr(text_range, 'sources', None)
@@ -168,6 +173,10 @@ class TextManager:
         elif self.return_format == 'text_only':
             text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
                                        lambda string, _: text.AbstractTextRecord.remove_html(string),
+                                       lambda string, _: ' '.join(string.split())]
+
+        elif self.return_format == 'strip_only_footnotes':
+            text_modification_funcs = [lambda string, _: text.AbstractTextRecord.strip_itags(string),
                                        lambda string, _: ' '.join(string.split())]
 
         else:

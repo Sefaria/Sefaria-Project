@@ -1031,7 +1031,8 @@ def _get_user_calendar_params(request):
 def texts_list(request):
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, page="navigation", title=title, desc=desc)
+    props = get_user_history_props(request)
+    return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 
 def calendars(request):
@@ -1049,13 +1050,16 @@ def saved(request):
     return menu_page(request, props, page="saved", title=title, desc=desc)
 
 
-def user_history(request):
+def get_user_history_props(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         uhistory =  profile.get_history(secondary=False, serialized=True, annotate=True, limit=20) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
-    props = {"userHistory": {"loaded": True, "items": uhistory}}
+    return {"userHistory": {"loaded": True, "items": uhistory}}
+
+def user_history(request):
+    props = get_user_history_props(request)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, page="history", title=title, desc=desc)
@@ -1645,10 +1649,10 @@ def index_api(request, title, raw=False):
     API for manipulating text index records (aka "Text Info")
     """
     if request.method == "GET":
-        with_content_counts = bool(request.GET.get("with_content_counts", False))
+        with_content_counts = bool(int(request.GET.get("with_content_counts", False)))
         i = library.get_index(title).contents(raw=raw, with_content_counts=with_content_counts)
 
-        if request.GET.get("with_related_topics", False):
+        if bool(int(request.GET.get("with_related_topics", False))):
             i["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
         return jsonResponse(i, callback=request.GET.get("callback", None))
@@ -1862,7 +1866,7 @@ def shape_api(request, title):
         else:
             cat_list = title.split("/")
             depth = request.GET.get("depth", 2)
-            include_dependents = request.GET.get("dependents", False)
+            include_dependents = bool(int(request.GET.get("dependents", False)))
             indexes = []
             if len(cat_list) == 1:
                 # try as corpus
@@ -2067,7 +2071,7 @@ def notes_api(request, note_id_or_ref):
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
-        private = request.GET.get("private", False)
+        private = bool(int(request.GET.get("private", False)))
         res = get_notes(oref, uid=creds["user_id"], public=(not private))
         return jsonResponse(res, cb)
 
@@ -2141,7 +2145,7 @@ def notes_api(request, note_id_or_ref):
 @catch_error_as_json
 def all_notes_api(request):
 
-    private = request.GET.get("private", False)
+    private = bool(int(request.GET.get("private", False)))
     if private:
         if not request.user.is_authenticated:
             res = {"error": "You must be logged in to access you notes."}
@@ -2157,17 +2161,17 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    if request.GET.get("private", False) and request.user.is_authenticated:
+    if bool(int(request.GET.get("private", False))) and request.user.is_authenticated:
         oref = Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
         }
-    elif request.GET.get("private", False) and not request.user.is_authenticated:
+    elif bool(int(request.GET.get("private", False))) and not request.user.is_authenticated:
         response = {"error": "You must be logged in to access private content."}
     else:
         response = {
-            "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
+            "links": get_links(tref, with_text=False, with_sheet_links=bool(int(request.GET.get("with_sheet_links", False)))),
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
@@ -2660,7 +2664,7 @@ def name_api(request, name):
     name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
-    ref_only = request.GET.get("ref_only", False)
+    ref_only = bool(int(request.GET.get("ref_only", False)))
     completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
     ref = completions_dict["ref"]
     topic = completions_dict["topic"]
@@ -2764,7 +2768,7 @@ def user_stats_api(request, uid):
     assert request.method == "GET", "Unsupported Method"
     u = request.user
     assert (u.is_active and u.is_staff) or (int(uid) == u.id)
-    quick = bool(request.GET.get("quick", False))
+    quick = bool(int(request.GET.get("quick", False)))
     if quick:
         return jsonResponse(public_user_data(uid))
     return jsonResponse(user_stats_data(uid))
@@ -3309,7 +3313,7 @@ def global_activity(request, page=1):
     if page > 40:
         return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
-            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:hello@sefaria.org'>email us</a>."
         })
 
     if "api" in request.GET:
@@ -3352,7 +3356,7 @@ def user_activity(request, slug, page=1):
     if page > 40:
         return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
-            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:hello@sefaria.org'>email us</a>."
         })
 
     q              = {"user": profile.id}
@@ -4253,7 +4257,7 @@ def search_wrapper_api(request, es6_compat=False):
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
         if response.success():
-            response_json = getattr(response.to_dict(), 'body', response.to_dict())
+            response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
@@ -4599,7 +4603,7 @@ def rollout_health_api(request):
         except Exception as e:
             logger.warn(f"Failed node healthcheck. Error: {e}")
             return False
-        
+
     def is_database_reachable():
         try:
             from sefaria.system.database import db

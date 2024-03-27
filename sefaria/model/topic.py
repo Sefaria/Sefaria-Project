@@ -126,11 +126,6 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
 
-    def add_title(self, text, lang, primary=False, replace_primary=False):
-        super(Topic, self).add_title(text, lang, primary=primary, replace_primary=replace_primary)
-        if lang == 'en' and primary:
-            self.set_slug_to_primary_title()
-
     def title_is_transliteration(self, title, lang):
         return self.title_group.get_title_attr(title, lang, 'transliteration') is not None
 
@@ -276,6 +271,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def merge(self, other: Union['Topic', str]) -> None:
         """
+        Merge `other` into `self`. This means that all data from `other` will be merged into self.
+        Data from self takes precedence in the event of conflict.
+        Links to `other` will be changed to point to `self` and `other` will be deleted.
         :param other: Topic or old slug to migrate from
         :return: None
         """
