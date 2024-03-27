@@ -114,9 +114,9 @@ class Footer extends Component {
                       onClick={this.trackLanguageClick.bind(null, "Hebrew")}>བོད་ཡིག
                   </a> */}
               </div>
-              <div>
+          </div>
+          <div>
                 <InterfaceText>Version: 1.0.0</InterfaceText>
-              </div>
           </div>
         </div>
       </footer>
