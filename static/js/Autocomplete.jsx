@@ -190,9 +190,10 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 
 const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
                       onRefClick, showSearch, openTopic, openURL, hideHebrewKeyboard,
+                        setSearchFocused, searchFocused,
                _clearSearchBox, _submitSearch, _showSearch, _redirectToObject}) => {
 
-    const [searchFocused, setSearchFocused] = useState(false);
+
 
     useEffect(() => {
       showVirtualKeyboardIcon(false); // Initially hide the virtual keyboard icon
@@ -239,7 +240,7 @@ const SearchInputBox = ({getInputProps, suggestions, highlightedIndex,
     };
 
     const _blurSearch = (e) => {
-      onBlur(e)
+      onBlur(e);
       const parent = document.getElementById('searchBox');
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         setSearchFocused(false);
@@ -308,7 +309,6 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
                                     _submitSearch}) => {
 
-    const pic = suggestions[0].pic;
     const type = suggestions[0].type;
     const enTitle = type_title_map[type]?.en;
     const heTitle = type_title_map[type]?.he;
@@ -349,6 +349,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 
  const Autocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate = null}) => {
   const [suggestions, setSuggestions] = useState([]);
+  const [searchFocused, setSearchFocused] = useState(false);
   const {
     isOpen,
     getMenuProps,
@@ -472,6 +473,9 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
             hideHebrewKeyboard={false}
             highlightedIndex={highlightedIndex}
 
+            setSearchFocused={setSearchFocused}
+            searchFocused={searchFocused}
+
             _clearSearchBox={_clearSearchBox}
             _submitSearch={_submitSearch}
             _showSearch={_showSearch}
@@ -481,7 +485,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         {...getMenuProps()}
         className={"autocomplete-dropdown"}
       >
-          {(isOpen) &&
+          {(isOpen && searchFocused) &&
               <SuggestionsDispatcher suggestions={suggestions} getItemProps={getItemProps} highlightedIndex={highlightedIndex}
                    getInputProps={getInputProps} _submitSearch={_submitSearch}
               />
