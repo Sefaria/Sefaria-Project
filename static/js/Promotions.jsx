@@ -1,8 +1,9 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
-import { OnInView } from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
+import $ from "./sefaria/sefariaJquery";
 
 const Promotions = () => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
@@ -151,6 +152,32 @@ function trackSidebarAdClick(ad) {
     adType: "sidebar",
   });
 }
+const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
+const GDocAdvertText = () => {
+    const learnMoreLink = "https://sefaria.org/sheets/529099?origin=AddToSheetsPromo"
+    return    <InterfaceText>
+                <EnglishText> Add texts directly to your Google Docs with our <span id="newExtension">new extension</span>! <a href={learnMoreLink}>Learn more</a></EnglishText>
+                <HebrewText> הוסיפו טקסטים מספריא ישירות לקובץ גוגל עם <span id="newExtension">התוסף החדש</span> שלנו! <a href={learnMoreLink}>למדו עוד</a></HebrewText>
+             </InterfaceText>;
+}
+const GDocAdvertBox = React.memo(() => {
+    const gdocsCampaignId = "GDocs_Promo_AddToSheet";
+    const installNowLink = 'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet';
+    const gdocsCampaignAd = {campaignId: gdocsCampaignId};
+    const gdocInstalled = 'gdoc_installed';
+    const handleInstall = () => {
+        cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
+        trackSidebarAdClick(gdocsCampaignAd);
+    }
+    return !cookie(gdocInstalled) &&
+        <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
+            <div className="gDocAdvertBox">
+              <GDocAdvertText/>
+              <div id="installNow"><a href={installNowLink}
+                                      onClick={handleInstall}><InterfaceText>Install Now</InterfaceText></a></div>
+            </div>
+          </OnInView>;
+});
 
 // Don't continuously rerender a SidebarAd if the parent component decides to rerender
 // This is done to prevent multiple views from registering from OnInView
@@ -218,4 +245,4 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
   );
 });
 
-export { Promotions };
+export { Promotions, GDocAdvertBox };
