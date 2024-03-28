@@ -121,13 +121,13 @@ spec:
           - name: SENTINEL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.tasks.sentinel.password.secretRef.name }}
-                key: {{ .Values.tasks.sentinel.password.secretRef.key }}
+                name: {{ .Values.tasks.redis.sentinelPassword.secretRef.name }}
+                key: {{ .Values.tasks.redis.sentinelPassword.secretRef.key }}
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: {{ .Values.tasks.redis.password.secretRef.name }}
-                key: {{ .Values.tasks.redis.password.secretRef.key }}
+                name: {{ .Values.tasks.redis.redisPassword.secretRef.name }}
+                key: {{ .Values.tasks.redis.redisPassword.secretRef.key }}
           {{- end }}
         envFrom:
           - secretRef:
