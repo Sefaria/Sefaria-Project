@@ -9090,6 +9090,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 10px;
 }
 #footer {
+  position: absolute;
+  bottom: 0;
+  height: 2.5rem;
   background-color: white;
   border-top: 1px solid #F4F4F4;
   overflow: hidden;
