@@ -1136,8 +1136,10 @@ def rebuild_topic_toc(topic_obj, orig_slug="", category_changed=False):
     library.get_topic_toc_json(rebuild=True)
     library.get_topic_toc_category_mapping(rebuild=True)
 
-def _calculate_approved_review_state(current, requested):
+def _calculate_approved_review_state(current, requested, was_ai_generated):
     "Calculates the review state of a description of topic link. Review state of a description can only 'increase'"
+    if not was_ai_generated:
+        return None
     state_to_num = {
         None: -1,
         "not reviewed": 0,
@@ -1149,13 +1151,16 @@ def _calculate_approved_review_state(current, requested):
     else:
         return current
 
+def _description_was_ai_generated(description: dict) -> bool:
+    return bool(description.get('ai_title', ''))
+
 def _get_merged_descriptions(current_descriptions, requested_descriptions):
     from sefaria.utils.util import deep_update
     for lang, requested_description_in_lang in requested_descriptions.items():
-        current_descriptions_in_lang = current_descriptions.get(lang, {})
-        current_review_state = current_descriptions_in_lang.get("review_state")
+        current_description_in_lang = current_descriptions.get(lang, {})
+        current_review_state = current_description_in_lang.get("review_state")
         requested_review_state = requested_description_in_lang.get("review_state")
-        merged_review_state = _calculate_approved_review_state(current_review_state, requested_review_state)
+        merged_review_state = _calculate_approved_review_state(current_review_state, requested_review_state, _description_was_ai_generated(current_description_in_lang))
         if merged_review_state:
             requested_description_in_lang['review_state'] = merged_review_state
     return deep_update(current_descriptions, requested_descriptions)

@@ -154,18 +154,21 @@ def test_change_categories(author_root, actual_author, root_with_self_link, chil
 	assert new_tree_from_root_with_self_link == orig_tree_from_root_with_self_link
 
 
-@pytest.mark.parametrize(('current', 'requested', 'merged'), [
-	['not reviewed', 'not reviewed', 'not reviewed'],
-	['reviewed', 'not reviewed', 'reviewed'],
-	['edited', 'not reviewed', 'edited'],
-	['edited', 'edited', 'edited'],
-	['not reviewed', 'edited', 'edited'],
-	['reviewed', 'edited', 'reviewed'],
-	[None, 'edited', 'edited'],
-	[None, None, None],
+@pytest.mark.parametrize(('current', 'requested', 'was_ai_generated', 'merged'), [
+	['not reviewed', 'not reviewed', True, 'not reviewed'],
+	['reviewed', 'not reviewed', True, 'reviewed'],
+	['edited', 'not reviewed', True, 'edited'],
+	['edited', 'edited', True, 'edited'],
+	['not reviewed', 'edited', True, 'edited'],
+	['reviewed', 'edited', True, 'reviewed'],
+	[None, 'edited', True, 'edited'],
+	[None, None, True, None],
+	['not reviewed', 'not reviewed', False, None],
+	[None, 'edited', False, None],
+	[None, None, False, None],
 ])
-def test_calculate_approved_review_state(current, requested, merged):
-	assert topic._calculate_approved_review_state(current, requested) == merged
+def test_calculate_approved_review_state(current, requested, was_ai_generated, merged):
+	assert topic._calculate_approved_review_state(current, requested, was_ai_generated) == merged
 
 @pytest.mark.parametrize(('current', 'requested', 'merged'), [
 	[{'en': {}}, {'en': {}}, {'en': {}}],
