@@ -9,6 +9,8 @@ import {
     SimpleLinkedBlock,
     ProfileListing,
     InterfaceText,
+    EnglishText,
+    HebrewText,
     CategoryHeader,
 } from './Misc';
 import {ContentText} from "./ContentText";
@@ -139,41 +141,60 @@ const reviewStateToDisplayedTextMap = {
     "edited": "Edited"
 }
 
-const ReviewStateIndicator = ({topic, ref, linkDescription}) => {
-    const [reviewState, markReviewed] = useReviewState(topic, ref, linkDescription);
-    if (!Sefaria.is_moderator || !reviewState){ return null; }
-    let reviewStateClassName = reviewStateToClassNameMap[reviewState];
-    let displayedText = reviewStateToDisplayedTextMap[reviewState];
+const ReviewStateIndicator = ({topic, topicLink}) => {
+    const [reviewStateByLang, markReviewed] = useReviewState(topic, topicLink);
+    if (!Sefaria.is_moderator){ return null; }
+    const langComponentMap = {he: HebrewText, en: EnglishText};
     return (
-    <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={markReviewed}>
-        {displayedText}
-    </div>)
-
+        <InterfaceText>
+            {
+                Object.entries(langComponentMap).map(([lang, LangComponent]) => (
+                    <LangComponent>
+                        <ReviewStateIndicatorLang reviewState={reviewStateByLang[lang]} markReviewed={() => markReviewed(lang)} />
+                    </LangComponent>
+                ))
+            }
+        </InterfaceText>
+    );
 };
 
-const markReviewedPostRequest = (topic, ref, linkDescription) => {
+const ReviewStateIndicatorLang = ({reviewState, markReviewed}) => {
+    if (!reviewState) { return null; }
+    const reviewStateClassName = reviewStateToClassNameMap[reviewState];
+    const displayedText = reviewStateToDisplayedTextMap[reviewState];
+    return (
+        <div className={`button extraSmall reviewState ${reviewStateClassName}`} onClick={markReviewed}>
+            {displayedText}
+        </div>
+    );
+}
+
+const markReviewedPostRequest = (lang, topic, topicLink) => {
     const postData = {
         "topic": topic,
         "is_new": false,
-        'new_ref': ref,
+        'new_ref': topicLink.ref,
         'interface_lang': Sefaria.interfaceLang,
-        'description' : {...linkDescription, 'review_state': 'reviewed'}
+        'description' : {...topicLink.descriptions[lang], 'review_state': 'reviewed'}
     };
     return Sefaria.postToApi(`/api/ref-topic-links/${ref}`, {}, postData);
 }
 
-const useReviewState = (topic, ref, linkDescription) => {
-    const [reviewState, setReviewState] = useState(linkDescription?.review_state);
-    const markReviewed = async () => {
-        await markReviewedPostRequest(topic, ref, linkDescription);
-        setReviewState("reviewed");
+const useReviewState = (topic, topicLink) => {
+    const initialReviewStateByLang = Object.entries(topicLink?.descriptions).reduce((accum, [lang, desc]) => {
+        accum[lang] = desc?.review_state;
+        return accum;
+    }, {});
+    const [reviewStateByLang, setReviewState] = useState(initialReviewStateByLang);
+    const markReviewed = async (lang) => {
+        await markReviewedPostRequest(lang, topic, topicLink);
+        setReviewState(curr => ({...curr, [lang]: "reviewed"}));
     }
-    return [reviewState, markReviewed];
+    return [reviewStateByLang, markReviewed];
 }
 
 const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyTextIsLink=false}) => {
     if (!text.ref) { return null; }
-    let lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     const versions = text.versions || {}
     const params = Sefaria.util.getUrlVersionsParams(versions);
     const url = "/" + Sefaria.normRef(text.ref) + (params ? "?" + params  : "");
@@ -189,7 +210,7 @@ const IntroducedTextPassage = ({text, topic, afterSave, toggleSignUpModal, bodyT
                 <CategoryHeader type="sources" data={[topic, text]} toggleButtonIDs={["edit"]}>
                     <StoryTitleBlock en={text.descriptions?.en?.title} he={text.descriptions?.he?.title}/>
                 </CategoryHeader>
-                <ReviewStateIndicator topic={topic} ref={text.ref} linkDescription={text?.descriptions?.[lang]}/>
+                <ReviewStateIndicator topic={topic} topicLink={text}/>
             </div>
             <div className={"systemText learningPrompt"}>
                 <InterfaceText text={{"en": text.descriptions?.en?.prompt, "he": text.descriptions?.he?.prompt}} />
