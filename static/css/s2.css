@@ -4529,7 +4529,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #FFFFFF;
   position: absolute;
   top: 100%;
-  width: 130%;
+  width: auto;
+  max-width: 130%;
   left: 0;
   zIndex: 999;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -4563,6 +4564,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   line-height: 23px;
   cursor: pointer;
+  width: max-content;
+  max-width: 100%;
 }
 
 .search-suggestion-text{
@@ -4613,6 +4616,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999999;
   margin-top: 12px;
   width: 20%;
+  padding-inline-end: 10px;
+  padding-inline-end: 10px;
 }
 .autocomplete-dropdown .type-title .int-en{
   margin-left: 15px;
