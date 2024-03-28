@@ -4552,6 +4552,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .search-suggestion-link-wrapper{
   display: flex;
 }
+.search-suggestion-link-wrapper:hover{
+  text-decoration: none;
+}
 
 .search-suggestion{
   display: flex;
