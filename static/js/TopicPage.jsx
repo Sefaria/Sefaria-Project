@@ -21,9 +21,12 @@ import {
     InterfaceText,
     FilterableList,
     ToolTipped,
+    AiInfoTooltip,
     SimpleLinkedBlock,
     CategoryHeader,
-    ImageWithCaption
+    ImageWithCaption,
+    EnglishText,
+    HebrewText
 } from './Misc';
 import {ContentText} from "./ContentText";
 
@@ -313,10 +316,18 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const getLinksWithAiContent = (refTopicLinks = []) => {
+    const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
+    return refTopicLinks.filter((ref) => {
+        return ref.descriptions?.[lang]?.ai_title?.length > 0  ||
+            ref.descriptions?.[lang]?.ai_prompt > 0;
+    });
+};
+
 const getLinksToGenerate = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
     return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.ai_context.length > 0  &&
+        return ref.descriptions?.[lang]?.ai_context?.length > 0  &&
             !ref.descriptions?.[lang]?.prompt;
     });
 };
@@ -375,8 +386,10 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   const tpTopImg = !multiPanel && topicImage ? <TopicImage photoLink={topicImage.image_uri} caption={topicImage.image_caption}/> : null;
   const actionButtons = getTopicHeaderAdminActionButtons(topic, topicData.refs?.about?.refs);
+  const hasAiContentLinks = getLinksWithAiContent(topicData.refs?.about?.refs).length != 0;
 
-  return (
+
+return (
     <div>
         <div className="navTitle tight">
                 <CategoryHeader type="topics" data={topicData} toggleButtonIDs={["source", "edit", "reorder"]} actionButtons={actionButtons}>
@@ -384,6 +397,9 @@ const TopicHeader = ({ topic, topicData, topicTitle, multiPanel, isCat, setNavTo
                     <InterfaceText text={{en:en, he:he}}/>
                 </h1>
                 </CategoryHeader>
+            {hasAiContentLinks &&
+                <AiInfoTooltip/>
+            }
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
        {!isCat && category ?
