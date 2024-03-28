@@ -316,25 +316,26 @@ const TopicSponsorship = ({topic_slug}) => {
     );
 }
 
+const isLinkPublished = (lang, link) => {return link.descriptions?.[lang]?.published === false;}
+
 const getLinksWithAiContent = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-    return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.ai_title?.length > 0  ||
-            ref.descriptions?.[lang]?.ai_prompt > 0;
+    return refTopicLinks.filter(link => {
+        return link.descriptions?.[lang]?.ai_title?.length > 0 && isLinkPublished(lang, link)
     });
 };
 
 const getLinksToGenerate = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-    return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.ai_context?.length > 0  &&
-            !ref.descriptions?.[lang]?.prompt;
+    return refTopicLinks.filter(link => {
+        return link.descriptions?.[lang]?.ai_context?.length > 0  &&
+            !link.descriptions?.[lang]?.prompt;
     });
 };
 const getLinksToPublish = (refTopicLinks = []) => {
     const lang = Sefaria.interfaceLang === "english" ? 'en' : 'he';
-    return refTopicLinks.filter((ref) => {
-        return ref.descriptions?.[lang]?.published === false;
+    return refTopicLinks.filter(link => {
+        return isLinkPublished(lang, link);
     });
 };
 
