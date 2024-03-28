@@ -251,7 +251,6 @@ class ConnectionsPanel extends Component {
   }
   async setCurrentVersions() {
     const data = await this.getData();
-    console.log(0, data)
     let currentLanguage = this.props.masterPanelLanguage;
     if (currentLanguage === "bilingual") {
       currentLanguage = "hebrew"
@@ -268,7 +267,6 @@ class ConnectionsPanel extends Component {
       },
       sectionRef: data.sectionRef,
     });
-    console.log(1, this.state.currObjectVersions)
   }
   checkSrefs(srefs) {
     // Mostly exists for properly displaying Ranging refs in TextList on page loads and on sheets
