@@ -167,7 +167,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
 
 
   return (
-      <a href={url} onClick={onClickCallBack}>
+      <a href={url} onClick={onClickCallBack} className={'search-suggestion-link-wrapper'}>
           <div
             key={value}
             {...getItemProps({ index: universalIndex})}
