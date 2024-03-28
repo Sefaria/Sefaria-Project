@@ -152,7 +152,6 @@ function trackSidebarAdClick(ad) {
     adType: "sidebar",
   });
 }
-const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
 const GDocAdvertText = () => {
     const learnMoreLink = "https://sefaria.org/sheets/529099?origin=AddToSheetsPromo"
     return    <InterfaceText>
@@ -164,12 +163,13 @@ const GDocAdvertBox = React.memo(() => {
     const gdocsCampaignId = "GDocs_Promo_AddToSheet";
     const installNowLink = 'https://workspace.google.com/marketplace/app/sefaria/849562338091?utm_source=SefariaOrg&utm_medium=SidebarAdButton&utm_campaign=AddToSheetPromotion&utm_content=InstallFromAddToSheet';
     const gdocsCampaignAd = {campaignId: gdocsCampaignId};
-    const gdocInstalled = 'gdoc_installed';
+    const gdocInstalledKey = 'gdoc_installed';
     const handleInstall = () => {
-        cookie(gdocInstalled, JSON.stringify(1), {path: "/"});
+        localStorage.setItem(gdocInstalledKey, "true");
         trackSidebarAdClick(gdocsCampaignAd);
     }
-    return !cookie(gdocInstalled) &&
+    const hasGdocInstalled = gdocInstalledKey in localStorage && JSON.parse(localStorage.getItem(gdocInstalledKey));
+    return !hasGdocInstalled &&
         <OnInView onVisible={() => trackSidebarAdImpression(gdocsCampaignAd)}>
             <div className="gDocAdvertBox">
               <GDocAdvertText/>
