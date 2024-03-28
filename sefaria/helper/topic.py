@@ -1163,6 +1163,8 @@ def _get_merged_descriptions(current_descriptions, requested_descriptions):
         merged_review_state = _calculate_approved_review_state(current_review_state, requested_review_state, _description_was_ai_generated(current_description_in_lang))
         if merged_review_state:
             requested_description_in_lang['review_state'] = merged_review_state
+        else:
+            requested_description_in_lang.pop('review_state', None)
     return deep_update(current_descriptions, requested_descriptions)
 
 
