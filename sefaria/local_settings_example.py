@@ -255,17 +255,20 @@ SIMPLE_JWT = {
     'SIGNING_KEY': 'a signing key: at least 256 bits',
 }
 
-# Celery
-REDIS_PORT = 6379
+# Celery - the following section defines variables to connect to the celery broker. This can be either redis or redis sentinel
+# Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
+# If using sentinel, also pass any variables prefixed with SENTINEL. Otherwise, they can be left as default.
+# All other variables need to be defined if connecting to either redis or redis sentinel
+REDIS_URL = "redis://127.0.0.1"
+REDIS_PORT = 6379  # the port exposed on either redis or redis sentinel. default for sentinel is 26379
 REDIS_PASSWORD = None
+SENTINEL_HEADLESS_URL = None
+SENTINEL_PASSWORD = None
+SENTINEL_TRANSPORT_OPTS = {}
 CELERY_REDIS_BROKER_DB_NUM = 0
 CELERY_REDIS_RESULT_BACKEND_DB_NUM = 1
 CELERY_QUEUES = {}
-# Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
-SENTINEL_HEADLESS_URL = None
-SENTINEL_TRANSPORT_OPTS = {}
-SENTINEL_PASSWORD = None
-REDIS_URL = "redis://127.0.0.1"
+# END Celery
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration

@@ -42,8 +42,12 @@ def add_password_to_url(url, password):
     return re.sub(r'((?:redis|sentinel)://)', fr'\1:{password}@', url)
 
 
-def generate_config(redis_config: RedisConfig, sentinel_config: SentinelConfig) -> dict:
-    if sentinel_config.is_configured():
+def generate_config(redis_config: RedisConfig, sentinel_config: SentinelConfig = None) -> dict:
+    """
+    :param redis_config: required, whether connecting to redis or redis sentinel, the redis config is required.
+    :param sentinel_config: optional, only pass if connecting to redis sentinel
+    """
+    if sentinel_config is not None and sentinel_config.is_configured():
         redisdns = dns.resolver.resolve(sentinel_config.url, 'A')
         addressstring = []
         for res in redisdns.response.answer:
