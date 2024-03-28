@@ -117,19 +117,13 @@ spec:
           - name: OTEL_RESOURCE_ATTRIBUTES
             value: k8s.container.name=app,k8s.deployment.name={{ .Values.deployEnv }}-web,k8s.namespace.name={{ .Release.Namespace }},k8s.node.name=$(OTEL_RESOURCE_ATTRIBUTES_NODE_NAME),k8s.pod.name=$(OTEL_RESOURCE_ATTRIBUTES_POD_NAME)
           {{- end }}
-          {{- if .Values.tasks.enabled }}
-          - name: SENTINEL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.tasks.redis.sentinelPassword.secretRef.name }}
-                key: {{ .Values.tasks.redis.sentinelPassword.secretRef.key }}
-          - name: REDIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.tasks.redis.redisPassword.secretRef.name }}
-                key: {{ .Values.tasks.redis.redisPassword.secretRef.key }}
-          {{- end }}
         envFrom:
+          {{- if .Values.tasks.enabled }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.sentinelPassword.secretRef.name }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.redisPassword.secretRef.name }}
+          {{- end }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}  
           - secretRef:
