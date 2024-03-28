@@ -2083,7 +2083,6 @@ div.interfaceLinks-row a {
   font-family: "Cardo", "Meltho", "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif, "Noto Sans Samaritan";
   font-size: 16px;
   margin-inline-start: 10px;
-  margin-top: -10px;
   min-width: 150px;
   overflow-x: hidden;
   overflow-y: hidden;
@@ -2129,9 +2128,18 @@ div.interfaceLinks-row a {
   font-size: 14px;
   height: 23px;
 }
-.ai-message{
+.ai-message {
   z-index: 1;
   position: absolute;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 2s ease, visibility 0s 2s;
+}
+
+.ai-message.visible {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease;
 }
 
 .ai-info-tooltip .ai-info-icon{

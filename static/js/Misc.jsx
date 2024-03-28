@@ -1510,15 +1510,15 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 
 const AiInfoTooltip = () => {
   const [showMessage, setShowMessage] = useState(false);
-    const aiInfoIcon = (
-            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon"/>
+  const aiInfoIcon = (
+            <img className="ai-info-icon" src="/static/icons/ai-info.svg" alt="AI Info Icon" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}/>
     );
         const aiMessage = (
-        <div className="ai-info-messages-box">
+        <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
               <div className="ai-info-first-message">
               <InterfaceText>
                   <EnglishText>Some of the text on this page has been AI generated and reviewed by our editors. <a href={"/sheets/541399?lang=en"}>Learn more.</a></EnglishText>
-                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מאלכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
+                  <HebrewText>חלק מהטקסטים בדף זה נוצרו על ידי בינה מלאכותית ועברו הגהה על ידי צוות העורכים שלנו.&nbsp;
                        <a href={"/sheets/541399?lang=en"}>לפרטים נוספים</a></HebrewText>
               </InterfaceText>
 
@@ -1532,13 +1532,11 @@ const AiInfoTooltip = () => {
         </div>
     );
   return (
-    <div className="ai-info-tooltip" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
+    <div className="ai-info-tooltip">
       {aiInfoIcon}
-      {showMessage && (
-        <div className="ai-message">
+        <div className={`ai-message ${(showMessage) ? 'visible' : ''}`}>
             {aiMessage}
         </div>
-      )}
     </div>
   );
 };
