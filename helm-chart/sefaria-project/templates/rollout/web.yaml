@@ -120,9 +120,9 @@ spec:
         envFrom:
           {{- if .Values.tasks.enabled }}
           - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.secretRef.name }}
+              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
           - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.secretRef.name }}
+              name: {{ .Values.tasks.redis.redisPassword.ref }}
           {{- end }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}  

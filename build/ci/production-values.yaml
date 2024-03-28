@@ -117,11 +117,9 @@ tasks:
     transportOptions:
       master: mymaster
     redisPassword:
-      secretRef:
-        name: redis-password
+      ref: redis-password
     sentinelPassword:
-      secretRef:
-        name: sentinel-password
+      ref: sentinel-password
   queues:
     llm: llm-llm
 ingress:

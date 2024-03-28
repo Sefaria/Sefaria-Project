@@ -93,19 +93,13 @@ spec:
             value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: HELM_REVISION
             value: "{{ .Release.Revision }}"
-          {{- if .Values.tasks.enabled }}
-          - name: SENTINEL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.tasks.redis.sentinelPassword.secretRef.name }}
-                key: {{ .Values.tasks.redis.sentinelPassword.secretRef.key }}
-          - name: REDIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.tasks.redis.redisPassword.secretRef.name }}
-                key: {{ .Values.tasks.redis.redisPassword.secretRef.key }}
-          {{- end }}
         envFrom:
+          {{- if .Values.tasks.enabled }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.redisPassword.ref }}
+          {{- end }}
           - secretRef:
               name: {{ template "sefaria.secrets.elasticUser" . }}
           - secretRef:
