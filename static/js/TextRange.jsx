@@ -21,7 +21,6 @@ class TextRange extends Component {
     };
   }
   componentDidMount() {
-    console.log(55, this.props)
     this.setState({isMounted: true});
     this.setData()
     window.addEventListener('resize', this.conditionalPlaceSegmentNumbers);
@@ -117,13 +116,17 @@ class TextRange extends Component {
       // If there was an error, don't update the state
       return;
     }
-    // Initiate additional API calls when text data first loads
-    if (this.props.basetext && this.props.sref !== data.ref) {
-      // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
-      // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      this.props.showBaseText(data.ref, true, this.props.currVersions, [], false);
-      return;
-    } else if (this.props.basetext && data.spanning) {
+
+    // in v3 when this.props.sref is segment and context is true, this will always happem, so this commented out untill discovering what it should do
+    // // Initiate additional API calls when text data first loads
+    // if (this.props.basetext && this.props.sref !== data.ref) {
+    //   // Replace ReaderPanel contents ref with the normalized form of the ref, if they differ.
+    //   // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
+    //   this.props.showBaseText(data.ref, true, this.props.currVersions, [], false);
+    //   return;
+    // } else
+
+    if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
       this.props.showBaseText(data.spanningRefs, true, this.props.currVersions, [], false);
