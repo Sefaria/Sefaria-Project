@@ -1,3 +1,8 @@
+"""
+NOTE: This file is a direct copy of the same file in the LLM repo
+This file is required for any new service that wants to configure celery
+We should consider releasing this as a pip module but it's not clear where that would live at this point
+"""
 import re
 import dns.resolver
 from dataclasses import dataclass
