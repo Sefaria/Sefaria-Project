@@ -119,9 +119,11 @@ tasks:
     redisPassword:
       secretRef:
         name: redis-password
+        key: REDIS_PASSWORD
     sentinelPassword:
       secretRef:
         name: sentinel-password
+        key: SENTINEL_PASSWORD
   queues:
     llm: llm-llm
 ingress:
