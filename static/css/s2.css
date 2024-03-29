@@ -4528,7 +4528,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .autocomplete-dropdown{
   background: #FFFFFF;
   position: absolute;
-  top: 100%;
+  top: 45px;
   width: auto;
   max-width: 130%;
   left: 0;
