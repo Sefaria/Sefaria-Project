@@ -4563,7 +4563,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .search-suggestion {
     display: flex;
     list-style-type: none;
-    padding: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-right: 12px;
+    padding-left: 12px;
     font-family: 'EB Garamond';
     font-style: normal;
     font-weight: 400;
