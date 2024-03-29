@@ -4542,6 +4542,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom-width: 0.766667px;
   display: flex;
   align-items: start;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 .search-group-suggestions-items{
   display: flex;
@@ -4551,27 +4553,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .search-suggestion-link-wrapper{
   display: flex;
+  /*height: 35px;*/
+  align-items: center;
 }
 .search-suggestion-link-wrapper:hover{
   text-decoration: none;
 }
 
-.search-suggestion{
-  display: flex;
-  list-style-type: none;
-  padding-bottom: 6px;
-  padding-left: 12px;
-  padding-right: 12px;
-  padding-top: 12px;
-  font-family: 'EB Garamond';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 23px;
-  cursor: pointer;
-  width: max-content;
-  flex-grow: 1;
-  max-width: 100%;
+.search-suggestion {
+    display: flex;
+    list-style-type: none;
+    padding: 12px;
+    font-family: 'EB Garamond';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 23px;
+    cursor: pointer;
+    width: max-content;
+    flex-grow: 1;
+    max-width: 100%;
+    min-height: 10px;
 }
 
 .search-suggestion-text{
@@ -4618,9 +4620,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: 400;
   font-size: 14px;
   line-height: 18px;
-/* or 129% */
   color: #999999;
-  margin-top: 12px;
+  margin-top: 6px;
   width: 20%;
   padding-inline-end: 10px;
 }
