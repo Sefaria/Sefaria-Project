@@ -242,7 +242,20 @@ GOOGLE_OAUTH2_CLIENT_SECRET = ""
 # This is the field that is actually used
 GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = ""
 
-GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
+GOOGLE_APPLICATION_CREDENTIALS = {
+  "type": "service_account",
+  "project_id": os.getenv("project_id"),
+  "private_key_id": os.getenv("private_key_id"),
+  "private_key": os.getenv("private_key"),
+  "client_email": os.getenv("client_email"),
+  "client_id": os.getenv("client_id"),
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/pecha-738%40pecha-418412.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
+
 
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
