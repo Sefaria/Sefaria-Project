@@ -7,13 +7,13 @@ from sefaria.helper.topic import add_image_to_topic
 ## Adding images
 
 hardcodedTopicImagesMap = {
-    'rosh-hashanah': {'image_uri': 'https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg',
-                      'enCaption': 'Rosh Hashanah, Arthur Szyk (1894-1951) Tempera and ink on paper. New Canaan, 1948. Collection of Yeshiva University Museum. Gift of Charles Frost',
-                      'heCaption': 'ראש השנה, ארתור שיק, ארה״ב 1948. אוסף ישיבה יוניברסיטי'},
+    'prayer': {'image_uri': 'https://storage.googleapis.com/pecha-topic-pictures/topics/losar.jpg',
+                      'enCaption': 'losar caption',
+                      'heCaption': 'ལོ་གསར་'},
 
-    'yom-kippur': {'image_uri': 'https://storage.googleapis.com/img.sefaria.org/topics/yom-kippur.jpeg',
-                   'enCaption': 'Micrography of Jonah being swallowed by the fish. Germany, 1300-1500, The British Library',
-                   'heCaption': 'מיקרוגרפיה של יונה בבטן הדג, מתוך ספר יונה ההפטרה של יום כיפור, 1300-1500'},
+    'Author': {'image_uri': 'https://storage.googleapis.com/pecha-topic-pictures/topics/gonpo.jpg',
+                   'enCaption': 'Gonpo Ludrup',
+                   'heCaption': 'མགོན་པོ་ཀླུ་གྲུབ་'},
 
     'the-four-species': {'image_uri': 'https://storage.googleapis.com/img.sefaria.org/topics/the-four-species.jpg',
                          'enCaption': 'Etrog container, K B, late 19th century, Germany. The Jewish Museum, Gift of Dr. Harry G. Friedman',
