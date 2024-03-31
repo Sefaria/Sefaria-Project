@@ -4609,6 +4609,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .autocomplete-dropdown .type-icon.ac-img-User{
   opacity: 1;
+  border-radius: 50%;
 }
 
 .interface-english .autocomplete-dropdown .type-icon {
