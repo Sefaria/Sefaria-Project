@@ -544,10 +544,10 @@ Sefaria = extend(Sefaria, {
     //TODO - one version (translation is missing or is same as primary (-user asked for same, or defaults are same))
     ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle } = translation);
     ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle } = primary);
-    if (!translation.sources.every(source => source === translation.sources[0])) {
+    if (translation.sources && !translation.sources.every(source => source === translation.sources[0])) {
         versionsResponse.sources = translation.sources;
     }
-    if (!primary.sources.every(source => source === primary.sources[0])) {
+    if (primary.sources && primary.sources.every(source => source === primary.sources[0])) {
         versionsResponse.heSources = primary.sources;
     }
   },
