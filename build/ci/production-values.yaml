@@ -115,7 +115,7 @@ tasks:
     resultBackendDBNumber: 3
     sentinelURL: "redis-headless.redis.svc.cluster.local"
     transportOptions:
-      master: mymaster
+      master_name: mymaster
     redisPassword:
       ref: redis-password
     sentinelPassword:
