@@ -1658,28 +1658,17 @@ def index_api(request, title, raw=False):
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
-        # use the update function if update is in the params
-        func = tracker.update if request.GET.get("update", False) else tracker.add
-        j = json.loads(request.POST.get("json"))
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
-        j["title"] = title.replace("_", " ")
-        title = j.get("oldTitle", j.get("title"))
-        book = None
-        try:
-            book = library.get_index(title)
-        except BookNameError:
-            pass
-        if 'schema' not in j and book:
-            # if book already exists and no schema provided, use old schema
-            j['schema'] = book.contents()['schema']
-
         #todo: move this to texts_api, pass the changes down through the tracker and text chunk
         #if "versionTitle" in j:
         #    if j["versionTitle"] == "Sefaria Community Translation":
         #        j["license"] = "CC0"
         #        j["licenseVetter"] = True
-        if not request.user.is_authenticated:
+        # use the update function if update is in the params
+        func = tracker.update if request.GET.get("update", False) else tracker.add
+        j = json.loads(request.POST.get("json"))
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        if not request.user.is_authenticated:   # typical path for content engineers
             key = request.POST.get("apikey")
             if not key:
                 return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
@@ -1687,16 +1676,30 @@ def index_api(request, title, raw=False):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
-        elif book and not request.user.is_staff and not user_started_text(request.user.id, title):
-            # Only allow staff and the person who submitted a text to edit
-            return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
-        @csrf_protect
-        def protected_index_post(request):
-            return jsonResponse(
-                func(request.user.id, Index, j, raw=raw).contents(raw=raw)
-            )
+        else:                                   # path for logged in users
+            j["title"] = title.replace("_", " ")
+            title = j.get("oldTitle", j.get("title"))
+            book = None
+            try:
+                book = library.get_index(title)
+            except BookNameError:
+                pass
 
-        return protected_index_post(request)
+            if book and not request.user.is_staff and not user_started_text(request.user.id, title):
+                # Only allow staff and the person who submitted a text to edit
+                return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
+
+            if 'schema' not in j and book:
+                # if book already exists and no schema provided, use old schema
+                j['schema'] = book.contents()['schema']
+
+            @csrf_protect
+            def protected_index_post(request):
+                return jsonResponse(
+                    func(request.user.id, Index, j, raw=raw).contents(raw=raw)
+                )
+
+            return protected_index_post(request)
 
     if request.method == "DELETE":
         if not request.user.is_staff:
