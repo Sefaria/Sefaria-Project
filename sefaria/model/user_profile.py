@@ -875,23 +875,6 @@ def is_user_staff(uid):
     except:
         return False
 
-
-def user_started_text(uid, title):
-    """
-    Returns true if uid was responsible for first adding 'title'
-    to the library.
-
-    This checks for the oldest matching index change record for 'title'.
-    If someone other than the initiator changed the text's title, this function
-    will incorrectly report False, but this matches our intended behavior to
-    lock name changes after an admin has stepped in.
-    """
-    log = db.history.find({"title": title}).sort([["date", -1]]).limit(1)
-    if len(log):
-        return log[0]["user"] == uid
-    return False
-
-
 def annotate_user_list(uids):
     """
     Returns a list of dictionaries giving details (names, profile links)

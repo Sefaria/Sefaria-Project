@@ -34,7 +34,7 @@ from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data, UserWrapper
+from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
 from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
@@ -1253,7 +1253,7 @@ def edit_text_info(request, title=None, new_title=None):
         # Edit Existing
         title = title.replace("_", " ")
         i = library.get_index(title)
-        if not (request.user.is_staff or user_started_text(request.user.id, title)):
+        if not request.user.is_staff:
             return render_template(request,'static/generic.html', None, {
                 "title": "Permission Denied",
                 "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
@@ -1658,16 +1658,18 @@ def index_api(request, title, raw=False):
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
     if request.method == "POST":
+        def index_post(request, UID, method):
+            return jsonResponse(func(UID, Index, j, raw=raw, method=method).contents(raw=raw))
+
+        USER_TYPE = None  # indicates whether a Content Engineer or Admin is modifying the Index
+        CONTENT_TYPE = "CONTENT"
+        ADMIN_TYPE = "ADMIN"
+        UID = None
         #todo: move this to texts_api, pass the changes down through the tracker and text chunk
         #if "versionTitle" in j:
         #    if j["versionTitle"] == "Sefaria Community Translation":
         #        j["license"] = "CC0"
         #        j["licenseVetter"] = True
-        # use the update function if update is in the params
-        func = tracker.update if request.GET.get("update", False) else tracker.add
-        j = json.loads(request.POST.get("json"))
-        if not j:
-            return jsonResponse({"error": "Missing 'json' parameter in post data."})
         if not request.user.is_authenticated:   # typical path for content engineers
             key = request.POST.get("apikey")
             if not key:
@@ -1675,31 +1677,34 @@ def index_api(request, title, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], Index, j, method="API", raw=raw).contents(raw=raw))
-        else:                                   # path for logged in users
-            j["title"] = title.replace("_", " ")
-            title = j.get("oldTitle", j.get("title"))
-            book = None
-            try:
-                book = library.get_index(title)
-            except BookNameError:
-                pass
+            USER_TYPE = CONTENT_TYPE
+            UID = apikey["uid"]
+        else:
+            if not request.user.is_staff:
+                return jsonResponse({"error": "You must be staff to edit an index record with the admin tool."})
+            USER_TYPE = ADMIN_TYPE
+            UID = request.user.id
 
-            if book and not request.user.is_staff and not user_started_text(request.user.id, title):
-                # Only allow staff and the person who submitted a text to edit
-                return jsonResponse({"error": "{} is protected from change.<br/><br/>See a mistake?<br/>Email hello@sefaria.org.".format(title)})
+        # use the update function if update is in the params
+        func = tracker.update if request.GET.get("update", False) else tracker.add
+        j = json.loads(request.POST.get("json"))
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
-            if 'schema' not in j and book:
+        if USER_TYPE == CONTENT_TYPE:
+            return index_post(request, UID, "API")
+        elif USER_TYPE == ADMIN_TYPE:
+            if 'schema' not in j:
                 # if book already exists and no schema provided, use old schema
-                j['schema'] = book.contents()['schema']
-
-            @csrf_protect
-            def protected_index_post(request):
-                return jsonResponse(
-                    func(request.user.id, Index, j, raw=raw).contents(raw=raw)
-                )
-
-            return protected_index_post(request)
+                j["title"] = title.replace("_", " ")
+                title = j.get("oldTitle", j.get("title"))
+                try:
+                    book = library.get_index(title)
+                    j['schema'] = book.contents()['schema']
+                except BookNameError:
+                    pass
+            admin_post = csrf_protect(index_post)
+            return admin_post(request, UID, None)
 
     if request.method == "DELETE":
         if not request.user.is_staff:
