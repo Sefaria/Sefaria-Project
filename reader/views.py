@@ -424,9 +424,9 @@ def make_panel_dict(oref, primaryVersion, translationVersion, filter, versionFil
                 if primary_params == translation_params:
                     text['he'] = text['text'] = text['versions'][0]['text']
                 elif [text['versions'][0]['languageFamilyName'], text['versions'][0]['versionTitle']] == translation_params:
-                    text['text'] = text['versions'][0]['text']
+                    text['text'], text['he'] = text['versions'][0]['text'], []
                 else:
-                    text['he'] = text['versions'][0]['text']
+                    text['he'], text['text'] = text['versions'][0]['text'], []
 
             text["updateFromAPI"] = True
             panel["text"] = text
