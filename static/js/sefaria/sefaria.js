@@ -528,7 +528,10 @@ Sefaria = extend(Sefaria, {
     return Sefaria._sortVersionsIntoBuckets(returnObj.versions);
   },
   _adaptApiResponse: function(versionsResponse) {
-    // takes an api-v3 texts response for primary and translation versions, and add the texts to 'he' and 'text' to be like old api texts response
+    /**
+     * takes an api-v3 texts response for primary and translation versions, and adapt it to the expected 'old' result.
+     * it adds the texts to 'he' and 'text', and the sources to 'sources' and 'heSources'
+     */
     const versions = versionsResponse.versions;
     let primary, translation;
     if (versions.length === 1) {
@@ -541,6 +544,12 @@ Sefaria = extend(Sefaria, {
     //TODO - one version (translation is missing or is same as primary (-user asked for same, or defaults are same))
     ({ text: versionsResponse.text, versionTitle: versionsResponse.versionTitle } = translation);
     ({ text: versionsResponse.he, versionTitle: versionsResponse.heVersionTitle } = primary);
+    if (translation.sources) {
+        versionsResponse.sources = translation.sources;
+    }
+    if (primary.sources) {
+        versionsResponse.heSources = primary.sources;
+    }
   },
   _getPrimaryAndTranslationText: async function(ref, primaryVersionObj, translationVersionObj) {
     // versionObjs are objects with language and versionTitle
