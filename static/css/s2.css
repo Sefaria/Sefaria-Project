@@ -4637,9 +4637,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .autocomplete-dropdown .type-title .int-en{
   margin-left: 15px;
+  margin-right: 114px;
 }
 .autocomplete-dropdown .type-title .int-he{
   margin-right: 15px;
+  margin-left: 114px;
 }
 
 .readerNavMenu .sheet {
