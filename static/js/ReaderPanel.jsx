@@ -1245,43 +1245,45 @@ class ReaderControls extends Component {
      * Preload translation versions to get shortVersionTitle to display
      */
     if (!this.shouldShowVersion()) { return; }
-    Sefaria.getTranslations(this.props.currentRef).then(versions => {
-      console.log(this.props.currVersions)
-      const enVTitle = this.props.currVersions.en?.APIResult;
-      if (!enVTitle) {
-        // merged version from API
-        this.setDisplayVersionTitle({});
-        return;
+    const data = this.state.data;
+    if (data.sources) {
+      // merged version from API
+      this.setDisplayVersionTitle({});
+      return;
+    }
+    for (const version of Object.values(data.available_versions)) {
+      if (!version.isSource && version.versionTitle === data.versionTitle) {
+        this.setDisplayVersionTitle(version);
+        break;
       }
-      for (let version of Object.values(versions).flat()) {
-        if (version.versionTitle === enVTitle) {
-          this.setDisplayVersionTitle(version);
-          break;
+    }
+  }
+  loadDataAndTranslations() {
+    const ref = this.props.currentRef;
+    if (ref) {
+      const versionPref = Sefaria.versionPreferences.getVersionPref(ref);
+      const getTextPromise = Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
+        if ("error" in data) {
+          this.props.onError(data.error);
         }
-      }
-    });
+        this.setState({data, runningQuery: null});
+        this.loadTranslations();
+      });
+      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
+    }
   }
   openTranslations() {
     this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
   }
   componentDidMount() {
-    const ref = this.props.currentRef;
-    if (ref) {
-      const versionPref = Sefaria.versionPreferences.getVersionPref(ref);
-      const getTextPromise = Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
-        if ("error" in data) { this.props.onError(data.error); }
-        this.setState({data, runningQuery: null});
-      });
-      this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
-    }
-    this.loadTranslations();
+    this.loadDataAndTranslations()
   }
   componentDidUpdate(prevProps, prevState) {
     if (
       this.shouldShowVersion() !== this.shouldShowVersion(prevProps) ||
-      !Sefaria.areCurrVersionObjectsEqual(this.props.currVersions, prevProps.currVersions)
+      !Sefaria.areCurrVersionObjectsEqual(this.props.currVersions.en, prevProps.currVersions.en)
     ) {
-      this.loadTranslations();
+      this.loadDataAndTranslations();
     }
   }
   componentWillUnmount() {
