@@ -362,7 +362,10 @@ const publishPrompts = async (topicSlug, linksToPublish) => {
     try {
         const response = await Sefaria.postToApi(`/api/ref-topic-links/bulk`, {}, linksToPublish);
         const refValues = response.map(item => item.anchorRef).join(", ");
-        alert("The following prompts have been published: " + refValues);
+        const shouldRefresh = confirm("The following prompts have been published: " + refValues + ". Refresh page to see results?");
+        if (shouldRefresh) {
+            window.location.reload();
+        }
     } catch (error) {
         console.error("Error occurred:", error);
     }
