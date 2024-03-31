@@ -141,6 +141,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
   let searchOverrideText = null;
   let displayedLabel = label;
   let onClickCallBack = null;
+  let searchIconClassName = null
 
   const submitSearchOverride = () => {
       _submitSearch(label)
@@ -159,7 +160,9 @@ const SearchSuggestion = ({ value, type, label, url, pic,
             <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
             {displayedLabel}
             <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
-        </>
+        </>;
+    searchIconClassName = 'search-icon'
+
 }
 
 
@@ -175,7 +178,7 @@ const SearchSuggestion = ({ value, type, label, url, pic,
            ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}
           >
              <img alt={type}
-                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon`}
+                   className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon ${searchIconClassName}`}
                    src={_type_icon(type, pic)}/>
 
               <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}

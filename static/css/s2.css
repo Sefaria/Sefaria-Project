@@ -4617,6 +4617,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .autocomplete-dropdown .type-icon {
   margin-left: 10px;
 }
+.interface-hebrew .autocomplete-dropdown .type-icon {
+  margin-left: 10px;
+}
+.autocomplete-dropdown .type-icon.search-icon {
+  padding-inline-start: 3px;
+}
 .autocomplete-dropdown .type-title{
   font-family: 'Roboto';
   font-style: normal;
