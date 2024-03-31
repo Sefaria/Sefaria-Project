@@ -52,7 +52,6 @@ class Util {
       return `${version.languageFamilyName}|${this.encodeVtitle(version.versionTitle)}`;
     }
     static getUrlVersionsParams(currVersions, i=0) {
-      currVersions = this.getCurrVersionsWithoutAPIResultFields(currVersions);
       if (currVersions) {
         return Object.entries(currVersions)
           .filter(([vlang, version]) => !!version?.versionTitle)
@@ -65,20 +64,6 @@ class Util {
     static getObjectFromUrlParam(param) {
       const params = (params) ? param.split('|') : '|';
       return {languageFamilyName: params[0], versionTitle: params[1]};
-    }
-    static getCurrVersionsWithoutAPIResultFields(currVersions) {
-      /**
-       * currVersions can contain fields like `enAPIResult` and `heAPIResult`.
-       * returns an object without these fields
-       */
-      if (!currVersions) { return currVersions; }
-      return Object.entries(currVersions).reduce(
-        (a, [vlang, vtitle]) => {
-          if (vlang.endsWith("APIResult")) { return a; }
-          a[vlang] = vtitle;
-          return a;
-        }, {}
-      );
     }
     static decodeVtitle(vtitle) {
       return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');

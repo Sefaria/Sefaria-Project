@@ -133,8 +133,6 @@ class TextRange extends Component {
       return;
     }
 
-    this._updateCurrVersions(data);
-
     // If this is a ref to a super-section, rewrite it to first available section
     if (this.props.basetext && data.textDepth - data.sections.length > 1 && data.firstAvailableSectionRef) {
       this.props.showBaseText(data.firstAvailableSectionRef, true, this.props.currVersions, [], false);
@@ -145,11 +143,6 @@ class TextRange extends Component {
 
     this.conditionalPlaceSegmentNumbers();
     this.props.onTextLoad && this.props.onTextLoad(data.ref);
-  }
-  _updateCurrVersions(data) {
-    // make sure currVersions matches versions returned, due to translationLanguagePreference and versionPreferences
-    if (!this.props.updateCurrVersionsToMatchAPIResult) { return; }
-    this.props.updateCurrVersionsToMatchAPIResult(data.versionTitle, data.heVersionTitle);
   }
   _prefetchLinksAndNotes(data) {
     let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];

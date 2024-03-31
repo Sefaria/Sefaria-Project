@@ -173,22 +173,6 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
   }
-  updateCurrVersionsToMatchAPIResult(enVTitle, heVTitle) {
-    if (this.state.currVersions.en?.APIResult === enVTitle && this.state.currVersions.he?.APIResult === heVTitle) {
-      return;
-    }
-    const newVersions = {
-        en: {
-          ...this.state.currVersions.en,
-          APIResult: enVTitle,
-        },
-        he: {
-          ...this.state.currVersions.he,
-          APIResult: heVTitle,
-        }
-    };
-    this.conditionalSetState({ currVersions: newVersions });
-  }
   openConnectionsPanel(ref, additionalState) {
     /**
      * Decides whether to open a new connections panel or to open connections in the current panel
@@ -680,7 +664,6 @@ class ReaderPanel extends Component {
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           navigatePanel={this.props.navigatePanel}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );

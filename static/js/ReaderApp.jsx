@@ -1796,8 +1796,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
-    // strip APIResult fields from currVersions
-    const currVersions = Sefaria.util.getCurrVersionsWithoutAPIResultFields(panel.currVersions);
+    const currVersions = panel.currVersions;
     const parsedRef = Sefaria.parseRef(ref);
     if (!ref) { debugger; }
     return {
