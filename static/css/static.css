@@ -3260,6 +3260,9 @@ display: none;
   margin-top: 45px;
 }
 div .notificationsList {
+  margin-top: -20px;
+}
+form.globalUpdateForm + div.notificationsList {
   margin-top: 20px;
 }
 #teamPage .inner {
@@ -3509,13 +3512,18 @@ div .notificationsList {
     #jobsPage .inner {
       padding-top: 0;
       margin-inline-start: auto;
+      max-width: revert;
     }
     #updatesPanelContent .readerNavMenu .content .contentInner {
       margin-top: 0;
-      margin-inline-start: auto;
+      margin-inline-start: 20px;
     }
 }
 @media (max-width: 480px) {
+  .container.doc.legal.static .inner, #annualReport .inner, #metricsPage .inner, #supportersPage .inner,
+  #testimonialsPage .inner, #aboutPage .inner, #teamPage .inner, #jobsPage .inner {
+    margin-inline-start: auto;
+  }
   #updatesPage .globalUpdateForm {
     margin-top: 50px;
     width: 270px;
@@ -3524,8 +3532,7 @@ div .notificationsList {
     width: 50%;
   }
   #updatesPanelContent .readerNavMenu .content .contentInner {
-    margin-left: 0;
-    margin-top: 0;
+    margin: auto 0;
   }
   #aboutSidebar.mobileAbout {
     margin-top: -90px;
