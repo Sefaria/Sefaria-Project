@@ -3511,12 +3511,15 @@ form.globalUpdateForm + div.notificationsList {
     #teamPage .inner,
     #jobsPage .inner {
       padding-top: 0;
-      margin-inline-start: auto;
-      max-width: revert;
+      margin-inline-start: 50px;
     }
     #updatesPanelContent .readerNavMenu .content .contentInner {
       margin-top: 0;
       margin-inline-start: 20px;
+    }
+    .interface-hebrew #testimonialsPage .inner {
+      margin: 0 auto;
+      margin-right: 20px;
     }
 }
 @media (max-width: 480px) {
