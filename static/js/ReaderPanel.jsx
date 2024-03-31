@@ -1212,6 +1212,7 @@ class ReaderControls extends Component {
     super(props);
     this.state = {
       displayVersionTitle: {},  // lang codes as keys and version title to display in header as values. prefers shortVersionTitle when available but falls back on versionTitle
+      data: null,
     };
   }
   openTextConnectionsPanel(e) {
@@ -1245,6 +1246,7 @@ class ReaderControls extends Component {
      */
     if (!this.shouldShowVersion()) { return; }
     Sefaria.getTranslations(this.props.currentRef).then(versions => {
+      console.log(this.props.currVersions)
       const enVTitle = this.props.currVersions.en?.APIResult;
       if (!enVTitle) {
         // merged version from API
@@ -1263,13 +1265,12 @@ class ReaderControls extends Component {
     this.props.openConnectionsPanel([this.props.currentRef], {"connectionsMode": "Translations"});
   }
   componentDidMount() {
-    const title = this.props.currentRef;
-    if (title) {
-      // If we don't have this data yet, rerender when we do so we can set the Hebrew title
-      const versionPref = Sefaria.versionPreferences.getVersionPref(title);
-      const getTextPromise = Sefaria.getText(title, {context: 1, translationLanguagePreference: this.props.translationLanguagePreference, versionPref}).then(data => {
+    const ref = this.props.currentRef;
+    if (ref) {
+      const versionPref = Sefaria.versionPreferences.getVersionPref(ref);
+      const getTextPromise = Sefaria.getTextFromCurrVersions(ref, this.props.currVersions).then(data => {
         if ("error" in data) { this.props.onError(data.error); }
-        this.setState({runningQuery: null});   // Causes re-render
+        this.setState({data, runningQuery: null});
       });
       this.setState({runningQuery: Sefaria.makeCancelable(getTextPromise)});
     }
@@ -1297,7 +1298,7 @@ class ReaderControls extends Component {
     let sectionString = "";
     let heSectionString = "";
     let categoryAttribution = null;
-    const oref = Sefaria.getRefFromCache(this.props.currentRef);
+    const data = this.state.data;
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
@@ -1309,12 +1310,12 @@ class ReaderControls extends Component {
         }
       }
 
-    } else if (oref) {
-      sectionString = oref.ref.replace(oref.indexTitle, "");
-      heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
-      title = oref.indexTitle;
-      heTitle = oref.heIndexTitle;
-      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories);
+    } else if (data) {
+      title = data.indexTitle;
+      heTitle = data.heIndexTitle;
+      sectionString = data.ref.replace(title, "");
+      heSectionString = data.heRef.replace(heTitle, "");
+      categoryAttribution = data && Sefaria.categoryAttribution(data.categories);
     }
 
     const mode              = this.props.currentMode();
@@ -1322,7 +1323,7 @@ class ReaderControls extends Component {
     const connectionsHeader = this.props.multiPanel && mode === "Connections";
     let displayVersionTitle = this.props.settings.language === 'hebrew' ? this.state.displayVersionTitle.he : this.state.displayVersionTitle.en;
     if (categoryAttribution && displayVersionTitle) { displayVersionTitle = `(${displayVersionTitle})`; }
-    const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
+    const url = this.props.sheetID ? "/sheets/" + this.props.sheetID : data ? "/" + Sefaria.normRef(data.book) : Sefaria.normRef(this.props.currentRef);
     const readerTextTocClasses = classNames({readerTextToc: 1, attributed: !!categoryAttribution || this.shouldShowVersion(), connected: this.props.hasSidebar});
 
 
@@ -1362,7 +1363,7 @@ class ReaderControls extends Component {
                 }
               </div>
               <div className="readerTextVersion">
-                {categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null }
+                {categoryAttribution ? <CategoryAttribution categories={data.categories} linked={false} /> : null }
                 {
                   this.shouldShowVersion() && displayVersionTitle ?
                   <span className="readerTextVersion">
