@@ -110,7 +110,7 @@ tasks:
   replicaCount: 1
   redis:
     url: ""
-    port: "26397"
+    port: "26379"
     brokerDBNumber: 2
     resultBackendDBNumber: 3
     sentinelURL: "redis-headless.redis.svc.cluster.local"
