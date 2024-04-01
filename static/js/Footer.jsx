@@ -115,7 +115,7 @@ class Footer extends Component {
                   </a> */}
               </div>
           </div>
-          <div>
+          <div id='version_number'>
                 <InterfaceText>Version: 1.0.0</InterfaceText>
           </div>
         </div>
