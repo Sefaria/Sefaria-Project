@@ -11,8 +11,8 @@ SITE_SETTINGS = {
 		"he": "האוסף של ספריא",
 	},
 	"SUPPORTED_TRANSLATION_LANGUAGES": ['en', 'es', 'fr', 'de'],
-	"COLLECTIONS_BUCKET": "sefaria-collection-images",
-	"PROFILES_BUCKET": 'sefaria-profile-pictures',
-	"UGC_BUCKET": 'sheet-user-uploaded-media',
-	"TOPICS_BUCKET": 'img.sefaria.org'
+	"COLLECTIONS_BUCKET": "pecha-collection-images",
+	"PROFILES_BUCKET": 'pecha-profile-pictures',
+	"UGC_BUCKET": 'pecha-sheet-user-uploaded-media',
+	"TOPICS_BUCKET": 'pecha-topic-pictures'
 }
