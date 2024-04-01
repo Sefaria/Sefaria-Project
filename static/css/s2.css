@@ -4549,7 +4549,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  width: 80%;
+  width: 0%;
 }
 .search-suggestion-link-wrapper{
   display: flex;
