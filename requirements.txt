@@ -67,7 +67,7 @@ python-bidi
 requests
 Cerberus
 dnspython
-
+python-dotenv
 #opentelemetry-distro
 #opentelemetry-exporter-otlp
 #opentelemetry-propagator-b3
