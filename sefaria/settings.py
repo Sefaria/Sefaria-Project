@@ -1,5 +1,5 @@
 # Django settings for sefaria project.
-
+import os
 import os.path
 from django.utils.translation import ugettext_lazy as _
 
@@ -367,10 +367,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-ANYMAIL = {
-    "MAILGUN_API_KEY": "caadd69fa6a409f93ca946909b857fa7-f68a26c9-84dcc93d",
-    "MAILGUN_SENDER_DOMAIN": 'sandboxe4e16cc85abc42ab8f94f13cf58cab7a.mailgun.org',  
-}
-EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend" 
-DEFAULT_FROM_EMAIL = "lungsang2023@gmail.com" 
-SERVER_EMAIL = "lungsang2023@gmail.com" 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Use the app password you generated
+EMAIL_USE_TLS = True
