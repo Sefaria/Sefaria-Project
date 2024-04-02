@@ -9125,7 +9125,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #version_number {
     position: absolute;
     left: 30px;
-    bottom: 9px
+    bottom: 9px;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #footer .section {
   display: inline-block;
