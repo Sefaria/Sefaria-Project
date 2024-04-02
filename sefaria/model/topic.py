@@ -56,7 +56,7 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
                 "image_uri": {
                     "type": "string",
                     "required": True,
-                    "regex": "^https://storage\.googleapis\.com/img\.sefaria\.org/topics/.*?"
+                    "regex": "^https://storage\.googleapis\.com/pecha\-topic\-pictures/topics/.*?"
                 },
                 "image_caption": {
                     "type": "dict",

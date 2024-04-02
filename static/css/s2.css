@@ -9090,12 +9090,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 10px;
 }
 #footer {
-  background-color: white;
+  position: absolute;
+  bottom: 0;
+  height: 1.3rem;
+  background-color: transparent;
   border-top: 1px solid #F4F4F4;
   overflow: hidden;
   padding: 18px 40px 70px 40px;
   text-align: left;
-  color: #999;
+  color: #808080;
 }
 .singlePanel #footer {
   padding: 18px 15px 70px 15px;
@@ -9118,6 +9121,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footerInner {
   max-width: 1000px;
   margin: 0 auto;
+}
+#version_number {
+    position: absolute;
+    left: 30px;
+    bottom: 9px;
+    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 #footer .section {
   display: inline-block;
