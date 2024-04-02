@@ -5,6 +5,10 @@ import structlog
 import sefaria.system.logging as sefaria_logging
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 ################
 # YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE
 # If the db.sqlite file does not exist, simply list a path where it can be created.
@@ -24,7 +28,7 @@ DATABASES = {
 }
 """
 
-DATABASES = {
+PROD_DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv("POSTGRESQL_DATABASE_NAME", "POSTGRESQL_DATABASE_NAME not defined!"),
@@ -35,7 +39,17 @@ DATABASES = {
         'PORT': 5432
     }
 }
-
+LOCAL_DATABASE={
+      'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': os.getenv("sqlDB"), # Path to where you would like the database to be created including a file name, or path to an existing database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+DATABASES=PROD_DATABASES if os.getenv('isLocale') is None else LOCAL_DATABASE
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {}
@@ -76,7 +90,7 @@ USER_AGENTS_CACHE = 'default'
 SHARED_DATA_CACHE_ALIAS = 'shared'
 
 """THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
-CACHES = {
+PROD_CACHES = {
     "shared": {
         "BACKEND": "django_redis.cache.RedisCache",
         # "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
@@ -100,6 +114,15 @@ CACHES = {
     },
 }
 
+LOCAL_CACHES = {
+    "shared": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+    "default": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+}
+CACHES = PROD_CACHES if os.getenv('isLocale') is None else LOCAL_CACHES
 SITE_PACKAGE = "sites.sefaria"
 
 
