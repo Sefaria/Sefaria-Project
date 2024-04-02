@@ -3171,7 +3171,7 @@ const ProductsPage = memo(() => {
             "rectanglionURL": "https://storage.googleapis.com/img.sefaria.org/topics/rosh-hashanah.jpeg",
             "desc": {
                 "he": "אהגכלחדךגכחךדסכצד",
-                "en": "Abcdefghijklmno"
+                "en": "Vivamus dictum rutrum mi, ut varius odio viverra sit amet. Quisque vitae pharetra ipsum. Integer nec dui malesuada, maximus nisi vitae, ullamcorper enim. Aenean ultrices ullamcorper malesuada. Fusce et leo justo. Etiam quis mattis enim. "
             }
         };
         setProducts(dummy_data)
@@ -3181,11 +3181,23 @@ const ProductsPage = memo(() => {
         loadProducts();
     }, []);
 
+    console.log("products: ", products.desc)
+    // TODO - Will need to use InterfaceText for language switching!!
     return (
         <div>
-           <h1>{products.title}</h1>
-           {/* <h2>{products.desc}</h2>
-           <h3>{products.cta_labels}</h3> */}
+            <div class="productsHeader">
+            <h3>{products.title}</h3>
+            <span class="productsTypeLabel">{products?.type}</span>
+            {/* Will need some kind of mapping here */}
+            {products?.cta_labels?.map(item => (
+                <a href={item.url}><span key={item.en}>{item.en}</span></a>
+            ))}
+            </div>
+           
+           <div class="productsInner">
+                <img src={products?.rectanglionURL}/>
+                <div class="productsDesc">{products?.desc?.en}</div>
+           </div>
         </div>
     );
 });

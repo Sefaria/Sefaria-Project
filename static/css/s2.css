@@ -12755,6 +12755,27 @@ span.ref-link-color-3 {color: blue}
     width: 67%;
   }
 }
+
+.productsInner {
+  border: 2px solid red;
+  display: flex;
+  align-items: right;
+}
+
+.productsInner img {
+  width: 30%;
+  max-width: 100%; 
+  border: 2px solid purple;
+  padding-right: 10%;
+}
+
+.productsInner .productsDesc {
+  border: 2px solid aquamarine;
+  font: 'Roboto', sans-serif; 
+  color: #666666;
+  font-size: 16px;
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;
