@@ -9123,7 +9123,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin: 0 auto;
 }
 #version_number {
-    position: absolute;
+    position: fixed;
     left: 30px;
     bottom: 9px;
     font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
