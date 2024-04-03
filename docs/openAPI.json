@@ -992,9 +992,16 @@
                         }
                     },
                     "name": "return_format",
-                    "description": "This query parameter formats the text that will be returned",
+                    "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of four values:\n1. `text_only` - This strips footnotes, inline references and all html tags from the returned text\n2. `strip_only_footnotes` - This only strips the footnotes and commentator <i> tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links\n4. `default` - This returns the basic text as it’s saved in Sefaria’s DB\n",
                     "schema": {
-                        "$ref": "#/components/schemas/return_format"
+                        "enum": [
+                            "default", 
+                            "wrap_all_entities", 
+                            "strip_only_footnotes", 
+                            "text_only"
+                        ],
+                        "type": "string",
+                        "default": "default"
                     },
                     "in": "query"
                 }
@@ -9006,10 +9013,6 @@
                         }
                     }
                 }
-            },
-            "return_format": {
-                "description": "This parameter formats the text that will be returned from the `v3` `texts/` API. It can have one of three values:\n1. `text_only` - This strips footnotes, inline references and all html tags from the returned text\n2. `strip_only_footnotes` - This only strips the footnotes and commentator <i> tags without stripping the other HTML tags.This is useful for the native app, where we do not display footnotes.\n3. `wrap_all_entities` - This wraps the HTML for links and topic links\n4. `default` - This returns the basic text as it’s saved in Sefaria’s DB\n",
-                "type": "string"
             },
             "v3TextsJson": {
                 "title": "Root Type for v3TextsJson",
