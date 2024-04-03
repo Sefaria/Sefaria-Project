@@ -12,11 +12,11 @@
         <div class="inner">
             <p id="message">
                 <span class="int-en">You are already logged in as </span>
-                <span class="int-he">הנכם מחוברים כבר בתור</span>
+                <span class="int-he">ཁྱེད་རང་གིས་ཐོ་འགོད་བྱས་ཟིན།</span>
                 {{ user.email }}.
                 <a href="{% url "logout" %}">
                     <span class="int-en">Logout.</span>
-                    <span class="int-he">להתנתקות.</span>
+                    <span class="int-he">ཕྱི་ལ་གཏོང་</span>
                 </a>
             </p>
         </div>
@@ -29,12 +29,12 @@
             {% if message %}<p id="message">{{ message }}</p>{% endif %}
             <h1>
                 <span class="int-en">Log in to Pecha</span>
-                <span class="int-he">התחברות לספריא</span>
+                <span class="int-he">ནང་འཛུལ།</span>
             </h1>
             {% if form.errors %}
             <p class="error">
                 <span class="int-en">Your username and password didn't match. Please try again.</span>
-                <span class="int-he">בעיה בשם המשתמש או בסיסמא, אנא נסו שוב.</span>
+                <span class="int-he">ཁྱེད་རང་གི་སྤྱོད་མཁན་གྱི་མིང་དང་གསང་གྲངས་ཆ་མི་མཚུངས། ཡང་བསྐྱར་ཚོད་ལྟ་ཐེངས་གཅིག་གནང་རོགས།</span>
             </p>
             {% endif %}
 
@@ -52,17 +52,17 @@
 
                 <button type="submit" class="button control-elem" id="login-submit-button">
                     <span class="int-en">Login</span>
-                    <span class="int-he">התחברות</span>
+                    <span class="int-he">ནང་འཛུལ།</span>
                 </button>
                 <a class="registration-links control-elem" href="{% url "password_reset" %}" id="resetLink">
                     <span class="int-en">Forgot your password?</span>
-                    <span class="int-he">שכחתי את הסיסמא שלי</span>
+                    <span class="int-he">གསང་བ་བརྗེད་སོང་ངམ།</span>
                 </a>
                 <input type="hidden" name="next" value="{{ next }}" />
             </form>
             <a class="registration-links control-elem" href="{% url "register" %}{% if next %}?next={{ next }}{% endif %}">
                 <span class="int-en">Create a new account</span>
-                <span class="int-he">חדש? יצירת חשבון משתמש חדש</span>
+                <span class="int-he">ཐོ་ཁོངས་གསར་འཛུགས་</span>
 
             </a>
 	    </div>
