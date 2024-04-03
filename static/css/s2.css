@@ -12776,6 +12776,38 @@ span.ref-link-color-3 {color: blue}
   font-size: 16px;
 }
 
+.productsHeader {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.productsHeader .productsTitle {
+  font: 'Roboto', sans-serif; 
+  color: #666666;
+  font-size: 22px;
+  font-weight: 500px;
+}
+
+.productsHeader .productsTypeLabel {
+  font: 'Roboto', sans-serif; 
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 18px;
+  background-color: #EDEDEC; 
+  border-radius: 6px; 
+  padding: 5px 10px; 
+  color: #666666; 
+}
+
+.productsHeader .productsCTA {
+  color: #4B71B7; 
+}
+
+.productsHeader .productsCTAIcon {
+  width: 1%;
+  height: 1%;
+}
+
 .image-in-text-title {
     margin: auto; /* English System Small */
     margin-top: 15px;

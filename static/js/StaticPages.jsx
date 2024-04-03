@@ -3186,14 +3186,16 @@ const ProductsPage = memo(() => {
     return (
         <div>
             <div class="productsHeader">
-            <h3>{products.title}</h3>
-            <span class="productsTypeLabel">{products?.type}</span>
-            {/* Will need some kind of mapping here */}
-            {products?.cta_labels?.map(item => (
-                <a href={item.url}><span key={item.en}>{item.en}</span></a>
-            ))}
+                <span class="productsTitle">{products.title}</span>
+                <span class="productsTypeLabel">{products?.type}</span>
+                {/* Will need some kind of mapping here, conditional on icon image*/}
+                {products?.cta_labels?.map(item => (
+                    <a href={item.url}><img class="productsCTAIcon" src={item.icon}/><span key={item.en} class="productsCTA">{item.en}</span></a>
+                ))}
             </div>
            
+            <hr/>
+
            <div class="productsInner">
                 <img src={products?.rectanglionURL}/>
                 <div class="productsDesc">{products?.desc?.en}</div>
