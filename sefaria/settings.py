@@ -2,6 +2,9 @@
 import os
 import os.path
 from django.utils.translation import ugettext_lazy as _
+from dotenv import load_dotenv
+
+load_dotenv()
 
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
