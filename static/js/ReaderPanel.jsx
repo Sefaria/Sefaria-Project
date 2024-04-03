@@ -57,7 +57,7 @@ class ReaderPanel extends Component {
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
   }
-  conditionalSetData() {
+  conditionalSetTextData() {
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const ref = this.state.currentlyVisibleRef;
       Sefaria.getTextFromCurrVersions(ref, this.state.currVersions).then(data => {
@@ -66,7 +66,7 @@ class ReaderPanel extends Component {
     }
   }
   componentDidMount() {
-    this.conditionalSetData();
+    this.conditionalSetTextData();
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
     if (this.props.panelPosition) {  //Focus on the first focusable element of the newly loaded panel. Mostly for a11y
@@ -100,7 +100,7 @@ class ReaderPanel extends Component {
     }
     if (!Sefaria.areCurrVersionObjectsEqual(this.state.currVersions, prevState.currVersions) ||
         this.state.currentlyVisibleRef !== prevState.currentlyVisibleRef) {
-      this.conditionalSetData();
+      this.conditionalSetTextData();
     }
   }
   conditionalSetState(state) {
