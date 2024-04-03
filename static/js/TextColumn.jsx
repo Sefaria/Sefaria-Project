@@ -23,6 +23,7 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
+    this.textRangesRef = React.createRef();
   }
   componentDidMount() {
     this._isMounted          = true;
@@ -88,6 +89,7 @@ class TextColumn extends Component {
       // console.log("restore scroll by percentage for layout Width Change")
       this.restoreScrollPositionByPercentage();
     }
+    
   }
   handleScroll(event) {
     // console.log("scroll");
@@ -424,7 +426,7 @@ class TextColumn extends Component {
         <LoadingMessage message={" "} heMessage={" "} className="base next final" key={"next"}/>;
     }
 
-    return (<div className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
+    return (<div ref={this.textRangesRef} className={classes} onMouseUp={this.handleTextSelection} onClick={this.handleClick} onMouseDown={this.handleDoubleClick}>
       {pre}
       {content}
       {post}
@@ -435,6 +437,7 @@ TextColumn.propTypes = {
   srefs:                  PropTypes.array.isRequired,
   currVersions:           PropTypes.object.isRequired,
   highlightedRefs:        PropTypes.array,
+  connectionsPanelRef:    PropTypes.string,
   basetext:               PropTypes.bool,
   withContext:            PropTypes.bool,
   loadLinks:              PropTypes.bool,

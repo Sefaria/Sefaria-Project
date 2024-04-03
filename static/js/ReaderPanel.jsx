@@ -675,6 +675,7 @@ class ReaderPanel extends Component {
           translationLanguagePreference={this.props.translationLanguagePreference}
           updateCurrVersionsToMatchAPIResult={this.updateCurrVersionsToMatchAPIResult}
           navigatePanel={this.props.navigatePanel}
+          connectionsPanelRef={this.state.connectionsPanelRef}
           key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
       );
     }
